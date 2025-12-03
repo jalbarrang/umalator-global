@@ -37,7 +37,7 @@ import {
 import { Rule30CARng, SeededRng } from './Random';
 import { Region, RegionList } from './Region';
 
-import skills from '@data/skill_data.json' with { type: 'json' };
+import skills from '@data/skill_data.json';
 
 type PartialRaceParameters = Omit<
   { -readonly [K in keyof RaceParameters]: RaceParameters[K] },

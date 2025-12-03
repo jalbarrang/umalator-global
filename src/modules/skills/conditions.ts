@@ -1,4 +1,4 @@
-import SkillsDataList from '@data/skill_data.json' with { type: 'json' };
+import SkillsDataList from '@data/skill_data.json';
 
 import { getParser } from '@simulation/lib/ConditionParser';
 import { mockConditions } from '@simulation/lib/tools/ConditionMatcher';

@@ -17,7 +17,7 @@ import {
   parseStrategy,
 } from '@simulation/lib/RaceSolverBuilder';
 
-import skilldata from '@data/skill_data.json' with { type: 'json' };
+import skilldata from '@data/skill_data.json';
 import { Rule30CARng } from '@simulation/lib/Random';
 import { RunnerState } from '@/modules/runners/components/runner-card/types';
 

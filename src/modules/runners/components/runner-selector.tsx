@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import icons from '@data/icons.json' with { type: 'json' };
+import icons from '@data/icons.json';
 
 import { umasForSearch } from '@/modules/runners/utils';
 import { useMemo } from 'react';

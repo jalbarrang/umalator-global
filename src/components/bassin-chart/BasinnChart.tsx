@@ -26,7 +26,7 @@ import { BasinnChartData } from '@/utils/constants';
 import skill_meta from '@data/skill_meta.json';
 import skillnames from '@data/skillnames.json';
 import umas from '@data/umas.json';
-import icons from '@data/icons.json' with { type: 'json' };
+import icons from '@data/icons.json';
 
 import './BasinnChart.css';
 import i18n from '@/i18n';

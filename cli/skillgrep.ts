@@ -3,8 +3,8 @@ import { program, Option } from 'commander';
 import { getParser } from '@simulation/ConditionParser';
 import { mockConditions, treeMatch } from '@simulation/tools/ConditionMatcher';
 
-import skills from '@data/skill_data.json' with { type: 'json' };
-import skillnames from '@data/skillnames.json' with { type: 'json' };
+import skills from '@data/skill_data.json';
+import skillnames from '@data/skillnames.json';
 
 program
   .argument(

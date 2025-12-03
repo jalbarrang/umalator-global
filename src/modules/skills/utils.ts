@@ -1,7 +1,7 @@
-import skillsDataList from '@data/skill_data.json' with { type: 'json' };
-import skillMetaList from '@data/skill_meta.json' with { type: 'json' };
-import skillNamesList from '@data/skillnames.json' with { type: 'json' };
-import GametoraSkills from '@data/gametora/skills.json' with { type: 'json' };
+import skillsDataList from '@data/skill_data.json';
+import skillMetaList from '@data/skill_meta.json';
+import skillNamesList from '@data/skillnames.json';
+import GametoraSkills from '@data/gametora/skills.json';
 
 import { UmaAltId } from '@/modules/runners/utils';
 import { strict as assert } from 'assert';

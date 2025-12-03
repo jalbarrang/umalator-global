@@ -55,7 +55,7 @@ export interface CourseData {
   readonly moveLanePoint: number;
 }
 
-import courses from '@data/course_data.json' with { type: 'json' };
+import courses from '@data/course_data.json';
 
 export namespace CourseHelpers {
   export function assertIsPhase(phase: number): asserts phase is Phase {

@@ -19,7 +19,7 @@ import {
 import { PRNG } from '@simulation/Random';
 import { Region, RegionList } from '@simulation/Region';
 
-import skills from '@data/skill_data.json' with { type: 'json' };
+import skills from '@data/skill_data.json';
 
 const { parse, tokenize } = getParser();
 
