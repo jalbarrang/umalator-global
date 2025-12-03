@@ -31,14 +31,12 @@ export interface HorseParameters {
   readonly rawStamina: number;
 }
 
-export namespace StrategyHelpers {
-  export function assertIsStrategy(
-    strategy: number,
-  ): asserts strategy is Strategy {
-    assert(Strategy.hasOwnProperty(strategy));
+export class StrategyHelpers {
+  static assertIsStrategy(strategy: number): asserts strategy is Strategy {
+    assert(Object.prototype.hasOwnProperty.call(Strategy, strategy));
   }
 
-  export function strategyMatches(s1: Strategy, s2: Strategy) {
+  static strategyMatches(s1: Strategy, s2: Strategy) {
     return (
       s1 == s2 ||
       (s1 == Strategy.Nige && s2 == Strategy.Oonige) ||

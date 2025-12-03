@@ -12,7 +12,7 @@ export default defineConfig([
   ...tseslint.configs.recommended,
   reactHooks.configs.flat.recommended,
   reactRefresh.configs.vite,
-  globalIgnores(['dist']),
+  globalIgnores(['dist', './src/components/ui']),
   {
     files: ['**/*.{ts,tsx}'],
     languageOptions: {

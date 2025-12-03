@@ -305,7 +305,7 @@ function notSupported(
   _1: number,
   _2: CourseData,
   _3: HorseParameters,
-  extra: RaceParameters,
+  _extra: RaceParameters,
 ): never {
   assert(false, 'unsupported comparison');
   throw 0; // appease typescript
@@ -316,7 +316,7 @@ function noop(
   _1: number,
   _2: CourseData,
   _3: HorseParameters,
-  extra: RaceParameters,
+  _extra: RaceParameters,
 ) {
   return regions;
 }
@@ -414,9 +414,9 @@ export const noopUniformRandom = uniformRandom(noopAll);
 function shiftRegionsForwardByMinTime(
   regions: RegionList,
   minTime: number,
-  course: CourseData,
+  _course: CourseData,
   _: HorseParameters,
-  extra: RaceParameters,
+  _extra: RaceParameters,
 ) {
   const minDistance = 13 * minTime;
   const shiftedRegions = new RegionList();
@@ -437,7 +437,7 @@ function noopSectionRandom(start: number, end: number) {
     _0: number,
     course: CourseData,
     _1: HorseParameters,
-    extra: RaceParameters,
+    _extra: RaceParameters,
   ) {
     const bounds = new Region(
       start * (course.distance / 24),
@@ -719,7 +719,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       t: number,
       _0: CourseData,
       _1: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       return [regions, (s: RaceState) => s.accumulatetime.t >= t] as [
         RegionList,
@@ -733,7 +733,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       n: number,
       _0: CourseData,
       _1: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       return [
         regions,
@@ -745,7 +745,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       n: number,
       _0: CourseData,
       _1: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       return [
         regions,
@@ -759,7 +759,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       n: number,
       _0: CourseData,
       _1: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       return [regions, (s: RaceState) => s.activateCount[2] >= n] as [
         RegionList,
@@ -773,7 +773,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       n: number,
       _0: CourseData,
       _1: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       return [regions, (s: RaceState) => s.activateCountHeal >= n] as [
         RegionList,
@@ -787,7 +787,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       n: number,
       _0: CourseData,
       _1: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       return [regions, (s: RaceState) => s.activateCount[1] >= n] as [
         RegionList,
@@ -801,7 +801,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       n: number,
       _0: CourseData,
       _1: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       return [regions, (s: RaceState) => s.activateCount[0] >= n] as [
         RegionList,
@@ -816,7 +816,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       one: number,
       course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       assert(one == 1, 'must be all_corner_random==1');
       const corners = course.corners.map(
@@ -833,23 +833,23 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
   always: noopImmediate,
   // NB. since skill conditions are processed before any skill activations, stats here are base stats (i.e. greens are not included)
   base_power: valueFilter(
-    (_: CourseData, horse: HorseParameters, extra: RaceParameters) =>
+    (_: CourseData, horse: HorseParameters, _extra: RaceParameters) =>
       horse.power,
   ),
   base_speed: valueFilter(
-    (_: CourseData, horse: HorseParameters, extra: RaceParameters) =>
+    (_: CourseData, horse: HorseParameters, _extra: RaceParameters) =>
       horse.speed,
   ),
   base_stamina: valueFilter(
-    (_: CourseData, horse: HorseParameters, extra: RaceParameters) =>
+    (_: CourseData, horse: HorseParameters, _extra: RaceParameters) =>
       horse.stamina,
   ),
   base_guts: valueFilter(
-    (_: CourseData, horse: HorseParameters, extra: RaceParameters) =>
+    (_: CourseData, horse: HorseParameters, _extra: RaceParameters) =>
       horse.guts,
   ),
   base_wiz: valueFilter(
-    (_: CourseData, horse: HorseParameters, extra: RaceParameters) =>
+    (_: CourseData, horse: HorseParameters, _extra: RaceParameters) =>
       horse.wisdom,
   ),
   bashin_diff_behind: noopErlangRandom(3, 2.0),
@@ -873,7 +873,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       _0: number,
       course: CourseData,
       _1: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       const bounds = new Region(
         CourseHelpers.phaseStart(course.distance, 2),
@@ -888,7 +888,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       _0: number,
       course: CourseData,
       _1: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       assert(
         CourseHelpers.isSortedByStart(course.corners),
@@ -908,7 +908,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       _0: number,
       course: CourseData,
       _1: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       const bounds = new Region(
         CourseHelpers.phaseStart(course.distance, 1),
@@ -923,7 +923,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       _0: number,
       course: CourseData,
       _1: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       assert(
         CourseHelpers.isSortedByStart(course.straights),
@@ -939,7 +939,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       cornerNum: number,
       course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       assert(
         CourseHelpers.isSortedByStart(course.corners),
@@ -978,7 +978,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       cornerNum: number,
       course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       assert(cornerNum == 0, 'only supports corner!=0');
       const corners = course.corners.map(
@@ -988,7 +988,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
     },
   }),
   corner_count: valueFilter(
-    (course: CourseData, _: HorseParameters, extra: RaceParameters) =>
+    (course: CourseData, _: HorseParameters, _extra: RaceParameters) =>
       course.corners.length,
   ),
   // FIXME this shouldn't actually be random, since in cases like corner_random==1@corner_random==2 it should sample
@@ -1065,7 +1065,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
     },
   }),
   course_distance: valueFilter(
-    (course: CourseData, _: HorseParameters, extra: RaceParameters) =>
+    (course: CourseData, _: HorseParameters, _extra: RaceParameters) =>
       course.distance,
   ),
   distance_diff_rate: noopImmediate,
@@ -1077,7 +1077,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       rate: number,
       course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       const bounds = new Region(0, (course.distance * rate) / 100);
       return regions.rmap((r) => r.intersect(bounds));
@@ -1087,7 +1087,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       rate: number,
       course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       const bounds = new Region(
         (course.distance * rate) / 100,
@@ -1102,7 +1102,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       rate: number,
       course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       const bounds = new Region(
         (course.distance * rate) / 100,
@@ -1117,7 +1117,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       distanceType: number,
       course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       CourseHelpers.assertIsDistanceType(distanceType);
       if (course.distanceType == distanceType) {
@@ -1131,7 +1131,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       distanceType: number,
       course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       CourseHelpers.assertIsDistanceType(distanceType);
       if (course.distanceType != distanceType) {
@@ -1147,7 +1147,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       one: number,
       course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       assert(one == 1, 'must be down_slope_random==1');
       const slopes = course.slopes
@@ -1164,7 +1164,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       extra.groundCondition,
   ),
   ground_type: valueFilter(
-    (course: CourseData, _: HorseParameters, extra: RaceParameters) =>
+    (course: CourseData, _: HorseParameters, _extra: RaceParameters) =>
       course.surface,
   ),
   hp_per: immediate({
@@ -1173,7 +1173,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       hpPer: number,
       _0: CourseData,
       _1: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       hpPer /= 100;
       return [regions, (s: RaceState) => s.hp.hpRatioRemaining() <= hpPer] as [
@@ -1186,7 +1186,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       hpPer: number,
       _0: CourseData,
       _1: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       hpPer /= 100;
       return [regions, (s: RaceState) => s.hp.hpRatioRemaining() >= hpPer] as [
@@ -1217,7 +1217,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       flag: number,
       course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       assert(
         flag == 0 || flag == 1,
@@ -1234,7 +1234,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       flag: number,
       _0: CourseData,
       _1: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       assert(
         flag == 0 || flag == 1,
@@ -1253,7 +1253,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       flag: number,
       course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       assert(flag == 1, 'must be is_dirtgrade==1');
       return [10101, 10103, 10104, 10105].indexOf(course.raceTrackId) > -1
@@ -1265,7 +1265,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       flag: number,
       course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       assert(flag == 1, 'must be is_dirtgrade!=1');
       return [10101, 10103, 10104, 10105].indexOf(course.raceTrackId) == -1
@@ -1279,7 +1279,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       flag: number,
       course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       assert(
         flag == 0 || flag == 1,
@@ -1305,7 +1305,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       one: number,
       course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       assert(one == 1, 'must be is_finalcorner_laterhalf==1');
       assert(
@@ -1329,7 +1329,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       one: number,
       course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       assert(one == 1, 'must be is_finalcorner_random==1');
       assert(
@@ -1348,9 +1348,9 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
     filterEq(
       regions: RegionList,
       one: number,
-      course: CourseData,
+      _course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       assert(one == 1, 'must be is_hp_empty_onetime==1');
       return [regions, (s: RaceState) => !s.hp.hasRemainingHp()] as [
@@ -1365,7 +1365,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       one: number,
       course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       assert(one == 1, 'must be is_lastspurt==1');
       const bounds = new Region(
@@ -1384,7 +1384,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       one: number,
       course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       assert(one == 1, 'must be is_last_straight_onetime==1');
       assert(
@@ -1401,7 +1401,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       one: number,
       course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       assert(one == 1, 'must be is_last_straight_onetime==1');
       assert(
@@ -1425,7 +1425,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       skillId: number,
       _0: CourseData,
       _1: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       return [regions, (s: RaceState) => s.usedSkills.has('' + skillId)] as [
         RegionList,
@@ -1440,7 +1440,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       case_: number,
       course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       // NB. not entirely sure these are correct, based on some vague remarks made by kuromi once
       let f;
@@ -1528,7 +1528,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       phase: number,
       course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       CourseHelpers.assertIsPhase(phase);
       assert(phase > 0, 'phase == 0');
@@ -1543,7 +1543,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       phase: number,
       course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       CourseHelpers.assertIsPhase(phase);
       const bounds = new Region(
@@ -1557,7 +1557,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       phase: number,
       course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       CourseHelpers.assertIsPhase(phase);
       assert(phase < 3, 'phase > 2');
@@ -1572,7 +1572,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       phase: number,
       course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       CourseHelpers.assertIsPhase(phase);
       const bounds = new Region(
@@ -1588,7 +1588,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       phase: number,
       course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       CourseHelpers.assertIsPhase(phase);
       const phaseStart = CourseHelpers.phaseStart(course.distance, phase);
@@ -1615,7 +1615,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       phase: number,
       course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       CourseHelpers.assertIsPhase(phase);
       const start = CourseHelpers.phaseStart(course.distance, phase);
@@ -1630,7 +1630,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       phase: number,
       course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       CourseHelpers.assertIsPhase(phase);
       const start = CourseHelpers.phaseStart(course.distance, phase);
@@ -1645,7 +1645,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       phase: number,
       course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       CourseHelpers.assertIsPhase(phase);
       const start = CourseHelpers.phaseStart(course.distance, phase);
@@ -1660,7 +1660,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       phase: number,
       course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       CourseHelpers.assertIsPhase(phase);
       const start = CourseHelpers.phaseStart(course.distance, phase);
@@ -1675,7 +1675,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       phase: number,
       course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       CourseHelpers.assertIsPhase(phase);
       const start = CourseHelpers.phaseStart(course.distance, phase);
@@ -1690,7 +1690,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       phase: number,
       course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       CourseHelpers.assertIsPhase(phase);
       const bounds = new Region(
@@ -1707,13 +1707,15 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       phase: number,
       course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       CourseHelpers.assertIsPhase(phase);
+
       const phaseBounds = new Region(
-        CourseHelpers.phaseStart(course.distance, phase),
-        CourseHelpers.phaseEnd(course.distance, phase),
+        CourseHelpers.phaseStart(course.distance, phase as Phase),
+        CourseHelpers.phaseEnd(course.distance, phase as Phase),
       );
+
       return regions
         .rmap((r) => course.straights.map((s) => r.intersect(s)))
         .rmap((r) => r.intersect(phaseBounds));
@@ -1777,7 +1779,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       lot: number,
       _0: CourseData,
       _1: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       return [regions, (s: RaceState) => s.randomLot < lot] as [
         RegionList,
@@ -1791,7 +1793,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       remain: number,
       course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       const bounds = new Region(
         course.distance - remain,
@@ -1804,7 +1806,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       remain: number,
       course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       const bounds = new Region(course.distance - remain, course.distance);
       return regions.rmap((r) => r.intersect(bounds));
@@ -1814,14 +1816,14 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       remain: number,
       course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       const bounds = new Region(0, course.distance - remain);
       return regions.rmap((r) => r.intersect(bounds));
     },
   }),
   rotation: valueFilter(
-    (course: CourseData, _: HorseParameters, extra: RaceParameters) =>
+    (course: CourseData, _: HorseParameters, _extra: RaceParameters) =>
       course.turn,
   ),
   running_style: immediate({
@@ -1830,7 +1832,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       strategy: number,
       _: CourseData,
       horse: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       StrategyHelpers.assertIsStrategy(strategy);
       if (StrategyHelpers.strategyMatches(horse.strategy, strategy)) {
@@ -1847,19 +1849,19 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
   // NB. this seems kind of questionable in general. perhaps a perspective member should be added to RaceParameters.
   // also, abusing valueFilter like this only works because these conditions are used like running_style_count_nige_otherself>=1
   running_style_count_nige_otherself: valueFilter(
-    (_: CourseData, horse: HorseParameters, extra: RaceParameters) =>
+    (_: CourseData, horse: HorseParameters, _extra: RaceParameters) =>
       +StrategyHelpers.strategyMatches(horse.strategy, Strategy.Nige),
   ),
   running_style_count_senko_otherself: valueFilter(
-    (_: CourseData, horse: HorseParameters, extra: RaceParameters) =>
+    (_: CourseData, horse: HorseParameters, _extra: RaceParameters) =>
       +StrategyHelpers.strategyMatches(horse.strategy, Strategy.Senkou),
   ),
   running_style_count_sashi_otherself: valueFilter(
-    (_: CourseData, horse: HorseParameters, extra: RaceParameters) =>
+    (_: CourseData, horse: HorseParameters, _extra: RaceParameters) =>
       +StrategyHelpers.strategyMatches(horse.strategy, Strategy.Sasi),
   ),
   running_style_count_oikomi_otherself: valueFilter(
-    (_: CourseData, horse: HorseParameters, extra: RaceParameters) =>
+    (_: CourseData, horse: HorseParameters, _extra: RaceParameters) =>
       +StrategyHelpers.strategyMatches(horse.strategy, Strategy.Oikomi),
   ),
   running_style_equal_popularity_one: noopImmediate,
@@ -1878,7 +1880,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       slopeType: number,
       course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       assert(slopeType == 0 || slopeType == 1 || slopeType == 2, 'slopeType');
       // Requires course.slopes is sorted by slope start— this is not always the case, since in course_data.json they are
@@ -1912,7 +1914,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       frontType: number,
       course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       assert(frontType == 1 || frontType == 2, 'frontType');
       const straights = course.straights.filter(
@@ -1928,7 +1930,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       one: number,
       course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       assert(one == 1, 'must be straight_random==1');
       return regions.rmap((r) => course.straights.map((s) => r.intersect(s)));
@@ -1946,7 +1948,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
     (_0: CourseData, _1: HorseParameters, extra: RaceParameters) => extra.time,
   ),
   track_id: valueFilter(
-    (course: CourseData, _: HorseParameters, extra: RaceParameters) =>
+    (course: CourseData, _: HorseParameters, _extra: RaceParameters) =>
       course.raceTrackId,
   ),
   up_slope_random: random({
@@ -1955,7 +1957,7 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
       one: number,
       course: CourseData,
       _: HorseParameters,
-      extra: RaceParameters,
+      _extra: RaceParameters,
     ) {
       assert(one == 1, 'must be up_slope_random==1');
       const slopes = course.slopes

@@ -1,11 +1,11 @@
 import { Tooltip } from '@/components/Tooltip';
-import { useLanguage } from '@/components/Language';
 import { getParser } from '@simulation/lib/ConditionParser';
 import i18n from '@/i18n';
+import { ReactNode } from 'react';
 
 export interface ConditionFormatter {
   name: string;
-  formatArg(arg: number): any;
+  formatArg(arg: number): ReactNode;
 }
 
 function fmtSeconds(arg: number) {
@@ -23,7 +23,7 @@ function fmtMeters(arg: number) {
 function fmtString(strId: string) {
   return function (arg: number) {
     return (
-      <Tooltip title={arg.toString()} tall={useLanguage() == 'ja'}>
+      <Tooltip title={arg.toString()} tall={'en'}>
         {i18n.t(`skilldetails.${strId}.${arg}`)}
       </Tooltip>
     );
@@ -100,7 +100,7 @@ const conditionFormatters = new Proxy(
     time: fmtString('time'),
     track_id(arg: number) {
       return (
-        <Tooltip title={arg} tall={useLanguage() == 'ja'}>
+        <Tooltip title={arg} tall={'en'}>
           {i18n.t(`tracknames.${arg}`)}
         </Tooltip>
       );
@@ -109,7 +109,7 @@ const conditionFormatters = new Proxy(
   },
   {
     get(o: object, prop: string) {
-      if (o.hasOwnProperty(prop)) {
+      if (Object.prototype.hasOwnProperty.call(o, prop)) {
         return { name: prop, formatArg: o[prop] };
       }
       return {
@@ -123,7 +123,7 @@ const conditionFormatters = new Proxy(
 );
 
 interface OpFormatter {
-  format(): any;
+  format(): ReactNode;
 }
 
 class AndFormatter {
@@ -199,22 +199,24 @@ function forceSign(n: number) {
   return n <= 0 ? n.toString() : '+' + n;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const formatStat = forceSign;
 
 function formatSpeed(n: number) {
   return i18n.t('skilldetails.speed', { n: forceSign(n) });
 }
 
-export const formatEffect = Object.freeze({
+// eslint-disable-next-line react-refresh/only-export-components
+export const formatEffect = {
   1: formatStat,
   2: formatStat,
   3: formatStat,
   4: formatStat,
   5: formatStat,
-  9: (n) => `${(n * 100).toFixed(1)}%`,
+  9: (n: number) => `${(n * 100).toFixed(1)}%`,
   21: formatSpeed,
   22: formatSpeed,
   27: formatSpeed,
-  31: (n) => i18n.t('skilldetails.accel', { n: forceSign(n) }),
-  42: (n) => i18n.t('skilldetails.durationincrease', { n }),
-});
+  31: (n: number) => i18n.t('skilldetails.accel', { n: forceSign(n) }),
+  42: (n: number) => i18n.t('skilldetails.durationincrease', { n }),
+};

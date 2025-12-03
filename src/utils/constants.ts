@@ -1,14 +1,5 @@
 import { getPresets } from './races';
 
-export type BasinnChartData = {
-  id: string;
-  min: number;
-  max: number;
-  mean: number;
-  median: number;
-  results: any[];
-};
-
 const presets = getPresets();
 
 const DEFAULT_PRESET_INDEX = Math.max(
@@ -23,32 +14,6 @@ export const DEFAULT_PRESET = presets[DEFAULT_PRESET_INDEX];
 export const DEFAULT_SAMPLES = 500;
 export const DEFAULT_SEED = 2615953739;
 export const DEFAULT_COURSE_ID = DEFAULT_PRESET.courseId;
-
-export type ResultsState = {
-  courseId: number;
-  results: any[];
-  runData: any;
-  chartData: any;
-  displaying: string;
-  rushedStats: any;
-  leadCompetitionStats: any;
-  spurtInfo: any;
-  staminaStats: any;
-  firstUmaStats: any;
-};
-
-export const EMPTY_RESULTS_STATE: ResultsState = {
-  courseId: DEFAULT_COURSE_ID,
-  results: [],
-  runData: null,
-  chartData: null,
-  displaying: '',
-  rushedStats: null,
-  leadCompetitionStats: null,
-  spurtInfo: null,
-  staminaStats: null,
-  firstUmaStats: null,
-};
 
 export const NO_SHOW = Object.freeze([
   '10011',

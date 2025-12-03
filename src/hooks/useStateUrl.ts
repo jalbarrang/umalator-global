@@ -1,5 +1,5 @@
 import { useRunnersStore } from '@/store/runners.store';
-import { useSettingsStore, useWitVariance } from '@/store/settings.store';
+import { getWitVariance, useSettingsStore } from '@/store/settings.store';
 import { getSelectedPacemakersAsArray } from '@/store/settings/actions';
 import { serialize } from '@/utils/storage';
 import { useCallback } from 'react';
@@ -29,7 +29,7 @@ export function useStateUrl() {
       allowSkillCheckChanceUma1,
       allowSkillCheckChanceUma2,
       simWitVariance,
-    } = useWitVariance();
+    } = getWitVariance();
 
     const hash = await serialize(
       courseId,

@@ -349,7 +349,7 @@ export function simulateHpConsumption(
   gutsModifier: number,
   statusModifier: (position: number) => number = () => 1.0,
   inSpurtPhase: boolean = false,
-  dt: number = 1 / 15, // Default to 15 FPS
+  _dt: number = 1 / 15, // Default to 15 FPS
 ): { finalHp: number; consumptionBySegment: number[] } {
   let hp = startHp;
   const consumption: number[] = [];

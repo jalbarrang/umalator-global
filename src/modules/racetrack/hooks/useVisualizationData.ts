@@ -190,7 +190,7 @@ export const useVisualizationData = () => {
       const start = competeFightArray[0];
       const end = competeFightArray[1];
 
-      competeFightArray.push({
+      competeFightData.push({
         umaIndex: umaIndex,
         text: 'Duel',
         color: posKeepColors[umaIndex],
@@ -220,7 +220,7 @@ export const useVisualizationData = () => {
       const start = leadCompetitionArray[0];
       const end = leadCompetitionArray[1];
 
-      leadCompetitionArray.push({
+      leadCompetitionData.push({
         umaIndex: umaIndex,
         text: 'SS',
         color: posKeepColors[umaIndex],
@@ -313,8 +313,8 @@ export const useVisualizationData = () => {
         }
       }
 
-      currentLabel.yOffset = maxYOffset;
-      posKeepLabels.push(currentLabel);
+      const updatedLabel = { ...currentLabel, yOffset: maxYOffset };
+      posKeepLabels.push(updatedLabel);
     }
 
     return posKeepLabels;

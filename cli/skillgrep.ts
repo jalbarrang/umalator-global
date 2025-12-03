@@ -1,10 +1,13 @@
 import { program, Option } from 'commander';
 
-import { getParser } from '@simulation/ConditionParser';
-import { mockConditions, treeMatch } from '@simulation/tools/ConditionMatcher';
+import { getParser } from '../src/modules/simulation/lib/ConditionParser';
+import {
+  mockConditions,
+  treeMatch,
+} from '../src/modules/simulation/lib/tools/ConditionMatcher';
 
-import skills from '@data/skill_data.json';
-import skillnames from '@data/skillnames.json';
+import skills from '../src/modules/data/skill_data.json';
+import skillnames from '../src/modules/data/skillnames.json';
 
 program
   .argument(
@@ -38,8 +41,13 @@ const match = opts.name
   : parseAny(tokenize(opts.condition));
 
 for (const id in skills) {
-  if (id[0] == '9') continue;
+  if (id.startsWith('9')) {
+    // Skip inherited skills
+    continue;
+  }
+
   let logged = false;
+
   skills[id].alternatives.forEach((ef) => {
     if (
       opts.name
@@ -59,10 +67,12 @@ for (const id in skills) {
         }
         logged = true;
       }
+
       if (!opts.list) {
         if (ef.precondition.length > 0) {
           console.log('Precondition:\t' + ef.precondition);
         }
+
         console.log('   Condition:\t' + ef.condition);
       }
     }

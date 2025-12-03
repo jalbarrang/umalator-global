@@ -56,11 +56,11 @@ class IntValue<T, U> implements Token<T, U> {
     this.value = value;
   }
 
-  led(state: ParserState<T, U>, left: Node<T, U>): Node<T, U> {
+  led(_state: ParserState<T, U>, _left: Node<T, U>): Node<T, U> {
     throw new ParseError('unexpected integer literal');
   }
 
-  nud(state: ParserState<T, U>) {
+  nud(_state: ParserState<T, U>) {
     return { type: NodeType.Int, value: this.value } as Node<T, U>;
   }
 }
@@ -116,13 +116,13 @@ export function getParser<ConditionT = Condition, OperatorT = Operator>(
   const Eof = Object.freeze({
     lbp: 0,
     led: (
-      state: ParserState<ConditionT, OperatorT>,
-      left: Node<ConditionT, OperatorT>,
+      _state: ParserState<ConditionT, OperatorT>,
+      _left: Node<ConditionT, OperatorT>,
     ): Node<ConditionT, OperatorT> => {
       throw new ParseError('unexpected eof');
     },
     nud: (
-      state: ParserState<ConditionT, OperatorT>,
+      _state: ParserState<ConditionT, OperatorT>,
     ): Node<ConditionT, OperatorT> => {
       throw new ParseError('unexpected eof');
     },
@@ -137,13 +137,13 @@ export function getParser<ConditionT = Condition, OperatorT = Operator>(
     }
 
     led(
-      state: ParserState<ConditionT, OperatorT>,
-      left: Node<ConditionT, OperatorT>,
+      _state: ParserState<ConditionT, OperatorT>,
+      _left: Node<ConditionT, OperatorT>,
     ): Node<ConditionT, OperatorT> {
       throw new ParseError('unexpected identifier');
     }
 
-    nud(state: ParserState<ConditionT, OperatorT>) {
+    nud(_state: ParserState<ConditionT, OperatorT>) {
       return {
         type: NodeType.Cond,
         cond: conditions[this.value as keyof typeof conditions],
@@ -177,7 +177,7 @@ export function getParser<ConditionT = Condition, OperatorT = Operator>(
     }
 
     nud(
-      state: ParserState<ConditionT, OperatorT>,
+      _state: ParserState<ConditionT, OperatorT>,
     ): Node<ConditionT, OperatorT> {
       throw new ParseError('expected expression');
     }
@@ -209,7 +209,7 @@ export function getParser<ConditionT = Condition, OperatorT = Operator>(
     }
 
     nud(
-      state: ParserState<ConditionT, OperatorT>,
+      _state: ParserState<ConditionT, OperatorT>,
     ): Node<ConditionT, OperatorT> {
       throw new ParseError('expected expression');
     }
@@ -227,11 +227,11 @@ export function getParser<ConditionT = Condition, OperatorT = Operator>(
   const OperatorOr = Object.freeze(new LogicalOp(10, operators.or));
 
   function* tokenize(s: string) {
-    var i = 0;
+    let i = 0;
     while (i < s.length) {
-      var c = s.charCodeAt(i);
+      let c = s.charCodeAt(i);
       if ('0'.charCodeAt(0) <= c && c <= '9'.charCodeAt(0)) {
-        var n = 0;
+        let n = 0;
         while ('0'.charCodeAt(0) <= c && c <= '9'.charCodeAt(0)) {
           n *= 10;
           n += c - '0'.charCodeAt(0);
@@ -239,7 +239,7 @@ export function getParser<ConditionT = Condition, OperatorT = Operator>(
         }
         yield new IntValue<ConditionT, OperatorT>(n);
       } else if (isId(c)) {
-        var idstart = i;
+        const idstart = i;
         while (isId(c)) {
           c = s.charCodeAt(++i);
         }
@@ -304,9 +304,11 @@ export function getParser<ConditionT = Condition, OperatorT = Operator>(
     >,
   ) {
     const node = parseAny(tokens);
+
     if (node.type != NodeType.Op) {
       throw new ParseError('expected comparison or operator');
     }
+
     return node.op;
   }
 
@@ -321,7 +323,7 @@ export function getParser<ConditionT = Condition, OperatorT = Operator>(
   function expression(state: ParserState<ConditionT, OperatorT>, rbp: number) {
     state.current = state.next;
     state.next = state.tokens.next().value;
-    var left = state.current.nud(state);
+    let left = state.current.nud(state);
     while (rbp < state.next.lbp) {
       state.current = state.next;
       state.next = state.tokens.next().value;

@@ -115,7 +115,7 @@ export const mockConditions = new Proxy(
   {},
   {
     get(cache: object, prop: string) {
-      if (cache.hasOwnProperty(prop)) {
+      if (Object.prototype.hasOwnProperty.call(cache, prop)) {
         return cache[prop]; // cache to allow identity comparison
       }
       return (cache[prop] = { name: prop, samplePolicy: mockSamplePolicy });

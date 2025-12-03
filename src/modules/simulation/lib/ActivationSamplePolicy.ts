@@ -70,7 +70,7 @@ export const RandomPolicy = Object.freeze({
   reconcileImmediate(_: ActivationSamplePolicy) {
     return this;
   },
-  reconcileDistributionRandom(other: ActivationSamplePolicy) {
+  reconcileDistributionRandom(_other: ActivationSamplePolicy) {
     return this;
   },
   reconcileRandom(other: ActivationSamplePolicy) {
@@ -116,7 +116,7 @@ export abstract class DistributionRandomPolicy {
   reconcileImmediate(_: ActivationSamplePolicy) {
     return this;
   }
-  reconcileDistributionRandom(other: ActivationSamplePolicy) {
+  reconcileDistributionRandom(_: ActivationSamplePolicy) {
     // this is, strictly speaking, probably not the right thing to do
     // probably this should be the joint probability distribution of `this` and `other`, but that is too complex to implement
     // TODO this is something of a stopgap measure anyway, since eventually we'd like to model most of the conditions that use
@@ -163,17 +163,21 @@ export class LogNormalRandomPolicy extends DistributionRandomPolicy {
 
   distribution(upper: number, nsamples: number, rng: PRNG) {
     // see <https://en.wikipedia.org/wiki/Box%E2%80%93Muller_transform>
-    let nums = [],
-      min = Infinity,
-      max = 0.0;
+    const nums = [];
+    let min = Infinity;
+    let max = 0.0;
     const halfn = Math.ceil(nsamples / 2);
     for (let i = 0; i < halfn; ++i) {
-      let x, y, r2;
+      let x: number;
+      let y: number;
+      let r2: number;
+
       do {
         x = rng.random() * 2.0 - 1.0;
         y = rng.random() * 2.0 - 1.0;
         r2 = x * x + y * y;
       } while (r2 == 0.0 || r2 >= 1.0);
+
       const m = Math.sqrt((-2.0 * Math.log(r2)) / r2) * this.sigma;
       const a = Math.exp(x * m + this.mu);
       const b = Math.exp(y * m + this.mu);
@@ -246,7 +250,7 @@ export const StraightRandomPolicy = Object.freeze({
   reconcileStraightRandom(other: ActivationSamplePolicy) {
     return other;
   },
-  reconcileAllCornerRandom(other: ActivationSamplePolicy) {
+  reconcileAllCornerRandom(_: ActivationSamplePolicy) {
     throw new Error(
       'cannot reconcile StraightRandomPolicy with AllCornerRandomPolicy',
     );

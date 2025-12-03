@@ -20,6 +20,7 @@ import {
 import skilldata from '@data/skill_data.json';
 import { Rule30CARng } from '@simulation/lib/Random';
 import { RunnerState } from '@/modules/runners/components/runner-card/types';
+import { CompareResult } from '@/store/race/compare.types';
 
 // Calculate theoretical max spurt based purely on stats (no RNG)
 
@@ -140,7 +141,7 @@ export function runComparison(
   runnerB: RunnerState,
   pacer: RunnerState,
   options,
-) {
+): CompareResult {
   // Pre-calculate heal skills from uma's skill lists before race starts
   const uma1HealSkills = [];
   const uma2HealSkills = [];
@@ -255,17 +256,17 @@ export function runComparison(
     (a, b) => +a - +b,
   );
 
-  const useCommonIndex = (id: string) => {
+  const getCommonIndex = (id: string) => {
     const index = commonSkills.indexOf(id);
 
     return index > -1 ? index : commonSkills.length;
   };
 
   const skillSorter = (a: string, b: string) =>
-    useCommonIndex(a) - useCommonIndex(b) || +a - +b;
+    getCommonIndex(a) - getCommonIndex(b) || +a - +b;
 
   const uma1Horse = { ...runnerA };
-  const uma1BaseStats = buildBaseStats(uma1Horse, uma1Horse.mood);
+  const uma1BaseStats = buildBaseStats(uma1Horse);
   const uma1AdjustedStats = buildAdjustedStats(
     uma1BaseStats,
     course,
@@ -274,7 +275,7 @@ export function runComparison(
   const uma1Wisdom = uma1AdjustedStats.wisdom;
 
   const uma2Horse = { ...runnerB };
-  const uma2BaseStats = buildBaseStats(uma2Horse, uma2Horse.mood);
+  const uma2BaseStats = buildBaseStats(uma2Horse);
   const uma2AdjustedStats = buildAdjustedStats(
     uma2BaseStats,
     course,
@@ -395,11 +396,11 @@ export function runComparison(
   compare.onSkillActivate(getActivator(skillPos2, skillPos1));
   compare.onSkillDeactivate(getDeactivator(skillPos2, skillPos1));
 
-  let a = standard.build();
-  let b = compare.build();
-  let ai = 1;
-  let bi = 0;
-  let sign = 1;
+  const a = standard.build();
+  const b = compare.build();
+  const ai = 1;
+  const bi = 0;
+  const sign = 1;
   const diff = [];
 
   let min = Infinity;
@@ -448,15 +449,15 @@ export function runComparison(
   };
 
   // Track which generator corresponds to which uma (flips when we swap generators)
-  let aIsUma1 = true; // 'a' starts as standard builder (uma1)
+  const aIsUma1 = true; // 'a' starts as standard builder (uma1)
 
-  let basePacerRng = new Rule30CARng(options.seed + 1);
+  const basePacerRng = new Rule30CARng(options.seed + 1);
 
   for (let i = 0; i < nsamples; ++i) {
-    let pacers = [];
+    const pacers = [];
 
     for (let j = 0; j < options.pacemakerCount; ++j) {
-      let pacerRng = new Rule30CARng(basePacerRng.int32());
+      const pacerRng = new Rule30CARng(basePacerRng.int32());
       const pacer: RaceSolver | null =
         pacerHorse != null
           ? standard.buildPacer(pacerHorse, i, pacerRng)
@@ -544,7 +545,7 @@ export function runComparison(
           s2.currentSpeed +
             (s2.modifiers.currentSpeed.acc + s2.modifiers.currentSpeed.err),
         );
-        data.hp[ai].push((s2.hp as any).hp);
+        data.hp[ai].push(s2.hp.hp);
         data.currentLane[ai].push(s2.currentLane);
       } else if (!s2Finished) {
         s2Finished = true;
@@ -577,7 +578,7 @@ export function runComparison(
           s1.currentSpeed +
             (s1.modifiers.currentSpeed.acc + s1.modifiers.currentSpeed.err),
         );
-        data.hp[bi].push((s1.hp as any).hp);
+        data.hp[bi].push(s1.hp.hp);
         data.currentLane[bi].push(s1.currentLane);
       } else if (!s1Finished) {
         s1Finished = true;
@@ -606,10 +607,10 @@ export function runComparison(
 
     // ai took less time to finish (less frames to finish)
     if (data.p[ai].length <= data.p[bi].length) {
-      let aiFrames = data.p[ai].length;
+      const aiFrames = data.p[ai].length;
       posDifference = data.p[ai][aiFrames - 1] - data.p[bi][aiFrames - 1];
     } else {
-      let biFrames = data.p[bi].length;
+      const biFrames = data.p[bi].length;
       posDifference = data.p[ai][biFrames - 1] - data.p[bi][biFrames - 1];
     }
 
@@ -892,7 +893,8 @@ export function runComparison(
     runData: { minrun, maxrun, meanrun, medianrun },
     rushedStats: rushedStatsSummary,
     leadCompetitionStats: leadCompetitionStatsSummary,
-    spurtInfo: options.useEnhancedSpurt ? { uma1: {}, uma2: {} } : null,
+    // spurtInfo: options.useEnhancedSpurt ? { uma1: {}, uma2: {} } : null,
+    spurtInfo: null,
     staminaStats: staminaStatsSummary,
     firstUmaStats: firstUmaStatsSummary,
   };

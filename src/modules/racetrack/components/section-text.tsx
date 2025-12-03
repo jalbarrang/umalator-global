@@ -7,11 +7,9 @@ type SectionTextProps = {
 };
 
 export const SectionText: React.FC<SectionTextProps> = (props) => {
-  const translationKey = `racetrack${props.w < 0.085 ? '.short' : ''}.${
-    props.id
-  }`;
+  const { w, id, fields } = props;
 
-  const fields = props.fields as any;
+  const translationKey = `racetrack${w < 0.085 ? '.short' : ''}.${id}`;
 
   return (
     <text

@@ -5,6 +5,7 @@ import {
   ApproximateMultiCondition,
   ApproximateStartContinue,
   ConditionEntry,
+  ConditionState,
 } from './ApproximateStartContinue';
 import { CourseData, CourseHelpers, Phase } from './CourseData';
 import { HorseParameters, Strategy, StrategyHelpers } from './HorseTypes';
@@ -128,26 +129,26 @@ export class CompensatedAccumulator {
   }
 }
 
-export interface RaceState {
-  readonly accumulatetime: Readonly<Timer>;
-  readonly activateCount: readonly number[];
-  readonly activateCountHeal: number;
-  readonly currentSpeed: number;
-  readonly isLastSpurt: boolean;
-  readonly lastSpurtSpeed: number;
-  readonly lastSpurtTransition: number;
-  readonly positionKeepState: PositionKeepState;
-  readonly isDownhillMode: boolean;
-  readonly phase: Phase;
-  readonly pos: number;
-  readonly hp: Readonly<HpPolicy>;
-  readonly randomLot: number;
-  readonly startDelay: number;
-  readonly gateRoll: number;
-  readonly usedSkills: ReadonlySet<string>;
-  readonly leadCompetition: boolean;
-  readonly posKeepStrategy: Strategy;
-}
+export type RaceState = {
+  accumulatetime: Readonly<Timer>;
+  activateCount: number[];
+  activateCountHeal: number;
+  currentSpeed: number;
+  isLastSpurt: boolean;
+  lastSpurtSpeed: number;
+  lastSpurtTransition: number;
+  positionKeepState: PositionKeepState;
+  isDownhillMode: boolean;
+  phase: Phase;
+  pos: number;
+  hp: Readonly<HpPolicy>;
+  randomLot: number;
+  startDelay: number;
+  gateRoll: number;
+  usedSkills: ReadonlySet<string>;
+  leadCompetition: boolean;
+  posKeepStrategy: Strategy;
+};
 
 export type DynamicCondition = (state: RaceState) => boolean;
 
@@ -231,6 +232,7 @@ export interface SkillEffect {
   type: SkillType;
   baseDuration: number;
   modifier: number;
+  target?: number;
 }
 
 export interface PendingSkill {
@@ -250,7 +252,7 @@ interface ActiveSkill {
   modifier: number;
 }
 
-function noop(x: unknown) {}
+function noop(..._args: unknown[]) {}
 
 export class RaceSolver {
   accumulatetime: Timer;
@@ -574,7 +576,7 @@ export class RaceSolver {
     const conditions: ConditionEntry[] = [
       {
         condition: new ApproximateStartContinue('Outer lane', 0.0, 0.0),
-        predicate: (state: any) => {
+        predicate: (state: ConditionState) => {
           const sim = state.simulation;
           const section = Math.floor(sim.pos / sim.sectionLength);
           return (
@@ -586,11 +588,11 @@ export class RaceSolver {
       },
       {
         condition: new ApproximateStartContinue('Early race', 0.1, 0.85),
-        predicate: (state: any) => state.simulation.phase === 0,
+        predicate: (state: ConditionState) => state.simulation.phase === 0,
       },
       {
         condition: new ApproximateStartContinue('Mid race', 0.08, 0.75),
-        predicate: (state: any) => state.simulation.phase === 1,
+        predicate: (state: ConditionState) => state.simulation.phase === 1,
       },
       {
         condition: new ApproximateStartContinue('Other', 0.07, 0.5),
@@ -611,13 +613,13 @@ export class RaceSolver {
     const conditions: ConditionEntry[] = [
       {
         condition: new ApproximateStartContinue('逃げ', 0.05, 0.5),
-        predicate: (state: any) => {
+        predicate: (state: ConditionState) => {
           return state.simulation.horse.strategy === Strategy.Nige;
         },
       },
       {
         condition: new ApproximateStartContinue('先行', 0.15, 0.55),
-        predicate: (state: any) => {
+        predicate: (state: ConditionState) => {
           return state.simulation.horse.strategy === Strategy.Senkou;
         },
       },
@@ -765,14 +767,6 @@ export class RaceSolver {
     // technically, there's a hard cap of 30m/s, but there's no way to actually hit that without implementing the Pace Up Ex position keep mode
   }
 
-  logVelocityData(dt: number) {
-    console.log('frame: ', this.accumulatetime.t);
-    console.log('current speed: ', this.currentSpeed);
-    console.log('accel: ', this.accel);
-    console.log('dist:', this.pos);
-    console.log('--------------------------------');
-  }
-
   step(dt: number) {
     let dtAfterDelay = dt;
 
@@ -892,7 +886,7 @@ export class RaceSolver {
         targetSpeed,
       );
 
-      let actualSpeed = Math.min(
+      const actualSpeed = Math.min(
         this.laneChangeSpeed +
           this.activeLaneMovementSkills.reduce(
             (sum, skill) => sum + skill.modifier,
@@ -922,10 +916,10 @@ export class RaceSolver {
   getPacer(): RaceSolver | null {
     // Select furthest-forward front runner
     for (const strategy of [Strategy.Oonige, Strategy.Nige]) {
-      var umas = this.umas.filter((uma) => uma.posKeepStrategy === strategy);
+      const umas = this.umas.filter((uma) => uma.posKeepStrategy === strategy);
 
       if (umas.length > 0) {
-        var uma = umas.reduce((max, uma) => {
+        const uma = umas.reduce((max, uma) => {
           return uma.pos > max.pos ? uma : max;
         }, umas[0]);
 
@@ -934,7 +928,7 @@ export class RaceSolver {
     }
 
     // Get pacerOverride uma
-    var pacerOverrideUma = this.umas.find((uma) => uma.pacerOverride);
+    const pacerOverrideUma = this.umas.find((uma) => uma.pacerOverride);
 
     if (pacerOverrideUma) {
       return pacerOverrideUma;
@@ -942,12 +936,12 @@ export class RaceSolver {
 
     // Otherwise, lucky pace (set pacerOverride)
     for (const strategy of [Strategy.Senkou, Strategy.Sasi, Strategy.Oikomi]) {
-      var umas = this.umas.filter((uma) =>
+      const umas = this.umas.filter((uma) =>
         StrategyHelpers.strategyMatches(uma.posKeepStrategy, strategy),
       );
 
       if (umas.length > 0) {
-        var uma = umas.reduce((max, uma) => {
+        const uma = umas.reduce((max, uma) => {
           return uma.pos > max.pos ? uma : max;
         }, umas[0]);
 
@@ -960,7 +954,7 @@ export class RaceSolver {
 
     // Otherwise, get virtual pacemaker
     // (this should never happen though)
-    var pacer = this.umas.find((uma) => uma.isPacer);
+    const pacer = this.umas.find((uma) => uma.isPacer);
 
     if (pacer) {
       pacer.posKeepStrategy = Strategy.Nige;
@@ -973,7 +967,7 @@ export class RaceSolver {
   }
 
   isOnlyFrontRunner(): boolean {
-    var frontRunners = this.umas.filter((uma) =>
+    const frontRunners = this.umas.filter((uma) =>
       StrategyHelpers.strategyMatches(uma.posKeepStrategy, Strategy.Nige),
     );
     return frontRunners.length === 1 && frontRunners[0] === this;
@@ -1015,9 +1009,9 @@ export class RaceSolver {
       return;
     }
 
-    var pacer = this.pacer;
-    var behind = pacer.pos - this.pos;
-    var myStrategy = this.posKeepStrategy;
+    const pacer = this.pacer;
+    const behind = pacer.pos - this.pos;
+    const myStrategy = this.posKeepStrategy;
 
     switch (this.positionKeepState) {
       case PositionKeepState.None:
@@ -1028,10 +1022,10 @@ export class RaceSolver {
         if (StrategyHelpers.strategyMatches(myStrategy, Strategy.Nige)) {
           // Speed Up
           if (pacer === this) {
-            var umas = this.getUmaByDistanceDescending();
-            var secondPlaceUma = umas[1];
-            var distanceAhead = pacer.pos - secondPlaceUma.pos;
-            let threshold = myStrategy === Strategy.Oonige ? 17.5 : 4.5;
+            const umas = this.getUmaByDistanceDescending();
+            const secondPlaceUma = umas[1];
+            const distanceAhead = pacer.pos - secondPlaceUma.pos;
+            const threshold = myStrategy === Strategy.Oonige ? 17.5 : 4.5;
 
             if (this.posKeepNextTimer.t < 0) {
               return;
@@ -1110,10 +1104,10 @@ export class RaceSolver {
           ][1] = this.pos;
           this.posKeepNextTimer.t = -3;
         } else if (pacer == this) {
-          var umas = this.getUmaByDistanceDescending();
-          var secondPlaceUma = umas[1];
-          var distanceAhead = pacer.pos - secondPlaceUma.pos;
-          let threshold = myStrategy === Strategy.Oonige ? 17.5 : 4.5;
+          const umas = this.getUmaByDistanceDescending();
+          const secondPlaceUma = umas[1];
+          const distanceAhead = pacer.pos - secondPlaceUma.pos;
+          const threshold = myStrategy === Strategy.Oonige ? 17.5 : 4.5;
 
           if (distanceAhead >= threshold) {
             this.positionKeepState = PositionKeepState.None;
@@ -1133,10 +1127,10 @@ export class RaceSolver {
           ][1] = this.pos;
           this.posKeepNextTimer.t = -3;
         } else if (pacer == this) {
-          var umas = this.getUmaByDistanceDescending();
-          var secondPlaceUma = umas[1];
-          var distanceAhead = this.pos - secondPlaceUma.pos;
-          let threshold = myStrategy === Strategy.Oonige ? 27.5 : 10;
+          const umas = this.getUmaByDistanceDescending();
+          const secondPlaceUma = umas[1];
+          const distanceAhead = this.pos - secondPlaceUma.pos;
+          const threshold = myStrategy === Strategy.Oonige ? 27.5 : 10;
 
           if (distanceAhead >= threshold) {
             this.positionKeepState = PositionKeepState.None;
@@ -1257,7 +1251,7 @@ export class RaceSolver {
 
   updateLeadCompetition() {
     if (this.leadCompetition) {
-      let leadCompeteDuration = Math.pow(700 * this.horse.guts, 0.5) * 0.012;
+      const leadCompeteDuration = Math.pow(700 * this.horse.guts, 0.5) * 0.012;
 
       if (
         this.leadCompetitionTimer.t >= leadCompeteDuration ||
@@ -1277,17 +1271,17 @@ export class RaceSolver {
       this.pos <= Math.floor(this.sectionLength * 5) &&
       StrategyHelpers.strategyMatches(this.posKeepStrategy, Strategy.Nige)
     ) {
-      let otherUmas = this.umas.filter(
+      const otherUmas = this.umas.filter(
         (u) => u.posKeepStrategy === this.posKeepStrategy,
       );
-      let distanceGap = this.posKeepStrategy === Strategy.Nige ? 3.75 : 5;
+      const distanceGap = this.posKeepStrategy === Strategy.Nige ? 3.75 : 5;
 
-      let umasWithinGap = otherUmas.filter(
+      const umasWithinGap = otherUmas.filter(
         (u) => Math.abs(u.pos - this.pos) <= distanceGap,
       );
 
       if (umasWithinGap.length >= 2) {
-        for (let uma of umasWithinGap) {
+        for (const uma of umasWithinGap) {
           uma.leadCompetitionTimer.t = 0;
           uma.leadCompetition = true;
           uma.leadCompetitionStart = uma.pos;
@@ -1298,13 +1292,13 @@ export class RaceSolver {
   }
 
   updatefirstUmaInLateRace() {
-    let existingFirstPlaceUma = this.umas.find((u) => u.firstUmaInLateRace);
+    const existingFirstPlaceUma = this.umas.find((u) => u.firstUmaInLateRace);
 
     if (existingFirstPlaceUma) {
       return;
     }
 
-    let firstPlaceUma = this.getUmaByDistanceDescending()[0];
+    const firstPlaceUma = this.getUmaByDistanceDescending()[0];
 
     if (firstPlaceUma.pos < (this.course.distance * 2) / 3) {
       return;
@@ -1321,9 +1315,11 @@ export class RaceSolver {
         this.lastSpurtSpeed,
         this.baseTargetSpeed[2],
       );
+
       this.lastSpurtTransition = v[0];
       this.lastSpurtSpeed = v[1];
-      if ((this.hp as any).isMaxSpurt && (this.hp as any).isMaxSpurt()) {
+
+      if (this.hp.isMaxSpurt()) {
         this.fullSpurt = true;
       }
     }
@@ -1552,13 +1548,13 @@ export class RaceSolver {
   }
 
   checkWisdomForSkill(skill: PendingSkill): boolean {
-    let rngRoll = this.wisdomRollRng.random();
+    const rngRoll = this.wisdomRollRng.random();
     const wisdom =
       skill.perspective === Perspective.Other &&
       skill.originWisdom !== undefined
         ? skill.originWisdom
         : this.horse.wisdom;
-    let wisdomCheck = Math.max(100 - 9000 / wisdom, 20) * 0.01;
+    const wisdomCheck = Math.max(100 - 9000 / wisdom, 20) * 0.01;
     return rngRoll <= wisdomCheck;
   }
 

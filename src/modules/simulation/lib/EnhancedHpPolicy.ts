@@ -12,7 +12,7 @@
 import type { RaceState } from './RaceSolver';
 import { PositionKeepState } from './RaceSolver';
 import { HorseParameters } from './HorseTypes';
-import { CourseData, CourseHelpers, Phase } from './CourseData';
+import { CourseData, Phase } from './CourseData';
 import { GroundCondition } from './RaceParameters';
 import { PRNG } from './Random';
 
@@ -120,7 +120,7 @@ export class EnhancedHpPolicy {
       1.05, 1.0, 0.9, 0.8, 0.6, 0.4, 0.2, 0.1,
     ];
 
-    let v =
+    const v =
       (this.baseTargetSpeed2 + 0.01 * this.baseSpeed) * 1.05 +
       Math.sqrt(500.0 * horse.speed) *
         DistanceProficiencyModifier[horse.distanceAptitude] *
@@ -447,7 +447,7 @@ export class EnhancedHpPolicy {
 
     // Calculate candidates for suboptimal spurt
     const candidates: SpurtParameters[] = [];
-    const remainDistance = maxDistance - 60;
+    // const remainDistance = maxDistance - 60;
 
     // Try speeds from v3 to maxSpurtSpeed in 0.1 increments
     for (

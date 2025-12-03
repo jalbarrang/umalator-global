@@ -57,28 +57,28 @@ export interface CourseData {
 
 import courses from '@data/course_data.json';
 
-export namespace CourseHelpers {
-  export function assertIsPhase(phase: number): asserts phase is Phase {
+export class CourseHelpers {
+  static assertIsPhase(phase: number): asserts phase is Phase {
     assert(phase == 0 || phase == 1 || phase == 2 || phase == 3);
   }
 
-  export function assertIsSurface(surface: number): asserts surface is Surface {
-    assert(Surface.hasOwnProperty(surface));
+  static assertIsSurface(surface: number): asserts surface is Surface {
+    assert(Object.prototype.hasOwnProperty.call(Surface, surface));
   }
 
-  export function assertIsDistanceType(
+  static assertIsDistanceType(
     distanceType: number,
   ): asserts distanceType is DistanceType {
-    assert(DistanceType.hasOwnProperty(distanceType));
+    assert(Object.prototype.hasOwnProperty.call(DistanceType, distanceType));
   }
 
-  export function assertIsOrientation(
+  static assertIsOrientation(
     orientation: number,
   ): asserts orientation is Orientation {
-    assert(Orientation.hasOwnProperty(orientation));
+    assert(Object.prototype.hasOwnProperty.call(Orientation, orientation));
   }
 
-  export function isSortedByStart(arr: readonly { readonly start: number }[]) {
+  static isSortedByStart(arr: readonly { readonly start: number }[]) {
     // typescript seems to have some trouble inferring tuple types, presumably because it doesn't really
     // sufficiently distinguish tuples from arrays
     // so dance around a little bit to make it work
@@ -92,7 +92,7 @@ export namespace CourseHelpers {
     return arr.reduce(isSorted, init)[0];
   }
 
-  export function phaseStart(distance: number, phase: Phase) {
+  static phaseStart(distance: number, phase: Phase) {
     switch (phase) {
       case 0:
         return 0;
@@ -105,7 +105,7 @@ export namespace CourseHelpers {
     }
   }
 
-  export function phaseEnd(distance: number, phase: Phase) {
+  static phaseEnd(distance: number, phase: Phase) {
     switch (phase) {
       case 0:
         return (distance * 1) / 6;
@@ -118,7 +118,7 @@ export namespace CourseHelpers {
     }
   }
 
-  export function courseSpeedModifier(
+  static courseSpeedModifier(
     course: CourseData,
     stats: Readonly<{
       speed: number;
@@ -145,9 +145,9 @@ export namespace CourseHelpers {
     );
   }
 
-  export function getCourse(courseId: number): CourseData {
+  static getCourse(courseId: number): CourseData {
     const course = courses[courseId];
-    if (!isSortedByStart(course.slopes))
+    if (!this.isSortedByStart(course.slopes))
       course.slopes.sort((a, b) => a.start - b.start);
 
     const courseWidth = 11.25;

@@ -1,6 +1,6 @@
 import type { RaceState } from './RaceSolver';
 import { PositionKeepState } from './RaceSolver';
-import { HorseParameters, Strategy, StrategyHelpers } from './HorseTypes';
+import { HorseParameters, Strategy } from './HorseTypes';
 import { CourseData, CourseHelpers, Phase } from './CourseData';
 import { GroundCondition } from './RaceParameters';
 import { PRNG } from './Random';
@@ -16,9 +16,12 @@ export interface HpPolicy {
     maxSpeed: number,
     baseTargetSpeed2: number,
   ): [number, number];
+  hp: number;
+  isMaxSpurt(): boolean;
 }
 
 export const NoopHpPolicy: HpPolicy = {
+  hp: 1.0,
   init(_: HorseParameters) {},
   tick(_0: RaceState, _1: number) {},
   hasRemainingHp() {
@@ -30,6 +33,9 @@ export const NoopHpPolicy: HpPolicy = {
   recover(_: number, _state?: RaceState) {},
   getLastSpurtPair(_0: RaceState, maxSpeed: number, _1: number) {
     return [-1, maxSpeed] as [number, number];
+  },
+  isMaxSpurt() {
+    return this.hp === 1.0;
   },
 };
 
@@ -166,7 +172,8 @@ export class GameHpPolicy {
     }
     const candidates: [number, number][] = [];
     const remainDistance = this.distance - 60 - state.pos;
-    const statusModifier = this.getStatusModifier(lastleg);
+    // const statusModifier = this.getStatusModifier(lastleg);
+
     for (let speed = maxSpeed - 0.1; speed >= baseTargetSpeed2; speed -= 0.1) {
       // solve:
       //   s1 * speed + s2 * baseTargetSpeed2 = remainDistance

@@ -41,12 +41,15 @@ export class RegionList extends Array<Region> {
   union(other: RegionList) {
     const u: Region[] = [];
     const r = new RegionList();
-    u.push.apply(u, this);
-    u.push.apply(u, other);
+    u.push(...this);
+    u.push(...other);
+
     if (u.length == 0) {
       return r;
     }
+
     u.sort((a, b) => a.start - b.start);
+
     r.push(
       u.reduce((a, b) => {
         if (a.fullyContains(b)) {

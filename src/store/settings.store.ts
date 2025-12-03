@@ -83,6 +83,9 @@ export const useSettingsStore = create<ISettingsStore>()(
 export const useWitVariance = () =>
   useSettingsStore(useShallow((state) => state.witVarianceSettings));
 
+export const getWitVariance = () =>
+  useSettingsStore.getState().witVarianceSettings;
+
 export const setWitVariance = (
   witVarianceSettings: Partial<WitVarianceSettings>,
 ) => {

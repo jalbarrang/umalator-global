@@ -8,6 +8,7 @@ import type { RaceParameters } from '@simulation/lib/RaceParameters';
 import { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { runComparison } from '@/utils/compare';
 import assert from 'assert';
+import { PosKeepMode } from './modules/simulation/lib/RaceSolver';
 
 function mergeResults(results1, results2) {
   assert(
@@ -96,13 +97,21 @@ function run1Round(
   return data;
 }
 
+interface SimulationOptions {
+  seed?: number;
+  useEnhancedSpurt?: boolean;
+  accuracyMode?: boolean;
+  posKeepMode?: PosKeepMode;
+  mode?: string;
+}
+
 type RunChartParams = {
   skills: string[];
   course: CourseData;
   racedef: RaceParameters;
   uma: RunnerState;
   pacer: RunnerState;
-  options: any;
+  options: SimulationOptions;
 };
 
 function runChart(params: RunChartParams) {
@@ -126,7 +135,15 @@ function runChart(params: RunChartParams) {
     };
   }
 
-  let results = run1Round(5, newSkills, course, racedef, uma_, pacer_, options);
+  const results = run1Round(
+    5,
+    newSkills,
+    course,
+    racedef,
+    uma_,
+    pacer_,
+    options,
+  );
 
   postMessage({ type: 'chart', results });
 
@@ -158,7 +175,7 @@ type CompareParams = {
   uma1: RunnerState;
   uma2: RunnerState;
   pacer: RunnerState;
-  options: any;
+  options: SimulationOptions;
 };
 
 function runCompare(params: CompareParams) {
@@ -186,13 +203,13 @@ function runCompare(params: CompareParams) {
   }
 
   const compareOptions = { ...options, mode: 'compare' };
-  let results;
+
   for (
     let n = Math.min(20, nsamples), mul = 6;
     n < nsamples;
     n = Math.min(n * mul, nsamples), mul = Math.max(mul - 1, 2)
   ) {
-    results = runComparison(
+    const results = runComparison(
       n,
       course,
       racedef,
@@ -201,9 +218,11 @@ function runCompare(params: CompareParams) {
       pacer_,
       compareOptions,
     );
+
     postMessage({ type: 'compare', results });
   }
-  results = runComparison(
+
+  const results = runComparison(
     nsamples,
     course,
     racedef,

@@ -39,6 +39,26 @@ import { Region, RegionList } from './Region';
 
 import skills from '@data/skill_data.json';
 
+import { Operator } from './ActivationConditions';
+
+interface ConditionParser {
+  tokenize(s: string): Generator<unknown, unknown, unknown>;
+  parse(tokens: Iterator<unknown, unknown>): Operator;
+}
+
+interface RawSkillEffect {
+  modifier: number;
+  target: number;
+  type: number;
+}
+
+interface SkillAlternative {
+  baseDuration: number;
+  condition: string;
+  precondition?: string;
+  effects: RawSkillEffect[];
+}
+
 type PartialRaceParameters = Omit<
   { -readonly [K in keyof RaceParameters]: RaceParameters[K] },
   'skillId'
@@ -75,49 +95,50 @@ const StrategyProficiencyModifier = Object.freeze([
   1.1, 1.0, 0.85, 0.75, 0.6, 0.4, 0.2, 0.1,
 ]);
 
-namespace Asitame {
-  export const StrategyDistanceCoefficient = Object.freeze([
+const Asitame = {
+  StrategyDistanceCoefficient: Object.freeze([
     [], // distances are 1-indexed (as are strategies, hence the 0 in the first column for every row)
     [0, 1.0, 0.7, 0.75, 0.7, 1.0], // short (nige, senkou, sasi, oikomi, oonige)
     [0, 1.0, 0.8, 0.7, 0.75, 1.0], // mile
     [0, 1.0, 0.9, 0.875, 0.86, 1.0], // medium
     [0, 1.0, 0.9, 1.0, 0.9, 1.0], // long
-  ]);
+  ]),
 
-  export const BaseModifier = 0.00875;
+  BaseModifier: 0.00875,
 
-  export function calcApproximateModifier(
+  calcApproximateModifier(
     power: number,
     strategy: Strategy,
     distance: DistanceType,
   ) {
     return (
-      BaseModifier *
+      this.BaseModifier *
       Math.sqrt(power - 1200) *
-      StrategyDistanceCoefficient[distance][strategy]
+      this.StrategyDistanceCoefficient[distance][strategy]
     );
-  }
-}
+  },
+};
 
-namespace StaminaSyoubu {
-  export function distanceFactor(distance: number) {
+const StaminaSyoubu = {
+  distanceFactor(distance: number) {
     if (distance < 2101) return 0.0;
     else if (distance < 2201) return 0.5;
     else if (distance < 2401) return 1.0;
     else if (distance < 2601) return 1.2;
     else return 1.5;
-  }
+  },
 
-  export function calcApproximateModifier(stamina: number, distance: number) {
+  calcApproximateModifier(stamina: number, distance: number) {
     const randomFactor = 1.0; // TODO implement random factor scaling based on power (unclear how this works currently)
+
     return (
       Math.sqrt(stamina - 1200) *
       0.0085 *
-      distanceFactor(distance) *
+      this.distanceFactor(distance) *
       randomFactor
     );
-  }
-}
+  },
+};
 
 export function parseStrategy(s: string | Strategy) {
   if (typeof s != 'string') {
@@ -274,7 +295,7 @@ function adjustOvercap(stat: number) {
   return stat > 1200 ? 1200 + Math.floor((stat - 1200) / 2) : stat;
 }
 
-export function buildBaseStats(horseDesc: HorseDesc, mood: Mood) {
+export function buildBaseStats(horseDesc: HorseDesc) {
   const motivCoef = 1 + 0.02 * horseDesc.mood;
 
   return Object.freeze({
@@ -360,10 +381,13 @@ function isTarget(self: Perspective, targetType: SkillTarget) {
   );
 }
 
-function buildSkillEffects(skill, perspective: Perspective) {
+function buildSkillEffects(skill: SkillAlternative, perspective: Perspective) {
   // im on a really old version of node and cant use flatMap
   return skill.effects.reduce((acc, ef) => {
-    if (isTarget(perspective, ef.target) && SkillType.hasOwnProperty(ef.type)) {
+    if (
+      isTarget(perspective, ef.target) &&
+      Object.prototype.hasOwnProperty.call(SkillType, ef.type)
+    ) {
       acc.push({
         type: ef.type,
         baseDuration: skill.baseDuration / 10000,
@@ -379,7 +403,7 @@ export function buildSkillData(
   raceParams: PartialRaceParameters,
   course: CourseData,
   wholeCourse: RegionList,
-  parser: { parse: any; tokenize: any },
+  parser: ConditionParser,
   skillId: string,
   perspective: Perspective,
   ignoreNullEffects: boolean = false,
@@ -394,25 +418,30 @@ export function buildSkillData(
     const skill = alternatives[i];
     let full = new RegionList();
     wholeCourse.forEach((r) => full.push(r));
+
     if (skill.precondition) {
       const pre = parser.parse(parser.tokenize(skill.precondition));
       const preRegions = pre.apply(wholeCourse, course, horse, extra)[0];
+
       if (preRegions.length == 0) {
         continue;
-      } else {
-        const bounds = new Region(
-          preRegions[0].start,
-          wholeCourse[wholeCourse.length - 1].end,
-        );
-        full = full.rmap((r) => r.intersect(bounds));
       }
+
+      const bounds = new Region(
+        preRegions[0].start,
+        wholeCourse[wholeCourse.length - 1].end,
+      );
+
+      full = full.rmap((r) => r.intersect(bounds));
     }
 
     const op = parser.parse(parser.tokenize(skill.condition));
     const [regions, extraCondition] = op.apply(full, course, horse, extra);
+
     if (regions.length == 0) {
       continue;
     }
+
     if (
       triggers.length > 0 &&
       !/is_activate_other_skill_detail|is_used_skill_id/.test(skill.condition)
@@ -476,7 +505,7 @@ export const conditionsWithActivateCountsAsRandom = Object.freeze(
         n: number,
         course: CourseData,
         _1: HorseParameters,
-        extra: RaceParameters,
+        _extra: RaceParameters,
       ) {
         // hard-code TM Opera O (NY) unique and Neo Universe unique to pretend they're immediate while allowing randomness for other skills
         // (conveniently the only two with n == 7)
@@ -500,11 +529,11 @@ export const conditionsWithActivateCountsAsRandom = Object.freeze(
         return regions.rmap((r) => r.intersect(bounds));
       },
       filterLte(
-        regions: RegionList,
-        n: number,
-        course: CourseData,
+        _regions: RegionList,
+        _n: number,
+        _course: CourseData,
         _1: HorseParameters,
-        extra: RaceParameters,
+        _extra: RaceParameters,
       ) {
         return new RegionList(); // tentatively, we're not really interested in the <= branch of these conditions
       },
@@ -515,7 +544,7 @@ export const conditionsWithActivateCountsAsRandom = Object.freeze(
         _0: number,
         course: CourseData,
         _1: HorseParameters,
-        extra: RaceParameters,
+        _extra: RaceParameters,
       ) {
         const bounds = new Region(
           CourseHelpers.phaseStart(course.distance, 2),
@@ -531,7 +560,7 @@ export const conditionsWithActivateCountsAsRandom = Object.freeze(
         _0: number,
         course: CourseData,
         _1: HorseParameters,
-        extra: RaceParameters,
+        _extra: RaceParameters,
       ) {
         const bounds = new Region(course.distance / 2, course.distance);
         return regions.rmap((r) => r.intersect(bounds));
@@ -543,7 +572,7 @@ export const conditionsWithActivateCountsAsRandom = Object.freeze(
         n: number,
         course: CourseData,
         _1: HorseParameters,
-        extra: RaceParameters,
+        _extra: RaceParameters,
       ) {
         const start = CourseHelpers.phaseStart(course.distance, 1),
           end = CourseHelpers.phaseEnd(course.distance, 1);
@@ -552,13 +581,13 @@ export const conditionsWithActivateCountsAsRandom = Object.freeze(
       },
     }),
     activate_count_start: immediate({
-      // for 地固め
+      // for 地固め - Start of the race
       filterGte(
         regions: RegionList,
         _0: number,
         course: CourseData,
         _1: HorseParameters,
-        extra: RaceParameters,
+        _extra: RaceParameters,
       ) {
         const bounds = new Region(
           CourseHelpers.phaseStart(course.distance, 0),
@@ -584,7 +613,7 @@ export class RaceSolverBuilder {
   _pacerTriggers: Region[][];
   _rng: SeededRng;
   _seed: number;
-  _parser: { parse: any; tokenize: any };
+  _parser: ConditionParser;
   _skills: { id: string; p: Perspective; originWisdom?: number }[];
   _samplePolicyOverride: Map<string, ActivationSamplePolicy>;
   _extraSkillHooks: ((
@@ -596,12 +625,12 @@ export class RaceSolverBuilder {
     state: RaceSolver,
     skillId: string,
     perspective?: Perspective,
-  ) => void;
+  ) => void | null;
   _onSkillDeactivate: (
     state: RaceSolver,
     skillId: string,
     perspective?: Perspective,
-  ) => void;
+  ) => void | null;
   _disableRushed: boolean;
   _disableDownhill: boolean;
   _disableSectionModifier: boolean;
@@ -743,7 +772,7 @@ export class RaceSolverBuilder {
 
   setupPacer(horse: HorseDesc) {
     const pacer = horse;
-    const pacerBaseHorse = pacer ? buildBaseStats(pacer, pacer.mood) : null;
+    const pacerBaseHorse = pacer ? buildBaseStats(pacer) : null;
     const pacerHorse = pacer
       ? buildAdjustedStats(
           pacerBaseHorse,
@@ -942,6 +971,7 @@ export class RaceSolverBuilder {
             course.distance,
           ),
         );
+
         skilldata.push({
           skillId: 'staminasyoubu',
           perspective: Perspective.Self,
@@ -1102,8 +1132,8 @@ export class RaceSolverBuilder {
   }
 
   *build() {
-    let horse = buildBaseStats(this._horse, this._horse.mood);
-    let skillRng = new Rule30CARng(this._rng.int32());
+    let horse = buildBaseStats(this._horse);
+    const skillRng = new Rule30CARng(this._rng.int32());
 
     const wholeCourse = new RegionList();
     wholeCourse.push(new Region(0, this._course.distance));
@@ -1132,7 +1162,7 @@ export class RaceSolverBuilder {
     );
 
     for (let i = 0; i < this.nsamples; ++i) {
-      let solverRng = new Rule30CARng(this._rng.int32());
+      const solverRng = new Rule30CARng(this._rng.int32());
 
       const skills = skilldata.map((sd, sdi) => ({
         skillId: sd.skillId,

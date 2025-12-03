@@ -1,8 +1,8 @@
-import * as fs from 'fs';
+import fs from 'node:fs';
 import { program, Option } from 'commander';
-import { CourseHelpers } from '@simulation/CourseData';
-import { RaceSolverBuilder } from '@simulation/RaceSolverBuilder';
-import { RaceSolver } from '@simulation/RaceSolver';
+import { CourseHelpers } from '../src/modules/simulation/lib/CourseData';
+import { RaceSolverBuilder } from '../src/modules/simulation/lib/RaceSolverBuilder';
+import { RaceSolver } from '../src/modules/simulation/lib/RaceSolver';
 
 program
   .argument(
@@ -69,6 +69,7 @@ function buildSolver(speed: number, guts: number) {
     .horse(Object.assign({}, desc, { speed: speed, guts: guts }))
     .withAsiwotameru()
     .withStaminaSyoubu();
+
   desc.skills.forEach((id) => b.addSkill(id));
   return b.build().next().value as RaceSolver;
 }

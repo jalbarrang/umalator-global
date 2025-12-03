@@ -47,15 +47,15 @@ export interface SimulationRun {
   pacerGap: Array<number[]>;
   sk: Sk[];
   sdly: number[];
-  rushed: Array<any[]>;
+  rushed: RegionActivation[][];
   posKeep: Array<Array<number[]>>;
-  competeFight: Array<any[]>;
-  leadCompetition: Array<any[]>;
+  competeFight: Array<RegionActivation | []>;
+  leadCompetition: Array<RegionActivation | []>;
   pacerV: Array<number[]>;
   pacerP: Array<number[]>;
   pacerT: Array<number[]>;
   pacerPosKeep: Array<Array<number[]>>;
-  pacerLeadCompetition: Array<any[]>;
+  pacerLeadCompetition: Array<RegionActivation | []>;
 }
 
 export type RegionActivation = [number, number];

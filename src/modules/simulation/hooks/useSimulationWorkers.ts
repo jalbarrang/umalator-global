@@ -1,11 +1,12 @@
-import { updateTableData } from '@/store/chart.store';
+import { ChartTableEntry, updateTableData } from '@/store/chart.store';
+import { CompareResult } from '@/store/race/compare.types';
 import { setResults } from '@/store/race/store';
 import { setIsSimulationRunning } from '@/store/ui.store';
 import { useEffect, useRef } from 'react';
 
-type WorkerMessage = {
+type WorkerMessage<T> = {
   type: 'compare' | 'chart' | 'compare-complete' | 'chart-complete';
-  results: any;
+  results: T;
 };
 
 export const useSimulationWorkers = () => {
@@ -13,7 +14,7 @@ export const useSimulationWorkers = () => {
   const worker2Ref = useRef<Worker | null>(null);
   const chartWorkersCompletedRef = useRef(0);
 
-  const handleWorkerMessage = (event: MessageEvent<WorkerMessage>) => {
+  const handleWorkerMessage = <T>(event: MessageEvent<WorkerMessage<T>>) => {
     const { type, results } = event.data;
 
     console.log('handleWorkerMessage', {
@@ -23,10 +24,10 @@ export const useSimulationWorkers = () => {
 
     switch (type) {
       case 'compare':
-        setResults(results);
+        setResults(results as CompareResult);
         break;
       case 'chart':
-        updateTableData(results);
+        updateTableData(results as Map<string, ChartTableEntry>);
         break;
       case 'compare-complete':
         setIsSimulationRunning(false);

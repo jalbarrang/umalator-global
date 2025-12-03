@@ -1,10 +1,9 @@
 import { Option } from 'commander';
-import { HorseParameters } from '@simulation/HorseTypes';
-import { CourseData } from '@simulation/CourseData';
-import { RaceSolver } from '@simulation/RaceSolver';
-import { Rule30CARng } from '@simulation/Random';
-import { NoopHpPolicy } from '@simulation/HpPolicy';
-import { SkillData, ToolCLI, PacerProvider } from './ToolCLI';
+import { HorseParameters } from '../src/modules/simulation/lib/HorseTypes';
+import { CourseData } from '../src/modules/simulation/lib/CourseData';
+import { RaceSolver } from '../src/modules/simulation/lib/RaceSolver';
+import { Rule30CARng } from '../src/modules/simulation/lib/Random';
+import { NoopHpPolicy } from '../src/modules/simulation/lib/HpPolicy';
 
 // for some reason (NodeJS bug?) new Int32Array(buf.buffer)[offset] doesn't actually work and the Int32Array is garbage
 // more weirdly, it only happens when loading cliOptions.configuration down there, and running the exact same thing in the NodeJS REPL works fine
@@ -19,6 +18,7 @@ function readInt32LE(buf: Buffer, offset: number) {
 }
 
 const cli = new ToolCLI();
+
 cli.options((program) => {
   program
     .option(
@@ -32,6 +32,7 @@ cli.options((program) => {
         .argParser((s) => Buffer.from(s, 'base64')),
     );
 });
+
 cli.run(
   (
     horse: HorseParameters,

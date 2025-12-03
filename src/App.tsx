@@ -10,7 +10,7 @@ import { WitVarianceModal } from './components/wit-variance/settings-modal';
 import { useClickOutside } from './hooks/useClickOutside';
 import { useRaceTrackTooltip } from './modules/racetrack/hooks/useRaceTrackTooltip';
 import { setPopoverSkill, useChartStore } from './store/chart.store';
-import { setResults, useRaceStore } from './store/race/store';
+import { useRaceStore } from './store/race/store';
 import { setUma1, useRunnersStore } from './store/runners.store';
 import { useSettingsStore } from './store/settings.store';
 import {
@@ -57,13 +57,17 @@ export function App() {
         toggleShowVirtualPacemakerOnGraph();
       }
     }
-  }, [posKeepMode, selectedPacemakerIndices.length]);
+  }, [
+    posKeepMode,
+    selectedPacemakerIndices.length,
+    showVirtualPacemakerOnGraph,
+  ]);
 
   const basinnChartSelection = (skillId: string) => {
     const results = tableData.get(skillId);
 
     if (results.runData) {
-      setResults(results);
+      useRaceStore.setState({ results: results.results });
     }
   };
 

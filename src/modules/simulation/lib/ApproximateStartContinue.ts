@@ -1,8 +1,13 @@
+import { RaceSolver } from './RaceSolver';
 import type { PRNG } from './Random';
+
+export interface ConditionState {
+  simulation: RaceSolver;
+}
 
 export interface ApproximateCondition {
   valueOnStart: number;
-  update(state: any, currentValue: number): number;
+  update(state: ConditionState, currentValue: number): number;
 }
 
 export class ApproximateStartContinue implements ApproximateCondition {
@@ -16,7 +21,7 @@ export class ApproximateStartContinue implements ApproximateCondition {
     return 0;
   }
 
-  update(state: any, currentValue: number): number {
+  update(state: ConditionState, currentValue: number): number {
     const rng: PRNG = state.simulation?.rng;
 
     if (currentValue === 0) {
@@ -29,7 +34,7 @@ export class ApproximateStartContinue implements ApproximateCondition {
 
 export interface ConditionEntry {
   condition: ApproximateStartContinue;
-  predicate: ((state: any) => boolean) | null;
+  predicate: ((state: ConditionState) => boolean) | null;
 }
 
 export class ApproximateMultiCondition implements ApproximateCondition {
@@ -39,7 +44,7 @@ export class ApproximateMultiCondition implements ApproximateCondition {
     public readonly valueOnStart: number = 0,
   ) {}
 
-  update(state: any, currentValue: number): number {
+  update(state: ConditionState, currentValue: number): number {
     let activeCondition: ApproximateStartContinue | null = null;
     let fallbackCondition: ApproximateStartContinue | null = null;
 

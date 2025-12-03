@@ -1,9 +1,5 @@
-import {
-  getActivateableSkills,
-  getNullRow,
-} from '@/components/bassin-chart/BasinnChart';
 import { getBaseSkillsToTest, getUniqueSkills } from '@/modules/skills/utils';
-import { updateTableData } from '@/store/chart.store';
+import { resetTableData, updateTableData } from '@/store/chart.store';
 import { useRunnersStore } from '@/store/runners.store';
 import { useSettingsStore, useWitVariance } from '@/store/settings.store';
 import { setIsSimulationRunning, useUIStore } from '@/store/ui.store';
@@ -14,6 +10,10 @@ import { PosKeepMode } from '@simulation/lib/RaceSolver';
 import { useMemo, useState } from 'react';
 import { useSimulationWorkers } from './useSimulationWorkers';
 import { RunnerState } from '@/modules/runners/components/runner-card/types';
+import {
+  getActivateableSkills,
+  getNullRow,
+} from '@/components/bassin-chart/utils';
 
 const baseSkillsToTest = getBaseSkillsToTest();
 
@@ -86,7 +86,8 @@ export function useSimulationRunner() {
     skills.forEach((id) => filler.set(id, getNullRow(id)));
     const skills1 = skills.slice(0, Math.floor(skills.length / 2));
     const skills2 = skills.slice(Math.floor(skills.length / 2));
-    updateTableData('reset');
+
+    resetTableData();
     updateTableData(filler);
 
     worker1Ref.current?.postMessage({

@@ -12,18 +12,6 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 
-import { getParser } from '@simulation/lib/ConditionParser';
-import { CourseData } from '@simulation/lib/CourseData';
-import { RaceParameters } from '@simulation/lib/RaceParameters';
-import { Perspective } from '@simulation/lib/RaceSolver';
-import {
-  buildBaseStats,
-  buildSkillData,
-} from '@simulation/lib/RaceSolverBuilder';
-import { Region, RegionList } from '@simulation/lib/Region';
-
-import { BasinnChartData } from '@/utils/constants';
-import skill_meta from '@data/skill_meta.json';
 import skillnames from '@data/skillnames.json';
 import umas from '@data/umas.json';
 import icons from '@data/icons.json';
@@ -31,13 +19,9 @@ import icons from '@data/icons.json';
 import './BasinnChart.css';
 import i18n from '@/i18n';
 import { cn } from '@/lib/utils';
-import { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { setDisplaying } from '@/store/race/store';
-
-function skillmeta(id: string) {
-  // handle the fake skills (e.g., variations of Sirius unique) inserted by make_skill_data with ids like 100701-1
-  return skill_meta[id.split('-')[0]];
-}
+import { ChartTableEntry } from '@/store/chart.store';
+import { getSkillMetaById } from '@/modules/skills/utils';
 
 function umaForUniqueSkill(skillId: string): string | null {
   const sid = parseInt(skillId);
@@ -60,59 +44,22 @@ function umaForUniqueSkill(skillId: string): string | null {
   return null;
 }
 
-export function getActivateableSkills(
-  skills: string[],
-  horse: RunnerState,
-  course: CourseData,
-  racedef: RaceParameters,
-) {
-  const parser = getParser();
-  const h2 = buildBaseStats(horse, horse.mood);
-  const wholeCourse = new RegionList();
-  wholeCourse.push(new Region(0, course.distance));
-  return skills.filter((id) => {
-    let sd;
-    try {
-      sd = buildSkillData(
-        h2,
-        racedef,
-        course,
-        wholeCourse,
-        parser,
-        id,
-        Perspective.Any,
-      );
-    } catch (_) {
-      return false;
-    }
-    return sd.some(
-      (trigger) =>
-        trigger.regions.length > 0 && trigger.regions[0].start < 9999,
-    );
-  });
-}
-
-export function getNullRow(skillid: string) {
-  return {
-    id: skillid,
-    min: 0,
-    max: 0,
-    mean: 0,
-    median: 0,
-    results: [],
-    runData: null,
-  };
-}
-
 function formatBasinn(info) {
   return info.getValue().toFixed(2).replace('-0.00', '0.00') + ' L';
 }
 
-function SkillNameCell(props) {
+type SkillNameCellProps = {
+  id: string;
+  showUmaIcons: boolean;
+};
+
+function SkillNameCell(props: SkillNameCellProps) {
   const { id, showUmaIcons = false } = props;
 
+  const umaId = umaForUniqueSkill(id);
+  const skillMeta = getSkillMetaById(id);
+
   if (showUmaIcons) {
-    const umaId = umaForUniqueSkill(id);
     if (umaId && icons[umaId]) {
       return (
         <div className="chartSkillName">
@@ -125,7 +72,7 @@ function SkillNameCell(props) {
 
   return (
     <div className="chartSkillName">
-      <img src={`/icons/${skillmeta(id).iconId}.png`} />
+      <img src={`/icons/${skillMeta?.iconId}.png`} />
       <span>{i18n.t(`skillnames.${id}`)}</span>
     </div>
   );
@@ -176,7 +123,7 @@ const headerRenderer = ({
 };
 
 type BasinnChartProps = {
-  data: BasinnChartData[];
+  data: ChartTableEntry[];
   hiddenSkills: string[];
   showUmaIcons?: boolean;
   onInfoClick: (id: string) => void;
@@ -184,7 +131,7 @@ type BasinnChartProps = {
   onDblClickRow: (id: string) => void;
 };
 
-export function BasinnChart(props: BasinnChartProps) {
+export const BasinnChart = (props: BasinnChartProps) => {
   const radioGroup = useId();
   const [selected, setSelected] = useState('');
   const [selectedType, setSelectedType] = useState('mean');
@@ -370,4 +317,4 @@ export function BasinnChart(props: BasinnChartProps) {
       </table>
     </div>
   );
-}
+};
