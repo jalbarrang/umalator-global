@@ -1,0 +1,174 @@
+#umaPane {
+  grid-row: 1 / 3;
+  width: 700px; /* needed for when this is a placeholder to consume grid space when uma pane is expanded */
+  position: relative;
+}
+
+#umaPane > div {
+  display: none;
+  height: 100%;
+}
+
+#umaPane > div.selected {
+  display: block;
+}
+
+#umaPane .horseDef {
+  border-top: none;
+}
+
+#umaPane .horseDefHeader {
+  background: none;
+  display: flex;
+  padding: 0;
+  text-align: left;
+}
+
+.umaTab {
+  background: linear-gradient(white, rgb(228, 227, 234));
+  color: rgb(121, 64, 22);
+  flex-basis: 0;
+  flex-grow: 1;
+  outline: 2px solid rgb(216, 217, 220);
+  padding: 6px 0 6px 20px;
+}
+
+.umaTab:first-child {
+  border-top-left-radius: 12px;
+}
+
+.umaTab:last-child {
+  border-top-right-radius: 12px;
+}
+
+.umaTab.selected {
+  background: linear-gradient(rgb(153, 219, 68), rgb(112, 190, 18));
+  color: white;
+  outline: 2px solid rgb(170, 221, 154);
+  z-index: 1;
+}
+
+#expandBtn {
+  background: linear-gradient(#99db44, #70be12);
+  border: 2px solid rgb(170, 221, 154);
+  border-radius: 6px;
+  cursor: default;
+  float: right;
+  height: 34px;
+  margin: 8px 10px 0 0;
+  position: relative;
+  width: 34px;
+}
+
+#expandBtn::after {
+  border-right: 2px solid white;
+  border-top: 2px solid white;
+  content: '';
+  display: block;
+  height: 15px;
+  left: 4px;
+  position: absolute;
+  top: 8px;
+  transform: rotate(45deg);
+  width: 15px;
+}
+
+.selected > #expandBtn {
+  background: linear-gradient(#fff, #e4e3ea);
+  border: 2px solid rgb(216, 217, 220);
+}
+
+.selected > #expandBtn::after {
+  border-right: 2px solid rgb(121, 64, 22);
+  border-top: 2px solid rgb(121, 64, 22);
+}
+
+#umaOverlay {
+  background: white;
+  border: 1px solid rgb(148, 150, 189);
+  border-left: none;
+  border-radius: 0 12px 12px 0;
+  display: flex;
+  gap: 30px;
+  height: calc(100vh - 18px);
+  /* please work or ill delete that fuckass button */
+  left: auto;
+  margin-left: 2px;
+  padding: 6px;
+  position: fixed;
+  top: 0;
+  /* Hopefully doesnt make it expand any longer */
+  right: 0;
+  width: 100vw;
+  overflow-x: auto;
+  overflow-y: auto;
+  z-index: 9999;
+  justify-content: flex-start;
+}
+
+#umaOverlay > * {
+  flex: 0 0 auto;
+}
+
+#closeUmaOverlay {
+  color: rgb(148, 150, 189);
+  cursor: default;
+  font-size: 2em;
+  height: 2em;
+
+  /* Made the close button much more accessible*/
+  position: fixed;
+  right: 12px;
+  top: 12px;
+  z-index: 10000;
+  cursor: pointer;
+}
+
+#copyUmaButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: center;
+}
+
+#copyUmaButtons > div {
+  background: linear-gradient(rgb(255, 255, 255), rgb(228, 224, 233));
+  border: 2px solid rgb(181, 174, 187);
+  border-radius: 8px;
+  height: 60px;
+  line-height: 60px;
+  position: relative;
+  width: 60px;
+}
+
+#copyUmaButtons > div::after {
+  border-top: 2px solid rgb(121, 64, 22);
+  border-right: 2px solid rgb(121, 64, 22);
+  content: '';
+  display: block;
+  height: 30px;
+  position: absolute;
+  width: 30px;
+}
+
+#copyUmaToRight::after {
+  left: 15px;
+  top: 25px;
+  transform: rotate(45deg) translate(-15px, 0);
+}
+
+#copyUmaToLeft::after {
+  bottom: 25px;
+  right: 15px;
+  transform: rotate(-135deg) translate(-15px, 0);
+}
+
+#swapUmas {
+  color: rgb(121, 64, 22);
+  font-size: 36px;
+  text-align: center;
+}
+
+#swapUmas::after {
+  display: none !important;
+}
