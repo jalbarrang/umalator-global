@@ -27,9 +27,10 @@ import {
   useOcrImport,
   type UploadedFile,
 } from '@/modules/runners/hooks/useOcrImport';
-import type { ExtractedUmaData } from '@/modules/runners/ocr/index';
+import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
 
 import icons from '@data/icons.json';
+import { toast } from 'sonner';
 
 interface OcrImportDialogProps {
   open: boolean;
@@ -123,12 +124,12 @@ export function OcrImportDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-h-[90vh] overflow-hidden flex flex-col min-w-[920px] min-h-[600px]">
         <DialogHeader>
           <DialogTitle>Import from Screenshots</DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden flex gap-4 min-h-[400px]">
+        <div className="flex-1 overflow-hidden flex gap-4">
           {/* Left Panel - File Upload */}
           <div className="w-1/2 flex flex-col gap-4">
             {/* Drop Zone */}
@@ -277,19 +278,19 @@ export function OcrImportDialog({
                   </h4>
                   <div className="grid grid-cols-5 gap-1 text-center">
                     <div className="bg-primary text-primary-foreground rounded-tl p-1 text-xs">
-                      SPD
+                      Speed
                     </div>
                     <div className="bg-primary text-primary-foreground p-1 text-xs">
-                      STA
+                      Stamina
                     </div>
                     <div className="bg-primary text-primary-foreground p-1 text-xs">
-                      POW
+                      Power
                     </div>
                     <div className="bg-primary text-primary-foreground p-1 text-xs">
-                      GUT
+                      Guts
                     </div>
                     <div className="bg-primary text-primary-foreground rounded-tr p-1 text-xs">
-                      WIS
+                      Wit
                     </div>
                     <div className="border p-2 rounded-bl font-mono">
                       {results?.speed ?? '-'}
@@ -349,13 +350,21 @@ export function OcrImportDialog({
                     <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
                       Unrecognized text ({results.unrecognized.length} lines)
                     </summary>
-                    <div className="mt-2 p-2 bg-muted rounded text-xs max-h-[100px] overflow-y-auto">
-                      {results.unrecognized.map((line, i) => (
-                        <div key={i} className="text-muted-foreground">
-                          {line}
-                        </div>
-                      ))}
-                    </div>
+
+                    <pre className="mt-2 p-2 bg-muted rounded text-xs max-h-[100px] overflow-y-auto relative">
+                      <button
+                        className="text-xs text-muted-foreground hover:text-foreground absolute right-2 top-2"
+                        onClick={() => {
+                          navigator.clipboard.writeText(
+                            results.unrecognized.join('\n'),
+                          );
+                          toast.success('Copied to clipboard');
+                        }}
+                      >
+                        Copy
+                      </button>
+                      {results.unrecognized.join('\n')}
+                    </pre>
                   </details>
                 )}
               </div>

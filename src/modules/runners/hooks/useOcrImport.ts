@@ -8,7 +8,7 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
-import type { ExtractedUmaData } from '@/modules/runners/ocr/index';
+import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
 
 export interface UploadedFile {
   id: string;
@@ -106,6 +106,10 @@ export function useOcrImport(): UseOcrImportResult {
           setProgress(100);
           worker.terminate();
           workerRef.current = null;
+          break;
+
+        case 'log':
+          console.log(data);
           break;
       }
     };

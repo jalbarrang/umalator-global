@@ -16,7 +16,7 @@ import { AptitudeSelect } from '@/modules/runners/components/AptitudeSelect';
 import { StatInput } from '@/modules/runners/components/StatInput';
 import { UmaSelector } from '@/modules/runners/components/runner-selector';
 import { OcrImportDialog } from '@/modules/runners/components/ocr-import-dialog';
-import type { ExtractedUmaData } from '@/modules/runners/ocr/index';
+import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
 
 import './styles.css';
 import { Label } from '@/components/ui/label';

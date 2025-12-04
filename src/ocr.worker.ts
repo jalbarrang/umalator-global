@@ -3,10 +3,8 @@
  */
 
 import Tesseract from 'tesseract.js';
-import {
-  parseOcrResult,
-  type ExtractedUmaData,
-} from '@/modules/runners/ocr/index';
+import { parseOcrResult } from '@/modules/runners/ocr/parser';
+import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
 
 let tesseractWorker: Tesseract.Worker | null = null;
 
@@ -131,4 +129,3 @@ export type OcrWorkerResponse =
     }
   | { type: 'image-error'; imageIndex: number; error: string }
   | { type: 'complete'; data: ExtractedUmaData };
-
