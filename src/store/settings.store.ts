@@ -65,7 +65,7 @@ export const useSettingsStore = create<ISettingsStore>()(
         allowSectionModifierUma2: true,
         allowSkillCheckChanceUma1: true,
         allowSkillCheckChanceUma2: true,
-        simWitVariance: true,
+        simWitVariance: false,
       },
       showVirtualPacemakerOnGraph: false,
       pacemakerCount: 1,

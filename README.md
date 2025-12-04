@@ -72,15 +72,15 @@ Enter your uma musume's stats (after all bonuses and support effects):
 - **Stamina**: Determines HP pool and stamina consumption
 - **Power**: Affects acceleration and hill climbing
 - **Guts**: Affects performance when stamina is low
-- **Int (Wit)**: Affects skill activation rates and randomness
+- **Wit**: Affects skill activation rates and randomness
 
 **Running Style:**
 
-- Oonige (Runaway)
-- Nige (Front Runner)
-- Senkou (Leader)
-- Sasi (Stalker)
-- Oikomi (Chaser/Closer)
+- Runaway
+- Front Runner
+- Pace Chaser
+- Late Surger
+- End Closer
 
 **Motivation (Mood):**
 
@@ -130,7 +130,7 @@ Some skills allow you to force activation at specific distances (useful for test
 
 **Wit Variance:**
 
-- ON: Includes intelligence-based randomness (realistic)
+- ON: Includes wit-based randomness (realistic)
 - OFF: Removes wit-based variance (for pure comparisons)
 
 **Virtual Pacemaker:**
