@@ -8,8 +8,9 @@ import { VelocityLines } from './components/VelocityLines';
 import { SimulationResultTabs } from './modules/simulation/tabs/simulation-result-tabs';
 import { WitVarianceModal } from './components/wit-variance/settings-modal';
 import { CreditsModal } from './components/credits-modal';
+import { ChangelogModal } from './components/changelog-modal';
 import { Button } from './components/ui/button';
-import { HeartIcon } from 'lucide-react';
+import { HeartIcon, ScrollTextIcon } from 'lucide-react';
 import { useClickOutside } from './hooks/useClickOutside';
 import { useRaceTrackTooltip } from './modules/racetrack/hooks/useRaceTrackTooltip';
 import { setPopoverSkill, useChartStore } from './store/chart.store';
@@ -22,6 +23,7 @@ import {
 } from './store/settings/actions';
 import {
   setIsPacemakerDropdownOpen,
+  setShowChangelogModal,
   setShowCreditsModal,
   toggleShowVirtualPacemakerOnGraph,
   useUIStore,
@@ -114,6 +116,14 @@ export function App() {
         <div></div>
         <RunButtonRow />
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowChangelogModal(true)}
+          >
+            <ScrollTextIcon className="h-4 w-4 mr-1" />
+            Changelog
+          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -232,6 +242,7 @@ export function App() {
 
       <WitVarianceModal />
       <CreditsModal />
+      <ChangelogModal />
     </div>
   );
 }

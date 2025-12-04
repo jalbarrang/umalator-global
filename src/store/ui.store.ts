@@ -22,6 +22,7 @@ export type IUIStore = {
   showWitVarianceSettings: boolean;
   showVirtualPacemakerOnGraph: boolean;
   showCreditsModal: boolean;
+  showChangelogModal: boolean;
 
   leftSide: ISidebar;
 };
@@ -38,6 +39,7 @@ export const useUIStore = create<IUIStore>()(
       showWitVarianceSettings: false,
       showVirtualPacemakerOnGraph: false,
       showCreditsModal: false,
+      showChangelogModal: false,
       leftSide: {
         activePanel: 'runners',
         hidden: false,
@@ -102,6 +104,10 @@ export const toggleShowVirtualPacemakerOnGraph = () => {
 
 export const setShowCreditsModal = (showCreditsModal: boolean) => {
   useUIStore.setState({ showCreditsModal });
+};
+
+export const setShowChangelogModal = (showChangelogModal: boolean) => {
+  useUIStore.setState({ showChangelogModal });
 };
 
 export const setLeftSidebar = (sidebar: Partial<ISidebar>) => {
