@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Upload } from 'lucide-react';
 
 import icons from '@data/icons.json';
 
@@ -23,6 +24,7 @@ type UmaSelectorProps = {
   value: string;
   select: (outfitId: string) => void;
   onReset: () => void;
+  onImport?: () => void;
 };
 
 export const UmaSelector = (props: UmaSelectorProps) => {
@@ -101,6 +103,17 @@ export const UmaSelector = (props: UmaSelectorProps) => {
         </Popover>
 
         <div className="flex gap-2 justify-end">
+          {props.onImport && (
+            <Button
+              onClick={props.onImport}
+              title="Import data from screenshot"
+              size="sm"
+              variant="outline"
+            >
+              <Upload className="w-4 h-4" />
+              Import
+            </Button>
+          )}
           <Button
             onClick={props.onReset}
             title="Reset this horse to default stats and skills"

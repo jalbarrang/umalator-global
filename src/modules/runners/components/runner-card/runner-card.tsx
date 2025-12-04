@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import { SkillItem } from '@/modules/skills/components/skill-list/SkillItem';
 
@@ -15,6 +15,8 @@ import { MoodSelect } from '@/modules/runners/components/MoodSelect';
 import { AptitudeSelect } from '@/modules/runners/components/AptitudeSelect';
 import { StatInput } from '@/modules/runners/components/StatInput';
 import { UmaSelector } from '@/modules/runners/components/runner-selector';
+import { OcrImportDialog } from '@/modules/runners/components/ocr-import-dialog';
+import type { ExtractedUmaData } from '@/modules/runners/ocr/index';
 
 import './styles.css';
 import { Label } from '@/components/ui/label';
@@ -36,6 +38,9 @@ export const RunnerCard = (props: RunnerCardProps) => {
 
   const umaId = state.outfitId;
 
+  // OCR Import dialog state
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+
   const handleSetSkills = (skills: string[]) => {
     onChange({ ...state, skills: skills });
     updateCurrentSkills(skills);
@@ -43,6 +48,41 @@ export const RunnerCard = (props: RunnerCardProps) => {
     if (skills.includes(runawaySkillId) && state.strategy !== 'Oonige') {
       onChange({ ...state, strategy: 'Oonige' });
     }
+  };
+
+  // Handle OCR import apply
+  const handleOcrImportApply = (data: ExtractedUmaData) => {
+    const newState: Partial<RunnerState> = {};
+
+    // Apply uma identity
+    if (data.outfitId) {
+      newState.outfitId = data.outfitId;
+    }
+
+    // Apply stats
+    if (data.speed) newState.speed = data.speed;
+    if (data.stamina) newState.stamina = data.stamina;
+    if (data.power) newState.power = data.power;
+    if (data.guts) newState.guts = data.guts;
+    if (data.wisdom) newState.wisdom = data.wisdom;
+
+    // Apply skills - replace existing with OCR detected ones
+    if (data.skills && data.skills.length > 0) {
+      const skillIds = data.skills.map((s) => s.id);
+
+      // Add the unique skill for the uma if we detected one
+      if (data.outfitId) {
+        const uniqueSkillId = getUniqueSkillForByUmaId(data.outfitId);
+        if (!skillIds.includes(uniqueSkillId)) {
+          skillIds.unshift(uniqueSkillId);
+        }
+      }
+
+      newState.skills = skillIds;
+      updateCurrentSkills(skillIds);
+    }
+
+    onChange({ ...state, ...newState });
   };
 
   function handleChangeRunner(outfitId: string) {
@@ -160,6 +200,13 @@ export const RunnerCard = (props: RunnerCardProps) => {
         value={umaId}
         select={handleChangeRunner}
         onReset={onReset}
+        onImport={() => setImportDialogOpen(true)}
+      />
+
+      <OcrImportDialog
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
+        onApply={handleOcrImportApply}
       />
 
       <div className="grid grid-cols-5 rounded-sm border-2">

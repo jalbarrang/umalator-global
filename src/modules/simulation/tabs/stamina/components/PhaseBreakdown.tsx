@@ -1,6 +1,5 @@
 import { cn } from '@/lib/utils';
 import {
-  PhaseBreakdown as PhaseBreakdownType,
   StaminaAnalysis,
   ActualPhaseHp,
   RecoverySkillActivation,
@@ -17,7 +16,6 @@ export const PhaseBreakdown = ({
   analysis,
   phaseHp,
   recoverySkills,
-  isTheoretical,
 }: PhaseBreakdownProps) => {
   return (
     <div className="space-y-2">
@@ -114,4 +112,3 @@ export const PhaseBreakdown = ({
     </div>
   );
 };
-
