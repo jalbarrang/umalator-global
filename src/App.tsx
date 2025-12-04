@@ -7,6 +7,9 @@ import { BasinnChart } from './components/bassin-chart/BasinnChart';
 import { VelocityLines } from './components/VelocityLines';
 import { SimulationResultTabs } from './modules/simulation/tabs/simulation-result-tabs';
 import { WitVarianceModal } from './components/wit-variance/settings-modal';
+import { CreditsModal } from './components/credits-modal';
+import { Button } from './components/ui/button';
+import { HeartIcon } from 'lucide-react';
 import { useClickOutside } from './hooks/useClickOutside';
 import { useRaceTrackTooltip } from './modules/racetrack/hooks/useRaceTrackTooltip';
 import { setPopoverSkill, useChartStore } from './store/chart.store';
@@ -19,6 +22,7 @@ import {
 } from './store/settings/actions';
 import {
   setIsPacemakerDropdownOpen,
+  setShowCreditsModal,
   toggleShowVirtualPacemakerOnGraph,
   useUIStore,
 } from './store/ui.store';
@@ -109,7 +113,15 @@ export function App() {
       <div className="flex py-2 justify-between items-center border-b px-4">
         <div></div>
         <RunButtonRow />
-        <div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowCreditsModal(true)}
+          >
+            <HeartIcon className="h-4 w-4 mr-1" />
+            Credits
+          </Button>
           <ThemeToggle />
         </div>
       </div>
@@ -219,6 +231,7 @@ export function App() {
       </main>
 
       <WitVarianceModal />
+      <CreditsModal />
     </div>
   );
 }

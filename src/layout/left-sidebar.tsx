@@ -69,7 +69,7 @@ export const LeftSidebar = () => {
 
       {/* Side Panel */}
       <div
-        className={cn('flex flex-col w-[500px] border-r bg-background', {
+        className={cn('flex flex-col w-[450px] border-r bg-background', {
           'w-0 overflow-hidden': hidden,
         })}
       >
