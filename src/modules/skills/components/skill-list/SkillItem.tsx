@@ -68,7 +68,7 @@ export const SkillItem = memo((props: SkillItemProps) => {
     return (
       <div
         className={cn(
-          'rounded-md bg-background border-2 flex max-h-[44px]',
+          'rounded-md bg-background border-2 flex h-[44px]',
           props.itemProps?.className,
           {
             selected: selected,
@@ -86,7 +86,7 @@ export const SkillItem = memo((props: SkillItemProps) => {
           })}
         ></div>
 
-        <div className="flex items-center gap-2 p-2">
+        <div className="flex flex-1 items-center gap-2 p-2">
           <Activity mode={skillContext.iconId ? 'visible' : 'hidden'}>
             <SkillIcon iconId={skillContext.iconId} />
           </Activity>
@@ -94,19 +94,20 @@ export const SkillItem = memo((props: SkillItemProps) => {
           <span className={cn('text-sm text-foreground')}>
             {i18n.t(`skillnames.${skillContext.id}`)}
           </span>
-
-          {dismissable && (
-            <Button
-              variant="ghost"
-              size="icon"
-              type="button"
-              data-event="remove-skill"
-              data-skillid={skillId}
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          )}
         </div>
+
+        {dismissable && (
+          <Button
+            variant="ghost"
+            size="icon"
+            type="button"
+            data-event="remove-skill"
+            data-skillid={skillId}
+            className="h-full"
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        )}
       </div>
     );
   }
@@ -121,7 +122,7 @@ export const SkillItem = memo((props: SkillItemProps) => {
       <div
         onClick={() => setExpanded(!expanded)}
         className={cn(
-          'rounded-md bg-background border-2 flex max-h-[44px]',
+          'rounded-md bg-background border-2 flex h-[44px]',
           props.itemProps?.className,
           {
             selected: selected,
@@ -138,7 +139,7 @@ export const SkillItem = memo((props: SkillItemProps) => {
           })}
         ></div>
 
-        <div className="flex items-center gap-2 p-2">
+        <div className="flex flex-1 items-center gap-2 p-2">
           <Activity mode={skillContext.iconId ? 'visible' : 'hidden'}>
             <SkillIcon iconId={skillContext.iconId} />
           </Activity>
@@ -146,19 +147,20 @@ export const SkillItem = memo((props: SkillItemProps) => {
           <span className={cn('text-sm text-foreground')}>
             {i18n.t(`skillnames.${skillContext.id}`)}
           </span>
-
-          {dismissable && (
-            <Button
-              variant="ghost"
-              size="icon"
-              type="button"
-              data-event="remove-skill"
-              data-skillid={skillId}
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          )}
         </div>
+
+        {dismissable && (
+          <Button
+            variant="ghost"
+            size="icon"
+            type="button"
+            data-event="remove-skill"
+            data-skillid={skillId}
+            className="h-full"
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        )}
       </div>
 
       <Activity mode={expanded ? 'visible' : 'hidden'}>

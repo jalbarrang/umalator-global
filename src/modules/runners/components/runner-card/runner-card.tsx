@@ -18,9 +18,9 @@ import { UmaSelector } from '@/modules/runners/components/runner-selector';
 
 import './styles.css';
 import { Label } from '@/components/ui/label';
-import { PlusIcon } from 'lucide-react';
 import { openSkillPicker, updateCurrentSkills } from '@/modules/skills/store';
 import { Mood } from '@simulation/lib/RaceParameters';
+import { Button } from '@/components/ui/button';
 
 const runawaySkillId = '202051' as const;
 
@@ -234,18 +234,19 @@ export const RunnerCard = (props: RunnerCardProps) => {
         </div>
       </div>
 
-      <div className="bg-primary text-center text-white font-bold border-2 rounded-xl">
-        Skills
+      <div className="bg-primary text-white font-bold rounded-sm flex items-center h-8">
+        <div className="flex-1 text-center">Skills</div>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleOpenSkillPicker}
+          className="w-24 rounded-none rounded-r-sm"
+        >
+          Open
+        </Button>
       </div>
 
       <div className="grid grid-cols-2 gap-2" onClick={handleSkillClick}>
-        <div
-          className="rounded-md bg-background border-2 flex items-center p-2 gap-2 cursor-pointer max-h-[48px]"
-          onClick={handleOpenSkillPicker}
-        >
-          <PlusIcon /> Add Skill
-        </div>
-
         {state.skills.map((id: string) => {
           return (
             <SkillItem

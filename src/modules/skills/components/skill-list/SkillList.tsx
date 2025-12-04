@@ -23,7 +23,7 @@ import { Button } from '@/components/ui/button';
 import { SkillQuery } from '@/modules/skills/query';
 import { iconIdPrefixes } from '@/modules/skills/icons';
 import { groups_filters } from '@/modules/skills/filters';
-import { resetSkillPicker, useSkillModalStore } from '../../store';
+import { useSkillModalStore } from '@/modules/skills/store';
 
 type IconFilterButtonProps = {
   type: string;
@@ -251,13 +251,6 @@ export function SkillPickerModal() {
 
   const handleOpenChange = (open: boolean) => {
     useSkillModalStore.setState({ open });
-
-    if (open) {
-      searchRef.current?.focus();
-      searchRef.current?.select();
-    } else {
-      resetSkillPicker();
-    }
   };
 
   const handleIconTypeChecked = (filter: string) => {
@@ -296,7 +289,15 @@ export function SkillPickerModal() {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="flex flex-col gap-4 w-[80vw] sm:max-w-[80vw] h-[90dvh]">
+      <DialogContent
+        className="flex flex-col gap-4 w-[80vw] sm:max-w-[80vw] h-[90dvh]"
+        onOpenAutoFocus={(e) => {
+          e.preventDefault();
+
+          searchRef.current?.focus();
+          searchRef.current?.select();
+        }}
+      >
         <DialogHeader>
           <DialogTitle>Add Skill to Runner</DialogTitle>
         </DialogHeader>
@@ -321,12 +322,12 @@ export function SkillPickerModal() {
           <div className="flex flex-col gap-4 overflow-y-auto">
             <div data-filter-group="search">
               <Input
+                ref={searchRef}
                 type="text"
                 className="filterSearch"
                 value={searchText}
                 placeholder="Search"
                 onChange={(e) => setSearchText(e.target.value)}
-                ref={searchRef}
               />
             </div>
 

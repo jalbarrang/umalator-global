@@ -5,6 +5,38 @@ import { skillFilterLookUp, type Skill } from '@/modules/skills/utils';
 type SkillPredicate = (skill: Skill) => boolean;
 
 /**
+ * Simple fuzzy match - checks if all chars in pattern appear in order in target
+ * Returns a score (higher is better match), or -1 for no match
+ */
+function fuzzyMatch(pattern: string, target: string): number {
+  const patternLower = pattern.toLowerCase();
+  const targetLower = target.toLowerCase();
+
+  let patternIdx = 0;
+  let score = 0;
+  let lastMatchIdx = -1;
+
+  for (
+    let i = 0;
+    i < targetLower.length && patternIdx < patternLower.length;
+    i++
+  ) {
+    if (targetLower[i] === patternLower[patternIdx]) {
+      // Bonus for consecutive matches
+      if (lastMatchIdx === i - 1) score += 2;
+      // Bonus for matching at start or after separator
+      if (i === 0 || targetLower[i - 1] === ' ') score += 3;
+      score += 1;
+      lastMatchIdx = i;
+      patternIdx++;
+    }
+  }
+
+  // All pattern chars must be found
+  return patternIdx === patternLower.length ? score : -1;
+}
+
+/**
  * SQL-like query builder for filtering skills
  *
  * Usage:
@@ -44,8 +76,13 @@ export class SkillQuery {
     if (searchText.length === 0) return this;
 
     this.predicates.push((skill) => {
-      const needle = searchText.toUpperCase();
-      return skill.name.toUpperCase().includes(needle);
+      // Exact substring match gets priority
+      if (skill.name.toUpperCase().includes(searchText.toUpperCase())) {
+        return true;
+      }
+
+      // Fall back to fuzzy match
+      return fuzzyMatch(searchText, skill.name) > 0;
     });
 
     return this;
