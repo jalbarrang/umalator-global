@@ -5,9 +5,10 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { SettingsIcon, UsersIcon } from 'lucide-react';
+import { SettingsIcon, UsersIcon, SlidersHorizontalIcon } from 'lucide-react';
 import { RunnersPanel } from '@/modules/runners/components/runners-panel';
 import { RacetrackSettings } from '@/modules/racetrack/components/racetrack-settings';
+import { AdvancedSettingsPanel } from '@/components/advanced-settings-panel';
 import { setLeftSidebar, useLeftSidebar } from '@/store/ui.store';
 import { useMemo } from 'react';
 
@@ -23,6 +24,12 @@ const panels = [
     label: 'Race Settings',
     icon: SettingsIcon,
     content: <RacetrackSettings />,
+  },
+  {
+    id: 'advanced-settings',
+    label: 'Advanced Settings',
+    icon: SlidersHorizontalIcon,
+    content: <AdvancedSettingsPanel />,
   },
 ];
 

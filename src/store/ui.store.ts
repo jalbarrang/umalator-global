@@ -19,7 +19,6 @@ export type IUIStore = {
 
   // Dropdown/modal state (ephemeral, not persisted)
   isPacemakerDropdownOpen: boolean;
-  showWitVarianceSettings: boolean;
   showVirtualPacemakerOnGraph: boolean;
   showCreditsModal: boolean;
   showChangelogModal: boolean;
@@ -36,7 +35,6 @@ export const useUIStore = create<IUIStore>()(
       isSimulationRunning: false,
       runOnceCounter: 0,
       isPacemakerDropdownOpen: false,
-      showWitVarianceSettings: false,
       showVirtualPacemakerOnGraph: false,
       showCreditsModal: false,
       showChangelogModal: false,
@@ -88,12 +86,6 @@ export const setIsPacemakerDropdownOpen = (
   isPacemakerDropdownOpen: boolean,
 ) => {
   useUIStore.setState({ isPacemakerDropdownOpen });
-};
-
-export const setShowWitVarianceSettings = (
-  showWitVarianceSettings: boolean,
-) => {
-  useUIStore.setState({ showWitVarianceSettings });
 };
 
 export const toggleShowVirtualPacemakerOnGraph = () => {

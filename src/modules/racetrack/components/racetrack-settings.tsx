@@ -25,8 +25,6 @@ import {
   PanelHeader,
   PanelTitle,
 } from '@/components/ui/panel';
-import { SimulationPanel } from '@/components/run-pane';
-import { Separator } from '@/components/ui/separator';
 
 export const RacetrackSettings = () => {
   const [open, setOpen] = useState(false);
@@ -119,10 +117,6 @@ export const RacetrackSettings = () => {
             Save as Preset
           </Button>
         </div>
-
-        <Separator />
-
-        <SimulationPanel />
       </PanelContent>
     </Panel>
   );

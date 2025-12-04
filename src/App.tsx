@@ -6,7 +6,6 @@ import { BasinnChart } from './components/bassin-chart/BasinnChart';
 
 import { VelocityLines } from './components/VelocityLines';
 import { SimulationResultTabs } from './modules/simulation/tabs/simulation-result-tabs';
-import { WitVarianceModal } from './components/wit-variance/settings-modal';
 import { CreditsModal } from './components/credits-modal';
 import { ChangelogModal } from './components/changelog-modal';
 import { Button } from './components/ui/button';
@@ -31,7 +30,6 @@ import {
 import { Mode } from './utils/settings';
 import { cn } from './lib/utils';
 import { LeftSidebar } from './layout/left-sidebar';
-import { RunButtonRow } from './components/run-pane';
 import { ResultButtonGroups } from './modules/simulation/tabs/summary-tab';
 import { ThemeToggle } from './components/ui/theme-toggle';
 
@@ -111,10 +109,12 @@ export function App() {
   });
 
   return (
-    <div className="flex flex-col flex-1">
+    <div className="flex flex-col flex-1 min-h-screen">
       <div className="flex py-2 justify-between items-center border-b px-4">
-        <div></div>
-        <RunButtonRow />
+        <div className="flex items-center gap-2">
+          {/* Later on this will be a tab list for different screens (Race Simulation, Standalone Stamina Calculator, Skill Builder) */}
+          <div>Race Simulation</div>
+        </div>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
@@ -136,7 +136,7 @@ export function App() {
         </div>
       </div>
 
-      <main className="flex">
+      <main className="flex flex-1">
         <LeftSidebar />
 
         <div className="flex flex-col flex-1 p-4 gap-4">
@@ -240,7 +240,6 @@ export function App() {
         </div>
       </main>
 
-      <WitVarianceModal />
       <CreditsModal />
       <ChangelogModal />
     </div>
