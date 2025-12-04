@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { PhaseBreakdown, StaminaAnalysis } from './useStaminaAnalysis';
+import { RecoverySkillActivation } from './useRecoverySkills';
 
 export interface ActualPhaseHp {
   hpAtStart: number;
@@ -63,21 +64,32 @@ export function useActualPhaseHp(
  */
 export function useTheoreticalPhaseHp(
   analysis: StaminaAnalysis,
+  recoverySkills: RecoverySkillActivation[], // Add this parameter
 ): ActualPhaseHp[] {
   return useMemo(() => {
-    return analysis.phases.map((phase, i) => {
-      const hpUsedBefore = analysis.phases
-        .slice(0, i)
-        .reduce((sum, p) => sum + p.hpConsumed, 0);
-      const hpAtStart = analysis.maxHp - hpUsedBefore;
-      const hpAtEnd = hpAtStart - phase.hpConsumed;
+    return analysis.phases.reduce<ActualPhaseHp[]>((acc, phase) => {
+      const hpAtStart =
+        acc.length === 0 ? analysis.maxHp : acc[acc.length - 1].hpAtEnd;
 
-      return {
+      // Add recovery skills that activate during this phase
+      const healsDuringPhase = recoverySkills
+        .filter(
+          (skill) =>
+            skill.position >= phase.startDistance &&
+            skill.position < phase.endDistance,
+        )
+        .reduce((sum, skill) => sum + skill.hpRecovered, 0);
+
+      // Calculate end HP: subtract consumed, add heals
+      const hpAtEnd = hpAtStart - phase.hpConsumed + healsDuringPhase;
+
+      acc.push({
         hpAtStart,
         hpAtEnd,
         hpConsumed: phase.hpConsumed,
-      };
-    });
-  }, [analysis]);
-}
+      });
 
+      return acc;
+    }, []);
+  }, [analysis, recoverySkills]);
+}

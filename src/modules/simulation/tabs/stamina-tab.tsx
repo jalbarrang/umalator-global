@@ -61,8 +61,6 @@ export const StaminaTab = () => {
     analysis2.phases,
     analysis2.maxHp,
   );
-  const theoreticalPhaseHp1 = useTheoreticalPhaseHp(analysis1);
-  const theoreticalPhaseHp2 = useTheoreticalPhaseHp(analysis2);
 
   // Determine which data to show based on mode
   const isUma1Theoretical = !hasSimulationData || uma1Theoretical;
@@ -74,6 +72,9 @@ export const StaminaTab = () => {
   const recoverySkills2 = isUma2Theoretical
     ? theoreticalRecoverySkills2
     : actualRecoverySkills2;
+
+  const theoreticalPhaseHp1 = useTheoreticalPhaseHp(analysis1, recoverySkills1);
+  const theoreticalPhaseHp2 = useTheoreticalPhaseHp(analysis2, recoverySkills2);
 
   const phaseHp1 = isUma1Theoretical
     ? theoreticalPhaseHp1
