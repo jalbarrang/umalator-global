@@ -19,7 +19,7 @@ const applyTheme = (resolvedTheme: 'light' | 'dark') => {
 const useThemeStore = create<ThemeState>()(
   persist(
     (_) => ({
-      theme: 'light',
+      theme: 'dark',
     }),
     {
       name: 'umalator-theme',

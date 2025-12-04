@@ -52,7 +52,7 @@ export const RunnersPanel = () => {
       <PanelContent className="p-0">
         <SkillPickerModal />
 
-        <div>
+        <div className="flex flex-col gap-2">
           <RunnerCard
             value={uma1}
             onChange={setUma1}

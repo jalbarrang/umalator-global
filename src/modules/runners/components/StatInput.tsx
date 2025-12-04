@@ -33,14 +33,16 @@ export const StatInput = (props: StatInputProps) => {
   }, [value]);
 
   return (
-    <div className="flex items-center gap-2">
-      <StatImage value={innerValue} className="w-4 h-4" />
+    <div className="flex items-center">
+      <div className="flex items-center justify-center p-1">
+        <StatImage value={innerValue} className="w-4 h-4" />
+      </div>
 
       <Input
-        className="flex-1 border-none rounded-none p-0 text-sm"
+        className="flex-1 border-none rounded-none p-1 text-sm"
         type="number"
         min="1"
-        max="2000"
+        max="1200" // TODO: Update this to a new threshold when we have it
         value={innerValue}
         onInput={(e) => setInnerValue(+e.currentTarget.value)}
         onBlur={() => onChange(innerValue)}

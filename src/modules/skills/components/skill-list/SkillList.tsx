@@ -288,6 +288,20 @@ export function SkillPickerModal() {
     dispatch({ type: 'SET_EXCLUSIVE_FILTER', group: 'location', filter });
   };
 
+  const handleRemoveSkill: React.MouseEventHandler<HTMLDivElement> = (e) => {
+    const target = e.target as HTMLElement;
+    const eventElement = target.closest(
+      '[data-event="remove-skill"]',
+    ) as HTMLElement;
+    if (!eventElement) return;
+
+    const skillId = eventElement.dataset.skillid;
+    if (!skillId) return;
+
+    const newSkills = currentSkills.filter((id) => id !== skillId);
+    onSelect(newSkills);
+  };
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="flex flex-col gap-4 w-[80vw] sm:max-w-[80vw] h-[90dvh]">
@@ -295,8 +309,24 @@ export function SkillPickerModal() {
           <DialogTitle>Add Skill to Runner</DialogTitle>
         </DialogHeader>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="flex flex-col gap-4">
+        {currentSkills.length > 0 && (
+          <div className="flex flex-col gap-2 border-b pb-4 shrink-0 max-h-[30vh] overflow-y-auto">
+            <div className="text-sm font-bold">Current Skills</div>
+            <div className="flex flex-wrap gap-2" onClick={handleRemoveSkill}>
+              {currentSkills.map((skillId) => (
+                <SkillItem
+                  key={skillId}
+                  skillId={skillId}
+                  dismissable
+                  itemProps={{ className: 'cursor-pointer' }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 gap-4 flex-1 min-h-0 overflow-hidden">
+          <div className="flex flex-col gap-4 overflow-y-auto">
             <div data-filter-group="search">
               <Input
                 type="text"
@@ -495,7 +525,7 @@ export function SkillPickerModal() {
             </div>
           </div>
 
-          <div className="overflow-y-auto max-h-[80dvh]">
+          <div className="overflow-y-auto">
             <div className="grid grid-cols-2 gap-2" onClick={toggleSelected}>
               {filteredSkills.map((skill) => (
                 <SkillItem
