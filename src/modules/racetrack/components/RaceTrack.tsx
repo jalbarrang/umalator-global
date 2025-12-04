@@ -19,6 +19,14 @@ import {
   setUma2,
   useRunnersStore,
 } from '@/store/runners.store';
+import { SettingsIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from '@/components/ui/tooltip';
+import { setLeftSidebar } from '@/store/ui.store';
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const enum RegionDisplayType {
@@ -300,16 +308,35 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
 
   return (
     <div className="flex flex-col w-full items-center">
-      <div className="text-xl text-foreground font-bold">
-        {i18n.t(`tracknames.${course.raceTrackId}`)}{' '}
-        {i18n.t('coursedesc', {
-          distance: course.distance,
-          inout: i18n.t(
-            `racetrack.${inoutKey[courses[props.courseid].course]}`,
-          ),
-          surface: course.surface == Surface.Turf ? 'Turf' : 'Dirt',
-        })}{' '}
-        {i18n.t(`racetrack.orientation.${course.turn}`)}
+      <div className="flex items-center gap-2">
+        <div className="text-xl text-foreground font-bold">
+          {i18n.t(`tracknames.${course.raceTrackId}`)}{' '}
+          {i18n.t('coursedesc', {
+            distance: course.distance,
+            inout: i18n.t(
+              `racetrack.${inoutKey[courses[props.courseid].course]}`,
+            ),
+            surface: course.surface == Surface.Turf ? 'Turf' : 'Dirt',
+          })}{' '}
+          {i18n.t(`racetrack.orientation.${course.turn}`)}
+        </div>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={() =>
+                setLeftSidebar({ activePanel: 'racetrack-settings', hidden: false })
+              }
+            >
+              <SettingsIcon className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Race Settings</p>
+          </TooltipContent>
+        </Tooltip>
       </div>
 
       <svg
