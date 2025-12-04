@@ -181,7 +181,7 @@ Areas where tooltips or contextual help would significantly improve understandin
 
 Issues with understanding simulation output.
 
-### 4.1 No guide for reading results [P2]
+### 4.1 ~~No guide for reading results~~ [P2] ⚡ PARTIALLY RESOLVED
 
 **Problem:** After running simulations, users see statistics (mean, median, percentiles) but may not understand:
 
@@ -194,6 +194,17 @@ Issues with understanding simulation output.
 - Add a brief "How to read results" section or tooltip
 - Label statistics more clearly (e.g., "Avg. Race Time" instead of just numbers)
 - Consider adding comparison guidance
+
+**What's been done:**
+
+- ✅ Compare mode now shows explanatory text: "Negative numbers mean Umamusume 1 is faster, positive numbers mean Umamusume 2 is faster"
+- ✅ Statistics are clearly labeled (Minimum, Maximum, Mean, Median) with "lengths" unit
+- ✅ Win Distribution shows clear percentages
+
+**Remaining:**
+
+- Skill Chart mode still lacks unit explanation ("L" for lengths)
+- No tooltips on column headers in skill efficacy table
 
 **File:** Results display components in [`src/modules/simulation/`](../src/modules/simulation/)
 
@@ -264,6 +275,155 @@ This separation provides clearer context by grouping related options and making 
 
 ---
 
+## 6. Skill Chart Mode
+
+Issues specific to the Skill Chart simulation mode.
+
+### 6.1 "L" unit not explained [P2]
+
+**Problem:** Skill efficacy values show numbers like "41.16 L" but the "L" unit (lengths/bashin) is never defined.
+
+- Users unfamiliar with "bashin" terminology won't understand the unit
+- No conversion to meters or other familiar units provided
+- Comparing skills is difficult without understanding the scale
+
+**Suggested fix:**
+
+- Add a note above the table: "Values shown in lengths (L). 1 length = 2.5m"
+- Or add a tooltip on column headers explaining the unit
+
+**File:** Skill chart table in [`src/modules/simulation/`](../src/modules/simulation/)
+
+---
+
+### 6.2 Negative values in skill efficacy confusing [P2]
+
+**Problem:** Some skills show negative minimum values (e.g., Highlander: -40.94 L). It's unclear what negative efficacy means.
+
+- Does negative mean the skill hurt performance?
+- Or does it indicate earlier activation position?
+- Users may misinterpret negative as "bad"
+
+**Suggested fix:**
+
+- Add explanation for what negative values represent
+- Consider using different terminology if negative doesn't mean "worse"
+
+**File:** Skill chart table in [`src/modules/simulation/`](../src/modules/simulation/)
+
+---
+
+### 6.3 No skill type visual differentiation [P3]
+
+**Problem:** Speed skills, recovery skills, and acceleration skills all appear similar in the table except for icon color.
+
+- Harder to compare skills of the same type
+- No grouping or filtering by skill effect type
+
+**Suggested fix:**
+
+- Add a filter/sort option by skill type (Speed, Stamina, Acceleration, etc.)
+- Or add a small tag/badge indicating skill type
+
+**File:** Skill chart components
+
+---
+
+## 7. Compare Mode
+
+Issues specific to the Compare simulation mode.
+
+### 7.1 "Spurt Rate" and "Survival Rate" undefined [P2]
+
+**Problem:** The Runner Stats tab shows "Spurt Rate" and "Survival Rate" percentages without explaining what they measure.
+
+- "Spurt Rate: 72.4%" — percentage of runs that achieved max spurt speed?
+- "Survival Rate: 39.0%" — percentage of runs finishing with positive HP?
+- These are simulator-specific metrics not found in-game
+
+**Suggested fix:**
+
+- Add tooltips explaining each metric:
+  - Spurt Rate: "Percentage of simulations where the uma reached maximum spurt speed"
+  - Survival Rate: "Percentage of simulations where the uma finished with HP remaining"
+
+**File:** Runner Stats tab in [`src/modules/simulation/tabs/`](../src/modules/simulation/tabs/)
+
+---
+
+### 7.2 Position Keep indicators unexplained [P2]
+
+**Problem:** The track visualization shows abbreviations like "PDMM", "RU", "PU" but these aren't defined.
+
+- Likely means: Pace Down, Rush Up, Pace Up
+- Appears on the elevation profile area of the track
+- Users unfamiliar with position keep mechanics won't understand
+
+**Suggested fix:**
+
+- Add a legend or tooltip explaining the abbreviations
+- Or spell out on first occurrence: "PU (Pace Up)"
+
+**File:** Track visualization in [`src/modules/racetrack/`](../src/modules/racetrack/)
+
+---
+
+### 7.3 Zero duration display for instant skills [P3]
+
+**Problem:** Some skills show "Duration: 0.0m" in the Skills tab (e.g., Swinging Maestro: Start 1321.4m, End 1321.4m, Duration 0.0m).
+
+- May confuse users — did the skill not work?
+- Instant-effect skills (like HP recovery) don't have duration but display suggests an error
+
+**Suggested fix:**
+
+- Show "Instant" instead of "0.0m" for zero-duration skills
+- Or add a note explaining instant-effect skill display
+
+**File:** Skills tab in [`src/modules/simulation/tabs/`](../src/modules/simulation/tabs/)
+
+---
+
+## What's Working Well ✅
+
+Patterns and implementations that should be maintained and potentially expanded to other areas.
+
+### Clear Explanatory Text
+
+- **Compare Mode results explanation:** "Negative numbers mean Umamusume 1 is faster, positive numbers mean Umamusume 2 is faster" — direct and helpful
+- **Stamina warnings:** "Cannot Max Spurt (need +71 stamina)" — actionable feedback
+
+### Consistent Color Coding
+
+- Uma 1 uses green/blue consistently across all tabs
+- Uma 2 uses red consistently across all tabs
+- This pattern should be maintained throughout
+
+### Detailed Stamina Analysis
+
+The Stamina tab is exemplary:
+
+- Clear warning messages with specific numbers
+- "(w/ heals)" annotation distinguishes with/without recovery skills
+- Phase Breakdown shows HP consumption per phase visually
+- HP bar visualization makes remaining HP intuitive
+
+### Good Statistical Presentation
+
+- Sample Size displayed prominently (e.g., "Sample Size: 500")
+- Percentiles provided (5th, 25th, 50th, 75th, 95th) for statistical context
+- Win Distribution with visual bars and percentages
+
+### Quick Comparison Section
+
+The "Quick Comparison" cards at bottom of Runner Stats are effective:
+
+- Time Difference, Speed Advantage, Start Delay Diff
+- Color-coded to show which uma is better
+- Concise summary for at-a-glance comparison
+
+---
+
 ## Implementation Notes
 
 ### Existing Tooltip Infrastructure
@@ -275,25 +435,30 @@ The project already has tooltip components that can be reused:
 
 ### Key Files for Modifications
 
-| Area                   | Primary Files                     |
-| ---------------------- | --------------------------------- |
-| Runner stats/aptitudes | `src/modules/runners/components/` |
-| Track visualization    | `src/modules/racetrack/`          |
-| Simulation settings    | `src/store/settings/`             |
-| Skill display          | `src/modules/skills/components/`  |
-| Results display        | `src/modules/simulation/tabs/`    |
+| Area                   | Primary Files                      |
+| ---------------------- | ---------------------------------- |
+| Runner stats/aptitudes | `src/modules/runners/components/`  |
+| Track visualization    | `src/modules/racetrack/`           |
+| Simulation settings    | `src/store/settings/`              |
+| Skill display          | `src/modules/skills/components/`   |
+| Results display        | `src/modules/simulation/tabs/`     |
+| Skill chart mode       | `src/modules/simulation/` (tables) |
+| Compare mode tabs      | `src/modules/simulation/tabs/`     |
 
 ### Recommended Implementation Order
 
-1. **P1 issues first** — "Run samples" button clarity
-2. **P2 issues** — Phase legend, aptitude tooltips, settings explanations
-3. **P3 issues** — Polish items like naming consistency, label improvements
+1. **P1 issues first** — "Run samples" button clarity (1.1)
+2. **P2 issues** — Unit explanations (6.1, 6.2), metric definitions (7.1, 7.2), phase legend (2.1), aptitude tooltips (3.1)
+3. **P3 issues** — Polish items like skill type filtering (6.3), instant skill display (7.3), label improvements
 
 ---
 
 ## Changelog
 
-| Date       | Change                                                 |
-| ---------- | ------------------------------------------------------ |
-| 2024-12-04 | Initial document created                               |
-| 2024-12-04 | Resolved 5.2: Reorganized settings into logical panels |
+| Date       | Change                                                             |
+| ---------- | ------------------------------------------------------------------ |
+| 2024-12-04 | Initial document created                                           |
+| 2024-12-04 | Resolved 5.2: Reorganized settings into logical panels             |
+| 2024-12-04 | Added sections 6 (Skill Chart) and 7 (Compare Mode) — 6 new issues |
+| 2024-12-04 | Marked 4.1 as partially resolved                                   |
+| 2024-12-04 | Added "What's Working Well" section documenting good patterns      |

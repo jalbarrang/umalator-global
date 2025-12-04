@@ -269,6 +269,57 @@ const generateSkillFilterLookUp = () => {
 
 export const skillFilterLookUp = generateSkillFilterLookUp();
 
+/**
+ * Estimate skill activation phase from skill condition
+ * Returns phase number (0-3) or null if undeterminable
+ *
+ * Phase boundaries per race mechanics:
+ * - Phase 0 (Early-race): Sections 1-4 (0% to ~16.7% of course)
+ * - Phase 1 (Mid-race): Sections 5-16 (~16.7% to ~66.7% of course)
+ * - Phase 2 (Late-race): Sections 17-20 (~66.7% to ~83.3% of course)
+ * - Phase 3 (Last Spurt): Sections 21-24 (~83.3% to 100%)
+ */
+export function estimateSkillActivationPhase(skillId: string): number | null {
+  const data = getSkillDataById(skillId);
+  if (!data?.alternatives?.[0]?.condition) return null;
+
+  const condition = data.alternatives[0].condition;
+
+  // Check for phase conditions in order of specificity
+  // phase==X is most specific
+  const phaseMatch = condition.match(/phase==(\d)/);
+  if (phaseMatch) {
+    return parseInt(phaseMatch[1], 10);
+  }
+
+  // phase>=X means X or later
+  const phaseGteMatch = condition.match(/phase>=(\d)/);
+  if (phaseGteMatch) {
+    return parseInt(phaseGteMatch[1], 10);
+  }
+
+  // phase_random==X
+  const phaseRandomMatch = condition.match(/phase_random==(\d)/);
+  if (phaseRandomMatch) {
+    return parseInt(phaseRandomMatch[1], 10);
+  }
+
+  // is_lastspurt==1 means phase 2 or 3, estimate as phase 2
+  if (condition.includes('is_lastspurt==1')) {
+    return 2;
+  }
+
+  // is_finalcorner or is_last_straight typically means late race
+  if (
+    condition.includes('is_finalcorner') ||
+    condition.includes('is_last_straight')
+  ) {
+    return 2;
+  }
+
+  return null;
+}
+
 // Setup every value for module variables
 for (const skill of allSkills) {
   skillsById.set(skill.id, skill);

@@ -9,6 +9,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Zap } from 'lucide-react';
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from '@/components/ui/empty';
 
 type SkillPosition = {
   id: string;
@@ -63,7 +71,22 @@ export const SkillsTab = () => {
     return skillPositions.sort((a, b) => a.start - b.start);
   }, [chartData]);
 
-  if (!chartData) return null;
+  if (!chartData) {
+    return (
+      <Empty className="py-12">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <Zap />
+          </EmptyMedia>
+          <EmptyTitle>No Skill Data</EmptyTitle>
+          <EmptyDescription>
+            Run a simulation to see when and where skills activate during the
+            race.
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
+    );
+  }
 
   const hasUma1Skills = skillPositionsUma1.length > 0;
   const hasUma2Skills = skillPositionsUma2.length > 0;

@@ -1,6 +1,14 @@
 import { useMemo } from 'react';
 import { useRaceStore } from '@/store/race/store';
 import { Histogram } from '@/components/Histogram';
+import { BarChart3 } from 'lucide-react';
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from '@/components/ui/empty';
 
 export const DistributionTab = () => {
   const { results } = useRaceStore();
@@ -40,7 +48,22 @@ export const DistributionTab = () => {
     };
   }, [results]);
 
-  if (!distributionStats) return null;
+  if (!distributionStats) {
+    return (
+      <Empty className="py-12">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <BarChart3 />
+          </EmptyMedia>
+          <EmptyTitle>No Distribution Data</EmptyTitle>
+          <EmptyDescription>
+            Run simulations to see win rate distribution, percentiles, and
+            statistical analysis.
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">

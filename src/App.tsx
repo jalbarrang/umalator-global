@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { Activity, useEffect, useMemo } from 'react';
 import { CourseHelpers } from '@simulation/lib/CourseData';
 import { PosKeepMode } from '@simulation/lib/RaceSolver';
 import { RaceTrack } from '@/modules/racetrack/components/RaceTrack';
@@ -205,11 +205,12 @@ export function App() {
 
           {/* Compare Results between two runners */}
           {mode === Mode.Compare && results.length > 0 && (
-            <>
-              <ResultButtonGroups />
-              <SimulationResultTabs />
-            </>
+            <ResultButtonGroups />
           )}
+
+          <Activity mode={mode === Mode.Compare ? 'visible' : 'hidden'}>
+            <SimulationResultTabs />
+          </Activity>
 
           {/* Skills Chart (includes Uniques)*/}
           {mode == Mode.Chart && tableData.size > 0 && (

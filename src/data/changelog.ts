@@ -25,6 +25,26 @@ export type ChangelogEntry = {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: '0.1.3',
+    date: '2025-12-04',
+    changes: [
+      {
+        type: 'added',
+        items: [
+          '[UI] Added empty states to simulation result tabs (Distribution, Runner Stats, Skills) with contextual guidance',
+          '[Simulation] Added toggle to switch between Theoretical and Actual data in Stamina tab after running a simulation',
+          '[Simulation] Added theoretical recovery skill estimation based on equipped skills and phase conditions',
+        ],
+      },
+      {
+        type: 'changed',
+        items: [
+          '[Technical] Refactored Stamina tab into modular hooks (useStaminaAnalysis, useRecoverySkills, usePhaseHp) and presentation components',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.1.2',
     date: '2025-12-04',
     changes: [

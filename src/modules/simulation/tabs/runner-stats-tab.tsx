@@ -10,13 +10,36 @@ import {
 } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 import { Activity } from 'react';
+import { Timer } from 'lucide-react';
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from '@/components/ui/empty';
 
 export const RunnerStatsTab = () => {
   const { chartData, rushedStats, leadCompetitionStats, staminaStats } =
     useRaceStore();
   const { allowRushedUma2 } = useWitVariance();
 
-  if (!chartData) return null;
+  if (!chartData) {
+    return (
+      <Empty className="py-12">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <Timer />
+          </EmptyMedia>
+          <EmptyTitle>No Runner Statistics</EmptyTitle>
+          <EmptyDescription>
+            Run a simulation to compare finish times, top speeds, and
+            performance metrics.
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
+    );
+  }
 
   const uma1TopSpeed = chartData.v[0].reduce((a, b) => Math.max(a, b), 0);
   const uma2TopSpeed = chartData.v[1].reduce((a, b) => Math.max(a, b), 0);
