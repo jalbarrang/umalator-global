@@ -2,6 +2,7 @@ import { create } from 'zustand';
 
 type SkillModalStore = {
   open: boolean;
+  umaId: string;
   options: string[];
   currentSkills: string[];
   onSelect: (skills: string[]) => void;
@@ -9,6 +10,7 @@ type SkillModalStore = {
 
 export const useSkillModalStore = create<SkillModalStore>()((_) => ({
   open: false,
+  umaId: '',
   options: [],
   currentSkills: [],
   onSelect: () => {},
@@ -23,9 +25,9 @@ type OpenSkillPickerParams = {
 };
 
 export const openSkillPicker = (params: OpenSkillPickerParams) => {
-  const { options, currentSkills, onSelect } = params;
+  const { umaId, options, currentSkills, onSelect } = params;
 
-  useSkillModalStore.setState({ open: true, options, currentSkills, onSelect });
+  useSkillModalStore.setState({ open: true, umaId, options, currentSkills, onSelect });
 };
 
 export const updateCurrentSkills = (skills: string[]) => {
@@ -34,6 +36,7 @@ export const updateCurrentSkills = (skills: string[]) => {
 
 export const resetSkillPicker = () => {
   useSkillModalStore.setState({
+    umaId: '',
     options: [],
     currentSkills: [],
     onSelect: () => {},

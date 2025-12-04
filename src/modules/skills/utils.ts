@@ -148,8 +148,6 @@ export const nonUniqueSkillIds: string[] = [];
 export const getSelectableSkillsForUma = (umaId: UmaAltId) => {
   const ids: string[] = [];
 
-  console.log('umaId', umaId);
-
   // White, Gold, Upgraded Unique (2* Umas), Unique (3* Umas)
   const allowedRarities = [1, 2, 4, 5];
 

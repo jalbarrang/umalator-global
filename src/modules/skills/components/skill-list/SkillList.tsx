@@ -1,15 +1,12 @@
-import {
-  useCallback,
-  useDeferredValue,
-  useMemo,
-  useReducer,
-  useRef,
-  useState,
-} from 'react';
+import { useDeferredValue, useReducer, useRef, useState } from 'react';
 
 import './SkillList.css';
 
-import { getAllSkills, matchRarity } from '@/modules/skills/utils';
+import {
+  getAllSkills,
+  getUniqueSkillForByUmaId,
+  matchRarity,
+} from '@/modules/skills/utils';
 import { SkillIcon, SkillItem } from './SkillItem';
 import { cn } from '@/lib/utils';
 import i18n from '@/i18n';
@@ -148,9 +145,13 @@ const getActiveFilters = (filterState: FilterState, group: string): string[] =>
   groups_filters[group].filter((f) => filterState[group][f]);
 
 export function SkillPickerModal() {
-  const { open, options, currentSkills, onSelect } = useSkillModalStore();
+  const { open, umaId, options, currentSkills, onSelect } =
+    useSkillModalStore();
 
-  const searchRef = useRef(null);
+  const umaUniqueSkillId = getUniqueSkillForByUmaId(umaId);
+
+  const searchRef = useRef<HTMLInputElement>(null);
+  const skillsContainerRef = useRef<HTMLDivElement>(null);
   const [searchText, setSearchText] = useState('');
   const deferredSearchText = useDeferredValue(searchText);
 
@@ -160,12 +161,9 @@ export function SkillPickerModal() {
     createInitialFilterState,
   );
 
-  const skills = useMemo(
-    () => getAllSkills().filter((skill) => options.includes(skill.id)),
-    [options],
-  );
+  const skills = getAllSkills().filter((skill) => options.includes(skill.id));
 
-  const filteredSkills = useMemo(() => {
+  const filteredSkills = (() => {
     const activeRarities = getActiveFilters(filterState, 'rarity');
     const activeIconTypes = getActiveFilters(filterState, 'icontype');
     const activeStrategies = getActiveFilters(filterState, 'strategy');
@@ -185,16 +183,13 @@ export function SkillPickerModal() {
       .whereConditionMatch(activeSurfaces)
       .whereConditionMatch(activeLocations)
       .execute();
-  }, [skills, deferredSearchText, filterState]);
+  })();
 
-  // Create a lookup map from skill ID to Skill object (only computed when skills change)
-  const skillsById = useMemo(
-    () => new Map(skills.map((skill) => [skill.id, skill])),
-    [skills],
-  );
+  // Create a lookup map from skill ID to Skill object
+  const skillsById = new Map(skills.map((skill) => [skill.id, skill]));
 
-  // Now selectedMap can use the pre-built lookup instead of getSkillMetaById
-  const selectedMap = useMemo(() => {
+  // Build selected map using the pre-built lookup
+  const selectedMap = (() => {
     const selected: [string, string][] = [];
 
     for (const id of currentSkills) {
@@ -209,7 +204,7 @@ export function SkillPickerModal() {
     }
 
     return new Map(selected);
-  }, [currentSkills, skillsById]);
+  })();
 
   const toggleSelected: React.MouseEventHandler<HTMLDivElement> = (e) => {
     e.stopPropagation();
@@ -254,19 +249,16 @@ export function SkillPickerModal() {
     dispatch({ type: 'SET_EXCLUSIVE_FILTER', group: 'rarity', filter });
   };
 
-  const handleOpenChange = useCallback(
-    (open: boolean) => {
-      useSkillModalStore.setState({ open });
+  const handleOpenChange = (open: boolean) => {
+    useSkillModalStore.setState({ open });
 
-      if (open) {
-        searchRef.current?.focus();
-        searchRef.current?.select();
-      } else {
-        resetSkillPicker();
-      }
-    },
-    [searchRef],
-  );
+    if (open) {
+      searchRef.current?.focus();
+      searchRef.current?.select();
+    } else {
+      resetSkillPicker();
+    }
+  };
 
   const handleIconTypeChecked = (filter: string) => {
     dispatch({ type: 'TOGGLE_ICON_TYPE', filter });
@@ -317,7 +309,7 @@ export function SkillPickerModal() {
                 <SkillItem
                   key={skillId}
                   skillId={skillId}
-                  dismissable
+                  dismissable={skillId !== umaUniqueSkillId}
                   itemProps={{ className: 'cursor-pointer' }}
                 />
               ))}
@@ -525,8 +517,11 @@ export function SkillPickerModal() {
             </div>
           </div>
 
-          <div className="overflow-y-auto">
-            <div className="grid grid-cols-2 gap-2" onClick={toggleSelected}>
+          <div className="overflow-y-auto" ref={skillsContainerRef}>
+            <div
+              className="grid grid-cols-2 gap-2 p-2"
+              onClick={toggleSelected}
+            >
               {filteredSkills.map((skill) => (
                 <SkillItem
                   key={skill.id}

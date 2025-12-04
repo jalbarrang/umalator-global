@@ -67,13 +67,11 @@ export const SkillItem = memo((props: SkillItemProps) => {
   if (!withDetails) {
     return (
       <div
-        onClick={() => setExpanded(!expanded)}
         className={cn(
           'rounded-md bg-background border-2 flex max-h-[44px]',
           props.itemProps?.className,
           {
             selected: selected,
-            'rounded-b-none': expanded,
           },
         )}
         data-event="select-skill"
