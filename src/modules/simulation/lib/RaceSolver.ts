@@ -354,6 +354,7 @@ export class RaceSolver {
   competeFightStart: number | null;
   competeFightEnd: number | null;
   competeFightTimer: Timer;
+  competeFightTargets: Set<RaceSolver>;
 
   // Lead Competition
   leadCompetition: boolean;
@@ -502,6 +503,7 @@ export class RaceSolver {
     this.competeFightStart = null;
     this.competeFightEnd = null;
     this.competeFightTimer = this.getNewTimer();
+    this.competeFightTargets = new Set();
 
     this.leadCompetition = false;
     this.leadCompetitionStart = null;
@@ -792,7 +794,7 @@ export class RaceSolver {
     this.processSkillActivations();
     this.applyPositionKeepStates();
     this.updatePositionKeepCoefficient();
-    // this.updateCompeteFight();
+    this.updateCompeteFight();
     this.updateLeadCompetition();
     this.updateLastSpurtState();
     this.updateTargetSpeed();
@@ -1226,26 +1228,68 @@ export class RaceSolver {
   }
 
   updateCompeteFight() {
-    if (this.competeFight) {
-      if (this.hp.hpRatioRemaining() <= 0.05) {
-        this.competeFight = false;
-        this.competeFightEnd = this.pos;
+    // Exit conditions: HP below 5% ends competition
+    if (this.competeFight && this.hp.hpRatioRemaining() <= 0.05) {
+      this.competeFight = false;
+      this.competeFightEnd = this.pos;
+      this.competeFightTargets.clear();
+      return;
+    }
+
+    // Only on final straight
+    if (!this.isOnFinalStraight()) {
+      this.competeFightTimer.t = 0;
+      this.competeFightTargets.clear();
+      return;
+    }
+
+    // Cannot trigger below 15% HP
+    if (this.hp.hpRatioRemaining() < 0.15) {
+      return;
+    }
+
+    // Find competition targets per spec:
+    // abs(DistanceGap) < 3.0m, abs(LaneGap) < 0.25 CourseWidth
+    const newTargets = new Set<RaceSolver>();
+    for (const other of this.umas) {
+      if (other === this) continue;
+      const distanceGap = Math.abs(other.pos - this.pos);
+      const laneGap = Math.abs(other.currentLane - this.currentLane);
+      if (distanceGap < 3.0 && laneGap < 0.25) {
+        newTargets.add(other);
       }
+    }
 
+    // Reset timer if no targets
+    if (newTargets.size === 0) {
+      this.competeFightTimer.t = 0;
+      this.competeFightTargets.clear();
       return;
     }
 
-    if (StrategyHelpers.strategyMatches(this.posKeepStrategy, Strategy.Nige)) {
+    this.competeFightTargets = newTargets;
+
+    // Already in competition - continue
+    if (this.competeFight) {
       return;
     }
 
-    if (this.hp.hpRatioRemaining() < 0.15 || !this.isOnFinalStraight()) {
-      return;
-    }
-
+    // Check trigger conditions:
+    // - Target for 2+ seconds
+    // - Top 50% placement
+    // - Speed gap < 0.6 m/s with at least one target
     if (this.competeFightTimer.t >= 2) {
-      this.competeFight = true;
-      this.competeFightStart = this.pos;
+      const placement = this.umas.filter((u) => u.pos > this.pos).length + 1;
+      const isTop50 = placement <= Math.ceil(this.umas.length / 2);
+
+      const hasSpeedMatch = [...this.competeFightTargets].some(
+        (target) => Math.abs(target.currentSpeed - this.currentSpeed) < 0.6,
+      );
+
+      if (isTop50 && hasSpeedMatch) {
+        this.competeFight = true;
+        this.competeFightStart = this.pos;
+      }
     }
   }
 
@@ -1275,9 +1319,13 @@ export class RaceSolver {
         (u) => u.posKeepStrategy === this.posKeepStrategy,
       );
       const distanceGap = this.posKeepStrategy === Strategy.Nige ? 3.75 : 5;
+      // Lane gap per spec: Front Runner 0.165, Oonige 0.416 (in course width units)
+      const laneGap = this.posKeepStrategy === Strategy.Nige ? 0.165 : 0.416;
 
       const umasWithinGap = otherUmas.filter(
-        (u) => Math.abs(u.pos - this.pos) <= distanceGap,
+        (u) =>
+          Math.abs(u.pos - this.pos) <= distanceGap &&
+          Math.abs(u.currentLane - this.currentLane) < laneGap,
       );
 
       if (umasWithinGap.length >= 2) {
@@ -1397,7 +1445,7 @@ export class RaceSolver {
     }
 
     if (this.competeFight) {
-      this.targetSpeed += Math.pow(200 * this.horse.guts, 0.709) * 0.0001;
+      this.targetSpeed += Math.pow(200 * this.horse.guts, 0.708) * 0.0001;
     }
 
     if (this.leadCompetition) {

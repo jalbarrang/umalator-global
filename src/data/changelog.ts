@@ -25,6 +25,26 @@ export type ChangelogEntry = {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: '0.1.6',
+    date: '2025-12-05',
+    changes: [
+      {
+        type: 'added',
+        items: [
+          '[Simulation] Enabled Dueling (Compete Fight) mechanic on the final straight',
+        ],
+      },
+      {
+        type: 'fixed',
+        items: [
+          '[Simulation] Fixed Dueling to properly check proximity (distance < 3m, lane < 0.25), top 50% placement, and speed gap < 0.6 m/s',
+          '[Simulation] Fixed Dueling target speed exponent from 0.709 to 0.708 per race mechanics spec',
+          '[Simulation] Fixed Lead Competition (Spot Struggle) to check lane gap proximity (Front Runner: 0.165, Oonige: 0.416)',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.1.5',
     date: '2025-12-05',
     changes: [
