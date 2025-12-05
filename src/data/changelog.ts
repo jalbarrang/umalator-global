@@ -25,6 +25,21 @@ export type ChangelogEntry = {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: '0.1.7',
+    date: '2025-12-05',
+    changes: [
+      {
+        type: 'fixed',
+        items: [
+          '[UI] Fixed mobile scrolling - content can now be scrolled on mobile devices',
+          '[UI] Fixed sidebar to be responsive - full width on mobile, 450px on desktop',
+          '[UI] Fixed header buttons to show icons only on mobile screens',
+          '[UI] Fixed runner card grids to be single column on mobile for better usability',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.1.6',
     date: '2025-12-05',
     changes: [
