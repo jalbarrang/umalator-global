@@ -25,6 +25,37 @@ export type ChangelogEntry = {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: '0.1.4',
+    date: '2025-12-05',
+    changes: [
+      {
+        type: 'added',
+        items: [
+          '[Runner] Added OCR Import feature (WIP) to extract uma data from screenshots using Tesseract.js',
+          '[Runner] Import dialog with drag-and-drop file upload and image previews',
+          '[Runner] Auto-detection of Uma identity (outfit name + uma name) with manual selection fallback',
+          '[Runner] Auto-extraction of stats (Speed, Stamina, Power, Guts, Wisdom) with inline editing',
+          '[Runner] Fuzzy matching for skill names against the skill database',
+          '[Runner] Ability to remove incorrectly detected skills before applying',
+          '[Runner] Image preprocessing (grayscale, threshold) to improve OCR accuracy',
+        ],
+      },
+      {
+        type: 'fixed',
+        items: [
+          '[Runner] Fixed inherited unique skills showing as original version in OCR import',
+        ],
+      },
+      {
+        type: 'changed',
+        items: [
+          '[Technical] Refactored runner data lookups into dedicated search module with fuzzy matching utilities',
+          '[Technical] Split OCR functionality into modular files (parser, stats, uma, skills)',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.1.3',
     date: '2025-12-04',
     changes: [

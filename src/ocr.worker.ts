@@ -26,21 +26,41 @@ async function initWorker() {
   return tesseractWorker;
 }
 
+/**
+ * Applies the following filters to an image:
+ * - Grayscale
+ * - Threshold (0.571)
+ * @param imageData
+ * @returns
+ */
+const applyImageFilters = async (imageData: Blob) => {
+  const image = await createImageBitmap(imageData);
+
+  const canvas = new OffscreenCanvas(image.width, image.height);
+  const ctx = canvas.getContext('2d');
+
+  if (!ctx) {
+    throw new Error('Failed to get canvas context');
+  }
+
+  ctx.filter = 'grayscale(1)';
+  ctx.filter = 'threshold(0.571)';
+  ctx.drawImage(image, 0, 0);
+
+  return canvas.convertToBlob({ type: 'image/png' });
+};
+
 // Process a single image
 async function processImage(
-  imageData: Blob | File,
+  imageData: Blob,
   imageIndex: number,
   existingData?: Partial<ExtractedUmaData>,
 ): Promise<ExtractedUmaData> {
   const worker = await initWorker();
 
   // Convert Blob/File to data URL for Tesseract
-  const dataUrl = await new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(imageData);
-  });
+  const filteredImage = await applyImageFilters(imageData);
+  const dataUrl = URL.createObjectURL(filteredImage);
 
   const {
     data: { text },
@@ -72,7 +92,10 @@ async function processImages(images: (Blob | File)[]): Promise<void> {
       postMessage({
         type: 'image-error',
         imageIndex: i,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error:
+          error instanceof Error
+            ? `${error.message} (${error.name}) at ${error.stack}`
+            : 'Unknown error',
       });
     }
   }

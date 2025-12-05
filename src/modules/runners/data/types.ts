@@ -5,7 +5,9 @@
 /** Skill lookup entry from the skill database */
 export interface SkillLookupEntry {
   id: string;
+  geneId?: string;
   name: string;
+  rarity: number;
 }
 
 /** Uma lookup entry from the uma database */
@@ -24,6 +26,7 @@ export interface UmaData {
 /** Result of a skill search match */
 export interface SkillMatch {
   id: string;
+  geneId?: string;
   name: string;
   confidence: number;
   originalText: string;
@@ -36,4 +39,3 @@ export interface UmaMatch {
   umaName: string;
   confidence: number;
 }
-

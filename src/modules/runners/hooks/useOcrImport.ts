@@ -24,6 +24,8 @@ export interface UseOcrImportResult {
   removeFile: (id: string) => void;
   clearFiles: () => void;
   results: Partial<ExtractedUmaData> | null;
+  updateResults: (updates: Partial<ExtractedUmaData>) => void;
+  removeSkill: (skillId: string) => void;
   isProcessing: boolean;
   progress: number;
   currentImageIndex: number;
@@ -31,6 +33,15 @@ export interface UseOcrImportResult {
   processFiles: () => void;
   reset: () => void;
 }
+
+const fileToBlob = (file: Blob) => {
+  return new Promise<Blob>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(new Blob([reader.result as ArrayBuffer]));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsArrayBuffer(file);
+  });
+};
 
 export function useOcrImport(): UseOcrImportResult {
   const [files, setFiles] = useState<UploadedFile[]>([]);
@@ -114,16 +125,23 @@ export function useOcrImport(): UseOcrImportResult {
       }
     };
 
-    worker.onerror = (e) => {
-      setError(e.message || 'OCR processing failed');
+    worker.onerror = (e: ErrorEvent) => {
+      setError(
+        e.message
+          ? `${e.message} (${e.filename}) at ${e.lineno}:${e.colno}`
+          : 'OCR processing failed',
+      );
+
       setIsProcessing(false);
+
       worker.terminate();
       workerRef.current = null;
     };
 
     // Send files to worker
-    const fileBlobs = filesToProcess.map((f) => f.file);
-    worker.postMessage({ type: 'extract', images: fileBlobs });
+    Promise.all(filesToProcess.map((f) => fileToBlob(f.file))).then((blobs) => {
+      worker.postMessage({ type: 'extract', images: blobs });
+    });
   };
 
   // Add files to the list (and optionally auto-process)
@@ -179,6 +197,22 @@ export function useOcrImport(): UseOcrImportResult {
     startProcessing(pendingFiles);
   };
 
+  // Update results (for manual modifications like selecting uma)
+  const updateResults = (updates: Partial<ExtractedUmaData>) => {
+    setResults((prev) => (prev ? { ...prev, ...updates } : updates));
+  };
+
+  // Remove a skill from results
+  const removeSkill = (skillId: string) => {
+    setResults((prev) => {
+      if (!prev || !prev.skills) return prev;
+      return {
+        ...prev,
+        skills: prev.skills.filter((s) => s.id !== skillId),
+      };
+    });
+  };
+
   // Reset the entire state
   const reset = () => {
     if (workerRef.current) {
@@ -210,6 +244,8 @@ export function useOcrImport(): UseOcrImportResult {
     removeFile,
     clearFiles,
     results,
+    updateResults,
+    removeSkill,
     isProcessing,
     progress,
     currentImageIndex,

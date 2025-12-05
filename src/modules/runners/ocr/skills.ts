@@ -33,6 +33,11 @@ export function extractSkills(
       continue;
     }
 
+    // Skip lines containing outfit names (bracketed text like [Maverick])
+    if (/\[[^\]]+\]/.test(line)) {
+      continue;
+    }
+
     // Clean the line - remove level indicators and special chars
     const cleanedLine = line
       .replace(/\s*lvl\s*\d+\s*/gi, ' ')
@@ -44,14 +49,30 @@ export function extractSkills(
 
     // Try the whole line first
     const wholeMatch = findBestSkillMatch(cleanedLine);
+
     if (wholeMatch && !seenIds.has(wholeMatch.id)) {
       seenIds.add(wholeMatch.id);
+
+      if (wholeMatch.geneId) {
+        seenIds.add(wholeMatch.geneId);
+
+        skills.push({
+          ...wholeMatch,
+          id: wholeMatch.geneId, // Use gene ID as the ID, since it's inherited unique
+          originalText: line,
+          fromImage: imageIndex,
+        });
+
+        continue;
+      }
+
       skills.push({
         ...wholeMatch,
         originalText: line,
         fromImage: imageIndex,
       });
-      continue; // Move to next line if we matched the whole thing
+
+      continue;
     }
 
     // If whole line didn't match, try splitting on common patterns
@@ -67,6 +88,20 @@ export function extractSkills(
       // Check if this skill name appears in the line
       if (normalizedLine.includes(key) && key.length >= 5) {
         seenIds.add(entry.id);
+
+        if (entry.geneId) {
+          seenIds.add(entry.geneId);
+          skills.push({
+            id: entry.geneId,
+            name: entry.name,
+            confidence: 0.85,
+            originalText: line,
+            fromImage: imageIndex,
+          });
+
+          continue;
+        }
+
         skills.push({
           id: entry.id,
           name: entry.name,
@@ -80,4 +115,3 @@ export function extractSkills(
 
   return skills;
 }
-

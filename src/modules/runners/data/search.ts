@@ -86,7 +86,14 @@ function buildSkillLookup() {
     if (skill.name_en) {
       const key = normalize(skill.name_en);
       if (key && !skillLookup.has(key)) {
-        skillLookup.set(key, { id, name: skill.name_en });
+        skillLookup.set(key, {
+          id,
+          geneId: skill.gene_version?.id
+            ? `${skill.gene_version.id}`
+            : undefined,
+          name: skill.name_en,
+          rarity: skill.rarity,
+        });
       }
     }
   }
@@ -146,6 +153,7 @@ export function findBestSkillMatch(ocrText: string): SkillMatch | null {
   if (exactMatch) {
     return {
       id: exactMatch.id,
+      geneId: exactMatch.geneId,
       name: exactMatch.name,
       confidence: 1,
       originalText: ocrText,
@@ -179,6 +187,7 @@ export function findBestSkillMatch(ocrText: string): SkillMatch | null {
       bestScore = score;
       bestMatch = {
         id: entry.id,
+        geneId: entry.geneId,
         name: entry.name,
         confidence: score,
         originalText: ocrText,

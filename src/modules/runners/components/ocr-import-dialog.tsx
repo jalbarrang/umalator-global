@@ -22,12 +22,28 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
 
 import {
   useOcrImport,
   type UploadedFile,
 } from '@/modules/runners/hooks/useOcrImport';
 import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
+import { umasForSearch } from '@/modules/runners/utils';
+import { getUniqueSkillForByUmaId } from '@/modules/skills/utils';
+import { SkillItem } from '@/modules/skills/components/skill-list/SkillItem';
 
 import icons from '@data/icons.json';
 import { toast } from 'sonner';
@@ -48,6 +64,8 @@ export function OcrImportDialog({
     addFiles,
     removeFile,
     results,
+    updateResults,
+    removeSkill,
     isProcessing,
     progress,
     currentImageIndex,
@@ -57,6 +75,26 @@ export function OcrImportDialog({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [umaSelectOpen, setUmaSelectOpen] = useState(false);
+
+  // Get unique skill ID for the selected uma
+  const uniqueSkillId = results?.outfitId
+    ? getUniqueSkillForByUmaId(results.outfitId)
+    : null;
+
+  // Handle uma selection
+  const handleSelectUma = (outfitId: string) => {
+    const uma = umasForSearch.find((u) => u.id === outfitId);
+    if (uma) {
+      updateResults({
+        outfitId: uma.id,
+        outfitName: uma.outfit,
+        umaName: uma.name,
+        umaConfidence: 1,
+      });
+    }
+    setUmaSelectOpen(false);
+  };
 
   // Handle dialog close
   const handleOpenChange = (open: boolean) => {
@@ -192,7 +230,10 @@ export function OcrImportDialog({
                           <X className="w-3 h-3" />
                         </button>
                       </div>
-                      <div className="absolute bottom-1 right-1">
+                      <div
+                        className="absolute bottom-1 right-1"
+                        title={file.error}
+                      >
                         {getStatusIcon(file)}
                       </div>
                     </div>
@@ -246,28 +287,95 @@ export function OcrImportDialog({
                     Uma Detected
                   </h4>
                   {results?.outfitId ? (
-                    <div className="flex items-center gap-3 p-2 border rounded-md">
-                      <img
-                        src={icons[results.outfitId as keyof typeof icons]}
-                        alt={results.umaName}
-                        className="w-12 h-12 rounded"
-                      />
-                      <div>
-                        <p className="font-medium">{results.outfitName}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {results.umaName}
-                        </p>
-                      </div>
-                      {results.umaConfidence < 1 && (
-                        <span className="ml-auto text-xs text-yellow-600">
-                          {Math.round(results.umaConfidence * 100)}% match
-                        </span>
-                      )}
-                    </div>
+                    <Popover
+                      open={umaSelectOpen}
+                      onOpenChange={setUmaSelectOpen}
+                    >
+                      <PopoverTrigger asChild>
+                        <div className="flex items-center gap-3 p-2 border rounded-md cursor-pointer hover:bg-muted/50 transition-colors">
+                          <img
+                            src={icons[results.outfitId as keyof typeof icons]}
+                            alt={results.umaName}
+                            className="w-12 h-12 rounded"
+                          />
+                          <div>
+                            <p className="font-medium">{results.outfitName}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {results.umaName}
+                            </p>
+                          </div>
+                        </div>
+                      </PopoverTrigger>
+                      <PopoverContent className="p-0 w-80">
+                        <Command>
+                          <CommandInput placeholder="Search uma..." />
+                          <CommandList>
+                            <CommandEmpty>No results found.</CommandEmpty>
+                            <CommandGroup>
+                              {umasForSearch.map((uma) => (
+                                <CommandItem
+                                  key={uma.id}
+                                  value={`${uma.outfit} ${uma.name}`}
+                                  onSelect={() => handleSelectUma(uma.id)}
+                                >
+                                  <img
+                                    src={icons[uma.id]}
+                                    className="w-10 h-10 rounded mr-2"
+                                  />
+                                  <div>
+                                    <div className="text-xs font-bold">
+                                      {uma.outfit}
+                                    </div>
+                                    <div className="text-sm">{uma.name}</div>
+                                  </div>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                   ) : (
-                    <div className="p-2 border rounded-md text-muted-foreground text-sm">
-                      {isProcessing ? 'Detecting...' : 'Not detected'}
-                    </div>
+                    <Popover
+                      open={umaSelectOpen}
+                      onOpenChange={setUmaSelectOpen}
+                    >
+                      <PopoverTrigger asChild>
+                        <div className="p-2 border rounded-md text-muted-foreground text-sm cursor-pointer hover:bg-muted/50 transition-colors">
+                          {isProcessing
+                            ? 'Detecting...'
+                            : 'Click to select uma'}
+                        </div>
+                      </PopoverTrigger>
+                      <PopoverContent className="p-0 w-80">
+                        <Command>
+                          <CommandInput placeholder="Search uma..." />
+                          <CommandList>
+                            <CommandEmpty>No results found.</CommandEmpty>
+                            <CommandGroup>
+                              {umasForSearch.map((uma) => (
+                                <CommandItem
+                                  key={uma.id}
+                                  value={`${uma.outfit} ${uma.name}`}
+                                  onSelect={() => handleSelectUma(uma.id)}
+                                >
+                                  <img
+                                    src={icons[uma.id]}
+                                    className="w-10 h-10 rounded mr-2"
+                                  />
+                                  <div>
+                                    <div className="text-xs font-bold">
+                                      {uma.outfit}
+                                    </div>
+                                    <div className="text-sm">{uma.name}</div>
+                                  </div>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                   )}
                 </div>
 
@@ -292,21 +400,81 @@ export function OcrImportDialog({
                     <div className="bg-primary text-primary-foreground rounded-tr p-1 text-xs">
                       Wit
                     </div>
-                    <div className="border p-2 rounded-bl font-mono">
-                      {results?.speed ?? '-'}
-                    </div>
-                    <div className="border p-2 font-mono">
-                      {results?.stamina ?? '-'}
-                    </div>
-                    <div className="border p-2 font-mono">
-                      {results?.power ?? '-'}
-                    </div>
-                    <div className="border p-2 font-mono">
-                      {results?.guts ?? '-'}
-                    </div>
-                    <div className="border p-2 rounded-br font-mono">
-                      {results?.wisdom ?? '-'}
-                    </div>
+                    <input
+                      type="number"
+                      min={1}
+                      max={2000}
+                      className="border p-2 rounded-bl font-mono text-center bg-transparent focus:outline-none focus:ring-1 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      value={results?.speed ?? ''}
+                      placeholder="-"
+                      onChange={(e) =>
+                        updateResults({
+                          speed: e.target.value
+                            ? parseInt(e.target.value)
+                            : undefined,
+                        })
+                      }
+                    />
+                    <input
+                      type="number"
+                      min={1}
+                      max={2000}
+                      className="border p-2 font-mono text-center bg-transparent focus:outline-none focus:ring-1 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      value={results?.stamina ?? ''}
+                      placeholder="-"
+                      onChange={(e) =>
+                        updateResults({
+                          stamina: e.target.value
+                            ? parseInt(e.target.value)
+                            : undefined,
+                        })
+                      }
+                    />
+                    <input
+                      type="number"
+                      min={1}
+                      max={2000}
+                      className="border p-2 font-mono text-center bg-transparent focus:outline-none focus:ring-1 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      value={results?.power ?? ''}
+                      placeholder="-"
+                      onChange={(e) =>
+                        updateResults({
+                          power: e.target.value
+                            ? parseInt(e.target.value)
+                            : undefined,
+                        })
+                      }
+                    />
+                    <input
+                      type="number"
+                      min={1}
+                      max={2000}
+                      className="border p-2 font-mono text-center bg-transparent focus:outline-none focus:ring-1 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      value={results?.guts ?? ''}
+                      placeholder="-"
+                      onChange={(e) =>
+                        updateResults({
+                          guts: e.target.value
+                            ? parseInt(e.target.value)
+                            : undefined,
+                        })
+                      }
+                    />
+                    <input
+                      type="number"
+                      min={1}
+                      max={2000}
+                      className="border p-2 rounded-br font-mono text-center bg-transparent focus:outline-none focus:ring-1 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      value={results?.wisdom ?? ''}
+                      placeholder="-"
+                      onChange={(e) =>
+                        updateResults({
+                          wisdom: e.target.value
+                            ? parseInt(e.target.value)
+                            : undefined,
+                        })
+                      }
+                    />
                   </div>
                 </div>
 
@@ -315,26 +483,29 @@ export function OcrImportDialog({
                   <h4 className="text-sm font-medium text-muted-foreground">
                     Skills ({results?.skills?.length ?? 0} found)
                   </h4>
-                  <div className="max-h-[200px] overflow-y-auto space-y-1">
+                  <div
+                    className="max-h-[200px] overflow-y-auto space-y-1"
+                    onClick={(e) => {
+                      // Handle remove-skill events from SkillItem via event delegation
+                      const target = e.target as HTMLElement;
+                      const button = target.closest(
+                        '[data-event="remove-skill"]',
+                      );
+                      if (button) {
+                        const skillId = button.getAttribute('data-skillid');
+                        if (skillId) {
+                          removeSkill(skillId);
+                        }
+                      }
+                    }}
+                  >
                     {results?.skills && results.skills.length > 0 ? (
                       results.skills.map((skill, i) => (
-                        <div
+                        <SkillItem
                           key={`${skill.id}-${i}`}
-                          className="flex items-center justify-between p-2 border rounded text-sm"
-                        >
-                          <span>{skill.name}</span>
-                          <span
-                            className={`text-xs ${
-                              skill.confidence >= 0.9
-                                ? 'text-green-600'
-                                : skill.confidence >= 0.8
-                                  ? 'text-yellow-600'
-                                  : 'text-orange-600'
-                            }`}
-                          >
-                            {Math.round(skill.confidence * 100)}%
-                          </span>
-                        </div>
+                          skillId={skill.id}
+                          dismissable={skill.id !== uniqueSkillId}
+                        />
                       ))
                     ) : (
                       <div className="p-2 border rounded text-muted-foreground text-sm">
