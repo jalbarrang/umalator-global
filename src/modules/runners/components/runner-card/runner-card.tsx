@@ -210,25 +210,25 @@ export const RunnerCard = (props: RunnerCardProps) => {
       />
 
       <div className="grid grid-cols-5 rounded-sm border-2">
-        <div className="flex items-center gap-2 bg-primary rounded-tl-sm">
+        <div className="flex items-center justify-center gap-2 bg-primary rounded-tl-sm">
           <img src="/icons/status_00.png" className="w-4 h-4" />
-          <span className="text-white text-sm">Speed</span>
+          <span className="text-white text-xs md:text-sm">Speed</span>
         </div>
-        <div className="flex items-center gap-2 bg-primary">
+        <div className="flex items-center justify-center gap-2 bg-primary">
           <img src="/icons/status_01.png" className="w-4 h-4" />
-          <span className="text-white text-sm">Stamina</span>
+          <span className="text-white text-xs md:text-sm">Stamina</span>
         </div>
-        <div className="flex items-center gap-2 bg-primary">
+        <div className="flex items-center justify-center gap-2 bg-primary">
           <img src="/icons/status_02.png" className="w-4 h-4" />
-          <span className="text-white text-sm">Power</span>
+          <span className="text-white text-xs md:text-sm">Power</span>
         </div>
-        <div className="flex items-center gap-2 bg-primary">
+        <div className="flex items-center justify-center gap-2 bg-primary">
           <img src="/icons/status_03.png" className="w-4 h-4" />
-          <span className="text-white text-sm">Guts</span>
+          <span className="text-white text-xs md:text-sm">Guts</span>
         </div>
-        <div className="flex items-center gap-2 bg-primary rounded-tr-sm">
+        <div className="flex items-center justify-center gap-2 bg-primary rounded-tr-sm">
           <img src="/icons/status_04.png" className="w-4 h-4" />
-          <span className="text-white text-sm">Wit</span>
+          <span className="text-white text-xs md:text-sm">Wit</span>
         </div>
 
         <StatInput value={state.speed} onChange={handleUpdateStat('speed')} />
@@ -241,7 +241,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
         <StatInput value={state.wisdom} onChange={handleUpdateStat('wisdom')} />
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         <div className="flex items-center gap-2 justify-between border rounded-xl">
           <Label className="pl-2">Surface aptitude:</Label>
           <AptitudeSelect
@@ -293,7 +293,10 @@ export const RunnerCard = (props: RunnerCardProps) => {
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 gap-2" onClick={handleSkillClick}>
+      <div
+        className="grid grid-cols-1 md:grid-cols-2 gap-2"
+        onClick={handleSkillClick}
+      >
         {state.skills.map((id: string) => {
           return (
             <SkillItem

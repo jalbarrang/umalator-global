@@ -32,6 +32,7 @@ import { cn } from './lib/utils';
 import { LeftSidebar } from './layout/left-sidebar';
 import { ResultButtonGroups } from './modules/simulation/tabs/summary-tab';
 import { ThemeToggle } from './components/ui/theme-toggle';
+import { useBreakpoint } from './hooks/useBreakpoint';
 
 export function App() {
   const { tableData } = useChartStore();
@@ -109,11 +110,13 @@ export function App() {
   });
 
   return (
-    <div className="flex flex-col flex-1 min-h-screen">
-      <div className="flex py-2 justify-between items-center border-b px-4">
+    <div className="flex flex-col min-h-screen">
+      <div className="flex py-2 justify-between items-center border-b px-4 shrink-0">
         <div className="flex items-center gap-2">
           {/* Later on this will be a tab list for different screens (Race Simulation, Standalone Stamina Calculator, Skill Builder) */}
-          <div>Race Simulation</div>
+          <div className="text-sm sm:text-base font-medium">
+            Race Simulation
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -122,7 +125,7 @@ export function App() {
             onClick={() => setShowChangelogModal(true)}
           >
             <ScrollTextIcon className="h-4 w-4 mr-1" />
-            Changelog
+            <span className="hidden md:inline!">Changelog</span>
           </Button>
           <Button
             variant="outline"
@@ -130,16 +133,16 @@ export function App() {
             onClick={() => setShowCreditsModal(true)}
           >
             <HeartIcon className="h-4 w-4 mr-1" />
-            Credits
+            <span className="hidden md:inline!">Credits</span>
           </Button>
           <ThemeToggle />
         </div>
       </div>
 
-      <main className="flex flex-1">
+      <main className="flex flex-1 overflow-hidden min-h-0">
         <LeftSidebar />
 
-        <div className="flex flex-col flex-1 p-4 gap-4">
+        <div className="flex flex-col flex-1 p-4 gap-4 overflow-y-auto min-h-0">
           <div id="topPane" className={cn('flex flex-col gap-4 w-full')}>
             <RaceTrack
               courseid={courseId}

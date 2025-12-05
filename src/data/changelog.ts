@@ -164,11 +164,6 @@ export const changelog: ChangelogEntry[] = [
         items: [
           '[App] Initial release of Umalator Global',
           '[Simulation] Added post simulation Stamina calculator for both runners',
-        ],
-      },
-      {
-        type: 'changed',
-        items: [
           '[UI] Started new UI design for easier use',
           '[UI] Revamped the skill list into a skill picker modal for quick skill selection',
         ],

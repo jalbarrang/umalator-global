@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Upload } from 'lucide-react';
+import { TrashIcon, Upload } from 'lucide-react';
 
 import icons from '@data/icons.json';
 
@@ -19,6 +19,12 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import { Button } from '@/components/ui/button';
+import { useIsMobile } from '@/hooks/useBreakpoint';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 type UmaSelectorProps = {
   value: string;
@@ -29,6 +35,8 @@ type UmaSelectorProps = {
 
 export const UmaSelector = (props: UmaSelectorProps) => {
   const [randomNumber] = useState(() => Math.random());
+
+  const isMobile = useIsMobile();
 
   const randomId = useMemo(
     () => Math.floor(randomNumber * 624) + 8000,
@@ -74,6 +82,13 @@ export const UmaSelector = (props: UmaSelectorProps) => {
                   <div className="text-sm">{selectedUma.name}</div>
                 </div>
               )}
+              {!selectedUma && (
+                <div className="flex flex-col items-center justify-center">
+                  <div className="text-sm text-muted-foreground">
+                    Click me to select a runner
+                  </div>
+                </div>
+              )}
             </div>
           </PopoverTrigger>
 
@@ -103,23 +118,27 @@ export const UmaSelector = (props: UmaSelectorProps) => {
         </Popover>
 
         <div className="flex gap-2 justify-end">
-          {props.onImport && (
-            <Button
-              onClick={props.onImport}
-              title="Import data from screenshot"
-              size="sm"
-              variant="outline"
-            >
-              <Upload className="w-4 h-4" />
-              Import
-            </Button>
+          {props.onImport && !isMobile && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={props.onImport}
+                  size="sm"
+                  variant="outline"
+                  disabled={isMobile}
+                >
+                  <Upload className="w-4 h-4" />
+                  <span className="hidden md:inline!">Import</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                Import data from screenshot (beta)
+              </TooltipContent>
+            </Tooltip>
           )}
-          <Button
-            onClick={props.onReset}
-            title="Reset this horse to default stats and skills"
-            size="sm"
-          >
-            Reset
+          <Button onClick={props.onReset} title="Reset runner" size="sm">
+            <span className="hidden md:inline!">Reset</span>
+            <TrashIcon className="w-4 h-4" />
           </Button>
         </div>
       </div>
