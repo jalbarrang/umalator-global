@@ -25,6 +25,36 @@ export type ChangelogEntry = {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: '0.1.5',
+    date: '2025-12-05',
+    changes: [
+      {
+        type: 'added',
+        items: [
+          '[Stamina] Added tracking for stamina debuffs received from opponents',
+          '[Stamina] Added separate display for recovery skills (green) and debuffs received (red)',
+          '[Stamina] Added theoretical debuff estimation based on opponent equipped skills',
+          '[Stamina] Added net HP effect display when both heals and debuffs are present',
+          '[Stamina] Added per-phase debuff breakdown in Phase Breakdown section',
+        ],
+      },
+      {
+        type: 'fixed',
+        items: [
+          '[Stamina] Fixed debuffs from opponents not being tracked or displayed for the affected runner',
+          '[Stamina] Fixed HP calculations not accounting for incoming debuffs',
+        ],
+      },
+      {
+        type: 'changed',
+        items: [
+          '[Technical] Added debuffsReceived field to simulation data structure',
+          '[Technical] Updated skill tracking to separately record debuffs by affected runner',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.1.4',
     date: '2025-12-05',
     changes: [

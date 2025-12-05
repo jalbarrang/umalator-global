@@ -46,6 +46,7 @@ export interface SimulationRun {
   currentLane: Array<number[]>;
   pacerGap: Array<number[]>;
   sk: Sk[];
+  debuffsReceived: Sk[]; // Debuffs received by each runner [uma1, uma2]
   sdly: number[];
   rushed: RegionActivation[][];
   posKeep: Array<Array<number[]>>;

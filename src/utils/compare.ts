@@ -343,16 +343,21 @@ export function runComparison(
 
   const skillPos1 = new Map<string, [number, number][]>();
   const skillPos2 = new Map<string, [number, number][]>();
+  // Separate tracking for debuffs received by each runner
+  const debuffsReceived1 = new Map<string, [number, number][]>();
+  const debuffsReceived2 = new Map<string, [number, number][]>();
 
   const getActivator = (
     selfSet: Map<string, [number, number][]>,
     otherSet: Map<string, [number, number][]>,
+    debuffsReceivedSet: Map<string, [number, number][]>,
   ) => {
     return (
       raceSolver: RaceSolver,
       skillId: string,
       perspective: Perspective,
     ) => {
+      // Self skills go to selfSet, Other skills go to both otherSet (for backward compat) and debuffsReceivedSet
       const skillSet = perspective == Perspective.Self ? selfSet : otherSet;
 
       if (!['asitame', 'staminasyoubu'].includes(skillId)) {
@@ -361,6 +366,16 @@ export function runComparison(
         }
 
         skillSet.get(skillId).push([raceSolver.pos, raceSolver.pos]); // Initialize with same position for instant skills
+
+        // Also track debuffs received separately for the affected runner
+        if (perspective === Perspective.Other) {
+          if (!debuffsReceivedSet.has(skillId)) {
+            debuffsReceivedSet.set(skillId, []);
+          }
+          debuffsReceivedSet
+            .get(skillId)
+            .push([raceSolver.pos, raceSolver.pos]);
+        }
       }
     };
   };
@@ -368,6 +383,7 @@ export function runComparison(
   const getDeactivator = (
     selfSet: Map<string, [number, number][]>,
     otherSet: Map<string, [number, number][]>,
+    debuffsReceivedSet: Map<string, [number, number][]>,
   ) => {
     return (
       raceSolver: RaceSolver,
@@ -386,15 +402,37 @@ export function runComparison(
             ar[ar.length - 1][1] = Math.min(raceSolver.pos, course.distance);
           }
         }
+
+        // Also update debuffs received
+        if (perspective === Perspective.Other) {
+          const debuffAr = debuffsReceivedSet.get(skillId);
+          if (debuffAr && debuffAr.length > 0) {
+            const activationPos = debuffAr[debuffAr.length - 1][0];
+            if (raceSolver.pos > activationPos) {
+              debuffAr[debuffAr.length - 1][1] = Math.min(
+                raceSolver.pos,
+                course.distance,
+              );
+            }
+          }
+        }
       }
     };
   };
 
-  standard.onSkillActivate(getActivator(skillPos1, skillPos2));
-  standard.onSkillDeactivate(getDeactivator(skillPos1, skillPos2));
+  // standard (uma1's solver): Self → skillPos1, Other (debuffs uma1 receives) → debuffsReceived1
+  standard.onSkillActivate(
+    getActivator(skillPos1, skillPos2, debuffsReceived1),
+  );
+  standard.onSkillDeactivate(
+    getDeactivator(skillPos1, skillPos2, debuffsReceived1),
+  );
 
-  compare.onSkillActivate(getActivator(skillPos2, skillPos1));
-  compare.onSkillDeactivate(getDeactivator(skillPos2, skillPos1));
+  // compare (uma2's solver): Self → skillPos2, Other (debuffs uma2 receives) → debuffsReceived2
+  compare.onSkillActivate(getActivator(skillPos2, skillPos1, debuffsReceived2));
+  compare.onSkillDeactivate(
+    getDeactivator(skillPos2, skillPos1, debuffsReceived2),
+  );
 
   const a = standard.build();
   const b = compare.build();
@@ -477,6 +515,7 @@ export function runComparison(
       currentLane: [[], []],
       pacerGap: [[], []],
       sk: [null, null],
+      debuffsReceived: [null, null],
       sdly: [0, 0],
       rushed: [[], []],
       posKeep: [[], []],
@@ -652,7 +691,12 @@ export function runComparison(
     // Clean up skills that are still active when the race ends
     // This ensures skills that activate near the finish line get proper end positions
     // Also handles skills with very short durations that might deactivate in the same frame
-    const cleanupActiveSkills = (solver, selfSkillSet, otherSkillSet) => {
+    const cleanupActiveSkills = (
+      solver,
+      selfSkillSet,
+      otherSkillSet,
+      debuffsReceivedSet,
+    ) => {
       const allActiveSkills = [
         ...solver.activeTargetSpeedSkills,
         ...solver.activeCurrentSpeedSkills,
@@ -663,7 +707,7 @@ export function runComparison(
         // Call the deactivator to set the end position to course.distance
         // This handles both race-end cleanup and very short duration skills
         // Use the correct skill position maps for this solver
-        getDeactivator(selfSkillSet, otherSkillSet)(
+        getDeactivator(selfSkillSet, otherSkillSet, debuffsReceivedSet)(
           solver,
           skill.skillId,
           skill.perspective,
@@ -673,15 +717,21 @@ export function runComparison(
 
     // Clean up active skills for both horses
     // s1 comes from generator 'a' (standard), s2 comes from generator 'b' (compare)
-    // standard uses skillPos1 for self, skillPos2 for other
-    // compare uses skillPos2 for self, skillPos1 for other
-    cleanupActiveSkills(s1, skillPos1, skillPos2);
-    cleanupActiveSkills(s2, skillPos2, skillPos1);
+    // standard uses skillPos1 for self, skillPos2 for other, debuffsReceived1 for debuffs received
+    // compare uses skillPos2 for self, skillPos1 for other, debuffsReceived2 for debuffs received
+    cleanupActiveSkills(s1, skillPos1, skillPos2, debuffsReceived1);
+    cleanupActiveSkills(s2, skillPos2, skillPos1, debuffsReceived2);
 
     data.sk[1] = new Map(skillPos2); // NOT ai (NB. why not?)
     skillPos2.clear();
     data.sk[0] = new Map(skillPos1); // NOT bi (NB. why not?)
     skillPos1.clear();
+
+    // Store debuffs received by each runner
+    data.debuffsReceived[0] = new Map(debuffsReceived1); // Debuffs uma1 received
+    debuffsReceived1.clear();
+    data.debuffsReceived[1] = new Map(debuffsReceived2); // Debuffs uma2 received
+    debuffsReceived2.clear();
 
     retry = false;
 

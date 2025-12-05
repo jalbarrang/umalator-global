@@ -7,6 +7,8 @@ import {
   useStaminaAnalysis,
   useActualRecoverySkills,
   useTheoreticalRecoverySkills,
+  useActualDebuffsReceived,
+  useTheoreticalDebuffsReceived,
   useActualPhaseHp,
   useTheoreticalPhaseHp,
 } from './stamina/hooks';
@@ -48,6 +50,27 @@ export const StaminaTab = () => {
     course.distance,
   );
 
+  // Get debuffs received - actual from simulation or theoretical from opponent's skills
+  const actualDebuffsReceived1 = useActualDebuffsReceived(
+    chartData?.debuffsReceived?.[0],
+    analysis1.maxHp,
+  );
+  const actualDebuffsReceived2 = useActualDebuffsReceived(
+    chartData?.debuffsReceived?.[1],
+    analysis2.maxHp,
+  );
+  // Theoretical debuffs: uma1 could receive debuffs from uma2, and vice versa
+  const theoreticalDebuffsReceived1 = useTheoreticalDebuffsReceived(
+    uma2, // uma1 receives debuffs from uma2
+    analysis1.maxHp,
+    course.distance,
+  );
+  const theoreticalDebuffsReceived2 = useTheoreticalDebuffsReceived(
+    uma1, // uma2 receives debuffs from uma1
+    analysis2.maxHp,
+    course.distance,
+  );
+
   // Get phase HP - actual or theoretical based on mode
   const actualPhaseHp1 = useActualPhaseHp(
     chartData?.p?.[0],
@@ -73,8 +96,23 @@ export const StaminaTab = () => {
     ? theoreticalRecoverySkills2
     : actualRecoverySkills2;
 
-  const theoreticalPhaseHp1 = useTheoreticalPhaseHp(analysis1, recoverySkills1);
-  const theoreticalPhaseHp2 = useTheoreticalPhaseHp(analysis2, recoverySkills2);
+  const debuffsReceived1 = isUma1Theoretical
+    ? theoreticalDebuffsReceived1
+    : actualDebuffsReceived1;
+  const debuffsReceived2 = isUma2Theoretical
+    ? theoreticalDebuffsReceived2
+    : actualDebuffsReceived2;
+
+  const theoreticalPhaseHp1 = useTheoreticalPhaseHp(
+    analysis1,
+    recoverySkills1,
+    debuffsReceived1,
+  );
+  const theoreticalPhaseHp2 = useTheoreticalPhaseHp(
+    analysis2,
+    recoverySkills2,
+    debuffsReceived2,
+  );
 
   const phaseHp1 = isUma1Theoretical
     ? theoreticalPhaseHp1
@@ -100,6 +138,7 @@ export const StaminaTab = () => {
           label="Uma 1"
           color="text-[#2a77c5] dark:text-blue-500"
           recoverySkills={recoverySkills1}
+          debuffsReceived={debuffsReceived1}
           phaseHp={phaseHp1}
           isTheoretical={isUma1Theoretical}
           hasSimulationData={hasSimulationData}
@@ -111,6 +150,7 @@ export const StaminaTab = () => {
           label="Uma 2"
           color="text-[#c52a2a] dark:text-red-500"
           recoverySkills={recoverySkills2}
+          debuffsReceived={debuffsReceived2}
           phaseHp={phaseHp2}
           isTheoretical={isUma2Theoretical}
           hasSimulationData={hasSimulationData}

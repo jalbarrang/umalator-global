@@ -9,6 +9,7 @@ interface PhaseBreakdownProps {
   analysis: StaminaAnalysis;
   phaseHp: ActualPhaseHp[];
   recoverySkills: RecoverySkillActivation[];
+  debuffsReceived: RecoverySkillActivation[];
   isTheoretical: boolean;
 }
 
@@ -16,6 +17,7 @@ export const PhaseBreakdown = ({
   analysis,
   phaseHp,
   recoverySkills,
+  debuffsReceived,
 }: PhaseBreakdownProps) => {
   return (
     <div className="space-y-2">
@@ -36,6 +38,15 @@ export const PhaseBreakdown = ({
 
         // Calculate heals that activated during THIS phase
         const healsDuringPhase = recoverySkills
+          .filter(
+            (skill) =>
+              skill.position >= phase.startDistance &&
+              skill.position < phase.endDistance,
+          )
+          .reduce((sum, skill) => sum + skill.hpRecovered, 0);
+
+        // Calculate debuffs received during THIS phase (hpRecovered is negative)
+        const debuffsDuringPhase = debuffsReceived
           .filter(
             (skill) =>
               skill.position >= phase.startDistance &&
@@ -67,6 +78,11 @@ export const PhaseBreakdown = ({
                 {healsDuringPhase > 0 && (
                   <span className="text-green-500 ml-1">
                     (+{healsDuringPhase.toFixed(0)})
+                  </span>
+                )}
+                {debuffsDuringPhase < 0 && (
+                  <span className="text-red-500 ml-1">
+                    ({debuffsDuringPhase.toFixed(0)})
                   </span>
                 )}
               </span>

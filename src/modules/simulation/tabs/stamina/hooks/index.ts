@@ -9,6 +9,8 @@ export {
 export {
   useActualRecoverySkills,
   useTheoreticalRecoverySkills,
+  useActualDebuffsReceived,
+  useTheoreticalDebuffsReceived,
   getRecoverySkillInfo,
   type RecoverySkillActivation,
 } from './useRecoverySkills';

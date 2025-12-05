@@ -20,6 +20,7 @@ interface StaminaCardProps {
   label: string;
   color: string;
   recoverySkills: RecoverySkillActivation[];
+  debuffsReceived: RecoverySkillActivation[];
   phaseHp: ActualPhaseHp[];
   isTheoretical: boolean;
   hasSimulationData?: boolean;
@@ -32,6 +33,7 @@ export const StaminaCard = ({
   label,
   color,
   recoverySkills,
+  debuffsReceived,
   phaseHp,
   isTheoretical,
   hasSimulationData = false,
@@ -42,11 +44,20 @@ export const StaminaCard = ({
     0,
   );
 
-  // Calculate adjusted required stamina accounting for recovery skills
-  // Formula: stamina >= (totalHpNeeded - recovery - distance) / (0.8 * coef)
+  // debuffsReceived have negative hpRecovered values
+  const totalDebuff = debuffsReceived.reduce(
+    (sum, skill) => sum + skill.hpRecovered,
+    0,
+  );
+
+  // Net HP effect from skills (heals - debuffs)
+  const netHpEffect = totalRecovery + totalDebuff;
+
+  // Calculate adjusted required stamina accounting for recovery skills and debuffs
+  // Formula: stamina >= (totalHpNeeded - netEffect - distance) / (0.8 * coef)
   const strategy = parseStrategy(runner.strategy);
   const course = getCourseById(useSettingsStore.getState().courseId);
-  const adjustedHpNeeded = Math.max(0, analysis.totalHpNeeded - totalRecovery);
+  const adjustedHpNeeded = Math.max(0, analysis.totalHpNeeded - netHpEffect);
   const adjustedRequiredStamina = Math.ceil(
     (adjustedHpNeeded - course.distance) /
       (0.8 * HpStrategyCoefficient[strategy]),
@@ -55,8 +66,8 @@ export const StaminaCard = ({
     0,
     adjustedRequiredStamina - runner.stamina,
   );
-  const canMaxSpurtWithRecovery =
-    analysis.maxHp + totalRecovery >= analysis.totalHpNeeded;
+  const canMaxSpurtWithSkills =
+    analysis.maxHp + netHpEffect >= analysis.totalHpNeeded;
 
   return (
     <div className="bg-background border-2 rounded-lg p-4">
@@ -116,17 +127,15 @@ export const StaminaCard = ({
       <div
         className={cn(
           'mb-4 p-3 rounded-lg text-center font-semibold',
-          canMaxSpurtWithRecovery
+          canMaxSpurtWithSkills
             ? 'bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/30'
             : 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/30',
         )}
       >
-        {canMaxSpurtWithRecovery ? (
+        {canMaxSpurtWithSkills ? (
           <span>
             ✓ Can Max Spurt (
-            {(analysis.maxHp + totalRecovery - analysis.totalHpNeeded).toFixed(
-              0,
-            )}{' '}
+            {(analysis.maxHp + netHpEffect - analysis.totalHpNeeded).toFixed(0)}{' '}
             HP remaining)
           </span>
         ) : (
@@ -153,9 +162,9 @@ export const StaminaCard = ({
             )}
           >
             {adjustedRequiredStamina}
-            {totalRecovery > 0 && (
+            {netHpEffect !== 0 && (
               <span className="text-muted-foreground text-xs ml-1">
-                (w/ heals)
+                (w/ skills)
               </span>
             )}
           </span>
@@ -180,11 +189,20 @@ export const StaminaCard = ({
             </span>
           </div>
         )}
+        {totalDebuff < 0 && (
+          <div className="flex justify-between text-sm">
+            <span className="text-foreground">HP Lost (Debuffs):</span>
+            <span className="font-mono font-medium text-red-500">
+              {totalDebuff.toFixed(0)}
+            </span>
+          </div>
+        )}
       </div>
 
-      {/* Recovery Skills */}
+      {/* Recovery Skills and Debuffs */}
       <RecoverySkillsList
         recoverySkills={recoverySkills}
+        debuffsReceived={debuffsReceived}
         isTheoretical={isTheoretical}
       />
 
@@ -193,7 +211,7 @@ export const StaminaCard = ({
         <div className="text-sm text-foreground mb-1">HP after race</div>
         {(() => {
           const hpRemaining =
-            analysis.maxHp + totalRecovery - analysis.totalHpNeeded;
+            analysis.maxHp + netHpEffect - analysis.totalHpNeeded;
           const hpRemainingPercent = Math.max(
             0,
             (hpRemaining / analysis.maxHp) * 100,
@@ -239,6 +257,7 @@ export const StaminaCard = ({
         analysis={analysis}
         phaseHp={phaseHp}
         recoverySkills={recoverySkills}
+        debuffsReceived={debuffsReceived}
         isTheoretical={isTheoretical}
       />
 

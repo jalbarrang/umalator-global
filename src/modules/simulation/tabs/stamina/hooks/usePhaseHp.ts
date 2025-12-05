@@ -64,7 +64,8 @@ export function useActualPhaseHp(
  */
 export function useTheoreticalPhaseHp(
   analysis: StaminaAnalysis,
-  recoverySkills: RecoverySkillActivation[], // Add this parameter
+  recoverySkills: RecoverySkillActivation[],
+  debuffsReceived: RecoverySkillActivation[] = [],
 ): ActualPhaseHp[] {
   return useMemo(() => {
     return analysis.phases.reduce<ActualPhaseHp[]>((acc, phase) => {
@@ -80,8 +81,18 @@ export function useTheoreticalPhaseHp(
         )
         .reduce((sum, skill) => sum + skill.hpRecovered, 0);
 
-      // Calculate end HP: subtract consumed, add heals
-      const hpAtEnd = hpAtStart - phase.hpConsumed + healsDuringPhase;
+      // Subtract debuffs received during this phase (hpRecovered is negative)
+      const debuffsDuringPhase = debuffsReceived
+        .filter(
+          (skill) =>
+            skill.position >= phase.startDistance &&
+            skill.position < phase.endDistance,
+        )
+        .reduce((sum, skill) => sum + skill.hpRecovered, 0); // Already negative
+
+      // Calculate end HP: subtract consumed, add heals, add debuffs (negative)
+      const hpAtEnd =
+        hpAtStart - phase.hpConsumed + healsDuringPhase + debuffsDuringPhase;
 
       acc.push({
         hpAtStart,
@@ -91,5 +102,5 @@ export function useTheoreticalPhaseHp(
 
       return acc;
     }, []);
-  }, [analysis, recoverySkills]);
+  }, [analysis, recoverySkills, debuffsReceived]);
 }
