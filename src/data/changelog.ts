@@ -25,6 +25,19 @@ export type ChangelogEntry = {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: '0.1.9',
+    date: '2025-12-06',
+    changes: [
+      {
+        type: 'added',
+        items: [
+          '[Simulation] Each simulation mode (Compare, Skill chart, Uma chart) now retains its own data independently',
+          '[Simulation] Switching between modes no longer requires re-running simulations',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.1.8',
     date: '2025-12-05',
     changes: [

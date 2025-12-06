@@ -1,6 +1,7 @@
 import { getBaseSkillsToTest, getUniqueSkills } from '@/modules/skills/utils';
 import {
   resetTableData,
+  setActiveChartMode,
   startChartTimer,
   updateTableData,
 } from '@/store/simulation.store';
@@ -94,8 +95,11 @@ export function useSimulationRunner() {
     const skills1 = skills.slice(0, Math.floor(skills.length / 2));
     const skills2 = skills.slice(Math.floor(skills.length / 2));
 
-    resetTableData();
-    startChartTimer(skills.length);
+    // Set the active chart mode so results are stored in the correct slot
+    const chartMode = mode === Mode.UniquesChart ? Mode.UniquesChart : Mode.Chart;
+    setActiveChartMode(chartMode);
+    resetTableData(chartMode);
+    startChartTimer(skills.length, chartMode);
     updateTableData(filler);
 
     worker1Ref.current?.postMessage({

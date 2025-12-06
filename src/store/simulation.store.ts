@@ -8,6 +8,7 @@ import {
   Stats,
 } from './race/compare.types';
 import { SpurtCandidate } from '@simulation/lib/SpurtCalculator';
+import { Mode } from '@/utils/settings';
 
 export interface ChartTableEntry {
   id: string;
@@ -46,87 +47,184 @@ interface SkillChartState {
 
 type ISimulationStore = {
   displaying: string;
+  popoverSkill: string;
+
+  // Per-mode data storage
+  compareResults: ComparisonState | null;
+  skillChartResults: SkillChartState | null;
+  uniquesChartResults: SkillChartState | null;
+
+  // Track which chart mode is currently active (for worker results)
+  activeChartMode: Mode.Chart | Mode.UniquesChart;
+
+  // Legacy accessors - these are computed based on current mode
+  // Components should use the mode-aware selectors below
   comparison: ComparisonState | null;
   skillChart: SkillChartState | null;
-  popoverSkill: string;
 };
 
 export const useSimulationStore = create<ISimulationStore>()(() => ({
   displaying: 'meanrun',
+  popoverSkill: '',
+
+  // Per-mode storage
+  compareResults: null,
+  skillChartResults: null,
+  uniquesChartResults: null,
+
+  // Default active chart mode
+  activeChartMode: Mode.Chart,
+
+  // Legacy computed accessors (updated by actions)
   comparison: null,
   skillChart: null,
-  popoverSkill: '',
 }));
+
+// Helper to get the correct chart state based on mode
+const getChartStateForMode = (
+  mode: Mode.Chart | Mode.UniquesChart,
+): SkillChartState | null => {
+  const state = useSimulationStore.getState();
+  return mode === Mode.UniquesChart
+    ? state.uniquesChartResults
+    : state.skillChartResults;
+};
+
+// Helper to set chart state for a specific mode
+const setChartStateForMode = (
+  mode: Mode.Chart | Mode.UniquesChart,
+  chartState: SkillChartState | null,
+) => {
+  if (mode === Mode.UniquesChart) {
+    useSimulationStore.setState({
+      uniquesChartResults: chartState,
+      skillChart: chartState,
+    });
+  } else {
+    useSimulationStore.setState({
+      skillChartResults: chartState,
+      skillChart: chartState,
+    });
+  }
+};
+
+// Set active chart mode (called when starting chart simulations)
+export const setActiveChartMode = (mode: Mode.Chart | Mode.UniquesChart) => {
+  const chartState = getChartStateForMode(mode);
+  useSimulationStore.setState({
+    activeChartMode: mode,
+    skillChart: chartState,
+  });
+};
+
+// Switch mode view (called when mode toggle changes)
+export const switchToMode = (mode: Mode) => {
+  const state = useSimulationStore.getState();
+
+  if (mode === Mode.Compare) {
+    useSimulationStore.setState({
+      comparison: state.compareResults,
+      skillChart: null,
+    });
+  } else if (mode === Mode.Chart) {
+    useSimulationStore.setState({
+      comparison: null,
+      skillChart: state.skillChartResults,
+    });
+  } else if (mode === Mode.UniquesChart) {
+    useSimulationStore.setState({
+      comparison: null,
+      skillChart: state.uniquesChartResults,
+    });
+  }
+};
 
 // Comparison mode actions
 export const setComparisonResults = (results: CompareResult) => {
   const { displaying = 'meanrun' } = useSimulationStore.getState();
 
+  const comparisonState: ComparisonState = {
+    results: results.results,
+    runData: results.runData,
+    chartData: results.runData[displaying],
+    rushedStats: results.rushedStats,
+    leadCompetitionStats: results.leadCompetitionStats,
+    spurtInfo: results.spurtInfo,
+    staminaStats: results.staminaStats,
+    firstUmaStats: results.firstUmaStats,
+  };
+
   useSimulationStore.setState({
-    comparison: {
-      results: results.results,
-      runData: results.runData,
-      chartData: results.runData[displaying],
-      rushedStats: results.rushedStats,
-      leadCompetitionStats: results.leadCompetitionStats,
-      spurtInfo: results.spurtInfo,
-      staminaStats: results.staminaStats,
-      firstUmaStats: results.firstUmaStats,
-    },
+    compareResults: comparisonState,
+    comparison: comparisonState,
     displaying,
   });
 };
 
 // Skill chart mode actions
-export const startChartTimer = (skillCount: number) => {
-  const { skillChart } = useSimulationStore.getState();
+export const startChartTimer = (skillCount: number, mode?: Mode) => {
+  const state = useSimulationStore.getState();
+  const chartMode =
+    mode === Mode.Chart || mode === Mode.UniquesChart
+      ? mode
+      : state.activeChartMode;
 
-  useSimulationStore.setState({
-    skillChart: {
-      tableData: skillChart?.tableData ?? new Map(),
-      selectedSkillId: skillChart?.selectedSkillId ?? null,
-      chartStats: {
-        startTime: performance.now(),
-        endTime: null,
-        skillCount,
-        totalSamples: 0,
-      },
+  const existingChart = getChartStateForMode(chartMode);
+
+  const newChartState: SkillChartState = {
+    tableData: existingChart?.tableData ?? new Map(),
+    selectedSkillId: existingChart?.selectedSkillId ?? null,
+    chartStats: {
+      startTime: performance.now(),
+      endTime: null,
+      skillCount,
+      totalSamples: 0,
     },
-  });
+  };
+
+  setChartStateForMode(chartMode, newChartState);
+  useSimulationStore.setState({ activeChartMode: chartMode });
 };
 
 export const stopChartTimer = () => {
-  const { skillChart } = useSimulationStore.getState();
-  if (!skillChart) return;
+  const state = useSimulationStore.getState();
+  const chartState = getChartStateForMode(state.activeChartMode);
+  if (!chartState) return;
 
   // Calculate total samples from all entries
   let totalSamples = 0;
-  skillChart.tableData.forEach((entry) => {
+  chartState.tableData.forEach((entry) => {
     totalSamples += entry.sampleCount ?? entry.results.length;
   });
 
-  useSimulationStore.setState({
-    skillChart: {
-      ...skillChart,
-      chartStats: {
-        ...skillChart.chartStats,
-        endTime: performance.now(),
-        totalSamples,
-      },
+  const newChartState: SkillChartState = {
+    ...chartState,
+    chartStats: {
+      ...chartState.chartStats,
+      endTime: performance.now(),
+      totalSamples,
     },
-  });
+  };
+
+  setChartStateForMode(state.activeChartMode, newChartState);
 };
 
 /**
  * Explicitly cleanup table data to help garbage collection.
- * Clears all arrays and references in the current table data.
+ * Clears all arrays and references in the specified mode's table data.
  */
-export const cleanupTableData = () => {
-  const { skillChart } = useSimulationStore.getState();
-  if (!skillChart) return;
+export const cleanupTableData = (mode?: Mode) => {
+  const state = useSimulationStore.getState();
+  const chartMode =
+    mode === Mode.Chart || mode === Mode.UniquesChart
+      ? mode
+      : state.activeChartMode;
+
+  const chartState = getChartStateForMode(chartMode);
+  if (!chartState) return;
 
   // Clear arrays within each entry to help GC
-  skillChart.tableData.forEach((entry) => {
+  chartState.tableData.forEach((entry) => {
     if (entry.results) {
       entry.results.length = 0;
     }
@@ -134,49 +232,57 @@ export const cleanupTableData = () => {
   });
 
   // Clear the map itself
-  skillChart.tableData.clear();
+  chartState.tableData.clear();
 };
 
-export const resetTableData = () => {
+export const resetTableData = (mode?: Mode) => {
+  const state = useSimulationStore.getState();
+  const chartMode =
+    mode === Mode.Chart || mode === Mode.UniquesChart
+      ? mode
+      : state.activeChartMode;
+
   // Clean up old data first to help GC
-  cleanupTableData();
+  cleanupTableData(chartMode);
 
-  const { skillChart } = useSimulationStore.getState();
+  const existingChart = getChartStateForMode(chartMode);
 
-  useSimulationStore.setState({
-    skillChart: {
-      tableData: new Map(),
-      selectedSkillId: null,
-      chartStats: skillChart?.chartStats ?? {
-        startTime: null,
-        endTime: null,
-        skillCount: 0,
-        totalSamples: 0,
-      },
+  const newChartState: SkillChartState = {
+    tableData: new Map(),
+    selectedSkillId: null,
+    chartStats: existingChart?.chartStats ?? {
+      startTime: null,
+      endTime: null,
+      skillCount: 0,
+      totalSamples: 0,
     },
-  });
+  };
+
+  setChartStateForMode(chartMode, newChartState);
+  useSimulationStore.setState({ activeChartMode: chartMode });
 };
 
 export const updateTableData = (newData: Map<string, ChartTableEntry>) => {
-  const { skillChart } = useSimulationStore.getState();
+  const state = useSimulationStore.getState();
+  const chartState = getChartStateForMode(state.activeChartMode);
 
-  const tableData = skillChart?.tableData ?? new Map();
+  const tableData = chartState?.tableData ?? new Map();
   const merged = new Map(tableData);
 
   newData.forEach((v, k) => merged.set(k, v));
 
-  useSimulationStore.setState({
-    skillChart: {
-      tableData: merged,
-      selectedSkillId: skillChart?.selectedSkillId ?? null,
-      chartStats: skillChart?.chartStats ?? {
-        startTime: null,
-        endTime: null,
-        skillCount: 0,
-        totalSamples: 0,
-      },
+  const newChartState: SkillChartState = {
+    tableData: merged,
+    selectedSkillId: chartState?.selectedSkillId ?? null,
+    chartStats: chartState?.chartStats ?? {
+      startTime: null,
+      endTime: null,
+      skillCount: 0,
+      totalSamples: 0,
     },
-  });
+  };
+
+  setChartStateForMode(state.activeChartMode, newChartState);
 };
 
 // Mode-aware display type switching
@@ -185,12 +291,14 @@ export const setDisplaying = (displaying: string = 'meanrun') => {
 
   // If in comparison mode, update chartData
   if (comparison?.runData) {
+    const updatedComparison = {
+      ...comparison,
+      chartData: comparison.runData[displaying],
+    };
     useSimulationStore.setState({
       displaying,
-      comparison: {
-        ...comparison,
-        chartData: comparison.runData[displaying],
-      },
+      comparison: updatedComparison,
+      compareResults: updatedComparison,
     });
     return;
   }
@@ -222,21 +330,25 @@ export const setDisplaying = (displaying: string = 'meanrun') => {
 
 // Skill selection
 export const selectSkill = (skillId: string) => {
-  const { skillChart, displaying } = useSimulationStore.getState();
-  if (!skillChart) return;
+  const state = useSimulationStore.getState();
+  const chartState = getChartStateForMode(state.activeChartMode);
+  if (!chartState) return;
 
-  const simulatedData = skillChart.tableData.get(skillId);
+  const simulatedData = chartState.tableData.get(skillId);
 
   if (simulatedData?.runData) {
+    const newChartState: SkillChartState = {
+      ...chartState,
+      selectedSkillId: skillId,
+    };
+
+    setChartStateForMode(state.activeChartMode, newChartState);
+
     useSimulationStore.setState({
-      skillChart: {
-        ...skillChart,
-        selectedSkillId: skillId,
-      },
       comparison: {
         results: simulatedData.results,
         runData: simulatedData.runData,
-        chartData: simulatedData.runData[displaying],
+        chartData: simulatedData.runData[state.displaying],
         rushedStats: null,
         leadCompetitionStats: null,
         spurtInfo: null,
@@ -252,7 +364,7 @@ export const setPopoverSkill = (skillId: string) => {
   useSimulationStore.setState({ popoverSkill: skillId });
 };
 
-// Reset simulation
+// Reset simulation for current mode only
 export const resetSimulation = () => {
   cleanupTableData();
   useSimulationStore.setState({
@@ -263,7 +375,38 @@ export const resetSimulation = () => {
   });
 };
 
+// Reset all simulation data across all modes
+export const resetAllSimulations = () => {
+  // Cleanup all chart data
+  const state = useSimulationStore.getState();
+
+  if (state.skillChartResults) {
+    state.skillChartResults.tableData.forEach((entry) => {
+      if (entry.results) entry.results.length = 0;
+      entry.runData = null;
+    });
+    state.skillChartResults.tableData.clear();
+  }
+
+  if (state.uniquesChartResults) {
+    state.uniquesChartResults.tableData.forEach((entry) => {
+      if (entry.results) entry.results.length = 0;
+      entry.runData = null;
+    });
+    state.uniquesChartResults.tableData.clear();
+  }
+
+  useSimulationStore.setState({
+    displaying: 'meanrun',
+    popoverSkill: '',
+    compareResults: null,
+    skillChartResults: null,
+    uniquesChartResults: null,
+    comparison: null,
+    skillChart: null,
+  });
+};
+
 // Backward compatibility exports for legacy names
 export { setComparisonResults as setResults };
 export { selectSkill as basinnChartSelection };
-

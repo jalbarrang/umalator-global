@@ -38,6 +38,25 @@ export function calculateBaseSpeed(distance: number): number {
 }
 
 /**
+ * Calculate estimated average speed during early-race start dash phase
+ *
+ * During start dash, uma accelerates from 3 m/s to 0.85 × baseSpeed.
+ * This returns the average speed during that acceleration period,
+ * which is used to estimate distance traveled for time-based skill conditions.
+ *
+ * @param distance Course distance in meters
+ * @returns Estimated average speed in m/s during start dash
+ */
+export function calculateEarlyRaceAverageSpeed(distance: number): number {
+  const baseSpeed = calculateBaseSpeed(distance);
+  const startSpeed = 3.0;
+  const startDashThreshold = 0.85 * baseSpeed;
+
+  // Average of starting speed and threshold speed
+  return (startSpeed + startDashThreshold) / 2;
+}
+
+/**
  * Calculate HP consumption per second at a given velocity
  *
  * @param velocity Current speed
