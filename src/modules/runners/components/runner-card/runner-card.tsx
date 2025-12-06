@@ -14,7 +14,10 @@ import { StrategySelect } from '@/modules/runners/components/StrategySelect';
 import { MoodSelect } from '@/modules/runners/components/MoodSelect';
 import { AptitudeSelect } from '@/modules/runners/components/AptitudeSelect';
 import { StatInput } from '@/modules/runners/components/StatInput';
-import { UmaSelector } from '@/modules/runners/components/runner-selector';
+import {
+  UmaSelector,
+  RunnerType,
+} from '@/modules/runners/components/runner-selector';
 import { OcrImportDialog } from '@/modules/runners/components/ocr-import-dialog';
 import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
 
@@ -31,6 +34,9 @@ type RunnerCardProps = {
   onChange: (value: RunnerState) => void;
   onReset: () => void;
   courseDistance: number;
+  runnerType?: RunnerType;
+  onCopy?: () => void;
+  onSwap?: () => void;
 };
 
 export const RunnerCard = (props: RunnerCardProps) => {
@@ -201,6 +207,10 @@ export const RunnerCard = (props: RunnerCardProps) => {
         select={handleChangeRunner}
         onReset={onReset}
         onImport={() => setImportDialogOpen(true)}
+        runnerType={props.runnerType}
+        onCopy={props.onCopy}
+        onSwap={props.onSwap}
+        randomMobId={state.randomMobId}
       />
 
       <OcrImportDialog

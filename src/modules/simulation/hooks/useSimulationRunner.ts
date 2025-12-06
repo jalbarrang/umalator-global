@@ -36,7 +36,7 @@ export function useSimulationRunner() {
   const { uma1, uma2, pacer } = useRunnersStore();
   const { racedef, nsamples, seed, posKeepMode, pacemakerCount, courseId } =
     useSettingsStore();
-  const { mode } = useUIStore();
+  const { mode, chartTargetUma } = useUIStore();
   const {
     simWitVariance,
     allowRushedUma1,
@@ -63,31 +63,34 @@ export function useSimulationRunner() {
     resetWorkers();
 
     setIsSimulationRunning(true);
-    const params = racedefToParams(racedef, uma1.strategy);
+
+    // Use the selected target uma for chart simulations
+    const targetUma = chartTargetUma === 'uma2' ? uma2 : chartTargetUma === 'pacer' ? pacer : uma1;
+    const params = racedefToParams(racedef, targetUma.strategy);
 
     let skills: string[];
     let uma: RunnerState;
 
     if (mode === Mode.UniquesChart) {
       const uniqueSkills = getUniqueSkills();
-      skills = getActivateableSkills(uniqueSkills, uma1, course, params);
+      skills = getActivateableSkills(uniqueSkills, targetUma, course, params);
 
-      const umaWithoutUniques = removeUniqueSkillsFromRunner(uma1);
+      const umaWithoutUniques = removeUniqueSkillsFromRunner(targetUma);
       uma = umaWithoutUniques;
     } else {
       skills = getActivateableSkills(
         baseSkillsToTest.filter(
           (skillId) =>
-            !uma1.skills.includes(skillId) &&
+            !targetUma.skills.includes(skillId) &&
             (!skillId.startsWith('9') ||
-              !uma1.skills.includes('1' + skillId.slice(1))),
+              !targetUma.skills.includes('1' + skillId.slice(1))),
         ),
-        uma1,
+        targetUma,
         course,
         params,
       );
 
-      uma = uma1;
+      uma = targetUma;
     }
 
     const filler = new Map();

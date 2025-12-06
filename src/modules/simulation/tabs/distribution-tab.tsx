@@ -12,7 +12,8 @@ import {
 
 export const DistributionTab = () => {
   const { comparison } = useSimulationStore();
-  const results = comparison?.results ?? [];
+
+  const results = useMemo(() => comparison?.results ?? [], [comparison]);
 
   const distributionStats = useMemo(() => {
     if (results.length === 0) return null;

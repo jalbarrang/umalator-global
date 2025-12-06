@@ -42,6 +42,8 @@ import { RunButtonRow } from '@/components/run-pane';
 import { RaceTrackTooltip } from './race-track-tooltip';
 import { useRaceTrackTooltip } from '../hooks/useRaceTrackTooltip';
 import { SimulationRun } from '@/store/race/compare.types';
+import { SeasonIcon } from '@/components/race-settings/SeasonSelect';
+import { WeatherIcon } from '@/components/race-settings/WeatherSelect';
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const enum RegionDisplayType {
@@ -76,7 +78,7 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
   const { chartData } = props;
 
   const { uma1, uma2, pacer } = useRunnersStore();
-  const { showHp, showLanes } = useSettingsStore();
+  const { showHp, showLanes, racedef } = useSettingsStore();
 
   // Refs for mouseover elements (replacing querySelector)
   const mouseLineRef = useRef<SVGLineElement>(null);
@@ -347,7 +349,7 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
     <div className="flex flex-col gap-4">
       <SimulationModeToggle />
 
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col gap-4">
         <div className="flex items-center gap-2">
           <div className="text-xl text-foreground font-bold">
             {i18n.t(`tracknames.${course.raceTrackId}`)} {trackDescription}
@@ -355,9 +357,8 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7"
+                variant="outline"
+                size="sm"
                 onClick={() =>
                   setLeftSidebar({
                     activePanel: 'racetrack-settings',
@@ -365,7 +366,7 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
                   })
                 }
               >
-                <SettingsIcon className="h-4 w-4" />
+                <SettingsIcon className="h-6 w-6" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>
@@ -373,11 +374,20 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
             </TooltipContent>
           </Tooltip>
         </div>
+        <div className="flex">
+          <div className="flex items-center gap-2">
+            <SeasonIcon season={racedef.season} className="w-6 h-6" />
+            <WeatherIcon weather={racedef.weather} className="w-6 h-6" />
+            <div className="font-bold">
+              {i18n.t(`racetrack.ground.${racedef.ground}`)}
+            </div>
+          </div>
+        </div>
       </div>
 
       <RunButtonRow />
 
-      <div className="flex">
+      <div className="flex justify-end">
         <RaceTrackTooltip data={tooltipData} visible={tooltipVisible} />
       </div>
 

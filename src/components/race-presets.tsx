@@ -9,14 +9,7 @@ import {
   SelectValue,
 } from './ui/select';
 import { usePresetStore } from '@/store/race/preset.store';
-
-const formatDate = (date: Date) => {
-  return (
-    date.getFullYear() +
-    '-' +
-    (100 + date.getUTCMonth() + 1).toString().slice(-2)
-  );
-};
+import dayjs from 'dayjs';
 
 export const RacePresets = () => {
   const { presets } = usePresetStore();
@@ -44,7 +37,7 @@ export const RacePresets = () => {
         <SelectContent>
           {Object.values(presets).map((p) => (
             <SelectItem key={p.date} value={p.date}>
-              {formatDate(new Date(p.date))}&nbsp;
+              {dayjs(p.date).format('YYYY-MM-DD')}&nbsp;
               {p.type === EventType.CM ? 'CM' : 'LOH'}
             </SelectItem>
           ))}

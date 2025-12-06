@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TrashIcon, Upload } from 'lucide-react';
+import { ArrowLeftRight, Copy, TrashIcon, Upload } from 'lucide-react';
 
 import icons from '@data/icons.json';
 
@@ -20,32 +20,27 @@ import {
 } from '@/components/ui/command';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/useBreakpoint';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+
+export type RunnerType = 'uma1' | 'uma2' | 'pacer';
 
 type UmaSelectorProps = {
   value: string;
   select: (outfitId: string) => void;
   onReset: () => void;
   onImport?: () => void;
+  runnerType?: RunnerType;
+  onCopy?: () => void;
+  onSwap?: () => void;
+  randomMobId?: number;
 };
 
 export const UmaSelector = (props: UmaSelectorProps) => {
-  const [randomNumber] = useState(() => Math.random());
-
   const isMobile = useIsMobile();
 
-  const randomId = useMemo(
-    () => Math.floor(randomNumber * 624) + 8000,
-    [randomNumber],
-  );
-
   const randomMob = useMemo(
-    () => `/icons/mob/trained_mob_chr_icon_${randomId}_000001_01.png`,
-    [randomId],
+    () =>
+      `/icons/mob/trained_mob_chr_icon_${props.randomMobId ?? 8000}_000001_01.png`,
+    [props.randomMobId],
   );
 
   const [open, setOpen] = useState(false);
@@ -68,7 +63,7 @@ export const UmaSelector = (props: UmaSelectorProps) => {
 
   return (
     <div className="uma-selector">
-      <div className="flex">
+      <div className="flex gap-2">
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <div className="flex flex-1 gap-2 cursor-pointer">
@@ -117,24 +112,39 @@ export const UmaSelector = (props: UmaSelectorProps) => {
           </PopoverContent>
         </Popover>
 
-        <div className="flex gap-2 justify-end">
+        <div className="grid grid-cols-2 gap-2">
           {props.onImport && !isMobile && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={props.onImport}
-                  size="sm"
-                  variant="outline"
-                  disabled={isMobile}
-                >
-                  <Upload className="w-4 h-4" />
-                  <span className="hidden md:inline!">Import</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                Import data from screenshot (beta)
-              </TooltipContent>
-            </Tooltip>
+            <Button
+              onClick={props.onImport}
+              size="sm"
+              variant="outline"
+              disabled={isMobile}
+            >
+              <Upload className="w-4 h-4" />
+              <span className="hidden md:inline!">Import</span>
+            </Button>
+          )}
+          {props.onCopy && props.runnerType !== 'pacer' && (
+            <Button
+              onClick={props.onCopy}
+              size="sm"
+              variant="outline"
+              title="Copy to other runner"
+            >
+              <Copy className="w-4 h-4" />
+              <span className="hidden md:inline!">Copy</span>
+            </Button>
+          )}
+          {props.onSwap && props.runnerType !== 'pacer' && (
+            <Button
+              onClick={props.onSwap}
+              size="sm"
+              variant="outline"
+              title="Swap runners"
+            >
+              <ArrowLeftRight className="w-4 h-4" />
+              <span className="hidden md:inline!">Swap</span>
+            </Button>
           )}
           <Button onClick={props.onReset} title="Reset runner" size="sm">
             <span className="hidden md:inline!">Reset</span>

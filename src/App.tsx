@@ -17,7 +17,12 @@ import {
   ChartStats,
   selectSkill,
 } from './store/simulation.store';
-import { setUma1, useRunnersStore } from './store/runners.store';
+import {
+  setPacer,
+  setUma1,
+  setUma2,
+  useRunnersStore,
+} from './store/runners.store';
 import { useSettingsStore } from './store/settings.store';
 import {
   getSelectedPacemakerIndices,
@@ -39,6 +44,7 @@ import {
   getSkillDataById,
   getUniqueSkillForByUmaId,
 } from './modules/skills/utils';
+import { Separator } from './components/ui/separator';
 
 function formatDuration(ms: number): string {
   if (ms < 1000) return `${Math.round(ms)}ms`;
@@ -83,12 +89,16 @@ export function App() {
     totalSamples: 0,
   };
 
-  const { mode, isPacemakerDropdownOpen, showVirtualPacemakerOnGraph } =
-    useUIStore();
+  const {
+    mode,
+    isPacemakerDropdownOpen,
+    showVirtualPacemakerOnGraph,
+    chartTargetUma,
+  } = useUIStore();
 
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
 
-  const { uma1 } = useRunnersStore();
+  const { uma1, uma2, pacer } = useRunnersStore();
 
   useEffect(() => {
     const shouldShow =
@@ -113,13 +123,39 @@ export function App() {
   };
 
   const addSkillFromTable = (skillId: string) => {
-    setUma1({ ...uma1, skills: [...uma1.skills, skillId] });
+    // Add skill to the selected target uma
+    const targetUma =
+      chartTargetUma === 'uma2'
+        ? uma2
+        : chartTargetUma === 'pacer'
+          ? pacer
+          : uma1;
+    const setTargetUma =
+      chartTargetUma === 'uma2'
+        ? setUma2
+        : chartTargetUma === 'pacer'
+          ? setPacer
+          : setUma1;
+    setTargetUma({ ...targetUma, skills: [...targetUma.skills, skillId] });
   };
 
   const changeUmaFromTable = (umaId: string) => {
+    // Change the selected target uma
+    const targetUma =
+      chartTargetUma === 'uma2'
+        ? uma2
+        : chartTargetUma === 'pacer'
+          ? pacer
+          : uma1;
+    const setTargetUma =
+      chartTargetUma === 'uma2'
+        ? setUma2
+        : chartTargetUma === 'pacer'
+          ? setPacer
+          : setUma1;
     const outfitId = umaId;
 
-    const newSkills = uma1.skills.filter(
+    const newSkills = targetUma.skills.filter(
       (skillId) => getSkillDataById(skillId).rarity < 3,
     );
 
@@ -127,7 +163,7 @@ export function App() {
       newSkills.push(getUniqueSkillForByUmaId(outfitId));
     }
 
-    setUma1({ ...uma1, outfitId: outfitId, skills: newSkills });
+    setTargetUma({ ...targetUma, outfitId: outfitId, skills: newSkills });
   };
 
   const showPopover = (skillId: string) => {
@@ -209,6 +245,8 @@ export function App() {
             </RaceTrack>
           </div>
 
+          <Separator />
+
           {/* Compare Results between two runners */}
           {mode === Mode.Compare && results.length > 0 && (
             <ResultButtonGroups />
@@ -224,7 +262,13 @@ export function App() {
               <ChartStatsDisplay stats={chartStats} />
               <BasinnChart
                 data={Array.from(tableData.values())}
-                hiddenSkills={uma1.skills}
+                hiddenSkills={
+                  chartTargetUma === 'uma2'
+                    ? uma2.skills
+                    : chartTargetUma === 'pacer'
+                      ? pacer.skills
+                      : uma1.skills
+                }
                 onSelectionChange={handleSkillSelection}
                 onAddSkill={addSkillFromTable}
                 onChangeUma={changeUmaFromTable}

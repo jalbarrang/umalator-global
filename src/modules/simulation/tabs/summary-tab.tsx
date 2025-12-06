@@ -12,7 +12,8 @@ import {
 
 export const ResultButtonGroups = () => {
   const { displaying, comparison } = useSimulationStore();
-  const results = comparison?.results ?? [];
+
+  const results = useMemo(() => comparison?.results ?? [], [comparison]);
 
   const mid = useMemo(() => {
     return Math.floor(results.length / 2);

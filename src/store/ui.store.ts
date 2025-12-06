@@ -8,6 +8,8 @@ type ISidebar = {
   hidden: boolean;
 };
 
+export type ChartTargetUma = 'uma1' | 'uma2' | 'pacer';
+
 export type IUIStore = {
   mode: Mode;
   currentIdx: number;
@@ -22,6 +24,9 @@ export type IUIStore = {
   showVirtualPacemakerOnGraph: boolean;
   showCreditsModal: boolean;
   showChangelogModal: boolean;
+
+  // Chart mode target uma selection
+  chartTargetUma: ChartTargetUma;
 
   leftSide: ISidebar;
 };
@@ -38,6 +43,7 @@ export const useUIStore = create<IUIStore>()(
       showVirtualPacemakerOnGraph: false,
       showCreditsModal: false,
       showChangelogModal: false,
+      chartTargetUma: 'uma1' as ChartTargetUma,
       leftSide: {
         activePanel: 'runners',
         hidden: false,
@@ -51,6 +57,7 @@ export const useUIStore = create<IUIStore>()(
         mode: state.mode,
         currentIdx: state.currentIdx,
         expanded: state.expanded,
+        chartTargetUma: state.chartTargetUma,
       }),
     },
   ),
@@ -113,4 +120,8 @@ export const setLeftSidebar = (sidebar: Partial<ISidebar>) => {
 
 export const useLeftSidebar = () => {
   return useUIStore(useShallow((state) => state.leftSide));
+};
+
+export const setChartTargetUma = (chartTargetUma: ChartTargetUma) => {
+  useUIStore.setState({ chartTargetUma });
 };

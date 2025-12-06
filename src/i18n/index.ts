@@ -5,6 +5,7 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
 import { TRACKNAMES_en, TRACKNAMES_ja } from './lang/tracknames';
+import { GroundCondition } from '@/modules/simulation/lib/RaceParameters';
 
 const definitions = {
   en: {
@@ -27,6 +28,12 @@ const definitions = {
         phase1: 'Mid-race',
         phase2: 'Late-race',
         phase3: 'Last spurt',
+        ground: {
+          [GroundCondition.Good]: 'Firm',
+          [GroundCondition.Yielding]: 'Good',
+          [GroundCondition.Soft]: 'Soft',
+          [GroundCondition.Heavy]: 'Heavy',
+        },
         short: {
           straight: '→',
           corner: 'C{{n}}',

@@ -7,7 +7,10 @@ export const SimulationModeToggle = () => {
   const { mode } = useUIStore();
 
   const handleSetMode = (value: string) => {
+    if (!value) return;
+
     const newMode = parseInt(value) as Mode;
+
     setMode(newMode);
     switchToMode(newMode);
   };
