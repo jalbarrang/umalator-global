@@ -29,6 +29,9 @@ import {
 import { setLeftSidebar } from '@/store/ui.store';
 import { SimulationModeToggle } from '@/components/simulation-mode-toggle';
 import { RunButtonRow } from '@/components/run-pane';
+import { RaceTrackTooltip } from './race-track-tooltip';
+import { useRaceTrackTooltip } from '../hooks/useRaceTrackTooltip';
+import { SimulationRun } from '@/store/race/compare.types';
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const enum RegionDisplayType {
@@ -49,10 +52,7 @@ type RaceTrackProps = {
   yExtra?: number;
   width?: number;
   height?: number;
-
-  // Events
-  onMouseMove: (pos: number) => void;
-  onMouseLeave: () => void;
+  chartData: SimulationRun;
 };
 
 // Base dimensions for aspect ratio calculation
@@ -63,6 +63,8 @@ const BASE_HEIGHT = 240;
 export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
   props,
 ) => {
+  const { chartData } = props;
+
   const { uma1, uma2, pacer } = useRunnersStore();
 
   // Refs for mouseover elements (replacing querySelector)
@@ -122,6 +124,12 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
     }
   };
 
+  const { tooltipData, tooltipVisible, rtMouseMove, rtMouseLeave } =
+    useRaceTrackTooltip({
+      chartData,
+      course,
+    });
+
   // Use custom hook for drag functionality
   const { draggedSkill, handleDragStart, handleDragMove, handleDragEnd } =
     useDragSkill({
@@ -155,7 +163,7 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
         Math.round((x / w) * course.distance) + 'm';
     }
 
-    props.onMouseMove?.(x / w);
+    rtMouseMove(x / w);
 
     // Handle drag via custom hook
     if (draggedSkill) {
@@ -176,7 +184,7 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
       mouseTextRef.current.textContent = '';
     }
 
-    props.onMouseLeave?.();
+    rtMouseLeave();
     handleDragEnd();
   };
 
@@ -309,7 +317,7 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
   }, [allRegions, course.distance, uma1, uma2, pacer, width, handleDragStart]);
 
   return (
-    <div className="flex flex-col gap-4 w-full items-center">
+    <div className="flex flex-col gap-4">
       <SimulationModeToggle />
 
       <div className="flex items-center gap-4">
@@ -349,6 +357,10 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
       </div>
 
       <RunButtonRow />
+
+      <div className="flex">
+        <RaceTrackTooltip data={tooltipData} visible={tooltipVisible} />
+      </div>
 
       <svg
         version="1.1"

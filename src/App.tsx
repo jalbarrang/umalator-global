@@ -11,7 +11,6 @@ import { ChangelogModal } from './components/changelog-modal';
 import { Button } from './components/ui/button';
 import { HeartIcon, ScrollTextIcon } from 'lucide-react';
 import { useClickOutside } from './hooks/useClickOutside';
-import { useRaceTrackTooltip } from './modules/racetrack/hooks/useRaceTrackTooltip';
 import {
   setPopoverSkill,
   useSimulationStore,
@@ -149,11 +148,6 @@ export function App() {
     [isPacemakerDropdownOpen],
   );
 
-  const { rtMouseMove, rtMouseLeave } = useRaceTrackTooltip({
-    chartData,
-    course,
-  });
-
   return (
     <div className="flex flex-col min-h-screen">
       <div className="flex py-2 justify-between items-center border-b px-4 shrink-0">
@@ -188,14 +182,16 @@ export function App() {
         <LeftSidebar />
 
         <div className="flex flex-col flex-1 p-4 gap-4 overflow-y-auto min-h-0">
-          <div id="topPane" className={cn('flex flex-col gap-4 w-full')}>
+          <div
+            id="topPane"
+            className={cn('flex flex-col gap-4 w-full relative')}
+          >
             <RaceTrack
               courseid={courseId}
               xOffset={20}
               yOffset={15}
               yExtra={20}
-              onMouseMove={rtMouseMove}
-              onMouseLeave={rtMouseLeave}
+              chartData={chartData}
             >
               <VelocityLines
                 data={chartData}
@@ -210,44 +206,6 @@ export function App() {
                 }
                 selectedPacemakers={selectedPacemakers}
               />
-
-              <g id="rtMouseOverBox" style={{ display: 'none' }}>
-                <text
-                  id="rtV1"
-                  x="25"
-                  y="10"
-                  fill="#2a77c5"
-                  fontSize="10px"
-                ></text>
-                <text
-                  id="rtV2"
-                  x="25"
-                  y="20"
-                  fill="#c52a2a"
-                  fontSize="10px"
-                ></text>
-                <text
-                  id="rtVp"
-                  x="25"
-                  y="30"
-                  fill="#22c55e"
-                  fontSize="10px"
-                ></text>
-                <text
-                  id="pd1"
-                  x="25"
-                  y="10"
-                  fill="#2a77c5"
-                  fontSize="10px"
-                ></text>
-                <text
-                  id="pd2"
-                  x="25"
-                  y="20"
-                  fill="#c52a2a"
-                  fontSize="10px"
-                ></text>
-              </g>
             </RaceTrack>
           </div>
 

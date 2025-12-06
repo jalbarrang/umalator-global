@@ -293,12 +293,6 @@ main {
   box-shadow: 0 1px 3px rgba(107, 114, 128, 0.2);
 }
 
-#rtMouseOverBox > text {
-  paint-order: stroke;
-  stroke: #fff;
-  stroke-width: 3px;
-}
-
 .trackSelect > select {
   background: none;
   border: 1px solid rgb(148, 150, 189);

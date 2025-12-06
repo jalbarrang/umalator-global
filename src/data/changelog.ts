@@ -25,6 +25,23 @@ export type ChangelogEntry = {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: '0.1.8',
+    date: '2025-12-05',
+    changes: [
+      {
+        type: 'added',
+        items: ['[UI] Moved the tooltip to the top left of the race track'],
+      },
+      {
+        type: 'changed',
+        items: [
+          '[Skill Chart] Updated to use Shadcn UI components',
+          '[Skill Chart] Added a loader when the skill chart is loading',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.1.7',
     date: '2025-12-05',
     changes: [
