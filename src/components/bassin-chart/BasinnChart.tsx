@@ -18,7 +18,7 @@ import icons from '@data/icons.json';
 import './BasinnChart.css';
 import i18n from '@/i18n';
 import { cn } from '@/lib/utils';
-import { ChartTableEntry } from '@/store/simulation.store';
+import { ChartTableEntry, useSimulationStore } from '@/store/simulation.store';
 import { useUIStore } from '@/store/ui.store';
 import { allSkills } from '@/modules/skills/utils';
 import {
@@ -37,6 +37,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { Button } from '../ui/button';
+import { Checkbox } from '../ui/checkbox';
 import {
   Tooltip,
   TooltipContent,
@@ -137,14 +138,21 @@ type BasinnChartProps = {
   onSelectionChange: (id: string) => void;
   onAddSkill: (id: string) => void;
   onChangeUma: (umaId: string) => void;
+  onVisualizationToggle: (skillId: string) => void;
 };
 
 export const BasinnChart = (props: BasinnChartProps) => {
   'use no memo';
 
-  const { onAddSkill, onChangeUma, showUmaIcons } = props;
+  const { onAddSkill, onChangeUma, showUmaIcons, onVisualizationToggle } =
+    props;
 
   const { isSimulationRunning } = useUIStore();
+  const { skillChart } = useSimulationStore();
+  const selectedSkillsForVisualization = useMemo(
+    () => skillChart?.selectedSkillsForVisualization ?? new Set(),
+    [skillChart],
+  );
 
   const columns = useMemo(
     () => [
@@ -187,6 +195,34 @@ export const BasinnChart = (props: BasinnChartProps) => {
         enableSorting: false,
       },
       {
+        id: 'visualize',
+        header: '',
+        cell: (info: CellContext<ChartTableEntry, unknown>) => {
+          const skillId = info.row.getValue('id') as string;
+          const isSelected = selectedSkillsForVisualization.has(skillId);
+
+          return (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center justify-center">
+                    <Checkbox
+                      checked={isSelected}
+                      onCheckedChange={() => onVisualizationToggle(skillId)}
+                      aria-label="Show on race track"
+                    />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Show on race track</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          );
+        },
+        enableSorting: false,
+      },
+      {
         header: 'Skill name',
         accessorKey: 'id',
         cell: skillNameCell(showUmaIcons),
@@ -213,7 +249,13 @@ export const BasinnChart = (props: BasinnChartProps) => {
         cell: formatBasinn,
       },
     ],
-    [showUmaIcons, onAddSkill, onChangeUma],
+    [
+      showUmaIcons,
+      onAddSkill,
+      onChangeUma,
+      onVisualizationToggle,
+      selectedSkillsForVisualization,
+    ],
   );
 
   const [sorting, setSorting] = useState<SortingState>([
@@ -269,6 +311,7 @@ export const BasinnChart = (props: BasinnChartProps) => {
           <TableBody>
             {table.getRowModel().rows.map((row) => {
               const id: string = row.getValue('id');
+              const isSelected = selectedSkillsForVisualization.has(id);
 
               return (
                 <TableRow
@@ -276,6 +319,7 @@ export const BasinnChart = (props: BasinnChartProps) => {
                   data-skillid={id}
                   className={cn({
                     hidden: props.hiddenSkills.includes(id),
+                    'bg-primary/5': isSelected,
                   })}
                 >
                   {row.getVisibleCells().map((cell) => (

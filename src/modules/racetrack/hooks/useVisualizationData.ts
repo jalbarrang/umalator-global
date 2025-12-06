@@ -1,5 +1,5 @@
 import { RegionDisplayType } from '@/modules/racetrack/components/RaceTrack';
-import { getSkillMetaById } from '@/modules/skills/utils';
+import { getSkillMetaById, SkillId } from '@/modules/skills/utils';
 import { useSimulationStore } from '@/store/simulation.store';
 import { useSettingsStore } from '@/store/settings.store';
 import { getSelectedPacemakerIndices } from '@/store/settings/actions';
@@ -12,6 +12,7 @@ import {
 } from '@/utils/colors';
 import { NO_SHOW } from '@/utils/constants';
 import { PosKeepLabel } from '@/utils/races';
+import { Mode } from '@/utils/settings';
 import skillnames from '@data/skillnames.json';
 import { CourseHelpers } from '@simulation/lib/CourseData';
 import { PosKeepMode } from '@simulation/lib/RaceSolver';
@@ -49,16 +50,63 @@ const getStateName = (state: number) => {
 };
 
 export const useVisualizationData = () => {
-  const { comparison } = useSimulationStore();
+  const { comparison, skillChart } = useSimulationStore();
   const chartData = comparison?.chartData ?? null;
   const { posKeepMode, courseId } = useSettingsStore();
-  const { showVirtualPacemakerOnGraph } = useUIStore();
+  const { showVirtualPacemakerOnGraph, mode } = useUIStore();
 
   const selectedPacemakerIndices = getSelectedPacemakerIndices();
 
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
 
   const skillActivations: RegionData[] = useMemo(() => {
+    // In Chart/UniquesChart mode, show selected skills from table
+    if (mode === Mode.Chart || mode === Mode.UniquesChart) {
+      if (!skillChart) return [];
+
+      const selectedSkills = skillChart.selectedSkillsForVisualization;
+      const currentRunType = skillChart.currentRunType;
+      const tableData = skillChart.tableData;
+
+      if (selectedSkills.size === 0) return [];
+
+      const skillActivations = [];
+
+      for (const skillId of selectedSkills) {
+        const entry = tableData.get(skillId);
+        if (!entry?.runData) continue;
+
+        const runData = entry.runData[currentRunType];
+        if (!runData?.sk) continue;
+
+        const skillMeta = getSkillMetaById(skillId);
+        if (NO_SHOW.indexOf(skillMeta.iconId) > -1) {
+          continue;
+        }
+
+        // In chart mode, skills are for uma at index 1 (the uma with the test skill added)
+        const umaActivations = runData.sk[1];
+        if (!umaActivations) continue;
+
+        const activations = umaActivations.get(skillId as SkillId);
+        if (!activations) continue;
+
+        for (const activation of activations) {
+          skillActivations.push({
+            type: RegionDisplayType.Textbox,
+            color: colors[0], // Use uma1 color for chart mode
+            text: skillnames[skillId][0],
+            skillId: skillId,
+            umaIndex: 0,
+            regions: [{ start: activation[0], end: activation[1] }],
+          });
+        }
+      }
+
+      return skillActivations;
+    }
+
+    // In Compare mode, show all skills from chartData
     if (!chartData) return [];
     if (!chartData.sk) return [];
 
@@ -86,7 +134,7 @@ export const useVisualizationData = () => {
     }
 
     return skillActivations;
-  }, [chartData]);
+  }, [chartData, skillChart, mode]);
 
   const rushedIndicators: RegionData[] = useMemo(() => {
     if (!chartData) return [];

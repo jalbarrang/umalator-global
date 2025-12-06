@@ -39,10 +39,14 @@ interface ComparisonState {
   firstUmaStats: FirstUMAStats;
 }
 
+export type RunType = 'minrun' | 'maxrun' | 'meanrun' | 'medianrun';
+
 interface SkillChartState {
   tableData: Map<string, ChartTableEntry>;
   selectedSkillId: string | null;
   chartStats: ChartStats;
+  selectedSkillsForVisualization: Set<string>;
+  currentRunType: RunType;
 }
 
 type ISimulationStore = {
@@ -180,6 +184,8 @@ export const startChartTimer = (skillCount: number, mode?: Mode) => {
       skillCount,
       totalSamples: 0,
     },
+    selectedSkillsForVisualization: existingChart?.selectedSkillsForVisualization ?? new Set(),
+    currentRunType: existingChart?.currentRunType ?? 'meanrun',
   };
 
   setChartStateForMode(chartMode, newChartState);
@@ -204,6 +210,8 @@ export const stopChartTimer = () => {
       endTime: performance.now(),
       totalSamples,
     },
+    selectedSkillsForVisualization: chartState.selectedSkillsForVisualization,
+    currentRunType: chartState.currentRunType,
   };
 
   setChartStateForMode(state.activeChartMode, newChartState);
@@ -256,6 +264,8 @@ export const resetTableData = (mode?: Mode) => {
       skillCount: 0,
       totalSamples: 0,
     },
+    selectedSkillsForVisualization: new Set(),
+    currentRunType: 'meanrun',
   };
 
   setChartStateForMode(chartMode, newChartState);
@@ -280,6 +290,8 @@ export const updateTableData = (newData: Map<string, ChartTableEntry>) => {
       skillCount: 0,
       totalSamples: 0,
     },
+    selectedSkillsForVisualization: chartState?.selectedSkillsForVisualization ?? new Set(),
+    currentRunType: chartState?.currentRunType ?? 'meanrun',
   };
 
   setChartStateForMode(state.activeChartMode, newChartState);
@@ -340,6 +352,8 @@ export const selectSkill = (skillId: string) => {
     const newChartState: SkillChartState = {
       ...chartState,
       selectedSkillId: skillId,
+      selectedSkillsForVisualization: chartState.selectedSkillsForVisualization,
+      currentRunType: chartState.currentRunType,
     };
 
     setChartStateForMode(state.activeChartMode, newChartState);
@@ -357,6 +371,53 @@ export const selectSkill = (skillId: string) => {
       },
     });
   }
+};
+
+// Skill visualization actions
+export const toggleSkillVisualization = (skillId: string) => {
+  const state = useSimulationStore.getState();
+  const chartState = getChartStateForMode(state.activeChartMode);
+  if (!chartState) return;
+
+  const newSet = new Set(chartState.selectedSkillsForVisualization);
+  if (newSet.has(skillId)) {
+    newSet.delete(skillId);
+  } else {
+    newSet.add(skillId);
+  }
+
+  const newChartState: SkillChartState = {
+    ...chartState,
+    selectedSkillsForVisualization: newSet,
+  };
+
+  setChartStateForMode(state.activeChartMode, newChartState);
+};
+
+export const setRunType = (runType: RunType) => {
+  const state = useSimulationStore.getState();
+  const chartState = getChartStateForMode(state.activeChartMode);
+  if (!chartState) return;
+
+  const newChartState: SkillChartState = {
+    ...chartState,
+    currentRunType: runType,
+  };
+
+  setChartStateForMode(state.activeChartMode, newChartState);
+};
+
+export const clearSkillVisualization = () => {
+  const state = useSimulationStore.getState();
+  const chartState = getChartStateForMode(state.activeChartMode);
+  if (!chartState) return;
+
+  const newChartState: SkillChartState = {
+    ...chartState,
+    selectedSkillsForVisualization: new Set(),
+  };
+
+  setChartStateForMode(state.activeChartMode, newChartState);
 };
 
 // UI state

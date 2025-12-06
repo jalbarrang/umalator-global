@@ -3,6 +3,7 @@ import { CourseHelpers } from '@simulation/lib/CourseData';
 import { PosKeepMode } from '@simulation/lib/RaceSolver';
 import { RaceTrack } from '@/modules/racetrack/components/RaceTrack';
 import { BasinnChart } from './components/bassin-chart/BasinnChart';
+import { RunTypeSelector } from './components/bassin-chart/RunTypeSelector';
 
 import { VelocityLines } from './components/VelocityLines';
 import { SimulationResultTabs } from './modules/simulation/tabs/simulation-result-tabs';
@@ -16,6 +17,7 @@ import {
   useSimulationStore,
   ChartStats,
   selectSkill,
+  toggleSkillVisualization,
 } from './store/simulation.store';
 import {
   setPacer,
@@ -260,6 +262,7 @@ export function App() {
           {mode == Mode.Chart && tableData.size > 0 && (
             <div className="grid grid-cols-1 gap-4">
               <ChartStatsDisplay stats={chartStats} />
+              <RunTypeSelector />
               <BasinnChart
                 data={Array.from(tableData.values())}
                 hiddenSkills={
@@ -273,6 +276,7 @@ export function App() {
                 onAddSkill={addSkillFromTable}
                 onChangeUma={changeUmaFromTable}
                 onInfoClick={showPopover}
+                onVisualizationToggle={toggleSkillVisualization}
               />
             </div>
           )}
@@ -281,6 +285,7 @@ export function App() {
           {mode == Mode.UniquesChart && tableData.size > 0 && (
             <div className="grid grid-cols-1 gap-4">
               <ChartStatsDisplay stats={chartStats} />
+              <RunTypeSelector />
               <BasinnChart
                 data={Array.from(tableData.values())}
                 hiddenSkills={[]}
@@ -288,6 +293,7 @@ export function App() {
                 onAddSkill={addSkillFromTable}
                 onChangeUma={changeUmaFromTable}
                 onInfoClick={showPopover}
+                onVisualizationToggle={toggleSkillVisualization}
                 showUmaIcons
               />
             </div>

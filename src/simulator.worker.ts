@@ -115,9 +115,15 @@ function run1Round(
         : results[mid];
     const mean = results.reduce((a, b) => a + b, 0) / results.length;
 
-    // Only keep meanrun to reduce memory usage in chart mode
-    // Clear the other run data references
-    const lightRunData = runData?.meanrun ? { meanrun: runData.meanrun } : null;
+    // Store all run types for visualization in chart mode
+    const lightRunData = runData
+      ? {
+          minrun: runData.minrun,
+          maxrun: runData.maxrun,
+          meanrun: runData.meanrun,
+          medianrun: runData.medianrun,
+        }
+      : null;
 
     data.set(id, {
       id,
