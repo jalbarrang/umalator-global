@@ -1,7 +1,10 @@
 import { Fragment, useMemo, useRef } from 'react';
 import { CourseHelpers, Surface } from '@simulation/lib/CourseData';
-import courses from '@data/course_data.json';
-import { inoutKey } from '@/modules/racetrack/courses';
+import {
+  getCourseById,
+  getDistanceCategory,
+  inoutKey,
+} from '@/modules/racetrack/courses';
 import './RaceTrack.css';
 import i18n from '@/i18n';
 import { RunnerState } from '@/modules/runners/components/runner-card/types';
@@ -13,12 +16,19 @@ import { PhaseBar } from './phase-bar';
 import { SectionNumbers } from './section-numbers';
 import { SkillMarker } from './skill-marker';
 import { useVisualizationData } from '../hooks/useVisualizationData';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   setPacer,
   setUma1,
   setUma2,
   useRunnersStore,
 } from '@/store/runners.store';
+import {
+  toggleShowHp,
+  toggleShowLanes,
+  useSettingsStore,
+} from '@/store/settings.store';
 import { SettingsIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -66,6 +76,7 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
   const { chartData } = props;
 
   const { uma1, uma2, pacer } = useRunnersStore();
+  const { showHp, showLanes } = useSettingsStore();
 
   // Refs for mouseover elements (replacing querySelector)
   const mouseLineRef = useRef<SVGLineElement>(null);
@@ -316,6 +327,22 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
     ).elem;
   }, [allRegions, course.distance, uma1, uma2, pacer, width, handleDragStart]);
 
+  const trackDescription = useMemo(() => {
+    const course = getCourseById(props.courseid);
+    const distanceCategory = i18n.t(
+      `racetrack.${getDistanceCategory(course.distance)}`,
+    );
+    const inout = i18n.t(`racetrack.${inoutKey[course.course]}`);
+    const orientation = i18n.t(`racetrack.orientation.${course.turn}`);
+    const surface = course.surface == Surface.Turf ? 'Turf' : 'Dirt';
+
+    if (inout === '') {
+      return `${surface} ${course.distance}m (${distanceCategory}) ${orientation}`;
+    }
+
+    return `${surface} ${course.distance}m (${distanceCategory}) ${orientation} / ${inout}`;
+  }, [props.courseid]);
+
   return (
     <div className="flex flex-col gap-4">
       <SimulationModeToggle />
@@ -323,15 +350,7 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">
           <div className="text-xl text-foreground font-bold">
-            {i18n.t(`tracknames.${course.raceTrackId}`)}{' '}
-            {i18n.t('coursedesc', {
-              distance: course.distance,
-              inout: i18n.t(
-                `racetrack.${inoutKey[courses[props.courseid].course]}`,
-              ),
-              surface: course.surface == Surface.Turf ? 'Turf' : 'Dirt',
-            })}{' '}
-            {i18n.t(`racetrack.orientation.${course.turn}`)}
+            {i18n.t(`tracknames.${course.raceTrackId}`)} {trackDescription}
           </div>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -415,6 +434,7 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
                 />
               </g>
             ))}
+
           <line
             ref={mouseLineRef}
             className="mouseoverLine"
@@ -425,6 +445,7 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
             stroke="rgb(121,64,22)"
             strokeWidth="2"
           />
+
           <text
             ref={mouseTextRef}
             className="mouseoverText"
@@ -436,6 +457,36 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
 
         {props.children}
       </svg>
+
+      <div className="flex items-center gap-6">
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="showhp"
+            checked={showHp}
+            onCheckedChange={toggleShowHp}
+          />
+          <Label
+            htmlFor="showhp"
+            className="text-sm font-normal cursor-pointer"
+          >
+            Show HP
+          </Label>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="showlanes"
+            checked={showLanes}
+            onCheckedChange={toggleShowLanes}
+          />
+          <Label
+            htmlFor="showlanes"
+            className="text-sm font-normal cursor-pointer"
+          >
+            Show Lanes
+          </Label>
+        </div>
+      </div>
     </div>
   );
 };
