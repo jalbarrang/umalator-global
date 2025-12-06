@@ -12,8 +12,12 @@ import { Button } from './components/ui/button';
 import { HeartIcon, ScrollTextIcon } from 'lucide-react';
 import { useClickOutside } from './hooks/useClickOutside';
 import { useRaceTrackTooltip } from './modules/racetrack/hooks/useRaceTrackTooltip';
-import { setPopoverSkill, useChartStore } from './store/chart.store';
-import { useRaceStore } from './store/race/store';
+import {
+  setPopoverSkill,
+  useSimulationStore,
+  ChartStats,
+  selectSkill,
+} from './store/simulation.store';
 import { setUma1, useRunnersStore } from './store/runners.store';
 import { useSettingsStore } from './store/settings.store';
 import {
@@ -32,17 +36,54 @@ import { cn } from './lib/utils';
 import { LeftSidebar } from './layout/left-sidebar';
 import { ResultButtonGroups } from './modules/simulation/tabs/summary-tab';
 import { ThemeToggle } from './components/ui/theme-toggle';
-import { useBreakpoint } from './hooks/useBreakpoint';
+import {
+  getSkillDataById,
+  getUniqueSkillForByUmaId,
+} from './modules/skills/utils';
+
+function formatDuration(ms: number): string {
+  if (ms < 1000) return `${Math.round(ms)}ms`;
+  return `${(ms / 1000).toFixed(2)}s`;
+}
+
+function ChartStatsDisplay({ stats }: { stats: ChartStats }) {
+  if (!stats.startTime || !stats.endTime) return null;
+
+  const duration = stats.endTime - stats.startTime;
+
+  return (
+    <div className="text-sm text-muted-foreground mb-2">
+      Simulated{' '}
+      <span className="font-medium text-foreground">{stats.skillCount}</span>{' '}
+      skills with{' '}
+      <span className="font-medium text-foreground">
+        {stats.totalSamples.toLocaleString()}
+      </span>{' '}
+      total samples in{' '}
+      <span className="font-medium text-foreground">
+        {formatDuration(duration)}
+      </span>
+    </div>
+  );
+}
 
 export function App() {
-  const { tableData } = useChartStore();
+  const { comparison, skillChart } = useSimulationStore();
   const { posKeepMode, showLanes, showHp, courseId } = useSettingsStore();
 
   const selectedPacemakerIndices = getSelectedPacemakerIndices();
-
   const selectedPacemakers = useSelectedPacemakerBooleans();
 
-  const { results, chartData } = useRaceStore();
+  const results = comparison?.results ?? [];
+  const chartData = comparison?.chartData ?? null;
+  const tableData = skillChart?.tableData ?? new Map();
+  const chartStats = skillChart?.chartStats ?? {
+    startTime: null,
+    endTime: null,
+    skillCount: 0,
+    totalSamples: 0,
+  };
+
   const { mode, isPacemakerDropdownOpen, showVirtualPacemakerOnGraph } =
     useUIStore();
 
@@ -68,25 +109,29 @@ export function App() {
     showVirtualPacemakerOnGraph,
   ]);
 
-  const basinnChartSelection = (skillId: string) => {
-    const results = tableData.get(skillId);
-
-    if (results.runData) {
-      useRaceStore.setState({ results: results.results });
-    }
+  const handleSkillSelection = (skillId: string) => {
+    selectSkill(skillId);
   };
 
   const addSkillFromTable = (skillId: string) => {
-    window.dispatchEvent(
-      new CustomEvent('addSkillFromTable', { detail: { skillId } }),
-    );
     setUma1({ ...uma1, skills: [...uma1.skills, skillId] });
   };
 
-  const showPopover = (skillId: string) => {
-    window.dispatchEvent(
-      new CustomEvent('showPopover', { detail: { skillId } }),
+  const changeUmaFromTable = (umaId: string) => {
+    const outfitId = umaId;
+
+    const newSkills = uma1.skills.filter(
+      (skillId) => getSkillDataById(skillId).rarity < 3,
     );
+
+    if (outfitId) {
+      newSkills.push(getUniqueSkillForByUmaId(outfitId));
+    }
+
+    setUma1({ ...uma1, outfitId: outfitId, skills: newSkills });
+  };
+
+  const showPopover = (skillId: string) => {
     setPopoverSkill(skillId);
   };
 
@@ -218,11 +263,13 @@ export function App() {
           {/* Skills Chart (includes Uniques)*/}
           {mode == Mode.Chart && tableData.size > 0 && (
             <div className="grid grid-cols-1 gap-4">
+              <ChartStatsDisplay stats={chartStats} />
               <BasinnChart
                 data={Array.from(tableData.values())}
                 hiddenSkills={uma1.skills}
-                onSelectionChange={basinnChartSelection}
-                onDblClickRow={addSkillFromTable}
+                onSelectionChange={handleSkillSelection}
+                onAddSkill={addSkillFromTable}
+                onChangeUma={changeUmaFromTable}
                 onInfoClick={showPopover}
               />
             </div>
@@ -231,11 +278,13 @@ export function App() {
           {/* Unique Skills Chart */}
           {mode == Mode.UniquesChart && tableData.size > 0 && (
             <div className="grid grid-cols-1 gap-4">
+              <ChartStatsDisplay stats={chartStats} />
               <BasinnChart
                 data={Array.from(tableData.values())}
                 hiddenSkills={[]}
-                onSelectionChange={basinnChartSelection}
-                onDblClickRow={addSkillFromTable}
+                onSelectionChange={handleSkillSelection}
+                onAddSkill={addSkillFromTable}
+                onChangeUma={changeUmaFromTable}
                 onInfoClick={showPopover}
                 showUmaIcons
               />

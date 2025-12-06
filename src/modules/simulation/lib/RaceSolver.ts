@@ -1772,6 +1772,31 @@ export class RaceSolver {
     this.activeAccelSkills.forEach(callDeactivateHook);
     this.activeLaneMovementSkills.forEach(callDeactivateHook);
     this.activeChangeLaneSkills.forEach(callDeactivateHook);
+
+    // Clear arrays and sets to help garbage collection
+    // This is important for chart mode where many simulations run in sequence
+    this.activeTargetSpeedSkills.length = 0;
+    this.activeCurrentSpeedSkills.length = 0;
+    this.activeAccelSkills.length = 0;
+    this.activeLaneMovementSkills.length = 0;
+    this.activeChangeLaneSkills.length = 0;
+    this.pendingSkills.length = 0;
+    this.pendingRemoval.clear();
+    this.usedSkills.clear();
+    this.timers.length = 0;
+
+    // Clear UI tracking arrays (these are shallow copied before cleanup in compare.ts)
+    this.rushedActivations.length = 0;
+    this.positionKeepActivations.length = 0;
+
+    // Clear references to other solvers to help GC
+    this.umas.length = 0;
+    this.competeFightTargets.clear();
+    this.pacer = null;
+
+    // Clear condition maps
+    this.conditionValues.clear();
+    this.conditions.clear();
   }
 
   registerCondition(name: string, condition: ApproximateCondition): void {

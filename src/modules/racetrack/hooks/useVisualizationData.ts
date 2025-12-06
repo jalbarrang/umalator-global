@@ -1,6 +1,6 @@
 import { RegionDisplayType } from '@/modules/racetrack/components/RaceTrack';
 import { getSkillMetaById } from '@/modules/skills/utils';
-import { useRaceStore } from '@/store/race/store';
+import { useSimulationStore } from '@/store/simulation.store';
 import { useSettingsStore } from '@/store/settings.store';
 import { getSelectedPacemakerIndices } from '@/store/settings/actions';
 import { useUIStore } from '@/store/ui.store';
@@ -49,7 +49,8 @@ const getStateName = (state: number) => {
 };
 
 export const useVisualizationData = () => {
-  const { chartData } = useRaceStore();
+  const { comparison } = useSimulationStore();
+  const chartData = comparison?.chartData ?? null;
   const { posKeepMode, courseId } = useSettingsStore();
   const { showVirtualPacemakerOnGraph } = useUIStore();
 

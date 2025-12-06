@@ -1,6 +1,10 @@
-import { ChartTableEntry, updateTableData } from '@/store/chart.store';
+import {
+  ChartTableEntry,
+  setComparisonResults,
+  stopChartTimer,
+  updateTableData,
+} from '@/store/simulation.store';
 import { CompareResult } from '@/store/race/compare.types';
-import { setResults } from '@/store/race/store';
 import { setIsSimulationRunning } from '@/store/ui.store';
 import { useEffect, useRef } from 'react';
 
@@ -8,6 +12,30 @@ type WorkerMessage<T> = {
   type: 'compare' | 'chart' | 'compare-complete' | 'chart-complete';
   results: T;
 };
+
+/**
+ * Creates a new worker instance with message handler attached
+ */
+function createWorker(handleMessage: (event: MessageEvent) => void): Worker {
+  const worker = new Worker(new URL('@/simulator.worker.ts', import.meta.url), {
+    type: 'module',
+  });
+  worker.addEventListener('message', handleMessage);
+  return worker;
+}
+
+/**
+ * Terminates a worker and cleans up its event listener
+ */
+function terminateWorker(
+  worker: Worker | null,
+  handleMessage: (event: MessageEvent) => void,
+): void {
+  if (worker) {
+    worker.removeEventListener('message', handleMessage);
+    worker.terminate();
+  }
+}
 
 export const useSimulationWorkers = () => {
   const worker1Ref = useRef<Worker | null>(null);
@@ -24,7 +52,7 @@ export const useSimulationWorkers = () => {
 
     switch (type) {
       case 'compare':
-        setResults(results as CompareResult);
+        setComparisonResults(results as CompareResult);
         break;
       case 'chart':
         updateTableData(results as Map<string, ChartTableEntry>);
@@ -36,6 +64,7 @@ export const useSimulationWorkers = () => {
         chartWorkersCompletedRef.current += 1;
 
         if (chartWorkersCompletedRef.current >= 2) {
+          stopChartTimer();
           setIsSimulationRunning(false);
           chartWorkersCompletedRef.current = 0;
         }
@@ -44,37 +73,41 @@ export const useSimulationWorkers = () => {
     }
   };
 
+  /**
+   * Terminates existing workers and creates fresh ones.
+   * Call this before starting a new chart run to prevent stale results
+   * from accumulating with new data.
+   */
+  const resetWorkers = () => {
+    // Terminate existing workers
+    terminateWorker(worker1Ref.current, handleWorkerMessage);
+    terminateWorker(worker2Ref.current, handleWorkerMessage);
+
+    // Create fresh workers
+    worker1Ref.current = createWorker(handleWorkerMessage);
+    worker2Ref.current = createWorker(handleWorkerMessage);
+
+    // Reset completion counter
+    chartWorkersCompletedRef.current = 0;
+  };
+
   useEffect(() => {
-    const webWorker = new Worker(
-      new URL('@/simulator.worker.ts', import.meta.url),
-      { type: 'module' },
-    );
+    worker1Ref.current = createWorker(handleWorkerMessage);
 
-    webWorker.addEventListener('message', handleWorkerMessage);
-
-    worker1Ref.current = webWorker;
     return () => {
-      webWorker.removeEventListener('message', handleWorkerMessage);
-      webWorker.terminate();
+      terminateWorker(worker1Ref.current, handleWorkerMessage);
       worker1Ref.current = null;
     };
   }, []);
 
   useEffect(() => {
-    const webWorker = new Worker(
-      new URL('@/simulator.worker.ts', import.meta.url),
-      { type: 'module' },
-    );
-
-    webWorker.addEventListener('message', handleWorkerMessage);
-    worker2Ref.current = webWorker;
+    worker2Ref.current = createWorker(handleWorkerMessage);
 
     return () => {
-      webWorker.removeEventListener('message', handleWorkerMessage);
-      webWorker.terminate();
+      terminateWorker(worker2Ref.current, handleWorkerMessage);
       worker2Ref.current = null;
     };
   }, []);
 
-  return { worker1Ref, worker2Ref, chartWorkersCompletedRef };
+  return { worker1Ref, worker2Ref, chartWorkersCompletedRef, resetWorkers };
 };

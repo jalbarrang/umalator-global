@@ -1,4 +1,4 @@
-import { useRaceStore } from '@/store/race/store';
+import { useSimulationStore } from '@/store/simulation.store';
 import { useWitVariance } from '@/store/settings.store';
 import { formatTime } from '@/utils/time';
 import {
@@ -20,8 +20,11 @@ import {
 } from '@/components/ui/empty';
 
 export const RunnerStatsTab = () => {
-  const { chartData, rushedStats, leadCompetitionStats, staminaStats } =
-    useRaceStore();
+  const { comparison } = useSimulationStore();
+  const chartData = comparison?.chartData ?? null;
+  const rushedStats = comparison?.rushedStats ?? null;
+  const leadCompetitionStats = comparison?.leadCompetitionStats ?? null;
+  const staminaStats = comparison?.staminaStats ?? null;
   const { allowRushedUma2 } = useWitVariance();
 
   if (!chartData) {

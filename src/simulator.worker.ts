@@ -10,44 +10,74 @@ import { runComparison } from '@/utils/compare';
 import assert from 'assert';
 import { PosKeepMode } from './modules/simulation/lib/RaceSolver';
 
+// Maximum number of results to keep for histogram display
+const MAX_RESULTS_TO_KEEP = 100;
+
 function mergeResults(results1, results2) {
   assert(
     results1.id == results2.id,
     `mergeResults: ${results1.id} != ${results2.id}`,
   );
 
-  const n1 = results1.results.length,
-    n2 = results2.results.length;
+  const n1 = results1.sampleCount ?? results1.results.length;
+  const n2 = results2.sampleCount ?? results2.results.length;
+  const totalSamples = n1 + n2;
+
+  // Combine and sort results
   const combinedResults = results1.results
     .concat(results2.results)
     .sort((a, b) => a - b);
-  const combinedMean = (results1.mean * n1 + results2.mean * n2) / (n1 + n2);
+
+  // Keep only a subset of results for histogram display to limit memory
+  const sampledResults =
+    combinedResults.length > MAX_RESULTS_TO_KEEP
+      ? sampleArray(combinedResults, MAX_RESULTS_TO_KEEP)
+      : combinedResults;
+
+  const combinedMean = (results1.mean * n1 + results2.mean * n2) / totalSamples;
   const mid = Math.floor(combinedResults.length / 2);
   const newMedian =
     combinedResults.length % 2 == 0
       ? (combinedResults[mid - 1] + combinedResults[mid]) / 2
       : combinedResults[mid];
 
+  const newMin = Math.min(results1.min, results2.min);
+  const newMax = Math.max(results1.max, results2.max);
+
+  // Only keep meanrun for chart mode to save memory
+  // Determine which run is closer to the new mean
+  const meanrun =
+    n2 > n1 ? results2.runData?.meanrun : results1.runData?.meanrun;
+
+  // Clear old results arrays to help GC
+  results1.results.length = 0;
+  results2.results.length = 0;
+
   return {
     id: results1.id,
-    results: combinedResults,
-    min: Math.min(results1.min, results2.min),
-    max: Math.max(results1.max, results2.max),
+    results: sampledResults,
+    sampleCount: totalSamples, // Track actual sample count separately
+    min: newMin,
+    max: newMax,
     mean: combinedMean,
     median: newMedian,
-    runData: {
-      // TODO should re-compute the bashin gain from .t/.p and pick whichever is closer to new mean/median
-      ...(n2 > n1 ? results2.runData : results1.runData),
-      minrun:
-        results1.min < results2.min
-          ? results1.runData.minrun
-          : results2.runData.minrun,
-      maxrun:
-        results1.max > results2.max
-          ? results1.runData.maxrun
-          : results2.runData.maxrun,
-    },
+    runData: meanrun ? { meanrun } : null,
   };
+}
+
+// Sample evenly from a sorted array to get representative distribution
+function sampleArray(arr: number[], targetSize: number): number[] {
+  if (arr.length <= targetSize) return arr;
+
+  const result: number[] = [];
+  const step = (arr.length - 1) / (targetSize - 1);
+
+  for (let i = 0; i < targetSize; i++) {
+    const idx = Math.round(i * step);
+    result.push(arr[idx]);
+  }
+
+  return result;
 }
 
 function mergeResultSets(data1, data2) {
@@ -84,14 +114,20 @@ function run1Round(
         ? (results[mid - 1] + results[mid]) / 2
         : results[mid];
     const mean = results.reduce((a, b) => a + b, 0) / results.length;
+
+    // Only keep meanrun to reduce memory usage in chart mode
+    // Clear the other run data references
+    const lightRunData = runData?.meanrun ? { meanrun: runData.meanrun } : null;
+
     data.set(id, {
       id,
       results,
-      runData,
+      sampleCount: results.length,
       min: results[0],
       max: results[results.length - 1],
       mean,
       median,
+      runData: lightRunData,
     });
   });
   return data;

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useRaceStore } from '@/store/race/store';
+import { useSimulationStore } from '@/store/simulation.store';
 import { getSkillNameById } from '@/modules/skills/utils';
 import {
   Table,
@@ -27,7 +27,8 @@ type SkillPosition = {
 };
 
 export const SkillsTab = () => {
-  const { chartData } = useRaceStore();
+  const { comparison } = useSimulationStore();
+  const chartData = comparison?.chartData ?? null;
 
   const skillPositionsUma1: SkillPosition[] = useMemo(() => {
     if (!chartData?.sk?.[0]) return [];

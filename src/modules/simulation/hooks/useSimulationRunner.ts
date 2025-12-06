@@ -1,5 +1,9 @@
 import { getBaseSkillsToTest, getUniqueSkills } from '@/modules/skills/utils';
-import { resetTableData, updateTableData } from '@/store/chart.store';
+import {
+  resetTableData,
+  startChartTimer,
+  updateTableData,
+} from '@/store/simulation.store';
 import { useRunnersStore } from '@/store/runners.store';
 import { useSettingsStore, useWitVariance } from '@/store/settings.store';
 import { setIsSimulationRunning, useUIStore } from '@/store/ui.store';
@@ -46,14 +50,17 @@ export function useSimulationRunner() {
 
   const [runOnceCounter, setRunOnceCounter] = useState(0);
 
-  const { worker1Ref, worker2Ref, chartWorkersCompletedRef } =
-    useSimulationWorkers();
+  const { worker1Ref, worker2Ref, resetWorkers } = useSimulationWorkers();
 
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
 
   function doBasinnChart() {
     window.dispatchEvent(new CustomEvent('doBasinnChart', {}));
-    chartWorkersCompletedRef.current = 0;
+
+    // Reset workers to terminate any in-progress chart runs and prevent
+    // stale results from accumulating with new data
+    resetWorkers();
+
     setIsSimulationRunning(true);
     const params = racedefToParams(racedef, uma1.strategy);
 
@@ -88,6 +95,7 @@ export function useSimulationRunner() {
     const skills2 = skills.slice(Math.floor(skills.length / 2));
 
     resetTableData();
+    startChartTimer(skills.length);
     updateTableData(filler);
 
     worker1Ref.current?.postMessage({

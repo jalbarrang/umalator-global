@@ -2,6 +2,7 @@ import { useSimulationRunner } from '@/modules/simulation/hooks/useSimulationRun
 import { useUIStore } from '@/store/ui.store';
 import { Mode } from '@/utils/settings';
 import { Button } from './ui/button';
+import { Loader2 } from 'lucide-react';
 
 export const RunButtonRow = () => {
   const { mode, isSimulationRunning } = useUIStore();
@@ -17,6 +18,9 @@ export const RunButtonRow = () => {
           variant="default"
           size="lg"
         >
+          {isSimulationRunning && (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          )}
           Run all samples
         </Button>
 
@@ -39,6 +43,9 @@ export const RunButtonRow = () => {
         onClick={doBasinnChart}
         disabled={isSimulationRunning}
       >
+        {isSimulationRunning && (
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        )}
         Run Skill Simulations
       </Button>
     </div>

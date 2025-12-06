@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useRaceStore } from '@/store/race/store';
+import { useSimulationStore } from '@/store/simulation.store';
 import { Histogram } from '@/components/Histogram';
 import { BarChart3 } from 'lucide-react';
 import {
@@ -11,7 +11,8 @@ import {
 } from '@/components/ui/empty';
 
 export const DistributionTab = () => {
-  const { results } = useRaceStore();
+  const { comparison } = useSimulationStore();
+  const results = comparison?.results ?? [];
 
   const distributionStats = useMemo(() => {
     if (results.length === 0) return null;

@@ -1,5 +1,5 @@
 import { Activity, useMemo } from 'react';
-import { setDisplaying, useRaceStore } from '@/store/race/store';
+import { setDisplaying, useSimulationStore } from '@/store/simulation.store';
 import { cn } from '@/lib/utils';
 import {
   Table,
@@ -11,7 +11,8 @@ import {
 } from '@/components/ui/table';
 
 export const ResultButtonGroups = () => {
-  const { displaying, results } = useRaceStore();
+  const { displaying, comparison } = useSimulationStore();
+  const results = comparison?.results ?? [];
 
   const mid = useMemo(() => {
     return Math.floor(results.length / 2);
@@ -93,7 +94,9 @@ export const ResultButtonGroups = () => {
 };
 
 export const SummaryTab = () => {
-  const { firstUmaStats, staminaStats } = useRaceStore();
+  const { comparison } = useSimulationStore();
+  const firstUmaStats = comparison?.firstUmaStats ?? null;
+  const staminaStats = comparison?.staminaStats ?? null;
 
   return (
     <div className="flex flex-col gap-4">

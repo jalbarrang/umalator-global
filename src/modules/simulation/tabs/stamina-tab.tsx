@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useRunnersStore } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
-import { useRaceStore } from '@/store/race/store';
+import { useSimulationStore } from '@/store/simulation.store';
 import { getCourseById } from '@/modules/racetrack/courses';
 import {
   useStaminaAnalysis,
@@ -17,7 +17,8 @@ import { StaminaCard } from './stamina/components';
 export const StaminaTab = () => {
   const { uma1, uma2 } = useRunnersStore();
   const { courseId, racedef } = useSettingsStore();
-  const { chartData } = useRaceStore();
+  const { comparison } = useSimulationStore();
+  const chartData = comparison?.chartData ?? null;
   const course = getCourseById(courseId);
 
   const hasSimulationData = !!chartData;
