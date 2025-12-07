@@ -15,12 +15,14 @@ export const defaultRunnerState: RunnerState = {
   skills: [],
   // Map of skillId -> forced position (in meters). If a skill is in this map, it will be forced to activate at that position.
   forcedSkillPositions: {},
+  randomMobId: Math.floor(Math.random() * 624) + 8000,
 };
 
 export const createRunnerState = (
   props: Partial<RunnerState> = {},
 ): RunnerState => ({
   ...defaultRunnerState,
+  randomMobId: Math.floor(Math.random() * 624) + 8000,
   ...props,
 });
 
@@ -38,4 +40,5 @@ export type RunnerState = {
   mood: Mood;
   skills: string[];
   forcedSkillPositions: Record<string, number>;
+  randomMobId?: number; // For placeholder image when no uma selected
 };

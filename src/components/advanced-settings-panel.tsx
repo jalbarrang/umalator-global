@@ -3,8 +3,6 @@ import {
   setSamples,
   setSeed,
   setWitVariance,
-  toggleShowHp,
-  toggleShowLanes,
   useSettingsStore,
   useWitVariance,
   WitVarianceSettings,
@@ -94,8 +92,7 @@ const WitVarianceSettingRow = ({
 
 export const AdvancedSettingsPanel = () => {
   const { isPacemakerDropdownOpen } = useUIStore();
-  const { nsamples, seed, posKeepMode, showLanes, showHp, pacemakerCount } =
-    useSettingsStore();
+  const { nsamples, seed, posKeepMode, pacemakerCount } = useSettingsStore();
   const witVarianceSettings = useWitVariance();
 
   const handleSimWitVarianceToggle = () => {
@@ -264,35 +261,6 @@ export const AdvancedSettingsPanel = () => {
               </div>
             </div>
           )}
-        </div>
-
-        <Separator />
-
-        {/* Display Options */}
-        <div className="flex flex-col gap-2">
-          <Label className="text-sm font-semibold">Display Options</Label>
-
-          <div className="flex items-center justify-between">
-            <Label htmlFor="showhp" className="text-sm font-normal">
-              Show HP
-            </Label>
-            <Checkbox
-              id="showhp"
-              checked={showHp}
-              onCheckedChange={toggleShowHp}
-            />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <Label htmlFor="showlanes" className="text-sm font-normal">
-              Show Lanes
-            </Label>
-            <Checkbox
-              id="showlanes"
-              checked={showLanes}
-              onCheckedChange={toggleShowLanes}
-            />
-          </div>
         </div>
 
         <Separator />

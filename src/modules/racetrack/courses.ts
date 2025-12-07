@@ -38,3 +38,28 @@ export const getCourseById = (courseId: number) => {
 };
 
 export const inoutKey = ['', 'none', 'inner', 'outer', 'outin'] as const;
+
+export const distanceCategories = ['sprint', 'mile', 'medium', 'long'] as const;
+
+export const isSprint = (distance: number) => {
+  return distance >= 1000 && distance < 1500;
+};
+
+export const isMile = (distance: number) => {
+  return distance >= 1500 && distance < 1900;
+};
+
+export const isMedium = (distance: number) => {
+  return distance >= 1900 && distance < 2500;
+};
+
+export const isLong = (distance: number) => {
+  return distance >= 2500;
+};
+
+export const getDistanceCategory = (distance: number) => {
+  if (isSprint(distance)) return 'sprint';
+  if (isMile(distance)) return 'mile';
+  if (isMedium(distance)) return 'medium';
+  return 'long';
+};

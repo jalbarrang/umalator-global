@@ -23,18 +23,27 @@ import { Label } from '@/components/ui/label';
 import { openSkillPicker, updateCurrentSkills } from '@/modules/skills/store';
 import { Mood } from '@simulation/lib/RaceParameters';
 import { Button } from '@/components/ui/button';
+import { useIsMobile } from '@/hooks/useBreakpoint';
+import { ArrowLeftRight, Copy, TrashIcon, Upload } from 'lucide-react';
 
 const runawaySkillId = '202051' as const;
 
 type RunnerCardProps = {
   value: RunnerState;
+  courseDistance: number;
+  runnerId: string;
+
+  // Events
   onChange: (value: RunnerState) => void;
   onReset: () => void;
-  courseDistance: number;
+  onCopy: () => void;
+  onSwap: () => void;
 };
 
 export const RunnerCard = (props: RunnerCardProps) => {
-  const { value: state, onChange: onChange, onReset } = props;
+  const { value: state, onChange, onReset, onCopy, onSwap } = props;
+
+  const isMobile = useIsMobile();
 
   const umaId = state.outfitId;
 
@@ -196,12 +205,58 @@ export const RunnerCard = (props: RunnerCardProps) => {
 
   return (
     <div className="runner-card flex flex-col gap-4 p-2">
-      <UmaSelector
-        value={umaId}
-        select={handleChangeRunner}
-        onReset={onReset}
-        onImport={() => setImportDialogOpen(true)}
-      />
+      <div className="flex gap-2">
+        <UmaSelector
+          value={umaId}
+          select={handleChangeRunner}
+          onReset={onReset}
+          onImport={() => setImportDialogOpen(true)}
+          randomMobId={state.randomMobId}
+        />
+
+        <div className="grid grid-cols-2 gap-2">
+          {!isMobile && (
+            <Button
+              onClick={() => setImportDialogOpen(true)}
+              size="sm"
+              variant="outline"
+              disabled={isMobile}
+            >
+              <Upload className="w-4 h-4" />
+              <span className="hidden md:inline!">Import</span>
+            </Button>
+          )}
+
+          {props.runnerId !== 'pacer' && (
+            <Button
+              onClick={onCopy}
+              size="sm"
+              variant="outline"
+              title="Copy to other runner"
+            >
+              <Copy className="w-4 h-4" />
+              <span className="hidden md:inline!">Copy</span>
+            </Button>
+          )}
+
+          {props.runnerId !== 'pacer' && (
+            <Button
+              onClick={onSwap}
+              size="sm"
+              variant="outline"
+              title="Swap runners"
+            >
+              <ArrowLeftRight className="w-4 h-4" />
+              <span className="hidden md:inline!">Swap</span>
+            </Button>
+          )}
+
+          <Button onClick={onReset} title="Reset runner" size="sm">
+            <span className="hidden md:inline!">Reset</span>
+            <TrashIcon className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
 
       <OcrImportDialog
         open={importDialogOpen}

@@ -57,7 +57,7 @@ export const RacetrackSettings = () => {
         <PanelTitle>Race Settings</PanelTitle>
       </PanelHeader>
 
-      <PanelContent className="flex flex-col gap-2">
+      <PanelContent className="flex flex-col gap-4">
         <RacePresets />
 
         <div className="flex flex-col gap-2">

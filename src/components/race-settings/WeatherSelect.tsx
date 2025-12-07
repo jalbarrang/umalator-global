@@ -2,17 +2,25 @@ import strings_en from '@/i18n/lang/en/skills';
 import { setRaceParams, useSettingsStore } from '@/store/settings.store';
 import { cn } from '@/lib/utils';
 
-const WeatherIcon = ({ weather }: { weather: number }) => {
+export const WeatherIcon = (
+  props: { weather: number } & React.HTMLAttributes<HTMLImageElement>,
+) => {
+  const { weather, className, ...rest } = props;
   const { racedef } = useSettingsStore();
 
   return (
     <img
       src={`/icons/utx_ico_weather_0${weather}.png`}
       title={strings_en.skilldetails.weather[weather]}
-      className={cn('w-8 h-8 cursor-pointer grayscale-100 hover:grayscale-0', {
-        'grayscale-0': weather === racedef.weather,
-      })}
+      className={cn(
+        'w-8 h-8 cursor-pointer grayscale-100 hover:grayscale-0',
+        {
+          'grayscale-0': weather === racedef.weather,
+        },
+        className,
+      )}
       data-weather={weather}
+      {...rest}
     />
   );
 };
@@ -28,7 +36,7 @@ export function WeatherSelect() {
   };
 
   return (
-    <div className="weatherSelect" onClick={handleClick}>
+    <div className="flex gap-2 items-center" onClick={handleClick}>
       <WeatherIcon weather={0} />
       <WeatherIcon weather={1} />
       <WeatherIcon weather={2} />

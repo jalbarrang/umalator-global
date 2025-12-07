@@ -1,4 +1,5 @@
 import { SimulationRun } from '@/store/race/compare.types';
+import { useRaceTrackUI } from '@/store/settings.store';
 import * as d3 from 'd3';
 import { memo, useMemo } from 'react';
 
@@ -122,8 +123,6 @@ type VelocityLinesProps = {
   width?: number;
   height?: number;
   xOffset: number;
-  showHp: boolean;
-  showLanes: boolean;
   horseLane: number;
   showVirtualPacemaker: boolean;
   selectedPacemakers: boolean[];
@@ -137,6 +136,7 @@ export const VelocityLines = memo(function VelocityLines(
   props: VelocityLinesProps,
 ) {
   const { data, courseDistance, xOffset } = props;
+  const { showUma1, showUma2, showHp, showLanes } = useRaceTrackUI();
 
   const width = props.width ?? BASE_WIDTH;
   const height = props.height ?? Math.round(width * ASPECT_RATIO);
@@ -168,11 +168,15 @@ export const VelocityLines = memo(function VelocityLines(
 
   const pacemakerYScale = useMemo(() => {
     if (!data?.pacerGap) return null;
+
     const allValues = data.pacerGap.flatMap((gap) =>
       gap.filter((d) => d !== undefined),
     );
+
     if (allValues.length === 0) return null;
+
     const maxValue = d3.max(allValues) ?? 10;
+
     return d3
       .scaleLinear()
       .domain([0, Math.max(maxValue, 10)])
@@ -181,19 +185,22 @@ export const VelocityLines = memo(function VelocityLines(
 
   const laneYScale = useMemo(() => {
     if (!data?.currentLane || !props.horseLane) return null;
+
     const gateCount = 9;
     const maxLane = Math.max(gateCount + 1, 11) * props.horseLane;
+
     return d3
       .scaleLinear()
       .domain([0, maxLane])
       .range([height, height * 0.5]);
-  }, [data, height, props.horseLane]); // ✅ Fixed dependencies
+  }, [data, height, props.horseLane]);
 
   // Early return for no data
   if (!data || !yScale) {
     return (
       <>
         <g transform={`translate(${xOffset},5)`} />
+
         <XAxis
           scale={xScale}
           transform={`translate(${xOffset},${height + 5})`}
@@ -206,44 +213,59 @@ export const VelocityLines = memo(function VelocityLines(
     <>
       <g transform={`translate(${xOffset},5)`}>
         {/* Velocity lines */}
-        {data.v.map((v, i) => (
-          <DataPath
-            key={`velocity-${i}`}
-            positions={data.p[i]}
-            values={v}
-            xScale={xScale}
-            yScale={yScale}
-            color={colors[i]}
-          />
-        ))}
+        {data.v.map((v, i) => {
+          if (i === 0 && !showUma1) return null;
+          if (i === 1 && !showUma2) return null;
+
+          return (
+            <DataPath
+              key={`velocity-${i}`}
+              positions={data.p[i]}
+              values={v}
+              xScale={xScale}
+              yScale={yScale}
+              color={colors[i]}
+            />
+          );
+        })}
 
         {/* HP lines */}
-        {props.showHp &&
+        {showHp &&
           hpYScale &&
-          data.hp.map((hp, i) => (
-            <DataPath
-              key={`hp-${i}`}
-              positions={data.p[i]}
-              values={hp}
-              xScale={xScale}
-              yScale={hpYScale}
-              color={hpColors[i]}
-            />
-          ))}
+          data.hp.map((hp, i) => {
+            if (i === 0 && !showUma1) return null;
+            if (i === 1 && !showUma2) return null;
+
+            return (
+              <DataPath
+                key={`hp-${i}`}
+                positions={data.p[i]}
+                values={hp}
+                xScale={xScale}
+                yScale={hpYScale}
+                color={hpColors[i]}
+              />
+            );
+          })}
 
         {/* Lane lines */}
-        {props.showLanes &&
+        {showLanes &&
           laneYScale &&
-          data.currentLane?.map((lanes, i) => (
-            <DataPath
-              key={`lane-${i}`}
-              positions={data.p[i]}
-              values={lanes}
-              xScale={xScale}
-              yScale={laneYScale}
-              color={laneColors[i]}
-            />
-          ))}
+          data.currentLane?.map((lanes, i) => {
+            if (i === 0 && !showUma1) return null;
+            if (i === 1 && !showUma2) return null;
+
+            return (
+              <DataPath
+                key={`lane-${i}`}
+                positions={data.p[i]}
+                values={lanes}
+                xScale={xScale}
+                yScale={laneYScale}
+                color={laneColors[i]}
+              />
+            );
+          })}
 
         {/* Pacemaker gap lines (dashed) */}
         {data.pacerGap &&
@@ -253,6 +275,9 @@ export const VelocityLines = memo(function VelocityLines(
               .map((g, j) => (g !== undefined && g >= 0 ? j : -1))
               .filter((j) => j >= 0);
             if (validIndices.length === 0) return null;
+
+            if (i === 0 && !showUma1) return null;
+            if (i === 1 && !showUma2) return null;
 
             return (
               <DataPath

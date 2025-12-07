@@ -69,9 +69,12 @@ export function useOcrImport(): UseOcrImportResult {
     setResults(null);
 
     // Create worker
-    const worker = new Worker(new URL('@/ocr.worker.ts', import.meta.url), {
-      type: 'module',
-    });
+    const worker = new Worker(
+      new URL('@/workers/ocr.worker.ts', import.meta.url),
+      {
+        type: 'module',
+      },
+    );
 
     workerRef.current = worker;
 

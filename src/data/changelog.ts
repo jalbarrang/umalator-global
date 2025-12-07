@@ -25,6 +25,64 @@ export type ChangelogEntry = {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: '0.2.0',
+    date: '2025-12-06',
+    changes: [
+      {
+        type: 'added',
+        items: [
+          '[Runners] Added Copy and Swap buttons to runner cards for quick data transfer between Uma 1 and Uma 2',
+          '[Runners] Added tab system in Runners panel to switch between Uma 1, Uma 2, and Pacer (when virtual pacemaker is enabled)',
+          '[Runners] Added uma selector for Skill Chart and Uma Chart modes - choose which uma to use as the simulation base',
+          '[Runners] Skills and uma changes from chart results now apply to the selected target uma',
+        ],
+      },
+      {
+        type: 'changed',
+        items: [
+          '[UI] Runners panel now uses tabs in all modes - only one runner card is shown at a time for cleaner interface',
+          '[UI] Tab colors match uma colors: blue for Uma 1, red for Uma 2, green for Pacer',
+        ],
+      },
+      {
+        type: 'fixed',
+        items: [
+          '[Runners] Random placeholder mob image is now persistent per runner and no longer changes when switching tabs',
+        ],
+      },
+    ],
+  },
+  {
+    version: '0.1.9',
+    date: '2025-12-06',
+    changes: [
+      {
+        type: 'added',
+        items: [
+          '[Simulation] Each simulation mode (Compare, Skill chart, Uma chart) now retains its own data independently',
+          '[Simulation] Switching between modes no longer requires re-running simulations',
+        ],
+      },
+    ],
+  },
+  {
+    version: '0.1.8',
+    date: '2025-12-05',
+    changes: [
+      {
+        type: 'added',
+        items: ['[UI] Moved the tooltip to the top left of the race track'],
+      },
+      {
+        type: 'changed',
+        items: [
+          '[Skill Chart] Updated to use Shadcn UI components',
+          '[Skill Chart] Added a loader when the skill chart is loading',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.1.7',
     date: '2025-12-05',
     changes: [

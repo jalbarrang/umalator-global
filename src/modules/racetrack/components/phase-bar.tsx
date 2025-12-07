@@ -82,5 +82,3 @@ export const PhaseBar = React.memo<PhaseBarProps>(({ distance }) => {
     </>
   );
 });
-
-PhaseBar.displayName = 'PhaseBar';

@@ -1,15 +1,13 @@
 import { trackIds } from '@/i18n/lang/tracknames';
-import { Surface } from '@simulation/lib/CourseData';
 
+import i18n from '@/i18n';
 import { useState } from 'react';
 import {
-  getCourseById,
   getCourseByTrackId,
   getCourseIdByTrackIdAndIndex,
   getDefaultTrackIdForCourse,
-  inoutKey,
 } from '../courses';
-import i18n from '@/i18n';
+
 import {
   Select,
   SelectContent,
@@ -18,21 +16,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { setCourseId, useSettingsStore } from '@/store/settings.store';
+import { trackDescription } from '../labels';
 
 const getTrackName = (trackId: number) => {
   return i18n.t(`tracknames.${trackId}`);
-};
-
-const getCourseName = (courseId: number) => {
-  const course = getCourseById(courseId);
-
-  return i18n.t('coursedesc', {
-    distance: course.distance,
-    inout: i18n.t(`racetrack.${inoutKey[course.course]}`),
-    surface: i18n.t(
-      course.surface == Surface.Turf ? 'racetrack.turf' : 'racetrack.dirt',
-    ),
-  });
 };
 
 export function TrackSelect() {
@@ -68,12 +55,12 @@ export function TrackSelect() {
 
       <Select value={courseId.toString()} onValueChange={handleChangeCourse}>
         <SelectTrigger className="w-full">
-          <SelectValue>{getCourseName(courseId)}</SelectValue>
+          <SelectValue>{trackDescription({ courseid: courseId })}</SelectValue>
         </SelectTrigger>
         <SelectContent>
           {getCourseByTrackId(trackid).map((cid) => (
             <SelectItem value={cid} key={cid}>
-              {getCourseName(+cid)}
+              {trackDescription({ courseid: +cid })}
             </SelectItem>
           ))}
         </SelectContent>

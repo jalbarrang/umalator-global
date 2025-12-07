@@ -38,7 +38,7 @@ export const TimeOfDaySelect = () => {
 
   // + 2 because for some reason the icons are 00-02 (noon/evening/night) but the enum values are 1-4 (morning(?) noon evening night)
   return (
-    <div className="flex gap-1 items-center" onClick={handleClick}>
+    <div className="flex gap-2 items-center" onClick={handleClick}>
       <TimeOfDayIcon time={2} icon={0} />
       <TimeOfDayIcon time={3} icon={1} />
       <TimeOfDayIcon time={4} icon={2} />

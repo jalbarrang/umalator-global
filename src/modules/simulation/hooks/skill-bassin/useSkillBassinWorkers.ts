@@ -1,38 +1,34 @@
-import { ChartTableEntry, updateTableData } from '@/store/chart.store';
-import { CompareResult } from '@/store/race/compare.types';
-import { setResults } from '@/store/race/store';
 import { setIsSimulationRunning } from '@/store/ui.store';
 import { useEffect, useRef } from 'react';
+import { RoundResult } from '../../types';
+import { updateTable } from '../../stores/skills-bassin.store';
 
 type WorkerMessage<T> = {
-  type: 'compare' | 'chart' | 'compare-complete' | 'chart-complete';
+  type: 'skill-bassin' | 'skill-bassin-done';
   results: T;
 };
 
-export const useSimulationWorkers = () => {
+export const useSkillBassinWorkers = () => {
   const worker1Ref = useRef<Worker | null>(null);
   const worker2Ref = useRef<Worker | null>(null);
+
   const chartWorkersCompletedRef = useRef(0);
 
-  const handleWorkerMessage = <T>(event: MessageEvent<WorkerMessage<T>>) => {
+  const handleWorkerMessage = (
+    event: MessageEvent<WorkerMessage<Map<string, RoundResult>>>,
+  ) => {
     const { type, results } = event.data;
 
-    console.log('handleWorkerMessage', {
+    console.log('skill-bassin:handleWorkerMessage', {
       type,
       results,
     });
 
     switch (type) {
-      case 'compare':
-        setResults(results as CompareResult);
+      case 'skill-bassin':
+        updateTable(Object.fromEntries(results));
         break;
-      case 'chart':
-        updateTableData(results as Map<string, ChartTableEntry>);
-        break;
-      case 'compare-complete':
-        setIsSimulationRunning(false);
-        break;
-      case 'chart-complete':
+      case 'skill-bassin-done':
         chartWorkersCompletedRef.current += 1;
 
         if (chartWorkersCompletedRef.current >= 2) {
@@ -46,7 +42,7 @@ export const useSimulationWorkers = () => {
 
   useEffect(() => {
     const webWorker = new Worker(
-      new URL('@/simulator.worker.ts', import.meta.url),
+      new URL('@/workers/skill-bassin.worker.ts', import.meta.url),
       { type: 'module' },
     );
 
@@ -62,7 +58,7 @@ export const useSimulationWorkers = () => {
 
   useEffect(() => {
     const webWorker = new Worker(
-      new URL('@/simulator.worker.ts', import.meta.url),
+      new URL('@/workers/skill-bassin.worker.ts', import.meta.url),
       { type: 'module' },
     );
 

@@ -120,5 +120,3 @@ export const SlopeVisualization = React.memo<SlopeVisualizationProps>(
     );
   },
 );
-
-SlopeVisualization.displayName = 'SlopeVisualization';

@@ -1,7 +1,5 @@
 import { Fragment, useMemo, useRef } from 'react';
-import { CourseHelpers, Surface } from '@simulation/lib/CourseData';
-import courses from '@data/course_data.json';
-import { inoutKey } from '@/modules/racetrack/courses';
+import { CourseHelpers } from '@simulation/lib/CourseData';
 import './RaceTrack.css';
 import i18n from '@/i18n';
 import { RunnerState } from '@/modules/runners/components/runner-card/types';
@@ -14,9 +12,7 @@ import { SectionNumbers } from './section-numbers';
 import { SkillMarker } from './skill-marker';
 import { useVisualizationData } from '../hooks/useVisualizationData';
 import {
-  setPacer,
-  setUma1,
-  setUma2,
+  updateForcedSkillPosition,
   useRunnersStore,
 } from '@/store/runners.store';
 import { SettingsIcon } from 'lucide-react';
@@ -27,20 +23,28 @@ import {
   TooltipContent,
 } from '@/components/ui/tooltip';
 import { setLeftSidebar } from '@/store/ui.store';
-import { SimulationModeToggle } from '@/components/simulation-mode-toggle';
-import { RunButtonRow } from '@/components/run-pane';
-
-// eslint-disable-next-line react-refresh/only-export-components
-export const enum RegionDisplayType {
-  Immediate,
-  Regions,
-  Textbox,
-  Marker,
-}
+import { RegionDisplayType } from '../types';
+import { trackDescription } from '../labels';
+import { SeasonIcon } from '@/components/race-settings/SeasonSelect';
+import { WeatherIcon } from '@/components/race-settings/WeatherSelect';
+import {
+  toggleShowHp,
+  toggleShowLanes,
+  toggleShowUma1,
+  toggleShowUma2,
+  useSettingsStore,
+} from '@/store/settings.store';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { RaceTrackTooltip } from './racetrack-tooltip';
+import { useRaceTrackTooltip } from '../hooks/useRaceTrackTooltip';
+import { SimulationRun } from '@/store/race/compare.types';
+import { Separator } from '@/components/ui/separator';
 
 type RaceTrackProps = {
   // Course data
   courseid: number;
+  chartData: SimulationRun;
 
   // Layout
   xOffset: number;
@@ -49,27 +53,35 @@ type RaceTrackProps = {
   yExtra?: number;
   width?: number;
   height?: number;
-
-  // Events
-  onMouseMove: (pos: number) => void;
-  onMouseLeave: () => void;
 };
 
 // Base dimensions for aspect ratio calculation
 const BASE_WIDTH = 960;
 const BASE_HEIGHT = 240;
-// const ASPECT_RATIO = BASE_HEIGHT / BASE_WIDTH;
 
 export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
   props,
 ) => {
+  const { chartData } = props;
+
+  const course = useMemo(
+    () => CourseHelpers.getCourse(props.courseid),
+    [props.courseid],
+  );
+
   const { uma1, uma2, pacer } = useRunnersStore();
+  const { racedef } = useSettingsStore();
+  const { showHp, showLanes, showUma1, showUma2 } = useSettingsStore();
+
+  const { tooltipData, tooltipVisible, rtMouseMove, rtMouseLeave } =
+    useRaceTrackTooltip({
+      chartData,
+      course,
+    });
 
   // Refs for mouseover elements (replacing querySelector)
   const mouseLineRef = useRef<SVGLineElement>(null);
   const mouseTextRef = useRef<SVGTextElement>(null);
-
-  const course = CourseHelpers.getCourse(props.courseid);
 
   const xOffset = props.xOffset ?? 0;
   const yOffset = props.yOffset ?? 0;
@@ -86,39 +98,18 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
     return [...skillActivations, ...rushedIndicators];
   }, [skillActivations, rushedIndicators]);
 
-  const handleSkillDrag = (skillId, umaIndex, newStart, newEnd) => {
-    console.log('handleSkillDrag called:', {
-      skillId,
-      umaIndex,
-      newStart,
-      newEnd,
-    });
-
-    // Update the forced skill position for the appropriate horse
+  const handleSkillDrag = (
+    skillId: number,
+    umaIndex: number,
+    newStart: number,
+    _newEnd: number,
+  ) => {
     if (umaIndex === 0) {
-      setUma1({
-        ...uma1,
-        forcedSkillPositions: {
-          ...uma1.forcedSkillPositions,
-          [skillId]: newStart,
-        },
-      });
+      updateForcedSkillPosition('uma1', skillId, newStart);
     } else if (umaIndex === 1) {
-      setUma2({
-        ...uma2,
-        forcedSkillPositions: {
-          ...uma2.forcedSkillPositions,
-          [skillId]: newStart,
-        },
-      });
+      updateForcedSkillPosition('uma2', skillId, newStart);
     } else if (umaIndex === 2) {
-      setPacer({
-        ...pacer,
-        forcedSkillPositions: {
-          ...pacer.forcedSkillPositions,
-          [skillId]: newStart,
-        },
-      });
+      updateForcedSkillPosition('pacer', skillId, newStart);
     }
   };
 
@@ -155,7 +146,7 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
         Math.round((x / w) * course.distance) + 'm';
     }
 
-    props.onMouseMove?.(x / w);
+    rtMouseMove(x / w);
 
     // Handle drag via custom hook
     if (draggedSkill) {
@@ -176,21 +167,26 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
       mouseTextRef.current.textContent = '';
     }
 
-    props.onMouseLeave?.();
+    rtMouseLeave();
     handleDragEnd();
   };
 
   const regions = useMemo(() => {
     return allRegions.reduce(
       (state, desc, descIndex) => {
+        if (desc.umaIndex === 0 && !showUma1) return state;
+        if (desc.umaIndex === 1 && !showUma2) return state;
+
         if (
           desc.type === RegionDisplayType.Immediate &&
           desc.regions.length > 0
         ) {
           let x = (desc.regions[0].start / course.distance) * 100;
+
           while (state.seen.has(x)) {
             x += ((3 + +(x === 0)) / width) * 100;
           }
+
           state.seen.add(x);
           state.elem.push(
             <line
@@ -203,7 +199,11 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
               strokeWidth={x === 0 ? 4 : 2}
             />,
           );
-        } else if (desc.type === RegionDisplayType.Textbox) {
+
+          return state;
+        }
+
+        if (desc.type === RegionDisplayType.Textbox) {
           const markers = desc.regions.map((r, rIndex) => {
             // Check if this skill has a forced position
             let start = r.start;
@@ -229,6 +229,7 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
 
             const x = (start / course.distance) * 100;
             const w = ((end - start) / course.distance) * 100;
+
             let rungIndex = 0;
             while (rungIndex < 10) {
               if (
@@ -245,8 +246,16 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
                 break;
               }
             }
+
             state.rungs[rungIndex % 10].push({ start, end });
             const y = 90 - 10 * rungIndex;
+
+            const handleOnDragStart = (e: React.MouseEvent<SVGSVGElement>) => {
+              if (!desc.skillId) return;
+              if (!desc.umaIndex) return;
+
+              handleDragStart(e, desc.skillId, desc.umaIndex, start, end);
+            };
 
             return (
               <SkillMarker
@@ -258,43 +267,36 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
                 text={desc.text}
                 skillId={desc.skillId}
                 umaIndex={desc.umaIndex}
-                onDragStart={
-                  desc.skillId && desc.umaIndex !== undefined
-                    ? (e) =>
-                        handleDragStart(
-                          e,
-                          desc.skillId!,
-                          desc.umaIndex!,
-                          start,
-                          end,
-                        )
-                    : undefined
-                }
+                onDragStart={handleOnDragStart}
               />
             );
           });
+
           state.elem.push(
             <Fragment key={`textbox-${descIndex}-${desc.skillId ?? 'none'}`}>
               {markers}
             </Fragment>,
           );
-        } else {
-          state.elem.push(
-            <Fragment key={`region-${descIndex}`}>
-              {desc.regions.map((r, i) => (
-                <rect
-                  key={`rect-${i}`}
-                  x={`${(r.start / course.distance) * 100}%`}
-                  y={`${100 - desc.height}%`}
-                  width={`${((r.end - r.start) / course.distance) * 100}%`}
-                  height={`${desc.height}%`}
-                  fill={desc.color.fill}
-                  stroke={desc.color.stroke}
-                />
-              ))}
-            </Fragment>,
-          );
+
+          return state;
         }
+
+        state.elem.push(
+          <Fragment key={`region-${descIndex}`}>
+            {desc.regions.map((r, i) => (
+              <rect
+                key={`rect-${i}`}
+                x={`${(r.start / course.distance) * 100}%`}
+                y={`${100 - desc.height}%`}
+                width={`${((r.end - r.start) / course.distance) * 100}%`}
+                height={`${desc.height}%`}
+                fill={desc.color.fill}
+                stroke={desc.color.stroke}
+              />
+            ))}
+          </Fragment>,
+        );
+
         return state;
       },
       {
@@ -306,31 +308,33 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
         elem: [] as React.ReactElement[],
       },
     ).elem;
-  }, [allRegions, course.distance, uma1, uma2, pacer, width, handleDragStart]);
+  }, [
+    allRegions,
+    course.distance,
+    uma1,
+    uma2,
+    pacer,
+    width,
+    handleDragStart,
+    showUma1,
+    showUma2,
+  ]);
+
+  const courseLabel = trackDescription({ courseid: props.courseid });
 
   return (
-    <div className="flex flex-col gap-4 w-full items-center">
-      <SimulationModeToggle />
-
-      <div className="flex items-center gap-4">
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4">
         <div className="flex items-center gap-2">
           <div className="text-xl text-foreground font-bold">
-            {i18n.t(`tracknames.${course.raceTrackId}`)}{' '}
-            {i18n.t('coursedesc', {
-              distance: course.distance,
-              inout: i18n.t(
-                `racetrack.${inoutKey[courses[props.courseid].course]}`,
-              ),
-              surface: course.surface == Surface.Turf ? 'Turf' : 'Dirt',
-            })}{' '}
-            {i18n.t(`racetrack.orientation.${course.turn}`)}
+            {i18n.t(`tracknames.${course.raceTrackId}`)} {courseLabel}
           </div>
+
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7"
+                variant="outline"
+                size="sm"
                 onClick={() =>
                   setLeftSidebar({
                     activePanel: 'racetrack-settings',
@@ -338,7 +342,7 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
                   })
                 }
               >
-                <SettingsIcon className="h-4 w-4" />
+                <SettingsIcon className="h-6 w-6" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>
@@ -346,9 +350,21 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
             </TooltipContent>
           </Tooltip>
         </div>
+
+        <div className="flex">
+          <div className="flex items-center gap-2">
+            <SeasonIcon season={racedef.season} className="w-6 h-6" />
+            <WeatherIcon weather={racedef.weather} className="w-6 h-6" />
+            <div className="font-bold">
+              {i18n.t(`racetrack.ground.${racedef.ground}`)}
+            </div>
+          </div>
+        </div>
       </div>
 
-      <RunButtonRow />
+      <div className="flex">
+        <RaceTrackTooltip data={tooltipData} visible={tooltipVisible} />
+      </div>
 
       <svg
         version="1.1"
@@ -368,41 +384,51 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
             slopes={course.slopes}
             distance={course.distance}
           />
+
           <SlopeLabelBar slopes={course.slopes} distance={course.distance} />
+
           <SectionBar
             straights={course.straights}
             corners={course.corners}
             distance={course.distance}
           />
+
           <PhaseBar distance={course.distance} />
           <SectionNumbers />
 
           {regions}
-          {posKeepLabels &&
-            posKeepLabels.map((label, index) => (
-              <g key={index} className="poskeep-label">
-                <text
-                  x={label.x + label.width / 2}
-                  y={5 + label.yOffset}
-                  fill={label.color.stroke}
-                  fontSize="10px"
-                  fontWeight="bold"
-                  textAnchor="middle"
-                  dominantBaseline="hanging"
-                >
-                  {label.text}
-                </text>
 
-                <line
-                  x1={label.x}
-                  y1={5 + label.yOffset + 12}
-                  x2={label.x + label.width}
-                  y2={5 + label.yOffset + 12}
-                  stroke={label.color.stroke}
-                  strokeWidth="2"
-                />
-              </g>
-            ))}
+          {posKeepLabels &&
+            posKeepLabels.map((label, index) => {
+              if (label.umaIndex === 0 && !showUma1) return null;
+              if (label.umaIndex === 1 && !showUma2) return null;
+
+              return (
+                <g key={index} className="poskeep-label">
+                  <text
+                    x={label.x + label.width / 2}
+                    y={5 + label.yOffset}
+                    fill={label.color.stroke}
+                    fontSize="10px"
+                    fontWeight="bold"
+                    textAnchor="middle"
+                    dominantBaseline="hanging"
+                  >
+                    {label.text}
+                  </text>
+
+                  <line
+                    x1={label.x}
+                    y1={5 + label.yOffset + 12}
+                    x2={label.x + label.width}
+                    y2={5 + label.yOffset + 12}
+                    stroke={label.color.stroke}
+                    strokeWidth="2"
+                  />
+                </g>
+              );
+            })}
+
           <line
             ref={mouseLineRef}
             className="mouseoverLine"
@@ -413,6 +439,7 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
             stroke="rgb(121,64,22)"
             strokeWidth="2"
           />
+
           <text
             ref={mouseTextRef}
             className="mouseoverText"
@@ -424,6 +451,66 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
 
         {props.children}
       </svg>
+
+      <div className="flex items-center gap-4 bg-secondary px-4 py-2 rounded-md">
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="showhp"
+            checked={showHp}
+            onCheckedChange={toggleShowHp}
+          />
+          <Label
+            htmlFor="showhp"
+            className="text-sm font-normal cursor-pointer"
+          >
+            Show HP
+          </Label>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="showlanes"
+            checked={showLanes}
+            onCheckedChange={toggleShowLanes}
+          />
+          <Label
+            htmlFor="showlanes"
+            className="text-sm font-normal cursor-pointer"
+          >
+            Show Lanes
+          </Label>
+        </div>
+
+        <Separator orientation="vertical" />
+
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="show-uma1"
+            checked={showUma1}
+            onCheckedChange={toggleShowUma1}
+          />
+          <Label
+            htmlFor="show-uma1"
+            className="text-sm font-normal cursor-pointer"
+          >
+            Show Uma 1
+          </Label>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="show-uma2"
+            checked={showUma2}
+            onCheckedChange={toggleShowUma2}
+          />
+          <Label
+            htmlFor="show-uma2"
+            className="text-sm font-normal cursor-pointer"
+          >
+            Show Uma 2
+          </Label>
+        </div>
+      </div>
     </div>
   );
 };

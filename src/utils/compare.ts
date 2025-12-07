@@ -1,8 +1,5 @@
 import { CourseData } from '@simulation/lib/CourseData';
-import {
-  GroundCondition,
-  RaceParameters,
-} from '@simulation/lib/RaceParameters';
+import { GroundCondition } from '@simulation/lib/RaceParameters';
 import {
   Perspective,
   PosKeepMode,
@@ -17,21 +14,16 @@ import {
   parseStrategy,
 } from '@simulation/lib/RaceSolverBuilder';
 
-import skilldata from '@data/skill_data.json';
 import { Rule30CARng } from '@simulation/lib/Random';
 import { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { CompareResult } from '@/store/race/compare.types';
-
-// Calculate theoretical max spurt based purely on stats (no RNG)
-
-type TheoreticalMaxSpurtResult = {
-  canMaxSpurt: boolean;
-  maxHp: number;
-  hpNeededForMaxSpurt: number;
-  maxSpurtSpeed: number;
-  baseTargetSpeed2: number;
-  hpRemaining: number;
-};
+import { getSkillDataById } from '@/modules/skills/utils';
+import {
+  RoundResult,
+  RunComparisonParams,
+  TheoreticalMaxSpurtResult,
+  type Run1RoundParams,
+} from '@/modules/simulation/types';
 
 export function calculateTheoreticalMaxSpurt(
   horse: RunnerState,
@@ -133,58 +125,52 @@ export function calculateTheoreticalMaxSpurt(
   };
 }
 
-export function runComparison(
-  nsamples: number,
-  course: CourseData,
-  racedef: RaceParameters,
-  runnerA: RunnerState,
-  runnerB: RunnerState,
-  pacer: RunnerState,
-  options,
-): CompareResult {
+export function runComparison(params: RunComparisonParams): CompareResult {
+  const { nsamples, course, racedef, runnerA, runnerB, pacer, options } =
+    params;
+
   // Pre-calculate heal skills from uma's skill lists before race starts
   const uma1HealSkills = [];
   const uma2HealSkills = [];
 
-  runnerA.skills.forEach((skillId) => {
-    const skill = skilldata[skillId.split('-')[0]];
-    if (skill && skill.alternatives) {
-      skill.alternatives.forEach((alt) => {
-        if (alt.effects) {
-          alt.effects.forEach((effect) => {
-            if (effect.type === 9) {
-              // Recovery/Heal skill
-              uma1HealSkills.push({
-                id: skillId,
-                heal: effect.modifier,
-                duration: alt.baseDuration || 0,
-              });
-            }
-          });
-        }
-      });
-    }
-  });
+  for (const skillId of runnerA.skills) {
+    const skill = getSkillDataById(skillId);
+    if (!skill) continue;
 
-  runnerB.skills.forEach((skillId) => {
-    const skill = skilldata[skillId.split('-')[0]];
-    if (skill && skill.alternatives) {
-      skill.alternatives.forEach((alt) => {
-        if (alt.effects) {
-          alt.effects.forEach((effect) => {
-            if (effect.type === 9) {
-              // Recovery/Heal skill
-              uma2HealSkills.push({
-                id: skillId,
-                heal: effect.modifier,
-                duration: alt.baseDuration || 0,
-              });
-            }
+    for (const alt of skill.alternatives) {
+      if (!alt.effects) continue;
+
+      for (const effect of alt.effects) {
+        if (effect.type === 9) {
+          // Recovery/Heal skill
+          uma1HealSkills.push({
+            id: skillId,
+            heal: effect.modifier,
+            duration: alt.baseDuration || 0,
           });
         }
-      });
+      }
     }
-  });
+  }
+
+  for (const skillId of runnerB.skills) {
+    const skill = getSkillDataById(skillId);
+    if (!skill) continue;
+
+    for (const alt of skill.alternatives) {
+      if (!alt.effects) continue;
+      for (const effect of alt.effects) {
+        if (effect.type === 9) {
+          // Recovery/Heal skill
+          uma2HealSkills.push({
+            id: skillId,
+            heal: effect.modifier,
+            duration: alt.baseDuration || 0,
+          });
+        }
+      }
+    }
+  }
 
   const standard = new RaceSolverBuilder(nsamples)
     .seed(options.seed)
@@ -215,37 +201,37 @@ export function runComparison(
   compare.horse(runnerB);
 
   // Apply rushed toggles
-  if (options.allowRushedUma1 === false) {
+  if (!options.allowRushedUma1) {
     standard.disableRushed();
   }
 
-  if (options.allowRushedUma2 === false) {
+  if (!options.allowRushedUma2) {
     compare.disableRushed();
   }
 
   // Apply downhill toggles
-  if (options.allowDownhillUma1 === false) {
+  if (!options.allowDownhillUma1) {
     standard.disableDownhill();
   }
 
-  if (options.allowDownhillUma2 === false) {
+  if (!options.allowDownhillUma2) {
     compare.disableDownhill();
   }
 
-  if (options.allowSectionModifierUma1 === false) {
+  if (!options.allowSectionModifierUma1) {
     standard.disableSectionModifier();
   }
 
-  if (options.allowSectionModifierUma2 === false) {
+  if (!options.allowSectionModifierUma2) {
     compare.disableSectionModifier();
   }
 
   // Apply skill check chance toggle
-  if (options.skillCheckChanceUma1 === false) {
+  if (!options.skillCheckChanceUma1) {
     standard.skillCheckChance(false);
   }
 
-  if (options.skillCheckChanceUma2 === false) {
+  if (!options.skillCheckChanceUma2) {
     compare.skillCheckChance(false);
   }
 
@@ -949,3 +935,43 @@ export function runComparison(
     firstUmaStats: firstUmaStatsSummary,
   };
 }
+
+export const run1Round = (params: Run1RoundParams) => {
+  const { nsamples, skills, course, racedef, uma, pacer, options } = params;
+
+  const data = new Map<string, RoundResult>();
+
+  skills.forEach((id) => {
+    const withSkill = { ...uma, skills: [...uma.skills, id] };
+
+    const { results, runData } = runComparison({
+      nsamples,
+      course,
+      racedef,
+      runnerA: uma,
+      runnerB: withSkill,
+      pacer,
+      options,
+    });
+
+    const mid = Math.floor(results.length / 2);
+    const median =
+      results.length % 2 == 0
+        ? (results[mid - 1] + results[mid]) / 2
+        : results[mid];
+
+    const mean = results.reduce((a, b) => a + b, 0) / results.length;
+
+    data.set(id, {
+      id,
+      results,
+      runData,
+      min: results[0],
+      max: results[results.length - 1],
+      mean,
+      median,
+    });
+  });
+
+  return data;
+};

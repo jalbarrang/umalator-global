@@ -164,5 +164,3 @@ export const SectionBar = React.memo<SectionBarProps>(
     );
   },
 );
-
-SectionBar.displayName = 'SectionBar';

@@ -135,5 +135,3 @@ export const SlopeLabelBar = React.memo<SlopeLabelBarProps>(
     );
   },
 );
-
-SlopeLabelBar.displayName = 'SlopeLabelBar';

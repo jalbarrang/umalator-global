@@ -1,4 +1,4 @@
-import { RegionDisplayType } from '@/modules/racetrack/components/RaceTrack';
+import { RegionDisplayType } from '@/modules/racetrack/types';
 import { getSkillMetaById } from '@/modules/skills/utils';
 import { useRaceStore } from '@/store/race/store';
 import { useSettingsStore } from '@/store/settings.store';

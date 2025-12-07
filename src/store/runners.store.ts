@@ -9,11 +9,17 @@ import {
 import { useSettingsStore } from './settings.store';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { useShallow } from 'zustand/shallow';
+import { toast } from 'sonner';
+
+type RunnerType = 'uma1' | 'uma2' | 'pacer';
 
 type IRunnersStore = {
   uma1: RunnerState;
   uma2: RunnerState;
   pacer: RunnerState;
+
+  // UI Specific
+  runnerId: RunnerType;
 };
 
 export const useRunnersStore = create<IRunnersStore>()(
@@ -24,6 +30,7 @@ export const useRunnersStore = create<IRunnersStore>()(
       pacer: createRunnerState({
         strategy: 'Nige',
       }),
+      runnerId: 'uma1',
     }),
     {
       name: 'umalator-runners',
@@ -32,35 +39,40 @@ export const useRunnersStore = create<IRunnersStore>()(
   ),
 );
 
-export const useRunnerByName = (runner: 'uma1' | 'uma2' | 'pacer') => {
+export const useRunner = () => {
+  const runnerId = useRunnersStore(useShallow((state) => state.runnerId));
+  const runner = useRunnerByName(runnerId);
+
+  const handleUpdateRunner = (runnerState: RunnerState) => {
+    setRunner(runnerId, runnerState);
+  };
+
+  const handleResetRunner = () => {
+    resetRunner(runnerId);
+    toast.success('Runner reset');
+  };
+
+  return {
+    runnerId,
+    runner,
+    updateRunner: handleUpdateRunner,
+    resetRunner: handleResetRunner,
+  };
+};
+
+export const useRunnerByName = (runner: RunnerType) => {
   return useRunnersStore(useShallow((state) => state[runner]));
 };
 
-export const setUma1 = (uma1: RunnerState) => {
-  useRunnersStore.setState({ uma1 });
+export const setRunner = (runner: RunnerType, runnerState: RunnerState) => {
+  useRunnersStore.setState({ [runner]: runnerState });
 };
 
-export const setUma2 = (uma2: RunnerState) => {
-  useRunnersStore.setState({ uma2 });
+export const resetRunner = (runner: RunnerType) => {
+  useRunnersStore.setState({ [runner]: createRunnerState() });
 };
 
-export const setPacer = (pacer: RunnerState) => {
-  useRunnersStore.setState({ pacer });
-};
-
-export const resetUma1 = () => {
-  useRunnersStore.setState({ uma1: createRunnerState() });
-};
-
-export const resetUma2 = () => {
-  useRunnersStore.setState({ uma2: createRunnerState() });
-};
-
-export const resetPacer = () => {
-  useRunnersStore.setState({ pacer: createRunnerState({ strategy: 'Nige' }) });
-};
-
-export const resetUmas = () => {
+export const resetRunners = () => {
   const { posKeepMode } = useSettingsStore.getState();
 
   useRunnersStore.setState({
@@ -75,75 +87,75 @@ export const resetUmas = () => {
   }
 };
 
-export const resetAllUmas = () => {
+export const resetAllRunners = () => {
   useRunnersStore.setState({
     uma1: createRunnerState(),
     uma2: createRunnerState(),
     pacer: createRunnerState({ strategy: 'Nige' }),
   });
+
+  toast.success('All runners reset');
 };
 
-// Add these actions to runners.store.ts:
+// Methods to generalize modifying a runner
 
-export const copyUmaToRight = () => {
-  const { uma1 } = useRunnersStore.getState();
-  window.dispatchEvent(
-    new CustomEvent('copyUma', { detail: { direction: 'to-right' } }),
-  );
-  useRunnersStore.setState({ uma2: uma1 });
+export const showRunner = (runner: RunnerType) => {
+  useRunnersStore.setState({ runnerId: runner });
 };
 
-export const copyUmaToLeft = () => {
-  const { uma2 } = useRunnersStore.getState();
-  window.dispatchEvent(
-    new CustomEvent('copyUma', { detail: { direction: 'to-left' } }),
-  );
-  useRunnersStore.setState({ uma1: uma2 });
+export const setSkillToRunner = (runner: RunnerType, skillId: string) => {
+  const state = useRunnersStore.getState();
+  const runnerState = state[runner];
+
+  useRunnersStore.setState({
+    [runner]: { ...runnerState, skills: [...runnerState.skills, skillId] },
+  });
 };
 
-export const swapUmas = () => {
-  const { uma1, uma2 } = useRunnersStore.getState();
-  window.dispatchEvent(
-    new CustomEvent('copyUma', { detail: { direction: 'swap' } }),
-  );
-  useRunnersStore.setState({ uma1: uma2, uma2: uma1 });
+export const swapWithRunner = (
+  fromRunner: RunnerType,
+  toRunner: RunnerType,
+) => {
+  const state = useRunnersStore.getState();
+
+  const fromRunnerState = state[fromRunner];
+  const toRunnerState = state[toRunner];
+
+  useRunnersStore.setState({
+    [fromRunner]: toRunnerState,
+    [toRunner]: fromRunnerState,
+  });
+};
+
+export const copyToRunner = (fromRunner: RunnerType, toRunner: RunnerType) => {
+  const state = useRunnersStore.getState();
+
+  const fromRunnerState = state[fromRunner];
+  const toRunnerState = state[toRunner];
+
+  useRunnersStore.setState({
+    [toRunner]: {
+      ...toRunnerState,
+      skills: [...toRunnerState.skills, ...fromRunnerState.skills],
+    },
+  });
 };
 
 export const updateForcedSkillPosition = (
-  umaType: 'uma1' | 'uma2' | 'pacer',
-  skillId: string,
+  runnerId: RunnerType,
+  skillId: number,
   position: number,
 ) => {
   const state = useRunnersStore.getState();
-  const uma = state[umaType];
+  const uma = state[runnerId];
 
   useRunnersStore.setState({
-    [umaType]: {
+    [runnerId]: {
       ...uma,
       forcedSkillPositions: {
         ...uma.forcedSkillPositions,
         [skillId]: position,
       },
     },
-  });
-};
-
-export const addSkillToUma1 = (skillId: string) => {
-  const { uma1 } = useRunnersStore.getState();
-  window.dispatchEvent(
-    new CustomEvent('addSkillFromTable', { detail: { skillId } }),
-  );
-  useRunnersStore.setState({
-    uma1: { ...uma1, skills: [...uma1.skills, skillId] },
-  });
-};
-
-export const addSkillToUma2 = (skillId: string) => {
-  const { uma2 } = useRunnersStore.getState();
-  window.dispatchEvent(
-    new CustomEvent('addSkillFromTable', { detail: { skillId } }),
-  );
-  useRunnersStore.setState({
-    uma2: { ...uma2, skills: [...uma2.skills, skillId] },
   });
 };

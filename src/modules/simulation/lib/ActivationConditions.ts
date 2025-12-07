@@ -16,6 +16,7 @@ import { HorseParameters, Strategy, StrategyHelpers } from './HorseTypes';
 import { RaceParameters } from './RaceParameters';
 import { DynamicCondition, RaceState } from './RaceSolver';
 import { Region, RegionList } from './Region';
+import { calculateEarlyRaceAverageSpeed } from './SpurtCalculator';
 
 // K as in SKI combinators
 function kTrue(_: RaceState) {
@@ -409,25 +410,35 @@ export function noopErlangRandom(k: number, lambda: number) {
 
 export const noopUniformRandom = uniformRandom(noopAll);
 
-// This is a hack to prevnt skills like Dodging Danger from activating 0s into the race when their condition is >=1s
-// 13m/s * time is *not* accurate beyond 1s but it's a good enough approximation to appropriately delay skill activation
+/**
+ * Old: This is a hack to prevnt skills like Dodging Danger from activating 0s into the race when their condition is >=1s
+ * 13m/s * time is *not* accurate beyond 1s but it's a good enough approximation to appropriately delay skill activation
+ * ====
+ * New: Shifts skill activation regions forward to prevent skills with time conditions
+ * (e.g. >=1s) from incorrectly activating at race start (0s).
+ *
+ * Uses course-aware early-race average speed estimation based on start dash mechanics
+ * (acceleration from 3 m/s to 0.85 × baseSpeed).
+ */
 function shiftRegionsForwardByMinTime(
   regions: RegionList,
   minTime: number,
-  _course: CourseData,
+  course: CourseData,
   _: HorseParameters,
   _extra: RaceParameters,
 ) {
-  const minDistance = 13 * minTime;
+  const avgSpeed = calculateEarlyRaceAverageSpeed(course.distance);
+  const minDistance = avgSpeed * minTime;
   const shiftedRegions = new RegionList();
-  regions.forEach((r) => {
-    console.log(r.start, r.end);
-    if (r.start === 0) {
-      shiftedRegions.push(new Region(r.start + minDistance, r.end));
+
+  regions.forEach((region) => {
+    if (region.start === 0) {
+      shiftedRegions.push(new Region(region.start + minDistance, region.end));
     } else {
-      shiftedRegions.push(r);
+      shiftedRegions.push(region);
     }
   });
+
   return shiftedRegions.length > 0 ? shiftedRegions : new RegionList();
 }
 

@@ -40,9 +40,11 @@ type ISettingsStore = {
   selectedPacemakers: boolean[];
   witVarianceSettings: WitVarianceSettings;
 
-  // UI settings
+  // Race Track UI settings
   showLanes: boolean;
   showHp: boolean;
+  showUma1: boolean;
+  showUma2: boolean;
 };
 
 export const useSettingsStore = create<ISettingsStore>()(
@@ -70,8 +72,12 @@ export const useSettingsStore = create<ISettingsStore>()(
       showVirtualPacemakerOnGraph: false,
       pacemakerCount: 1,
       selectedPacemakers: [false, false, false],
+
+      // Race Track UI settings
       showLanes: false,
       showHp: false,
+      showUma1: true,
+      showUma2: true,
     }),
     {
       name: 'umalator-settings',
@@ -114,18 +120,38 @@ export const setPosKeepMode = (posKeepMode: PosKeepMode) => {
   }
 };
 
-export const toggleShowLanes = () => {
-  useSettingsStore.setState((state) => ({ showLanes: !state.showLanes }));
-};
-
-export const toggleShowHp = () => {
-  useSettingsStore.setState((state) => ({ showHp: !state.showHp }));
-};
-
 export const setRaceParams = (raceParams: RaceConditions) => {
   useSettingsStore.setState({ racedef: raceParams });
 };
 
 export const setCourseId = (courseId: number) => {
   useSettingsStore.setState({ courseId });
+};
+
+// Race Track UI settings
+
+export const useRaceTrackUI = () =>
+  useSettingsStore(
+    useShallow((state) => ({
+      showUma1: state.showUma1,
+      showUma2: state.showUma2,
+      showLanes: state.showLanes,
+      showHp: state.showHp,
+    })),
+  );
+
+export const toggleShowUma1 = () => {
+  useSettingsStore.setState((state) => ({ showUma1: !state.showUma1 }));
+};
+
+export const toggleShowUma2 = () => {
+  useSettingsStore.setState((state) => ({ showUma2: !state.showUma2 }));
+};
+
+export const toggleShowLanes = () => {
+  useSettingsStore.setState((state) => ({ showLanes: !state.showLanes }));
+};
+
+export const toggleShowHp = () => {
+  useSettingsStore.setState((state) => ({ showHp: !state.showHp }));
 };

@@ -5,6 +5,7 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
 import { TRACKNAMES_en, TRACKNAMES_ja } from './lang/tracknames';
+import { GroundCondition } from '@/modules/simulation/lib/RaceParameters';
 
 const definitions = {
   en: {
@@ -12,35 +13,40 @@ const definitions = {
       ...skills_en,
       tracknames: TRACKNAMES_en,
       racetrack: {
-        none: ' ',
-        inner: ' (inner)',
-        outer: ' (outer)',
-        outin: ' (outer→inner)',
-        orientation: [
-          '',
-          '(clockwise)',
-          '(counterclockwise)',
-          '',
-          '(straight)',
-        ],
+        none: '',
+        inner: 'Inner',
+        outer: 'Outer',
+        outin: 'Outer → Inner',
+        orientation: ['', 'Right', 'Left', '', 'Stretch'],
         turf: 'Turf',
         dirt: 'Dirt',
         straight: 'Straight',
         corner: 'Corner {{n}}',
         uphill: 'Uphill',
         downhill: 'Downhill',
-        phase0: 'Opening leg',
-        phase1: 'Middle leg',
-        phase2: 'Final leg',
+        phase0: 'Early-race',
+        phase1: 'Mid-race',
+        phase2: 'Late-race',
         phase3: 'Last spurt',
+        ground: {
+          [GroundCondition.Good]: 'Firm',
+          [GroundCondition.Yielding]: 'Good',
+          [GroundCondition.Soft]: 'Soft',
+          [GroundCondition.Heavy]: 'Heavy',
+        },
         short: {
           straight: '→',
           corner: 'C{{n}}',
           uphill: '↗',
           downhill: '↘',
         },
+        sprint: 'Sprint',
+        mile: 'Mile',
+        medium: 'Medium',
+        long: 'Long',
       },
-      coursedesc: '{{surface}} {{distance}}m{{inout}}',
+      coursedesc:
+        '{{surface}} {{distance}}m ({{distanceCategory}}) {{orientation}} / {{inout}}',
     },
   },
   ja: {

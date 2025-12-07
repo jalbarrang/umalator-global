@@ -10,6 +10,7 @@ import './i18n';
 import { App } from './App';
 import { Toaster } from './components/ui/sonner';
 import { StrictMode } from 'react';
+import { BrowserRouter } from 'react-router';
 
 const posthogHost = import.meta.env.VITE_PUBLIC_POSTHOG_HOST;
 const posthogKey = import.meta.env.VITE_PUBLIC_POSTHOG_KEY;
@@ -24,18 +25,20 @@ const root = createRoot(container!);
 
 root.render(
   <StrictMode>
-    {posthogKey && (
-      <PostHogProvider apiKey={posthogKey} options={options}>
-        <App />
-        <Toaster />
-      </PostHogProvider>
-    )}
+    <BrowserRouter>
+      {posthogKey && (
+        <PostHogProvider apiKey={posthogKey} options={options}>
+          <App />
+          <Toaster />
+        </PostHogProvider>
+      )}
 
-    {!posthogKey && (
-      <>
-        <App />
-        <Toaster />
-      </>
-    )}
+      {!posthogKey && (
+        <>
+          <App />
+          <Toaster />
+        </>
+      )}
+    </BrowserRouter>
   </StrictMode>,
 );

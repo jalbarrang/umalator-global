@@ -7,7 +7,7 @@ import {
 import { cn } from '@/lib/utils';
 import { SettingsIcon, UsersIcon, SlidersHorizontalIcon } from 'lucide-react';
 import { RunnersPanel } from '@/modules/runners/components/runners-panel';
-import { RacetrackSettings } from '@/modules/racetrack/components/racetrack-settings';
+import { RacetrackSettings } from '@/modules/racetrack/components/race-settings-panel';
 import { AdvancedSettingsPanel } from '@/components/advanced-settings-panel';
 import { setLeftSidebar, useLeftSidebar } from '@/store/ui.store';
 import { useMemo } from 'react';
