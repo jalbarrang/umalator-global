@@ -233,8 +233,10 @@ export async function syncSkills(config: FilterConfig = {}) {
 
   let mainSkillsProcessed = 0;
   let geneSkillsProcessed = 0;
-  const processedIds: number[] = [];
-  const processedSkillNames: Array<{ id: number; name: string }> = [];
+
+  const processedIds: Set<number> = new Set();
+  const processedSkills: Map<number, { id: number; name: string }> = new Map();
+
   const skillVersionsToInclude = new Set<number>(); // Track skill versions to include
 
   // First pass: find all skills to include and their versions
@@ -261,8 +263,8 @@ export async function syncSkills(config: FilterConfig = {}) {
       newSkillMeta[idStr] = convertSkillToMeta(skill);
       newSkillNames[idStr] = [skillName];
       mainSkillsProcessed++;
-      processedIds.push(skill.id);
-      processedSkillNames.push({ id: skill.id, name: skillName });
+      processedIds.add(skill.id);
+      processedSkills.set(skill.id, { id: skill.id, name: skillName });
 
       if (config.verbose) {
         console.log(`  ✓ ${skill.id}: ${skillName}`);
@@ -272,6 +274,7 @@ export async function syncSkills(config: FilterConfig = {}) {
     // Process gene version (inherited skill)
     if (skill.gene_version) {
       const geneId = skill.gene_version.id;
+
       if (skillVersionsToInclude.has(skill.id)) {
         // Include gene version if main skill is included
         const idStr = geneId.toString();
@@ -283,9 +286,12 @@ export async function syncSkills(config: FilterConfig = {}) {
           newSkillData[idStr] = geneData;
           newSkillMeta[idStr] = geneMeta;
           newSkillNames[idStr] = [geneName];
+
           geneSkillsProcessed++;
-          processedIds.push(geneId);
-          processedSkillNames.push({
+
+          processedIds.add(geneId);
+
+          processedSkills.set(geneId, {
             id: geneId,
             name: `${geneName} (inherited)`,
           });
@@ -308,12 +314,11 @@ export async function syncSkills(config: FilterConfig = {}) {
   if (config.dryRun) {
     console.log('🔍 DRY RUN - No files will be written\n');
     console.log('Skill IDs that would be synced:');
-    processedIds.sort((a, b) => a - b);
+    console.log(Array.from(processedIds).sort((a, b) => a - b));
 
     // Group by ranges for easier reading
     const ranges: Array<{ start: number; end: number }> = [];
-    for (let i = 0; i < processedIds.length; i++) {
-      const id = processedIds[i];
+    for (const id of processedIds) {
       if (ranges.length === 0 || id - ranges[ranges.length - 1].end > 1) {
         ranges.push({ start: id, end: id });
       } else {
@@ -333,8 +338,8 @@ export async function syncSkills(config: FilterConfig = {}) {
       mainSkills: mainSkillsProcessed,
       geneSkills: geneSkillsProcessed,
       total: mainSkillsProcessed + geneSkillsProcessed,
-      skillIds: processedIds,
-      skillNames: processedSkillNames,
+      processedIds,
+      processedSkills,
       dryRun: true,
     };
   }
@@ -381,8 +386,8 @@ export async function syncSkills(config: FilterConfig = {}) {
     mainSkills: mainSkillsProcessed,
     geneSkills: geneSkillsProcessed,
     total: mainSkillsProcessed + geneSkillsProcessed,
-    skillIds: processedIds,
-    skillNames: processedSkillNames,
+    processedIds,
+    processedSkills,
     dryRun: false,
   };
 }

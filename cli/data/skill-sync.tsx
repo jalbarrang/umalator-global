@@ -1,11 +1,11 @@
 #!/usr/bin/env tsx
-
 /* eslint-disable react-refresh/only-export-components */
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { render, Box, Text, useInput, useApp } from 'ink';
 import Spinner from 'ink-spinner';
 import TextInput from 'ink-text-input';
+import MultiSelect, { ListedItem } from '../components/MultiSelect';
 
 // Import your sync functions
 import { syncSkills, FilterConfig } from './sync-skills';
@@ -17,8 +17,6 @@ interface SyncState {
   isProcessing: boolean;
   isDone: boolean;
   error: string | null;
-  availableSkills: Array<{ id: number; name: string }>;
-  selectedSkillIds: Set<number>;
   stats: {
     mainSkills: number;
     geneSkills: number;
@@ -38,16 +36,26 @@ const App = () => {
     isProcessing: false,
     isDone: false,
     error: null,
-    availableSkills: [],
-    selectedSkillIds: new Set(),
     stats: null,
   });
+
+  const [availableSkills, setAvailableSkills] = useState<
+    { id: number; name: string }[]
+  >([]);
+  const [selectedSkillIds, setSelectedSkillIds] = useState<
+    { value: number; label: string }[]
+  >([]);
+
+  const skillOptions = useMemo(() => {
+    return availableSkills.map((skill) => ({
+      label: skill.name,
+      value: skill.id,
+    }));
+  }, [availableSkills]);
 
   const [stage, setStage] = useState<
     'input-char' | 'confirm' | 'skill-selection' | 'processing'
   >('input-char');
-
-  const [highlightedIndex, setHighlightedIndex] = useState(0);
 
   const handleSync = async () => {
     setState((prev) => ({ ...prev, isProcessing: true, error: null }));
@@ -63,24 +71,33 @@ const App = () => {
 
         const result = await syncSkills(config);
 
+        setAvailableSkills(
+          Array.from(result.processedSkills.values()).toSorted(
+            (a, b) => a.id - b.id,
+          ),
+        );
+        setSelectedSkillIds(
+          Array.from(result.processedSkills.values()).map((s) => ({
+            value: s.id,
+            label: s.name,
+          })),
+        );
+
         // Update state with available skills
         setState((prev) => ({
           ...prev,
           isProcessing: false,
-          availableSkills: result.skillNames || [],
-          selectedSkillIds: new Set(result.skillNames?.map((s) => s.id) || []), // Select all by default
           stats: result,
         }));
 
         // Reset highlighted index and go to selection stage
-        setHighlightedIndex(0);
         setStage('skill-selection');
       }
       // Second pass: Sync selected skills
       else if (stage === 'skill-selection') {
         const config: FilterConfig = {
           dryRun: false,
-          includeIds: Array.from(state.selectedSkillIds),
+          includeIds: selectedSkillIds.map((s) => s.value),
         };
 
         const result = await syncSkills(config);
@@ -104,6 +121,24 @@ const App = () => {
       // Go back to previous stage
       setStage(stage === 'skill-selection' ? 'skill-selection' : 'confirm');
     }
+  };
+
+  const handleOnSelect = (selected: ListedItem) => {
+    setSelectedSkillIds((prev) => {
+      const newSelected = [...prev];
+      newSelected.push({
+        value: Number(selected.value),
+        label: selected.label,
+      });
+
+      return newSelected;
+    });
+  };
+
+  const handleOnUnselect = (unselected: ListedItem) => {
+    setSelectedSkillIds((prev) => {
+      return prev.filter((s) => s.value !== Number(unselected.value));
+    });
   };
 
   // Input handlers
@@ -153,56 +188,28 @@ const App = () => {
 
     // Skill selection stage handlers
     if (stage === 'skill-selection') {
-      // Navigate up
-      if (key.upArrow) {
-        setHighlightedIndex((prev) =>
-          prev > 0 ? prev - 1 : state.availableSkills.length - 1,
-        );
-      }
-
-      // Navigate down
-      if (key.downArrow) {
-        setHighlightedIndex((prev) =>
-          prev < state.availableSkills.length - 1 ? prev + 1 : 0,
-        );
-      }
-
-      // Toggle selection with space
-      if (input === ' ') {
-        const skillId = state.availableSkills[highlightedIndex].id;
-        setState((prev) => {
-          const newSelected = new Set(prev.selectedSkillIds);
-          if (newSelected.has(skillId)) {
-            newSelected.delete(skillId);
-          } else {
-            newSelected.add(skillId);
-          }
-          return { ...prev, selectedSkillIds: newSelected };
-        });
-      }
-
       // Select all / Deselect all with 'A'
       if (input === 'a' || input === 'A') {
-        setState((prev) => {
-          const allSelected = prev.availableSkills.every((skill) =>
-            prev.selectedSkillIds.has(skill.id),
+        setSelectedSkillIds((prev) => {
+          const allSelected = availableSkills.every((skill) =>
+            prev.some((s) => s.value === skill.id),
           );
           if (allSelected) {
             // Deselect all
-            return { ...prev, selectedSkillIds: new Set() };
+            return [];
           } else {
             // Select all
-            return {
-              ...prev,
-              selectedSkillIds: new Set(prev.availableSkills.map((s) => s.id)),
-            };
+            return availableSkills.map((s) => ({
+              value: s.id,
+              label: s.name,
+            }));
           }
         });
       }
 
       // Proceed with selected skills
       if (key.return) {
-        if (state.selectedSkillIds.size === 0) {
+        if (selectedSkillIds.length === 0) {
           setState((prev) => ({
             ...prev,
             error: 'Please select at least one skill to sync',
@@ -341,8 +348,8 @@ const App = () => {
 
           <Box marginBottom={1}>
             <Text>
-              Selected: <Text color="cyan">{state.selectedSkillIds.size}</Text>{' '}
-              / {state.availableSkills.length}
+              Selected: <Text color="cyan">{selectedSkillIds.length}</Text> /{' '}
+              {availableSkills.length}
             </Text>
           </Box>
 
@@ -352,31 +359,12 @@ const App = () => {
             </Box>
           )}
 
-          <Box
-            flexDirection="column"
-            marginBottom={1}
-            borderStyle="single"
-            borderColor="gray"
-            paddingX={1}
-            height={Math.min(state.availableSkills.length + 2, 20)}
-          >
-            {state.availableSkills.map((skill, index) => {
-              const isSelected = state.selectedSkillIds.has(skill.id);
-              const isHighlighted = index === highlightedIndex;
-
-              return (
-                <Box key={skill.id}>
-                  <Text
-                    color={isHighlighted ? 'cyan' : undefined}
-                    bold={isHighlighted}
-                  >
-                    {isHighlighted ? '>' : ' '} [{isSelected ? '✓' : ' '}]{' '}
-                    {skill.id}: {skill.name}
-                  </Text>
-                </Box>
-              );
-            })}
-          </Box>
+          <MultiSelect
+            items={skillOptions}
+            selected={selectedSkillIds}
+            onSelect={handleOnSelect}
+            onUnselect={handleOnUnselect}
+          />
 
           <Box marginTop={1} flexDirection="column">
             <Box marginBottom={1}>

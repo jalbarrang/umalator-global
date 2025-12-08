@@ -1,9 +1,10 @@
 import { Option } from 'commander';
-import { HorseParameters } from '../src/modules/simulation/lib/HorseTypes';
-import { CourseData } from '../src/modules/simulation/lib/CourseData';
-import { RaceSolver } from '../src/modules/simulation/lib/RaceSolver';
-import { Rule30CARng } from '../src/modules/simulation/lib/Random';
-import { NoopHpPolicy } from '../src/modules/simulation/lib/HpPolicy';
+import { HorseParameters } from '@/modules/simulation/lib/HorseTypes';
+import { CourseData } from '@/modules/simulation/lib/CourseData';
+import { RaceSolver } from '@/modules/simulation/lib/RaceSolver';
+import { Rule30CARng } from '@/modules/simulation/lib/Random';
+import { NoopHpPolicy } from '@/modules/simulation/lib/HpPolicy';
+import { SkillData } from '@/modules/simulation/lib/RaceSolverBuilder';
 
 // for some reason (NodeJS bug?) new Int32Array(buf.buffer)[offset] doesn't actually work and the Int32Array is garbage
 // more weirdly, it only happens when loading cliOptions.configuration down there, and running the exact same thing in the NodeJS REPL works fine

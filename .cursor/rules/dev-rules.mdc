@@ -1,0 +1,7 @@
+---
+alwaysApply: true
+---
+
+- After every code change, run `npm run lint` to check for code quality issues.
+- After every code change, run `npm run typecheck` to check for type errors.
+- Never run `npm run dev` or `npm run build` or `npm run preview` or `npm run test` or `npm run test:watch` or `npm run sync-skills` or `npm run dump` manually.

@@ -1,13 +1,33 @@
 {
-  "files": [],
-  "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
-  ],
   "compilerOptions": {
+    "tsBuildInfoFile": "./.cache/tsconfig.tsbuildinfo",
+    "target": "ES2023",
+    "module": "esnext",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+
+    "strict": false,
+    "skipLibCheck": true,
+    "useDefineForClassFields": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true,
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "moduleDetection": "force",
+    "types": ["node", "vite/client"],
+    "noEmit": true,
+    "resolveJsonModule": true,
+
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@data/*": ["./src/modules/data/*"],
+      "@simulation/*": ["./src/modules/simulation/*"],
+      "@skills/*": ["./src/modules/skills/*"]
     }
-  }
+  },
+  "include": ["src", "vite.config.ts", "src", "cli"]
 }

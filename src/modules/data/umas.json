@@ -222,5 +222,9 @@
   "1068": {
     "name": ["", "Kitasan Black"],
     "outfits": { "106801": "[Gilded Shrine to Glory]" }
+  },
+  "1062": {
+    "name": ["", "Matikanetannhauser"],
+    "outfits": { "106201": "[Clippety-Tippety-Clop]" }
   }
 }
