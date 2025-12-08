@@ -13,7 +13,7 @@ export const SeasonIcon = (
       src={`/icons/global/utx_txt_season_0${season - 1}.png`}
       title={strings_en.skilldetails.season[season]}
       className={cn(
-        'w-8 h-8 cursor-pointer grayscale-100 hover:grayscale-0',
+        'w-8 h-8 grayscale-100 hover:grayscale-0',
         {
           'grayscale-0': season === racedef.season,
         },

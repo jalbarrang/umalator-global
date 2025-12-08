@@ -4,24 +4,89 @@ import { useSettingsStore } from '@/store/settings.store';
 import { setIsSimulationRunning } from '@/store/ui.store';
 import { racedefToParams } from '@/utils/races';
 import { CourseHelpers } from '@simulation/lib/CourseData';
-import { useMemo } from 'react';
-import { useSkillBassinWorkers } from './useSkillBasinWorkers';
+import { useEffect, useMemo, useRef } from 'react';
 import {
   defaultSimulationOptions,
   getActivateableSkills,
   getNullRow,
 } from '@/components/bassin-chart/utils';
-import { resetTable, setTable } from '@simulation/stores/skill-basin.store';
+import {
+  appendResultsToTable,
+  resetTable,
+  setTable,
+} from '@simulation/stores/skill-basin.store';
 import { SkillBasinResponse } from '@simulation/types';
 
 const baseSkillsToTest = getBaseSkillsToTest();
+
+type WorkerMessage<T> = {
+  type: 'skill-bassin' | 'skill-bassin-done';
+  results: T;
+};
 
 export function useSkillBassinRunner() {
   const { pacer } = useRunnersStore();
   const { runner } = useRunner();
   const { racedef, seed, courseId } = useSettingsStore();
-  const { worker1Ref, worker2Ref, chartWorkersCompletedRef } =
-    useSkillBassinWorkers();
+
+  const worker1Ref = useRef<Worker | null>(null);
+  const worker2Ref = useRef<Worker | null>(null);
+  const chartWorkersCompletedRef = useRef(0);
+
+  const handleWorkerMessage = (
+    event: MessageEvent<WorkerMessage<SkillBasinResponse>>,
+  ) => {
+    const { type, results } = event.data;
+
+    console.log('skill-bassin:handleWorkerMessage', {
+      type,
+      results,
+    });
+
+    switch (type) {
+      case 'skill-bassin':
+        appendResultsToTable(results);
+        break;
+      case 'skill-bassin-done':
+        chartWorkersCompletedRef.current += 1;
+
+        if (chartWorkersCompletedRef.current >= 2) {
+          setIsSimulationRunning(false);
+          chartWorkersCompletedRef.current = 0;
+        }
+
+        break;
+    }
+  };
+
+  useEffect(() => {
+    const webWorker = new Worker(
+      new URL('@/workers/skill-basin.worker.ts', import.meta.url),
+      { type: 'module' },
+    );
+
+    webWorker.addEventListener('message', handleWorkerMessage);
+    worker1Ref.current = webWorker;
+
+    return () => {
+      webWorker.removeEventListener('message', handleWorkerMessage);
+      webWorker.terminate();
+    };
+  }, []);
+
+  useEffect(() => {
+    const webWorker = new Worker(
+      new URL('@/workers/skill-basin.worker.ts', import.meta.url),
+      { type: 'module' },
+    );
+
+    webWorker.addEventListener('message', handleWorkerMessage);
+    worker2Ref.current = webWorker;
+    return () => {
+      webWorker.removeEventListener('message', handleWorkerMessage);
+      webWorker.terminate();
+    };
+  }, []);
 
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
 
@@ -45,8 +110,8 @@ export function useSkillBassinRunner() {
 
     const uma = runner;
 
-    const filler: SkillBasinResponse = {};
-    skills.forEach((id) => (filler[id] = getNullRow(id)));
+    const filler: SkillBasinResponse = new Map();
+    skills.forEach((id) => filler.set(id, getNullRow(id)));
 
     const skills1 = skills.slice(0, Math.floor(skills.length / 2));
     const skills2 = skills.slice(Math.floor(skills.length / 2));

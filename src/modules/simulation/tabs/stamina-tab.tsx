@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useRunnersStore } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
-import { useRaceStore } from '@/store/race/store';
+import { useRaceStore } from '@simulation/stores/compare.store';
 import { getCourseById } from '@/modules/racetrack/courses';
 import {
   useStaminaAnalysis,

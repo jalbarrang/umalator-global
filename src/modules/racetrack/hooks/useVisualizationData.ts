@@ -1,6 +1,6 @@
 import { RegionDisplayType } from '@/modules/racetrack/types';
 import { getSkillMetaById } from '@/modules/skills/utils';
-import { useRaceStore } from '@/store/race/store';
+import { useRaceStore } from '@simulation/stores/compare.store';
 import { useSettingsStore } from '@/store/settings.store';
 import { getSelectedPacemakerIndices } from '@/store/settings/actions';
 import { useUIStore } from '@/store/ui.store';
@@ -64,7 +64,7 @@ export const useVisualizationData = () => {
     const skillActivations = [];
 
     for (const [umaIndex, umaActivations] of chartData.sk.entries()) {
-      for (const [skillId, activations] of Object.entries(umaActivations)) {
+      for (const [skillId, activations] of umaActivations.entries()) {
         const skillMeta = getSkillMetaById(skillId);
 
         if (NO_SHOW.indexOf(skillMeta.iconId) > -1) {

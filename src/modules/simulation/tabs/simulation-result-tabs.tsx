@@ -12,7 +12,7 @@ import {
 
 export const SimulationResultTabs = () => {
   return (
-    <Tabs defaultValue="distribution">
+    <Tabs defaultValue="stamina">
       <TabsList className="w-full">
         <TabsTrigger value="stamina">
           <span className="hidden md:inline!">Stamina Calc.</span>

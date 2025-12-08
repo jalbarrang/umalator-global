@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useRaceStore } from '@/store/race/store';
+import { useRaceStore } from '@simulation/stores/compare.store';
 import { getSkillNameById } from '@/modules/skills/utils';
 import {
   Table,

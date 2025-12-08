@@ -91,4 +91,3 @@ export function parseOcrResult(
 
   return result;
 }
-

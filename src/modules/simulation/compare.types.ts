@@ -58,7 +58,7 @@ export interface SimulationRun {
 }
 
 export type RegionActivation = [number, number];
-export type Sk = Record<string, RegionActivation[]>;
+export type Sk = Map<string, RegionActivation[]>;
 
 export interface StaminaStats {
   uma1: StaminaStatsUma1;

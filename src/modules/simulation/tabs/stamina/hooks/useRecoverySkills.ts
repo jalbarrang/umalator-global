@@ -67,14 +67,14 @@ function getEstimatedPosition(skillId: string, courseDistance: number): number {
  * Only returns positive recovery skills (heals), not debuffs
  */
 export function useActualRecoverySkills(
-  skillData: Record<string, [number, number][]> | undefined,
+  skillData: Map<string, [number, number][]> | undefined,
   maxHp: number,
 ): RecoverySkillActivation[] {
   return useMemo(() => {
     if (!skillData) return [];
 
     const skills: RecoverySkillActivation[] = [];
-    for (const [skillId, positions] of Object.entries(skillData)) {
+    for (const [skillId, positions] of skillData.entries()) {
       const { isRecovery, modifier, isDebuff } = getRecoverySkillInfo(skillId);
       // Only include positive recovery skills (heals)
       if (isRecovery && !isDebuff) {
@@ -103,14 +103,14 @@ export function useActualRecoverySkills(
  * These are HP drain skills used by opponents against this runner
  */
 export function useActualDebuffsReceived(
-  debuffsData: Record<string, [number, number][]> | undefined,
+  debuffsData: Map<string, [number, number][]> | undefined,
   maxHp: number,
 ): RecoverySkillActivation[] {
   return useMemo(() => {
     if (!debuffsData) return [];
 
     const skills: RecoverySkillActivation[] = [];
-    for (const [skillId, positions] of Object.entries(debuffsData)) {
+    for (const [skillId, positions] of debuffsData.entries()) {
       const { isRecovery, modifier, isDebuff } = getRecoverySkillInfo(skillId);
       // Only include debuffs (negative HP effects)
       if (isRecovery && isDebuff) {

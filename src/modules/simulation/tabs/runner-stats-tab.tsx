@@ -1,4 +1,4 @@
-import { useRaceStore } from '@/store/race/store';
+import { useRaceStore } from '@simulation/stores/compare.store';
 import { useWitVariance } from '@/store/settings.store';
 import { formatTime } from '@/utils/time';
 import {

@@ -56,7 +56,7 @@ function runChart(params: RunChartParams) {
 
   postMessage({ type: 'skill-bassin', results });
 
-  newSkills = newSkills.filter((id) => results[id].max > 0.1);
+  newSkills = newSkills.filter((id) => results.get(id).max > 0.1);
 
   let update = run1Round({
     nsamples: 20,
@@ -72,7 +72,7 @@ function runChart(params: RunChartParams) {
   postMessage({ type: 'skill-bassin', results });
 
   newSkills = newSkills.filter(
-    (id) => Math.abs(results[id].max - results[id].min) > 0.1,
+    (id) => Math.abs(results.get(id).max - results.get(id).min) > 0.1,
   );
 
   update = run1Round({

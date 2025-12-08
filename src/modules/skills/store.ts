@@ -27,7 +27,13 @@ type OpenSkillPickerParams = {
 export const openSkillPicker = (params: OpenSkillPickerParams) => {
   const { umaId, options, currentSkills, onSelect } = params;
 
-  useSkillModalStore.setState({ open: true, umaId, options, currentSkills, onSelect });
+  useSkillModalStore.setState({
+    open: true,
+    umaId,
+    options,
+    currentSkills,
+    onSelect,
+  });
 };
 
 export const updateCurrentSkills = (skills: string[]) => {

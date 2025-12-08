@@ -50,4 +50,3 @@ export function extractStats(text: string): Partial<ExtractedUmaData> {
 
   return result;
 }
-

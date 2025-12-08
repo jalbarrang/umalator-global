@@ -5,7 +5,7 @@ import { RaceTrack } from '@/modules/racetrack/components/RaceTrack';
 import { useUmaBassinRunner } from '@simulation/hooks/uma-bassin/useUmaBasinRunner';
 import { CourseHelpers } from '@/modules/simulation/lib/CourseData';
 import { useUniqueSkillBasinStore } from '@simulation/stores/uma-basin.store';
-import { useRaceStore } from '@/store/race/store';
+import { useRaceStore } from '@simulation/stores/compare.store';
 import { setSkillToRunner, useRunner } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
 import { useUIStore } from '@/store/ui.store';
@@ -14,7 +14,7 @@ import { useShallow } from 'zustand/shallow';
 
 export const UmaBassinPage = () => {
   const { chartData } = useRaceStore();
-  const { results: tableData } = useUniqueSkillBasinStore();
+  const { results: umaBasinResults } = useUniqueSkillBasinStore();
   const courseId = useSettingsStore(useShallow((state) => state.courseId));
 
   const { runnerId } = useRunner();
@@ -22,7 +22,7 @@ export const UmaBassinPage = () => {
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
 
   const basinnChartSelection = (skillId: string) => {
-    const results = tableData[skillId];
+    const results = umaBasinResults.get(skillId);
 
     if (results.runData) {
       useRaceStore.setState({ results: results.results });
@@ -67,7 +67,7 @@ export const UmaBassinPage = () => {
 
       <div className="grid grid-cols-1 gap-4">
         <BasinnChart
-          data={Object.values(tableData)}
+          data={Array.from(umaBasinResults.values())}
           hiddenSkills={[]}
           onSelectionChange={basinnChartSelection}
           onAddSkill={addSkillFromTable}

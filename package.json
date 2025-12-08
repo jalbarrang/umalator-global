@@ -42,6 +42,7 @@
     "dayjs": "^1.11.19",
     "es-toolkit": "^1.42.0",
     "i18next": "^25.6.3",
+    "immer": "^11.0.1",
     "immutable": "^5.0.3",
     "ink": "^6.5.1",
     "ink-select-input": "^6.2.0",

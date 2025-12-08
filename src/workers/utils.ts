@@ -1,5 +1,5 @@
+import { SimulationData } from '@/modules/simulation/compare.types';
 import { RoundResult, SkillBasinResponse } from '@/modules/simulation/types';
-import { SimulationData } from '@/store/race/compare.types';
 import assert from 'assert';
 
 export const mergeResults = (resultA: RoundResult, resultB: RoundResult) => {
@@ -26,11 +26,9 @@ export const mergeResults = (resultA: RoundResult, resultB: RoundResult) => {
       ? (combinedResults[mid - 1] + combinedResults[mid]) / 2
       : combinedResults[mid];
 
-  // Smart runData merging: use whichever exists, or merge if both exist
   let mergedRunData: SimulationData;
 
   if (resultA.runData && resultB.runData) {
-    // Both have runData - merge them
     mergedRunData = {
       // TODO should re-compute the bashin gain from .t/.p and pick whichever is closer to new mean/median
       ...(resultSizeB > resultSizeA ? resultB.runData : resultA.runData),
@@ -44,13 +42,12 @@ export const mergeResults = (resultA: RoundResult, resultB: RoundResult) => {
           : resultB.runData.maxrun,
     };
   } else if (resultB.runData) {
-    // Only B has runData (most common case in stage 4)
     mergedRunData = resultB.runData;
   } else if (resultA.runData) {
-    // Only A has runData (rare, but possible)
     mergedRunData = resultA.runData;
+  } else {
+    mergedRunData = undefined;
   }
-  // else: neither has runData, mergedRunData stays undefined
 
   return {
     id: resultA.id,
@@ -67,9 +64,9 @@ export const mergeResultSets = (
   resultSetA: SkillBasinResponse,
   resultSetB: SkillBasinResponse,
 ) => {
-  Object.entries(resultSetB).forEach(([id, resultB]) => {
-    if (resultSetA[id]) {
-      resultSetA[id] = mergeResults(resultSetA[id], resultB);
+  resultSetB.forEach((resultB, id) => {
+    if (resultSetA.has(id)) {
+      resultSetA.set(id, mergeResults(resultSetA.get(id), resultB));
     }
   });
 };

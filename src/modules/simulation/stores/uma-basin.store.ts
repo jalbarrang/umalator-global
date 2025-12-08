@@ -7,7 +7,7 @@ type IUmaBassinStore = {
 };
 
 export const useUniqueSkillBasinStore = create<IUmaBassinStore>()((_) => ({
-  results: {},
+  results: new Map(),
   timeTaken: 0,
 }));
 
@@ -16,14 +16,9 @@ export const setTable = (results: SkillBasinResponse) => {
 };
 
 export const resetTable = () => {
-  useUniqueSkillBasinStore.setState({ results: {} });
+  useUniqueSkillBasinStore.setState({ results: new Map() });
 };
 
 export const appendResultsToTable = (results: SkillBasinResponse) => {
-  useUniqueSkillBasinStore.setState((prev) => {
-    return {
-      ...prev,
-      results: { ...prev.results, ...results },
-    };
-  });
+  useUniqueSkillBasinStore.setState({ results });
 };

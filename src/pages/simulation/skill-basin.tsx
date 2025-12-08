@@ -5,7 +5,7 @@ import { RaceTrack } from '@/modules/racetrack/components/RaceTrack';
 import { useSkillBassinRunner } from '@simulation/hooks/skill-bassin/useSkillBasinRunner';
 import { CourseHelpers } from '@/modules/simulation/lib/CourseData';
 import { useSkillBasinStore } from '@simulation/stores/skill-basin.store';
-import { useRaceStore } from '@/store/race/store';
+import { useRaceStore } from '@simulation/stores/compare.store';
 import { setSkillToRunner, useRunner } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
 import { useUIStore } from '@/store/ui.store';
@@ -14,7 +14,7 @@ import { useShallow } from 'zustand/shallow';
 
 export const SkillBassinPage = () => {
   const { chartData } = useRaceStore();
-  const { results: tableData } = useSkillBasinStore();
+  const { results: skillBasinResults } = useSkillBasinStore();
   const courseId = useSettingsStore(useShallow((state) => state.courseId));
 
   const { runnerId, runner } = useRunner();
@@ -22,7 +22,7 @@ export const SkillBassinPage = () => {
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
 
   const basinnChartSelection = (skillId: string) => {
-    const results = tableData[skillId];
+    const results = skillBasinResults.get(skillId);
 
     if (results.runData) {
       useRaceStore.setState({ results: results.results });
@@ -67,7 +67,7 @@ export const SkillBassinPage = () => {
 
       <div>
         <BasinnChart
-          data={Object.values(tableData)}
+          data={Array.from(skillBasinResults.values())}
           hiddenSkills={runner.skills}
           onSelectionChange={basinnChartSelection}
           onAddSkill={addSkillFromTable}

@@ -1,4 +1,4 @@
-import { SimulationData } from '@/store/race/compare.types';
+import { SimulationData } from '@simulation/compare.types';
 import { PosKeepMode } from './lib/RaceSolver';
 import { RunnerState } from '../runners/components/runner-card/types';
 import { CourseData } from './lib/CourseData';
@@ -16,7 +16,7 @@ export type RoundResult = {
   median: number;
 };
 
-export type SkillBasinResponse = Record<string, RoundResult>;
+export type SkillBasinResponse = Map<string, RoundResult>;
 
 export interface SimulationOptions {
   seed?: number;

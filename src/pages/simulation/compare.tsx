@@ -6,10 +6,10 @@ import { CourseHelpers } from '@/modules/simulation/lib/CourseData';
 import { PosKeepMode } from '@/modules/simulation/lib/RaceSolver';
 import { SimulationResultTabs } from '@/modules/simulation/tabs/simulation-result-tabs';
 import { ResultButtonGroups } from '@/modules/simulation/tabs/summary-tab';
-import { useRaceStore } from '@/store/race/store';
 import { useSettingsStore } from '@/store/settings.store';
 import { useSelectedPacemakerBooleans } from '@/store/settings/actions';
 import { useUIStore } from '@/store/ui.store';
+import { useRaceStore } from '@simulation/stores/compare.store';
 import { useMemo } from 'react';
 
 export const ComparePage = () => {

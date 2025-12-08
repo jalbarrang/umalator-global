@@ -13,7 +13,7 @@ export const WeatherIcon = (
       src={`/icons/utx_ico_weather_0${weather - 1}.png`}
       title={strings_en.skilldetails.weather[weather]}
       className={cn(
-        'w-8 h-8 cursor-pointer grayscale-100 hover:grayscale-0',
+        'w-8 h-8 grayscale-100 hover:grayscale-0',
         {
           'grayscale-0': weather === racedef.weather,
         },

@@ -38,7 +38,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RaceTrackTooltip } from './racetrack-tooltip';
 import { useRaceTrackTooltip } from '../hooks/useRaceTrackTooltip';
-import { SimulationRun } from '@/store/race/compare.types';
+import { SimulationRun } from '@simulation/compare.types';
 import { Separator } from '@/components/ui/separator';
 
 type RaceTrackProps = {

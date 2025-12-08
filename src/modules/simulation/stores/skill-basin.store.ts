@@ -7,7 +7,7 @@ type ISkillBasinStore = {
 };
 
 export const useSkillBasinStore = create<ISkillBasinStore>()((_) => ({
-  results: {},
+  results: new Map(),
   timeTaken: 0,
 }));
 
@@ -16,14 +16,14 @@ export const setTable = (results: SkillBasinResponse) => {
 };
 
 export const resetTable = () => {
-  useSkillBasinStore.setState({ results: {} });
+  useSkillBasinStore.setState({ results: new Map() });
 };
 
 export const appendResultsToTable = (results: SkillBasinResponse) => {
   useSkillBasinStore.setState((prev) => {
     return {
       ...prev,
-      results: { ...prev.results, ...results },
+      results: new Map([...prev.results, ...results]),
     };
   });
 };

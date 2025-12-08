@@ -182,7 +182,7 @@ export const BasinnChart = (props: BasinnChartProps) => {
       id: 'visualize',
       header: '',
       cell: (info: CellContext<RoundResult, unknown>) => {
-        const skillId = info.row.getValue('id') as string;
+        const _skillId = info.row.getValue('id') as string;
         // const isSelected = selectedSkillsForVisualization.has(skillId);
 
         return (

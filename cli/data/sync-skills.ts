@@ -39,6 +39,8 @@ export interface FilterConfig {
   onlyNew?: boolean;
   // Sync skills from a specific character/outfit ID
   specificCharId?: number;
+  // Sync skills from multiple character/outfit IDs
+  specificCharIds?: number[];
   // Dry run - show what would be synced without writing
   dryRun?: boolean;
   // Verbose output
@@ -75,6 +77,22 @@ function shouldIncludeSkill(
       return false;
     }
     // If the skill has the char ID, include it (ignore other filters)
+    return true;
+  }
+
+  // Check multiple specific character IDs (filter by exact outfits)
+  if (
+    config.specificCharIds !== undefined &&
+    config.specificCharIds.length > 0
+  ) {
+    // If filtering by characters, ONLY include skills that have at least one of these char IDs
+    if (
+      !skill.char ||
+      !config.specificCharIds.some((charId) => skill.char!.includes(charId))
+    ) {
+      return false;
+    }
+    // If the skill has any of the char IDs, include it (ignore other filters)
     return true;
   }
 

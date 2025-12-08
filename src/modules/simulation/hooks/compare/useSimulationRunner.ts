@@ -4,8 +4,14 @@ import { setIsSimulationRunning } from '@/store/ui.store';
 import { racedefToParams } from '@/utils/races';
 import { CourseHelpers } from '@simulation/lib/CourseData';
 import { PosKeepMode } from '@simulation/lib/RaceSolver';
-import { useMemo, useState } from 'react';
-import { useSimulationWorkers } from './useSimulationWorkers';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { setResults } from '../../stores/compare.store';
+import { CompareResult } from '../../compare.types';
+
+type WorkerMessage<T> = {
+  type: 'compare' | 'compare-complete';
+  results: T;
+};
 
 export function useSimulationRunner() {
   const { uma1, uma2, pacer } = useRunnersStore();
@@ -27,14 +33,48 @@ export function useSimulationRunner() {
 
   const [runOnceCounter, setRunOnceCounter] = useState(0);
 
-  const { worker1Ref } = useSimulationWorkers();
+  const webWorkerRef = useRef<Worker | null>(null);
+
+  const handleWorkerMessage = <T>(event: MessageEvent<WorkerMessage<T>>) => {
+    const { type, results } = event.data;
+
+    console.log('compare:handleWorkerMessage', {
+      type,
+      results,
+    });
+
+    switch (type) {
+      case 'compare':
+        setResults(results as CompareResult);
+        break;
+      case 'compare-complete':
+        setIsSimulationRunning(false);
+        break;
+    }
+  };
+
+  useEffect(() => {
+    const webWorker = new Worker(
+      new URL('@/workers/simulator.worker.ts', import.meta.url),
+      { type: 'module' },
+    );
+
+    webWorker.addEventListener('message', handleWorkerMessage);
+
+    webWorkerRef.current = webWorker;
+    return () => {
+      webWorker.removeEventListener('message', handleWorkerMessage);
+      webWorker.terminate();
+      webWorkerRef.current = null;
+    };
+  }, []);
 
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
 
   const handleRunCompare = () => {
     setIsSimulationRunning(true);
 
-    worker1Ref.current?.postMessage({
+    webWorkerRef.current?.postMessage({
       msg: 'compare',
       data: {
         nsamples,
@@ -76,7 +116,7 @@ export function useSimulationRunner() {
     const effectiveSeed = seed + runOnceCounter;
     setRunOnceCounter((prev) => prev + 1);
 
-    worker1Ref.current?.postMessage({
+    webWorkerRef.current?.postMessage({
       msg: 'compare',
       data: {
         nsamples: 1,

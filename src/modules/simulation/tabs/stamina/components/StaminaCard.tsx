@@ -13,6 +13,7 @@ import { RecoverySkillsList } from './RecoverySkillsList';
 import { PhaseBreakdown } from './PhaseBreakdown';
 import { Calculator, Activity } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
+import { useMemo } from 'react';
 
 interface StaminaCardProps {
   runner: RunnerState;
@@ -27,22 +28,23 @@ interface StaminaCardProps {
   onModeToggle?: () => void;
 }
 
-export const StaminaCard = ({
-  runner,
-  analysis,
-  label,
-  color,
-  recoverySkills,
-  debuffsReceived,
-  phaseHp,
-  isTheoretical,
-  hasSimulationData = false,
-  onModeToggle,
-}: StaminaCardProps) => {
-  const totalRecovery = recoverySkills.reduce(
-    (sum, skill) => sum + skill.hpRecovered,
-    0,
-  );
+export const StaminaCard = (props: StaminaCardProps) => {
+  const {
+    runner,
+    analysis,
+    label,
+    color,
+    recoverySkills,
+    debuffsReceived,
+    phaseHp,
+    isTheoretical,
+    hasSimulationData = false,
+    onModeToggle,
+  } = props;
+
+  const totalRecovery = useMemo(() => {
+    return recoverySkills.reduce((sum, skill) => sum + skill.hpRecovered, 0);
+  }, [recoverySkills]);
 
   // debuffsReceived have negative hpRecovered values
   const totalDebuff = debuffsReceived.reduce(
