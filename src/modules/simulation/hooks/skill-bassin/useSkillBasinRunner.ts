@@ -4,18 +4,15 @@ import { useSettingsStore } from '@/store/settings.store';
 import { setIsSimulationRunning } from '@/store/ui.store';
 import { racedefToParams } from '@/utils/races';
 import { CourseHelpers } from '@simulation/lib/CourseData';
-import { PosKeepMode } from '@simulation/lib/RaceSolver';
 import { useMemo } from 'react';
-import { useSkillBassinWorkers } from './useSkillBassinWorkers';
+import { useSkillBassinWorkers } from './useSkillBasinWorkers';
 import {
+  defaultSimulationOptions,
   getActivateableSkills,
   getNullRow,
 } from '@/components/bassin-chart/utils';
-import {
-  resetTable,
-  updateTable,
-} from '@simulation/stores/skills-bassin.store';
-import { RoundResult } from '@simulation/types';
+import { resetTable, setTable } from '@simulation/stores/skill-basin.store';
+import { SkillBasinResponse } from '@simulation/types';
 
 const baseSkillsToTest = getBaseSkillsToTest();
 
@@ -48,13 +45,14 @@ export function useSkillBassinRunner() {
 
     const uma = runner;
 
-    const filler: Record<string, RoundResult> = {};
+    const filler: SkillBasinResponse = {};
     skills.forEach((id) => (filler[id] = getNullRow(id)));
+
     const skills1 = skills.slice(0, Math.floor(skills.length / 2));
     const skills2 = skills.slice(Math.floor(skills.length / 2));
 
     resetTable();
-    updateTable(filler);
+    setTable(filler);
 
     worker1Ref.current?.postMessage({
       msg: 'chart',
@@ -65,19 +63,8 @@ export function useSkillBassinRunner() {
         uma,
         pacer: pacer,
         options: {
+          ...defaultSimulationOptions,
           seed,
-          posKeepMode: PosKeepMode.Approximate,
-          allowRushedUma1: false,
-          allowRushedUma2: false,
-          allowDownhillUma1: false,
-          allowDownhillUma2: false,
-          allowSectionModifierUma1: false,
-          allowSectionModifierUma2: false,
-          useEnhancedSpurt: false,
-          accuracyMode: false,
-          skillCheckChanceUma1: false,
-          skillCheckChanceUma2: false,
-          pacemakerCount: 1,
         },
       },
     });
@@ -91,19 +78,8 @@ export function useSkillBassinRunner() {
         uma,
         pacer: pacer,
         options: {
+          ...defaultSimulationOptions,
           seed,
-          posKeepMode: PosKeepMode.Approximate,
-          allowRushedUma1: false,
-          allowRushedUma2: false,
-          allowDownhillUma1: false,
-          allowDownhillUma2: false,
-          allowSectionModifierUma1: false,
-          allowSectionModifierUma2: false,
-          useEnhancedSpurt: false,
-          accuracyMode: false,
-          skillCheckChanceUma1: false,
-          skillCheckChanceUma2: false,
-          pacemakerCount: 1,
         },
       },
     });

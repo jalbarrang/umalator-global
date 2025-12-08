@@ -64,7 +64,7 @@ export const useVisualizationData = () => {
     const skillActivations = [];
 
     for (const [umaIndex, umaActivations] of chartData.sk.entries()) {
-      for (const [skillId, activations] of umaActivations.entries()) {
+      for (const [skillId, activations] of Object.entries(umaActivations)) {
         const skillMeta = getSkillMetaById(skillId);
 
         if (NO_SHOW.indexOf(skillMeta.iconId) > -1) {

@@ -1,34 +1,34 @@
-import { updateTable } from '@/modules/simulation/stores/uma-bassin.store';
 import { setIsSimulationRunning } from '@/store/ui.store';
 import { useEffect, useRef } from 'react';
-import { RoundResult } from '../../types';
+import { SkillBasinResponse } from '@simulation/types';
+import { appendResultsToTable } from '@simulation/stores/skill-basin.store';
 
 type WorkerMessage<T> = {
-  type: 'uma-bassin' | 'uma-bassin-done';
+  type: 'skill-bassin' | 'skill-bassin-done';
   results: T;
 };
 
-export const useUmaBassinWorkers = () => {
+export const useSkillBassinWorkers = () => {
   const worker1Ref = useRef<Worker | null>(null);
   const worker2Ref = useRef<Worker | null>(null);
 
   const chartWorkersCompletedRef = useRef(0);
 
   const handleWorkerMessage = (
-    event: MessageEvent<WorkerMessage<Map<string, RoundResult>>>,
+    event: MessageEvent<WorkerMessage<SkillBasinResponse>>,
   ) => {
     const { type, results } = event.data;
 
-    console.log('uma-bassin:handleWorkerMessage', {
+    console.log('skill-bassin:handleWorkerMessage', {
       type,
       results,
     });
 
     switch (type) {
-      case 'uma-bassin':
-        updateTable(Object.fromEntries(results));
+      case 'skill-bassin':
+        appendResultsToTable(results);
         break;
-      case 'uma-bassin-done':
+      case 'skill-bassin-done':
         chartWorkersCompletedRef.current += 1;
 
         if (chartWorkersCompletedRef.current >= 2) {
@@ -42,7 +42,7 @@ export const useUmaBassinWorkers = () => {
 
   useEffect(() => {
     const webWorker = new Worker(
-      new URL('@/workers/uma-bassin.worker.ts', import.meta.url),
+      new URL('@/workers/skill-basin.worker.ts', import.meta.url),
       { type: 'module' },
     );
 
@@ -58,7 +58,7 @@ export const useUmaBassinWorkers = () => {
 
   useEffect(() => {
     const webWorker = new Worker(
-      new URL('@/workers/uma-bassin.worker.ts', import.meta.url),
+      new URL('@/workers/skill-basin.worker.ts', import.meta.url),
       { type: 'module' },
     );
 

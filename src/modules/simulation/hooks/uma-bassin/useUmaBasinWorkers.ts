@@ -1,34 +1,34 @@
+import { appendResultsToTable } from '@simulation/stores/uma-basin.store';
 import { setIsSimulationRunning } from '@/store/ui.store';
 import { useEffect, useRef } from 'react';
-import { RoundResult } from '../../types';
-import { updateTable } from '../../stores/skills-bassin.store';
+import { SkillBasinResponse } from '@simulation/types';
 
 type WorkerMessage<T> = {
-  type: 'skill-bassin' | 'skill-bassin-done';
+  type: 'uma-bassin' | 'uma-bassin-done';
   results: T;
 };
 
-export const useSkillBassinWorkers = () => {
+export const useUmaBassinWorkers = () => {
   const worker1Ref = useRef<Worker | null>(null);
   const worker2Ref = useRef<Worker | null>(null);
 
   const chartWorkersCompletedRef = useRef(0);
 
   const handleWorkerMessage = (
-    event: MessageEvent<WorkerMessage<Map<string, RoundResult>>>,
+    event: MessageEvent<WorkerMessage<SkillBasinResponse>>,
   ) => {
     const { type, results } = event.data;
 
-    console.log('skill-bassin:handleWorkerMessage', {
+    console.log('uma-bassin:handleWorkerMessage', {
       type,
       results,
     });
 
     switch (type) {
-      case 'skill-bassin':
-        updateTable(Object.fromEntries(results));
+      case 'uma-bassin':
+        appendResultsToTable(results);
         break;
-      case 'skill-bassin-done':
+      case 'uma-bassin-done':
         chartWorkersCompletedRef.current += 1;
 
         if (chartWorkersCompletedRef.current >= 2) {
@@ -42,7 +42,7 @@ export const useSkillBassinWorkers = () => {
 
   useEffect(() => {
     const webWorker = new Worker(
-      new URL('@/workers/skill-bassin.worker.ts', import.meta.url),
+      new URL('@/workers/uma-basin.worker.ts', import.meta.url),
       { type: 'module' },
     );
 
@@ -58,7 +58,7 @@ export const useSkillBassinWorkers = () => {
 
   useEffect(() => {
     const webWorker = new Worker(
-      new URL('@/workers/skill-bassin.worker.ts', import.meta.url),
+      new URL('@/workers/uma-basin.worker.ts', import.meta.url),
       { type: 'module' },
     );
 

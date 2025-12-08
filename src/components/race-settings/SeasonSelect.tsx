@@ -10,7 +10,7 @@ export const SeasonIcon = (
 
   return (
     <img
-      src={`/icons/global/utx_txt_season_0${season}.png`}
+      src={`/icons/global/utx_txt_season_0${season - 1}.png`}
       title={strings_en.skilldetails.season[season]}
       className={cn(
         'w-8 h-8 cursor-pointer grayscale-100 hover:grayscale-0',
@@ -37,10 +37,10 @@ export function SeasonSelect() {
 
   return (
     <div className="flex gap-2 items-center" onClick={handleClick}>
-      <SeasonIcon season={0} />
       <SeasonIcon season={1} />
       <SeasonIcon season={2} />
       <SeasonIcon season={3} />
+      <SeasonIcon season={4} />
     </div>
   );
 }

@@ -411,9 +411,12 @@ export function buildSkillData(
   if (!(skillId in skills)) {
     throw new Error('bad skill ID ' + skillId);
   }
+
   const extra = Object.assign({ skillId }, raceParams);
+
   const alternatives = skills[skillId].alternatives;
   const triggers = [];
+
   for (let i = 0; i < alternatives.length; ++i) {
     const skill = alternatives[i];
     let full = new RegionList();
@@ -438,7 +441,7 @@ export function buildSkillData(
     const op = parser.parse(parser.tokenize(skill.condition));
     const [regions, extraCondition] = op.apply(full, course, horse, extra);
 
-    if (regions.length == 0) {
+    if (regions.length === 0) {
       continue;
     }
 
@@ -456,7 +459,9 @@ export function buildSkillData(
       // !!! FIXME this is actually bugged for NY Ace unique since she'll get both effects if she uses oonige.
       continue;
     }
+
     const effects = buildSkillEffects(skill, perspective);
+
     if (effects.length > 0 || ignoreNullEffects) {
       const rarity = skills[skillId].rarity;
       triggers.push({
@@ -471,30 +476,36 @@ export function buildSkillData(
       });
     }
   }
-  if (triggers.length > 0) return triggers;
+
+  if (triggers.length > 0) {
+    return triggers;
+  }
+
   // if we get here, it means that no alternatives have their conditions satisfied for this course/horse.
   // however, for purposes of summer goldship unique (Adventure of 564), we still have to add something, since
   // that could still cause them to activate. so just add the first alternative at a location after the course
   // is over with a constantly false dynamic condition so that it never activates normally.
   const effects = buildSkillEffects(alternatives[0], perspective);
+
   if (effects.length == 0 && !ignoreNullEffects) {
     return [];
-  } else {
-    const rarity = skills[skillId].rarity;
-    const afterEnd = new RegionList();
-    afterEnd.push(new Region(9999, 9999));
-    return [
-      {
-        skillId: skillId,
-        perspective: perspective,
-        rarity: rarity >= 3 && rarity <= 5 ? 3 : rarity,
-        samplePolicy: ImmediatePolicy,
-        regions: afterEnd,
-        extraCondition: (_) => false,
-        effects: effects,
-      },
-    ];
   }
+
+  const rarity = skills[skillId].rarity;
+  const afterEnd = new RegionList();
+  afterEnd.push(new Region(9999, 9999));
+
+  return [
+    {
+      skillId: skillId,
+      perspective: perspective,
+      rarity: rarity >= 3 && rarity <= 5 ? 3 : rarity,
+      samplePolicy: ImmediatePolicy,
+      regions: afterEnd,
+      extraCondition: (_) => false,
+      effects: effects,
+    },
+  ];
 }
 
 export const conditionsWithActivateCountsAsRandom = Object.freeze(

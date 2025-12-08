@@ -68,13 +68,6 @@ export const getSkillMetaById = (id: string): SkillMeta | null =>
 export const getSkillNameById = (id: string): string[] =>
   skillNamesList[getBaseSkillId(id)] ?? [];
 
-export const getUniqueSkills = () => {
-  return Object.keys(skillsDataList).filter((id) => {
-    const skill = skillsDataList[id];
-    return skill.rarity >= 4 && id.startsWith('1');
-  });
-};
-
 export function assertIsSkill(sid: string): asserts sid is SkillId {
   assert(skillsDataList[sid] !== null);
 }
@@ -320,6 +313,8 @@ export function estimateSkillActivationPhase(skillId: string): number | null {
   return null;
 }
 
+export const uniqueSkillIds: string[] = [];
+
 // Setup every value for module variables
 for (const skill of allSkills) {
   skillsById.set(skill.id, skill);
@@ -330,5 +325,9 @@ for (const skill of allSkills) {
   if (isNotUniqueSkill || isEvolvedSkill) {
     nonUniqueSkills.push(skill);
     nonUniqueSkillIds.push(skill.id);
+  }
+
+  if (skill.data.rarity >= 4 && skill.id.startsWith('1')) {
+    uniqueSkillIds.push(skill.id);
   }
 }

@@ -48,10 +48,7 @@ const PHASE_BOUNDARIES = [
 /**
  * Get estimated activation position for a skill based on its phase
  */
-function getEstimatedPosition(
-  skillId: string,
-  courseDistance: number,
-): number {
+function getEstimatedPosition(skillId: string, courseDistance: number): number {
   const phase = estimateSkillActivationPhase(skillId);
 
   if (phase !== null && phase >= 0 && phase <= 3) {
@@ -70,14 +67,14 @@ function getEstimatedPosition(
  * Only returns positive recovery skills (heals), not debuffs
  */
 export function useActualRecoverySkills(
-  skillData: Map<string, [number, number][]> | undefined,
+  skillData: Record<string, [number, number][]> | undefined,
   maxHp: number,
 ): RecoverySkillActivation[] {
   return useMemo(() => {
     if (!skillData) return [];
 
     const skills: RecoverySkillActivation[] = [];
-    for (const [skillId, positions] of skillData.entries()) {
+    for (const [skillId, positions] of Object.entries(skillData)) {
       const { isRecovery, modifier, isDebuff } = getRecoverySkillInfo(skillId);
       // Only include positive recovery skills (heals)
       if (isRecovery && !isDebuff) {
@@ -106,14 +103,14 @@ export function useActualRecoverySkills(
  * These are HP drain skills used by opponents against this runner
  */
 export function useActualDebuffsReceived(
-  debuffsData: Map<string, [number, number][]> | undefined,
+  debuffsData: Record<string, [number, number][]> | undefined,
   maxHp: number,
 ): RecoverySkillActivation[] {
   return useMemo(() => {
     if (!debuffsData) return [];
 
     const skills: RecoverySkillActivation[] = [];
-    for (const [skillId, positions] of debuffsData.entries()) {
+    for (const [skillId, positions] of Object.entries(debuffsData)) {
       const { isRecovery, modifier, isDebuff } = getRecoverySkillInfo(skillId);
       // Only include debuffs (negative HP effects)
       if (isRecovery && isDebuff) {
@@ -208,4 +205,3 @@ export function useTheoreticalDebuffsReceived(
     return skills.sort((a, b) => a.position - b.position);
   }, [opponent.skills, maxHp, courseDistance]);
 }
-

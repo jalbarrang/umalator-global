@@ -16,9 +16,12 @@ export type RoundResult = {
   median: number;
 };
 
+export type SkillBasinResponse = Record<string, RoundResult>;
+
 export interface SimulationOptions {
   seed?: number;
   useEnhancedSpurt?: boolean;
+  includeRunData?: boolean;
   accuracyMode?: boolean;
   posKeepMode?: PosKeepMode;
   mode?: string;

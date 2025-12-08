@@ -6,9 +6,9 @@ import type { CourseData } from '@simulation/lib/CourseData';
 import type { RaceParameters } from '@simulation/lib/RaceParameters';
 
 import { RunnerState } from '@/modules/runners/components/runner-card/types';
-import { Run1RoundParams, SimulationOptions } from '@/modules/simulation/types';
-import { mergeResultSets } from '@/workers/utils';
 import { run1Round } from '@/utils/compare';
+import type { SimulationOptions } from '@/modules/simulation/types';
+import { mergeResultSets } from '@/workers/utils';
 
 type RunChartParams = {
   skills: string[];
@@ -21,6 +21,8 @@ type RunChartParams = {
 
 function runChart(params: RunChartParams) {
   const { skills, course, racedef, uma, pacer, options } = params;
+
+  const optionsWithoutRunData = { ...options, includeRunData: false };
 
   let newSkills = [...skills];
 
@@ -40,21 +42,19 @@ function runChart(params: RunChartParams) {
     };
   }
 
-  const roundParams: Run1RoundParams = {
+  const results = run1Round({
     nsamples: 5,
     skills: newSkills,
     course,
     racedef,
     uma: uma_,
     pacer: pacer_,
-    options,
-  };
+    options: optionsWithoutRunData,
+  });
 
-  const results = run1Round(roundParams);
+  postMessage({ type: 'uma-bassin', results });
 
-  postMessage({ type: 'skill-bassin', results });
-
-  newSkills = newSkills.filter((id) => results.get(id).max > 0.1);
+  newSkills = newSkills.filter((id) => results[id].max > 0.1);
 
   let update = run1Round({
     nsamples: 20,
@@ -63,14 +63,15 @@ function runChart(params: RunChartParams) {
     racedef,
     uma: uma_,
     pacer: pacer_,
-    options,
+    options: optionsWithoutRunData,
   });
 
   mergeResultSets(results, update);
-  postMessage({ type: 'skill-bassin', results });
+
+  postMessage({ type: 'uma-bassin', results });
 
   newSkills = newSkills.filter(
-    (id) => Math.abs(results.get(id).max - results.get(id).min) > 0.1,
+    (id) => Math.abs(results[id].max - results[id].min) > 0.1,
   );
 
   update = run1Round({
@@ -80,10 +81,11 @@ function runChart(params: RunChartParams) {
     racedef,
     uma: uma_,
     pacer: pacer_,
-    options,
+    options: optionsWithoutRunData,
   });
   mergeResultSets(results, update);
-  postMessage({ type: 'skill-bassin', results });
+
+  postMessage({ type: 'uma-bassin', results });
 
   update = run1Round({
     nsamples: 200,
@@ -96,8 +98,8 @@ function runChart(params: RunChartParams) {
   });
   mergeResultSets(results, update);
 
-  postMessage({ type: 'skill-bassin', results });
-  postMessage({ type: 'skill-bassin-done' });
+  postMessage({ type: 'uma-bassin', results });
+  postMessage({ type: 'uma-bassin-done' });
 }
 
 self.addEventListener('message', (e: MessageEvent) => {

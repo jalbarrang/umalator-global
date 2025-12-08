@@ -1,25 +1,23 @@
 import {
+  defaultSimulationOptions,
   getActivateableSkills,
   getNullRow,
 } from '@/components/bassin-chart/utils';
 import { RunnerState } from '@/modules/runners/components/runner-card/types';
-import { getUniqueSkills } from '@/modules/skills/utils';
+import { uniqueSkillIds } from '@/modules/skills/utils';
 import { useRunner, useRunnersStore } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
 import { setIsSimulationRunning } from '@/store/ui.store';
 import { racedefToParams } from '@/utils/races';
 import { CourseHelpers } from '@simulation/lib/CourseData';
-import { PosKeepMode } from '@simulation/lib/RaceSolver';
-import { resetTable, updateTable } from '@simulation/stores/uma-bassin.store';
-import { RoundResult } from '@simulation/types';
+import { resetTable, setTable } from '@simulation/stores/uma-basin.store';
+import { SkillBasinResponse } from '@simulation/types';
 import { useMemo } from 'react';
-import { useUmaBassinWorkers } from './useUmaBassinWorkers';
+import { useUmaBassinWorkers } from './useUmaBasinWorkers';
 
 function removeUniqueSkillsFromRunner(uma: RunnerState): RunnerState {
-  const uniqueSkills = getUniqueSkills();
-
   const filteredSkills = uma.skills.filter(
-    (skillId) => !uniqueSkills.includes(skillId),
+    (skillId) => !uniqueSkillIds.includes(skillId),
   );
 
   return { ...uma, skills: filteredSkills };
@@ -41,13 +39,17 @@ export function useUmaBassinRunner() {
     chartWorkersCompletedRef.current = 0;
     const params = racedefToParams(racedef, runner.strategy);
 
-    const uniqueSkills = getUniqueSkills();
-    const skills = getActivateableSkills(uniqueSkills, runner, course, params);
+    const skills = getActivateableSkills(
+      uniqueSkillIds,
+      runner,
+      course,
+      params,
+    );
 
     const umaWithoutUniques = removeUniqueSkillsFromRunner(runner);
     const uma = umaWithoutUniques;
 
-    const filler: Record<string, RoundResult> = {};
+    const filler: SkillBasinResponse = {};
 
     skills.forEach((id) => (filler[id] = getNullRow(id)));
 
@@ -55,7 +57,7 @@ export function useUmaBassinRunner() {
     const skills2 = skills.slice(Math.floor(skills.length / 2));
 
     resetTable();
-    updateTable(filler);
+    setTable(filler);
 
     worker1Ref.current?.postMessage({
       msg: 'chart',
@@ -66,19 +68,8 @@ export function useUmaBassinRunner() {
         uma,
         pacer: pacer,
         options: {
+          ...defaultSimulationOptions,
           seed,
-          posKeepMode: PosKeepMode.Approximate,
-          allowRushedUma1: false,
-          allowRushedUma2: false,
-          allowDownhillUma1: false,
-          allowDownhillUma2: false,
-          allowSectionModifierUma1: false,
-          allowSectionModifierUma2: false,
-          useEnhancedSpurt: false,
-          accuracyMode: false,
-          skillCheckChanceUma1: false,
-          skillCheckChanceUma2: false,
-          pacemakerCount: 1,
         },
       },
     });
@@ -92,19 +83,8 @@ export function useUmaBassinRunner() {
         uma,
         pacer: pacer,
         options: {
+          ...defaultSimulationOptions,
           seed,
-          posKeepMode: PosKeepMode.Approximate,
-          allowRushedUma1: false,
-          allowRushedUma2: false,
-          allowDownhillUma1: false,
-          allowDownhillUma2: false,
-          allowSectionModifierUma1: false,
-          allowSectionModifierUma2: false,
-          useEnhancedSpurt: false,
-          accuracyMode: false,
-          skillCheckChanceUma1: false,
-          skillCheckChanceUma2: false,
-          pacemakerCount: 1,
         },
       },
     });

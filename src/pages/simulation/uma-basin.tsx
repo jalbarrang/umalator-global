@@ -2,9 +2,9 @@ import { BasinnChart } from '@/components/bassin-chart/BasinnChart';
 import { Button } from '@/components/ui/button';
 import { VelocityLines } from '@/components/VelocityLines';
 import { RaceTrack } from '@/modules/racetrack/components/RaceTrack';
-import { useSkillBassinRunner } from '@/modules/simulation/hooks/skill-bassin/useSkillBassinRunner';
+import { useUmaBassinRunner } from '@simulation/hooks/uma-bassin/useUmaBasinRunner';
 import { CourseHelpers } from '@/modules/simulation/lib/CourseData';
-import { useSkillBassinStore } from '@/modules/simulation/stores/skills-bassin.store';
+import { useUniqueSkillBasinStore } from '@simulation/stores/uma-basin.store';
 import { useRaceStore } from '@/store/race/store';
 import { setSkillToRunner, useRunner } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
@@ -12,12 +12,12 @@ import { useUIStore } from '@/store/ui.store';
 import { useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
 
-export const SkillBassinPage = () => {
+export const UmaBassinPage = () => {
   const { chartData } = useRaceStore();
-  const { results: tableData } = useSkillBassinStore();
+  const { results: tableData } = useUniqueSkillBasinStore();
   const courseId = useSettingsStore(useShallow((state) => state.courseId));
 
-  const { runnerId, runner } = useRunner();
+  const { runnerId } = useRunner();
 
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
 
@@ -34,7 +34,7 @@ export const SkillBassinPage = () => {
   };
 
   const { isSimulationRunning } = useUIStore();
-  const { doBasinnChart } = useSkillBassinRunner();
+  const { doBasinnChart } = useUmaBassinRunner();
 
   return (
     <div className="flex flex-col gap-4">
@@ -65,12 +65,13 @@ export const SkillBassinPage = () => {
         />
       </RaceTrack>
 
-      <div>
+      <div className="grid grid-cols-1 gap-4">
         <BasinnChart
           data={Object.values(tableData)}
-          hiddenSkills={runner.skills}
+          hiddenSkills={[]}
           onSelectionChange={basinnChartSelection}
           onAddSkill={addSkillFromTable}
+          showUmaIcons
         />
       </div>
     </div>
