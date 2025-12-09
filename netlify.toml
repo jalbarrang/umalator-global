@@ -1,2 +1,2 @@
 [build]
-  command = "bun build"
+  command = "bun run build"
