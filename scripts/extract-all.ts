@@ -10,7 +10,10 @@ import { extractUmaInfo } from './extract-uma-info';
 import { extractCourseData } from './extract-course-data';
 
 async function extractAll() {
+  const replaceMode = process.argv.includes('--replace') || process.argv.includes('--full');
+
   console.log('🚀 Starting full data extraction...\n');
+  console.log(`Mode: ${replaceMode ? '⚠️  Full Replacement' : '✓ Merge (default - preserves future content)'}`);
   console.log('='.repeat(60));
 
   const startTime = Date.now();

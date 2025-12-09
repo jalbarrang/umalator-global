@@ -181,17 +181,24 @@ npm install
 
 ### 2. Extract Game Data
 
-**Extract all data at once:**
+**Extract all data at once (Merge Mode - Recommended):**
 
 ```bash
 bun run extract:all
 ```
 
-The script will automatically find `master.mdb` in the default location, or you can specify a custom path:
+This **merge mode** (default):
+- ✅ Updates entries from `master.mdb` (current game content)
+- ✅ **Preserves** entries not in master.mdb (future/datamined content)
+- ✅ Automatically finds `db/master.mdb` if it exists
+
+**Full replacement mode** (removes future content):
 
 ```bash
-bun run extract:all /path/to/master.mdb
+bun run extract:all --replace
 ```
+
+Use `--replace` only when you want to completely overwrite files with only current game content.
 
 **Extract individual data files:**
 
@@ -202,6 +209,8 @@ bun run extract:skill-data       # Skill mechanics
 bun run extract:uma-info         # Uma musume data
 bun run extract:course-data      # Course/track data
 ```
+
+All scripts support `--replace` flag for full replacement mode.
 
 **Note on Course Data:**
 The course extraction requires course event parameter JSON files in the `courseeventparams/` directory. These files contain detailed course geometry (corners, slopes, etc.) and must be extracted separately from the game assets.

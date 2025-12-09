@@ -43,6 +43,9 @@ async function extractUmaInfo() {
   console.log('📖 Extracting uma musume info...\n');
 
   const dbPath = await resolveMasterDbPath();
+  const replaceMode = process.argv.includes('--replace') || process.argv.includes('--full');
+
+  console.log(`Mode: ${replaceMode ? '⚠️  Full Replacement' : '✓ Merge (preserves future content)'}`);
   console.log(`Database: ${dbPath}\n`);
 
   // Read existing files to check which umas are implemented
@@ -106,14 +109,44 @@ async function extractUmaInfo() {
       }
     }
 
-    // Sort and write output
-    const sorted = sortByNumericKey(umas);
+    // Merge with existing data (unless replace mode)
     const outputPath = path.join(basePath, 'umas.json');
 
+    let finalUmas: Record<string, UmaInfo>;
+
+    if (replaceMode) {
+      finalUmas = umas;
+      console.log(`\n⚠️  Full replacement mode: ${processedCount} umas from master.mdb only`);
+    } else {
+      const existingFile = Bun.file(outputPath);
+
+      if (await existingFile.exists()) {
+        const existingData = await existingFile.json();
+        const existingCount = Object.keys(existingData).length;
+
+        // Merge: existing data first, then overwrite with new data
+        finalUmas = { ...existingData, ...umas };
+
+        const finalCount = Object.keys(finalUmas).length;
+        const preserved = finalCount - processedCount;
+
+        console.log(`\n✓ Merge mode:`);
+        console.log(`  → ${processedCount} umas from master.mdb (current content)`);
+        console.log(`  → ${preserved} additional umas preserved (future content)`);
+        console.log(`  → ${finalCount} total umas`);
+      } else {
+        finalUmas = umas;
+        console.log(`\n✓ No existing file found, using master.mdb data only`);
+      }
+    }
+
+    // Sort and write output
+    const sorted = sortByNumericKey(finalUmas);
     await writeJsonFile(outputPath, sorted);
-    console.log(`✓ Written to ${outputPath}`);
-    console.log(`✓ Total umas: ${processedCount} (with implemented outfits)`);
-    console.log(`✓ Total outfits: ${Object.values(sorted).reduce((sum, uma) => sum + Object.keys(uma.outfits).length, 0)}`);
+
+    const totalOutfits = Object.values(sorted).reduce((sum, uma) => sum + Object.keys(uma.outfits).length, 0);
+    console.log(`\n✓ Written to ${outputPath}`);
+    console.log(`✓ Total outfits: ${totalOutfits}`);
   } finally {
     closeDatabase(db);
   }

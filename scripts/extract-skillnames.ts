@@ -19,6 +19,9 @@ async function extractSkillNames() {
   console.log('📖 Extracting skill names...\n');
 
   const dbPath = await resolveMasterDbPath();
+  const replaceMode = process.argv.includes('--replace') || process.argv.includes('--full');
+
+  console.log(`Mode: ${replaceMode ? '⚠️  Full Replacement' : '✓ Merge (preserves future content)'}`);
   console.log(`Database: ${dbPath}\n`);
 
   const db = openDatabase(dbPath);
@@ -50,18 +53,45 @@ async function extractSkillNames() {
       }
     }
 
-    // Sort and write output
-    const sorted = sortByNumericKey(skillNames);
+    // Merge with existing data (unless replace mode)
     const outputPath = path.join(
       process.cwd(),
       'src/modules/data/skillnames.json',
     );
 
+    let finalSkillNames: Record<string, SkillNamesEntry>;
+
+    if (replaceMode) {
+      finalSkillNames = skillNames;
+      console.log(`\n⚠️  Full replacement mode: ${Object.keys(skillNames).length} skill names from master.mdb only`);
+    } else {
+      const existingFile = Bun.file(outputPath);
+
+      if (await existingFile.exists()) {
+        const existingData = await existingFile.json();
+        const existingCount = Object.keys(existingData).length;
+        const newCount = Object.keys(skillNames).length;
+
+        // Merge: existing data first, then overwrite with new data
+        finalSkillNames = { ...existingData, ...skillNames };
+
+        const finalCount = Object.keys(finalSkillNames).length;
+        const preserved = finalCount - newCount;
+
+        console.log(`\n✓ Merge mode:`);
+        console.log(`  → ${newCount} skill names from master.mdb (current content)`);
+        console.log(`  → ${preserved} additional skill names preserved (future content)`);
+        console.log(`  → ${finalCount} total skill names`);
+      } else {
+        finalSkillNames = skillNames;
+        console.log(`\n✓ No existing file found, using master.mdb data only`);
+      }
+    }
+
+    // Sort and write output
+    const sorted = sortByNumericKey(finalSkillNames);
     await writeJsonFile(outputPath, sorted);
-    console.log(`✓ Written to ${outputPath}`);
-    console.log(
-      `✓ Total skill names: ${Object.keys(sorted).length} (including inherited versions)`,
-    );
+    console.log(`\n✓ Written to ${outputPath}`);
   } finally {
     closeDatabase(db);
   }

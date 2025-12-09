@@ -9,16 +9,23 @@ TypeScript-based data extraction scripts using Bun's native SQLite support. Thes
 
 ## Quick Start
 
-Extract all data at once:
+**Default behavior (Merge Mode - Recommended)**:
 
 ```bash
 bun run extract:all
 ```
 
-If you have `master.mdb` in a local `db/` directory, the scripts will automatically find it! Otherwise, pass the path as an argument:
+This will:
+- ✅ Update entries from `master.mdb` (current game content)
+- ✅ **Preserve** entries not in master.mdb (future/datamined content from gametora)
+- ✅ Automatically find `db/master.mdb` if it exists
+
+**Full replacement mode** (wipes future content):
 
 ```bash
-bun run extract:all /path/to/master.mdb
+bun run extract:all --replace
+# or
+bun run extract:all --full
 ```
 
 Or run individual extraction scripts:
@@ -73,6 +80,38 @@ All scripts also accept a custom database path as the first argument:
 bun scripts/extract-skill-meta.ts /path/to/master.mdb
 ```
 
+## Merge vs Replace Mode
+
+### Merge Mode (Default) ✅
+
+**What it does:**
+- Reads existing JSON files
+- Updates entries that exist in `master.mdb` (current game content)
+- **Preserves** entries only in existing files (future/datamined content)
+
+**When to use:**
+- Regular updates after game patches
+- Keeping future content from gametora while updating current content
+- Safe default for most workflows
+
+### Replace Mode ⚠️
+
+**What it does:**
+- Completely replaces JSON files with only `master.mdb` content
+- **Removes** all future/datamined content
+
+**When to use:**
+- Fresh start from scratch
+- Cleaning up corrupted data
+- When you explicitly want only current game content
+
+**How to use:**
+```bash
+bun run extract:all --replace
+# or
+bun run extract:skill-data --full
+```
+
 ## Scripts Overview
 
 ### extract-skill-meta.ts
@@ -81,11 +120,12 @@ Extracts skill metadata (group ID, icon ID, SP cost, display order).
 
 **Output:** `src/modules/data/skill_meta.json`
 
+**Default:** Merge mode (preserves future content)
+
 **Usage:**
 ```bash
-bun run extract:skill-meta
-# or
-bun scripts/extract-skill-meta.ts [path/to/master.mdb]
+bun run extract:skill-meta              # Merge mode (default)
+bun run extract:skill-meta --replace    # Full replacement
 ```
 
 ### extract-skillnames.ts
@@ -94,11 +134,12 @@ Extracts skill names in English and Japanese. Automatically generates inherited 
 
 **Output:** `src/modules/data/skillnames.json`
 
+**Default:** Merge mode (preserves future content)
+
 **Usage:**
 ```bash
-bun run extract:skillnames
-# or
-bun scripts/extract-skillnames.ts [path/to/master.mdb]
+bun run extract:skillnames              # Merge mode (default)
+bun run extract:skillnames --replace    # Full replacement
 ```
 
 ### extract-skill-data.ts
@@ -106,6 +147,8 @@ bun scripts/extract-skillnames.ts [path/to/master.mdb]
 Extracts skill mechanics (conditions, effects, durations). Applies scenario skill modifiers and handles special cases like Seirios split alternatives.
 
 **Output:** `src/modules/data/skill_data.json`
+
+**Default:** Merge mode (preserves future content)
 
 **Features:**
 - Applies 1.2x modifier to scenario skills
@@ -115,9 +158,8 @@ Extracts skill mechanics (conditions, effects, durations). Applies scenario skil
 
 **Usage:**
 ```bash
-bun run extract:skill-data
-# or
-bun scripts/extract-skill-data.ts [path/to/master.mdb]
+bun run extract:skill-data              # Merge mode (default)
+bun run extract:skill-data --replace    # Full replacement
 ```
 
 ### extract-uma-info.ts
@@ -126,15 +168,15 @@ Extracts uma musume character data (names, outfits). Filters out unimplemented u
 
 **Output:** `src/modules/data/umas.json`
 
+**Default:** Merge mode (preserves future content)
+
 **Requirements:**
 - Reads existing `skill_meta.json` for filtering
-- Reads existing `umas.json` as base
 
 **Usage:**
 ```bash
-bun run extract:uma-info
-# or
-bun scripts/extract-uma-info.ts [path/to/master.mdb]
+bun run extract:uma-info              # Merge mode (default)
+bun run extract:uma-info --replace    # Full replacement
 ```
 
 ### extract-course-data.ts
@@ -143,15 +185,16 @@ Extracts course/track data including geometry (corners, straights, slopes).
 
 **Output:** `src/modules/data/course_data.json`
 
+**Default:** Merge mode (preserves future content)
+
 **Requirements:**
 - Requires `courseeventparams/` directory with course geometry JSON files
 - Pass courseeventparams path as second argument if not in default location
 
 **Usage:**
 ```bash
-bun run extract:course-data
-# or
-bun scripts/extract-course-data.ts [path/to/master.mdb] [path/to/courseeventparams]
+bun run extract:course-data              # Merge mode (default)
+bun run extract:course-data --replace    # Full replacement
 ```
 
 **Special Cases:**
@@ -163,15 +206,17 @@ bun scripts/extract-course-data.ts [path/to/master.mdb] [path/to/courseeventpara
 
 Master script that runs all extraction scripts in sequence.
 
+**Default:** Merge mode (preserves future content)
+
 **Usage:**
 ```bash
-bun run extract:all
-# or
-bun scripts/extract-all.ts [path/to/master.mdb]
+bun run extract:all              # Merge mode (default)
+bun run extract:all --replace    # Full replacement
 ```
 
 **Features:**
 - Runs all extractions sequentially
+- Merge mode preserves future/datamined content by default
 - Error handling with summary report
 - Progress indicators
 - Exits with error if any extraction fails

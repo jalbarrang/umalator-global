@@ -88,9 +88,11 @@ async function extractCourseData() {
   console.log('📖 Extracting course data...\n');
 
   const dbPath = await resolveMasterDbPath();
+  const replaceMode = process.argv.includes('--replace') || process.argv.includes('--full');
   const courseEventParamsPath =
     process.argv[3] || path.join(process.cwd(), 'courseeventparams');
 
+  console.log(`Mode: ${replaceMode ? '⚠️  Full Replacement' : '✓ Merge (preserves future content)'}`);
   console.log(`Database: ${dbPath}`);
   console.log(`Course event params: ${courseEventParamsPath}\n`);
 
@@ -230,16 +232,44 @@ async function extractCourseData() {
       processedCount++;
     }
 
-    // Sort and write output
-    const sorted = sortByNumericKey(courses);
+    // Merge with existing data (unless replace mode)
     const outputPath = path.join(
       process.cwd(),
       'src/modules/data/course_data.json',
     );
 
+    let finalCourses: Record<string, CourseData>;
+
+    if (replaceMode) {
+      finalCourses = courses;
+      console.log(`\n⚠️  Full replacement mode: ${processedCount} courses from master.mdb only`);
+    } else {
+      const existingFile = Bun.file(outputPath);
+
+      if (await existingFile.exists()) {
+        const existingData = await existingFile.json();
+        const existingCount = Object.keys(existingData).length;
+
+        // Merge: existing data first, then overwrite with new data
+        finalCourses = { ...existingData, ...courses };
+
+        const finalCount = Object.keys(finalCourses).length;
+        const preserved = finalCount - processedCount;
+
+        console.log(`\n✓ Merge mode:`);
+        console.log(`  → ${processedCount} courses from master.mdb (current content)`);
+        console.log(`  → ${preserved} additional courses preserved (future content)`);
+        console.log(`  → ${finalCount} total courses`);
+      } else {
+        finalCourses = courses;
+        console.log(`\n✓ No existing file found, using master.mdb data only`);
+      }
+    }
+
+    // Sort and write output
+    const sorted = sortByNumericKey(finalCourses);
     await writeJsonFile(outputPath, sorted);
-    console.log(`✓ Written to ${outputPath}`);
-    console.log(`✓ Total courses: ${processedCount}`);
+    console.log(`\n✓ Written to ${outputPath}`);
   } finally {
     closeDatabase(db);
   }
