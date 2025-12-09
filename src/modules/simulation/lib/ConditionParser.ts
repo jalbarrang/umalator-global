@@ -113,7 +113,7 @@ export function getParser<ConditionT = Condition, OperatorT = Operator>(
     ) => OperatorT,
   },
 ) {
-  const Eof = Object.freeze({
+  const endOfFile = {
     lbp: 0,
     led: (
       _state: ParserState<ConditionT, OperatorT>,
@@ -126,7 +126,7 @@ export function getParser<ConditionT = Condition, OperatorT = Operator>(
     ): Node<ConditionT, OperatorT> => {
       throw new ParseError('unexpected eof');
     },
-  });
+  };
 
   class Identifier implements Token<ConditionT, OperatorT> {
     lbp = 0;
@@ -215,36 +215,39 @@ export function getParser<ConditionT = Condition, OperatorT = Operator>(
     }
   }
 
-  const OperatorEq = Object.freeze(new CmpOp(30, operators.eq));
-  const OperatorNeq = Object.freeze(new CmpOp(30, operators.neq));
-  const OperatorLt = Object.freeze(new CmpOp(30, operators.lt));
-  const OperatorLte = Object.freeze(new CmpOp(30, operators.lte));
-  const OperatorGt = Object.freeze(new CmpOp(30, operators.gt));
-  const OperatorGte = Object.freeze(new CmpOp(30, operators.gte));
-
-  const OperatorAnd = Object.freeze(new LogicalOp(20, operators.and));
-
-  const OperatorOr = Object.freeze(new LogicalOp(10, operators.or));
+  const OperatorEq = new CmpOp(30, operators.eq);
+  const OperatorNeq = new CmpOp(30, operators.neq);
+  const OperatorLt = new CmpOp(30, operators.lt);
+  const OperatorLte = new CmpOp(30, operators.lte);
+  const OperatorGt = new CmpOp(30, operators.gt);
+  const OperatorGte = new CmpOp(30, operators.gte);
+  const OperatorAnd = new LogicalOp(20, operators.and);
+  const OperatorOr = new LogicalOp(10, operators.or);
 
   function* tokenize(s: string) {
     let i = 0;
     while (i < s.length) {
       let c = s.charCodeAt(i);
+
       if ('0'.charCodeAt(0) <= c && c <= '9'.charCodeAt(0)) {
         let n = 0;
+
         while ('0'.charCodeAt(0) <= c && c <= '9'.charCodeAt(0)) {
           n *= 10;
           n += c - '0'.charCodeAt(0);
           c = s.charCodeAt(++i);
         }
+
         yield new IntValue<ConditionT, OperatorT>(n);
       } else if (isId(c)) {
         const idstart = i;
+
         while (isId(c)) {
           c = s.charCodeAt(++i);
         }
+
         yield new Identifier(s.slice(idstart, i));
-      } else
+      } else {
         switch (s[i]) {
           case '=':
             if (s[++i] != '=') throw new ParseError('expected =');
@@ -283,8 +286,10 @@ export function getParser<ConditionT = Condition, OperatorT = Operator>(
           default:
             throw new ParseError('invalid character');
         }
+      }
     }
-    return Eof;
+
+    return endOfFile;
   }
 
   function parseAny(
@@ -293,7 +298,12 @@ export function getParser<ConditionT = Condition, OperatorT = Operator>(
       Token<ConditionT, OperatorT>
     >,
   ) {
-    const state = { current: Eof, next: tokens.next().value, tokens: tokens };
+    const state = {
+      current: endOfFile,
+      next: tokens.next().value,
+      tokens: tokens,
+    };
+
     return expression(state, 0);
   }
 
@@ -323,12 +333,15 @@ export function getParser<ConditionT = Condition, OperatorT = Operator>(
   function expression(state: ParserState<ConditionT, OperatorT>, rbp: number) {
     state.current = state.next;
     state.next = state.tokens.next().value;
+
     let left = state.current.nud(state);
+
     while (rbp < state.next.lbp) {
       state.current = state.next;
       state.next = state.tokens.next().value;
       left = state.current.led(state, left);
     }
+
     return left;
   }
 

@@ -320,23 +320,22 @@ function noop(
   return regions;
 }
 
-const noopAll = Object.freeze({
+const noopAll: Omit<Condition, 'samplePolicy'> = {
   filterEq: noop,
   filterNeq: noop,
   filterLt: noop,
   filterLte: noop,
   filterGt: noop,
   filterGte: noop,
-});
+};
 
-export const noopImmediate = Object.freeze(
-  Object.assign({ samplePolicy: ImmediatePolicy }, noopAll),
-);
-export const noopRandom = Object.freeze(
-  Object.assign({ samplePolicy: RandomPolicy }, noopAll),
-);
+export const noopImmediate: Condition = {
+  ...noopAll,
+  samplePolicy: ImmediatePolicy,
+};
+export const noopRandom: Condition = { ...noopAll, samplePolicy: RandomPolicy };
 
-const defaultImmediate = Object.freeze({
+const defaultImmediate: Condition = {
   samplePolicy: ImmediatePolicy,
   filterEq: notSupported,
   filterNeq: notSupported,
@@ -344,13 +343,13 @@ const defaultImmediate = Object.freeze({
   filterLte: notSupported,
   filterGt: notSupported,
   filterGte: notSupported,
-});
+};
 
-export function immediate(o: Partial<Condition>) {
-  return Object.assign({}, defaultImmediate, o);
+export function immediate(other: Partial<Condition>): Condition {
+  return { ...defaultImmediate, ...other };
 }
 
-const defaultRandom = Object.freeze({
+const defaultRandom: Condition = {
   samplePolicy: RandomPolicy,
   filterEq: notSupported,
   filterNeq: notSupported,
@@ -358,59 +357,70 @@ const defaultRandom = Object.freeze({
   filterLte: notSupported,
   filterGt: notSupported,
   filterGte: notSupported,
-});
+};
 
-export function random(o: Partial<Condition>) {
-  return Object.assign({}, defaultRandom, o);
-}
+export const random = (other: Partial<Condition>): Condition => {
+  return { ...defaultRandom, ...other };
+};
+
+type DistributionRandomPolicyConstructor<Ts extends unknown[]> = new (
+  ...args: Ts
+) => DistributionRandomPolicy;
 
 // ive tried various things to make this return a [xRandom,noopXRandom] pair but seem to run into some typescript bugs
 // or something
 // it doesnt really make sense to me
-function distributionRandomFactory<Ts extends unknown[]>(
-  cls: new (...args: Ts) => DistributionRandomPolicy,
-) {
+const distributionRandomFactory = <Ts extends unknown[]>(
+  cls: DistributionRandomPolicyConstructor<Ts>,
+) => {
   const cache = Object.create(null);
-  return function (...args: [...clsArgs: Ts, o: Partial<Condition>]) {
-    const o = args.pop();
+
+  return (...args: [...clsArgs: Ts, condition: Partial<Condition>]) => {
+    const condition = args.pop() as Partial<Condition>;
     const key = args.join(',');
+
     // we know that after pop() args is just Ts but typescript doesn't, hence the cast
-    const policy =
-      key in cache
-        ? cache[key]
-        : (cache[key] = Object.freeze(new cls(...(args as unknown as Ts))));
-    return Object.assign(
-      {
-        samplePolicy: policy,
-        filterEq: notSupported,
-        filterNeq: notSupported,
-        filterLt: notSupported,
-        filterLte: notSupported,
-        filterGt: notSupported,
-        filterGte: notSupported,
-      },
-      o,
-    );
+
+    let policy: DistributionRandomPolicy;
+    if (cache[key]) {
+      policy = cache[key];
+    } else {
+      policy = new cls(...(args as unknown as Ts));
+      cache[key] = policy;
+    }
+
+    const notSupportedCondition: Condition = {
+      samplePolicy: policy,
+      filterEq: notSupported,
+      filterNeq: notSupported,
+      filterLt: notSupported,
+      filterLte: notSupported,
+      filterGt: notSupported,
+      filterGte: notSupported,
+    };
+
+    return { ...notSupportedCondition, ...condition };
   };
-}
+};
 
 export const logNormalRandom = distributionRandomFactory(LogNormalRandomPolicy);
 export const erlangRandom = distributionRandomFactory(ErlangRandomPolicy);
 export const uniformRandom = distributionRandomFactory(UniformRandomPolicy);
 
-export function noopLogNormalRandom(mu: number, sigma: number) {
+export const noopLogNormalRandom = (mu: number, sigma: number) => {
   return logNormalRandom(mu, sigma, noopAll);
-}
+};
 
-export function noopErlangRandom(k: number, lambda: number) {
+export const noopErlangRandom = (k: number, lambda: number) => {
   return erlangRandom(k, lambda, noopAll);
-}
+};
 
 export const noopUniformRandom = uniformRandom(noopAll);
 
 /**
  * Old: This is a hack to prevnt skills like Dodging Danger from activating 0s into the race when their condition is >=1s
  * 13m/s * time is *not* accurate beyond 1s but it's a good enough approximation to appropriately delay skill activation
+ *
  * ====
  * New: Shifts skill activation regions forward to prevent skills with time conditions
  * (e.g. >=1s) from incorrectly activating at race start (0s).
@@ -753,7 +763,7 @@ function orderOutFilter(rate: number) {
 	temptation_count_behind, temptation_count_infront, track_id, up_slope_random, weather
 */
 
-export const Conditions: { [cond: string]: Condition } = Object.freeze({
+export const Conditions: { [cond: string]: Condition } = {
   accumulatetime: immediate({
     filterGte(
       regions: RegionList,
@@ -2061,4 +2071,4 @@ export const Conditions: { [cond: string]: Condition } = Object.freeze({
     (_0: CourseData, _1: HorseParameters, extra: RaceParameters) =>
       extra.weather,
   ),
-});
+};

@@ -3,16 +3,19 @@ import { useRunnersStore } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
 import { useRaceStore } from '@simulation/stores/compare.store';
 import { getCourseById } from '@/modules/racetrack/courses';
+
+import { StaminaCard } from './stamina/components';
+import { useStaminaAnalysis } from './stamina/hooks/useStaminaAnalysis';
 import {
-  useStaminaAnalysis,
-  useActualRecoverySkills,
-  useTheoreticalRecoverySkills,
   useActualDebuffsReceived,
+  useActualRecoverySkills,
   useTheoreticalDebuffsReceived,
+  useTheoreticalRecoverySkills,
+} from './stamina/hooks/useRecoverySkills';
+import {
   useActualPhaseHp,
   useTheoreticalPhaseHp,
-} from './stamina/hooks';
-import { StaminaCard } from './stamina/components';
+} from './stamina/hooks/usePhaseHp';
 
 export const StaminaTab = () => {
   const { uma1, uma2 } = useRunnersStore();

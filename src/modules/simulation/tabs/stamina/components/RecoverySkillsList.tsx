@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { RecoverySkillActivation } from '../hooks';
+import { RecoverySkillActivation } from '../hooks/useRecoverySkills';
 
 interface RecoverySkillsListProps {
   recoverySkills: RecoverySkillActivation[];

@@ -16,19 +16,19 @@ import { CourseData, Phase } from './CourseData';
 import { GroundCondition } from './RaceParameters';
 import { PRNG } from './Random';
 
-const HpStrategyCoefficient = Object.freeze([0, 0.95, 0.89, 1.0, 0.995, 0.86]);
-const HpConsumptionGroundModifier = Object.freeze(
-  [[], [0, 1.0, 1.0, 1.02, 1.02], [0, 1.0, 1.0, 1.01, 1.02]].map((o) =>
-    Object.freeze(o),
-  ),
-);
+export const HpStrategyCoefficient = [0, 0.95, 0.89, 1.0, 0.995, 0.86] as const;
+export const HpConsumptionGroundModifier = [
+  [],
+  [0, 1.0, 1.0, 1.02, 1.02],
+  [0, 1.0, 1.0, 1.01, 1.02],
+] as const;
 
-interface SpurtParameters {
+type SpurtParameters = {
   distance: number;
   speed: number;
   spDiff: number;
   time: number;
-}
+};
 
 export class EnhancedHpPolicy {
   distance: number;

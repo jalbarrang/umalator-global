@@ -25,7 +25,7 @@ export interface ActivationSamplePolicy {
   ): ActivationSamplePolicy;
 }
 
-export const ImmediatePolicy = Object.freeze({
+export const ImmediatePolicy = {
   sample(regions: RegionList, _0: number, _1: PRNG) {
     return regions.slice(0, 1);
   },
@@ -47,9 +47,9 @@ export const ImmediatePolicy = Object.freeze({
   reconcileAllCornerRandom(other: ActivationSamplePolicy) {
     return other;
   },
-});
+};
 
-export const RandomPolicy = Object.freeze({
+export const RandomPolicy = {
   sample(regions: RegionList, nsamples: number, rng: PRNG) {
     if (regions.length == 0) {
       return [];
@@ -82,7 +82,7 @@ export const RandomPolicy = Object.freeze({
   reconcileAllCornerRandom(other: ActivationSamplePolicy) {
     return other;
   },
-});
+};
 
 export abstract class DistributionRandomPolicy {
   abstract distribution(upper: number, nsamples: number, rng: PRNG): number[];
@@ -221,7 +221,7 @@ export class ErlangRandomPolicy extends DistributionRandomPolicy {
   }
 }
 
-export const StraightRandomPolicy = Object.freeze({
+export const StraightRandomPolicy = {
   sample(regions: RegionList, nsamples: number, rng: PRNG) {
     // regular RandomPolicy weights regions by their length, so any given point has an equal chance to be chosen across all regions
     // StraightRandomPolicy first picks a region with equal chance regardless of length, and then picks a random point on that region
@@ -255,9 +255,9 @@ export const StraightRandomPolicy = Object.freeze({
       'cannot reconcile StraightRandomPolicy with AllCornerRandomPolicy',
     );
   },
-});
+};
 
-export const AllCornerRandomPolicy = Object.freeze({
+export const AllCornerRandomPolicy = {
   placeTriggers(regions: RegionList, rng: PRNG) {
     const triggers = [];
     const candidates = regions.slice();
@@ -306,7 +306,7 @@ export const AllCornerRandomPolicy = Object.freeze({
   reconcileAllCornerRandom(_: ActivationSamplePolicy) {
     return this;
   },
-});
+};
 
 /**
  * Creates a fixed position sample policy that forces a skill to activate at a specific distance.
@@ -317,7 +317,7 @@ export const AllCornerRandomPolicy = Object.freeze({
 export function createFixedPositionPolicy(
   position: number,
 ): ActivationSamplePolicy {
-  return Object.freeze({
+  return {
     sample(_regions: RegionList, nsamples: number, _rng: PRNG) {
       // Always return the same fixed position for all samples
       const samples = [];
@@ -344,5 +344,5 @@ export function createFixedPositionPolicy(
     reconcileAllCornerRandom(_: ActivationSamplePolicy) {
       return this;
     },
-  });
+  };
 }

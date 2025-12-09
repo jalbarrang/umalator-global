@@ -4,7 +4,7 @@ import {
   SelectItem,
   SelectTrigger,
 } from '@/components/ui/select';
-import { APTITUDES } from '@/modules/runners/constants';
+import { Aptitude } from '@/modules/simulation/lib/HorseTypes';
 
 type AptitudeSelectProps = {
   value: string;
@@ -12,16 +12,22 @@ type AptitudeSelectProps = {
 };
 
 export const AptitudeSelect = (props: AptitudeSelectProps) => {
+  const { value, onChange } = props;
+
+  const handleChange = (newValue: string) => {
+    onChange(newValue);
+  };
+
   return (
-    <Select value={props.value} onValueChange={props.onChange}>
+    <Select value={value.toString()} onValueChange={handleChange}>
       <SelectTrigger className="border-none rounded-none shadow-none">
-        <AptitudeIcon aptitude={props.value} className="w-4 h-4" />
+        <AptitudeIcon aptitude={value} className="w-4 h-4" />
       </SelectTrigger>
 
       <SelectContent>
-        {APTITUDES.map((aptitude) => (
-          <SelectItem key={aptitude} value={aptitude}>
-            <AptitudeIcon aptitude={aptitude} className="w-4 h-4" />
+        {Object.keys(Aptitude).map((key) => (
+          <SelectItem key={key} value={key}>
+            <AptitudeIcon aptitude={key} className="w-4 h-4" />
           </SelectItem>
         ))}
       </SelectContent>
@@ -35,7 +41,7 @@ type AptitudeIconProps = {
 };
 
 export function AptitudeIcon(props: AptitudeIconProps) {
-  const idx = 7 - APTITUDES.indexOf(props.aptitude);
+  const idx = 7 - Aptitude[props.aptitude];
 
   return (
     <img

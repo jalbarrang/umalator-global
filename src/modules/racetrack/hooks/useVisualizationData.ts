@@ -10,7 +10,7 @@ import {
   posKeepColors,
   rushedColors,
 } from '@/utils/colors';
-import { NO_SHOW } from '@/utils/constants';
+import { hiddenSkills } from '@/utils/constants';
 import { PosKeepLabel } from '@/utils/races';
 import skillnames from '@data/skillnames.json';
 import { CourseHelpers } from '@simulation/lib/CourseData';
@@ -67,7 +67,7 @@ export const useVisualizationData = () => {
       for (const [skillId, activations] of umaActivations.entries()) {
         const skillMeta = getSkillMetaById(skillId);
 
-        if (NO_SHOW.indexOf(skillMeta.iconId) > -1) {
+        if (hiddenSkills.indexOf(skillMeta.iconId) > -1) {
           continue;
         }
 

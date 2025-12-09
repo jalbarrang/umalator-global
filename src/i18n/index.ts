@@ -53,12 +53,12 @@ const definitions = {
     translation: {
       ...skills_ja,
       tracknames: TRACKNAMES_ja,
-      racetrack: Object.freeze({
-        none: '​',
+      racetrack: {
+        none: '',
         inner: ' （内）',
         outer: ' （外）',
         outin: ' （外→内）',
-        orientation: Object.freeze(['', '右', '左', '', '直']),
+        orientation: ['', '右', '左', '', '直'],
         turf: '芝',
         dirt: 'ダート',
         straight: '直線',
@@ -69,16 +69,19 @@ const definitions = {
         phase1: '中盤',
         phase2: '終盤',
         phase3: 'ラストスパート',
-        short: Object.freeze({
+        short: {
           straight: '直',
           corner: 'コ{{n}}',
           uphill: '上',
           downhill: '下',
-        }),
-      }),
-      coursedesc: '{{distance}}m{{inout}}',
-      coursedesc_one: '{{distance}}m{{inout}}',
-      coursedesc_other: '{{surface}} {{distance}}m{{inout}}',
+        },
+        sprint: 'スプリント',
+        mile: 'マイル',
+        medium: '中距離',
+        long: '長距離',
+      },
+      coursedesc:
+        '{{surface}} {{distance}}m ({{distanceCategory}}) {{orientation}} / {{inout}}',
     },
   },
 };

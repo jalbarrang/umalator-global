@@ -1,21 +1,21 @@
 import { getPresets } from './races';
+import { dayjs } from './time';
 
 const presets = getPresets();
 
-const DEFAULT_PRESET_INDEX = Math.max(
-  presets.findIndex(
-    (p) =>
-      new Date(p.date.getFullYear(), p.date.getUTCMonth() + 1, 0) < new Date(),
-  ) - 1,
-  0,
-);
+const currentDate = dayjs();
+const currentPresetIndex =
+  presets.findIndex((p) => dayjs(p.date).endOf('month').isBefore(currentDate)) -
+  1;
+const DEFAULT_PRESET_INDEX = Math.max(currentPresetIndex, 0);
+
 export const DEFAULT_PRESET = presets[DEFAULT_PRESET_INDEX];
 
 export const DEFAULT_SAMPLES = 500;
 export const DEFAULT_SEED = 2615953739;
 export const DEFAULT_COURSE_ID = DEFAULT_PRESET.courseId;
 
-export const NO_SHOW = Object.freeze([
+export const hiddenSkills: readonly string[] = [
   '10011',
   '10012',
   '10016',
@@ -38,4 +38,4 @@ export const NO_SHOW = Object.freeze([
   '20061',
   '20062',
   '20066',
-]);
+];

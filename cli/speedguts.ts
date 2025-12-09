@@ -56,9 +56,7 @@ const seed = 1;
 const dt = 1 / 60;
 
 const course = CourseHelpers.getCourse(opts.course);
-const desc = Object.freeze(
-  JSON.parse(fs.readFileSync(program.args[0], 'utf8')),
-);
+const desc = JSON.parse(fs.readFileSync(program.args[0], 'utf8'));
 
 function buildSolver(speed: number, guts: number) {
   const b = new RaceSolverBuilder(1)

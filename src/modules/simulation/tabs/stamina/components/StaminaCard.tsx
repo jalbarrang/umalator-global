@@ -3,17 +3,16 @@ import { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { parseStrategy } from '@simulation/lib/RaceSolverBuilder';
 import { getCourseById } from '@/modules/racetrack/courses';
 import { useSettingsStore } from '@/store/settings.store';
-import {
-  StaminaAnalysis,
-  HpStrategyCoefficient,
-  RecoverySkillActivation,
-  ActualPhaseHp,
-} from '../hooks';
+
 import { RecoverySkillsList } from './RecoverySkillsList';
 import { PhaseBreakdown } from './PhaseBreakdown';
 import { Calculator, Activity } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { useMemo } from 'react';
+import { StaminaAnalysis } from '../hooks/useStaminaAnalysis';
+import { RecoverySkillActivation } from '../hooks/useRecoverySkills';
+import { ActualPhaseHp } from '../hooks/usePhaseHp';
+import { HpStrategyCoefficient } from '@/modules/simulation/lib/HpPolicy';
 
 interface StaminaCardProps {
   runner: RunnerState;

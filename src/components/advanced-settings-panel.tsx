@@ -1,5 +1,4 @@
 import {
-  setPosKeepMode,
   setSamples,
   setSeed,
   setWitVariance,
@@ -7,29 +6,13 @@ import {
   useWitVariance,
   WitVarianceSettings,
 } from '@/store/settings.store';
-import {
-  getSelectedPacemakerIndices,
-  setPacemakerCount,
-  togglePacemakerSelection,
-} from '@/store/settings/actions';
-import {
-  setIsPacemakerDropdownOpen,
-  setRunOnceCounter,
-  useUIStore,
-} from '@/store/ui.store';
-import { PosKeepMode } from '@simulation/lib/RaceSolver';
+import { setRunOnceCounter } from '@/store/ui.store';
+
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { DicesIcon } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import {
   Panel,
   PanelContent,
@@ -37,6 +20,7 @@ import {
   PanelTitle,
 } from '@/components/ui/panel';
 import { Separator } from '@/components/ui/separator';
+import { PositionKeepSettings } from './position-keeps/position-keep-settings';
 
 const WitVarianceSettingRow = ({
   label,
@@ -91,8 +75,7 @@ const WitVarianceSettingRow = ({
 );
 
 export const AdvancedSettingsPanel = () => {
-  const { isPacemakerDropdownOpen } = useUIStore();
-  const { nsamples, seed, posKeepMode, pacemakerCount } = useSettingsStore();
+  const { nsamples, seed } = useSettingsStore();
   const witVarianceSettings = useWitVariance();
 
   const handleSimWitVarianceToggle = () => {
@@ -102,8 +85,6 @@ export const AdvancedSettingsPanel = () => {
   const toggleWitVarianceSetting = (setting: keyof WitVarianceSettings) => {
     setWitVariance({ [setting]: !witVarianceSettings[setting] });
   };
-
-  const selectedPacemakerIndices = getSelectedPacemakerIndices();
 
   const handleSeedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSeed(parseInt(e.target.value));
@@ -166,102 +147,7 @@ export const AdvancedSettingsPanel = () => {
         <Separator />
 
         {/* Position Keep */}
-        <div className="flex flex-col gap-2">
-          <Label className="text-sm font-semibold">Position Keep</Label>
-
-          <Select
-            value={posKeepMode.toString()}
-            onValueChange={(value) => setPosKeepMode(+value)}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={PosKeepMode.None.toString()}>None</SelectItem>
-              <SelectItem value={PosKeepMode.Approximate.toString()}>
-                Approximate
-              </SelectItem>
-              <SelectItem value={PosKeepMode.Virtual.toString()}>
-                Virtual Pacemaker
-              </SelectItem>
-            </SelectContent>
-          </Select>
-
-          {posKeepMode === PosKeepMode.Approximate && (
-            <p className="text-xs text-muted-foreground">
-              Using default pacemaker
-            </p>
-          )}
-
-          {posKeepMode === PosKeepMode.Virtual && (
-            <div className="flex flex-col gap-3 mt-2 pl-2 border-l-2 border-muted">
-              <div>
-                <Label className="text-xs">Show Pacemakers:</Label>
-                <div className="pacemaker-combobox mt-1">
-                  <button
-                    className="pacemaker-combobox-button"
-                    onClick={() =>
-                      setIsPacemakerDropdownOpen(!isPacemakerDropdownOpen)
-                    }
-                  >
-                    {selectedPacemakerIndices.length === 0
-                      ? 'None'
-                      : selectedPacemakerIndices.length === 1
-                        ? `Pacemaker ${selectedPacemakerIndices[0] + 1}`
-                        : selectedPacemakerIndices.length === pacemakerCount
-                          ? 'All Pacemakers'
-                          : `${selectedPacemakerIndices.length} Pacemakers`}
-                    <span className="pacemaker-combobox-arrow">▼</span>
-                  </button>
-
-                  {isPacemakerDropdownOpen && (
-                    <div className="pacemaker-combobox-dropdown">
-                      {[...Array(pacemakerCount)].map((_, index) => (
-                        <label
-                          key={index}
-                          className="pacemaker-combobox-option"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={selectedPacemakerIndices.includes(index)}
-                            onChange={() => togglePacemakerSelection(index)}
-                          />
-                          <span
-                            style={{
-                              color:
-                                index === 0
-                                  ? '#22c55e'
-                                  : index === 1
-                                    ? '#a855f7'
-                                    : '#ec4899',
-                            }}
-                          >
-                            Pacemaker {index + 1}
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="pacemakercount" className="text-xs">
-                  Number of pacemakers: {pacemakerCount}
-                </Label>
-                <input
-                  type="range"
-                  id="pacemakercount"
-                  min="1"
-                  max="3"
-                  value={pacemakerCount}
-                  onInput={(e) => setPacemakerCount(+e.currentTarget.value)}
-                  className="w-full mt-1"
-                />
-              </div>
-            </div>
-          )}
-        </div>
+        <PositionKeepSettings />
 
         <Separator />
 

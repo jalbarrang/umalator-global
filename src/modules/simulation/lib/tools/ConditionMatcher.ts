@@ -90,7 +90,7 @@ export function treeMatch(match: Node, tree: Operator) {
   }
 }
 
-const mockSamplePolicy = Object.freeze({
+const mockSamplePolicy = {
   sample(_0, _1) {
     throw new Error('Not implemented');
   },
@@ -112,7 +112,8 @@ const mockSamplePolicy = Object.freeze({
   reconcileAllCornerRandom(_) {
     return this;
   },
-});
+};
+
 export const mockConditions = new Proxy(
   {},
   {

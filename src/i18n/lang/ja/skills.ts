@@ -2,7 +2,7 @@ import { translateSkillNamesForLang } from '@/modules/skills/utils';
 
 export default {
   skillnames: translateSkillNamesForLang('ja'),
-  skillfilters: Object.freeze({
+  skillfilters: {
     search: 'スキル名または発動条件で検索',
     white: '白スキル',
     gold: '金スキル',
@@ -25,8 +25,8 @@ export default {
     phase3: 'ラストスパート',
     finalcorner: '最終コーナー',
     finalstraight: '最終直線',
-  }),
-  skilleffecttypes: Object.freeze({
+  },
+  skilleffecttypes: {
     '1': 'スピードアップ',
     '2': 'スタミナアップ',
     '3': 'パワーアップ',
@@ -40,17 +40,17 @@ export default {
     '31': '加速',
     '37': 'Activate random gold skill',
     '42': 'スキルの効果時間上がり',
-  }),
-  skilldetails: Object.freeze({
+  },
+  skilldetails: {
     accel: '{{n}}m/s²',
     basinn: '{{n}}バ身',
     conditions: '発動条件',
-    distance_type: Object.freeze(['', '短距離', 'マイル', '中距離', '長距離']),
+    distance_type: ['', '短距離', 'マイル', '中距離', '長距離'],
     baseduration: '基準持続時間',
-    effectiveduration: '効果時間（{{distance}}m）',
+    effectiveduration: '効果時間（{{distance}}m)',
     durationincrease: '{{n}}倍',
     effects: '効果',
-    grade: Object.freeze({
+    grade: {
       100: 'G1',
       200: 'G2',
       300: 'G3',
@@ -59,21 +59,21 @@ export default {
       800: 'Maiden',
       900: 'デビュー',
       999: '毎日',
-    }),
-    ground_condition: Object.freeze(['', '良', '稍重', '重', '不良']),
-    ground_type: Object.freeze(['', '芝', 'ダート']),
+    },
+    ground_condition: ['', '良', '稍重', '重', '不良'],
+    ground_type: ['', '芝', 'ダート'],
     id: 'ID: ',
     meters: '{{n}}m',
-    motivation: Object.freeze(['', '絶不調', '不調', '普通', '好調', '絶好調']),
+    motivation: ['', '絶不調', '不調', '普通', '好調', '絶好調'],
     order_rate: 'チャンミ：{{cm}}、リグヒ：{{loh}}',
     preconditions: '前提条件',
-    rotation: Object.freeze(['', '右回り', '左回り']),
-    running_style: Object.freeze(['', '逃げ', '先行', '差し', '追込']),
-    season: Object.freeze(['', '早春', '夏', '秋', '冬', '春']),
+    rotation: ['', '右回り', '左回り'],
+    running_style: ['', '逃げ', '先行', '差し', '追込'],
+    season: ['', '早春', '夏', '秋', '冬', '春'],
     seconds: '{{n}}s',
-    slope: Object.freeze(['平地', '上り坂', '下り坂']),
+    slope: ['平地', '上り坂', '下り坂'],
     speed: '{{n}}m/s',
-    time: Object.freeze(['', '朝', '昼', '夕方', '夜']),
-    weather: Object.freeze(['', '晴れ', '曇り', '雨', '雪']),
-  }),
+    time: ['', '朝', '昼', '夕方', '夜'],
+    weather: ['', '晴れ', '曇り', '雨', '雪'],
+  },
 };

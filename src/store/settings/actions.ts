@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useRunnersStore } from '../runners.store';
 import { useSettingsStore } from '../settings.store';
 import { RunnerState } from '@/modules/runners/components/runner-card/types';
+import { useShallow } from 'zustand/shallow';
 
 // Convert boolean array to indices array
 export const getSelectedPacemakerIndices = (): number[] => {
@@ -10,6 +11,18 @@ export const getSelectedPacemakerIndices = (): number[] => {
   return selectedPacemakers
     .map((selected, index) => (selected ? index : -1))
     .filter((index) => index !== -1);
+};
+
+export const useSelectedPacemakerIndices = (): number[] => {
+  const selectedPacemakers = useSettingsStore(
+    useShallow((state) => state.selectedPacemakers),
+  );
+
+  return useMemo(() => {
+    return selectedPacemakers
+      .map((selected, index) => (selected ? index : -1))
+      .filter((index) => index !== -1);
+  }, [selectedPacemakers]);
 };
 
 // Convert indices array to boolean array

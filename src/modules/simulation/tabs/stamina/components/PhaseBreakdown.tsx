@@ -1,9 +1,7 @@
 import { cn } from '@/lib/utils';
-import {
-  StaminaAnalysis,
-  ActualPhaseHp,
-  RecoverySkillActivation,
-} from '../hooks';
+import { StaminaAnalysis } from '../hooks/useStaminaAnalysis';
+import { ActualPhaseHp } from '../hooks/usePhaseHp';
+import { RecoverySkillActivation } from '../hooks/useRecoverySkills';
 
 interface PhaseBreakdownProps {
   analysis: StaminaAnalysis;

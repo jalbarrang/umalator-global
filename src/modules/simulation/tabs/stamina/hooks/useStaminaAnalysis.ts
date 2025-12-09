@@ -5,30 +5,11 @@ import {
   parseAptitude,
 } from '@simulation/lib/RaceSolverBuilder';
 import { RunnerState } from '@/modules/runners/components/runner-card/types';
-
-// Strategy HP coefficients from race mechanics
-export const HpStrategyCoefficient = [0, 0.95, 0.89, 1.0, 0.995, 0.86] as const;
-
-// Strategy phase coefficients for target speed
-const StrategyPhaseCoefficient = [
-  [],
-  [1.0, 0.98, 0.962], // Nige
-  [0.978, 0.991, 0.975], // Senkou
-  [0.938, 0.998, 0.994], // Sasi
-  [0.931, 1.0, 1.0], // Oikomi
-  [1.063, 0.962, 0.95], // Oonige
-] as const;
-
-const DistanceProficiencyModifier = [
-  1.05, 1.0, 0.9, 0.8, 0.6, 0.4, 0.2, 0.1,
-] as const;
-
-// HP consumption ground modifier
-const HpConsumptionGroundModifier = [
-  [],
-  [0, 1.0, 1.0, 1.02, 1.02], // Turf
-  [0, 1.0, 1.0, 1.01, 1.02], // Dirt
-] as const;
+import {
+  HpConsumptionGroundModifier,
+  HpStrategyCoefficient,
+} from '@/modules/simulation/lib/HpPolicy';
+import { Speed } from '@/modules/simulation/lib/RaceSolver';
 
 export interface PhaseBreakdown {
   phase: string;
@@ -71,19 +52,19 @@ export function calculateStaminaAnalysis(
     0.8 * HpStrategyCoefficient[strategy] * runner.stamina + distance;
 
   // Calculate speeds for each phase
-  const phase0Speed = baseSpeed * StrategyPhaseCoefficient[strategy][0];
-  const phase1Speed = baseSpeed * StrategyPhaseCoefficient[strategy][1];
+  const phase0Speed = baseSpeed * Speed.StrategyPhaseCoefficient[strategy][0];
+  const phase1Speed = baseSpeed * Speed.StrategyPhaseCoefficient[strategy][1];
   const baseTargetSpeed2 =
-    baseSpeed * StrategyPhaseCoefficient[strategy][2] +
+    baseSpeed * Speed.StrategyPhaseCoefficient[strategy][2] +
     Math.sqrt(500.0 * runner.speed) *
-      DistanceProficiencyModifier[distanceAptitude] *
+      Speed.DistanceProficiencyModifier[distanceAptitude] *
       0.002;
 
   // Calculate max spurt speed (includes guts component - post-1st anniversary)
   const maxSpurtSpeed =
     (baseTargetSpeed2 + 0.01 * baseSpeed) * 1.05 +
     Math.sqrt(500.0 * runner.speed) *
-      DistanceProficiencyModifier[distanceAptitude] *
+      Speed.DistanceProficiencyModifier[distanceAptitude] *
       0.002 +
     Math.pow(450.0 * runner.guts, 0.597) * 0.0001;
 

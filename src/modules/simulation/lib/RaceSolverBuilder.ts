@@ -10,9 +10,15 @@ import {
   ImmediatePolicy,
 } from './ActivationSamplePolicy';
 import { getParser } from './ConditionParser';
-import { CourseData, CourseHelpers, DistanceType } from './CourseData';
+import { CourseData, CourseHelpers, IDistanceType } from './CourseData';
 import { EnhancedHpPolicy } from './EnhancedHpPolicy';
-import { Aptitude, HorseParameters, Strategy } from './HorseTypes';
+import {
+  Aptitude,
+  HorseParameters,
+  IAptitude,
+  IStrategy,
+  Strategy,
+} from './HorseTypes';
 import { GameHpPolicy, NoopHpPolicy } from './HpPolicy';
 import {
   Grade,
@@ -46,70 +52,71 @@ interface ConditionParser {
   parse(tokens: Iterator<unknown, unknown>): Operator;
 }
 
-interface RawSkillEffect {
+export type RawSkillEffect = {
   modifier: number;
   target: number;
   type: number;
-}
+};
 
-interface SkillAlternative {
+export type SkillAlternative = {
   baseDuration: number;
   condition: string;
   precondition?: string;
   effects: RawSkillEffect[];
-}
+};
 
 type PartialRaceParameters = Omit<
   { -readonly [K in keyof RaceParameters]: RaceParameters[K] },
   'skillId'
 >;
 
-export interface HorseDesc {
+export type HorseDesc = {
   speed: number;
   stamina: number;
   power: number;
   guts: number;
   wisdom: number;
-  strategy: string | Strategy;
-  distanceAptitude: string | Aptitude;
-  surfaceAptitude: string | Aptitude;
-  strategyAptitude: string | Aptitude;
+  strategy: string | IStrategy;
+  distanceAptitude: string | IAptitude;
+  surfaceAptitude: string | IAptitude;
+  strategyAptitude: string | IAptitude;
   mood: Mood;
-}
+};
 
-const GroundSpeedModifier = Object.freeze(
-  [
-    null, // ground types started at 1
-    [0, 0, 0, 0, -50],
-    [0, 0, 0, 0, -50],
-  ].map((o) => Object.freeze(o)),
-);
+export const GroundSpeedModifier = [
+  null, // ground types started at 1
+  [0, 0, 0, 0, -50],
+  [0, 0, 0, 0, -50],
+] as const;
 
-const GroundPowerModifier = Object.freeze(
-  [null, [0, 0, -50, -50, -50], [0, -100, -50, -100, -100]].map((o) =>
-    Object.freeze(o),
-  ),
-);
+export const GroundPowerModifier = [
+  null,
+  [0, 0, -50, -50, -50],
+  [0, -100, -50, -100, -100],
+] as const;
 
-const StrategyProficiencyModifier = Object.freeze([
+export const StrategyProficiencyModifier = [
   1.1, 1.0, 0.85, 0.75, 0.6, 0.4, 0.2, 0.1,
-]);
+] as const;
 
+// ? Whats Asitame?
+// Re: Its a skill that increases the speed of the uma when the power is high enough.
 const Asitame = {
-  StrategyDistanceCoefficient: Object.freeze([
+  StrategyDistanceCoefficient: [
+    // [Front Runner, Pace Chaser, Late Surger, End Closer, Runaway]
     [], // distances are 1-indexed (as are strategies, hence the 0 in the first column for every row)
-    [0, 1.0, 0.7, 0.75, 0.7, 1.0], // short (nige, senkou, sasi, oikomi, oonige)
+    [0, 1.0, 0.7, 0.75, 0.7, 1.0], // short
     [0, 1.0, 0.8, 0.7, 0.75, 1.0], // mile
     [0, 1.0, 0.9, 0.875, 0.86, 1.0], // medium
     [0, 1.0, 0.9, 1.0, 0.9, 1.0], // long
-  ]),
+  ] as const,
 
-  BaseModifier: 0.00875,
+  BaseModifier: 0.00875 as const,
 
   calcApproximateModifier(
     power: number,
-    strategy: Strategy,
-    distance: DistanceType,
+    strategy: IStrategy,
+    distance: IDistanceType,
   ) {
     return (
       this.BaseModifier *
@@ -119,6 +126,8 @@ const Asitame = {
   },
 };
 
+// ? Whats Syoubu?:
+// Re: Its a skill that increases the speed of the uma when the stamina is high enough.
 const StaminaSyoubu = {
   distanceFactor(distance: number) {
     if (distance < 2101) return 0.0;
@@ -140,7 +149,7 @@ const StaminaSyoubu = {
   },
 };
 
-export function parseStrategy(s: string | Strategy) {
+export function parseStrategy(s: string | IStrategy) {
   if (typeof s != 'string') {
     return s;
   }
@@ -161,7 +170,7 @@ export function parseStrategy(s: string | Strategy) {
   }
 }
 
-export function parseAptitude(a: string | Aptitude, type: string) {
+export function parseAptitude(a: string | IAptitude, type: string) {
   if (typeof a != 'string') {
     return a;
   }
@@ -247,6 +256,7 @@ export function parseTime(t: string | Time) {
   if (typeof t != 'string') {
     return t;
   }
+
   switch (t.toUpperCase()) {
     case 'NONE':
     case 'NOTIME':
@@ -291,38 +301,73 @@ export function parseGrade(g: string | Grade) {
   }
 }
 
-function adjustOvercap(stat: number) {
+export const adjustOvercap = (stat: number) => {
   return stat > 1200 ? 1200 + Math.floor((stat - 1200) / 2) : stat;
-}
+};
 
-export function buildBaseStats(horseDesc: HorseDesc) {
-  const motivCoef = 1 + 0.02 * horseDesc.mood;
+// Great: 4%
+// Good: 2%
+// Normal: 0%
+// Bad: -2%
+// Awful: -4%
+export const calculateMoodCoefficient = (mood: Mood) => {
+  return 1 + 0.02 * mood;
+};
 
-  return Object.freeze({
-    speed: adjustOvercap(horseDesc.speed) * motivCoef,
-    stamina: adjustOvercap(horseDesc.stamina) * motivCoef,
-    power: adjustOvercap(horseDesc.power) * motivCoef,
-    guts: adjustOvercap(horseDesc.guts) * motivCoef,
-    wisdom: adjustOvercap(horseDesc.wisdom) * motivCoef,
+export type BaseStats = {
+  speed: number;
+  stamina: number;
+  power: number;
+  guts: number;
+  wisdom: number;
+  strategy: IStrategy;
+  distanceAptitude: IAptitude;
+  surfaceAptitude: IAptitude;
+  strategyAptitude: IAptitude;
+  rawStamina: number;
+};
+
+export const buildBaseStats = (horseDesc: HorseDesc): BaseStats => {
+  const moodCoefficient = calculateMoodCoefficient(horseDesc.mood);
+
+  return {
+    speed: adjustOvercap(horseDesc.speed) * moodCoefficient,
+    stamina: adjustOvercap(horseDesc.stamina) * moodCoefficient,
+    power: adjustOvercap(horseDesc.power) * moodCoefficient,
+    guts: adjustOvercap(horseDesc.guts) * moodCoefficient,
+    wisdom: adjustOvercap(horseDesc.wisdom) * moodCoefficient,
     strategy: parseStrategy(horseDesc.strategy),
     distanceAptitude: parseAptitude(horseDesc.distanceAptitude, 'distance'),
     surfaceAptitude: parseAptitude(horseDesc.surfaceAptitude, 'surface'),
     strategyAptitude: parseAptitude(horseDesc.strategyAptitude, 'strategy'),
-    rawStamina: horseDesc.stamina * motivCoef,
-  });
-}
+    rawStamina: horseDesc.stamina * moodCoefficient,
+  };
+};
 
-export function buildAdjustedStats(
+type AdjustedStats = {
+  speed: number;
+  stamina: number;
+  power: number;
+  guts: number;
+  wisdom: number;
+  strategy: IStrategy;
+  distanceAptitude: IAptitude;
+  surfaceAptitude: IAptitude;
+  strategyAptitude: IAptitude;
+  rawStamina: number;
+};
+
+export const buildAdjustedStats = (
   baseStats: HorseParameters,
   course: CourseData,
   ground: GroundCondition,
-) {
+): AdjustedStats => {
   const raceCourseModifier = CourseHelpers.courseSpeedModifier(
     course,
     baseStats,
   );
 
-  return Object.freeze({
+  return {
     speed: Math.max(
       baseStats.speed * raceCourseModifier +
         GroundSpeedModifier[course.surface][ground],
@@ -342,8 +387,8 @@ export function buildAdjustedStats(
     surfaceAptitude: baseStats.surfaceAptitude,
     strategyAptitude: baseStats.strategyAptitude,
     rawStamina: baseStats.rawStamina,
-  });
-}
+  };
+};
 
 export const enum SkillTarget {
   Self = 1,
@@ -508,8 +553,10 @@ export function buildSkillData(
   ];
 }
 
-export const conditionsWithActivateCountsAsRandom = Object.freeze(
-  Object.assign({}, Conditions, {
+export const conditionsWithActivateCountsAsRandom = Object.assign(
+  {},
+  Conditions,
+  {
     activate_count_all: random({
       filterGte(
         regions: RegionList,
@@ -528,10 +575,10 @@ export const conditionsWithActivateCountsAsRandom = Object.freeze(
           return rl;
         }
         /*if (extra.skillId == '110151' || extra.skillId == '910151') {
-				const rl = new RegionList();
-				rl.push(new Region(course.distance - 401, course.distance - 399));
-				return rl;
-			}*/
+      const rl = new RegionList();
+      rl.push(new Region(course.distance - 401, course.distance - 399));
+      return rl;
+    }*/
         // somewhat arbitrarily decide you activate about 23 skills per race and then use a region n / 23 ± 20%
         const bounds = new Region(
           Math.min(n / 23.0 - 0.2, 0.6) * course.distance,
@@ -607,7 +654,7 @@ export const conditionsWithActivateCountsAsRandom = Object.freeze(
         return regions.rmap((r) => r.intersect(bounds));
       },
     }),
-  }),
+  },
 );
 
 const defaultParser = getParser();
@@ -794,7 +841,6 @@ export class RaceSolverBuilder {
 
     const wholeCourse = new RegionList();
     wholeCourse.push(new Region(0, this._course.distance));
-    Object.freeze(wholeCourse);
 
     let pacerSkillData: SkillData[] = [];
 
@@ -819,7 +865,6 @@ export class RaceSolverBuilder {
   setupPacerSkillTriggers(pacerRng: SeededRng) {
     const wholeCourse = new RegionList();
     wholeCourse.push(new Region(0, this._course.distance));
-    Object.freeze(wholeCourse);
 
     let pacerTriggers: Region[][] = [];
 
@@ -1148,7 +1193,6 @@ export class RaceSolverBuilder {
 
     const wholeCourse = new RegionList();
     wholeCourse.push(new Region(0, this._course.distance));
-    Object.freeze(wholeCourse);
 
     const makeSkill = buildSkillData.bind(
       null,

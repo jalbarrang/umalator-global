@@ -1,10 +1,1 @@
-export const APTITUDES = Object.freeze([
-  'S',
-  'A',
-  'B',
-  'C',
-  'D',
-  'E',
-  'F',
-  'G',
-]);
+export const APTITUDES = ['S', 'A', 'B', 'C', 'D', 'E', 'F', 'G'] as const;

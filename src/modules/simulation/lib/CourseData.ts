@@ -1,49 +1,66 @@
-export type Phase = 0 | 1 | 2 | 3;
-export enum Surface {
-  Turf = 1,
-  Dirt,
-}
-export enum DistanceType {
-  Short = 1,
-  Mile,
-  Mid,
-  Long,
-}
-export enum Orientation {
-  Clockwise = 1,
-  Counterclockwise,
-  UnusedOrientation,
-  NoTurns,
-}
-export enum ThresholdStat {
-  Speed = 1,
-  Stamina,
-  Power,
-  Guts,
-  Int,
-}
+export const phases = [0, 1, 2, 3] as const;
+export type Phase = (typeof phases)[number];
 
-export interface CourseData {
+export const Surface = {
+  Turf: 1,
+  Dirt: 2,
+} as const;
+
+export type ISurface = (typeof Surface)[keyof typeof Surface];
+
+export const DistanceType = {
+  Short: 1,
+  Mile: 2,
+  Mid: 3,
+  Long: 4,
+} as const;
+
+export type IDistanceType = (typeof DistanceType)[keyof typeof DistanceType];
+
+export const Orientation = {
+  Clockwise: 1,
+  Counterclockwise: 2,
+  UnusedOrientation: 3,
+  NoTurns: 4,
+} as const;
+
+export type IOrientation = (typeof Orientation)[keyof typeof Orientation];
+
+export const ThresholdStat = {
+  Speed: 1,
+  Stamina: 2,
+  Power: 3,
+  Guts: 4,
+  Int: 5,
+} as const;
+
+export type IThresholdStat = (typeof ThresholdStat)[keyof typeof ThresholdStat];
+
+export type CourseData = {
   readonly raceTrackId: number;
   readonly distance: number;
-  readonly distanceType: DistanceType;
-  readonly surface: Surface;
-  readonly turn: Orientation;
-  readonly courseSetStatus: readonly ThresholdStat[];
+  readonly distanceType: IDistanceType;
+  readonly surface: ISurface;
+  readonly turn: IOrientation;
+
+  readonly courseSetStatus: readonly IThresholdStat[];
   readonly corners: readonly {
     readonly start: number;
     readonly length: number;
   }[];
+
   readonly straights: readonly {
     readonly start: number;
     readonly end: number;
     readonly frontType: number;
   }[];
+
   readonly slopes: readonly {
     readonly start: number;
     readonly length: number;
     readonly slope: number;
   }[];
+
   readonly laneMax: number;
   readonly courseWidth: number;
   readonly horseLane: number;
@@ -51,7 +68,7 @@ export interface CourseData {
   readonly laneChangeAccelerationPerFrame: number;
   readonly maxLaneDistance: number;
   readonly moveLanePoint: number;
-}
+};
 
 import courses from '@data/course_data.json';
 
@@ -62,7 +79,7 @@ export class CourseHelpers {
     }
   }
 
-  static assertIsSurface(surface: number): asserts surface is Surface {
+  static assertIsSurface(surface: number): asserts surface is ISurface {
     if (!Object.prototype.hasOwnProperty.call(Surface, surface)) {
       throw new Error(`Surface ${surface} is not a valid Surface`);
     }
@@ -70,7 +87,7 @@ export class CourseHelpers {
 
   static assertIsDistanceType(
     distanceType: number,
-  ): asserts distanceType is DistanceType {
+  ): asserts distanceType is IDistanceType {
     if (!Object.prototype.hasOwnProperty.call(DistanceType, distanceType)) {
       throw new Error(
         `DistanceType ${distanceType} is not a valid DistanceType`,
@@ -80,7 +97,7 @@ export class CourseHelpers {
 
   static assertIsOrientation(
     orientation: number,
-  ): asserts orientation is Orientation {
+  ): asserts orientation is IOrientation {
     if (!Object.prototype.hasOwnProperty.call(Orientation, orientation)) {
       throw new Error(`Orientation ${orientation} is not a valid Orientation`);
     }
@@ -91,12 +108,14 @@ export class CourseHelpers {
     // sufficiently distinguish tuples from arrays
     // so dance around a little bit to make it work
     const init: [boolean, number] = [true, -1];
+
     function isSorted(
       a: [boolean, number],
       b: { start: number },
     ): [boolean, number] {
       return [a[0] && b.start > a[1], b.start];
     }
+
     return arr.reduce(isSorted, init)[0];
   }
 
@@ -144,6 +163,7 @@ export class CourseHelpers {
       stats.guts,
       stats.wisdom,
     ].map((x) => Math.min(x, 901));
+
     return (
       1 +
       course.courseSetStatus
@@ -166,7 +186,7 @@ export class CourseHelpers {
     const moveLanePoint =
       course.corners.length > 0 ? course.corners[0].start : 30.0;
 
-    const course2 = {
+    const course2: CourseData = {
       ...course,
       courseWidth,
       horseLane,
@@ -176,7 +196,6 @@ export class CourseHelpers {
       moveLanePoint,
     };
 
-    Object.keys(course2).forEach((k) => Object.freeze(course2[k]));
-    return Object.freeze(course2);
+    return course2;
   }
 }

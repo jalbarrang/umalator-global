@@ -6,7 +6,12 @@ import {
   ConditionState,
 } from './ApproximateStartContinue';
 import { CourseData, CourseHelpers, Phase } from './CourseData';
-import { HorseParameters, Strategy, StrategyHelpers } from './HorseTypes';
+import {
+  HorseParameters,
+  IStrategy,
+  Strategy,
+  StrategyHelpers,
+} from './HorseTypes';
 import type { HpPolicy } from './HpPolicy';
 import { PRNG, Rule30CARng } from './Random';
 import { Region } from './Region';
@@ -19,7 +24,7 @@ export const Speed = {
     [0.938, 0.998, 0.994],
     [0.931, 1.0, 1.0],
     [1.063, 0.962, 0.95],
-  ].map((a) => Object.freeze(a)),
+  ],
   DistanceProficiencyModifier: [1.05, 1.0, 0.9, 0.8, 0.6, 0.4, 0.2, 0.1],
 };
 
@@ -32,12 +37,16 @@ function baseTargetSpeed(
   course: CourseData,
   phase: Phase,
 ) {
+  const phaseCoefficient =
+    Speed.StrategyPhaseCoefficient[horse.strategy][phase];
+
   return (
-    baseSpeed(course) * Speed.StrategyPhaseCoefficient[horse.strategy][phase] +
-    +(phase == 2) *
-      Math.sqrt(500.0 * horse.speed) *
-      Speed.DistanceProficiencyModifier[horse.distanceAptitude] *
-      0.002
+    baseSpeed(course) * phaseCoefficient +
+    (phase == 2
+      ? Math.sqrt(500.0 * horse.speed) *
+        Speed.DistanceProficiencyModifier[horse.distanceAptitude] *
+        0.002
+      : 0)
   );
 }
 
@@ -52,16 +61,14 @@ function lastSpurtSpeed(horse: HorseParameters, course: CourseData) {
 }
 
 export const Acceleration = {
-  StrategyPhaseCoefficient: Object.freeze(
-    [
-      [],
-      [1.0, 1.0, 0.996],
-      [0.985, 1.0, 0.996],
-      [0.975, 1.0, 1.0],
-      [0.945, 1.0, 0.997],
-      [1.17, 0.94, 0.956],
-    ].map((a) => Object.freeze(a)),
-  ),
+  StrategyPhaseCoefficient: [
+    [],
+    [1.0, 1.0, 0.996],
+    [0.985, 1.0, 0.996],
+    [0.975, 1.0, 1.0],
+    [0.945, 1.0, 0.997],
+    [1.17, 0.94, 0.956],
+  ],
   GroundTypeProficiencyModifier: [1.05, 1.0, 0.9, 0.8, 0.7, 0.5, 0.3, 0.1],
   DistanceProficiencyModifier: [1.0, 1.0, 1.0, 1.0, 1.0, 0.6, 0.5, 0.4],
 };
@@ -70,12 +77,20 @@ const BaseAccel = 0.0006;
 const UphillBaseAccel = 0.0004;
 
 function baseAccel(baseAccel: number, horse: HorseParameters, phase: Phase) {
+  const strategyCoefficient =
+    Acceleration.StrategyPhaseCoefficient[horse.strategy][phase];
+  const groundTypeProficiencyModifier =
+    Acceleration.GroundTypeProficiencyModifier[horse.surfaceAptitude];
+  const distanceProficiencyModifier =
+    Acceleration.DistanceProficiencyModifier[horse.distanceAptitude];
+
+  // Accel = BaseAccel * sqrt(500.0 * PowerStat) * StrategyPhaseCoefficient * GroundTypeProficiencyModifier * DistanceProficiencyModifier
   return (
     baseAccel *
     Math.sqrt(500.0 * horse.power) *
-    Acceleration.StrategyPhaseCoefficient[horse.strategy][phase] *
-    Acceleration.GroundTypeProficiencyModifier[horse.surfaceAptitude] *
-    Acceleration.DistanceProficiencyModifier[horse.distanceAptitude]
+    strategyCoefficient *
+    groundTypeProficiencyModifier *
+    distanceProficiencyModifier
   );
 }
 
@@ -89,7 +104,7 @@ export const PositionKeep = {
     return 0.0008 * (distance - 1000) + 1.0;
   },
 
-  minThreshold(strategy: Strategy, distance: number) {
+  minThreshold(strategy: IStrategy, distance: number) {
     // senkou minimum threshold is a constant 3.0 independent of the course factor for some reason
     return (
       this.BaseMinimumThreshold[strategy] *
@@ -97,7 +112,7 @@ export const PositionKeep = {
     );
   },
 
-  maxThreshold(strategy: Strategy, distance: number) {
+  maxThreshold(strategy: IStrategy, distance: number) {
     return this.BaseMaximumThreshold[strategy] * this.courseFactor(distance);
   },
 };
@@ -145,7 +160,7 @@ export type RaceState = {
   gateRoll: number;
   usedSkills: ReadonlySet<string>;
   leadCompetition: boolean;
-  posKeepStrategy: Strategy;
+  posKeepStrategy: IStrategy;
 };
 
 export type DynamicCondition = (state: RaceState) => boolean;
@@ -322,7 +337,7 @@ export class RaceSolver {
   positionKeepState: PositionKeepState;
   posKeepMode: PosKeepMode;
   posKeepSpeedCoef: number;
-  posKeepStrategy: Strategy;
+  posKeepStrategy: IStrategy;
   mode: string | undefined;
   pacer: RaceSolver | null;
 
