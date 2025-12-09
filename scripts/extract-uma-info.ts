@@ -5,7 +5,12 @@
  */
 
 import path from 'path';
-import { openDatabase, closeDatabase, queryAll, queryAllWithParams } from './lib/database';
+import {
+  openDatabase,
+  closeDatabase,
+  queryAll,
+  queryAllWithParams,
+} from './lib/database';
 import {
   resolveMasterDbPath,
   sortByNumericKey,
@@ -43,15 +48,19 @@ async function extractUmaInfo() {
   console.log('📖 Extracting uma musume info...\n');
 
   const dbPath = await resolveMasterDbPath();
-  const replaceMode = process.argv.includes('--replace') || process.argv.includes('--full');
+  const replaceMode =
+    process.argv.includes('--replace') || process.argv.includes('--full');
 
-  console.log(`Mode: ${replaceMode ? '⚠️  Full Replacement' : '✓ Merge (preserves future content)'}`);
+  console.log(
+    `Mode: ${replaceMode ? '⚠️  Full Replacement' : '✓ Merge (preserves future content)'}`,
+  );
   console.log(`Database: ${dbPath}\n`);
 
   // Read existing files to check which umas are implemented
   const basePath = path.join(process.cwd(), 'src/modules/data');
-  const existingUmas = await Bun.file(path.join(basePath, 'umas.json')).json();
-  const skillMeta = await Bun.file(path.join(basePath, 'skill_meta.json')).json();
+  const skillMeta = await Bun.file(
+    path.join(basePath, 'skill_meta.json'),
+  ).json();
 
   const db = openDatabase(dbPath);
 
@@ -116,13 +125,14 @@ async function extractUmaInfo() {
 
     if (replaceMode) {
       finalUmas = umas;
-      console.log(`\n⚠️  Full replacement mode: ${processedCount} umas from master.mdb only`);
+      console.log(
+        `\n⚠️  Full replacement mode: ${processedCount} umas from master.mdb only`,
+      );
     } else {
       const existingFile = Bun.file(outputPath);
 
       if (await existingFile.exists()) {
         const existingData = await existingFile.json();
-        const existingCount = Object.keys(existingData).length;
 
         // Merge: existing data first, then overwrite with new data
         finalUmas = { ...existingData, ...umas };
@@ -131,8 +141,12 @@ async function extractUmaInfo() {
         const preserved = finalCount - processedCount;
 
         console.log(`\n✓ Merge mode:`);
-        console.log(`  → ${processedCount} umas from master.mdb (current content)`);
-        console.log(`  → ${preserved} additional umas preserved (future content)`);
+        console.log(
+          `  → ${processedCount} umas from master.mdb (current content)`,
+        );
+        console.log(
+          `  → ${preserved} additional umas preserved (future content)`,
+        );
         console.log(`  → ${finalCount} total umas`);
       } else {
         finalUmas = umas;
@@ -144,7 +158,10 @@ async function extractUmaInfo() {
     const sorted = sortByNumericKey(finalUmas);
     await writeJsonFile(outputPath, sorted);
 
-    const totalOutfits = Object.values(sorted).reduce((sum, uma) => sum + Object.keys(uma.outfits).length, 0);
+    const totalOutfits = Object.values(sorted).reduce(
+      (sum, uma) => sum + Object.keys(uma.outfits).length,
+      0,
+    );
     console.log(`\n✓ Written to ${outputPath}`);
     console.log(`✓ Total outfits: ${totalOutfits}`);
   } finally {
@@ -161,4 +178,3 @@ if (import.meta.main) {
 }
 
 export { extractUmaInfo };
-

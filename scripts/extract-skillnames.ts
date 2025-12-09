@@ -6,7 +6,11 @@
 
 import path from 'path';
 import { openDatabase, closeDatabase, queryAll } from './lib/database';
-import { resolveMasterDbPath, sortByNumericKey, writeJsonFile } from './lib/shared';
+import {
+  resolveMasterDbPath,
+  sortByNumericKey,
+  writeJsonFile,
+} from './lib/shared';
 
 interface SkillNameRow {
   index: number;
@@ -19,9 +23,12 @@ async function extractSkillNames() {
   console.log('📖 Extracting skill names...\n');
 
   const dbPath = await resolveMasterDbPath();
-  const replaceMode = process.argv.includes('--replace') || process.argv.includes('--full');
+  const replaceMode =
+    process.argv.includes('--replace') || process.argv.includes('--full');
 
-  console.log(`Mode: ${replaceMode ? '⚠️  Full Replacement' : '✓ Merge (preserves future content)'}`);
+  console.log(
+    `Mode: ${replaceMode ? '⚠️  Full Replacement' : '✓ Merge (preserves future content)'}`,
+  );
   console.log(`Database: ${dbPath}\n`);
 
   const db = openDatabase(dbPath);
@@ -63,13 +70,14 @@ async function extractSkillNames() {
 
     if (replaceMode) {
       finalSkillNames = skillNames;
-      console.log(`\n⚠️  Full replacement mode: ${Object.keys(skillNames).length} skill names from master.mdb only`);
+      console.log(
+        `\n⚠️  Full replacement mode: ${Object.keys(skillNames).length} skill names from master.mdb only`,
+      );
     } else {
       const existingFile = Bun.file(outputPath);
 
       if (await existingFile.exists()) {
         const existingData = await existingFile.json();
-        const existingCount = Object.keys(existingData).length;
         const newCount = Object.keys(skillNames).length;
 
         // Merge: existing data first, then overwrite with new data
@@ -79,8 +87,12 @@ async function extractSkillNames() {
         const preserved = finalCount - newCount;
 
         console.log(`\n✓ Merge mode:`);
-        console.log(`  → ${newCount} skill names from master.mdb (current content)`);
-        console.log(`  → ${preserved} additional skill names preserved (future content)`);
+        console.log(
+          `  → ${newCount} skill names from master.mdb (current content)`,
+        );
+        console.log(
+          `  → ${preserved} additional skill names preserved (future content)`,
+        );
         console.log(`  → ${finalCount} total skill names`);
       } else {
         finalSkillNames = skillNames;
@@ -106,4 +118,3 @@ if (import.meta.main) {
 }
 
 export { extractSkillNames };
-

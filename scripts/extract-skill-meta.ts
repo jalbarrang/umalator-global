@@ -6,7 +6,11 @@
 
 import path from 'path';
 import { openDatabase, closeDatabase, queryAll } from './lib/database';
-import { resolveMasterDbPath, sortByNumericKey, writeJsonFile } from './lib/shared';
+import {
+  resolveMasterDbPath,
+  sortByNumericKey,
+  writeJsonFile,
+} from './lib/shared';
 
 interface SkillMetaRow {
   id: number;
@@ -27,9 +31,12 @@ async function extractSkillMeta() {
   console.log('📖 Extracting skill metadata...\n');
 
   const dbPath = await resolveMasterDbPath();
-  const replaceMode = process.argv.includes('--replace') || process.argv.includes('--full');
+  const replaceMode =
+    process.argv.includes('--replace') || process.argv.includes('--full');
 
-  console.log(`Mode: ${replaceMode ? '⚠️  Full Replacement' : '✓ Merge (preserves future content)'}`);
+  console.log(
+    `Mode: ${replaceMode ? '⚠️  Full Replacement' : '✓ Merge (preserves future content)'}`,
+  );
   console.log(`Database: ${dbPath}\n`);
 
   const db = openDatabase(dbPath);
@@ -66,13 +73,14 @@ async function extractSkillMeta() {
 
     if (replaceMode) {
       finalSkillMeta = skillMeta;
-      console.log(`\n⚠️  Full replacement mode: ${Object.keys(skillMeta).length} skills from master.mdb only`);
+      console.log(
+        `\n⚠️  Full replacement mode: ${Object.keys(skillMeta).length} skills from master.mdb only`,
+      );
     } else {
       const existingFile = Bun.file(outputPath);
 
       if (await existingFile.exists()) {
         const existingData = await existingFile.json();
-        const existingCount = Object.keys(existingData).length;
         const newCount = Object.keys(skillMeta).length;
 
         // Merge: existing data first, then overwrite with new data
@@ -83,7 +91,9 @@ async function extractSkillMeta() {
 
         console.log(`\n✓ Merge mode:`);
         console.log(`  → ${newCount} skills from master.mdb (current content)`);
-        console.log(`  → ${preserved} additional skills preserved (future content)`);
+        console.log(
+          `  → ${preserved} additional skills preserved (future content)`,
+        );
         console.log(`  → ${finalCount} total skills`);
       } else {
         finalSkillMeta = skillMeta;
@@ -109,4 +119,3 @@ if (import.meta.main) {
 }
 
 export { extractSkillMeta };
-

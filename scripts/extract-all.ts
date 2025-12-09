@@ -10,10 +10,13 @@ import { extractUmaInfo } from './extract-uma-info';
 import { extractCourseData } from './extract-course-data';
 
 async function extractAll() {
-  const replaceMode = process.argv.includes('--replace') || process.argv.includes('--full');
+  const replaceMode =
+    process.argv.includes('--replace') || process.argv.includes('--full');
 
   console.log('🚀 Starting full data extraction...\n');
-  console.log(`Mode: ${replaceMode ? '⚠️  Full Replacement' : '✓ Merge (default - preserves future content)'}`);
+  console.log(
+    `Mode: ${replaceMode ? '⚠️  Full Replacement' : '✓ Merge (default - preserves future content)'}`,
+  );
   console.log('='.repeat(60));
 
   const startTime = Date.now();
@@ -59,10 +62,14 @@ async function extractAll() {
   const successCount = results.filter((r) => r.success).length;
   const totalCount = results.length;
 
-  console.log(`\n✨ Completed ${successCount}/${totalCount} extractions in ${duration}s`);
+  console.log(
+    `\n✨ Completed ${successCount}/${totalCount} extractions in ${duration}s`,
+  );
 
   if (successCount < totalCount) {
-    console.error('\n⚠️  Some extractions failed. Please check the errors above.');
+    console.error(
+      '\n⚠️  Some extractions failed. Please check the errors above.',
+    );
     process.exit(1);
   }
 }
@@ -76,4 +83,3 @@ if (import.meta.main) {
 }
 
 export { extractAll };
-

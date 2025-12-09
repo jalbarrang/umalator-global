@@ -2,7 +2,7 @@
  * Database connection utilities for Bun SQLite
  */
 
-import { Database } from 'bun:sqlite';
+import { Database, SQLQueryBindings } from 'bun:sqlite';
 
 /**
  * Open a database connection in readonly mode
@@ -36,7 +36,7 @@ export function closeDatabase(db: Database): void {
  * @param sql SQL query string
  * @returns Array of result rows
  */
-export function queryAll<T = any>(db: Database, sql: string): T[] {
+export function queryAll<T>(db: Database, sql: string): T[] {
   try {
     return db.query(sql).all() as T[];
   } catch (error) {
@@ -51,11 +51,10 @@ export function queryAll<T = any>(db: Database, sql: string): T[] {
  * @param params Query parameters
  * @returns Array of result rows
  */
-export function queryAllWithParams<T = any>(
-  db: Database,
-  sql: string,
-  ...params: any[]
-): T[] {
+export function queryAllWithParams<
+  T,
+  TParams extends SQLQueryBindings[] = SQLQueryBindings[],
+>(db: Database, sql: string, ...params: TParams): T[] {
   try {
     const stmt = db.query(sql);
     return stmt.all(...params) as T[];
@@ -65,4 +64,3 @@ export function queryAllWithParams<T = any>(
     );
   }
 }
-

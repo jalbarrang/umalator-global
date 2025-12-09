@@ -33,7 +33,7 @@ export const getUniqueSkillForOutfit = getUniqueSkillForByUmaIdFromUtils;
  */
 export async function writeJsonFile(
   path: string,
-  data: Record<string, any>,
+  data: Record<string, unknown>,
 ): Promise<void> {
   const output = JSON.stringify(data) + '\n';
   await Bun.write(path, output);
@@ -48,7 +48,9 @@ export function getDefaultMasterDbPath(): string {
   if (platform === 'win32') {
     // Windows path
     const appData =
-      process.env.APPDATA || process.env.LOCALAPPDATA || process.env.USERPROFILE;
+      process.env.APPDATA ||
+      process.env.LOCALAPPDATA ||
+      process.env.USERPROFILE;
     if (!appData) {
       throw new Error('Could not determine AppData path on Windows');
     }
@@ -86,4 +88,3 @@ export async function resolveMasterDbPath(): Promise<string> {
   // Fall back to platform-specific default
   return getDefaultMasterDbPath();
 }
-

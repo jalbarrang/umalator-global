@@ -59,12 +59,28 @@ interface SkillDataEntry {
 
 // Scenario skills that need 1.2x modifier
 const SCENARIO_SKILLS = new Set([
-  210011, 210012, 210021, 210022, 210031, 210032, 210041, 210042, 210051,
+  210011,
+  210012,
+  210021,
+  210022,
+  210031,
+  210032,
+  210041,
+  210042,
+  210051,
   210052, // Aoharu
-  210061, 210062, // Make A New Track
-  210071, 210072, // Grand Live
-  210081, 210082, // updated URA
-  210261, 210262, 210271, 210272, 210281, 210282, // Grand Masters
+  210061,
+  210062, // Make A New Track
+  210071,
+  210072, // Grand Live
+  210081,
+  210082, // updated URA
+  210261,
+  210262,
+  210271,
+  210272,
+  210281,
+  210282, // Grand Masters
   210291, // RFTS (white version)
 ]);
 
@@ -85,9 +101,12 @@ async function extractSkillData() {
   console.log('📖 Extracting skill data...\n');
 
   const dbPath = await resolveMasterDbPath();
-  const replaceMode = process.argv.includes('--replace') || process.argv.includes('--full');
+  const replaceMode =
+    process.argv.includes('--replace') || process.argv.includes('--full');
 
-  console.log(`Mode: ${replaceMode ? '⚠️  Full Replacement' : '✓ Merge (preserves future content)'}`);
+  console.log(
+    `Mode: ${replaceMode ? '⚠️  Full Replacement' : '✓ Merge (preserves future content)'}`,
+  );
   console.log(`Database: ${dbPath}\n`);
 
   const db = openDatabase(dbPath);
@@ -152,7 +171,11 @@ async function extractSkillData() {
       ];
 
       // Add second alternative if it exists
-      if (row.condition_2 && row.condition_2 !== '' && row.condition_2 !== '0') {
+      if (
+        row.condition_2 &&
+        row.condition_2 !== '' &&
+        row.condition_2 !== '0'
+      ) {
         const effects2: SkillEffect[] = [
           {
             type: row.ability_type_2_1,
@@ -215,13 +238,14 @@ async function extractSkillData() {
 
     if (replaceMode) {
       finalSkillData = skillData;
-      console.log(`\n⚠️  Full replacement mode: ${Object.keys(skillData).length} skills from master.mdb only`);
+      console.log(
+        `\n⚠️  Full replacement mode: ${Object.keys(skillData).length} skills from master.mdb only`,
+      );
     } else {
       const existingFile = Bun.file(outputPath);
 
       if (await existingFile.exists()) {
         const existingData = await existingFile.json();
-        const existingCount = Object.keys(existingData).length;
         const newCount = Object.keys(skillData).length;
 
         // Merge: existing data first, then overwrite with new data
@@ -232,7 +256,9 @@ async function extractSkillData() {
 
         console.log(`\n✓ Merge mode:`);
         console.log(`  → ${newCount} skills from master.mdb (current content)`);
-        console.log(`  → ${preserved} additional skills preserved (future content)`);
+        console.log(
+          `  → ${preserved} additional skills preserved (future content)`,
+        );
         console.log(`  → ${finalCount} total skills`);
       } else {
         finalSkillData = skillData;
@@ -258,4 +284,3 @@ if (import.meta.main) {
 }
 
 export { extractSkillData };
-

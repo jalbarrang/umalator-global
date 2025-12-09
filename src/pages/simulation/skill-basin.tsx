@@ -2,7 +2,7 @@ import { BasinnChart } from '@/components/bassin-chart/BasinnChart';
 import { Button } from '@/components/ui/button';
 import { VelocityLines } from '@/components/VelocityLines';
 import { RaceTrack } from '@/modules/racetrack/components/RaceTrack';
-import { useSkillBassinRunner } from '@simulation/hooks/skill-bassin/useSkillBasinRunner';
+// import { useSkillBassinRunner } from '@simulation/hooks/skill-bassin/useSkillBasinRunner';
 import { CourseHelpers } from '@/modules/simulation/lib/CourseData';
 import { useSkillBasinStore } from '@simulation/stores/skill-basin.store';
 import { useRaceStore } from '@simulation/stores/compare.store';

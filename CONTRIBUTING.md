@@ -188,6 +188,7 @@ bun run extract:all
 ```
 
 This **merge mode** (default):
+
 - ✅ Updates entries from `master.mdb` (current game content)
 - ✅ **Preserves** entries not in master.mdb (future/datamined content)
 - ✅ Automatically finds `db/master.mdb` if it exists
