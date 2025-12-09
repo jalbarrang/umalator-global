@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { CourseData } from '@/modules/simulation/lib/CourseData';
-import { SimulationRun } from '@/store/race/compare.types';
+import { SimulationRun } from '@simulation/compare.types';
 import { binSearch } from '@/utils/algorithims';
 import { TooltipData } from '@/modules/racetrack/components/racetrack-tooltip';
 

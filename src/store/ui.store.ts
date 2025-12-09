@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
 import { useShallow } from 'zustand/shallow';
 
 type ISidebar = {
@@ -8,8 +7,6 @@ type ISidebar = {
 };
 
 export type IUIStore = {
-  currentIdx: number;
-
   // Simulation runtime state
   isSimulationRunning: boolean;
   runOnceCounter: number;
@@ -23,36 +20,18 @@ export type IUIStore = {
   leftSide: ISidebar;
 };
 
-export const useUIStore = create<IUIStore>()(
-  persist(
-    (_) => ({
-      currentIdx: 0,
-      expanded: false,
-      isSimulationRunning: false,
-      runOnceCounter: 0,
-      isPacemakerDropdownOpen: false,
-      showVirtualPacemakerOnGraph: false,
-      showCreditsModal: false,
-      showChangelogModal: false,
-      leftSide: {
-        activePanel: 'runners',
-        hidden: false,
-      },
-    }),
-    {
-      name: 'ui-umalator',
-      storage: createJSONStorage(() => localStorage),
-      // Don't persist ephemeral state
-      partialize: (state) => ({
-        currentIdx: state.currentIdx,
-      }),
-    },
-  ),
-);
-
-export const setCurrentIdx = (currentIdx: number) => {
-  useUIStore.setState({ currentIdx });
-};
+export const useUIStore = create<IUIStore>()((_) => ({
+  isSimulationRunning: false,
+  runOnceCounter: 0,
+  isPacemakerDropdownOpen: false,
+  showVirtualPacemakerOnGraph: false,
+  showCreditsModal: false,
+  showChangelogModal: false,
+  leftSide: {
+    activePanel: 'runners',
+    hidden: false,
+  },
+}));
 
 export const setIsSimulationRunning = (isSimulationRunning: boolean) => {
   useUIStore.setState({ isSimulationRunning });

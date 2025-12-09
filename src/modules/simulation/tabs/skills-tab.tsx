@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useRaceStore } from '@/store/race/store';
+import { useRaceStore } from '@simulation/stores/compare.store';
 import { getSkillNameById } from '@/modules/skills/utils';
 import {
   Table,
@@ -33,7 +33,7 @@ export const SkillsTab = () => {
     if (!chartData?.sk?.[0]) return [];
 
     const skillPositions: SkillPosition[] = [];
-    for (const [id, positions] of chartData.sk[0].entries()) {
+    for (const [id, positions] of Object.entries(chartData.sk[0])) {
       const skillName = getSkillNameById(id);
 
       positions.forEach(([start, end]) => {
@@ -54,7 +54,7 @@ export const SkillsTab = () => {
     if (!chartData?.sk?.[1]) return [];
 
     const skillPositions: SkillPosition[] = [];
-    for (const [id, positions] of chartData.sk[1].entries()) {
+    for (const [id, positions] of Object.entries(chartData.sk[1])) {
       const skillName = getSkillNameById(id);
 
       positions.forEach(([start, end]) => {

@@ -2,19 +2,20 @@ import { BasinnChart } from '@/components/bassin-chart/BasinnChart';
 import { Button } from '@/components/ui/button';
 import { VelocityLines } from '@/components/VelocityLines';
 import { RaceTrack } from '@/modules/racetrack/components/RaceTrack';
-import { useSkillBassinRunner } from '@/modules/simulation/hooks/skill-bassin/useSkillBassinRunner';
+// import { useSkillBassinRunner } from '@simulation/hooks/skill-bassin/useSkillBasinRunner';
 import { CourseHelpers } from '@/modules/simulation/lib/CourseData';
-import { useSkillBassinStore } from '@/modules/simulation/stores/skills-bassin.store';
-import { useRaceStore } from '@/store/race/store';
+import { useSkillBasinStore } from '@simulation/stores/skill-basin.store';
+import { useRaceStore } from '@simulation/stores/compare.store';
 import { setSkillToRunner, useRunner } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
 import { useUIStore } from '@/store/ui.store';
 import { useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
+import { useSkillBasinPoolRunner } from '@/modules/simulation/hooks/pool/useSkillBasinPoolRunner';
 
 export const SkillBassinPage = () => {
   const { chartData } = useRaceStore();
-  const { results: tableData } = useSkillBassinStore();
+  const { results: skillBasinResults, metrics } = useSkillBasinStore();
   const courseId = useSettingsStore(useShallow((state) => state.courseId));
 
   const { runnerId, runner } = useRunner();
@@ -22,9 +23,9 @@ export const SkillBassinPage = () => {
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
 
   const basinnChartSelection = (skillId: string) => {
-    const results = tableData[skillId];
+    const results = skillBasinResults.get(skillId);
 
-    if (results.runData) {
+    if (results?.runData) {
       useRaceStore.setState({ results: results.results });
     }
   };
@@ -34,7 +35,7 @@ export const SkillBassinPage = () => {
   };
 
   const { isSimulationRunning } = useUIStore();
-  const { doBasinnChart } = useSkillBassinRunner();
+  const { doBasinnChart } = useSkillBasinPoolRunner();
 
   return (
     <div className="flex flex-col gap-4">
@@ -67,8 +68,9 @@ export const SkillBassinPage = () => {
 
       <div>
         <BasinnChart
-          data={Object.values(tableData)}
+          data={Array.from(skillBasinResults.values())}
           hiddenSkills={runner.skills}
+          metrics={metrics}
           onSelectionChange={basinnChartSelection}
           onAddSkill={addSkillFromTable}
         />

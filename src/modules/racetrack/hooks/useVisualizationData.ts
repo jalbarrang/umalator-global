@@ -1,6 +1,6 @@
 import { RegionDisplayType } from '@/modules/racetrack/types';
 import { getSkillMetaById } from '@/modules/skills/utils';
-import { useRaceStore } from '@/store/race/store';
+import { useRaceStore } from '@simulation/stores/compare.store';
 import { useSettingsStore } from '@/store/settings.store';
 import { getSelectedPacemakerIndices } from '@/store/settings/actions';
 import { useUIStore } from '@/store/ui.store';

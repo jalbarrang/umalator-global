@@ -4,7 +4,6 @@ import skillNamesList from '@data/skillnames.json';
 import GametoraSkills from '@data/gametora/skills.json';
 
 import { UmaAltId } from '@/modules/runners/utils';
-import { strict as assert } from 'assert';
 import { parseSkillCondition, tokenizedConditions } from './conditions';
 import { ISkill } from './types';
 import { SkillRarity } from '@simulation/lib/RaceSolver';
@@ -68,24 +67,11 @@ export const getSkillMetaById = (id: string): SkillMeta | null =>
 export const getSkillNameById = (id: string): string[] =>
   skillNamesList[getBaseSkillId(id)] ?? [];
 
-export const getUniqueSkills = () => {
-  return Object.keys(skillsDataList).filter((id) => {
-    const skill = skillsDataList[id];
-    return skill.rarity >= 4 && id.startsWith('1');
-  });
-};
-
-export function assertIsSkill(sid: string): asserts sid is SkillId {
-  assert(skillsDataList[sid] !== null);
-}
-
-export function getUniqueSkillForByUmaId(outfitId: UmaAltId): SkillId {
+export function getUniqueSkillForByUmaId(outfitId: UmaAltId): string {
   const umaId = +outfitId.slice(1, -2);
   const altId = +outfitId.slice(-2);
 
   const skillId = (100000 + 10000 * (altId - 1) + umaId * 10 + 1).toString();
-
-  assertIsSkill(skillId);
 
   return skillId;
 }
@@ -320,6 +306,8 @@ export function estimateSkillActivationPhase(skillId: string): number | null {
   return null;
 }
 
+export const uniqueSkillIds: string[] = [];
+
 // Setup every value for module variables
 for (const skill of allSkills) {
   skillsById.set(skill.id, skill);
@@ -330,5 +318,9 @@ for (const skill of allSkills) {
   if (isNotUniqueSkill || isEvolvedSkill) {
     nonUniqueSkills.push(skill);
     nonUniqueSkillIds.push(skill.id);
+  }
+
+  if (skill.data.rarity >= 4 && skill.id.startsWith('1')) {
+    uniqueSkillIds.push(skill.id);
   }
 }

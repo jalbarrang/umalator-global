@@ -11,6 +11,9 @@ import { App } from './App';
 import { Toaster } from './components/ui/sonner';
 import { StrictMode } from 'react';
 import { BrowserRouter } from 'react-router';
+import { enableMapSet } from 'immer';
+
+enableMapSet();
 
 const posthogHost = import.meta.env.VITE_PUBLIC_POSTHOG_HOST;
 const posthogKey = import.meta.env.VITE_PUBLIC_POSTHOG_KEY;

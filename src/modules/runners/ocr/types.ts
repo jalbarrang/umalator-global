@@ -31,4 +31,3 @@ export interface ExtractedUmaData {
   imageCount: number;
   unrecognized: string[];
 }
-

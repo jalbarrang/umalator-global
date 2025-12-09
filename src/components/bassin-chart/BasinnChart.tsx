@@ -43,8 +43,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '../ui/tooltip';
-import { RoundResult } from '@/modules/simulation/types';
+import { PoolMetrics, RoundResult } from '@/modules/simulation/types';
 import { Checkbox } from '../ui/checkbox';
+import { formatMs } from '@/utils/time';
 
 function umaForUniqueSkill(skillId: string): string | null {
   const sid = parseInt(skillId);
@@ -136,12 +137,13 @@ type BasinnChartProps = {
   data: RoundResult[];
   hiddenSkills: string[];
   showUmaIcons?: boolean;
+  metrics?: PoolMetrics | null;
   onAddSkill: (id: string) => void;
   onSelectionChange: (id: string) => void;
 };
 
 export const BasinnChart = (props: BasinnChartProps) => {
-  const { onAddSkill, showUmaIcons = false } = props;
+  const { onAddSkill, showUmaIcons = false, metrics } = props;
   const { isSimulationRunning } = useUIStore();
 
   const columns = [
@@ -182,8 +184,22 @@ export const BasinnChart = (props: BasinnChartProps) => {
       id: 'visualize',
       header: '',
       cell: (info: CellContext<RoundResult, unknown>) => {
-        const skillId = info.row.getValue('id') as string;
-        // const isSelected = selectedSkillsForVisualization.has(skillId);
+        const row = info.row.original;
+        const hasRunData = row.runData != null;
+        const filterReason = row.filterReason;
+
+        let tooltipText = 'Show on race track';
+        if (!hasRunData) {
+          if (filterReason === 'negligible-effect') {
+            tooltipText = 'Skill effect too small to measure (< 0.1 bashin)';
+          } else if (filterReason === 'low-variance') {
+            tooltipText =
+              'Skill effect too consistent to need detailed analysis';
+          } else {
+            tooltipText =
+              'No detailed data available (filtered during simulation)';
+          }
+        }
 
         return (
           <TooltipProvider>
@@ -191,14 +207,13 @@ export const BasinnChart = (props: BasinnChartProps) => {
               <TooltipTrigger asChild>
                 <div className="flex items-center justify-center">
                   <Checkbox
-                    // checked={isSelected}
-                    // onCheckedChange={() => onVisualizationToggle(skillId)}
+                    disabled={!hasRunData}
                     aria-label="Show on race track"
                   />
                 </div>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Show on race track</p>
+                <p>{tooltipText}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -265,6 +280,26 @@ export const BasinnChart = (props: BasinnChartProps) => {
               <div className="text-lg font-semibold">Simulating Skills</div>
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Metrics Display */}
+      {!isSimulationRunning && metrics && (
+        <div className="mb-4 p-3 bg-muted/50 rounded-md border">
+          <div className="flex items-center gap-6 text-sm text-muted-foreground">
+            <span>
+              <strong>Time:</strong> {formatMs(metrics.timeTaken)}s
+            </span>
+            <span>
+              <strong>Skills:</strong> {metrics.skillsProcessed}
+            </span>
+            <span>
+              <strong>Samples:</strong> {metrics.totalSamples.toLocaleString()}
+            </span>
+            <span>
+              <strong>Workers:</strong> {metrics.workerCount}
+            </span>
           </div>
         </div>
       )}

@@ -206,4 +206,3 @@ export function useStaminaAnalysis(
     return calculateStaminaAnalysis(runner, courseId, groundCondition);
   }, [runner, courseId, groundCondition]);
 }
-

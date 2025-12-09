@@ -1,4 +1,4 @@
-import { SimulationData } from '@/store/race/compare.types';
+import { SimulationData } from '@simulation/compare.types';
 import { PosKeepMode } from './lib/RaceSolver';
 import { RunnerState } from '../runners/components/runner-card/types';
 import { CourseData } from './lib/CourseData';
@@ -6,19 +6,32 @@ import { RaceParameters } from './lib/RaceParameters';
 
 // Calculate theoretical max spurt based purely on stats (no RNG)
 
+export type FilterReason = 'negligible-effect' | 'low-variance' | null;
+
 export type RoundResult = {
   id: string;
   results: number[];
-  runData: SimulationData;
+  runData?: SimulationData;
   min: number;
   max: number;
   mean: number;
   median: number;
+  filterReason?: FilterReason;
+};
+
+export type SkillBasinResponse = Map<string, RoundResult>;
+
+export type PoolMetrics = {
+  timeTaken: number;
+  totalSamples: number;
+  workerCount: number;
+  skillsProcessed: number;
 };
 
 export interface SimulationOptions {
   seed?: number;
   useEnhancedSpurt?: boolean;
+  includeRunData?: boolean;
   accuracyMode?: boolean;
   posKeepMode?: PosKeepMode;
   mode?: string;

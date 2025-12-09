@@ -1,5 +1,3 @@
-import { strict as assert } from 'assert';
-
 import {
   AndOperator,
   CmpOperator,
@@ -14,13 +12,17 @@ function isCmpOperator(tree: Operator): tree is CmpOperator {
 }
 
 function assertIsCmpOperator(tree: Operator): asserts tree is CmpOperator {
-  assert(isCmpOperator(tree));
+  if (!isCmpOperator(tree)) {
+    throw new Error('Tree is not a CmpOperator');
+  }
 }
 
 function assertIsLogicalOp(
   tree: Operator,
 ): asserts tree is AndOperator | OrOperator {
-  assert('left' in tree && 'right' in tree);
+  if (!('left' in tree && 'right' in tree)) {
+    throw new Error('Tree is not a AndOperator or OrOperator');
+  }
 }
 
 function flatten(node: AndOperator, conds: CmpOperator[]) {
@@ -90,7 +92,7 @@ export function treeMatch(match: Node, tree: Operator) {
 
 const mockSamplePolicy = Object.freeze({
   sample(_0, _1) {
-    assert(false);
+    throw new Error('Not implemented');
   },
   reconcile(_) {
     return this;

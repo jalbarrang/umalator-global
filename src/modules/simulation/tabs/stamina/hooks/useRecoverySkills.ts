@@ -16,20 +16,42 @@ export interface RecoverySkillActivation {
 }
 
 // Helper to identify recovery/HP drain skills and extract their amounts
+// Handles dual-effect skills that both drain HP from others and heal self
 export function getRecoverySkillInfo(skillId: string): {
   isRecovery: boolean;
-  modifier: number;
-  isDebuff: boolean;
+  selfHealModifier: number; // Self-healing amount
+  debuffModifier: number; // HP drain to others
+  hasSelfHeal: boolean;
+  hasDebuff: boolean;
 } {
   const data = getSkillDataById(skillId);
-  const effect = data?.alternatives?.[0]?.effects?.find(
-    (e: { type: number }) => e.type === 9,
-  );
-  const modifier = effect?.modifier ?? 0;
+  const effects = data?.alternatives?.[0]?.effects ?? [];
+
+  // Filter for type 9 (Recovery) effects
+  const recoveryEffects = effects.filter((e: { type: number }) => e.type === 9);
+
+  let selfHealModifier = 0;
+  let debuffModifier = 0;
+
+  for (const effect of recoveryEffects) {
+    // target === 1 (Self) or undefined means self-targeting
+    // Any other target value means targeting others
+    const targetsSelf = !effect.target || effect.target === 1;
+
+    if (targetsSelf) {
+      selfHealModifier += effect.modifier;
+    } else {
+      // This targets others - check if it's a debuff (negative) or buff (positive)
+      debuffModifier += effect.modifier;
+    }
+  }
+
   return {
-    isRecovery: !!effect,
-    modifier,
-    isDebuff: modifier < 0,
+    isRecovery: recoveryEffects.length > 0,
+    selfHealModifier,
+    debuffModifier,
+    hasSelfHeal: selfHealModifier !== 0,
+    hasDebuff: debuffModifier !== 0,
   };
 }
 
@@ -48,10 +70,7 @@ const PHASE_BOUNDARIES = [
 /**
  * Get estimated activation position for a skill based on its phase
  */
-function getEstimatedPosition(
-  skillId: string,
-  courseDistance: number,
-): number {
+function getEstimatedPosition(skillId: string, courseDistance: number): number {
   const phase = estimateSkillActivationPhase(skillId);
 
   if (phase !== null && phase >= 0 && phase <= 3) {
@@ -67,7 +86,7 @@ function getEstimatedPosition(
 
 /**
  * Extract recovery skills from actual simulation data
- * Only returns positive recovery skills (heals), not debuffs
+ * Includes both pure heals and self-heals from dual-effect debuff skills
  */
 export function useActualRecoverySkills(
   skillData: Map<string, [number, number][]> | undefined,
@@ -78,12 +97,14 @@ export function useActualRecoverySkills(
 
     const skills: RecoverySkillActivation[] = [];
     for (const [skillId, positions] of skillData.entries()) {
-      const { isRecovery, modifier, isDebuff } = getRecoverySkillInfo(skillId);
-      // Only include positive recovery skills (heals)
-      if (isRecovery && !isDebuff) {
+      const { isRecovery, selfHealModifier, hasSelfHeal } =
+        getRecoverySkillInfo(skillId);
+
+      // Include skills that have self-healing (positive or from dual-effect debuffs)
+      if (isRecovery && hasSelfHeal) {
         const [skillName] = getSkillNameById(skillId);
         // Recovery modifier is percentage of max HP (divided by 10000)
-        const hpRecovered = (modifier / 10000) * maxHp;
+        const hpRecovered = (selfHealModifier / 10000) * maxHp;
 
         positions.forEach(([start]) => {
           skills.push({
@@ -114,12 +135,14 @@ export function useActualDebuffsReceived(
 
     const skills: RecoverySkillActivation[] = [];
     for (const [skillId, positions] of debuffsData.entries()) {
-      const { isRecovery, modifier, isDebuff } = getRecoverySkillInfo(skillId);
-      // Only include debuffs (negative HP effects)
-      if (isRecovery && isDebuff) {
+      const { isRecovery, debuffModifier, hasDebuff } =
+        getRecoverySkillInfo(skillId);
+
+      // Only include skills that have debuff effects on others
+      if (isRecovery && hasDebuff) {
         const [skillName] = getSkillNameById(skillId);
-        // Modifier is negative, so hpRecovered will be negative (HP drain)
-        const hpRecovered = (modifier / 10000) * maxHp;
+        // Modifier is typically negative, so hpRecovered will be negative (HP drain)
+        const hpRecovered = (debuffModifier / 10000) * maxHp;
 
         positions.forEach(([start]) => {
           skills.push({
@@ -139,7 +162,7 @@ export function useActualDebuffsReceived(
 
 /**
  * Calculate theoretical recovery skills from equipped skills
- * Only returns positive recovery skills (heals), not self-debuffs
+ * Includes both pure heals and self-heals from dual-effect debuff skills
  */
 export function useTheoreticalRecoverySkills(
   runner: RunnerState,
@@ -150,12 +173,14 @@ export function useTheoreticalRecoverySkills(
     const skills: RecoverySkillActivation[] = [];
 
     for (const skillId of runner.skills) {
-      const { isRecovery, modifier, isDebuff } = getRecoverySkillInfo(skillId);
-      // Only include positive recovery skills (heals)
-      if (isRecovery && !isDebuff) {
+      const { isRecovery, selfHealModifier, hasSelfHeal } =
+        getRecoverySkillInfo(skillId);
+
+      // Include skills that have self-healing
+      if (isRecovery && hasSelfHeal) {
         const [skillName] = getSkillNameById(skillId);
         // Recovery modifier is percentage of max HP (divided by 10000)
-        const hpRecovered = (modifier / 10000) * maxHp;
+        const hpRecovered = (selfHealModifier / 10000) * maxHp;
         const position = getEstimatedPosition(skillId, courseDistance);
 
         skills.push({
@@ -186,12 +211,14 @@ export function useTheoreticalDebuffsReceived(
     const skills: RecoverySkillActivation[] = [];
 
     for (const skillId of opponent.skills) {
-      const { isRecovery, modifier, isDebuff } = getRecoverySkillInfo(skillId);
-      // Only include debuffs (negative HP effects targeting others)
-      if (isRecovery && isDebuff) {
+      const { isRecovery, debuffModifier, hasDebuff } =
+        getRecoverySkillInfo(skillId);
+
+      // Only include skills that have debuff effects
+      if (isRecovery && hasDebuff) {
         const [skillName] = getSkillNameById(skillId);
-        // Modifier is negative, so hpRecovered will be negative (HP drain)
-        const hpRecovered = (modifier / 10000) * maxHp;
+        // Modifier is typically negative, so hpRecovered will be negative (HP drain)
+        const hpRecovered = (debuffModifier / 10000) * maxHp;
         const position = getEstimatedPosition(skillId, courseDistance);
 
         skills.push({
@@ -208,4 +235,3 @@ export function useTheoreticalDebuffsReceived(
     return skills.sort((a, b) => a.position - b.position);
   }, [opponent.skills, maxHp, courseDistance]);
 }
-

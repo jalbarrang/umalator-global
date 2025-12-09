@@ -1,5 +1,3 @@
-import { SkillId } from '@/modules/skills/utils';
-
 export interface CompareResult {
   results: number[];
   runData: SimulationData;
@@ -60,7 +58,7 @@ export interface SimulationRun {
 }
 
 export type RegionActivation = [number, number];
-export type Sk = Map<SkillId, RegionActivation[]>;
+export type Sk = Map<string, RegionActivation[]>;
 
 export interface StaminaStats {
   uma1: StaminaStatsUma1;

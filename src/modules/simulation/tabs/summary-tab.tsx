@@ -1,5 +1,5 @@
 import { Activity, useMemo } from 'react';
-import { setDisplaying, useRaceStore } from '@/store/race/store';
+import { setDisplaying, useRaceStore } from '@simulation/stores/compare.store';
 import { cn } from '@/lib/utils';
 import {
   Table,

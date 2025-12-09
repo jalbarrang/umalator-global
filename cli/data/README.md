@@ -30,11 +30,13 @@ npm run sync-skills
 ## Keyboard Shortcuts
 
 ### Main Interface
+
 - **Enter** - Confirm / Start sync
 - **B** - Go back to input (from confirmation)
 - **ESC** - Exit the CLI
 
 ### Options
+
 - **D** - Toggle dry run mode (on confirmation screen)
 - **P** - Proceed with actual sync (after dry run preview)
 
@@ -52,12 +54,14 @@ npm run sync-skills
 **How it works**: Syncs ONLY skills that belong to that specific outfit/character.
 
 **Outfit ID Examples**:
+
 - `100101` - Special Week [Special Dreamer]
 - `100302` - Tokai Teio [Beyond the Horizon]
 - `106801` - Kitasan Black
 - (See `src/modules/data/umas.json` for full list)
 
 **What gets synced**:
+
 - ✅ Skills where the `char` field includes your outfit ID
 - ✅ Inherited versions of those specific skills
 - ✅ All skill versions (e.g., if character has "Rainy Days ◎", also syncs "Rainy Days ○")
@@ -102,4 +106,3 @@ Press P to proceed with actual sync • Press ESC to exit
 - **Character Filtering**: Uses the `char` field in skill data to match character/outfit IDs
 - **Skill Versions**: Automatically includes all versions (○, ◎, ×) via the `versions` field
 - **Rarity Filter**: Excludes rarity 6 skills (unreleased content)
-

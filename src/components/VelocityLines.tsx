@@ -1,4 +1,4 @@
-import { SimulationRun } from '@/store/race/compare.types';
+import { SimulationRun } from '@simulation/compare.types';
 import { useRaceTrackUI } from '@/store/settings.store';
 import * as d3 from 'd3';
 import { memo, useMemo } from 'react';

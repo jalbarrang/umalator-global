@@ -12,7 +12,6 @@ import { createRaceConditions, RaceConditions } from '@/utils/races';
 import { PosKeepMode } from '@simulation/lib/RaceSolver';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { useShallow } from 'zustand/shallow';
-import { setCurrentIdx, useUIStore } from './ui.store';
 
 export type WitVarianceSettings = {
   allowRushedUma1: boolean;
@@ -112,12 +111,12 @@ export const setSeed = (seed: number) => {
 };
 
 export const setPosKeepMode = (posKeepMode: PosKeepMode) => {
-  const { currentIdx } = useUIStore.getState();
+  // const { currentIdx } = useUIStore.getState();
   useSettingsStore.setState({ posKeepMode });
 
-  if (posKeepMode !== PosKeepMode.Virtual && currentIdx === 2) {
-    setCurrentIdx(0);
-  }
+  // if (posKeepMode !== PosKeepMode.Virtual && currentIdx === 2) {
+  //   setCurrentIdx(0);
+  // }
 };
 
 export const setRaceParams = (raceParams: RaceConditions) => {

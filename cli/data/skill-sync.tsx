@@ -1,17 +1,18 @@
 #!/usr/bin/env tsx
-
 /* eslint-disable react-refresh/only-export-components */
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { render, Box, Text, useInput, useApp } from 'ink';
 import Spinner from 'ink-spinner';
 import TextInput from 'ink-text-input';
+import MultiSelect, { ListedItem } from '../components/MultiSelect';
 
 // Import your sync functions
 import { syncSkills, FilterConfig } from './sync-skills';
 
 interface SyncState {
   charId: string;
+  charIds: number[];
   dryRun: boolean;
   isProcessing: boolean;
   isDone: boolean;
@@ -30,6 +31,7 @@ const App = () => {
   const { exit } = useApp();
   const [state, setState] = useState<SyncState>({
     charId: '',
+    charIds: [],
     dryRun: false,
     isProcessing: false,
     isDone: false,
@@ -37,37 +39,77 @@ const App = () => {
     stats: null,
   });
 
-  const [stage, setStage] = useState<'input-char' | 'confirm' | 'processing'>(
-    'input-char',
-  );
+  const [availableSkills, setAvailableSkills] = useState<
+    { id: number; name: string }[]
+  >([]);
+  const [selectedSkillIds, setSelectedSkillIds] = useState<
+    { value: number; label: string }[]
+  >([]);
+
+  const skillOptions = useMemo(() => {
+    return availableSkills.map((skill) => ({
+      label: skill.name,
+      value: skill.id,
+    }));
+  }, [availableSkills]);
+
+  const [stage, setStage] = useState<
+    'input-char' | 'confirm' | 'skill-selection' | 'processing'
+  >('input-char');
 
   const handleSync = async () => {
     setState((prev) => ({ ...prev, isProcessing: true, error: null }));
     setStage('processing');
 
     try {
-      const charId = parseInt(state.charId);
+      // First pass: Fetch skills (dry run)
+      if (stage === 'confirm') {
+        const config: FilterConfig = {
+          dryRun: true,
+          specificCharIds: state.charIds,
+        };
 
-      if (isNaN(charId)) {
-        throw new Error('Invalid outfit ID. Please enter a number.');
+        const result = await syncSkills(config);
+
+        setAvailableSkills(
+          Array.from(result.processedSkills.values()).toSorted(
+            (a, b) => a.id - b.id,
+          ),
+        );
+        setSelectedSkillIds(
+          Array.from(result.processedSkills.values()).map((s) => ({
+            value: s.id,
+            label: s.name,
+          })),
+        );
+
+        // Update state with available skills
+        setState((prev) => ({
+          ...prev,
+          isProcessing: false,
+          stats: result,
+        }));
+
+        // Reset highlighted index and go to selection stage
+        setStage('skill-selection');
       }
+      // Second pass: Sync selected skills
+      else if (stage === 'skill-selection') {
+        const config: FilterConfig = {
+          dryRun: false,
+          includeIds: selectedSkillIds.map((s) => s.value),
+        };
 
-      const config: FilterConfig = {
-        dryRun: state.dryRun,
-        specificCharId: charId,
-      };
+        const result = await syncSkills(config);
 
-      const result = await syncSkills(config);
+        setState((prev) => ({
+          ...prev,
+          isProcessing: false,
+          isDone: true,
+          stats: result,
+        }));
 
-      setState((prev) => ({
-        ...prev,
-        isProcessing: false,
-        isDone: true,
-        stats: result,
-      }));
-
-      // Don't auto-exit after dry run
-      if (!state.dryRun) {
+        // Auto-exit after sync
         setTimeout(() => exit(), 3000);
       }
     } catch (error) {
@@ -76,8 +118,27 @@ const App = () => {
         isProcessing: false,
         error: error instanceof Error ? error.message : 'Unknown error',
       }));
-      setStage('confirm'); // Go back to confirm so user can try again
+      // Go back to previous stage
+      setStage(stage === 'skill-selection' ? 'skill-selection' : 'confirm');
     }
+  };
+
+  const handleOnSelect = (selected: ListedItem) => {
+    setSelectedSkillIds((prev) => {
+      const newSelected = [...prev];
+      newSelected.push({
+        value: Number(selected.value),
+        label: selected.label,
+      });
+
+      return newSelected;
+    });
+  };
+
+  const handleOnUnselect = (unselected: ListedItem) => {
+    setSelectedSkillIds((prev) => {
+      return prev.filter((s) => s.value !== Number(unselected.value));
+    });
   };
 
   // Input handlers
@@ -124,6 +185,49 @@ const App = () => {
         dryRun: false,
       }));
     }
+
+    // Skill selection stage handlers
+    if (stage === 'skill-selection') {
+      // Select all / Deselect all with 'A'
+      if (input === 'a' || input === 'A') {
+        setSelectedSkillIds((prev) => {
+          const allSelected = availableSkills.every((skill) =>
+            prev.some((s) => s.value === skill.id),
+          );
+          if (allSelected) {
+            // Deselect all
+            return [];
+          } else {
+            // Select all
+            return availableSkills.map((s) => ({
+              value: s.id,
+              label: s.name,
+            }));
+          }
+        });
+      }
+
+      // Proceed with selected skills
+      if (key.return) {
+        if (selectedSkillIds.length === 0) {
+          setState((prev) => ({
+            ...prev,
+            error: 'Please select at least one skill to sync',
+          }));
+        } else {
+          handleSync();
+        }
+      }
+
+      // Go back
+      if (input === 'b') {
+        setStage('confirm');
+        setState((prev) => ({
+          ...prev,
+          error: null,
+        }));
+      }
+    }
   });
 
   return (
@@ -141,31 +245,56 @@ const App = () => {
           </Box>
           <Box marginBottom={1}>
             <Text dimColor>
-              Enter outfit ID to sync skills from that specific character
+              Enter outfit ID(s) to sync skills (comma-separated for multiple)
             </Text>
           </Box>
           <Box marginBottom={1} marginTop={1}>
             <Box>
-              <Text>Outfit ID: </Text>
+              <Text>Outfit ID(s): </Text>
               <TextInput
                 value={state.charId}
                 onChange={(value) =>
                   setState((prev) => ({ ...prev, charId: value }))
                 }
-                onSubmit={() => setStage('confirm')}
-                placeholder="e.g. 106801"
+                onSubmit={() => {
+                  // Parse and validate character IDs
+                  const ids = state.charId
+                    .split(',')
+                    .map((id) => id.trim())
+                    .filter((id) => id !== '')
+                    .map((id) => parseInt(id))
+                    .filter((id) => !isNaN(id));
+
+                  if (ids.length === 0) {
+                    setState((prev) => ({
+                      ...prev,
+                      error: 'Please enter at least one valid outfit ID',
+                    }));
+                  } else {
+                    setState((prev) => ({
+                      ...prev,
+                      charIds: ids,
+                      error: null,
+                    }));
+                    setStage('confirm');
+                  }
+                }}
+                placeholder="e.g. 100101, 106801, 100301"
               />
             </Box>
           </Box>
           <Box marginTop={1}>
             <Text dimColor>
-              Will sync ONLY skills from outfit {state.charId || 'N'}
+              Will sync skills from outfit(s): {state.charId || 'N/A'}
             </Text>
           </Box>
           <Box marginTop={1}>
             <Text dimColor>
               Examples: 100101 (Special Week), 106801 (Kitasan Black)
             </Text>
+          </Box>
+          <Box marginTop={1}>
+            <Text dimColor>Multiple IDs: 100101, 106801, 100301</Text>
           </Box>
           <Box marginTop={1}>
             <Text dimColor>Press ESC to exit</Text>
@@ -180,20 +309,13 @@ const App = () => {
           </Box>
           <Box marginBottom={1}>
             <Text>
-              Outfit ID: <Text color="yellow">{state.charId}</Text>
+              Outfit ID(s): <Text color="yellow">{state.charId}</Text>
             </Text>
           </Box>
-
           <Box marginBottom={1}>
             <Text>
-              Dry Run:{' '}
-              {state.dryRun ? (
-                <Text color="cyan" bold>
-                  ON (preview only)
-                </Text>
-              ) : (
-                <Text color="magenta">OFF (will write files)</Text>
-              )}
+              Number of characters:{' '}
+              <Text color="cyan">{state.charIds.length}</Text>
             </Text>
           </Box>
 
@@ -206,14 +328,55 @@ const App = () => {
           <Box marginTop={1} flexDirection="column">
             <Box marginBottom={1}>
               <Text>
-                Press <Text bold>ENTER</Text> to{' '}
-                {state.dryRun ? 'preview' : 'sync'}
+                Press <Text bold>ENTER</Text> to fetch skills
               </Text>
             </Box>
             <Box>
               <Text dimColor>
-                <Text bold>D</Text> toggle dry run • <Text bold>B</Text> go back
-                • <Text bold>ESC</Text> cancel
+                <Text bold>B</Text> go back • <Text bold>ESC</Text> cancel
+              </Text>
+            </Box>
+          </Box>
+        </Box>
+      )}
+
+      {stage === 'skill-selection' && (
+        <Box flexDirection="column">
+          <Box marginBottom={1}>
+            <Text bold>Select skills to sync:</Text>
+          </Box>
+
+          <Box marginBottom={1}>
+            <Text>
+              Selected: <Text color="cyan">{selectedSkillIds.length}</Text> /{' '}
+              {availableSkills.length}
+            </Text>
+          </Box>
+
+          {state.error && (
+            <Box marginBottom={1}>
+              <Text color="red">⚠ {state.error}</Text>
+            </Box>
+          )}
+
+          <MultiSelect
+            items={skillOptions}
+            selected={selectedSkillIds}
+            onSelect={handleOnSelect}
+            onUnselect={handleOnUnselect}
+          />
+
+          <Box marginTop={1} flexDirection="column">
+            <Box marginBottom={1}>
+              <Text>
+                Press <Text bold>ENTER</Text> to sync selected skills
+              </Text>
+            </Box>
+            <Box>
+              <Text dimColor>
+                <Text bold>SPACE</Text> toggle • <Text bold>↑↓</Text> navigate •{' '}
+                <Text bold>A</Text> select all • <Text bold>B</Text> go back •{' '}
+                <Text bold>ESC</Text> cancel
               </Text>
             </Box>
           </Box>
@@ -267,20 +430,13 @@ const App = () => {
                 <Text bold>Skills to sync:</Text>
               </Box>
               <Box flexDirection="column">
-                {state.stats.skillNames.slice(0, 15).map((skill) => (
+                {state.stats.skillNames.map((skill) => (
                   <Box key={skill.id}>
                     <Text dimColor>
                       {skill.id}: <Text color="cyan">{skill.name}</Text>
                     </Text>
                   </Box>
                 ))}
-                {state.stats.skillNames.length > 15 && (
-                  <Box marginTop={1}>
-                    <Text dimColor>
-                      ... and {state.stats.skillNames.length - 15} more skills
-                    </Text>
-                  </Box>
-                )}
               </Box>
             </Box>
           )}

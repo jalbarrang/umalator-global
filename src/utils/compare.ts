@@ -16,11 +16,11 @@ import {
 
 import { Rule30CARng } from '@simulation/lib/Random';
 import { RunnerState } from '@/modules/runners/components/runner-card/types';
-import { CompareResult } from '@/store/race/compare.types';
+import { CompareResult, SimulationRun } from '@simulation/compare.types';
 import { getSkillDataById } from '@/modules/skills/utils';
 import {
-  RoundResult,
   RunComparisonParams,
+  SkillBasinResponse,
   TheoreticalMaxSpurtResult,
   type Run1RoundParams,
 } from '@/modules/simulation/types';
@@ -128,6 +128,8 @@ export function calculateTheoreticalMaxSpurt(
 export function runComparison(params: RunComparisonParams): CompareResult {
   const { nsamples, course, racedef, runnerA, runnerB, pacer, options } =
     params;
+
+  const { includeRunData = true } = options;
 
   // Pre-calculate heal skills from uma's skill lists before race starts
   const uma1HealSkills = [];
@@ -327,11 +329,11 @@ export function runComparison(params: RunComparisonParams): CompareResult {
     }
   }
 
-  const skillPos1 = new Map<string, [number, number][]>();
-  const skillPos2 = new Map<string, [number, number][]>();
+  const skillPos1: Map<string, [number, number][]> = new Map();
+  const skillPos2: Map<string, [number, number][]> = new Map();
   // Separate tracking for debuffs received by each runner
-  const debuffsReceived1 = new Map<string, [number, number][]>();
-  const debuffsReceived2 = new Map<string, [number, number][]>();
+  const debuffsReceived1: Map<string, [number, number][]> = new Map();
+  const debuffsReceived2: Map<string, [number, number][]> = new Map();
 
   const getActivator = (
     selfSet: Map<string, [number, number][]>,
@@ -493,7 +495,7 @@ export function runComparison(params: RunComparisonParams): CompareResult {
 
     const s1 = a.next(retry).value as RaceSolver;
     const s2 = b.next(retry).value as RaceSolver;
-    const data = {
+    const data: SimulationRun = {
       t: [[], []],
       p: [[], []],
       v: [[], []],
@@ -678,10 +680,10 @@ export function runComparison(params: RunComparisonParams): CompareResult {
     // This ensures skills that activate near the finish line get proper end positions
     // Also handles skills with very short durations that might deactivate in the same frame
     const cleanupActiveSkills = (
-      solver,
-      selfSkillSet,
-      otherSkillSet,
-      debuffsReceivedSet,
+      solver: RaceSolver,
+      selfSkillSet: Map<string, [number, number][]>,
+      otherSkillSet: Map<string, [number, number][]>,
+      debuffsReceivedSet: Map<string, [number, number][]>,
     ) => {
       const allActiveSkills = [
         ...solver.activeTargetSpeedSkills,
@@ -709,14 +711,14 @@ export function runComparison(params: RunComparisonParams): CompareResult {
     cleanupActiveSkills(s2, skillPos2, skillPos1, debuffsReceived2);
 
     data.sk[1] = new Map(skillPos2); // NOT ai (NB. why not?)
-    skillPos2.clear();
     data.sk[0] = new Map(skillPos1); // NOT bi (NB. why not?)
     skillPos1.clear();
+    skillPos2.clear();
 
     // Store debuffs received by each runner
-    data.debuffsReceived[0] = new Map(debuffsReceived1); // Debuffs uma1 received
+    data.debuffsReceived[0] = debuffsReceived1; // Debuffs uma1 received
+    data.debuffsReceived[1] = debuffsReceived2; // Debuffs uma2 received
     debuffsReceived1.clear();
-    data.debuffsReceived[1] = new Map(debuffsReceived2); // Debuffs uma2 received
     debuffsReceived2.clear();
 
     retry = false;
@@ -924,6 +926,19 @@ export function runComparison(params: RunComparisonParams): CompareResult {
   // We don't need to overwrite it - just ensure the rushed field is properly formatted
   // The rushed data comes from the RaceSolver.rushedActivations collected during each specific run
 
+  if (!includeRunData) {
+    return {
+      results: diff,
+      runData: undefined,
+      rushedStats: rushedStatsSummary,
+      leadCompetitionStats: leadCompetitionStatsSummary,
+      // spurtInfo: options.useEnhancedSpurt ? { uma1: {}, uma2: {} } : null,
+      spurtInfo: null,
+      staminaStats: staminaStatsSummary,
+      firstUmaStats: firstUmaStatsSummary,
+    };
+  }
+
   return {
     results: diff,
     runData: { minrun, maxrun, meanrun, medianrun },
@@ -939,7 +954,7 @@ export function runComparison(params: RunComparisonParams): CompareResult {
 export const run1Round = (params: Run1RoundParams) => {
   const { nsamples, skills, course, racedef, uma, pacer, options } = params;
 
-  const data = new Map<string, RoundResult>();
+  const data: SkillBasinResponse = new Map();
 
   skills.forEach((id) => {
     const withSkill = { ...uma, skills: [...uma.skills, id] };

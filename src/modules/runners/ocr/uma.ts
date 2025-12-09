@@ -82,4 +82,3 @@ export function extractUmaIdentity(text: string): UmaMatch | null {
 
   return null;
 }
-

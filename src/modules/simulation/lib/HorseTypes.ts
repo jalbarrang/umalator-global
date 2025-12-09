@@ -1,5 +1,3 @@
-import { strict as assert } from 'assert';
-
 export enum Strategy {
   Nige = 1,
   Senkou,
@@ -33,7 +31,9 @@ export interface HorseParameters {
 
 export class StrategyHelpers {
   static assertIsStrategy(strategy: number): asserts strategy is Strategy {
-    assert(Object.prototype.hasOwnProperty.call(Strategy, strategy));
+    if (!Object.prototype.hasOwnProperty.call(Strategy, strategy)) {
+      throw new Error(`Strategy ${strategy} is not a valid Strategy`);
+    }
   }
 
   static strategyMatches(s1: Strategy, s2: Strategy) {

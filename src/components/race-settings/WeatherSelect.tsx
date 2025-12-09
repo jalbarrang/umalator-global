@@ -10,10 +10,10 @@ export const WeatherIcon = (
 
   return (
     <img
-      src={`/icons/utx_ico_weather_0${weather}.png`}
+      src={`/icons/utx_ico_weather_0${weather - 1}.png`}
       title={strings_en.skilldetails.weather[weather]}
       className={cn(
-        'w-8 h-8 cursor-pointer grayscale-100 hover:grayscale-0',
+        'w-8 h-8 grayscale-100 hover:grayscale-0',
         {
           'grayscale-0': weather === racedef.weather,
         },
@@ -37,10 +37,10 @@ export function WeatherSelect() {
 
   return (
     <div className="flex gap-2 items-center" onClick={handleClick}>
-      <WeatherIcon weather={0} />
       <WeatherIcon weather={1} />
       <WeatherIcon weather={2} />
       <WeatherIcon weather={3} />
+      <WeatherIcon weather={4} />
     </div>
   );
 }

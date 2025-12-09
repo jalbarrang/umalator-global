@@ -2,7 +2,7 @@ import { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { getParser } from '@simulation/lib/ConditionParser';
 import { CourseData } from '@simulation/lib/CourseData';
 import { RaceParameters } from '@simulation/lib/RaceParameters';
-import { Perspective } from '@simulation/lib/RaceSolver';
+import { Perspective, PosKeepMode } from '@simulation/lib/RaceSolver';
 import {
   buildBaseStats,
   buildSkillData,
@@ -16,27 +16,29 @@ export function getActivateableSkills(
   racedef: RaceParameters,
 ) {
   const parser = getParser();
-  const h2 = buildBaseStats(horse);
+  const runnerB = buildBaseStats(horse);
 
   const wholeCourse = new RegionList();
   wholeCourse.push(new Region(0, course.distance));
-  return skills.filter((id) => {
-    let sd;
+
+  return skills.filter((skillId) => {
+    let builtSkillData;
+
     try {
-      sd = buildSkillData(
-        h2,
+      builtSkillData = buildSkillData(
+        runnerB,
         racedef,
         course,
         wholeCourse,
         parser,
-        id,
+        skillId,
         Perspective.Any,
       );
     } catch {
       return false;
     }
 
-    return sd.some(
+    return builtSkillData.some(
       (trigger) =>
         trigger.regions.length > 0 && trigger.regions[0].start < 9999,
     );
@@ -54,3 +56,18 @@ export function getNullRow(skillid: string) {
     runData: null,
   };
 }
+
+export const defaultSimulationOptions = {
+  posKeepMode: PosKeepMode.Approximate,
+  allowRushedUma1: false,
+  allowRushedUma2: false,
+  allowDownhillUma1: false,
+  allowDownhillUma2: false,
+  allowSectionModifierUma1: false,
+  allowSectionModifierUma2: false,
+  useEnhancedSpurt: false,
+  accuracyMode: false,
+  skillCheckChanceUma1: false,
+  skillCheckChanceUma2: false,
+  pacemakerCount: 1,
+};

@@ -25,6 +25,25 @@ export type ChangelogEntry = {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: '0.2.1',
+    date: '2025-12-09',
+    changes: [
+      {
+        type: 'fixed',
+        items: [
+          '[Stamina] Fixed dual-effect debuff skills (Stamina Eater, Stamina Siphon) not showing self-healing component',
+          '[Stamina] Recovery skills now correctly detect and display healing from skills that both drain HP from opponents and heal self',
+        ],
+      },
+      {
+        type: 'changed',
+        items: [
+          '[Technical] Enhanced getRecoverySkillInfo to process all type 9 effects and distinguish between self-targeting and other-targeting based on target field',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.2.0',
     date: '2025-12-06',
     changes: [
