@@ -4,7 +4,7 @@ import { useSettingsStore } from '@/store/settings.store';
 import { setIsSimulationRunning } from '@/store/ui.store';
 import { racedefToParams } from '@/utils/races';
 import { CourseHelpers } from '@simulation/lib/CourseData';
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   defaultSimulationOptions,
   getActivateableSkills,
@@ -13,6 +13,7 @@ import {
 import {
   appendResultsToTable,
   resetTable,
+  setMetrics,
   setTable,
 } from '@simulation/stores/skill-basin.store';
 import { SkillBasinResponse } from '@simulation/types';
@@ -24,6 +25,10 @@ type WorkerMessage<T> = {
   results: T;
 };
 
+const WORKER_COUNT = 2;
+// Total samples per skill: 5 + 20 + 50 + 200 = 275 (for skills that pass all filters)
+const SAMPLES_PER_STAGE = [5, 20, 50, 200];
+
 export function useSkillBassinRunner() {
   const { pacer } = useRunnersStore();
   const { runner } = useRunner();
@@ -32,32 +37,45 @@ export function useSkillBassinRunner() {
   const worker1Ref = useRef<Worker | null>(null);
   const worker2Ref = useRef<Worker | null>(null);
   const chartWorkersCompletedRef = useRef(0);
+  const startTimeRef = useRef<number>(0);
+  const totalSkillsRef = useRef<number>(0);
 
-  const handleWorkerMessage = (
-    event: MessageEvent<WorkerMessage<SkillBasinResponse>>,
-  ) => {
-    const { type, results } = event.data;
+  const handleWorkerMessage = useCallback(
+    (event: MessageEvent<WorkerMessage<SkillBasinResponse>>) => {
+      const { type, results } = event.data;
 
-    console.log('skill-bassin:handleWorkerMessage', {
-      type,
-      results,
-    });
+      switch (type) {
+        case 'skill-bassin':
+          appendResultsToTable(results);
+          break;
+        case 'skill-bassin-done':
+          chartWorkersCompletedRef.current += 1;
 
-    switch (type) {
-      case 'skill-bassin':
-        appendResultsToTable(results);
-        break;
-      case 'skill-bassin-done':
-        chartWorkersCompletedRef.current += 1;
+          if (chartWorkersCompletedRef.current >= WORKER_COUNT) {
+            const timeTaken = performance.now() - startTimeRef.current;
 
-        if (chartWorkersCompletedRef.current >= 2) {
-          setIsSimulationRunning(false);
-          chartWorkersCompletedRef.current = 0;
-        }
+            // Calculate total samples (estimated based on progressive filtering)
+            // Each skill goes through at least stage 1 (5 samples)
+            // Filtered skills stop early, remaining go through all stages
+            const totalSamples =
+              totalSkillsRef.current * SAMPLES_PER_STAGE.reduce((a, b) => a + b, 0);
 
-        break;
-    }
-  };
+            setMetrics({
+              timeTaken: Math.round(timeTaken),
+              totalSamples,
+              workerCount: WORKER_COUNT,
+              skillsProcessed: totalSkillsRef.current,
+            });
+
+            setIsSimulationRunning(false);
+            chartWorkersCompletedRef.current = 0;
+          }
+
+          break;
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     const webWorker = new Worker(
@@ -72,7 +90,7 @@ export function useSkillBassinRunner() {
       webWorker.removeEventListener('message', handleWorkerMessage);
       webWorker.terminate();
     };
-  }, []);
+  }, [handleWorkerMessage]);
 
   useEffect(() => {
     const webWorker = new Worker(
@@ -86,11 +104,12 @@ export function useSkillBassinRunner() {
       webWorker.removeEventListener('message', handleWorkerMessage);
       webWorker.terminate();
     };
-  }, []);
+  }, [handleWorkerMessage]);
 
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
 
   const doBasinnChart = () => {
+    startTimeRef.current = performance.now();
     setIsSimulationRunning(true);
 
     chartWorkersCompletedRef.current = 0;
@@ -107,6 +126,8 @@ export function useSkillBassinRunner() {
       course,
       params,
     );
+
+    totalSkillsRef.current = skills.length;
 
     const uma = runner;
 

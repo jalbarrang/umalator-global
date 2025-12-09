@@ -14,7 +14,7 @@ import { useShallow } from 'zustand/shallow';
 
 export const UmaBassinPage = () => {
   const { chartData } = useRaceStore();
-  const { results: umaBasinResults } = useUniqueSkillBasinStore();
+  const { results: umaBasinResults, metrics } = useUniqueSkillBasinStore();
   const courseId = useSettingsStore(useShallow((state) => state.courseId));
 
   const { runnerId } = useRunner();
@@ -24,7 +24,7 @@ export const UmaBassinPage = () => {
   const basinnChartSelection = (skillId: string) => {
     const results = umaBasinResults.get(skillId);
 
-    if (results.runData) {
+    if (results?.runData) {
       useRaceStore.setState({ results: results.results });
     }
   };
@@ -69,6 +69,7 @@ export const UmaBassinPage = () => {
         <BasinnChart
           data={Array.from(umaBasinResults.values())}
           hiddenSkills={[]}
+          metrics={metrics}
           onSelectionChange={basinnChartSelection}
           onAddSkill={addSkillFromTable}
           showUmaIcons

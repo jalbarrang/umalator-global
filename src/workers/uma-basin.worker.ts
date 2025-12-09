@@ -22,7 +22,7 @@ type RunChartParams = {
 function runChart(params: RunChartParams) {
   const { skills, course, racedef, uma, pacer, options } = params;
 
-  const optionsWithoutRunData = { ...options };
+  const optionsWithoutRunData = { ...options, includeRunData: false };
 
   let newSkills = [...skills];
 
@@ -54,7 +54,15 @@ function runChart(params: RunChartParams) {
 
   postMessage({ type: 'uma-bassin', results });
 
-  newSkills = newSkills.filter((id) => results.get(id).max > 0.1);
+  // Stage 1 filter: mark skills with negligible effect
+  newSkills = newSkills.filter((id) => {
+    const result = results.get(id);
+    if (result && result.max <= 0.1) {
+      result.filterReason = 'negligible-effect';
+      return false;
+    }
+    return true;
+  });
 
   let update = run1Round({
     nsamples: 20,
@@ -70,9 +78,15 @@ function runChart(params: RunChartParams) {
 
   postMessage({ type: 'uma-bassin', results });
 
-  newSkills = newSkills.filter(
-    (id) => Math.abs(results.get(id).max - results.get(id).min) > 0.1,
-  );
+  // Stage 2 filter: mark skills with low variance
+  newSkills = newSkills.filter((id) => {
+    const result = results.get(id);
+    if (result && Math.abs(result.max - result.min) <= 0.1) {
+      result.filterReason = 'low-variance';
+      return false;
+    }
+    return true;
+  });
 
   update = run1Round({
     nsamples: 50,

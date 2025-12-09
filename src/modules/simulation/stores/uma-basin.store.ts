@@ -1,24 +1,42 @@
 import { create } from 'zustand';
-import { SkillBasinResponse } from '@simulation/types';
+import { immer } from 'zustand/middleware/immer';
+import { PoolMetrics, SkillBasinResponse } from '@simulation/types';
 
-type IUmaBassinStore = {
+type IUmaBasinStore = {
   results: SkillBasinResponse;
-  timeTaken: number;
+  metrics: PoolMetrics | null;
 };
 
-export const useUniqueSkillBasinStore = create<IUmaBassinStore>()((_) => ({
+export const useUniqueSkillBasinStore = create<IUmaBasinStore>()(
+  immer(() => ({
   results: new Map(),
-  timeTaken: 0,
-}));
+    metrics: null,
+  })),
+);
 
 export const setTable = (results: SkillBasinResponse) => {
-  useUniqueSkillBasinStore.setState({ results });
+  useUniqueSkillBasinStore.setState((draft) => {
+    draft.results = results;
+  });
 };
 
 export const resetTable = () => {
-  useUniqueSkillBasinStore.setState({ results: new Map() });
+  useUniqueSkillBasinStore.setState((draft) => {
+    draft.results = new Map();
+    draft.metrics = null;
+  });
 };
 
 export const appendResultsToTable = (results: SkillBasinResponse) => {
-  useUniqueSkillBasinStore.setState({ results });
+  useUniqueSkillBasinStore.setState((draft) => {
+    results.forEach((value, key) => {
+      draft.results.set(key, value);
+    });
+  });
+};
+
+export const setMetrics = (metrics: PoolMetrics) => {
+  useUniqueSkillBasinStore.setState((draft) => {
+    draft.metrics = metrics;
+  });
 };

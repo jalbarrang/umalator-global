@@ -1,29 +1,42 @@
 import { create } from 'zustand';
-import { SkillBasinResponse } from '@simulation/types';
+import { immer } from 'zustand/middleware/immer';
+import { PoolMetrics, SkillBasinResponse } from '@simulation/types';
 
 type ISkillBasinStore = {
   results: SkillBasinResponse;
-  timeTaken: number;
+  metrics: PoolMetrics | null;
 };
 
-export const useSkillBasinStore = create<ISkillBasinStore>()((_) => ({
-  results: new Map(),
-  timeTaken: 0,
-}));
+export const useSkillBasinStore = create<ISkillBasinStore>()(
+  immer(() => ({
+    results: new Map(),
+    metrics: null,
+  })),
+);
 
 export const setTable = (results: SkillBasinResponse) => {
-  useSkillBasinStore.setState({ results });
+  useSkillBasinStore.setState((draft) => {
+    draft.results = results;
+  });
 };
 
 export const resetTable = () => {
-  useSkillBasinStore.setState({ results: new Map() });
+  useSkillBasinStore.setState((draft) => {
+    draft.results = new Map();
+    draft.metrics = null;
+  });
 };
 
 export const appendResultsToTable = (results: SkillBasinResponse) => {
-  useSkillBasinStore.setState((prev) => {
-    return {
-      ...prev,
-      results: new Map([...prev.results, ...results]),
-    };
+  useSkillBasinStore.setState((draft) => {
+    results.forEach((value, key) => {
+      draft.results.set(key, value);
+    });
+  });
+};
+
+export const setMetrics = (metrics: PoolMetrics) => {
+  useSkillBasinStore.setState((draft) => {
+    draft.metrics = metrics;
   });
 };

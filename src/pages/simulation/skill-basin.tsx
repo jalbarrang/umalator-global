@@ -11,10 +11,11 @@ import { useSettingsStore } from '@/store/settings.store';
 import { useUIStore } from '@/store/ui.store';
 import { useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
+import { useSkillBasinPoolRunner } from '@/modules/simulation/hooks/pool/useSkillBasinPoolRunner';
 
 export const SkillBassinPage = () => {
   const { chartData } = useRaceStore();
-  const { results: skillBasinResults } = useSkillBasinStore();
+  const { results: skillBasinResults, metrics } = useSkillBasinStore();
   const courseId = useSettingsStore(useShallow((state) => state.courseId));
 
   const { runnerId, runner } = useRunner();
@@ -24,7 +25,7 @@ export const SkillBassinPage = () => {
   const basinnChartSelection = (skillId: string) => {
     const results = skillBasinResults.get(skillId);
 
-    if (results.runData) {
+    if (results?.runData) {
       useRaceStore.setState({ results: results.results });
     }
   };
@@ -34,7 +35,7 @@ export const SkillBassinPage = () => {
   };
 
   const { isSimulationRunning } = useUIStore();
-  const { doBasinnChart } = useSkillBassinRunner();
+  const { doBasinnChart } = useSkillBasinPoolRunner();
 
   return (
     <div className="flex flex-col gap-4">
@@ -69,6 +70,7 @@ export const SkillBassinPage = () => {
         <BasinnChart
           data={Array.from(skillBasinResults.values())}
           hiddenSkills={runner.skills}
+          metrics={metrics}
           onSelectionChange={basinnChartSelection}
           onAddSkill={addSkillFromTable}
         />

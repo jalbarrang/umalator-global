@@ -4,7 +4,7 @@ import skillNamesList from '@data/skillnames.json';
 import GametoraSkills from '@data/gametora/skills.json';
 
 import { UmaAltId } from '@/modules/runners/utils';
-import { strict as assert } from 'assert';
+import { strict as assert } from '@/utils/assert';
 import { parseSkillCondition, tokenizedConditions } from './conditions';
 import { ISkill } from './types';
 import { SkillRarity } from '@simulation/lib/RaceSolver';

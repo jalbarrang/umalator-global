@@ -1,6 +1,12 @@
 import { SimulationData } from '@/modules/simulation/compare.types';
 import { RoundResult, SkillBasinResponse } from '@/modules/simulation/types';
-import assert from 'assert';
+
+// Browser-compatible assertion function
+function assert(condition: boolean, message: string): asserts condition {
+  if (!condition) {
+    throw new Error(message);
+  }
+}
 
 export const mergeResults = (resultA: RoundResult, resultB: RoundResult) => {
   assert(
@@ -57,6 +63,8 @@ export const mergeResults = (resultA: RoundResult, resultB: RoundResult) => {
     mean: combinedMean,
     median: newMedian,
     runData: mergedRunData,
+    // Preserve filterReason from either result (newer result takes precedence)
+    filterReason: resultB.filterReason ?? resultA.filterReason,
   };
 };
 

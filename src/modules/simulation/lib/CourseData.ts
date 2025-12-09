@@ -1,4 +1,4 @@
-import { strict as assert } from 'assert';
+import { strict as assert } from '@/utils/assert';
 
 export type Phase = 0 | 1 | 2 | 3;
 export enum Surface {
