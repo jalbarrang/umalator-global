@@ -1,3 +1,7 @@
+---
+alwaysApply: false
+---
+
 # Post-Task Quality Checks
 
 After completing any implementation tasks, you MUST run the following commands to check for code-related issues:

@@ -1,3 +1,7 @@
+---
+alwaysApply: false
+---
+
 # Bun Framework Reference
 
 This project uses **Bun** as the JavaScript runtime and toolkit. When working with Bun-specific features, APIs, or tooling, refer to the official Bun documentation.
@@ -30,10 +34,10 @@ This comprehensive resource covers:
 ## Key Differences from Node.js
 
 Bun is designed to be a drop-in replacement for Node.js but includes:
+
 - Native TypeScript and JSX support (no compilation step needed)
 - Built-in bundler, test runner, and package manager
 - Faster startup times and improved performance
 - Additional built-in APIs not available in Node.js
 
 Always check the Bun documentation when implementing features or troubleshooting issues specific to the Bun runtime.
-
