@@ -1,33 +1,42 @@
 {
   "compilerOptions": {
     "tsBuildInfoFile": "./.cache/tsconfig.tsbuildinfo",
-    "target": "ES2023",
-    "module": "esnext",
-    "lib": ["ES2023", "DOM", "DOM.Iterable"],
-
-    "strict": false,
-    "skipLibCheck": true,
-    "useDefineForClassFields": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true,
-    "esModuleInterop": true,
+    // Environment setup & latest features
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "target": "ESNext",
+    "module": "Preserve",
+    "moduleDetection": "force",
     "jsx": "react-jsx",
+    "allowJs": true,
 
-    /* Bundler mode */
+    // Bundler mode
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
-    "moduleDetection": "force",
-    "types": ["node", "vite/client"],
+    "verbatimModuleSyntax": false,
     "noEmit": true,
-    "resolveJsonModule": true,
+
+    // Best practices
+    "strict": false,
+    "skipLibCheck": true,
+    "noFallthroughCasesInSwitch": false,
+    "noUncheckedIndexedAccess": false,
+    "noImplicitOverride": true,
+
+    // Some stricter flags (disabled by default)
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noPropertyAccessFromIndexSignature": false,
 
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
       "@data/*": ["./src/modules/data/*"],
       "@simulation/*": ["./src/modules/simulation/*"],
-      "@skills/*": ["./src/modules/skills/*"]
+      "@skills/*": ["./src/modules/skills/*"],
+      "@scripts/*": ["./scripts/*"],
+      "@workers/*": ["./src/workers/*"],
+      "@cli/*": ["./cli/*"]
     }
   },
-  "include": ["src", "vite.config.ts", "src", "cli"]
+  "include": ["src", "vite.config.ts", "src", "cli", "scripts"]
 }

@@ -1,18 +1,10 @@
 import { SimulationData } from '@/modules/simulation/compare.types';
 import { RoundResult, SkillBasinResponse } from '@/modules/simulation/types';
 
-// Browser-compatible assertion function
-function assert(condition: boolean, message: string): asserts condition {
-  if (!condition) {
-    throw new Error(message);
-  }
-}
-
 export const mergeResults = (resultA: RoundResult, resultB: RoundResult) => {
-  assert(
-    resultA.id == resultB.id,
-    `mergeResults: ${resultA.id} != ${resultB.id}`,
-  );
+  if (resultA.id !== resultB.id) {
+    throw new Error(`mergeResults: ${resultA.id} != ${resultB.id}`);
+  }
 
   const resultSizeA = resultA.results.length;
   const resultSizeB = resultB.results.length;
@@ -51,8 +43,6 @@ export const mergeResults = (resultA: RoundResult, resultB: RoundResult) => {
     mergedRunData = resultB.runData;
   } else if (resultA.runData) {
     mergedRunData = resultA.runData;
-  } else {
-    mergedRunData = undefined;
   }
 
   return {

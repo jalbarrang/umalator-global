@@ -2,6 +2,7 @@
 import fs from 'fs';
 import path from 'path';
 import type { ISkill } from '@skills/types';
+import { sortByNumericKey, writeJsonFile } from '../../scripts/lib/shared';
 
 // Target file structures
 interface SkillDataEntry {
@@ -350,37 +351,14 @@ export async function syncSkills(config: FilterConfig = {}) {
   const mergedSkillNames = { ...existingSkillNames, ...newSkillNames };
 
   // Sort by numeric ID
-  const sortByNumericKey = <T>(obj: Record<string, T>): Record<string, T> => {
-    return Object.keys(obj)
-      .sort((a, b) => parseInt(a) - parseInt(b))
-      .reduce(
-        (acc, key) => {
-          acc[key] = obj[key];
-          return acc;
-        },
-        {} as Record<string, T>,
-      );
-  };
-
   const sortedSkillData = sortByNumericKey(mergedSkillData);
   const sortedSkillMeta = sortByNumericKey(mergedSkillMeta);
   const sortedSkillNames = sortByNumericKey(mergedSkillNames);
 
   // Write files (minified)
-  fs.writeFileSync(
-    path.join(basePath, 'skill_data.json'),
-    JSON.stringify(sortedSkillData) + '\n',
-  );
-
-  fs.writeFileSync(
-    path.join(basePath, 'skill_meta.json'),
-    JSON.stringify(sortedSkillMeta) + '\n',
-  );
-
-  fs.writeFileSync(
-    path.join(basePath, 'skillnames.json'),
-    JSON.stringify(sortedSkillNames) + '\n',
-  );
+  await writeJsonFile(path.join(basePath, 'skill_data.json'), sortedSkillData);
+  await writeJsonFile(path.join(basePath, 'skill_meta.json'), sortedSkillMeta);
+  await writeJsonFile(path.join(basePath, 'skillnames.json'), sortedSkillNames);
 
   return {
     mainSkills: mainSkillsProcessed,

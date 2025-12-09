@@ -1,0 +1,68 @@
+/**
+ * Database connection utilities for Bun SQLite
+ */
+
+import { Database } from 'bun:sqlite';
+
+/**
+ * Open a database connection in readonly mode
+ * @param path Path to the database file
+ * @returns Database instance
+ */
+export function openDatabase(path: string): Database {
+  try {
+    const db = new Database(path, { readonly: true });
+    return db;
+  } catch (error) {
+    throw new Error(`Failed to open database at ${path}: ${error.message}`);
+  }
+}
+
+/**
+ * Close a database connection
+ * @param db Database instance to close
+ */
+export function closeDatabase(db: Database): void {
+  try {
+    db.close(false);
+  } catch (error) {
+    console.error(`Error closing database: ${error.message}`);
+  }
+}
+
+/**
+ * Execute a query and return all results
+ * @param db Database instance
+ * @param sql SQL query string
+ * @returns Array of result rows
+ */
+export function queryAll<T = any>(db: Database, sql: string): T[] {
+  try {
+    return db.query(sql).all() as T[];
+  } catch (error) {
+    throw new Error(`Query failed: ${error.message}\nSQL: ${sql}`);
+  }
+}
+
+/**
+ * Execute a prepared query with parameters
+ * @param db Database instance
+ * @param sql SQL query string
+ * @param params Query parameters
+ * @returns Array of result rows
+ */
+export function queryAllWithParams<T = any>(
+  db: Database,
+  sql: string,
+  ...params: any[]
+): T[] {
+  try {
+    const stmt = db.query(sql);
+    return stmt.all(...params) as T[];
+  } catch (error) {
+    throw new Error(
+      `Query with params failed: ${error.message}\nSQL: ${sql}\nParams: ${JSON.stringify(params)}`,
+    );
+  }
+}
+

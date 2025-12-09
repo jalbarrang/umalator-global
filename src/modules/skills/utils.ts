@@ -4,7 +4,6 @@ import skillNamesList from '@data/skillnames.json';
 import GametoraSkills from '@data/gametora/skills.json';
 
 import { UmaAltId } from '@/modules/runners/utils';
-import { strict as assert } from '@/utils/assert';
 import { parseSkillCondition, tokenizedConditions } from './conditions';
 import { ISkill } from './types';
 import { SkillRarity } from '@simulation/lib/RaceSolver';
@@ -68,17 +67,11 @@ export const getSkillMetaById = (id: string): SkillMeta | null =>
 export const getSkillNameById = (id: string): string[] =>
   skillNamesList[getBaseSkillId(id)] ?? [];
 
-export function assertIsSkill(sid: string): asserts sid is SkillId {
-  assert(skillsDataList[sid] !== null);
-}
-
-export function getUniqueSkillForByUmaId(outfitId: UmaAltId): SkillId {
+export function getUniqueSkillForByUmaId(outfitId: UmaAltId): string {
   const umaId = +outfitId.slice(1, -2);
   const altId = +outfitId.slice(-2);
 
   const skillId = (100000 + 10000 * (altId - 1) + umaId * 10 + 1).toString();
-
-  assertIsSkill(skillId);
 
   return skillId;
 }

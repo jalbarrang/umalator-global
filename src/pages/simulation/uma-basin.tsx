@@ -11,6 +11,7 @@ import { useSettingsStore } from '@/store/settings.store';
 import { useUIStore } from '@/store/ui.store';
 import { useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
+import { useUmaBasinPoolRunner } from '@/modules/simulation/hooks/pool/useUmaBasinPoolRunner';
 
 export const UmaBassinPage = () => {
   const { chartData } = useRaceStore();
@@ -34,7 +35,7 @@ export const UmaBassinPage = () => {
   };
 
   const { isSimulationRunning } = useUIStore();
-  const { doBasinnChart } = useUmaBassinRunner();
+  const { doBasinnChart } = useUmaBasinPoolRunner();
 
   return (
     <div className="flex flex-col gap-4">

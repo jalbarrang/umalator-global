@@ -1,5 +1,3 @@
-import { strict as assert } from '@/utils/assert';
-
 export type Phase = 0 | 1 | 2 | 3;
 export enum Surface {
   Turf = 1,
@@ -59,23 +57,33 @@ import courses from '@data/course_data.json';
 
 export class CourseHelpers {
   static assertIsPhase(phase: number): asserts phase is Phase {
-    assert(phase == 0 || phase == 1 || phase == 2 || phase == 3);
+    if (!(phase == 0 || phase == 1 || phase == 2 || phase == 3)) {
+      throw new Error(`Phase ${phase} is not a valid Phase`);
+    }
   }
 
   static assertIsSurface(surface: number): asserts surface is Surface {
-    assert(Object.prototype.hasOwnProperty.call(Surface, surface));
+    if (!Object.prototype.hasOwnProperty.call(Surface, surface)) {
+      throw new Error(`Surface ${surface} is not a valid Surface`);
+    }
   }
 
   static assertIsDistanceType(
     distanceType: number,
   ): asserts distanceType is DistanceType {
-    assert(Object.prototype.hasOwnProperty.call(DistanceType, distanceType));
+    if (!Object.prototype.hasOwnProperty.call(DistanceType, distanceType)) {
+      throw new Error(
+        `DistanceType ${distanceType} is not a valid DistanceType`,
+      );
+    }
   }
 
   static assertIsOrientation(
     orientation: number,
   ): asserts orientation is Orientation {
-    assert(Object.prototype.hasOwnProperty.call(Orientation, orientation));
+    if (!Object.prototype.hasOwnProperty.call(Orientation, orientation)) {
+      throw new Error(`Orientation ${orientation} is not a valid Orientation`);
+    }
   }
 
   static isSortedByStart(arr: readonly { readonly start: number }[]) {
