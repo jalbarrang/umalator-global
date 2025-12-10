@@ -87,6 +87,7 @@ export class PoolManager {
         // Check if stage is complete
         if (this.workQueue?.isStageComplete()) {
           const currentStage = this.workQueue.getCurrentStage();
+
           this.callbacks.onStageComplete?.(
             currentStage,
             this.workQueue.getResults(),
@@ -127,6 +128,7 @@ export class PoolManager {
     }
 
     const batch = this.workQueue.getNextBatch();
+
     if (batch) {
       this.workerStates.set(workerId, 'busy');
       this.sendToWorker(workerId, { type: 'work-batch', batch });

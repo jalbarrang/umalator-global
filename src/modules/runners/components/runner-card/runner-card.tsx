@@ -22,7 +22,6 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useIsMobile } from '@/hooks/useBreakpoint';
 import { openSkillPicker, updateCurrentSkills } from '@/modules/skills/store';
-import { ISkill } from '@/modules/skills/types';
 import { Mood } from '@simulation/lib/RaceParameters';
 import { ArrowLeftRight, Copy, TrashIcon, Upload } from 'lucide-react';
 import './styles.css';
@@ -96,10 +95,15 @@ export const RunnerCard = (props: RunnerCardProps) => {
   };
 
   function handleChangeRunner(outfitId: string) {
-    const newSkills: string[] = state.skills
-      .map((skillId) => skillsById.get(skillId))
-      .filter((skill): skill is ISkill => skill !== null && skill.rarity < 3)
-      .map((skill) => skill.id.toString());
+    const newSkills: string[] = [];
+
+    for (const skillId of state.skills) {
+      const skillData = skillsById.get(skillId);
+
+      if (skillData?.data?.rarity && skillData.data.rarity < 3) {
+        newSkills.push(skillId);
+      }
+    }
 
     if (outfitId) {
       newSkills.push(getUniqueSkillForByUmaId(outfitId));

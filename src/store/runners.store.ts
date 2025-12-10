@@ -10,6 +10,12 @@ import { useSettingsStore } from './settings.store';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { useShallow } from 'zustand/shallow';
 import { toast } from 'sonner';
+import { cloneDeep } from 'es-toolkit';
+import {
+  getGeneVersionSkillId,
+  getUniqueSkillForByUmaId,
+  skillsById,
+} from '@/modules/skills/utils';
 
 type RunnerType = 'uma1' | 'uma2' | 'pacer';
 
@@ -43,6 +49,8 @@ export const useRunner = () => {
   const runnerId = useRunnersStore(useShallow((state) => state.runnerId));
   const runner = useRunnerByName(runnerId);
 
+  const hasOutfit = runner.outfitId !== '';
+
   const handleUpdateRunner = (runnerState: RunnerState) => {
     setRunner(runnerId, runnerState);
   };
@@ -52,11 +60,26 @@ export const useRunner = () => {
     toast.success('Runner reset');
   };
 
+  const handleAddSkill = (skillId: string) => {
+    const skill = skillsById.get(skillId);
+    const skillRarity = skill?.data?.rarity;
+    let newSkillId = skillId;
+
+    // If Runner has outfit, it means it has a unique skill.
+    // So if we are adding a unique skill, add the gene version instead
+    if (hasOutfit && skillRarity && isUniqueSkill(skillRarity)) {
+      newSkillId = getGeneVersionSkillId(skillId);
+    }
+
+    setSkillToRunner(runnerId, newSkillId);
+  };
+
   return {
     runnerId,
     runner,
     updateRunner: handleUpdateRunner,
     resetRunner: handleResetRunner,
+    addSkill: handleAddSkill,
   };
 };
 
@@ -105,10 +128,17 @@ export const showRunner = (runner: RunnerType) => {
 
 export const setSkillToRunner = (runner: RunnerType, skillId: string) => {
   const state = useRunnersStore.getState();
-  const runnerState = state[runner];
 
-  useRunnersStore.setState({
-    [runner]: { ...runnerState, skills: [...runnerState.skills, skillId] },
+  if (state[runner].skills.includes(skillId)) {
+    toast.error('Runner already has this skill');
+    return;
+  }
+
+  useRunnersStore.setState((prev) => {
+    const newRunnerState = cloneDeep(prev[runner]);
+    newRunnerState.skills.push(skillId);
+
+    return { ...prev, [runner]: newRunnerState };
   });
 };
 
@@ -131,14 +161,12 @@ export const copyToRunner = (fromRunner: RunnerType, toRunner: RunnerType) => {
   const state = useRunnersStore.getState();
 
   const fromRunnerState = state[fromRunner];
-  const toRunnerState = state[toRunner];
 
   useRunnersStore.setState({
-    [toRunner]: {
-      ...toRunnerState,
-      skills: [...toRunnerState.skills, ...fromRunnerState.skills],
-    },
+    [toRunner]: cloneDeep(fromRunnerState),
   });
+
+  toast.success('Runner copied');
 };
 
 export const updateForcedSkillPosition = (
@@ -146,16 +174,54 @@ export const updateForcedSkillPosition = (
   skillId: number,
   position: number,
 ) => {
-  const state = useRunnersStore.getState();
-  const uma = state[runnerId];
+  useRunnersStore.setState((prev) => {
+    const newRunnerState = cloneDeep(prev[runnerId]);
 
-  useRunnersStore.setState({
-    [runnerId]: {
-      ...uma,
-      forcedSkillPositions: {
-        ...uma.forcedSkillPositions,
-        [skillId]: position,
-      },
-    },
+    newRunnerState.forcedSkillPositions[skillId] = position;
+
+    return { ...prev, [runnerId]: newRunnerState };
   });
+};
+
+export const replaceRunnerOutfit = (
+  runner: RunnerState,
+  newOutfitId: string,
+  currentSkills: string[],
+): RunnerState => {
+  const newSkills: string[] = [];
+
+  for (const skillId of currentSkills) {
+    const skillData = skillsById.get(skillId);
+
+    // Clean up skills that are not 3* or lower
+    if (skillData?.data?.rarity && skillData.data.rarity < 3) {
+      newSkills.push(skillId);
+    }
+  }
+
+  if (newOutfitId) {
+    newSkills.push(getUniqueSkillForByUmaId(newOutfitId));
+  }
+
+  const newRunnerState = cloneDeep(runner);
+  newRunnerState.outfitId = newOutfitId;
+  newRunnerState.skills = newSkills;
+
+  return newRunnerState;
+};
+
+export const isWhiteSkill = (skillRarity: number) => {
+  return skillRarity === 1;
+};
+
+export const isGoldSkill = (skillRarity: number) => {
+  return skillRarity === 2;
+};
+
+export const isUniqueSkill = (skillRarity: number) => {
+  return [3, 4, 5].includes(skillRarity);
+};
+
+export const isEvolutionSkill = (skillRarity: number) => {
+  return skillRarity === 6;
 };

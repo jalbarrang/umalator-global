@@ -53,6 +53,7 @@ import {
   SkillType,
 } from './race-solver/types';
 import { Skill, skillsById } from '@/modules/skills/utils';
+import { cloneDeep } from 'es-toolkit';
 
 interface ConditionParser {
   tokenize(s: string): Generator<unknown, unknown, unknown>;
@@ -1226,7 +1227,7 @@ export class RaceSolverBuilder {
   fork() {
     const clone = new RaceSolverBuilder(this.nsamples);
     clone._course = this._course;
-    clone._raceParams = Object.assign({}, this._raceParams);
+    clone._raceParams = cloneDeep(this._raceParams);
     clone._horse = this._horse;
     clone._pacerSkills = this._pacerSkills.slice(); // sharing the skill objects is fine but see the note below
     clone._pacerSkillIds = this._pacerSkillIds.slice();

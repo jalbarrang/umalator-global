@@ -93,7 +93,12 @@ export function useSkillBasinPoolRunner() {
           appendResultsToTable(results);
         },
         onStageComplete: (stage, results) => {
-          console.log(`Stage ${stage} complete with ${results.size} skills`);
+          const activeSkills = Array.from(results.values()).filter(
+            (r) => !r.filterReason,
+          );
+          console.log(
+            `Stage ${stage} complete with ${results.size} total skills (${activeSkills.length} active, ${results.size - activeSkills.length} filtered)`,
+          );
           appendResultsToTable(results);
         },
         onComplete: (results, metrics) => {
@@ -116,4 +121,3 @@ export function useSkillBasinPoolRunner() {
 
   return { doBasinnChart, cancelSimulation };
 }
-

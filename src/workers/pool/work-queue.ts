@@ -39,6 +39,7 @@ export class WorkQueue {
 
     const stageConfig = STAGE_CONFIGS[this.currentStageIndex];
     const batchSkills = this.skills.splice(0, this.batchSize);
+
     const batchId = this.nextBatchId++;
 
     this.pendingBatches.set(batchId, batchSkills);

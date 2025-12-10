@@ -2,7 +2,6 @@ import { Fragment, useMemo, useRef } from 'react';
 import { CourseHelpers } from '@simulation/lib/CourseData';
 import './RaceTrack.css';
 import i18n from '@/i18n';
-import { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { useDragSkill } from '../hooks/useDragSkill';
 import { SlopeVisualization } from './slope-visualization';
 import { SlopeLabelBar } from './slope-label-bar';
@@ -10,7 +9,10 @@ import { SectionBar } from './section-bar';
 import { PhaseBar } from './phase-bar';
 import { SectionNumbers } from './section-numbers';
 import { SkillMarker } from './skill-marker';
-import { useVisualizationData } from '../hooks/useVisualizationData';
+import {
+  RegionData,
+  useVisualizationData,
+} from '../hooks/useVisualizationData';
 import {
   updateForcedSkillPosition,
   useRunnersStore,
@@ -41,11 +43,195 @@ import { useRaceTrackTooltip } from '../hooks/useRaceTrackTooltip';
 import { SimulationRun } from '@simulation/compare.types';
 import { Separator } from '@/components/ui/separator';
 import { initialChartData } from '@/modules/simulation/stores/compare.store';
+import { useShallow } from 'zustand/shallow';
+import { CourseData } from '@/modules/simulation/lib/courses/types';
+
+// Helper function for efficient rung collision detection
+const findAvailableRung = (
+  start: number,
+  end: number,
+  rungs: Array<Array<{ start: number; end: number }>>,
+): number => {
+  for (let i = 0; i < 10; i++) {
+    const hasOverlap = rungs[i].some(
+      (b) => !(end <= b.start || start >= b.end),
+    );
+    if (!hasOverlap) return i;
+  }
+  return 0;
+};
+
+type RegionSegmentProps = {
+  allRegions: RegionData[];
+  course: CourseData;
+  onDragStart: (
+    e: React.MouseEvent,
+    skillId: string,
+    umaIndex: number,
+    start: number,
+    end: number,
+  ) => void;
+};
+
+const RegionSegment = (props: RegionSegmentProps) => {
+  const { allRegions, course, onDragStart } = props;
+
+  const { showUma1, showUma2 } = useSettingsStore(
+    useShallow((state) => ({
+      showUma1: state.showUma1,
+      showUma2: state.showUma2,
+    })),
+  );
+
+  const { uma1, uma2, pacer } = useRunnersStore(
+    useShallow((state) => ({
+      uma1: state.uma1,
+      uma2: state.uma2,
+      pacer: state.pacer,
+    })),
+  );
+
+  // Extract only forcedSkillPositions to prevent recomputation when other runner properties change
+  const forcedPositions = useMemo(
+    () => ({
+      uma1: uma1?.forcedSkillPositions ?? {},
+      uma2: uma2?.forcedSkillPositions ?? {},
+      pacer: pacer?.forcedSkillPositions ?? {},
+    }),
+    [
+      uma1?.forcedSkillPositions,
+      uma2?.forcedSkillPositions,
+      pacer?.forcedSkillPositions,
+    ],
+  );
+
+  return allRegions.reduce(
+    (state, desc, descIndex) => {
+      if (desc.umaIndex === 0 && !showUma1) return state;
+      if (desc.umaIndex === 1 && !showUma2) return state;
+
+      if (
+        desc.type === RegionDisplayType.Immediate &&
+        desc.regions.length > 0
+      ) {
+        let x = (desc.regions[0].start / course.distance) * 100;
+
+        // Use percentage-based offset instead of width-dependent calculation
+        const COLLISION_OFFSET = 0.3; // 0.3% of track
+        while (state.seen.has(x)) {
+          x += COLLISION_OFFSET;
+        }
+
+        state.seen.add(x);
+        state.elem.push(
+          <line
+            key={`immediate-${descIndex}`}
+            x1={`${x}%`}
+            y1="0"
+            x2={`${x}%`}
+            y2="100%"
+            stroke={desc.color.stroke}
+            strokeWidth={x === 0 ? 4 : 2}
+          />,
+        );
+
+        return state;
+      }
+
+      if (desc.type === RegionDisplayType.Textbox) {
+        const markers = desc.regions.map((r, rIndex) => {
+          // Check if this skill has a forced position
+          let start = r.start;
+          let end = r.end;
+
+          if (desc.skillId && desc.umaIndex !== undefined) {
+            const positions =
+              desc.umaIndex === 0
+                ? forcedPositions.uma1
+                : desc.umaIndex === 1
+                  ? forcedPositions.uma2
+                  : desc.umaIndex === 2
+                    ? forcedPositions.pacer
+                    : null;
+
+            const forcedPos = positions?.[desc.skillId];
+            if (forcedPos !== undefined) {
+              start = forcedPos;
+              end = forcedPos + (r.end - r.start);
+            }
+          }
+
+          const x = (start / course.distance) * 100;
+          const w = ((end - start) / course.distance) * 100;
+
+          const rungIndex = findAvailableRung(start, end, state.rungs);
+          state.rungs[rungIndex % 10].push({ start, end });
+          const y = 90 - 10 * rungIndex;
+
+          const handleOnDragStart = (e: React.MouseEvent) => {
+            if (!desc.skillId) return;
+            if (!desc.umaIndex) return;
+
+            onDragStart(e, desc.skillId, desc.umaIndex, start, end);
+          };
+
+          return (
+            <SkillMarker
+              key={`skill-${descIndex}-${rIndex}-${desc.skillId ?? 'none'}`}
+              x={x}
+              y={y}
+              width={w}
+              color={desc.color}
+              text={desc.text}
+              skillId={desc.skillId}
+              umaIndex={desc.umaIndex}
+              onDragStart={handleOnDragStart}
+            />
+          );
+        });
+
+        state.elem.push(
+          <Fragment key={`textbox-${descIndex}-${desc.skillId ?? 'none'}`}>
+            {markers}
+          </Fragment>,
+        );
+
+        return state;
+      }
+
+      state.elem.push(
+        <Fragment key={`region-${descIndex}`}>
+          {desc.regions.map((r, i) => (
+            <rect
+              key={`rect-${i}`}
+              x={`${(r.start / course.distance) * 100}%`}
+              y={`${100 - (desc.height ?? 0)}%`}
+              width={`${((r.end - r.start) / course.distance) * 100}%`}
+              height={`${desc.height}%`}
+              fill={desc.color.fill}
+              stroke={desc.color.stroke}
+            />
+          ))}
+        </Fragment>,
+      );
+
+      return state;
+    },
+    {
+      seen: new Set<number>(),
+      rungs: Array.from(
+        { length: 10 },
+        () => [] as { start: number; end: number }[],
+      ),
+      elem: [] as React.ReactElement[],
+    },
+  ).elem;
+};
 
 type RaceTrackProps = {
   // Course data
   courseid: number;
-  chartData: SimulationRun | null;
+  chartData: SimulationRun;
 
   // Layout
   xOffset: number;
@@ -70,7 +256,6 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
     [props.courseid],
   );
 
-  const { uma1, uma2, pacer } = useRunnersStore();
   const { racedef } = useSettingsStore();
   const { showHp, showLanes, showUma1, showUma2 } = useSettingsStore();
 
@@ -93,7 +278,7 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
   const height = props.height ?? BASE_HEIGHT;
 
   const { skillActivations, rushedIndicators, posKeepLabels } =
-    useVisualizationData();
+    useVisualizationData({ chartData });
 
   const allRegions = useMemo(() => {
     return [...skillActivations, ...rushedIndicators];
@@ -172,155 +357,6 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
     handleDragEnd();
   };
 
-  const regions = useMemo(() => {
-    return allRegions.reduce(
-      (state, desc, descIndex) => {
-        if (desc.umaIndex === 0 && !showUma1) return state;
-        if (desc.umaIndex === 1 && !showUma2) return state;
-
-        if (
-          desc.type === RegionDisplayType.Immediate &&
-          desc.regions.length > 0
-        ) {
-          let x = (desc.regions[0].start / course.distance) * 100;
-
-          while (state.seen.has(x)) {
-            x += ((3 + +(x === 0)) / width) * 100;
-          }
-
-          state.seen.add(x);
-          state.elem.push(
-            <line
-              key={`immediate-${descIndex}`}
-              x1={`${x}%`}
-              y1="0"
-              x2={`${x}%`}
-              y2="100%"
-              stroke={desc.color.stroke}
-              strokeWidth={x === 0 ? 4 : 2}
-            />,
-          );
-
-          return state;
-        }
-
-        if (desc.type === RegionDisplayType.Textbox) {
-          const markers = desc.regions.map((r, rIndex) => {
-            // Check if this skill has a forced position
-            let start = r.start;
-            let end = r.end;
-
-            if (desc.skillId && desc.umaIndex !== undefined) {
-              let horseState: RunnerState | null = null;
-
-              if (desc.umaIndex === 0 && uma1) {
-                horseState = uma1;
-              } else if (desc.umaIndex === 1 && uma2) {
-                horseState = uma2;
-              } else if (desc.umaIndex === 2 && pacer) {
-                horseState = pacer;
-              }
-
-              if (horseState && horseState.forcedSkillPositions[desc.skillId]) {
-                const forcedPos = horseState.forcedSkillPositions[desc.skillId];
-                start = forcedPos;
-                end = forcedPos + (r.end - r.start);
-              }
-            }
-
-            const x = (start / course.distance) * 100;
-            const w = ((end - start) / course.distance) * 100;
-
-            let rungIndex = 0;
-            while (rungIndex < 10) {
-              if (
-                state.rungs[rungIndex].some(
-                  (b) =>
-                    (start >= b.start && start < b.end) ||
-                    (end > b.start && end <= b.end) ||
-                    (b.start >= start && b.start < end) ||
-                    (b.end > start && b.end <= end),
-                )
-              ) {
-                ++rungIndex;
-              } else {
-                break;
-              }
-            }
-
-            state.rungs[rungIndex % 10].push({ start, end });
-            const y = 90 - 10 * rungIndex;
-
-            const handleOnDragStart = (e: React.MouseEvent) => {
-              if (!desc.skillId) return;
-              if (!desc.umaIndex) return;
-
-              handleDragStart(e, desc.skillId, desc.umaIndex, start, end);
-            };
-
-            return (
-              <SkillMarker
-                key={`skill-${descIndex}-${rIndex}-${desc.skillId ?? 'none'}`}
-                x={x}
-                y={y}
-                width={w}
-                color={desc.color}
-                text={desc.text}
-                skillId={desc.skillId}
-                umaIndex={desc.umaIndex}
-                onDragStart={handleOnDragStart}
-              />
-            );
-          });
-
-          state.elem.push(
-            <Fragment key={`textbox-${descIndex}-${desc.skillId ?? 'none'}`}>
-              {markers}
-            </Fragment>,
-          );
-
-          return state;
-        }
-
-        state.elem.push(
-          <Fragment key={`region-${descIndex}`}>
-            {desc.regions.map((r, i) => (
-              <rect
-                key={`rect-${i}`}
-                x={`${(r.start / course.distance) * 100}%`}
-                y={`${100 - (desc.height ?? 0)}%`}
-                width={`${((r.end - r.start) / course.distance) * 100}%`}
-                height={`${desc.height}%`}
-                fill={desc.color.fill}
-                stroke={desc.color.stroke}
-              />
-            ))}
-          </Fragment>,
-        );
-
-        return state;
-      },
-      {
-        seen: new Set<number>(),
-        rungs: Array.from(
-          { length: 10 },
-          () => [] as { start: number; end: number }[],
-        ),
-        elem: [] as React.ReactElement[],
-      },
-    ).elem;
-  }, [
-    allRegions,
-    course.distance,
-    uma1,
-    uma2,
-    pacer,
-    width,
-    handleDragStart,
-    showUma1,
-    showUma2,
-  ]);
-
   const courseLabel = trackDescription({ courseid: props.courseid });
 
   return (
@@ -397,7 +433,11 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
           <PhaseBar distance={course.distance} />
           <SectionNumbers />
 
-          {regions}
+          <RegionSegment
+            allRegions={allRegions}
+            course={course}
+            onDragStart={handleDragStart}
+          />
 
           {posKeepLabels &&
             posKeepLabels.map((label, index) => {

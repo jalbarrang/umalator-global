@@ -5,22 +5,12 @@ import { Activity, memo, useMemo, useState } from 'react';
 import { ExpandedSkillDetails } from '../ExpandedSkillDetails';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
-const isWhiteSkill = (skillRarity: number) => {
-  return skillRarity === 1;
-};
-
-const isGoldSkill = (skillRarity: number) => {
-  return skillRarity === 2;
-};
-
-const isUniqueSkill = (skillRarity: number) => {
-  return [3, 4, 5].includes(skillRarity);
-};
-
-const isEvolutionSkill = (skillRarity: number) => {
-  return skillRarity === 6;
-};
+import {
+  isEvolutionSkill,
+  isGoldSkill,
+  isUniqueSkill,
+  isWhiteSkill,
+} from '@/store/runners.store';
 
 export const SkillIcon = (props: { iconId: string }) => {
   return <img className="w-6 h-6" src={`/icons/${props.iconId}.png`} />;

@@ -1,3 +1,10 @@
+import { cloneDeep } from 'es-toolkit';
+import {
+  ISkillPerspective,
+  ISkillTarget,
+  ISkillType,
+} from './lib/race-solver/types';
+
 export interface CompareResult {
   results: number[];
   runData: SimulationData;
@@ -57,8 +64,17 @@ export interface SimulationRun {
   pacerLeadCompetition: Array<RegionActivation | []>;
 }
 
+// [RegionStart, RegionEnd]
 export type RegionActivation = [number, number];
 export type Sk = Map<string, RegionActivation[]>;
+export type SkillActivation = {
+  start: number;
+  end: number;
+  skillType: ISkillType;
+  perspective: ISkillPerspective;
+  target: ISkillTarget;
+};
+export type SkillActivationMap = Map<string, SkillActivation[]>;
 
 export interface StaminaStats {
   uma1: StaminaStatsUma1;
@@ -69,3 +85,31 @@ export interface StaminaStatsUma1 {
   staminaSurvivalRate: number;
   fullSpurtRate: number;
 }
+
+const defaultSimulationRun: SimulationRun = {
+  t: [[], []],
+  p: [[], []],
+  v: [[], []],
+  hp: [[], []],
+  currentLane: [[], []],
+  pacerGap: [[], []],
+  sk: [new Map(), new Map()],
+  debuffsReceived: [new Map(), new Map()],
+  sdly: [0, 0],
+  rushed: [[], []],
+  posKeep: [[], []],
+  competeFight: [[], []],
+  leadCompetition: [[], []],
+  pacerV: [[], [], []],
+  pacerP: [[], [], []],
+  pacerT: [[], [], []],
+  pacerPosKeep: [[], [], []],
+  pacerLeadCompetition: [[], [], []],
+};
+
+export const initializeSimulationRun = (
+  simulationRun: Partial<SimulationRun> = {},
+): SimulationRun => ({
+  ...cloneDeep(defaultSimulationRun),
+  ...simulationRun,
+});

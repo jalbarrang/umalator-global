@@ -7,32 +7,39 @@ import {
   useState,
 } from 'react';
 
+import { useHotkeys } from 'react-hotkeys-hook';
+
 import './SkillList.css';
 
-import {
-  getAllSkills,
-  getUniqueSkillForByUmaId,
-  matchRarity,
-} from '@/modules/skills/utils';
-import { SkillIcon, SkillItem } from './SkillItem';
-import { cn } from '@/lib/utils';
-import i18n from '@/i18n';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+} from '@/components/ui/input-group';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Button } from '@/components/ui/button';
-import { SkillQuery } from '@/modules/skills/query';
-import { iconIdPrefixes } from '@/modules/skills/icons';
-import { groups_filters } from '@/modules/skills/filters';
-import { useSkillModalStore } from '@/modules/skills/store';
-import { XIcon } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import i18n from '@/i18n';
+import { cn } from '@/lib/utils';
+import { groups_filters } from '@/modules/skills/filters';
+import { iconIdPrefixes } from '@/modules/skills/icons';
+import { SkillQuery } from '@/modules/skills/query';
+import { useSkillModalStore } from '@/modules/skills/store';
+import {
+  getAllSkills,
+  getUniqueSkillForByUmaId,
+  matchRarity,
+} from '@/modules/skills/utils';
+import { SearchIcon, XIcon } from 'lucide-react';
+import { SkillIcon, SkillItem } from './SkillItem';
 
 type IconFilterButtonProps = {
   type: string;
@@ -339,6 +346,13 @@ export function SkillPickerModal() {
     onSelect(newSkills);
   };
 
+  useHotkeys('f', (event) => {
+    event.preventDefault();
+
+    searchRef.current?.focus();
+    searchRef.current?.select();
+  });
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
@@ -359,14 +373,24 @@ export function SkillPickerModal() {
         </DialogHeader>
 
         <div data-filter-group="search">
-          <Input
-            ref={searchRef}
-            type="text"
-            className="filterSearch"
-            value={searchText}
-            placeholder="Search"
-            onChange={(e) => setSearchText(e.target.value)}
-          />
+          <InputGroup>
+            <InputGroupAddon>
+              <SearchIcon className="w-4 h-4" />
+            </InputGroupAddon>
+            <InputGroupInput
+              ref={searchRef}
+              type="text"
+              className="filterSearch"
+              value={searchText}
+              placeholder="Search skill by name"
+              onChange={(e) => setSearchText(e.target.value)}
+            />
+            <InputGroupAddon align="inline-end">
+              <InputGroupText className="border p-1 rounded-md text-foreground">
+                <kbd>f</kbd>
+              </InputGroupText>
+            </InputGroupAddon>
+          </InputGroup>
         </div>
 
         <div className="grid grid-cols-1 gap-2">
@@ -561,7 +585,13 @@ export function SkillPickerModal() {
           <div className="flex flex-col gap-2">
             <Activity mode={currentSkills.length > 0 ? 'visible' : 'hidden'}>
               <div className="flex flex-col gap-2">
-                <div className="text-sm font-bold">Current Skills</div>
+                <div className="flex items-center gap-1">
+                  <span className="text-sm font-bold">Skills selected</span>
+                  <span className="text-xs text-muted-foreground">
+                    ({currentSkills.length})
+                  </span>
+                </div>
+
                 <div
                   className="grid grid-cols-1 sm:grid-cols-2 gap-2"
                   onClick={handleRemoveSkill}
@@ -580,20 +610,29 @@ export function SkillPickerModal() {
 
             <Separator className="my-2" />
 
-            <div
-              className="grid grid-cols-1 sm:grid-cols-2 gap-2"
-              onClick={toggleSelected}
-            >
-              {filteredSkills.map((skill) => (
-                <SkillItem
-                  key={skill.id}
-                  skillId={skill.id}
-                  selected={selectedMap.get(skill.meta.groupId) === skill.id}
-                  itemProps={{
-                    className: 'cursor-pointer',
-                  }}
-                />
-              ))}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-1">
+                <span className="text-sm font-bold">Skills available</span>
+                <span className="text-xs text-muted-foreground">
+                  ({filteredSkills.length})
+                </span>
+              </div>
+
+              <div
+                className="grid grid-cols-1 sm:grid-cols-2 gap-2"
+                onClick={toggleSelected}
+              >
+                {filteredSkills.map((skill) => (
+                  <SkillItem
+                    key={skill.id}
+                    skillId={skill.id}
+                    selected={selectedMap.get(skill.meta.groupId) === skill.id}
+                    itemProps={{
+                      className: 'cursor-pointer',
+                    }}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </div>

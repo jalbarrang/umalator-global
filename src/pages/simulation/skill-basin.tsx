@@ -1,21 +1,24 @@
 import { BasinnChart } from '@/components/bassin-chart/BasinnChart';
 import { Button } from '@/components/ui/button';
+import { ButtonGroup } from '@/components/ui/button-group';
 import { VelocityLines } from '@/components/VelocityLines';
 import { RaceTrack } from '@/modules/racetrack/components/RaceTrack';
-// import { useSkillBassinRunner } from '@simulation/hooks/skill-bassin/useSkillBasinRunner';
 import { CourseHelpers } from '@/modules/simulation/lib/CourseData';
-import { useSkillBasinStore } from '@simulation/stores/skill-basin.store';
-import { useRaceStore } from '@simulation/stores/compare.store';
 import { setSkillToRunner, useRunner } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
 import { useUIStore } from '@/store/ui.store';
+import { useSkillBasinPoolRunner } from '@simulation/hooks/pool/useSkillBasinPoolRunner';
+import {
+  resetTable,
+  useChartData,
+  useSkillBasinStore,
+} from '@simulation/stores/skill-basin.store';
+import { Loader2 } from 'lucide-react';
 import { useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
-import { useSkillBasinPoolRunner } from '@/modules/simulation/hooks/pool/useSkillBasinPoolRunner';
-import { useSkillBasinRunner } from '@/modules/simulation/hooks/skill-bassin/useSkillBasinRunner';
 
 export const SkillBassinPage = () => {
-  const { chartData } = useRaceStore();
+  const { chartData, selectedSkills, setSelectedSkills } = useChartData();
   const { results: skillBasinResults, metrics } = useSkillBasinStore();
   const courseId = useSettingsStore(useShallow((state) => state.courseId));
 
@@ -27,7 +30,13 @@ export const SkillBassinPage = () => {
     const results = skillBasinResults.get(skillId);
 
     if (results?.runData) {
-      useRaceStore.setState({ results: results.results });
+      setSelectedSkills((prev) => {
+        if (prev.includes(skillId)) {
+          return prev.filter((id) => id !== skillId);
+        }
+
+        return [...prev, skillId];
+      });
     }
   };
 
@@ -36,18 +45,33 @@ export const SkillBassinPage = () => {
   };
 
   const { isSimulationRunning } = useUIStore();
-  const { doBasinnChart } = useSkillBasinPoolRunner();
+  const { doBasinnChart, cancelSimulation } = useSkillBasinPoolRunner();
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-2">
-        <Button
-          variant="default"
-          onClick={doBasinnChart}
-          disabled={isSimulationRunning}
-        >
-          Run Skill Simulations
-        </Button>
+        <ButtonGroup>
+          {!isSimulationRunning && (
+            <Button variant="default" onClick={doBasinnChart}>
+              Run Skill Simulations
+            </Button>
+          )}
+
+          {isSimulationRunning && (
+            <Button variant="destructive" onClick={cancelSimulation}>
+              Cancel Simulation
+              <Loader2 className="w-4 h-4 animate-spin" />
+            </Button>
+          )}
+
+          <Button
+            variant="outline"
+            onClick={resetTable}
+            disabled={skillBasinResults.size === 0}
+          >
+            Reset
+          </Button>
+        </ButtonGroup>
       </div>
 
       <RaceTrack
@@ -74,6 +98,7 @@ export const SkillBassinPage = () => {
           metrics={metrics}
           onSelectionChange={basinnChartSelection}
           onAddSkill={addSkillFromTable}
+          selectedSkills={selectedSkills}
         />
       </div>
     </div>

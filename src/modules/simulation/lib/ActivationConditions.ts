@@ -700,8 +700,6 @@ function orderInFilter(rate: number) {
       _1: HorseParameters,
       extra: RaceParameters,
     ) {
-      console.log('activationConditions:orderInFilter', one, extra);
-
       if (one !== 1) {
         throw new Error('must be order_rate_inXX_continue==1');
       }

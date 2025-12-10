@@ -26,6 +26,7 @@ function processBatch(batch: WorkBatch): void {
       workerId,
       error: 'Worker not initialized',
     });
+
     return;
   }
 

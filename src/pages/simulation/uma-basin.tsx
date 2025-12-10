@@ -2,52 +2,84 @@ import { BasinnChart } from '@/components/bassin-chart/BasinnChart';
 import { Button } from '@/components/ui/button';
 import { VelocityLines } from '@/components/VelocityLines';
 import { RaceTrack } from '@/modules/racetrack/components/RaceTrack';
-// import { useUmaBassinRunner } from '@simulation/hooks/uma-bassin/useUmaBasinRunner';
 import { CourseHelpers } from '@/modules/simulation/lib/CourseData';
-import { useUniqueSkillBasinStore } from '@simulation/stores/uma-basin.store';
-import { useRaceStore } from '@simulation/stores/compare.store';
-import { setSkillToRunner, useRunner } from '@/store/runners.store';
+import {
+  resetTable,
+  useUniqueSkillBasinStore,
+} from '@simulation/stores/uma-basin.store';
+import { replaceRunnerOutfit, useRunner } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
 import { useUIStore } from '@/store/ui.store';
 import { useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { useUmaBasinPoolRunner } from '@/modules/simulation/hooks/pool/useUmaBasinPoolRunner';
-import { useUmaBasinRunner } from '@/modules/simulation/hooks/uma-bassin/useUmaBasinRunner';
+import { useChartData } from '@/modules/simulation/stores/uma-basin.store';
+import { ButtonGroup } from '@/components/ui/button-group';
+import { Loader2 } from 'lucide-react';
+import { getUmaForUniqueSkill } from '@/modules/skills/utils';
 
 export const UmaBassinPage = () => {
-  const { chartData } = useRaceStore();
+  const { chartData, selectedSkills, setSelectedSkills } = useChartData();
   const { results: umaBasinResults, metrics } = useUniqueSkillBasinStore();
   const courseId = useSettingsStore(useShallow((state) => state.courseId));
 
-  const { runnerId } = useRunner();
+  const { runner, updateRunner, addSkill } = useRunner();
 
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
 
-  const basinnChartSelection = (skillId: string) => {
+  const handleSkillSelected = (skillId: string) => {
     const results = umaBasinResults.get(skillId);
 
     if (results?.runData) {
-      useRaceStore.setState({ results: results.results });
+      setSelectedSkills((prev) => {
+        if (prev.includes(skillId)) {
+          return prev.filter((id) => id !== skillId);
+        }
+
+        return [...prev, skillId];
+      });
     }
   };
 
-  const addSkillFromTable = (skillId: string) => {
-    setSkillToRunner(runnerId, skillId);
+  const handleAddSkill = (skillId: string) => {
+    addSkill(skillId);
+  };
+
+  const handleReplaceRunnerOutfit = (skillId: string) => {
+    const outfitId = getUmaForUniqueSkill(skillId);
+    const newRunnerState = replaceRunnerOutfit(runner, outfitId, runner.skills);
+
+    updateRunner(newRunnerState);
   };
 
   const { isSimulationRunning } = useUIStore();
-  const { doBasinnChart } = useUmaBasinPoolRunner();
+  const { doBasinnChart, cancelSimulation } = useUmaBasinPoolRunner();
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-2">
-        <Button
-          variant="default"
-          onClick={doBasinnChart}
-          disabled={isSimulationRunning}
-        >
-          Run Skill Simulations
-        </Button>
+        <ButtonGroup>
+          {!isSimulationRunning && (
+            <Button variant="default" onClick={doBasinnChart}>
+              Run Skill Simulations
+            </Button>
+          )}
+
+          {isSimulationRunning && (
+            <Button variant="destructive" onClick={cancelSimulation}>
+              Cancel Simulation
+              <Loader2 className="w-4 h-4 animate-spin" />
+            </Button>
+          )}
+
+          <Button
+            variant="outline"
+            onClick={resetTable}
+            disabled={umaBasinResults.size === 0}
+          >
+            Reset
+          </Button>
+        </ButtonGroup>
       </div>
 
       <RaceTrack
@@ -71,9 +103,11 @@ export const UmaBassinPage = () => {
         <BasinnChart
           data={Array.from(umaBasinResults.values())}
           hiddenSkills={[]}
+          selectedSkills={selectedSkills}
           metrics={metrics}
-          onSelectionChange={basinnChartSelection}
-          onAddSkill={addSkillFromTable}
+          onSelectionChange={handleSkillSelected}
+          onAddSkill={handleAddSkill}
+          onReplaceOutfit={handleReplaceRunnerOutfit}
           showUmaIcons
         />
       </div>

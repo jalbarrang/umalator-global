@@ -46,6 +46,19 @@ export const togglePacemakerSelection = (index: number) => {
   useSettingsStore.setState({ selectedPacemakers: newSelection });
 };
 
+export const togglePaceMakers = (indices: number[]) => {
+  console.log('togglePaceMakers', indices);
+
+  const { selectedPacemakers } = useSettingsStore.getState();
+  const newSelection = [...selectedPacemakers];
+
+  indices.forEach((index) => {
+    newSelection[index] = !newSelection[index];
+  });
+
+  useSettingsStore.setState({ selectedPacemakers: newSelection });
+};
+
 // Update pacemaker count and clean up invalid selections
 export const setPacemakerCount = (count: number) => {
   const { selectedPacemakers } = useSettingsStore.getState();
@@ -77,12 +90,11 @@ export const getSelectedPacemakersAsArray = (): boolean[] => {
 
 export const useSelectedPacemakers = (): RunnerState[] => {
   const { uma1, uma2, pacer } = useRunnersStore();
+  const selectedPacemakers = useSelectedPacemakerIndices();
 
   return useMemo(() => {
-    const selectedPacemakers = getSelectedPacemakersAsArray();
-
     return [uma1, uma2, pacer].filter((_, index) => selectedPacemakers[index]);
-  }, [uma1, uma2, pacer]);
+  }, [uma1, uma2, pacer, selectedPacemakers]);
 };
 
 export const useSelectedPacemakerBooleans = (): boolean[] => {

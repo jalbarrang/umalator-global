@@ -57,10 +57,13 @@ function runChart(params: RunChartParams) {
   // Stage 1 filter: mark skills with negligible effect
   newSkills = newSkills.filter((id) => {
     const result = results.get(id);
+
     if (result && result.max <= 0.1) {
       result.filterReason = 'negligible-effect';
+
       return false;
     }
+
     return true;
   });
 
@@ -81,10 +84,13 @@ function runChart(params: RunChartParams) {
   // Stage 2 filter: mark skills with low variance
   newSkills = newSkills.filter((id) => {
     const result = results.get(id);
+
     if (result && Math.abs(result.max - result.min) <= 0.1) {
       result.filterReason = 'low-variance';
+
       return false;
     }
+
     return true;
   });
 

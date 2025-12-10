@@ -1,8 +1,8 @@
 import { RegionDisplayType } from '@/modules/racetrack/types';
 import { getSkillMetaById, getSkillNameById } from '@/modules/skills/utils';
-import { useRaceStore } from '@simulation/stores/compare.store';
+import { useShallow } from 'zustand/shallow';
 import { useSettingsStore } from '@/store/settings.store';
-import { getSelectedPacemakerIndices } from '@/store/settings/actions';
+import { useSelectedPacemakerIndices } from '@/store/settings/actions';
 import { useUIStore } from '@/store/ui.store';
 import {
   colors,
@@ -15,8 +15,9 @@ import { PosKeepLabel } from '@/utils/races';
 import { CourseHelpers } from '@simulation/lib/CourseData';
 import { PosKeepMode } from '@simulation/lib/RaceSolver';
 import { useMemo } from 'react';
+import { SimulationRun } from '@/modules/simulation/compare.types';
 
-type RegionData = {
+export type RegionData = {
   type: RegionDisplayType;
   regions: {
     start: number;
@@ -49,12 +50,27 @@ const getStateName = (state: number) => {
   }
 };
 
-export const useVisualizationData = () => {
-  const { chartData } = useRaceStore();
-  const { posKeepMode, courseId } = useSettingsStore();
-  const { showVirtualPacemakerOnGraph } = useUIStore();
+type UseVisualizationDataProps = {
+  chartData: SimulationRun;
+};
 
-  const selectedPacemakerIndices = getSelectedPacemakerIndices();
+export const useVisualizationData = (props: UseVisualizationDataProps) => {
+  const { chartData } = props;
+
+  const { posKeepMode, courseId } = useSettingsStore(
+    useShallow((state) => ({
+      posKeepMode: state.posKeepMode,
+      courseId: state.courseId,
+    })),
+  );
+
+  const { showVirtualPacemakerOnGraph } = useUIStore(
+    useShallow((state) => ({
+      showVirtualPacemakerOnGraph: state.showVirtualPacemakerOnGraph,
+    })),
+  );
+
+  const selectedPacemakerIndices = useSelectedPacemakerIndices();
 
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
 
@@ -287,20 +303,34 @@ export const useVisualizationData = () => {
     selectedPacemakerIndices,
   ]);
 
-  const tempLabels = [
-    ...posKeepData,
-    ...virtualPacemakerPosKeepData,
-    ...competeFightData,
-    ...leadCompetitionData,
-    ...virtualPacemakerLeadCompetitionData,
-  ]
-    .map((posKeep) => ({
-      ...posKeep,
-      x: (posKeep.start / course.distance) * 960,
-      width: (posKeep.duration / course.distance) * 960,
-      yOffset: 0,
-    }))
-    .toSorted((a, b) => a.x - b.x);
+  const labels = useMemo(() => {
+    return [
+      ...posKeepData,
+      ...virtualPacemakerPosKeepData,
+      ...competeFightData,
+      ...leadCompetitionData,
+      ...virtualPacemakerLeadCompetitionData,
+    ];
+  }, [
+    posKeepData,
+    virtualPacemakerPosKeepData,
+    competeFightData,
+    leadCompetitionData,
+    virtualPacemakerLeadCompetitionData,
+  ]);
+
+  const tempLabels = useMemo(
+    () =>
+      labels
+        .map((posKeep) => ({
+          ...posKeep,
+          x: (posKeep.start / course.distance) * 960,
+          width: (posKeep.duration / course.distance) * 960,
+          yOffset: 0,
+        }))
+        .toSorted((a, b) => a.x - b.x),
+    [labels, course],
+  );
 
   const posKeepLabels: PosKeepLabel[] = useMemo(() => {
     const posKeepLabels = [];

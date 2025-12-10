@@ -33,13 +33,13 @@ export const SkillsTab = () => {
     if (!chartData?.sk?.[0]) return [];
 
     const skillPositions: SkillPosition[] = [];
-    for (const [id, positions] of Object.entries(chartData.sk[0])) {
+    for (const [id, positions] of chartData.sk[0].entries()) {
       const skillName = getSkillNameById(id);
 
       positions.forEach(([start, end]: [number, number]) => {
         skillPositions.push({
           id,
-          name: skillName[0],
+          name: skillName,
           start,
           end,
           duration: end - start,
@@ -54,13 +54,13 @@ export const SkillsTab = () => {
     if (!chartData?.sk?.[1]) return [];
 
     const skillPositions: SkillPosition[] = [];
-    for (const [id, positions] of Object.entries(chartData.sk[1])) {
+    for (const [id, positions] of chartData.sk[1].entries()) {
       const skillName = getSkillNameById(id);
 
       positions.forEach(([start, end]: [number, number]) => {
         skillPositions.push({
           id,
-          name: skillName[0],
+          name: skillName,
           start,
           end,
           duration: end - start,

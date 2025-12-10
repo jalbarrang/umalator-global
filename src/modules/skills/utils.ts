@@ -140,7 +140,7 @@ export const getAllSkills = (): Skill[] => {
 };
 
 export const allSkills = getAllSkills();
-export const skillsById = new Map();
+export const skillsById: Map<string, Skill> = new Map();
 
 export const getRunnerSkills = (skillIds: string[]): Skill[] => {
   return allSkills.filter((skill) => skillIds.includes(skill.originalId));
@@ -324,6 +324,37 @@ export function estimateSkillActivationPhase(skillId: string): number | null {
 
   return null;
 }
+
+export const getGeneVersionSkillId = (skillId: string): string => {
+  const baseSkillId = getBaseSkillId(skillId);
+  const skill: ISkill = GametoraSkills.find(
+    (s) => s.id === parseInt(baseSkillId),
+  );
+  if (!skill) return skillId;
+
+  const geneVersionId = skill.gene_version?.id;
+
+  if (!geneVersionId) return skillId;
+
+  return `${geneVersionId}`;
+};
+
+export const getUmaForUniqueSkill = (skillId: string): string => {
+  const baseSkillId = getBaseSkillId(skillId);
+  const skill: ISkill = GametoraSkills.find(
+    (s) => s.id === parseInt(baseSkillId),
+  );
+  if (!skill) {
+    throw new Error(`Skill not found: ${skillId}`);
+  }
+
+  const outfitId = skill.char?.[0];
+  if (!outfitId) {
+    throw new Error(`Uma ID not found for skill: ${skillId}`);
+  }
+
+  return outfitId.toString();
+};
 
 export const uniqueSkillIds: string[] = [];
 

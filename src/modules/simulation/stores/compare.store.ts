@@ -82,3 +82,17 @@ export const setDisplaying = (displaying: string = 'meanrun') => {
     chartData: currentRunData,
   });
 };
+
+export const resetResults = () => {
+  useRaceStore.setState({
+    results: [],
+    runData: null,
+    chartData: null,
+    displaying: 'meanrun',
+    rushedStats: null,
+    leadCompetitionStats: null,
+    spurtInfo: null,
+    staminaStats: null,
+    firstUmaStats: null,
+  });
+};
