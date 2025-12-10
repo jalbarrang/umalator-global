@@ -40,7 +40,7 @@ export function TrackSelect() {
 
   return (
     <div className="flex flex-col gap-2">
-      <Select value={trackid} onValueChange={handleChangeTrack}>
+      <Select value={trackid.toString()} onValueChange={handleChangeTrack}>
         <SelectTrigger className="w-full">
           <SelectValue>{getTrackName(trackid)}</SelectValue>
         </SelectTrigger>
@@ -59,7 +59,7 @@ export function TrackSelect() {
         </SelectTrigger>
         <SelectContent>
           {getCourseByTrackId(trackid).map((cid) => (
-            <SelectItem value={cid} key={cid}>
+            <SelectItem value={cid.toString()} key={cid}>
               {trackDescription({ courseid: +cid })}
             </SelectItem>
           ))}

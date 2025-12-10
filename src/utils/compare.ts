@@ -1,10 +1,10 @@
-import { CourseData } from '@simulation/lib/CourseData';
+import { CourseData } from '@/modules/simulation/lib/courses/types';
 import { GroundCondition } from '@simulation/lib/RaceParameters';
+import { PosKeepMode, RaceSolver } from '@simulation/lib/RaceSolver';
 import {
-  Perspective,
-  PosKeepMode,
-  RaceSolver,
-} from '@simulation/lib/RaceSolver';
+  ISkillPerspective,
+  SkillPerspective,
+} from '@simulation/lib/race-solver/types';
 
 import {
   RaceSolverBuilder,
@@ -125,6 +125,21 @@ export function calculateTheoreticalMaxSpurt(
   };
 }
 
+interface RushedStats {
+  uma1: { lengths: number[]; count: number };
+  uma2: { lengths: number[]; count: number };
+}
+
+interface LeadCompetitionStats {
+  uma1: { lengths: number[]; count: number };
+  uma2: { lengths: number[]; count: number };
+}
+
+interface StaminaStats {
+  uma1: { hpDiedCount: number; fullSpurtCount: number; total: number };
+  uma2: { hpDiedCount: number; fullSpurtCount: number; total: number };
+}
+
 export function runComparison(params: RunComparisonParams): CompareResult {
   const { nsamples, course, racedef, runnerA, runnerB, pacer, options } =
     params;
@@ -174,8 +189,13 @@ export function runComparison(params: RunComparisonParams): CompareResult {
     }
   }
 
+  const seed = options.seed ?? 0;
+  const posKeepMode = options.posKeepMode ?? PosKeepMode.None;
+  const mode = options.mode ?? 'compare';
+  const numUmas = racedef.numUmas ?? 1;
+
   const standard = new RaceSolverBuilder(nsamples)
-    .seed(options.seed)
+    .seed(seed)
     .course(course)
     .ground(racedef.groundCondition)
     .weather(racedef.weather)
@@ -183,13 +203,13 @@ export function runComparison(params: RunComparisonParams): CompareResult {
     .time(racedef.time)
     .useEnhancedSpurt(options.useEnhancedSpurt ?? false)
     .accuracyMode(options.accuracyMode ?? false)
-    .posKeepMode(options.posKeepMode)
-    .mode(options.mode);
+    .posKeepMode(posKeepMode)
+    .mode(mode);
 
   if (racedef.orderRange != null) {
     standard
       .order(racedef.orderRange[0], racedef.orderRange[1])
-      .numUmas(racedef.numUmas);
+      .numUmas(numUmas);
   }
 
   // Fork to share RNG - both horses face the same random events for fair comparison
@@ -240,7 +260,7 @@ export function runComparison(params: RunComparisonParams): CompareResult {
   // ensure skills common to the two umas are added in the same order regardless of what additional skills they have
   // this is important to make sure the rng for their activations is synced
 
-  const commonSkills = [...runnerA.skills, ...runnerB.skills].sort(
+  const commonSkills = [...runnerA.skills, ...runnerB.skills].toSorted(
     (a, b) => +a - +b,
   );
 
@@ -279,11 +299,11 @@ export function runComparison(params: RunComparisonParams): CompareResult {
     const forcedPos = runnerA.forcedSkillPositions[id];
 
     if (forcedPos != null) {
-      standard.addSkillAtPosition(skillId, forcedPos, Perspective.Self);
-      compare.addSkill(skillId, Perspective.Other, undefined, uma1Wisdom);
+      standard.addSkillAtPosition(skillId, forcedPos, SkillPerspective.Self);
+      compare.addSkill(skillId, SkillPerspective.Other, undefined, uma1Wisdom);
     } else {
-      standard.addSkill(skillId, Perspective.Self);
-      compare.addSkill(skillId, Perspective.Other, undefined, uma1Wisdom);
+      standard.addSkill(skillId, SkillPerspective.Self);
+      compare.addSkill(skillId, SkillPerspective.Other, undefined, uma1Wisdom);
     }
   }
 
@@ -294,11 +314,11 @@ export function runComparison(params: RunComparisonParams): CompareResult {
     const forcedPos = runnerB.forcedSkillPositions[id];
 
     if (forcedPos != null) {
-      compare.addSkillAtPosition(skillId, forcedPos, Perspective.Self);
-      standard.addSkill(skillId, Perspective.Other, undefined, uma2Wisdom);
+      compare.addSkillAtPosition(skillId, forcedPos, SkillPerspective.Self);
+      standard.addSkill(skillId, SkillPerspective.Other, undefined, uma2Wisdom);
     } else {
-      compare.addSkill(skillId, Perspective.Self);
-      standard.addSkill(skillId, Perspective.Other, undefined, uma2Wisdom);
+      compare.addSkill(skillId, SkillPerspective.Self);
+      standard.addSkill(skillId, SkillPerspective.Other, undefined, uma2Wisdom);
     }
   }
 
@@ -343,26 +363,23 @@ export function runComparison(params: RunComparisonParams): CompareResult {
     return (
       raceSolver: RaceSolver,
       skillId: string,
-      perspective: Perspective,
+      perspective?: ISkillPerspective,
     ) => {
       // Self skills go to selfSet, Other skills go to both otherSet (for backward compat) and debuffsReceivedSet
-      const skillSet = perspective == Perspective.Self ? selfSet : otherSet;
+      const skillSet =
+        perspective === SkillPerspective.Self ? selfSet : otherSet;
 
       if (!['asitame', 'staminasyoubu'].includes(skillId)) {
-        if (!skillSet.has(skillId)) {
-          skillSet.set(skillId, []);
-        }
-
-        skillSet.get(skillId).push([raceSolver.pos, raceSolver.pos]); // Initialize with same position for instant skills
+        const skillSetValue = skillSet.get(skillId) ?? [];
+        skillSetValue.push([raceSolver.pos, raceSolver.pos]); // Initialize with same position for instant skills
+        skillSet.set(skillId, skillSetValue);
 
         // Also track debuffs received separately for the affected runner
-        if (perspective === Perspective.Other) {
-          if (!debuffsReceivedSet.has(skillId)) {
-            debuffsReceivedSet.set(skillId, []);
-          }
-          debuffsReceivedSet
-            .get(skillId)
-            .push([raceSolver.pos, raceSolver.pos]);
+        if (perspective === SkillPerspective.Other) {
+          const debuffsReceivedSetValue = debuffsReceivedSet.get(skillId) ?? [];
+          debuffsReceivedSetValue.push([raceSolver.pos, raceSolver.pos]);
+
+          debuffsReceivedSet.set(skillId, debuffsReceivedSetValue);
         }
       }
     };
@@ -376,9 +393,11 @@ export function runComparison(params: RunComparisonParams): CompareResult {
     return (
       raceSolver: RaceSolver,
       skillId: string,
-      perspective: Perspective,
+      perspective?: ISkillPerspective,
     ) => {
-      const skillSet = perspective === Perspective.Self ? selfSet : otherSet;
+      const skillSet =
+        perspective === SkillPerspective.Self ? selfSet : otherSet;
+
       if (!['asitame', 'staminasyoubu'].includes(skillId)) {
         const ar = skillSet.get(skillId); // activation record
 
@@ -392,7 +411,7 @@ export function runComparison(params: RunComparisonParams): CompareResult {
         }
 
         // Also update debuffs received
-        if (perspective === Perspective.Other) {
+        if (perspective === SkillPerspective.Other) {
           const debuffAr = debuffsReceivedSet.get(skillId);
           if (debuffAr && debuffAr.length > 0) {
             const activationPos = debuffAr[debuffAr.length - 1][0];
@@ -424,41 +443,63 @@ export function runComparison(params: RunComparisonParams): CompareResult {
 
   const a = standard.build();
   const b = compare.build();
-  const ai = 1;
-  const bi = 0;
+
+  const runnerAIndex = 0;
+  const runnerBIndex = 1;
+
   const sign = 1;
   const diff = [];
 
-  let min = Infinity;
-  let max = -Infinity;
-  let estMean;
-  let estMedian;
-  let bestMeanDiff = Infinity;
-  let bestMedianDiff = Infinity;
+  let min: number = Infinity;
+  let max: number = -Infinity;
+  let estMean: number = 0;
+  let estMedian: number = 0;
+  let bestMeanDiff: number = Infinity;
+  let bestMedianDiff: number = Infinity;
 
-  let minrun;
-  let maxrun;
-  let meanrun;
-  let medianrun;
+  const initialSimulationRun: SimulationRun = {
+    t: [[], []],
+    p: [[], []],
+    v: [[], []],
+    hp: [[], []],
+    currentLane: [[], []],
+    pacerGap: [[], []],
+    sk: [new Map(), new Map()],
+    debuffsReceived: [new Map(), new Map()],
+    sdly: [0, 0],
+    rushed: [[], []],
+    posKeep: [[], []],
+    competeFight: [[], []],
+    leadCompetition: [[], []],
+    pacerV: [[], [], []],
+    pacerP: [[], [], []],
+    pacerT: [[], [], []],
+    pacerPosKeep: [[], [], []],
+    pacerLeadCompetition: [[], [], []],
+  };
+
+  let minrun: SimulationRun = initialSimulationRun;
+  let maxrun: SimulationRun = initialSimulationRun;
+  let meanrun: SimulationRun = initialSimulationRun;
+  let medianrun: SimulationRun = initialSimulationRun;
 
   const sampleCutoff = Math.max(Math.floor(nsamples * 0.8), nsamples - 200);
 
-  let retry = false;
-  // let retryCount = 0;
+  let retry: boolean = false;
 
   // Track rushed statistics across all simulations
-  const rushedStats = {
+  const rushedStats: RushedStats = {
     uma1: { lengths: [], count: 0 },
     uma2: { lengths: [], count: 0 },
   };
 
-  const leadCompetitionStats = {
+  const leadCompetitionStats: LeadCompetitionStats = {
     uma1: { lengths: [], count: 0 },
     uma2: { lengths: [], count: 0 },
   };
 
   // Track stamina survival and full spurt statistics
-  const staminaStats = {
+  const staminaStats: StaminaStats = {
     uma1: { hpDiedCount: 0, fullSpurtCount: 0, total: 0 },
     uma2: { hpDiedCount: 0, fullSpurtCount: 0, total: 0 },
   };
@@ -477,18 +518,20 @@ export function runComparison(params: RunComparisonParams): CompareResult {
   // Track which generator corresponds to which uma (flips when we swap generators)
   const aIsUma1 = true; // 'a' starts as standard builder (uma1)
 
-  const basePacerRng = new Rule30CARng(options.seed + 1);
+  const basePacerRng = new Rule30CARng(options.seed ?? 0 + 1);
 
   for (let i = 0; i < nsamples; ++i) {
-    const pacers = [];
+    const pacers: RaceSolver[] = [];
 
     for (let j = 0; j < options.pacemakerCount; ++j) {
       const pacerRng = new Rule30CARng(basePacerRng.int32());
-      const pacer: RaceSolver | null =
-        pacerHorse != null
-          ? standard.buildPacer(pacerHorse, i, pacerRng)
-          : null;
-      pacers.push(pacer);
+      const pacer: RaceSolver | null = pacerHorse
+        ? standard.buildPacer(pacerHorse, i, pacerRng)
+        : null;
+
+      if (pacer) {
+        pacers.push(pacer);
+      }
     }
 
     const pacer: RaceSolver | null = pacers.length > 0 ? pacers[0] : null;
@@ -502,8 +545,8 @@ export function runComparison(params: RunComparisonParams): CompareResult {
       hp: [[], []],
       currentLane: [[], []],
       pacerGap: [[], []],
-      sk: [null, null],
-      debuffsReceived: [null, null],
+      sk: [new Map(), new Map()],
+      debuffsReceived: [new Map(), new Map()],
       sdly: [0, 0],
       rushed: [[], []],
       posKeep: [[], []],
@@ -528,66 +571,70 @@ export function runComparison(params: RunComparisonParams): CompareResult {
     let posDifference = 0;
 
     while (!s1Finished || !s2Finished) {
-      let currentPacer = null;
+      let currentPacer: RaceSolver | null = null;
 
       if (pacer) {
         currentPacer = pacer.getPacer();
 
-        pacer.umas.forEach((u) => {
-          u.updatePacer(currentPacer);
+        pacer.umas.forEach((runner) => {
+          if (currentPacer) {
+            runner.updatePacer(currentPacer);
+          }
         });
       }
 
       if (s2.pos < course.distance) {
-        data.pacerGap[ai].push(
-          currentPacer ? currentPacer.pos - s2.pos : undefined,
-        );
+        if (currentPacer) {
+          data.pacerGap[runnerBIndex].push(currentPacer.pos - s2.pos);
+        }
       }
       if (s1.pos < course.distance) {
-        data.pacerGap[bi].push(
-          currentPacer ? currentPacer.pos - s1.pos : undefined,
-        );
+        if (currentPacer) {
+          data.pacerGap[runnerAIndex].push(currentPacer.pos - s1.pos);
+        }
       }
 
       for (let j = 0; j < options.pacemakerCount; j++) {
-        const p = j < pacers.length ? pacers[j] : null;
-        if (!p || p.pos >= course.distance) continue;
-        p.step(1 / 15);
+        const currentPacer = j < pacers.length ? pacers[j] : null;
+
+        if (!currentPacer || currentPacer.pos >= course.distance) continue;
+
+        currentPacer.step(1 / 15);
         data.pacerV[j].push(
-          p
-            ? p.currentSpeed +
-                (p.modifiers.currentSpeed.acc + p.modifiers.currentSpeed.err)
-            : undefined,
+          currentPacer.currentSpeed +
+            (currentPacer.modifiers.currentSpeed.acc +
+              currentPacer.modifiers.currentSpeed.err),
         );
-        data.pacerP[j].push(p ? p.pos : undefined);
-        data.pacerT[j].push(p ? p.accumulatetime.t : undefined);
+
+        data.pacerP[j].push(currentPacer.pos);
+        data.pacerT[j].push(currentPacer.accumulatetime.t);
       }
 
       if (s2.pos < course.distance) {
         s2.step(1 / 15);
 
-        data.t[ai].push(s2.accumulatetime.t);
-        data.p[ai].push(s2.pos);
-        data.v[ai].push(
+        data.t[runnerBIndex].push(s2.accumulatetime.t);
+        data.p[runnerBIndex].push(s2.pos);
+        data.v[runnerBIndex].push(
           s2.currentSpeed +
             (s2.modifiers.currentSpeed.acc + s2.modifiers.currentSpeed.err),
         );
-        data.hp[ai].push(s2.hp.hp);
-        data.currentLane[ai].push(s2.currentLane);
+        data.hp[runnerBIndex].push(s2.hp.hp);
+        data.currentLane[runnerBIndex].push(s2.currentLane);
       } else if (!s2Finished) {
         s2Finished = true;
 
-        data.sdly[ai] = s2.startDelay;
-        data.rushed[ai] = s2.rushedActivations.slice();
-        data.posKeep[ai] = s2.positionKeepActivations.slice();
+        data.sdly[runnerBIndex] = s2.startDelay;
+        data.rushed[runnerBIndex] = s2.rushedActivations.slice();
+        data.posKeep[runnerBIndex] = s2.positionKeepActivations.slice();
         if (s2.competeFightStart != null) {
-          data.competeFight[ai] = [
+          data.competeFight[runnerBIndex] = [
             s2.competeFightStart,
             s2.competeFightEnd != null ? s2.competeFightEnd : course.distance,
           ];
         }
         if (s2.leadCompetitionStart != null) {
-          data.leadCompetition[ai] = [
+          data.leadCompetition[runnerBIndex] = [
             s2.leadCompetitionStart,
             s2.leadCompetitionEnd != null
               ? s2.leadCompetitionEnd
@@ -599,28 +646,28 @@ export function runComparison(params: RunComparisonParams): CompareResult {
       if (s1.pos < course.distance) {
         s1.step(1 / 15);
 
-        data.t[bi].push(s1.accumulatetime.t);
-        data.p[bi].push(s1.pos);
-        data.v[bi].push(
+        data.t[runnerAIndex].push(s1.accumulatetime.t);
+        data.p[runnerAIndex].push(s1.pos);
+        data.v[runnerAIndex].push(
           s1.currentSpeed +
             (s1.modifiers.currentSpeed.acc + s1.modifiers.currentSpeed.err),
         );
-        data.hp[bi].push(s1.hp.hp);
-        data.currentLane[bi].push(s1.currentLane);
+        data.hp[runnerAIndex].push(s1.hp.hp);
+        data.currentLane[runnerAIndex].push(s1.currentLane);
       } else if (!s1Finished) {
         s1Finished = true;
 
-        data.sdly[bi] = s1.startDelay;
-        data.rushed[bi] = s1.rushedActivations.slice();
-        data.posKeep[bi] = s1.positionKeepActivations.slice();
+        data.sdly[runnerAIndex] = s1.startDelay;
+        data.rushed[runnerAIndex] = s1.rushedActivations.slice();
+        data.posKeep[runnerAIndex] = s1.positionKeepActivations.slice();
         if (s1.competeFightStart != null) {
-          data.competeFight[bi] = [
+          data.competeFight[runnerAIndex] = [
             s1.competeFightStart,
             s1.competeFightEnd != null ? s1.competeFightEnd : course.distance,
           ];
         }
         if (s1.leadCompetitionStart != null) {
-          data.leadCompetition[bi] = [
+          data.leadCompetition[runnerAIndex] = [
             s1.leadCompetitionStart,
             s1.leadCompetitionEnd != null
               ? s1.leadCompetitionEnd
@@ -633,12 +680,14 @@ export function runComparison(params: RunComparisonParams): CompareResult {
     }
 
     // ai took less time to finish (less frames to finish)
-    if (data.p[ai].length <= data.p[bi].length) {
-      const aiFrames = data.p[ai].length;
-      posDifference = data.p[ai][aiFrames - 1] - data.p[bi][aiFrames - 1];
+    if (data.p[runnerBIndex].length <= data.p[runnerAIndex].length) {
+      const aiFrames = data.p[runnerBIndex].length;
+      posDifference =
+        data.p[runnerBIndex][aiFrames - 1] - data.p[runnerAIndex][aiFrames - 1];
     } else {
-      const biFrames = data.p[bi].length;
-      posDifference = data.p[ai][biFrames - 1] - data.p[bi][biFrames - 1];
+      const biFrames = data.p[runnerAIndex].length;
+      posDifference =
+        data.p[runnerBIndex][biFrames - 1] - data.p[runnerAIndex][biFrames - 1];
     }
 
     pacers.forEach((p) => {
@@ -648,16 +697,11 @@ export function runComparison(params: RunComparisonParams): CompareResult {
         for (let pacemakerIndex = 0; pacemakerIndex < 3; pacemakerIndex++) {
           if (pacemakerIndex < pacers.length && pacers[pacemakerIndex] === p) {
             data.pacerV[pacemakerIndex].push(
-              p
-                ? p.currentSpeed +
-                    (p.modifiers.currentSpeed.acc +
-                      p.modifiers.currentSpeed.err)
-                : undefined,
+              p.currentSpeed +
+                (p.modifiers.currentSpeed.acc + p.modifiers.currentSpeed.err),
             );
-            data.pacerP[pacemakerIndex].push(p ? p.pos : undefined);
-            data.pacerT[pacemakerIndex].push(
-              p ? p.accumulatetime.t : undefined,
-            );
+            data.pacerP[pacemakerIndex].push(p.pos);
+            data.pacerT[pacemakerIndex].push(p.accumulatetime.t);
           }
         }
       }
@@ -710,14 +754,14 @@ export function runComparison(params: RunComparisonParams): CompareResult {
     cleanupActiveSkills(s1, skillPos1, skillPos2, debuffsReceived1);
     cleanupActiveSkills(s2, skillPos2, skillPos1, debuffsReceived2);
 
-    data.sk[1] = new Map(skillPos2); // NOT ai (NB. why not?)
-    data.sk[0] = new Map(skillPos1); // NOT bi (NB. why not?)
+    data.sk[runnerAIndex] = snapshotSkillData(skillPos1);
+    data.sk[runnerBIndex] = snapshotSkillData(skillPos2);
     skillPos1.clear();
     skillPos2.clear();
 
     // Store debuffs received by each runner
-    data.debuffsReceived[0] = debuffsReceived1; // Debuffs uma1 received
-    data.debuffsReceived[1] = debuffsReceived2; // Debuffs uma2 received
+    data.debuffsReceived[runnerAIndex] = snapshotSkillData(debuffsReceived1);
+    data.debuffsReceived[runnerBIndex] = snapshotSkillData(debuffsReceived2);
     debuffsReceived1.clear();
     debuffsReceived2.clear();
 
@@ -832,8 +876,11 @@ export function runComparison(params: RunComparisonParams): CompareResult {
     }
     if (i == sampleCutoff) {
       diff.sort((a, b) => a - b);
+
       estMean = diff.reduce((a, b) => a + b) / diff.length;
+
       const mid = Math.floor(diff.length / 2);
+
       estMedian =
         mid > 0 && diff.length % 2 == 0
           ? (diff[mid - 1] + diff[mid]) / 2
@@ -855,15 +902,18 @@ export function runComparison(params: RunComparisonParams): CompareResult {
   diff.sort((a, b) => a - b);
 
   // Calculate rushed statistics
-  const calculateStats = (stats) => {
+  const calculateStats = (stats: { lengths: number[]; count: number }) => {
     if (stats.lengths.length === 0) {
       return { min: 0, max: 0, mean: 0, frequency: 0 };
     }
+
     const min = Math.min(...stats.lengths);
     const max = Math.max(...stats.lengths);
     const mean =
       stats.lengths.reduce((a, b) => a + b, 0) / stats.lengths.length;
+
     const frequency = (stats.count / nsamples) * 100; // percentage
+
     return { min, max, mean, frequency };
   };
 
@@ -929,7 +979,8 @@ export function runComparison(params: RunComparisonParams): CompareResult {
   if (!includeRunData) {
     return {
       results: diff,
-      runData: undefined,
+      // @ts-expect-error - null is not assignable to type SimulationData when includeRunData is false
+      runData: null,
       rushedStats: rushedStatsSummary,
       leadCompetitionStats: leadCompetitionStatsSummary,
       // spurtInfo: options.useEnhancedSpurt ? { uma1: {}, uma2: {} } : null,
@@ -990,3 +1041,14 @@ export const run1Round = (params: Run1RoundParams) => {
 
   return data;
 };
+
+function snapshotSkillData(
+  skillMap: Map<string, [number, number][]>,
+): Map<string, [number, number][]> {
+  return new Map(
+    Array.from(skillMap.entries()).map(([key, value]) => [
+      key,
+      value.map((tuple) => [...tuple] as [number, number]),
+    ]),
+  );
+}

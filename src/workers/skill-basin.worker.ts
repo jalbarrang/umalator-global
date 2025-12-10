@@ -2,7 +2,7 @@
  * Web Worker for running simulations
  */
 
-import type { CourseData } from '@simulation/lib/CourseData';
+import type { CourseData } from '@/modules/simulation/lib/courses/types';
 import type { RaceParameters } from '@simulation/lib/RaceParameters';
 
 import { RunnerState } from '@/modules/runners/components/runner-card/types';

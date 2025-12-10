@@ -119,16 +119,16 @@ export const SummaryTab = () => {
               </TableCell>
               <Activity mode={firstUmaStats ? 'visible' : 'hidden'}>
                 <TableCell className="font-mono">
-                  {firstUmaStats.uma1.firstPlaceRate.toFixed(1)}%
+                  {firstUmaStats?.uma1.firstPlaceRate.toFixed(1)}%
                 </TableCell>
               </Activity>
 
               <Activity mode={staminaStats ? 'visible' : 'hidden'}>
                 <TableCell className="font-mono">
-                  {staminaStats.uma1.fullSpurtRate.toFixed(1)}%
+                  {staminaStats?.uma1.fullSpurtRate.toFixed(1)}%
                 </TableCell>
                 <TableCell className="font-mono">
-                  {staminaStats.uma1.staminaSurvivalRate.toFixed(1)}%
+                  {staminaStats?.uma1.staminaSurvivalRate.toFixed(1)}%
                 </TableCell>
               </Activity>
             </TableRow>
@@ -138,14 +138,14 @@ export const SummaryTab = () => {
                 Uma 2
               </TableCell>
               <TableCell className="font-mono">
-                {firstUmaStats.uma2.firstPlaceRate.toFixed(1)}%
+                {firstUmaStats?.uma2.firstPlaceRate.toFixed(1)}%
               </TableCell>
               <Activity mode={staminaStats ? 'visible' : 'hidden'}>
                 <TableCell className="font-mono">
-                  {staminaStats.uma2.fullSpurtRate.toFixed(1)}%
+                  {staminaStats?.uma2.fullSpurtRate.toFixed(1)}%
                 </TableCell>
                 <TableCell className="font-mono">
-                  {staminaStats.uma2.staminaSurvivalRate.toFixed(1)}%
+                  {staminaStats?.uma2.staminaSurvivalRate.toFixed(1)}%
                 </TableCell>
               </Activity>
             </TableRow>

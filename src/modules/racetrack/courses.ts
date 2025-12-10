@@ -1,10 +1,13 @@
 import courses from '@data/course_data.json';
+import { Courses } from '../simulation/lib/courses/types';
+
+export type CourseByTrack = Record<number, number[]>;
 
 export const getCoursesByTrack = () => {
-  const newObject = {};
+  const newObject: CourseByTrack = {};
 
-  for (const cid in courses) {
-    const tid = courses[cid].raceTrackId;
+  for (const cid in courses as Courses) {
+    const tid = (courses as Courses)[cid].raceTrackId;
 
     if (tid in newObject) {
       newObject[tid].push(+cid);
@@ -19,7 +22,7 @@ export const getCoursesByTrack = () => {
 export const coursesByTrack = getCoursesByTrack();
 
 export const getDefaultTrackIdForCourse = (courseId: number) => {
-  return courses[courseId].raceTrackId;
+  return (courses as Courses)[courseId].raceTrackId;
 };
 
 export const getCourseByTrackId = (trackId: number) => {
@@ -33,8 +36,8 @@ export const getCourseIdByTrackIdAndIndex = (
   return coursesByTrack[trackId][index];
 };
 
-export const getCourseById = (courseId: number) => {
-  return courses[courseId];
+export const getCourseById = (courseId: number): Courses[number] => {
+  return (courses as Courses)[courseId];
 };
 
 export const inoutKey = ['', 'none', 'inner', 'outer', 'outin'] as const;

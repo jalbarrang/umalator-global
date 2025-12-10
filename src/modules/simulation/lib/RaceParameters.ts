@@ -1,4 +1,13 @@
-export type Mood = -2 | -1 | 0 | 1 | 2;
+export const moods: readonly number[] = [-2, -1, 0, 1, 2];
+export type Mood = (typeof moods)[number];
+
+export const asMood = (value: number): Mood => {
+  if (!moods.includes(value)) {
+    throw new Error(`Invalid mood value: ${value}`);
+  }
+
+  return value as Mood;
+};
 
 export enum GroundCondition {
   Good = 1, // Firm

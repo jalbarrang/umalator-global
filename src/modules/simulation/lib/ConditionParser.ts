@@ -18,13 +18,17 @@ class ParseError extends Error {
   }
 }
 
-function isId(c: number) {
+const isNumber = (character: number) => {
+  return '0'.charCodeAt(0) <= character && character <= '9'.charCodeAt(0);
+};
+
+const isIdentifier = (character: number) => {
   return (
-    ('a'.charCodeAt(0) <= c && c <= 'z'.charCodeAt(0)) ||
-    ('0'.charCodeAt(0) <= c && c <= '9'.charCodeAt(0)) ||
-    c == '_'.charCodeAt(0)
+    ('a'.charCodeAt(0) <= character && character <= 'z'.charCodeAt(0)) ||
+    ('0'.charCodeAt(0) <= character && character <= '9'.charCodeAt(0)) ||
+    character == '_'.charCodeAt(0)
   );
-}
+};
 
 interface Token<T, U> {
   lbp: number;
@@ -224,43 +228,48 @@ export function getParser<ConditionT = Condition, OperatorT = Operator>(
   const OperatorAnd = new LogicalOp(20, operators.and);
   const OperatorOr = new LogicalOp(10, operators.or);
 
-  function* tokenize(s: string) {
+  function* tokenize(conditionString: string) {
     let i = 0;
-    while (i < s.length) {
-      let c = s.charCodeAt(i);
 
-      if ('0'.charCodeAt(0) <= c && c <= '9'.charCodeAt(0)) {
-        let n = 0;
+    while (i < conditionString.length) {
+      let characterCode = conditionString.charCodeAt(i);
 
-        while ('0'.charCodeAt(0) <= c && c <= '9'.charCodeAt(0)) {
-          n *= 10;
-          n += c - '0'.charCodeAt(0);
-          c = s.charCodeAt(++i);
+      if (isNumber(characterCode)) {
+        let digit = 0;
+
+        while (isNumber(characterCode)) {
+          // Convert character to number
+          digit *= 10;
+          digit += characterCode - '0'.charCodeAt(0);
+
+          // Next character
+          characterCode = conditionString.charCodeAt(++i);
         }
 
-        yield new IntValue<ConditionT, OperatorT>(n);
-      } else if (isId(c)) {
-        const idstart = i;
+        // Yield integer value
+        yield new IntValue<ConditionT, OperatorT>(digit);
+      } else if (isIdentifier(characterCode)) {
+        const identifierStart = i;
 
-        while (isId(c)) {
-          c = s.charCodeAt(++i);
+        while (isIdentifier(characterCode)) {
+          characterCode = conditionString.charCodeAt(++i);
         }
 
-        yield new Identifier(s.slice(idstart, i));
+        yield new Identifier(conditionString.slice(identifierStart, i));
       } else {
-        switch (s[i]) {
+        switch (conditionString[i]) {
           case '=':
-            if (s[++i] != '=') throw new ParseError('expected =');
+            if (conditionString[++i] != '=') throw new ParseError('expected =');
             ++i;
             yield OperatorEq;
             break;
           case '!':
-            if (s[++i] != '=') throw new ParseError('expected =');
+            if (conditionString[++i] != '=') throw new ParseError('expected =');
             ++i;
             yield OperatorNeq;
             break;
           case '<':
-            if (s[++i] == '=') {
+            if (conditionString[++i] == '=') {
               ++i;
               yield OperatorLte;
             } else {
@@ -268,7 +277,7 @@ export function getParser<ConditionT = Condition, OperatorT = Operator>(
             }
             break;
           case '>':
-            if (s[++i] == '=') {
+            if (conditionString[++i] == '=') {
               ++i;
               yield OperatorGte;
             } else {

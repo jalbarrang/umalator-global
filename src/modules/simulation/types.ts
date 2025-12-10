@@ -1,7 +1,7 @@
 import { SimulationData } from '@simulation/compare.types';
 import { PosKeepMode } from './lib/RaceSolver';
 import { RunnerState } from '../runners/components/runner-card/types';
-import { CourseData } from './lib/CourseData';
+import { CourseData } from './lib/courses/types';
 import { RaceParameters } from './lib/RaceParameters';
 
 // Calculate theoretical max spurt based purely on stats (no RNG)
@@ -65,7 +65,7 @@ export type RunComparisonParams = {
   racedef: RaceParameters;
   runnerA: RunnerState;
   runnerB: RunnerState;
-  pacer: RunnerState;
+  pacer: RunnerState | null;
   options: SimulationOptions;
 };
 
@@ -85,6 +85,6 @@ export type Run1RoundParams = {
   course: CourseData;
   racedef: RaceParameters;
   uma: RunnerState;
-  pacer: RunnerState;
+  pacer: RunnerState | null;
   options: SimulationOptions;
 };

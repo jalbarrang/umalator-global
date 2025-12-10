@@ -87,7 +87,8 @@ const definitions = {
 };
 
 export const getStrings = (lang: string) => {
-  const strings = definitions[lang];
+  const strings = definitions[lang as keyof typeof definitions];
+
   return strings ?? definitions.en;
 };
 

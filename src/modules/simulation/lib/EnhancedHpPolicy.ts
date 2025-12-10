@@ -10,11 +10,12 @@
  */
 
 import type { RaceState } from './RaceSolver';
-import { PositionKeepState } from './RaceSolver';
 import { HorseParameters } from './HorseTypes';
-import { CourseData, Phase } from './CourseData';
+import { IPhase } from './courses/types';
+import { CourseData } from './courses/types';
 import { GroundCondition } from './RaceParameters';
 import { PRNG } from './Random';
+import { IPositionKeepState, PositionKeepState } from './race-solver/types';
 
 export const HpStrategyCoefficient = [0, 0.95, 0.89, 1.0, 0.995, 0.86] as const;
 export const HpConsumptionGroundModifier = [
@@ -36,8 +37,8 @@ export class EnhancedHpPolicy {
   maxHp: number;
   hp: number;
   groundModifier: number;
-  gutsModifier: number;
-  subparAcceptChance: number;
+  declare gutsModifier: number;
+  declare subparAcceptChance: number;
   rng: PRNG;
 
   // Enhanced spurt calculation fields
@@ -91,7 +92,7 @@ export class EnhancedHpPolicy {
 
   private calculateBaseTargetSpeed(
     horse: HorseParameters,
-    phase: Phase,
+    phase: IPhase,
   ): number {
     const StrategyPhaseCoefficient = [
       [],
@@ -133,7 +134,7 @@ export class EnhancedHpPolicy {
   }
 
   getStatusModifier(state: {
-    positionKeepState: PositionKeepState;
+    positionKeepState: IPositionKeepState;
     isRushed?: boolean;
     isDownhillMode?: boolean;
   }) {
@@ -153,8 +154,8 @@ export class EnhancedHpPolicy {
 
   hpPerSecond(
     state: {
-      phase: Phase;
-      positionKeepState: PositionKeepState;
+      phase: IPhase;
+      positionKeepState: IPositionKeepState;
       isRushed?: boolean;
       isDownhillMode?: boolean;
     },
@@ -297,7 +298,7 @@ export class EnhancedHpPolicy {
     applyStatusModifier: boolean = false,
   ): number {
     const state = {
-      phase: 2 as Phase,
+      phase: 2 as IPhase,
       positionKeepState: PositionKeepState.None,
     };
     const baseConsumption =

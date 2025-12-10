@@ -8,7 +8,7 @@ type ISkillBasinStore = {
 };
 
 export const useSkillBasinStore = create<ISkillBasinStore>()(
-  immer(() => ({
+  immer((_) => ({
     results: new Map(),
     metrics: null,
   })),

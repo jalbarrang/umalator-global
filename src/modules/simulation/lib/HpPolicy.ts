@@ -1,7 +1,9 @@
 import type { RaceState } from './RaceSolver';
-import { PositionKeepState } from './RaceSolver';
+import { IPositionKeepState, PositionKeepState } from './race-solver/types';
 import { HorseParameters, IStrategy, Strategy } from './HorseTypes';
-import { CourseData, CourseHelpers, Phase } from './CourseData';
+import { CourseHelpers } from './CourseData';
+import { IPhase } from './courses/types';
+import { CourseData } from './courses/types';
 import { GroundCondition } from './RaceParameters';
 import { PRNG } from './Random';
 
@@ -52,8 +54,8 @@ export class GameHpPolicy {
   maxHp: number;
   hp: number;
   groundModifier: number;
-  gutsModifier: number;
-  subparAcceptChance: number;
+  declare gutsModifier: number;
+  declare subparAcceptChance: number;
   rng: PRNG;
   private achievedMaxSpurt: boolean = false;
 
@@ -79,7 +81,7 @@ export class GameHpPolicy {
   }
 
   getStatusModifier(state: {
-    positionKeepState: PositionKeepState;
+    positionKeepState: IPositionKeepState;
     isRushed?: boolean;
     isDownhillMode?: boolean;
     leadCompetition?: boolean;
@@ -111,8 +113,8 @@ export class GameHpPolicy {
 
   hpPerSecond(
     state: {
-      phase: Phase;
-      positionKeepState: PositionKeepState;
+      phase: IPhase;
+      positionKeepState: IPositionKeepState;
       isRushed?: boolean;
       isDownhillMode?: boolean;
       leadCompetition?: boolean;
@@ -155,7 +157,7 @@ export class GameHpPolicy {
     const maxDist = this.distance - CourseHelpers.phaseStart(this.distance, 2);
     const s = (maxDist - 60) / maxSpeed;
     const lastleg = {
-      phase: 2 as Phase,
+      phase: 2 as IPhase,
       positionKeepState: PositionKeepState.None,
       leadCompetition: false,
       posKeepStrategy: state.posKeepStrategy,

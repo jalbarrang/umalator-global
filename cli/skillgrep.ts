@@ -48,10 +48,16 @@ for (const id in skills) {
 
   let logged = false;
 
-  skills[id].alternatives.forEach((ef) => {
+  const skill = skills[id as keyof typeof skills];
+  const name = skillnames[id as keyof typeof skillnames];
+  if (!skill || !name) {
+    continue;
+  }
+
+  skill.alternatives.forEach((ef) => {
     if (
       opts.name
-        ? skillnames[id].find((s) => s.toUpperCase().indexOf(match) > -1)
+        ? name.find((s) => s.toUpperCase().indexOf(match) > -1)
         : (!opts.excludePre &&
             ef.precondition.length > 0 &&
             treeMatch(match, parse(tokenize(ef.precondition)))) ||
@@ -63,7 +69,7 @@ for (const id in skills) {
         if (opts.id) {
           console.log(id);
         } else {
-          console.log(skillnames[id][+(opts.lang == 'en')] + ' (' + id + ')');
+          console.log(name[+(opts.lang == 'en')] + ' (' + id + ')');
         }
         logged = true;
       }

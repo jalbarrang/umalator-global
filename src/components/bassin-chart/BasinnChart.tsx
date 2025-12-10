@@ -11,6 +11,8 @@ import {
 
 import {
   CellContext,
+  Column,
+  ColumnDef,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -60,39 +62,57 @@ function umaForUniqueSkill(skillId: string): string | null {
   const umaId = i.toString().padStart(3, '0');
   const baseUmaId = `1${umaId}`;
   const outfitId = `${baseUmaId}${v.toString().padStart(2, '0')}`;
+  const uma = umas[baseUmaId as keyof typeof umas];
 
-  if (umas[baseUmaId] && umas[baseUmaId].outfits[outfitId]) {
+  if (uma?.outfits[outfitId as keyof typeof uma.outfits]) {
     return outfitId;
   }
 
   return null;
 }
 
-function formatBasinn(info) {
-  return info.getValue().toFixed(2).replace('-0.00', '0.00') + ' L';
-}
+const formatBasinn = (props: CellContext<RoundResult, unknown>) => {
+  const value = props.getValue() as number;
+
+  return value.toFixed(2).replace('-0.00', '0.00') + ' L';
+};
 
 const skillNameCell =
   (showUmaIcons: boolean = false) =>
-  (info: CellContext<RoundResult, string>) => {
-    const id = info.getValue();
+  (props: CellContext<RoundResult, unknown>) => {
+    const id = props.getValue() as string;
+
     const skill = allSkills.find((skill) => skill.originalId === id);
 
     if (showUmaIcons) {
       const umaId = umaForUniqueSkill(id);
 
-      if (umaId && icons[umaId]) {
+      if (umaId && icons[umaId as keyof typeof icons]) {
+        const icon = icons[umaId as keyof typeof icons];
+
         return (
           <div
             className="flex items-center gap-2"
             data-itemtype="uma"
             data-itemid={umaId}
           >
-            <img src={icons[umaId]} className="w-8 h-8" />
+            <img src={icon} className="w-8 h-8" />
             <span>{i18n.t(`skillnames.${id}`)}</span>
           </div>
         );
       }
+    }
+
+    if (!skill) {
+      return (
+        <div
+          className="flex items-center gap-2"
+          data-itemtype="skill"
+          data-itemid={id}
+        >
+          <span>{i18n.t(`skillnames.${id}`)}</span>
+        </div>
+      );
     }
 
     return (
@@ -109,13 +129,13 @@ const skillNameCell =
 
 const sortableHeader =
   (name: string, _key: string) =>
-  ({ column }) => {
+  ({ column }: { column: Column<RoundResult> }) => {
     const isSorted = column.getIsSorted();
 
     const handleClick = () => {
       if (!isSorted) {
         // If not sorted, sort by descending by default.
-        column.toggleSorting('desc');
+        column.toggleSorting(true);
         return;
       }
 
@@ -146,7 +166,7 @@ export const BasinnChart = (props: BasinnChartProps) => {
   const { onAddSkill, showUmaIcons = false, metrics } = props;
   const { isSimulationRunning } = useUIStore();
 
-  const columns = [
+  const columns: ColumnDef<RoundResult>[] = [
     {
       id: 'actions',
       header: '',
@@ -225,7 +245,15 @@ export const BasinnChart = (props: BasinnChartProps) => {
       header: () => <span>Skill name</span>,
       accessorKey: 'id',
       cell: skillNameCell(props.showUmaIcons),
-      sortingFn: (a, b, _) => (skillnames[a] < skillnames[b] ? -1 : 1),
+      sortingFn: (a, b, _) => {
+        const skillIdA = a.getValue('id');
+        const skillIdB = b.getValue('id');
+
+        const skillNameA = skillnames[skillIdA as keyof typeof skillnames];
+        const skillNameB = skillnames[skillIdB as keyof typeof skillnames];
+
+        return skillNameA < skillNameB ? -1 : 1;
+      },
     },
     {
       header: sortableHeader('Minimum', 'min'),

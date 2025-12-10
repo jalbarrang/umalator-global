@@ -1,5 +1,5 @@
 import { RegionDisplayType } from '@/modules/racetrack/types';
-import { getSkillMetaById } from '@/modules/skills/utils';
+import { getSkillMetaById, getSkillNameById } from '@/modules/skills/utils';
 import { useRaceStore } from '@simulation/stores/compare.store';
 import { useSettingsStore } from '@/store/settings.store';
 import { getSelectedPacemakerIndices } from '@/store/settings/actions';
@@ -12,7 +12,6 @@ import {
 } from '@/utils/colors';
 import { hiddenSkills } from '@/utils/constants';
 import { PosKeepLabel } from '@/utils/races';
-import skillnames from '@data/skillnames.json';
 import { CourseHelpers } from '@simulation/lib/CourseData';
 import { PosKeepMode } from '@simulation/lib/RaceSolver';
 import { useMemo } from 'react';
@@ -23,12 +22,14 @@ type RegionData = {
     start: number;
     end: number;
   }[];
+
   color: {
     fill: string;
     stroke: string;
   };
+
   text: string;
-  height: number;
+  height?: number;
   skillId?: string;
   umaIndex?: number;
 };
@@ -61,7 +62,7 @@ export const useVisualizationData = () => {
     if (!chartData) return [];
     if (!chartData.sk) return [];
 
-    const skillActivations = [];
+    const skillActivations: RegionData[] = [];
 
     for (const [umaIndex, umaActivations] of chartData.sk.entries()) {
       for (const [skillId, activations] of umaActivations.entries()) {
@@ -72,10 +73,15 @@ export const useVisualizationData = () => {
         }
 
         for (const activation of activations) {
+          const color = colors[umaIndex as keyof typeof colors] as {
+            stroke: string;
+            fill: string;
+          };
+
           skillActivations.push({
             type: RegionDisplayType.Textbox,
-            color: colors[umaIndex],
-            text: skillnames[skillId][0],
+            color: color,
+            text: getSkillNameById(skillId),
             skillId: skillId,
             umaIndex: umaIndex,
             regions: [{ start: activation[0], end: activation[1] }],
@@ -254,13 +260,19 @@ export const useVisualizationData = () => {
         const leadCompetitionArray =
           chartData.pacerLeadCompetition[pacemakerIndex];
 
-        const start = leadCompetitionArray[0];
-        const end = leadCompetitionArray[1];
+        const start = leadCompetitionArray[0] ?? 0;
+        const end = leadCompetitionArray[1] ?? 0;
+        const color = pacemakerColors[
+          pacemakerIndex as keyof typeof pacemakerColors
+        ] as {
+          stroke: string;
+          fill: string;
+        };
 
         pacemakerLeadCompetitionData.push({
           umaIndex: 2 + pacemakerIndex,
           text: 'SS',
-          color: pacemakerColors[pacemakerIndex],
+          color: color,
           start: start,
           end: end,
           duration: end - start,

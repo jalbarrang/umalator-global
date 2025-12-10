@@ -68,7 +68,7 @@ function buildSolver(speed: number, guts: number) {
     .withAsiwotameru()
     .withStaminaSyoubu();
 
-  desc.skills.forEach((id) => b.addSkill(id));
+  desc.skills.forEach((id: string) => b.addSkill(id));
   return b.build().next().value as RaceSolver;
 }
 
@@ -77,7 +77,7 @@ while (min.pos < course.distance) {
   min.step(dt);
 }
 
-const standard = {};
+const standard: Record<number, number> = {};
 const base = buildSolver(opts.standard[0], opts.standard[1]);
 // intentionally run past the end of the course (potentially far past) to have position at accumulatetime values for slower instances
 // this is generally actually fine unless the horse has skills that would extend their duration past the end of the course, in which
@@ -88,13 +88,13 @@ while (base.accumulatetime.t <= min.accumulatetime.t) {
   base.step(dt);
 }
 
-const gain = [];
+const gain: number[][] = [];
 for (
   let guts = opts.gutsRange[0];
   guts <= opts.gutsRange[1];
   guts += opts.step
 ) {
-  const row = [];
+  const row: number[] = [];
   gain.push(row);
   for (
     let speed = opts.speedRange[0];

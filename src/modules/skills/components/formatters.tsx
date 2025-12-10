@@ -100,7 +100,7 @@ const conditionFormatters = new Proxy(
     time: fmtString('time'),
     track_id(arg: number) {
       return (
-        <Tooltip title={arg} tall={'en'}>
+        <Tooltip title={arg.toString()} tall={'en'}>
           {i18n.t(`tracknames.${arg}`)}
         </Tooltip>
       );
@@ -109,9 +109,10 @@ const conditionFormatters = new Proxy(
   },
   {
     get(o: object, prop: string) {
-      if (Object.prototype.hasOwnProperty.call(o, prop)) {
-        return { name: prop, formatArg: o[prop] };
+      if (prop in o) {
+        return { name: prop, formatArg: o[prop as keyof typeof o] };
       }
+
       return {
         name: prop,
         formatArg(arg: number) {

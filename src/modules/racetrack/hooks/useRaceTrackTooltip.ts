@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CourseData } from '@/modules/simulation/lib/CourseData';
+import { CourseData } from '@/modules/simulation/lib/courses/types';
 import { SimulationRun } from '@simulation/compare.types';
 import { binSearch } from '@/utils/algorithims';
 import { TooltipData } from '@/modules/racetrack/components/racetrack-tooltip';
@@ -36,6 +36,8 @@ export const useRaceTrackTooltip = (props: UseRaceTrackTooltipProps) => {
     const v2 = chartData.v[1][safeI1];
     const t2 = chartData.t[1][safeI1];
     const hp2 = chartData.hp[1][safeI1];
+
+    if (t1 == null || t2 == null) return;
 
     const v1Text = `${v1.toFixed(2)}m/s t=${t1.toFixed(2)}s (${hp1.toFixed(0)} HP remaining)`;
     const v2Text = `${v2.toFixed(2)}m/s t=${t2.toFixed(2)}s (${hp2.toFixed(0)} HP remaining)`;

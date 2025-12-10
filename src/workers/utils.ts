@@ -9,9 +9,9 @@ export const mergeResults = (resultA: RoundResult, resultB: RoundResult) => {
   const resultSizeA = resultA.results.length;
   const resultSizeB = resultB.results.length;
 
-  const combinedResults = resultA.results
-    .concat(resultB.results)
-    .sort((a, b) => a - b);
+  const combinedResults = [...resultA.results, ...resultB.results].toSorted(
+    (a, b) => a - b,
+  );
 
   const combinedMean =
     (resultA.mean * resultSizeA + resultB.mean * resultSizeB) /
@@ -24,7 +24,7 @@ export const mergeResults = (resultA: RoundResult, resultB: RoundResult) => {
       ? (combinedResults[mid - 1] + combinedResults[mid]) / 2
       : combinedResults[mid];
 
-  let mergedRunData: SimulationData;
+  let mergedRunData: SimulationData | undefined;
 
   if (resultA.runData && resultB.runData) {
     mergedRunData = {
@@ -63,8 +63,9 @@ export const mergeResultSets = (
   resultSetB: SkillBasinResponse,
 ) => {
   resultSetB.forEach((resultB, id) => {
-    if (resultSetA.has(id)) {
-      resultSetA.set(id, mergeResults(resultSetA.get(id), resultB));
+    const resultA = resultSetA.get(id);
+    if (resultA) {
+      resultSetA.set(id, mergeResults(resultA, resultB));
     }
   });
 };

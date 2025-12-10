@@ -39,6 +39,6 @@ export type RunnerState = {
   strategyAptitude: string;
   mood: Mood;
   skills: string[];
-  forcedSkillPositions: Record<string, number>;
+  forcedSkillPositions: Record<string, number>; // TODO: Change to Map for easier serialization
   randomMobId?: number; // For placeholder image when no uma selected
 };

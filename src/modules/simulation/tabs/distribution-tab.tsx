@@ -16,7 +16,7 @@ export const DistributionTab = () => {
   const distributionStats = useMemo(() => {
     if (results.length === 0) return null;
 
-    const sorted = [...results].sort((a, b) => a - b);
+    const sorted = results.toSorted((a, b) => a - b);
     const n = sorted.length;
     const mean = sorted.reduce((a, b) => a + b, 0) / n;
     const variance = sorted.reduce((sum, x) => sum + (x - mean) ** 2, 0) / n;

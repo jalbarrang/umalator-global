@@ -9,19 +9,40 @@ import {
 } from '@simulation/compare.types';
 import { SpurtCandidate } from '@simulation/lib/SpurtCalculator';
 
-type IRaceStore = {
-  results: number[];
-  runData: SimulationData;
-  chartData: SimulationRun;
-  displaying: string;
-  rushedStats: Stats;
-  leadCompetitionStats: Stats;
-  spurtInfo: SpurtCandidate;
-  staminaStats: StaminaStats;
-  firstUmaStats: FirstUMAStats;
+export const initialChartData: SimulationRun = {
+  t: [[], []],
+  p: [[], []],
+  v: [[], []],
+  hp: [[], []],
+  currentLane: [[], []],
+  pacerGap: [[], []],
+  sk: [new Map(), new Map()],
+  debuffsReceived: [new Map(), new Map()],
+  sdly: [0, 0],
+  rushed: [[], []],
+  posKeep: [[], []],
+  competeFight: [[], []],
+  leadCompetition: [[], []],
+  pacerV: [[], [], []],
+  pacerP: [[], [], []],
+  pacerT: [[], [], []],
+  pacerPosKeep: [[], [], []],
+  pacerLeadCompetition: [[], [], []],
 };
 
-export const useRaceStore = create<IRaceStore>()(() => ({
+type IRaceStore = {
+  results: number[];
+  runData: SimulationData | null;
+  chartData: SimulationRun | null;
+  displaying: string;
+  rushedStats: Stats | null;
+  leadCompetitionStats: Stats | null;
+  spurtInfo: SpurtCandidate | null;
+  staminaStats: StaminaStats | null;
+  firstUmaStats: FirstUMAStats | null;
+};
+
+export const useRaceStore = create<IRaceStore>()((_) => ({
   results: [],
   runData: null,
   chartData: null,
@@ -36,14 +57,16 @@ export const useRaceStore = create<IRaceStore>()(() => ({
 export const setResults = (results: CompareResult) => {
   const { displaying = 'meanrun' } = useRaceStore.getState();
 
+  const currentRunData = results.runData[displaying as keyof SimulationData];
+
   useRaceStore.setState({
     results: results.results,
     runData: results.runData,
-    chartData: results.runData[displaying],
+    chartData: currentRunData,
     displaying: displaying,
     rushedStats: results.rushedStats,
     leadCompetitionStats: results.leadCompetitionStats,
-    spurtInfo: results.spurtInfo,
+    spurtInfo: results.spurtInfo ?? undefined,
     staminaStats: results.staminaStats,
     firstUmaStats: results.firstUmaStats,
   });
@@ -52,8 +75,10 @@ export const setResults = (results: CompareResult) => {
 export const setDisplaying = (displaying: string = 'meanrun') => {
   const { runData } = useRaceStore.getState();
 
+  const currentRunData = runData?.[displaying as keyof SimulationData];
+
   useRaceStore.setState({
     displaying,
-    chartData: runData[displaying],
+    chartData: currentRunData,
   });
 };

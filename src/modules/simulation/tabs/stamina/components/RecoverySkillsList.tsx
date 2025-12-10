@@ -1,17 +1,15 @@
 import { cn } from '@/lib/utils';
 import { RecoverySkillActivation } from '../hooks/useRecoverySkills';
 
-interface RecoverySkillsListProps {
+type RecoverySkillsListProps = {
   recoverySkills: RecoverySkillActivation[];
   debuffsReceived: RecoverySkillActivation[];
   isTheoretical: boolean;
-}
+};
 
-export const RecoverySkillsList = ({
-  recoverySkills,
-  debuffsReceived,
-  isTheoretical,
-}: RecoverySkillsListProps) => {
+export const RecoverySkillsList = (props: RecoverySkillsListProps) => {
+  const { recoverySkills, debuffsReceived, isTheoretical } = props;
+
   const hasHeals = recoverySkills.length > 0;
   const hasDebuffs = debuffsReceived.length > 0;
 
@@ -59,6 +57,7 @@ export const RecoverySkillsList = ({
                 <span className="text-foreground truncate mr-2">
                   {skill.skillName}
                 </span>
+
                 <span className="font-mono text-green-500 whitespace-nowrap">
                   +{skill.hpRecovered.toFixed(0)} HP @{' '}
                   {skill.position.toFixed(0)}m

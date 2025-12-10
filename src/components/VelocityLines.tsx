@@ -1,5 +1,6 @@
 import { SimulationRun } from '@simulation/compare.types';
 import { useRaceTrackUI } from '@/store/settings.store';
+// @ts-expect-error d3 types are not typed
 import * as d3 from 'd3';
 import { memo, useMemo } from 'react';
 
@@ -32,8 +33,8 @@ const DataPath = memo((props: DataPathProps) => {
   const pathD = useMemo(() => {
     const lineGenerator = d3
       .line<number>()
-      .x((j) => xScale(positions[j]))
-      .y((j) => yScale(values[j]));
+      .x((j: number) => xScale(positions[j]))
+      .y((j: number) => yScale(values[j]));
 
     return lineGenerator(positions.map((_, j) => j));
   }, [positions, values, xScale, yScale]);
@@ -69,7 +70,7 @@ const XAxis = memo((props: XAxisProps) => {
         y2={0}
         stroke="var(--color-black)"
       />
-      {ticks.map((tick) => (
+      {ticks.map((tick: number) => (
         <g key={tick} transform={`translate(${scale(tick)},0)`}>
           <line y2={6} stroke="var(--color-black)" />
           <text
@@ -100,7 +101,7 @@ const YAxis = memo((props: YAxisProps) => {
   return (
     <g transform={transform}>
       <line x1={0} x2={0} y1={rangeStart} y2={rangeEnd} stroke="currentColor" />
-      {ticks.map((tick) => (
+      {ticks.map((tick: number) => (
         <g key={tick} transform={`translate(0,${scale(tick)})`}>
           <line x2={-6} stroke="currentColor" />
           <text
@@ -118,7 +119,7 @@ const YAxis = memo((props: YAxisProps) => {
 });
 
 type VelocityLinesProps = {
-  data: SimulationRun;
+  data: SimulationRun | null;
   courseDistance: number;
   width?: number;
   height?: number;
@@ -152,7 +153,7 @@ export const VelocityLines = memo(function VelocityLines(
 
     return d3
       .scaleLinear()
-      .domain([0, d3.max(data.v, (v) => d3.max(v)) ?? 0])
+      .domain([0, d3.max(data.v, (v: number[]) => d3.max(v)) ?? 0])
       .range([height, 0]);
   }, [data, height]);
 
@@ -162,7 +163,7 @@ export const VelocityLines = memo(function VelocityLines(
 
     return d3
       .scaleLinear()
-      .domain([0, d3.max(data.hp, (hp) => d3.max(hp)) ?? 0])
+      .domain([0, d3.max(data.hp, (hp: number[]) => d3.max(hp)) ?? 0])
       .range([height, 0]);
   }, [data, height]);
 

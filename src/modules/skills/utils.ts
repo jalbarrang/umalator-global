@@ -6,8 +6,9 @@ import GametoraSkills from '@data/gametora/skills.json';
 import { UmaAltId } from '@/modules/runners/utils';
 import { parseSkillCondition, tokenizedConditions } from './conditions';
 import { ISkill } from './types';
-import { SkillRarity } from '@simulation/lib/RaceSolver';
+import { ISkillRarity, SkillRarity } from '@simulation/lib/race-solver/types';
 import { treeMatch } from '@simulation/lib/tools/ConditionMatcher';
+import { SkillAlternative } from '../simulation/lib/RaceSolverBuilder';
 
 // Types
 
@@ -15,26 +16,8 @@ export type SkillNamesList = Record<string, string[]>;
 export type TranslatedSkillNames = Record<string, string>;
 
 export type SkillData = {
-  alternatives: [
-    {
-      baseDuration: number;
-      condition: string;
-      effects: [
-        {
-          modifier: number;
-          target: number;
-          type: number;
-        },
-        {
-          modifier: number;
-          target: number;
-          type: number;
-        },
-      ];
-      precondition: string;
-    },
-  ];
-  rarity: number;
+  alternatives: SkillAlternative[];
+  rarity: ISkillRarity;
 };
 
 export type SkillMeta = {
@@ -56,16 +39,51 @@ export type Skill = {
 
 // Methods
 
-export const getBaseSkillId = (id: string) => id.split('-')[0];
+export const getBaseSkillId = (id: string): string => {
+  const [skillId] = id.split('-');
 
-export const getSkillDataById = (id: string): SkillData | null =>
-  skillsDataList[getBaseSkillId(id)] ?? null;
+  if (!skillId) {
+    throw new Error(`Invalid skill ID: ${id}`);
+  }
 
-export const getSkillMetaById = (id: string): SkillMeta | null =>
-  skillMetaList[getBaseSkillId(id)] ?? null;
+  return skillId;
+};
 
-export const getSkillNameById = (id: string): string[] =>
-  skillNamesList[getBaseSkillId(id)] ?? [];
+export const getSkillDataById = (id: string): SkillData => {
+  const baseId = getBaseSkillId(id);
+
+  const skillData = skillsDataList[baseId as SkillId];
+
+  if (!skillData) {
+    throw new Error(`Skill data not found for ID: ${id}`);
+  }
+
+  return skillData as SkillData;
+};
+
+export const getSkillMetaById = (id: string): SkillMeta => {
+  const baseId = getBaseSkillId(id);
+
+  const skillMeta = skillMetaList[baseId as SkillId];
+
+  if (!skillMeta) {
+    throw new Error(`Skill meta not found for ID: ${id}`);
+  }
+
+  return skillMeta as unknown as SkillMeta;
+};
+
+export const getSkillNameById = (id: string): string => {
+  const baseId = getBaseSkillId(id);
+
+  const [skillName] = skillNamesList[baseId as SkillId];
+
+  if (!skillName) {
+    throw new Error(`Skill names not found for ID: ${id}`);
+  }
+
+  return skillName;
+};
 
 export function getUniqueSkillForByUmaId(outfitId: UmaAltId): string {
   const umaId = +outfitId.slice(1, -2);
@@ -93,7 +111,7 @@ export function SkillSet(iterable: string[]): Set<string> {
 
 export const getBaseSkillsToTest = () => {
   return Object.keys(skillsDataList).filter(
-    (id) => skillsDataList[id].rarity < 3,
+    (id) => skillsDataList[id as SkillId]?.rarity < 3,
   );
 };
 
@@ -108,14 +126,14 @@ export const translateSkillNamesForLang = (
     }
 
     return acc;
-  }, {});
+  }, {} as TranslatedSkillNames);
 };
 
 export const getAllSkills = (): Skill[] => {
   return Object.keys(skillsDataList).map((id) => ({
     id,
     originalId: getBaseSkillId(id),
-    name: getSkillNameById(id)[0],
+    name: getSkillNameById(id),
     meta: getSkillMetaById(id),
     data: getSkillDataById(id),
   }));
@@ -230,27 +248,28 @@ export const conditionFilterMap = {
 };
 
 const generateSkillFilterLookUp = () => {
-  return Object.entries(conditionFilterMap).reduce(
-    (acc, [filterKey, ops]) => {
-      acc[filterKey] = new Set();
+  const filterLookup: Record<string, Set<string>> = {};
+  const allSkills = getAllSkills();
+  const filterMapEntries = Object.entries(conditionFilterMap);
 
-      getAllSkills().forEach((skill) => {
-        const conditions = tokenizedConditions[skill.id];
-        if (!conditions) return;
+  for (const [filterKey, ops] of filterMapEntries) {
+    filterLookup[filterKey] = new Set();
 
-        const matches = ops.some((op) =>
-          conditions.some((alt) => treeMatch(op, alt)),
-        );
+    for (const skill of allSkills) {
+      const conditions = tokenizedConditions[skill.id];
+      if (!conditions) continue;
 
-        if (matches) {
-          acc[filterKey].add(skill.id);
-        }
-      });
+      const matches = ops.some((op) =>
+        conditions.some((alt) => treeMatch(op, alt)),
+      );
 
-      return acc;
-    },
-    {} as Record<string, Set<string>>,
-  );
+      if (matches) {
+        filterLookup[filterKey].add(skill.id);
+      }
+    }
+  }
+
+  return filterLookup;
 };
 
 export const skillFilterLookUp = generateSkillFilterLookUp();
@@ -274,19 +293,19 @@ export function estimateSkillActivationPhase(skillId: string): number | null {
   // Check for phase conditions in order of specificity
   // phase==X is most specific
   const phaseMatch = condition.match(/phase==(\d)/);
-  if (phaseMatch) {
+  if (phaseMatch?.[1]) {
     return parseInt(phaseMatch[1], 10);
   }
 
   // phase>=X means X or later
   const phaseGteMatch = condition.match(/phase>=(\d)/);
-  if (phaseGteMatch) {
+  if (phaseGteMatch?.[1]) {
     return parseInt(phaseGteMatch[1], 10);
   }
 
   // phase_random==X
   const phaseRandomMatch = condition.match(/phase_random==(\d)/);
-  if (phaseRandomMatch) {
+  if (phaseRandomMatch?.[1]) {
     return parseInt(phaseRandomMatch[1], 10);
   }
 

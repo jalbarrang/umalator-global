@@ -1,5 +1,11 @@
 import umas from '@data/umas.json';
 
+export type UmaData = typeof umas;
+export type UmaDataKey = keyof UmaData;
+export type UmaEntry = UmaData[UmaDataKey];
+export type UmaOutfitKey = keyof UmaEntry['outfits'];
+export type UmaOutfit = UmaEntry['outfits'][UmaOutfitKey];
+
 export type Uma = {
   name: string[];
   outfits: Record<string, string>;
@@ -16,23 +22,36 @@ export const getUmaBaseId = (id: string) => {
 };
 
 export const getUmaById = (id: string) => {
-  return umas[getUmaBaseId(id)];
+  const baseId = getUmaBaseId(id);
+
+  const uma = umas[baseId as UmaDataKey];
+
+  if (!uma) {
+    throw new Error(`Uma with id ${id} not found`);
+  }
+
+  return uma;
 };
 
 export type UmaAltId = (typeof umaAltIds)[number];
 
-export const umaAltIds = Object.keys(umas).flatMap((id) =>
-  Object.keys(umas[id].outfits),
-);
+export const umaAltIds = Object.keys(umas).flatMap((id) => {
+  const uma = getUmaById(id);
+
+  return Object.keys(uma.outfits);
+});
 
 // Lookup Functions
 
 export const umaNamesForSearch = Object.fromEntries(
   umaAltIds.map((id) => {
     const uma = getUmaById(id);
+
     return [
       id,
-      (uma.outfits[id] + ' ' + uma.name[1]).toUpperCase().replace(/\./g, ''),
+      (uma.outfits[id as UmaOutfitKey] + ' ' + uma.name[1])
+        .toUpperCase()
+        .replace(/\./g, ''),
     ];
   }),
 );
@@ -43,7 +62,7 @@ export const umasForSearch = umaAltIds.map((id) => {
   return {
     id,
     name: uma.name[1],
-    outfit: uma.outfits[id],
+    outfit: uma.outfits[id as UmaOutfitKey],
   };
 });
 
@@ -66,7 +85,7 @@ export function rankForStat(x: number) {
     return Math.floor(x / 50);
   }
 }
-export function searchNames(query) {
+export function searchNames(query: string) {
   const q = query.toUpperCase().replace(/\./g, '');
   return umaAltIds.filter((oid) => umaNamesForSearch[oid].indexOf(q) > -1);
 }

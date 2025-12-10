@@ -28,11 +28,14 @@ export const SeasonIcon = (
 export function SeasonSelect() {
   const { racedef } = useSettingsStore();
 
-  const handleClick = (e) => {
+  const handleClick: React.MouseEventHandler<HTMLDivElement> = (e) => {
     e.stopPropagation();
 
-    if (!('season' in e.target.dataset)) return;
-    setRaceParams({ ...racedef, season: +e.target.dataset.season });
+    const target = e.target as HTMLDivElement;
+    const season = target.dataset.season;
+
+    if (!season) return;
+    setRaceParams({ ...racedef, season: +season });
   };
 
   return (

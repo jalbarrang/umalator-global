@@ -41,7 +41,7 @@ type AptitudeIconProps = {
 };
 
 export function AptitudeIcon(props: AptitudeIconProps) {
-  const idx = 7 - Aptitude[props.aptitude];
+  const idx = 7 - Aptitude[props.aptitude as keyof typeof Aptitude];
 
   return (
     <img

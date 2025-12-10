@@ -319,7 +319,7 @@ export function OcrImportDialog({
                                   onSelect={() => handleSelectUma(uma.id)}
                                 >
                                   <img
-                                    src={icons[uma.id]}
+                                    src={icons[uma.id as keyof typeof icons]}
                                     className="w-10 h-10 rounded mr-2"
                                   />
                                   <div>
@@ -360,7 +360,7 @@ export function OcrImportDialog({
                                   onSelect={() => handleSelectUma(uma.id)}
                                 >
                                   <img
-                                    src={icons[uma.id]}
+                                    src={icons[uma.id as keyof typeof icons]}
                                     className="w-10 h-10 rounded mr-2"
                                   />
                                   <div>
@@ -527,7 +527,7 @@ export function OcrImportDialog({
                         className="text-xs text-muted-foreground hover:text-foreground absolute right-2 top-2"
                         onClick={() => {
                           navigator.clipboard.writeText(
-                            results.unrecognized.join('\n'),
+                            results.unrecognized?.join('\n') ?? '',
                           );
                           toast.success('Copied to clipboard');
                         }}

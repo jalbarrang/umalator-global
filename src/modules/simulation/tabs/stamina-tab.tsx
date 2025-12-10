@@ -1,8 +1,7 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRunnersStore } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
 import { useRaceStore } from '@simulation/stores/compare.store';
-import { getCourseById } from '@/modules/racetrack/courses';
 
 import { StaminaCard } from './stamina/components';
 import { useStaminaAnalysis } from './stamina/hooks/useStaminaAnalysis';
@@ -16,14 +15,16 @@ import {
   useActualPhaseHp,
   useTheoreticalPhaseHp,
 } from './stamina/hooks/usePhaseHp';
+import { CourseHelpers } from '../lib/CourseData';
 
 export const StaminaTab = () => {
   const { uma1, uma2 } = useRunnersStore();
   const { courseId, racedef } = useSettingsStore();
   const { chartData } = useRaceStore();
-  const course = getCourseById(courseId);
 
-  const hasSimulationData = !!chartData;
+  const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
+
+  const hasSimulationData = useMemo(() => !!chartData, [chartData]);
 
   // Mode state for each card (default to actual if simulation data exists)
   const [uma1Theoretical, setUma1Theoretical] = useState(false);

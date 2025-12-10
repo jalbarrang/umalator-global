@@ -8,8 +8,8 @@ type IUmaBasinStore = {
 };
 
 export const useUniqueSkillBasinStore = create<IUmaBasinStore>()(
-  immer(() => ({
-  results: new Map(),
+  immer((_) => ({
+    results: new Map(),
     metrics: null,
   })),
 );

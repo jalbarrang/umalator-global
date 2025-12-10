@@ -1,3 +1,4 @@
+export const strategies: readonly number[] = [1, 2, 3, 4, 5];
 export const Strategy = {
   Nige: 1,
   Senkou: 2,
@@ -5,9 +6,9 @@ export const Strategy = {
   Oikomi: 4,
   Oonige: 5,
 } as const;
-
 export type IStrategy = (typeof Strategy)[keyof typeof Strategy];
 
+export const aptitudes: readonly number[] = [0, 1, 2, 3, 4, 5, 6, 7];
 export const Aptitude = {
   S: 0,
   A: 1,
@@ -18,7 +19,6 @@ export const Aptitude = {
   F: 6,
   G: 7,
 } as const;
-
 export type IAptitude = (typeof Aptitude)[keyof typeof Aptitude];
 
 export interface HorseParameters {
@@ -36,7 +36,7 @@ export interface HorseParameters {
 
 export class StrategyHelpers {
   static assertIsStrategy(strategy: number): asserts strategy is IStrategy {
-    if (!Object.prototype.hasOwnProperty.call(Strategy, strategy)) {
+    if (!strategies.includes(strategy)) {
       throw new Error(`Strategy ${strategy} is not a valid Strategy`);
     }
   }

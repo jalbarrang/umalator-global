@@ -303,9 +303,7 @@ export function findOptimalSpurt(
   }
 
   // Sort by completion time (fastest first)
-  candidates.sort((a, b) => a.time - b.time);
-
-  return candidates;
+  return candidates.toSorted((a, b) => a.time - b.time);
 }
 
 /**

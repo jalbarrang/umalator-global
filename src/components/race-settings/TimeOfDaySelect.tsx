@@ -26,14 +26,17 @@ const TimeOfDayIcon = ({
 export const TimeOfDaySelect = () => {
   const { racedef } = useSettingsStore();
 
-  const handleClick = (e) => {
+  const handleClick: React.MouseEventHandler<HTMLDivElement> = (e) => {
     e.stopPropagation();
 
-    if (!('timeofday' in e.target.dataset)) {
+    const target = e.target as HTMLDivElement;
+    const timeofday = target.dataset.timeofday;
+
+    if (!timeofday) {
       return;
     }
 
-    setRaceParams({ ...racedef, time: +e.target.dataset.timeofday });
+    setRaceParams({ ...racedef, time: +timeofday });
   };
 
   // + 2 because for some reason the icons are 00-02 (noon/evening/night) but the enum values are 1-4 (morning(?) noon evening night)

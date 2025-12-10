@@ -9,7 +9,8 @@ import {
   StraightRandomPolicy,
   UniformRandomPolicy,
 } from './ActivationSamplePolicy';
-import { CourseData, CourseHelpers, Phase } from './CourseData';
+import { CourseHelpers } from './CourseData';
+import { CourseData, IPhase } from './courses/types';
 import { HorseParameters, Strategy, StrategyHelpers } from './HorseTypes';
 import { RaceParameters } from './RaceParameters';
 import { DynamicCondition, RaceState } from './RaceSolver';
@@ -556,12 +557,13 @@ function orderFilter(getPos: (arg: number, n: number) => number) {
       _1: HorseParameters,
       extra: RaceParameters,
     ) {
-      if (extra.orderRange != null) {
+      if (extra.orderRange && extra.numUmas) {
         const pos = getPos(arg, extra.numUmas);
         return pos >= extra.orderRange[0] && pos <= extra.orderRange[1]
           ? regions
           : new RegionList();
       }
+
       return regions;
     },
     filterNeq(
@@ -571,12 +573,14 @@ function orderFilter(getPos: (arg: number, n: number) => number) {
       _1: HorseParameters,
       extra: RaceParameters,
     ) {
-      if (extra.orderRange != null) {
+      if (extra.orderRange && extra.numUmas) {
         const pos = getPos(arg, extra.numUmas);
+
         return pos < extra.orderRange[0] || pos > extra.orderRange[1]
           ? regions
           : new RegionList();
       }
+
       return regions;
     },
     filterLt(
@@ -586,7 +590,7 @@ function orderFilter(getPos: (arg: number, n: number) => number) {
       _: HorseParameters,
       extra: RaceParameters,
     ) {
-      if (extra.orderRange != null) {
+      if (extra.orderRange && extra.numUmas) {
         if (
           !(
             1 <= extra.orderRange[0] &&
@@ -602,7 +606,9 @@ function orderFilter(getPos: (arg: number, n: number) => number) {
           CourseHelpers.phaseStart(course.distance, 2) + 100,
           course.distance,
         );
+
         const pos = getPos(arg, extra.numUmas);
+
         return extra.orderRange[0] < pos
           ? regions
           : regions.rmap((r) => r.intersect(end));
@@ -616,7 +622,7 @@ function orderFilter(getPos: (arg: number, n: number) => number) {
       _: HorseParameters,
       extra: RaceParameters,
     ) {
-      if (extra.orderRange != null) {
+      if (extra.orderRange && extra.numUmas) {
         if (
           !(
             1 <= extra.orderRange[0] &&
@@ -635,6 +641,7 @@ function orderFilter(getPos: (arg: number, n: number) => number) {
           ? regions
           : regions.rmap((r) => r.intersect(end));
       }
+
       return regions;
     },
     filterGt(
@@ -644,7 +651,7 @@ function orderFilter(getPos: (arg: number, n: number) => number) {
       _1: HorseParameters,
       extra: RaceParameters,
     ) {
-      if (extra.orderRange != null) {
+      if (extra.orderRange && extra.numUmas) {
         if (
           !(
             extra.orderRange[0] <= extra.orderRange[1] &&
@@ -666,7 +673,7 @@ function orderFilter(getPos: (arg: number, n: number) => number) {
       _1: HorseParameters,
       extra: RaceParameters,
     ) {
-      if (extra.orderRange != null) {
+      if (extra.orderRange && extra.numUmas) {
         if (
           !(
             extra.orderRange[0] <= extra.orderRange[1] &&
@@ -693,22 +700,24 @@ function orderInFilter(rate: number) {
       _1: HorseParameters,
       extra: RaceParameters,
     ) {
+      console.log('activationConditions:orderInFilter', one, extra);
+
       if (one !== 1) {
         throw new Error('must be order_rate_inXX_continue==1');
       }
-      if (extra.orderRange != null) {
-        if (
-          !(
-            1 <= extra.orderRange[0] &&
-            extra.orderRange[0] <= extra.orderRange[1]
-          )
-        ) {
+
+      if (extra.orderRange && extra.numUmas) {
+        const [start, end] = extra.orderRange;
+
+        if (start < 1 || start > end) {
           throw new Error('Invalid order range');
         }
-        return extra.orderRange[0] <= Math.round(rate * extra.numUmas)
-          ? regions
-          : new RegionList();
+
+        const changeRate = Math.round(rate * extra.numUmas);
+
+        return start <= changeRate ? regions : new RegionList();
       }
+
       return regions;
     },
   });
@@ -727,7 +736,7 @@ function orderOutFilter(rate: number) {
         throw new Error('must be order_rate_outXX_continue==1');
       }
 
-      if (extra.orderRange != null) {
+      if (extra.orderRange && extra.numUmas) {
         if (
           !(
             extra.orderRange[0] <= extra.orderRange[1] &&
@@ -736,10 +745,12 @@ function orderOutFilter(rate: number) {
         ) {
           throw new Error('Invalid order range');
         }
+
         return Math.round(rate * extra.numUmas) <= extra.orderRange[1]
           ? regions
           : new RegionList();
       }
+
       return regions;
     },
   });
@@ -1012,7 +1023,8 @@ export const Conditions: { [cond: string]: Condition } = {
         }
         return regions.rmap((r) => nonCorners.map((s) => r.intersect(s)));
       } else if (course.corners.length + cornerNum >= 5) {
-        const corners = [];
+        const corners: Region[] = [];
+
         for (
           let cornerIdx = course.corners.length + cornerNum - 5;
           cornerIdx >= 0;
@@ -1021,7 +1033,9 @@ export const Conditions: { [cond: string]: Condition } = {
           const corner = course.corners[cornerIdx];
           corners.push(new Region(corner.start, corner.start + corner.length));
         }
+
         corners.reverse();
+
         return regions.rmap((r) => corners.map((c) => r.intersect(c)));
       } else {
         return new RegionList();
@@ -1501,6 +1515,28 @@ export const Conditions: { [cond: string]: Condition } = {
       return regions.rmap((r) => r.intersect(trigger));
     },
   }),
+  /**
+   * Picks a random point on the last straight.
+   */
+  last_straight_random: immediate({
+    filterEq(
+      regions: RegionList,
+      one: number,
+      course: CourseData,
+      _: HorseParameters,
+      _extra: RaceParameters,
+    ) {
+      if (one !== 1) {
+        throw new Error('must be last_straight_random==1');
+      }
+
+      if (!CourseHelpers.isSortedByStart(course.straights)) {
+        throw new Error('course straights must be sorted by start');
+      }
+
+      return regions.rmap((r) => course.straights.map((s) => r.intersect(s)));
+    },
+  }),
   is_move_lane: noopErlangRandom(5, 1.0),
   is_overtake: noopErlangRandom(1, 2.0),
   is_surrounded: noopErlangRandom(3, 2.0),
@@ -1564,6 +1600,7 @@ export const Conditions: { [cond: string]: Condition } = {
   ),
   order_rate_in20_continue: orderInFilter(0.2),
   order_rate_in40_continue: orderInFilter(0.4),
+  order_rate_in50_continue: orderInFilter(0.5),
   order_rate_in80_continue: orderInFilter(0.8),
   order_rate_out20_continue: orderOutFilter(0.2),
   order_rate_out40_continue: orderOutFilter(0.4),
@@ -1652,7 +1689,7 @@ export const Conditions: { [cond: string]: Condition } = {
         throw new Error('phase > 2');
       }
       const bounds = new Region(
-        CourseHelpers.phaseStart(course.distance, (phase + 1) as Phase),
+        CourseHelpers.phaseStart(course.distance, (phase + 1) as IPhase),
         course.distance,
       );
       return regions.rmap((r) => r.intersect(bounds));
@@ -1802,8 +1839,8 @@ export const Conditions: { [cond: string]: Condition } = {
       CourseHelpers.assertIsPhase(phase);
 
       const phaseBounds = new Region(
-        CourseHelpers.phaseStart(course.distance, phase as Phase),
-        CourseHelpers.phaseEnd(course.distance, phase as Phase),
+        CourseHelpers.phaseStart(course.distance, phase as IPhase),
+        CourseHelpers.phaseEnd(course.distance, phase as IPhase),
       );
 
       return regions

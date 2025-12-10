@@ -1,5 +1,5 @@
-import { SkillRarity } from '@simulation/lib/RaceSolver';
 import { skillFilterLookUp, type Skill } from '@/modules/skills/utils';
+import { SkillRarity } from '../simulation/lib/race-solver/types';
 
 // A predicate that takes a skill and returns whether it passes
 type SkillPredicate = (skill: Skill) => boolean;
@@ -153,7 +153,7 @@ export const SkillMatchers = {
 
       switch (rarityKey) {
         case 'white':
-          return rarity === SkillRarity.White && skill.id[0] !== '9';
+          return rarity === SkillRarity.White && !skill.id.startsWith('9');
         case 'gold':
           return rarity === SkillRarity.Gold;
         case 'pink':
@@ -161,7 +161,7 @@ export const SkillMatchers = {
         case 'unique':
           return rarity > SkillRarity.Gold && rarity < SkillRarity.Evolution;
         case 'inherit':
-          return skill.id[0] === '9';
+          return skill.id.startsWith('9');
         default:
           return true;
       }

@@ -40,11 +40,12 @@ import { RaceTrackTooltip } from './racetrack-tooltip';
 import { useRaceTrackTooltip } from '../hooks/useRaceTrackTooltip';
 import { SimulationRun } from '@simulation/compare.types';
 import { Separator } from '@/components/ui/separator';
+import { initialChartData } from '@/modules/simulation/stores/compare.store';
 
 type RaceTrackProps = {
   // Course data
   courseid: number;
-  chartData: SimulationRun;
+  chartData: SimulationRun | null;
 
   // Layout
   xOffset: number;
@@ -75,7 +76,7 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
 
   const { tooltipData, tooltipVisible, rtMouseMove, rtMouseLeave } =
     useRaceTrackTooltip({
-      chartData,
+      chartData: chartData ?? initialChartData,
       course,
     });
 
@@ -250,7 +251,7 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
             state.rungs[rungIndex % 10].push({ start, end });
             const y = 90 - 10 * rungIndex;
 
-            const handleOnDragStart = (e: React.MouseEvent<SVGSVGElement>) => {
+            const handleOnDragStart = (e: React.MouseEvent) => {
               if (!desc.skillId) return;
               if (!desc.umaIndex) return;
 
@@ -287,7 +288,7 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
               <rect
                 key={`rect-${i}`}
                 x={`${(r.start / course.distance) * 100}%`}
-                y={`${100 - desc.height}%`}
+                y={`${100 - (desc.height ?? 0)}%`}
                 width={`${((r.end - r.start) / course.distance) * 100}%`}
                 height={`${desc.height}%`}
                 fill={desc.color.fill}
@@ -402,6 +403,13 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
             posKeepLabels.map((label, index) => {
               if (label.umaIndex === 0 && !showUma1) return null;
               if (label.umaIndex === 1 && !showUma2) return null;
+
+              if (
+                label.x == null ||
+                label.width == null ||
+                label.yOffset == null
+              )
+                return null;
 
               return (
                 <g key={index} className="poskeep-label">

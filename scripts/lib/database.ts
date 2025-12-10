@@ -13,7 +13,8 @@ export function openDatabase(path: string): Database {
   try {
     const db = new Database(path, { readonly: true });
     return db;
-  } catch (error) {
+  } catch (err) {
+    const error = err as Error;
     throw new Error(`Failed to open database at ${path}: ${error.message}`);
   }
 }
@@ -25,7 +26,8 @@ export function openDatabase(path: string): Database {
 export function closeDatabase(db: Database): void {
   try {
     db.close(false);
-  } catch (error) {
+  } catch (err) {
+    const error = err as Error;
     console.error(`Error closing database: ${error.message}`);
   }
 }
@@ -39,7 +41,8 @@ export function closeDatabase(db: Database): void {
 export function queryAll<T>(db: Database, sql: string): T[] {
   try {
     return db.query(sql).all() as T[];
-  } catch (error) {
+  } catch (err) {
+    const error = err as Error;
     throw new Error(`Query failed: ${error.message}\nSQL: ${sql}`);
   }
 }
@@ -58,7 +61,8 @@ export function queryAllWithParams<
   try {
     const stmt = db.query(sql);
     return stmt.all(...params) as T[];
-  } catch (error) {
+  } catch (err) {
+    const error = err as Error;
     throw new Error(
       `Query with params failed: ${error.message}\nSQL: ${sql}\nParams: ${JSON.stringify(params)}`,
     );

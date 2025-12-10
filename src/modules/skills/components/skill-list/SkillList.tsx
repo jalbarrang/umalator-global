@@ -82,6 +82,7 @@ const FilterButton = (props: FilterButtonProps) => {
 };
 
 type FilterState = Record<string, Record<string, boolean>>;
+type FilterGroup = keyof typeof groups_filters;
 
 type FilterAction =
   | { type: 'TOGGLE_ICON_TYPE'; filter: string }
@@ -90,12 +91,15 @@ type FilterAction =
 
 function createInitialFilterState(): FilterState {
   const state: FilterState = {};
-  Object.keys(groups_filters).forEach((group) => {
+  const groupKeys = Object.keys(groups_filters) as FilterGroup[];
+
+  for (const group of groupKeys) {
     state[group] = {};
-    groups_filters[group].forEach((filter) => {
+
+    for (const filter of groups_filters[group]) {
       state[group][filter] = group === 'icontype';
-    });
-  });
+    }
+  }
 
   return state;
 }
@@ -157,8 +161,16 @@ function filterReducer(state: FilterState, action: FilterAction): FilterState {
   }
 }
 
-const getActiveFilters = (filterState: FilterState, group: string): string[] =>
-  groups_filters[group].filter((f) => filterState[group][f]);
+const getActiveFilters = (
+  filterState: FilterState,
+  group: string,
+): string[] => {
+  return groups_filters[group as FilterGroup].filter(
+    (f) => filterState[group][f],
+  );
+};
+
+type IconIdPrefix = keyof typeof iconIdPrefixes;
 
 export function SkillPickerModal() {
   const { open, umaId, options, currentSkills, onSelect } =
@@ -191,7 +203,9 @@ export function SkillPickerModal() {
       .whereText(deferredSearchText)
       .whereAny(activeRarities, (skill, r) => matchRarity(skill.id, r))
       .whereAny(activeIconTypes, (skill, iconKey) =>
-        iconIdPrefixes[iconKey]?.some((p) => skill.meta.iconId.startsWith(p)),
+        iconIdPrefixes[iconKey as IconIdPrefix]?.some((p) =>
+          skill.meta.iconId.startsWith(p),
+        ),
       )
       .whereConditionMatch(activeStrategies)
       .whereConditionMatch(activeDistances)
@@ -260,8 +274,9 @@ export function SkillPickerModal() {
     const newSelected = new Set(currentSkills);
 
     // Remove skill from same group if exists (for non-debuffs)
-    if (selectedMap.has(groupId)) {
-      newSelected.delete(selectedMap.get(groupId));
+    const selectedId = selectedMap.get(groupId);
+    if (selectedId) {
+      newSelected.delete(selectedId);
     } else if (skill.meta.iconId.startsWith('3')) {
       // For debuffs, find the next available suffix
       let count = 0;
@@ -275,7 +290,10 @@ export function SkillPickerModal() {
       id = count > 0 ? `${id}-${count}` : id;
     }
 
-    newSelected.add(id);
+    if (id) {
+      newSelected.add(id);
+    }
+
     onSelect(Array.from(newSelected));
   };
 

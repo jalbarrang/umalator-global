@@ -1,13 +1,15 @@
 import { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { getParser } from '@simulation/lib/ConditionParser';
-import { CourseData } from '@simulation/lib/CourseData';
+import { CourseData } from '@/modules/simulation/lib/courses/types';
 import { RaceParameters } from '@simulation/lib/RaceParameters';
-import { Perspective, PosKeepMode } from '@simulation/lib/RaceSolver';
+import { PosKeepMode } from '@simulation/lib/RaceSolver';
+import { SkillPerspective } from '@simulation/lib/race-solver/types';
 import {
   buildBaseStats,
   buildSkillData,
 } from '@simulation/lib/RaceSolverBuilder';
 import { Region, RegionList } from '@simulation/lib/Region';
+import { RoundResult } from '@/modules/simulation/types';
 
 export function getActivateableSkills(
   skills: string[],
@@ -21,31 +23,33 @@ export function getActivateableSkills(
   const wholeCourse = new RegionList();
   wholeCourse.push(new Region(0, course.distance));
 
-  return skills.filter((skillId) => {
-    let builtSkillData;
+  const activableSkills = [];
 
-    try {
-      builtSkillData = buildSkillData(
-        runnerB,
-        racedef,
-        course,
-        wholeCourse,
-        parser,
-        skillId,
-        Perspective.Any,
-      );
-    } catch {
-      return false;
-    }
-
-    return builtSkillData.some(
-      (trigger) =>
-        trigger.regions.length > 0 && trigger.regions[0].start < 9999,
+  for (const skillId of skills) {
+    const skillTriggers = buildSkillData(
+      runnerB,
+      racedef,
+      course,
+      wholeCourse,
+      parser,
+      skillId,
+      SkillPerspective.Any,
     );
-  });
+
+    if (
+      skillTriggers.some(
+        (trigger) =>
+          trigger.regions.length > 0 && trigger.regions[0].start < 9999,
+      )
+    ) {
+      activableSkills.push(skillId);
+    }
+  }
+
+  return activableSkills;
 }
 
-export function getNullRow(skillid: string) {
+export function getNullRow(skillid: string): RoundResult {
   return {
     id: skillid,
     min: 0,
@@ -53,7 +57,7 @@ export function getNullRow(skillid: string) {
     mean: 0,
     median: 0,
     results: [],
-    runData: null,
+    runData: undefined,
   };
 }
 

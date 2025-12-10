@@ -22,7 +22,7 @@ const isEvolutionSkill = (skillRarity: number) => {
   return skillRarity === 6;
 };
 
-export const SkillIcon = (props) => {
+export const SkillIcon = (props: { iconId: string }) => {
   return <img className="w-6 h-6" src={`/icons/${props.iconId}.png`} />;
 };
 
@@ -33,7 +33,7 @@ type SkillItemProps = {
   withDetails?: boolean;
   distanceFactor?: number;
   forcedPosition?: number;
-  onPositionChange?: (position: number) => void;
+  onPositionChange?: (position: string | undefined) => void;
   itemProps?: {
     className?: string;
   };

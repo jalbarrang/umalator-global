@@ -9,7 +9,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
-import { Activity } from 'react';
+import { Activity, useMemo } from 'react';
 import { Timer } from 'lucide-react';
 import {
   Empty,
@@ -24,7 +24,31 @@ export const RunnerStatsTab = () => {
     useRaceStore();
   const { allowRushedUma2 } = useWitVariance();
 
-  if (!chartData) {
+  const uma1Stats = useMemo(() => {
+    if (!chartData) return null;
+
+    return {
+      topSpeed: chartData.v[0].reduce((a, b) => Math.max(a, b), 0),
+      finishTime: chartData.t[0][chartData.t[0].length - 1] * 1.18,
+      rushedStats: rushedStats?.uma1,
+      leadCompetitionStats: leadCompetitionStats?.uma1,
+      staminaStats: staminaStats?.uma1,
+    };
+  }, [chartData, rushedStats, leadCompetitionStats, staminaStats]);
+
+  const uma2Stats = useMemo(() => {
+    if (!chartData) return null;
+
+    return {
+      topSpeed: chartData.v[1].reduce((a, b) => Math.max(a, b), 0),
+      finishTime: chartData.t[1][chartData.t[1].length - 1] * 1.18,
+      rushedStats: rushedStats?.uma2,
+      leadCompetitionStats: leadCompetitionStats?.uma2,
+      staminaStats: staminaStats?.uma2,
+    };
+  }, [chartData, rushedStats, leadCompetitionStats, staminaStats]);
+
+  if (!chartData || !uma1Stats || !uma2Stats) {
     return (
       <Empty className="py-12">
         <EmptyHeader>
@@ -41,12 +65,6 @@ export const RunnerStatsTab = () => {
     );
   }
 
-  const uma1TopSpeed = chartData.v[0].reduce((a, b) => Math.max(a, b), 0);
-  const uma2TopSpeed = chartData.v[1].reduce((a, b) => Math.max(a, b), 0);
-
-  const uma1FinishTime = chartData.t[0][chartData.t[0].length - 1] * 1.18;
-  const uma2FinishTime = chartData.t[1][chartData.t[1].length - 1] * 1.18;
-
   return (
     <div className="flex flex-col gap-6">
       {/* Side-by-side comparison */}
@@ -56,12 +74,13 @@ export const RunnerStatsTab = () => {
           <div className="bg-[#2a77c5] dark:bg-blue-500 text-white text-center py-2 font-bold">
             Umamusume 1
           </div>
+
           <Table>
             <TableBody>
               <TableRow>
                 <TableHead className="font-medium">Time to finish</TableHead>
                 <TableCell className="font-mono">
-                  {formatTime(uma1FinishTime)}
+                  {formatTime(uma1Stats.finishTime)}
                 </TableCell>
               </TableRow>
 
@@ -75,7 +94,7 @@ export const RunnerStatsTab = () => {
               <TableRow>
                 <TableHead className="font-medium">Top speed</TableHead>
                 <TableCell className="font-mono">
-                  {uma1TopSpeed.toFixed(2)} m/s
+                  {uma1Stats.topSpeed.toFixed(2)} m/s
                 </TableCell>
               </TableRow>
 
@@ -87,10 +106,11 @@ export const RunnerStatsTab = () => {
                     Rushed frequency
                   </TableHead>
                   <TableCell className="font-mono">
-                    {rushedStats.uma1.frequency > 0
-                      ? `${rushedStats.uma1.frequency.toFixed(
+                    {uma1Stats.rushedStats &&
+                    uma1Stats.rushedStats.frequency > 0
+                      ? `${uma1Stats.rushedStats.frequency.toFixed(
                           1,
-                        )}% (${rushedStats.uma1.mean.toFixed(1)}m)`
+                        )}% (${uma1Stats.rushedStats.mean.toFixed(1)}m)`
                       : '0%'}
                   </TableCell>
                 </TableRow>
@@ -102,8 +122,9 @@ export const RunnerStatsTab = () => {
                     Spot Struggle frequency
                   </TableHead>
                   <TableCell className="font-mono">
-                    {leadCompetitionStats.uma1.frequency > 0
-                      ? `${leadCompetitionStats.uma1.frequency.toFixed(1)}%`
+                    {uma1Stats.leadCompetitionStats &&
+                    uma1Stats.leadCompetitionStats.frequency > 0
+                      ? `${uma1Stats.leadCompetitionStats.frequency.toFixed(1)}%`
                       : '0%'}
                   </TableCell>
                 </TableRow>
@@ -113,13 +134,13 @@ export const RunnerStatsTab = () => {
                 <TableRow>
                   <TableHead className="font-medium">Spurt Rate</TableHead>
                   <TableCell className="font-mono">
-                    {staminaStats.uma1.fullSpurtRate.toFixed(1)}%
+                    {uma1Stats.staminaStats?.fullSpurtRate.toFixed(1)}%
                   </TableCell>
                 </TableRow>
                 <TableRow>
                   <TableHead className="font-medium">Survival Rate</TableHead>
                   <TableCell className="font-mono">
-                    {staminaStats.uma1.staminaSurvivalRate.toFixed(1)}%
+                    {uma1Stats.staminaStats?.staminaSurvivalRate.toFixed(1)}%
                   </TableCell>
                 </TableRow>
               </Activity>
@@ -138,7 +159,7 @@ export const RunnerStatsTab = () => {
               <TableRow>
                 <TableHead className="font-medium">Time to finish</TableHead>
                 <TableCell className="font-mono">
-                  {formatTime(uma2FinishTime)}
+                  {formatTime(uma2Stats.finishTime)}
                 </TableCell>
               </TableRow>
 
@@ -152,7 +173,7 @@ export const RunnerStatsTab = () => {
               <TableRow>
                 <TableHead className="font-medium">Top speed</TableHead>
                 <TableCell className="font-mono">
-                  {uma2TopSpeed.toFixed(2)} m/s
+                  {uma2Stats.topSpeed.toFixed(2)} m/s
                 </TableCell>
               </TableRow>
 
@@ -164,10 +185,11 @@ export const RunnerStatsTab = () => {
                     Rushed frequency
                   </TableHead>
                   <TableCell className="font-mono">
-                    {rushedStats.uma2.frequency > 0
-                      ? `${rushedStats.uma2.frequency.toFixed(
+                    {uma2Stats.rushedStats &&
+                    uma2Stats.rushedStats.frequency > 0
+                      ? `${uma2Stats.rushedStats.frequency.toFixed(
                           1,
-                        )}% (${rushedStats.uma2.mean.toFixed(1)}m)`
+                        )}% (${uma2Stats.rushedStats.mean.toFixed(1)}m)`
                       : '0%'}
                   </TableCell>
                 </TableRow>
@@ -179,8 +201,9 @@ export const RunnerStatsTab = () => {
                     Spot Struggle frequency
                   </TableHead>
                   <TableCell className="font-mono">
-                    {leadCompetitionStats.uma2.frequency > 0
-                      ? `${leadCompetitionStats.uma2.frequency.toFixed(1)}%`
+                    {uma2Stats.leadCompetitionStats &&
+                    uma2Stats.leadCompetitionStats.frequency > 0
+                      ? `${uma2Stats.leadCompetitionStats.frequency.toFixed(1)}%`
                       : '0%'}
                   </TableCell>
                 </TableRow>
@@ -190,13 +213,13 @@ export const RunnerStatsTab = () => {
                 <TableRow>
                   <TableHead className="font-medium">Spurt Rate</TableHead>
                   <TableCell className="font-mono">
-                    {staminaStats.uma2.fullSpurtRate.toFixed(1)}%
+                    {uma2Stats.staminaStats?.fullSpurtRate.toFixed(1)}%
                   </TableCell>
                 </TableRow>
                 <TableRow>
                   <TableHead className="font-medium">Survival Rate</TableHead>
                   <TableCell className="font-mono">
-                    {staminaStats.uma2.staminaSurvivalRate.toFixed(1)}%
+                    {uma2Stats.staminaStats?.staminaSurvivalRate.toFixed(1)}%
                   </TableCell>
                 </TableRow>
               </Activity>
@@ -216,28 +239,41 @@ export const RunnerStatsTab = () => {
             <span
               className={cn('text-lg font-bold', {
                 'text-[#2a77c5] dark:text-blue-500':
-                  uma1FinishTime < uma2FinishTime,
+                  uma1Stats.finishTime < uma2Stats.finishTime,
                 'text-[#c52a2a] dark:text-red-500':
-                  uma1FinishTime > uma2FinishTime,
+                  uma1Stats.finishTime > uma2Stats.finishTime,
               })}
             >
-              {Math.abs(uma1FinishTime - uma2FinishTime).toFixed(3)}s
+              {Math.abs(uma1Stats.finishTime - uma2Stats.finishTime).toFixed(3)}
+              s
             </span>
             <span className="text-xs text-foreground">
               <Activity
-                mode={uma1FinishTime < uma2FinishTime ? 'visible' : 'hidden'}
+                mode={
+                  uma1Stats.finishTime < uma2Stats.finishTime
+                    ? 'visible'
+                    : 'hidden'
+                }
               >
                 Uma 1 faster
               </Activity>
 
               <Activity
-                mode={uma1FinishTime > uma2FinishTime ? 'visible' : 'hidden'}
+                mode={
+                  uma1Stats.finishTime > uma2Stats.finishTime
+                    ? 'visible'
+                    : 'hidden'
+                }
               >
                 Uma 2 faster
               </Activity>
 
               <Activity
-                mode={uma1FinishTime === uma2FinishTime ? 'visible' : 'hidden'}
+                mode={
+                  uma1Stats.finishTime === uma2Stats.finishTime
+                    ? 'visible'
+                    : 'hidden'
+                }
               >
                 Uma 1 and Uma 2 finished at the same time
               </Activity>
@@ -248,14 +284,15 @@ export const RunnerStatsTab = () => {
             <span
               className={cn('text-lg font-bold', {
                 'text-[#2a77c5] dark:text-blue-500':
-                  uma1TopSpeed > uma2TopSpeed,
-                'text-[#c52a2a] dark:text-red-500': uma1TopSpeed < uma2TopSpeed,
+                  uma1Stats.topSpeed > uma2Stats.topSpeed,
+                'text-[#c52a2a] dark:text-red-500':
+                  uma1Stats.topSpeed < uma2Stats.topSpeed,
               })}
             >
-              {Math.abs(uma1TopSpeed - uma2TopSpeed).toFixed(2)} m/s
+              {Math.abs(uma1Stats.topSpeed - uma2Stats.topSpeed).toFixed(2)} m/s
             </span>
             <span className="text-xs text-foreground">
-              {uma1TopSpeed > uma2TopSpeed
+              {uma1Stats.topSpeed > uma2Stats.topSpeed
                 ? 'Uma 1 higher top speed'
                 : 'Uma 2 higher top speed'}
             </span>

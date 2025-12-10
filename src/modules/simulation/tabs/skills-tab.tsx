@@ -36,7 +36,7 @@ export const SkillsTab = () => {
     for (const [id, positions] of Object.entries(chartData.sk[0])) {
       const skillName = getSkillNameById(id);
 
-      positions.forEach(([start, end]) => {
+      positions.forEach(([start, end]: [number, number]) => {
         skillPositions.push({
           id,
           name: skillName[0],
@@ -47,7 +47,7 @@ export const SkillsTab = () => {
       });
     }
 
-    return skillPositions.sort((a, b) => a.start - b.start);
+    return skillPositions.toSorted((a, b) => a.start - b.start);
   }, [chartData]);
 
   const skillPositionsUma2: SkillPosition[] = useMemo(() => {
@@ -57,7 +57,7 @@ export const SkillsTab = () => {
     for (const [id, positions] of Object.entries(chartData.sk[1])) {
       const skillName = getSkillNameById(id);
 
-      positions.forEach(([start, end]) => {
+      positions.forEach(([start, end]: [number, number]) => {
         skillPositions.push({
           id,
           name: skillName[0],
@@ -68,7 +68,7 @@ export const SkillsTab = () => {
       });
     }
 
-    return skillPositions.sort((a, b) => a.start - b.start);
+    return skillPositions.toSorted((a, b) => a.start - b.start);
   }, [chartData]);
 
   if (!chartData) {

@@ -120,6 +120,14 @@ export function racedefToParams(
   { mood, ground, weather, season, time, grade }: RaceConditions,
   includeOrder?: string,
 ): RaceParameters {
+  let orderForStrategy: [number, number] | undefined = undefined;
+
+  if (includeOrder) {
+    orderForStrategy = ORDER_RANGE_FOR_STRATEGY[
+      includeOrder as keyof typeof ORDER_RANGE_FOR_STRATEGY
+    ] as [number, number];
+  }
+
   return {
     mood,
     groundCondition: ground,
@@ -129,8 +137,7 @@ export function racedefToParams(
     grade,
     popularity: 1,
     skillId: '',
-    orderRange:
-      includeOrder != null ? ORDER_RANGE_FOR_STRATEGY[includeOrder] : null,
+    orderRange: orderForStrategy,
     numUmas: 9,
   };
 }

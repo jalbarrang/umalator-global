@@ -39,31 +39,32 @@ export class RegionList extends Array<Region> {
   }
 
   union(other: RegionList) {
-    const u: Region[] = [];
-    const r = new RegionList();
-    u.push(...this);
-    u.push(...other);
+    const regionList = new RegionList();
+    const unitedRegions: Region[] = [...this, ...other].toSorted(
+      (a, b) => a.start - b.start,
+    );
 
-    if (u.length == 0) {
-      return r;
+    if (unitedRegions.length == 0) {
+      return regionList;
     }
 
-    u.sort((a, b) => a.start - b.start);
+    const regionReduced = unitedRegions.reduce((a, b) => {
+      if (a.fullyContains(b)) return a;
 
-    r.push(
-      u.reduce((a, b) => {
-        if (a.fullyContains(b)) {
-          return a;
-        } else if (a.start <= b.start && b.start < a.end) {
-          return new Region(a.start, b.end);
-        } else if (a.start < b.end && b.end <= a.end) {
-          return new Region(b.start, a.end);
-        } else {
-          r.push(a);
-          return b;
-        }
-      }),
-    );
-    return r;
+      if (a.start <= b.start && b.start < a.end) {
+        return new Region(a.start, b.end);
+      }
+
+      if (a.start < b.end && b.end <= a.end) {
+        return new Region(b.start, a.end);
+      }
+
+      regionList.push(a);
+      return b;
+    });
+
+    regionList.push(regionReduced);
+
+    return regionList;
   }
 }

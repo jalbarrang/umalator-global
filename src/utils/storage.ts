@@ -68,7 +68,7 @@ export async function serialize(
   }
 }
 
-export async function deserialize(hash) {
+export async function deserialize(hash: string) {
   const zipped = atob(decodeURIComponent(hash));
   const buf = new Uint8Array(zipped.split('').map((c) => c.charCodeAt(0)));
   const stringStream = new ReadableStream({
@@ -217,7 +217,10 @@ export async function saveToLocalStorage(
       showLanes,
       witVarianceSettings,
     );
-    localStorage.setItem('umalator-settings', hash);
+
+    if (hash) {
+      localStorage.setItem('umalator-settings', hash);
+    }
   } catch (error) {
     console.warn('Failed to save settings to localStorage:', error);
   }

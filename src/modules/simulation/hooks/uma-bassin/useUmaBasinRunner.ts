@@ -65,7 +65,8 @@ export function useUmaBassinRunner() {
             // Each skill goes through at least stage 1 (5 samples)
             // Filtered skills stop early, remaining go through all stages
             const totalSamples =
-              totalSkillsRef.current * SAMPLES_PER_STAGE.reduce((a, b) => a + b, 0);
+              totalSkillsRef.current *
+              SAMPLES_PER_STAGE.reduce((a, b) => a + b, 0);
 
             setMetrics({
               timeTaken: Math.round(timeTaken),

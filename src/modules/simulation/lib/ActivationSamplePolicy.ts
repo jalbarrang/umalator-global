@@ -92,19 +92,23 @@ export abstract class DistributionRandomPolicy {
       return [];
     }
     const range = regions.reduce((acc, r) => acc + r.end - r.start, 0);
-    const rs = regions.slice().sort((a, b) => a.start - b.start);
+    const regionsSorted = regions.toSorted((a, b) => a.start - b.start);
     const randoms = this.distribution(range, nsamples, rng);
     const samples = [];
+
     for (let i = 0; i < nsamples; ++i) {
       let pos = randoms[i];
+
       for (let j = 0; ; j++) {
-        pos += rs[j].start;
-        if (pos > rs[j].end) {
-          pos -= rs[j].end;
-        } else {
-          samples.push(new Region(pos, rs[j].end));
-          break;
+        pos += regionsSorted[j].start;
+
+        if (pos > regionsSorted[j].end) {
+          pos -= regionsSorted[j].end;
+          continue;
         }
+
+        samples.push(new Region(pos, regionsSorted[j].end));
+        break;
       }
     }
     return samples;
@@ -113,9 +117,11 @@ export abstract class DistributionRandomPolicy {
   reconcile(other: ActivationSamplePolicy) {
     return other.reconcileDistributionRandom(this);
   }
+
   reconcileImmediate(_: ActivationSamplePolicy) {
     return this;
   }
+
   reconcileDistributionRandom(_: ActivationSamplePolicy) {
     // this is, strictly speaking, probably not the right thing to do
     // probably this should be the joint probability distribution of `this` and `other`, but that is too complex to implement
@@ -260,25 +266,37 @@ export const StraightRandomPolicy = {
 export const AllCornerRandomPolicy = {
   placeTriggers(regions: RegionList, rng: PRNG) {
     const triggers = [];
-    const candidates = regions.slice();
-    candidates.sort((a, b) => a.start - b.start);
-    while (triggers.length < 4 && candidates.length > 0) {
-      const ci = rng.uniform(candidates.length);
-      const c = candidates[ci];
-      const start = c.start + rng.uniform(c.end - c.start - 10);
+
+    const regionCandidates = regions.toSorted((a, b) => a.start - b.start);
+
+    while (triggers.length < 4 && regionCandidates.length > 0) {
+      const candidateIndex = rng.uniform(regionCandidates.length);
+
+      const regionCandidate = regionCandidates[candidateIndex];
+      const start =
+        regionCandidate.start +
+        rng.uniform(regionCandidate.end - regionCandidate.start - 10);
+
       // note that as each corner's end cannot come after the start of the next corner, this maintains that the candidates
       // are sorted by start
-      if (start + 20 <= c.end) {
-        candidates.splice(ci, 1, new Region(start + 10, c.end));
+      if (start + 20 <= regionCandidate.end) {
+        regionCandidates.splice(
+          candidateIndex,
+          1,
+          new Region(start + 10, regionCandidate.end),
+        );
       } else {
-        candidates.splice(ci, 1);
+        regionCandidates.splice(candidateIndex, 1);
       }
-      candidates.splice(0, ci); // everything before this corner in the array is guaranteed to be before it in distance
+
+      regionCandidates.splice(0, candidateIndex); // everything before this corner in the array is guaranteed to be before it in distance
       triggers.push(start);
     }
+
     // TODO support multiple triggers for skills with cooldown
     return new Region(triggers[0], triggers[0] + 10); // guaranteed to be the earliest trigger since each trigger is placed after the last one
   },
+
   sample(regions: RegionList, nsamples: number, rng: PRNG) {
     const samples = [];
     for (let i = 0; i < nsamples; ++i) {

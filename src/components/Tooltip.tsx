@@ -1,11 +1,18 @@
 import './Tooltip.css';
 
-export function Tooltip(props) {
+type TooltipProps = React.HTMLAttributes<HTMLDivElement> & {
+  tall?: string;
+  title: string;
+};
+
+export function Tooltip(props: TooltipProps) {
+  const { tall, children, title } = props;
+
   return (
-    <div className={`hasTooltip${props.tall ? ' contentIsTall' : ''}`}>
-      {props.children}
+    <div className={`hasTooltip${tall ? ' contentIsTall' : ''}`}>
+      {children}
       <div className="tooltip">
-        {props.title}
+        {title}
         <span className="arrow" />
       </div>
     </div>

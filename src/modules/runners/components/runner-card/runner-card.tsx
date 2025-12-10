@@ -6,25 +6,26 @@ import { RunnerState } from './types';
 
 import {
   getSelectableSkillsForUma,
-  getSkillDataById,
   getUniqueSkillForByUmaId,
+  skillsById,
 } from '@/modules/skills/utils';
 
-import { StrategySelect } from '@/modules/runners/components/StrategySelect';
-import { MoodSelect } from '@/modules/runners/components/MoodSelect';
 import { AptitudeSelect } from '@/modules/runners/components/AptitudeSelect';
+import { MoodSelect } from '@/modules/runners/components/MoodSelect';
 import { StatInput } from '@/modules/runners/components/StatInput';
-import { UmaSelector } from '@/modules/runners/components/runner-selector';
+import { StrategySelect } from '@/modules/runners/components/StrategySelect';
 import { OcrImportDialog } from '@/modules/runners/components/ocr-import-dialog';
+import { UmaSelector } from '@/modules/runners/components/runner-selector';
 import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
 
-import './styles.css';
-import { Label } from '@/components/ui/label';
-import { openSkillPicker, updateCurrentSkills } from '@/modules/skills/store';
-import { Mood } from '@simulation/lib/RaceParameters';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import { useIsMobile } from '@/hooks/useBreakpoint';
+import { openSkillPicker, updateCurrentSkills } from '@/modules/skills/store';
+import { ISkill } from '@/modules/skills/types';
+import { Mood } from '@simulation/lib/RaceParameters';
 import { ArrowLeftRight, Copy, TrashIcon, Upload } from 'lucide-react';
+import './styles.css';
 
 const runawaySkillId = '202051' as const;
 
@@ -95,9 +96,10 @@ export const RunnerCard = (props: RunnerCardProps) => {
   };
 
   function handleChangeRunner(outfitId: string) {
-    const newSkills = state.skills.filter(
-      (skillId) => getSkillDataById(skillId).rarity < 3,
-    );
+    const newSkills: string[] = state.skills
+      .map((skillId) => skillsById.get(skillId))
+      .filter((skill): skill is ISkill => skill !== null && skill.rarity < 3)
+      .map((skill) => skill.id.toString());
 
     if (outfitId) {
       newSkills.push(getUniqueSkillForByUmaId(outfitId));
@@ -106,31 +108,36 @@ export const RunnerCard = (props: RunnerCardProps) => {
     onChange({ ...state, outfitId: outfitId, skills: newSkills });
   }
 
-  const handlePositionChange = (skillId: string, value: string) => {
-    const numValue = parseFloat(value);
-    if (value === '' || isNaN(numValue)) {
+  const handlePositionChange = (skillId: string, value: string | undefined) => {
+    const numValue = value ? parseFloat(value) : undefined;
+
+    console.log('numValue', numValue);
+
+    if (numValue === undefined || isNaN(numValue)) {
       // Clear the forced position
-      const newForcedSkillPositions = {
-        ...state.forcedSkillPositions,
-        [skillId]: undefined,
-      };
+      const newForcedMap = new Map(Object.entries(state.forcedSkillPositions));
+      newForcedMap.delete(skillId);
 
       onChange({
         ...state,
-        forcedSkillPositions: newForcedSkillPositions,
+        forcedSkillPositions: Object.fromEntries(newForcedMap),
       });
-    } else {
-      // Set the forced position
-      const newForcedSkillPositions = {
-        ...state.forcedSkillPositions,
-        [skillId]: numValue,
-      };
 
-      onChange({
-        ...state,
-        forcedSkillPositions: newForcedSkillPositions,
-      });
+      console.log('newForcedMap', newForcedMap);
+
+      return;
     }
+
+    // Set the forced position
+    const newForcedSkillPositions = {
+      ...state.forcedSkillPositions,
+      [skillId]: numValue,
+    };
+
+    onChange({
+      ...state,
+      forcedSkillPositions: newForcedSkillPositions,
+    });
   };
 
   const handleUpdateStat =
@@ -194,9 +201,11 @@ export const RunnerCard = (props: RunnerCardProps) => {
     const eventType = eventElement.dataset.event;
     if (!eventType) return;
 
+    const skillId = eventElement.dataset.skillid;
+
     switch (eventType) {
       case 'remove-skill':
-        handleRemoveSkill(eventElement.dataset.skillid);
+        handleRemoveSkill(skillId!);
         break;
       default:
         break;
@@ -360,10 +369,8 @@ export const RunnerCard = (props: RunnerCardProps) => {
               dismissable={id !== umaUniqueSkillId}
               withDetails
               distanceFactor={props.courseDistance}
-              forcedPosition={state.forcedSkillPositions[id] ?? 0}
-              onPositionChange={(value: number) => {
-                handlePositionChange(id, value.toString());
-              }}
+              forcedPosition={state.forcedSkillPositions[id]}
+              onPositionChange={(value) => handlePositionChange(id, value)}
             />
           );
         })}

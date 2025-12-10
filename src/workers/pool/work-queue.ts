@@ -64,9 +64,10 @@ export class WorkQueue {
       const existing = this.stageResults.get(key);
       if (existing) {
         // Merge with existing results
-        const combinedResults = existing.results
-          .concat(value.results)
-          .sort((a, b) => a - b);
+        const combinedResults = [
+          ...existing.results,
+          ...value.results,
+        ].toSorted((a, b) => a - b);
 
         const mid = Math.floor(combinedResults.length / 2);
         const newMedian =

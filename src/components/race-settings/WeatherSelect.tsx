@@ -28,11 +28,16 @@ export const WeatherIcon = (
 export function WeatherSelect() {
   const { racedef } = useSettingsStore();
 
-  const handleClick = (e) => {
+  const handleClick: React.MouseEventHandler<HTMLDivElement> = (e) => {
     e.stopPropagation();
 
-    if (!('weather' in e.target.dataset)) return;
-    setRaceParams({ ...racedef, weather: +e.target.dataset.weather });
+    const target = e.target as HTMLDivElement;
+    const weather = target.dataset.weather;
+
+    if (!weather) {
+      return;
+    }
+    setRaceParams({ ...racedef, weather: +weather });
   };
 
   return (

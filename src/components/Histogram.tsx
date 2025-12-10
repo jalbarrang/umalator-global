@@ -1,3 +1,4 @@
+// @ts-expect-error d3 types are not typed
 import * as d3 from 'd3'; // Keep for binning logic
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import {
@@ -29,14 +30,14 @@ export const Histogram = ({ data }: HistogramProps) => {
   // Use D3 for binning (recharts doesn't have built-in histogram binning)
   const bucketize = d3
     .bin<number, number>()
-    .value((d) => d)
+    .value((d: number) => d)
     .domain(domain)
     .thresholds(30);
 
   const buckets = bucketize(data);
 
   // Transform buckets into recharts-compatible format
-  const chartData = buckets.map((bucket) => ({
+  const chartData = buckets.map((bucket: d3.Bin<number, number>) => ({
     range: bucket.x0?.toFixed(1) ?? '',
     count: bucket.length,
     x0: bucket.x0,

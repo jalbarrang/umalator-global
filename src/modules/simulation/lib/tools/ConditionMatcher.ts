@@ -6,6 +6,7 @@ import {
   OrOperator,
 } from '@simulation/lib/ActivationConditions';
 import { Node, NodeType } from '@simulation/lib/ConditionParser';
+import { ActivationSamplePolicy } from '../ActivationSamplePolicy';
 
 function isCmpOperator(tree: Operator): tree is CmpOperator {
   return 'condition' in tree;
@@ -29,17 +30,21 @@ function flatten(node: AndOperator, conds: CmpOperator[]) {
   // due to the grammar the right branch of an & must be a comparison
   // (there are no parenthesis to override precedence and & is left-associative)
   assertIsCmpOperator(node.right);
+
   conds.push(node.right);
   if (node.left instanceof AndOperator) {
     return flatten(node.left, conds);
   }
+
   // if it's not an & it must be a comparison, since @ has a lower precedence
   assertIsCmpOperator(node.left);
+
   conds.push(node.left);
+
   return conds;
 }
 
-function condMatcher(cond: Condition | CmpOperator, node: Operator) {
+function condMatcher(cond: Condition | CmpOperator, node: Operator): boolean {
   if (isCmpOperator(node)) {
     if ('argument' in cond) {
       return (
@@ -51,23 +56,29 @@ function condMatcher(cond: Condition | CmpOperator, node: Operator) {
       return node.condition === cond;
     }
   }
+
   assertIsLogicalOp(node);
+
   return condMatcher(cond, node.left) || condMatcher(cond, node.right);
 }
 
-function andMatcher(conds: CmpOperator[], node: Operator) {
+function andMatcher(conds: CmpOperator[], node: Operator): boolean {
   if (node instanceof OrOperator) {
     const conds2 = conds.slice(); // gets destructively modified
+
     return andMatcher(conds, node.left) || andMatcher(conds2, node.right);
   } else if (node instanceof AndOperator) {
     assertIsCmpOperator(node.right);
     const idx = conds.findIndex((c) => condMatcher(c, node.right));
+
     if (idx != -1) {
       conds.splice(idx, 1);
     }
+
     return conds.length == 0 || andMatcher(conds, node.left);
   } else {
     assertIsCmpOperator(node);
+
     return conds.length == 1 && condMatcher(conds[0], node);
   }
 }
@@ -79,28 +90,27 @@ export function treeMatch(match: Node, tree: Operator) {
         return andMatcher(flatten(match.op, []), tree);
       } else if (isCmpOperator(match.op)) {
         return condMatcher(match.op, tree);
-      } else {
-        throw new Error("doesn't support @ in search conditions");
       }
+
+      throw new Error("doesn't support @ in search conditions");
     case NodeType.Cond:
       return condMatcher(match.cond, tree);
-      break;
     case NodeType.Int:
       throw new Error("doesn't support sole integer as search condition");
   }
 }
 
-const mockSamplePolicy = {
+const mockSamplePolicy: ActivationSamplePolicy = {
   sample(_0, _1) {
     throw new Error('Not implemented');
   },
   reconcile(_) {
     return this;
   },
-  reconcileAsap(_) {
+  reconcileImmediate(_) {
     return this;
   },
-  reconcileLogNormalRandom(_) {
+  reconcileDistributionRandom(_) {
     return this;
   },
   reconcileRandom(_) {
@@ -118,10 +128,15 @@ export const mockConditions = new Proxy(
   {},
   {
     get(cache: object, prop: string) {
-      if (Object.prototype.hasOwnProperty.call(cache, prop)) {
-        return cache[prop]; // cache to allow identity comparison
+      if (prop in cache) {
+        return cache[prop as keyof typeof cache];
       }
-      return (cache[prop] = { name: prop, samplePolicy: mockSamplePolicy });
+
+      const condition = { name: prop, samplePolicy: mockSamplePolicy };
+      // @ts-expect-error - cache is an object
+      cache[prop] = condition;
+
+      return condition;
     },
   },
 );

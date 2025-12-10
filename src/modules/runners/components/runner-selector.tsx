@@ -56,7 +56,13 @@ export const UmaSelector = (props: UmaSelectorProps) => {
       <PopoverTrigger asChild>
         <div className="flex flex-1 gap-2 cursor-pointer">
           <div className="w-18 h-18">
-            <img src={props.value ? icons[props.value] : randomMob} />
+            <img
+              src={
+                props.value
+                  ? icons[props.value as keyof typeof icons]
+                  : randomMob
+              }
+            />
           </div>
 
           {selectedUma && (
@@ -87,7 +93,10 @@ export const UmaSelector = (props: UmaSelectorProps) => {
                   value={`${uma.outfit} ${uma.name}`}
                   onSelect={() => handleSelectedItem(uma.id)}
                 >
-                  <img src={icons[uma.id]} className="w-16 h-16" />
+                  <img
+                    src={icons[uma.id as keyof typeof icons]}
+                    className="w-16 h-16"
+                  />
                   <div>
                     <div className="text-xs font-bold">{uma.outfit}</div>
                     <div className="text-sm">{uma.name}</div>

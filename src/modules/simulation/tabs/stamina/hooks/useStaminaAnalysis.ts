@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import { getCourseById } from '@/modules/racetrack/courses';
 import {
   parseStrategy,
   parseAptitude,
@@ -10,6 +9,7 @@ import {
   HpStrategyCoefficient,
 } from '@/modules/simulation/lib/HpPolicy';
 import { Speed } from '@/modules/simulation/lib/RaceSolver';
+import { CourseHelpers } from '@/modules/simulation/lib/CourseData';
 
 export interface PhaseBreakdown {
   phase: string;
@@ -37,7 +37,8 @@ export function calculateStaminaAnalysis(
   courseId: number,
   groundCondition: number,
 ): StaminaAnalysis {
-  const course = getCourseById(courseId);
+  const course = CourseHelpers.getCourse(courseId);
+
   const strategy = parseStrategy(runner.strategy);
   const distanceAptitude = parseAptitude(runner.distanceAptitude, 'distance');
 

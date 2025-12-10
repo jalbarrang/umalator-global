@@ -1,86 +1,23 @@
-export const phases = [0, 1, 2, 3] as const;
-export type Phase = (typeof phases)[number];
-
-export const Surface = {
-  Turf: 1,
-  Dirt: 2,
-} as const;
-
-export type ISurface = (typeof Surface)[keyof typeof Surface];
-
-export const DistanceType = {
-  Short: 1,
-  Mile: 2,
-  Mid: 3,
-  Long: 4,
-} as const;
-
-export type IDistanceType = (typeof DistanceType)[keyof typeof DistanceType];
-
-export const Orientation = {
-  Clockwise: 1,
-  Counterclockwise: 2,
-  UnusedOrientation: 3,
-  NoTurns: 4,
-} as const;
-
-export type IOrientation = (typeof Orientation)[keyof typeof Orientation];
-
-export const ThresholdStat = {
-  Speed: 1,
-  Stamina: 2,
-  Power: 3,
-  Guts: 4,
-  Int: 5,
-} as const;
-
-export type IThresholdStat = (typeof ThresholdStat)[keyof typeof ThresholdStat];
-
-export type CourseData = {
-  readonly raceTrackId: number;
-  readonly distance: number;
-  readonly distanceType: IDistanceType;
-  readonly surface: ISurface;
-  readonly turn: IOrientation;
-
-  readonly courseSetStatus: readonly IThresholdStat[];
-  readonly corners: readonly {
-    readonly start: number;
-    readonly length: number;
-  }[];
-
-  readonly straights: readonly {
-    readonly start: number;
-    readonly end: number;
-    readonly frontType: number;
-  }[];
-
-  readonly slopes: readonly {
-    readonly start: number;
-    readonly length: number;
-    readonly slope: number;
-  }[];
-
-  readonly laneMax: number;
-  readonly courseWidth: number;
-  readonly horseLane: number;
-  readonly laneChangeAcceleration: number;
-  readonly laneChangeAccelerationPerFrame: number;
-  readonly maxLaneDistance: number;
-  readonly moveLanePoint: number;
-};
-
-import courses from '@data/course_data.json';
+import { getCourseById } from '@/modules/racetrack/courses';
+import { distances, orientations, phases, surfaces } from './courses/constants';
+import {
+  CourseData,
+  ICourse,
+  IDistanceType,
+  IOrientation,
+  IPhase,
+  ISurface,
+} from './courses/types';
 
 export class CourseHelpers {
-  static assertIsPhase(phase: number): asserts phase is Phase {
-    if (!(phase == 0 || phase == 1 || phase == 2 || phase == 3)) {
+  static assertIsPhase(phase: number): asserts phase is IPhase {
+    if (!phases.includes(phase)) {
       throw new Error(`Phase ${phase} is not a valid Phase`);
     }
   }
 
   static assertIsSurface(surface: number): asserts surface is ISurface {
-    if (!Object.prototype.hasOwnProperty.call(Surface, surface)) {
+    if (!surfaces.includes(surface)) {
       throw new Error(`Surface ${surface} is not a valid Surface`);
     }
   }
@@ -88,7 +25,7 @@ export class CourseHelpers {
   static assertIsDistanceType(
     distanceType: number,
   ): asserts distanceType is IDistanceType {
-    if (!Object.prototype.hasOwnProperty.call(DistanceType, distanceType)) {
+    if (!distances.includes(distanceType)) {
       throw new Error(
         `DistanceType ${distanceType} is not a valid DistanceType`,
       );
@@ -98,7 +35,7 @@ export class CourseHelpers {
   static assertIsOrientation(
     orientation: number,
   ): asserts orientation is IOrientation {
-    if (!Object.prototype.hasOwnProperty.call(Orientation, orientation)) {
+    if (!orientations.includes(orientation)) {
       throw new Error(`Orientation ${orientation} is not a valid Orientation`);
     }
   }
@@ -119,7 +56,7 @@ export class CourseHelpers {
     return arr.reduce(isSorted, init)[0];
   }
 
-  static phaseStart(distance: number, phase: Phase) {
+  static phaseStart(distance: number, phase: IPhase) {
     switch (phase) {
       case 0:
         return 0;
@@ -132,7 +69,7 @@ export class CourseHelpers {
     }
   }
 
-  static phaseEnd(distance: number, phase: Phase) {
+  static phaseEnd(distance: number, phase: IPhase) {
     switch (phase) {
       case 0:
         return (distance * 1) / 6;
@@ -174,9 +111,12 @@ export class CourseHelpers {
   }
 
   static getCourse(courseId: number): CourseData {
-    const course = courses[courseId];
-    if (!this.isSortedByStart(course.slopes))
-      course.slopes.sort((a, b) => a.start - b.start);
+    const course = getCourseById(courseId) as ICourse;
+
+    let slopes = course.slopes;
+    if (!this.isSortedByStart(slopes)) {
+      slopes = slopes.toSorted((a, b) => a.start - b.start);
+    }
 
     const courseWidth = 11.25;
     const horseLane = courseWidth / 18.0;

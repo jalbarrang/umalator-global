@@ -55,10 +55,8 @@ export const ComparePage = () => {
           courseDistance={course.distance}
           xOffset={20}
           horseLane={course.horseLane}
-          showVirtualPacemaker={
-            showVirtualPacemakerOnGraph && posKeepMode === PosKeepMode.Virtual
-          }
-          selectedPacemakers={selectedPacemakers}
+          showVirtualPacemaker={false}
+          selectedPacemakers={[]}
         />
       </RaceTrack>
 

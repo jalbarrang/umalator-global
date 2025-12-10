@@ -1,6 +1,6 @@
 import i18n from '@/i18n';
 import { getCourseById, getDistanceCategory, inoutKey } from './courses';
-import { Surface } from '../simulation/lib/CourseData';
+import { Surface } from '../simulation/lib/courses/constants';
 
 export const trackDescription = (props: { courseid: number }) => {
   const course = getCourseById(props.courseid);

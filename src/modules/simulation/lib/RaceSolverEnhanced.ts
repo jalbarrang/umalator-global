@@ -7,7 +7,7 @@
 
 import { RaceSolver, PendingSkill } from './RaceSolver';
 import { HorseParameters } from './HorseTypes';
-import { CourseData } from './CourseData';
+import { CourseData } from './courses/types';
 import { GroundCondition } from './RaceParameters';
 import { PRNG } from './Random';
 import { EnhancedHpPolicy } from './EnhancedHpPolicy';
