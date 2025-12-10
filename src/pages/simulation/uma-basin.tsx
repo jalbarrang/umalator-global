@@ -12,6 +12,7 @@ import { useUIStore } from '@/store/ui.store';
 import { useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { useUmaBasinPoolRunner } from '@/modules/simulation/hooks/pool/useUmaBasinPoolRunner';
+import { useUmaBasinRunner } from '@/modules/simulation/hooks/uma-bassin/useUmaBasinRunner';
 
 export const UmaBassinPage = () => {
   const { chartData } = useRaceStore();

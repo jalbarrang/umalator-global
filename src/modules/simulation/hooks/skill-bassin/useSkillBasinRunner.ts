@@ -29,7 +29,7 @@ const WORKER_COUNT = 2;
 // Total samples per skill: 5 + 20 + 50 + 200 = 275 (for skills that pass all filters)
 const SAMPLES_PER_STAGE = [5, 20, 50, 200];
 
-export function useSkillBassinRunner() {
+export function useSkillBasinRunner() {
   const { pacer } = useRunnersStore();
   const { runner } = useRunner();
   const { racedef, seed, courseId } = useSettingsStore();
@@ -43,6 +43,11 @@ export function useSkillBassinRunner() {
   const handleWorkerMessage = useCallback(
     (event: MessageEvent<WorkerMessage<SkillBasinResponse>>) => {
       const { type, results } = event.data;
+
+      console.log('skill-bassin:handleWorkerMessage', {
+        type,
+        results,
+      });
 
       switch (type) {
         case 'skill-bassin':
@@ -58,7 +63,8 @@ export function useSkillBassinRunner() {
             // Each skill goes through at least stage 1 (5 samples)
             // Filtered skills stop early, remaining go through all stages
             const totalSamples =
-              totalSkillsRef.current * SAMPLES_PER_STAGE.reduce((a, b) => a + b, 0);
+              totalSkillsRef.current *
+              SAMPLES_PER_STAGE.reduce((a, b) => a + b, 0);
 
             setMetrics({
               timeTaken: Math.round(timeTaken),

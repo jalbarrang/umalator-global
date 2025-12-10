@@ -6,6 +6,9 @@ import { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { runComparison } from '@/utils/compare';
 import { CompareParams } from '@/modules/simulation/types';
 
+// Throttle interval for progress updates (100ms = 10 FPS max)
+const UPDATE_INTERVAL_MS = 100;
+
 const runRunnersComparison = (params: CompareParams) => {
   const { nsamples, course, racedef, uma1, uma2, pacer, options } = params;
 
@@ -32,6 +35,9 @@ const runRunnersComparison = (params: CompareParams) => {
 
   const compareOptions = { ...options, mode: 'compare' };
 
+  // Track last update time to throttle progress messages
+  let lastUpdateTime = 0;
+
   for (
     let n = Math.min(20, nsamples), mul = 6;
     n < nsamples;
@@ -47,7 +53,12 @@ const runRunnersComparison = (params: CompareParams) => {
       options: compareOptions,
     });
 
-    postMessage({ type: 'compare', results });
+    // Only post progress update if enough time has elapsed
+    const now = Date.now();
+    if (now - lastUpdateTime >= UPDATE_INTERVAL_MS) {
+      postMessage({ type: 'compare', results });
+      lastUpdateTime = now;
+    }
   }
 
   const results = runComparison({
@@ -60,6 +71,7 @@ const runRunnersComparison = (params: CompareParams) => {
     options: compareOptions,
   });
 
+  // Always post final results
   postMessage({ type: 'compare', results });
   postMessage({ type: 'compare-complete' });
 };

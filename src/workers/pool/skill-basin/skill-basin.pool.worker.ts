@@ -68,12 +68,6 @@ function processBatch(batch: WorkBatch): void {
     batchId: batch.batchId,
     results,
   });
-
-  // Request more work
-  sendMessage({
-    type: 'request-work',
-    workerId,
-  });
 }
 
 self.addEventListener('message', (event: MessageEvent<WorkerInMessage>) => {
@@ -100,4 +94,3 @@ self.addEventListener('message', (event: MessageEvent<WorkerInMessage>) => {
       break;
   }
 });
-

@@ -42,14 +42,19 @@ export class PoolManager {
         name: `pool-worker-${id}`,
       });
 
-      worker.addEventListener('message', (event: MessageEvent<WorkerOutMessage>) => {
-        this.handleWorkerMessage(id, event.data);
-      });
+      worker.addEventListener(
+        'message',
+        (event: MessageEvent<WorkerOutMessage>) => {
+          this.handleWorkerMessage(id, event.data);
+        },
+      );
 
       worker.addEventListener('error', (event) => {
         console.error(`Worker ${id} error:`, event);
         this.workerStates.set(id, 'terminated');
-        this.callbacks.onError?.(new Error(`Worker ${id} crashed: ${event.message}`));
+        this.callbacks.onError?.(
+          new Error(`Worker ${id} crashed: ${event.message}`),
+        );
       });
 
       this.workerStates.set(id, 'idle');
@@ -60,7 +65,10 @@ export class PoolManager {
   /**
    * Handle messages from workers
    */
-  private handleWorkerMessage(workerId: number, message: WorkerOutMessage): void {
+  private handleWorkerMessage(
+    workerId: number,
+    message: WorkerOutMessage,
+  ): void {
     switch (message.type) {
       case 'worker-ready':
         this.workerStates.set(workerId, 'idle');
@@ -79,7 +87,10 @@ export class PoolManager {
         // Check if stage is complete
         if (this.workQueue?.isStageComplete()) {
           const currentStage = this.workQueue.getCurrentStage();
-          this.callbacks.onStageComplete?.(currentStage, this.workQueue.getResults());
+          this.callbacks.onStageComplete?.(
+            currentStage,
+            this.workQueue.getResults(),
+          );
 
           // Try to advance to next stage
           if (!this.workQueue.advanceToNextStage()) {
@@ -172,7 +183,9 @@ export class PoolManager {
   private calculateTotalSamples(): number {
     // Simplified calculation: assume all skills run through all stages
     // In reality, filtered skills run fewer samples
-    return this.totalSkills * STAGE_CONFIGS.reduce((sum, s) => sum + s.nsamples, 0);
+    return (
+      this.totalSkills * STAGE_CONFIGS.reduce((sum, s) => sum + s.nsamples, 0)
+    );
   }
 
   /**
@@ -193,7 +206,10 @@ export class PoolManager {
     this.totalSkills = skills.length;
 
     // Calculate batch size based on skill count and worker count
-    const batchSize = Math.max(5, Math.ceil(skills.length / (this.poolSize * 4)));
+    const batchSize = Math.max(
+      5,
+      Math.ceil(skills.length / (this.poolSize * 4)),
+    );
     this.workQueue = new WorkQueue(skills, batchSize);
 
     // Initialize workers
@@ -235,4 +251,3 @@ export class PoolManager {
     return this.poolSize;
   }
 }
-

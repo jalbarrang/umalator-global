@@ -39,20 +39,16 @@ export const Speed = {
   DistanceProficiencyModifier: [1.05, 1.0, 0.9, 0.8, 0.6, 0.4, 0.2, 0.1],
 };
 
-function baseSpeed(course: CourseData) {
-  return 20.0 - (course.distance - 2000) / 1000.0;
-}
-
 function baseTargetSpeed(
   horse: HorseParameters,
-  course: CourseData,
+  courseBaseSpeed: number,
   phase: IPhase,
 ) {
   const phaseCoefficient =
     Speed.StrategyPhaseCoefficient[horse.strategy][phase];
 
   return (
-    baseSpeed(course) * phaseCoefficient +
+    courseBaseSpeed * phaseCoefficient +
     (phase == 2
       ? Math.sqrt(500.0 * horse.speed) *
         Speed.DistanceProficiencyModifier[horse.distanceAptitude] *
@@ -61,9 +57,13 @@ function baseTargetSpeed(
   );
 }
 
-function lastSpurtSpeed(horse: HorseParameters, course: CourseData) {
+function lastSpurtSpeed(
+  horse: HorseParameters,
+  courseBaseSpeed: number,
+) {
   let v =
-    (baseTargetSpeed(horse, course, 2) + 0.01 * baseSpeed(course)) * 1.05 +
+    (baseTargetSpeed(horse, courseBaseSpeed, 2) + 0.01 * courseBaseSpeed) *
+      1.05 +
     Math.sqrt(500.0 * horse.speed) *
       Speed.DistanceProficiencyModifier[horse.distanceAptitude] *
       0.002;
@@ -252,6 +252,9 @@ export class RaceSolver {
   baseAccel: number[];
   horse: { -readonly [P in keyof HorseParameters]: HorseParameters[P] };
   course: CourseData;
+  // Cached values for performance optimization
+  baseSpeed: number;
+  cachedSlopePenalties: number[];
   hp: HpPolicy;
   rng: PRNG;
   syncRng: PRNG;
@@ -527,16 +530,21 @@ export class RaceSolver {
 
     this.initHills();
 
+    // Cache baseSpeed and slope penalties for performance
+    this.baseSpeed = 20.0 - (this.course.distance - 2000) / 1000.0;
+    this.cachedSlopePenalties = this.course.slopes.map(
+      (s) => ((s.slope / 10000.0) * 200.0) / this.horse.power,
+    );
+
     this.startDelay = 0.1 * this.rng.random();
 
     this.pos = 0.0;
     this.accel = 0.0;
     this.currentSpeed = 3.0;
-    this.targetSpeed = 0.85 * baseSpeed(this.course);
+    this.targetSpeed = 0.85 * this.baseSpeed;
     this.processSkillActivations(); // activate gate skills (must come before setting minimum speed because green skills can modify guts)
     this.minSpeed =
-      0.85 * baseSpeed(this.course) +
-      Math.sqrt(200.0 * this.horse.guts) * 0.001;
+      0.85 * this.baseSpeed + Math.sqrt(200.0 * this.horse.guts) * 0.001;
     this.startDash = true;
     this.modifiers.accel.add(24.0); // start dash accel
 
@@ -544,9 +552,9 @@ export class RaceSolver {
 
     // similarly this must also come after the first round of skill activations
     this.baseTargetSpeed = [0, 1, 2].map((phase) =>
-      baseTargetSpeed(this.horse, this.course, phase as IPhase),
+      baseTargetSpeed(this.horse, this.baseSpeed, phase as IPhase),
     );
-    this.lastSpurtSpeed = lastSpurtSpeed(this.horse, this.course);
+    this.lastSpurtSpeed = lastSpurtSpeed(this.horse, this.baseSpeed);
     this.lastSpurtTransition = -1;
 
     this.sectionModifier = Array.from({ length: 24 }, () => {
@@ -556,7 +564,7 @@ export class RaceSolver {
       const max =
         (this.horse.wisdom / 5500.0) * Math.log10(this.horse.wisdom * 0.1);
       const factor = (max - 0.65 + this.wisdomRollRng.random() * 0.65) / 100.0;
-      return baseSpeed(this.course) * factor;
+      return this.baseSpeed * factor;
     });
     this.sectionModifier.push(0.0); // last tick after the race is done, or in a comparison in case one uma runs off the end of the track
 
@@ -757,7 +765,7 @@ export class RaceSolver {
     if (this.startDash) {
       // target speed can be below 0.85 * BaseSpeed for non-runners if there is a hill at the start of the course
       // in this case you actually don't exit start dash until your target speed is high enough to be over 0.85 * BaseSpeed
-      return Math.min(this.targetSpeed, 0.85 * baseSpeed(this.course));
+      return Math.min(this.targetSpeed, 0.85 * this.baseSpeed);
     } else if (
       this.currentSpeed + this.modifiers.oneFrameAccel >
       this.targetSpeed
@@ -827,7 +835,7 @@ export class RaceSolver {
       this.hpDied = true;
     }
 
-    if (this.startDash && this.currentSpeed >= 0.85 * baseSpeed(this.course)) {
+    if (this.startDash && this.currentSpeed >= 0.85 * this.baseSpeed) {
       this.startDash = false;
       this.modifiers.accel.add(-24.0);
     }
@@ -1440,10 +1448,8 @@ export class RaceSolver {
       this.modifiers.targetSpeed.acc + this.modifiers.targetSpeed.err;
 
     if (this.hillIdx != -1) {
-      // recalculating this every frame is actually measurably faster than calculating the penalty for each slope ahead of time, somehow
-      this.targetSpeed -=
-        ((this.course.slopes[this.hillIdx].slope / 10000.0) * 200.0) /
-        this.horse.power;
+      // Use pre-calculated slope penalty for performance
+      this.targetSpeed -= this.cachedSlopePenalties[this.hillIdx];
       this.targetSpeed = Math.max(this.targetSpeed, this.minSpeed);
     }
 
@@ -1540,68 +1546,75 @@ export class RaceSolver {
   }
 
   processSkillActivations() {
-    // Process Speed Up Skills
-    for (let i = this.activeTargetSpeedSkills.length; --i >= 0; ) {
+    // Process Speed Up Skills - optimized with swap-and-pop pattern
+    let writeIdx = 0;
+    for (let i = 0; i < this.activeTargetSpeedSkills.length; i++) {
       const skill = this.activeTargetSpeedSkills[i];
-
-      if (skill.durationTimer.t >= 0) {
-        this.activeTargetSpeedSkills.splice(i, 1);
+      if (skill.durationTimer.t < 0) {
+        this.activeTargetSpeedSkills[writeIdx++] = skill;
+      } else {
         this.modifiers.targetSpeed.add(-skill.modifier);
-
         this.onSkillDeactivate(this, skill.skillId, skill.perspective);
       }
     }
+    this.activeTargetSpeedSkills.length = writeIdx;
 
-    // Process Current Speed Skills
-    for (let i = this.activeCurrentSpeedSkills.length; --i >= 0; ) {
+    // Process Current Speed Skills - optimized with swap-and-pop pattern
+    writeIdx = 0;
+    for (let i = 0; i < this.activeCurrentSpeedSkills.length; i++) {
       const skill = this.activeCurrentSpeedSkills[i];
-
-      if (skill.durationTimer.t >= 0) {
-        this.activeCurrentSpeedSkills.splice(i, 1);
+      if (skill.durationTimer.t < 0) {
+        this.activeCurrentSpeedSkills[writeIdx++] = skill;
+      } else {
         this.modifiers.currentSpeed.add(-skill.modifier);
-
         if (skill.naturalDeceleration) {
           this.modifiers.oneFrameAccel += skill.modifier;
         }
-
         this.onSkillDeactivate(this, skill.skillId, skill.perspective);
       }
     }
+    this.activeCurrentSpeedSkills.length = writeIdx;
 
-    // Process Accel Skills
-    for (let i = this.activeAccelSkills.length; --i >= 0; ) {
+    // Process Accel Skills - optimized with swap-and-pop pattern
+    writeIdx = 0;
+    for (let i = 0; i < this.activeAccelSkills.length; i++) {
       const skill = this.activeAccelSkills[i];
-
-      if (skill.durationTimer.t >= 0) {
-        this.activeAccelSkills.splice(i, 1);
+      if (skill.durationTimer.t < 0) {
+        this.activeAccelSkills[writeIdx++] = skill;
+      } else {
         this.modifiers.accel.add(-skill.modifier);
-
         this.onSkillDeactivate(this, skill.skillId, skill.perspective);
       }
     }
+    this.activeAccelSkills.length = writeIdx;
 
-    // Process Lane Movement Skills
-    for (let i = this.activeLaneMovementSkills.length; --i >= 0; ) {
+    // Process Lane Movement Skills - optimized with swap-and-pop pattern
+    writeIdx = 0;
+    for (let i = 0; i < this.activeLaneMovementSkills.length; i++) {
       const skill = this.activeLaneMovementSkills[i];
-
-      if (skill.durationTimer.t >= 0) {
-        this.activeLaneMovementSkills.splice(i, 1);
+      if (skill.durationTimer.t < 0) {
+        this.activeLaneMovementSkills[writeIdx++] = skill;
+      } else {
         this.onSkillDeactivate(this, skill.skillId, skill.perspective);
       }
     }
+    this.activeLaneMovementSkills.length = writeIdx;
 
-    // Process Change Lane Skills
-    for (let i = this.activeChangeLaneSkills.length; --i >= 0; ) {
+    // Process Change Lane Skills - optimized with swap-and-pop pattern
+    writeIdx = 0;
+    for (let i = 0; i < this.activeChangeLaneSkills.length; i++) {
       const skill = this.activeChangeLaneSkills[i];
-
-      if (skill.durationTimer.t >= 0) {
-        this.activeChangeLaneSkills.splice(i, 1);
+      if (skill.durationTimer.t < 0) {
+        this.activeChangeLaneSkills[writeIdx++] = skill;
+      } else {
         this.onSkillDeactivate(this, skill.skillId, skill.perspective);
       }
     }
+    this.activeChangeLaneSkills.length = writeIdx;
 
-    // Process Pending Skills
-    for (let i = this.pendingSkills.length; --i >= 0; ) {
+    // Process Pending Skills - optimized with swap-and-pop pattern
+    writeIdx = 0;
+    for (let i = 0; i < this.pendingSkills.length; i++) {
       const skill = this.pendingSkills[i];
 
       if (
@@ -1610,9 +1623,7 @@ export class RaceSolver {
       ) {
         // NB. `Region`s are half-open [start,end) intervals. If pos == end we are out of the trigger.
         // skill failed to activate
-        this.pendingSkills.splice(i, 1);
         this.pendingRemoval.delete(skill.skillId);
-
         continue;
       }
 
@@ -1623,14 +1634,19 @@ export class RaceSolver {
           !this.shouldSkipWisdomCheck(skill) &&
           !this.checkWisdomForSkill(skill)
         ) {
-          // Skill fails due to low wisdom
-          this.pendingSkills.splice(i, 1);
+          // Skill fails due to low wisdom - don't keep
+          continue;
         } else {
           this.activateSkill(skill);
-          this.pendingSkills.splice(i, 1);
+          // Skill activated - don't keep
+          continue;
         }
       }
+
+      // Skill still pending - keep it
+      this.pendingSkills[writeIdx++] = skill;
     }
+    this.pendingSkills.length = writeIdx;
   }
 
   checkWisdomForSkill(skill: PendingSkill): boolean {

@@ -12,6 +12,7 @@ import { useUIStore } from '@/store/ui.store';
 import { useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { useSkillBasinPoolRunner } from '@/modules/simulation/hooks/pool/useSkillBasinPoolRunner';
+import { useSkillBasinRunner } from '@/modules/simulation/hooks/skill-bassin/useSkillBasinRunner';
 
 export const SkillBassinPage = () => {
   const { chartData } = useRaceStore();

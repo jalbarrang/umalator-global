@@ -36,7 +36,7 @@ function removeUniqueSkillsFromRunner(uma: RunnerState): RunnerState {
   return { ...uma, skills: filteredSkills };
 }
 
-export function useUmaBassinRunner() {
+export function useUmaBasinRunner() {
   const { pacer } = useRunnersStore();
   const { runner } = useRunner();
   const { racedef, seed, courseId } = useSettingsStore();
@@ -50,6 +50,11 @@ export function useUmaBassinRunner() {
   const handleWorkerMessage = useCallback(
     (event: MessageEvent<WorkerMessage<SkillBasinResponse>>) => {
       const { type, results } = event.data;
+
+      console.log('uma-bassin:handleWorkerMessage', {
+        type,
+        results,
+      });
 
       switch (type) {
         case 'uma-bassin':
