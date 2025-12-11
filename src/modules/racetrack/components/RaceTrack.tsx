@@ -40,9 +40,11 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RaceTrackTooltip } from './racetrack-tooltip';
 import { useRaceTrackTooltip } from '../hooks/useRaceTrackTooltip';
-import { SimulationRun } from '@simulation/compare.types';
+import {
+  initializeSimulationRun,
+  SimulationRun,
+} from '@simulation/compare.types';
 import { Separator } from '@/components/ui/separator';
-import { initialChartData } from '@/modules/simulation/stores/compare.store';
 import { useShallow } from 'zustand/shallow';
 import { CourseData } from '@/modules/simulation/lib/courses/types';
 
@@ -261,7 +263,7 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
 
   const { tooltipData, tooltipVisible, rtMouseMove, rtMouseLeave } =
     useRaceTrackTooltip({
-      chartData: chartData ?? initialChartData,
+      chartData: chartData ?? initializeSimulationRun(),
       course,
     });
 

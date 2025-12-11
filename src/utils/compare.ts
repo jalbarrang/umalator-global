@@ -131,6 +131,13 @@ export function calculateTheoreticalMaxSpurt(
   };
 }
 
+type SkillActivation = [
+  start: number,
+  end: number,
+  perspective: string,
+  type: string,
+];
+
 interface RushedStats {
   uma1: { lengths: number[]; count: number };
   uma2: { lengths: number[]; count: number };
@@ -385,92 +392,98 @@ export function runComparison(params: RunComparisonParams): CompareResult {
     }
   }
 
-  const skillPos1: Map<string, [number, number][]> = new Map();
-  const skillPos2: Map<string, [number, number][]> = new Map();
-  // Separate tracking for debuffs received by each runner
-  const debuffsReceived1: Map<string, [number, number][]> = new Map();
-  const debuffsReceived2: Map<string, [number, number][]> = new Map();
+  const skillPos1: Map<string, SkillActivation[]> = new Map();
+  const skillPos2: Map<string, SkillActivation[]> = new Map();
 
   const getActivator = (
-    selfSet: Map<string, [number, number][]>,
-    _otherSet: Map<string, [number, number][]>, // Not used, might look at this later
-    debuffsReceivedSet: Map<string, [number, number][]>,
+    selfSet: Map<string, SkillActivation[]>,
+    otherSet: Map<string, SkillActivation[]>,
   ) => {
     return (
       raceSolver: RaceSolver,
       skillId: string,
       perspective?: ISkillPerspective,
     ) => {
-      if (!['asitame', 'staminasyoubu'].includes(skillId)) {
-        if (perspective === SkillPerspective.Self) {
-          const skillSetValue = selfSet.get(skillId) ?? [];
-          skillSetValue.push([raceSolver.pos, raceSolver.pos]);
-          selfSet.set(skillId, skillSetValue);
-        }
+      if (['asitame', 'staminasyoubu'].includes(skillId)) {
+        return;
+      }
 
-        if (perspective === SkillPerspective.Other) {
-          const debuffsReceivedSetValue = debuffsReceivedSet.get(skillId) ?? [];
-          debuffsReceivedSetValue.push([raceSolver.pos, raceSolver.pos]);
-          debuffsReceivedSet.set(skillId, debuffsReceivedSetValue);
-        }
+      if (perspective === SkillPerspective.Self) {
+        const skillSetValue = selfSet.get(skillId) ?? [];
+        skillSetValue.push([raceSolver.pos, raceSolver.pos, 'self', 'heal']);
+        selfSet.set(skillId, skillSetValue);
+      }
+
+      if (perspective === SkillPerspective.Other) {
+        const otherSetValue = otherSet.get(skillId) ?? [];
+        otherSetValue.push([raceSolver.pos, raceSolver.pos, 'other', 'debuff']);
+        otherSet.set(skillId, otherSetValue);
       }
     };
   };
 
   const getDeactivator = (
-    selfSet: Map<string, [number, number][]>,
-    _otherSet: Map<string, [number, number][]>, // Not used, might look at this later
-    debuffsReceivedSet: Map<string, [number, number][]>,
+    selfSet: Map<string, SkillActivation[]>,
+    otherSet: Map<string, SkillActivation[]>,
   ) => {
     return (
       raceSolver: RaceSolver,
       skillId: string,
       perspective?: ISkillPerspective,
     ) => {
-      if (!['asitame', 'staminasyoubu'].includes(skillId)) {
-        // Only update Self skills in the skill position map
-        if (perspective === SkillPerspective.Self) {
-          const ar = selfSet.get(skillId);
-          if (ar && ar.length > 0) {
-            const activationPos = ar[ar.length - 1][0];
-            if (raceSolver.pos > activationPos) {
-              ar[ar.length - 1][1] = Math.min(raceSolver.pos, course.distance);
-            }
+      if (['asitame', 'staminasyoubu'].includes(skillId)) {
+        return;
+      }
+
+      // Only update Self skills in the skill position map
+      if (perspective === SkillPerspective.Self) {
+        const selfSetValue = selfSet.get(skillId);
+
+        if (selfSetValue && selfSetValue.length > 0) {
+          // Get the activation position of the skill
+          const activationPos = selfSetValue[selfSetValue.length - 1][0];
+
+          // If the skill is still active, update the end position to the current position
+          if (raceSolver.pos > activationPos) {
+            selfSetValue[selfSetValue.length - 1][1] = Math.min(
+              raceSolver.pos,
+              course.distance,
+            );
           }
         }
+      }
 
-        // Update debuffs received
-        if (perspective === SkillPerspective.Other) {
-          const debuffAr = debuffsReceivedSet.get(skillId);
-          if (debuffAr && debuffAr.length > 0) {
-            const activationPos = debuffAr[debuffAr.length - 1][0];
-            if (raceSolver.pos > activationPos) {
-              debuffAr[debuffAr.length - 1][1] = Math.min(
-                raceSolver.pos,
-                course.distance,
-              );
-            }
+      // Update debuffs received
+      if (perspective === SkillPerspective.Other) {
+        const otherSetValue = otherSet.get(skillId);
+
+        if (otherSetValue && otherSetValue.length > 0) {
+          // Get the activation position of the skill
+          const activationPos = otherSetValue[otherSetValue.length - 1][0];
+
+          // If the skill is still active, update the end position to the current position
+          if (raceSolver.pos > activationPos) {
+            otherSetValue[otherSetValue.length - 1][1] = Math.min(
+              raceSolver.pos,
+              course.distance,
+            );
           }
         }
       }
     };
   };
 
-  // standard (uma1's solver): Self → skillPos1, Other (debuffs uma1 receives) → debuffsReceived1
-  runnerARaceSolver.onSkillActivate(
-    getActivator(skillPos1, skillPos2, debuffsReceived1),
-  );
-  runnerARaceSolver.onSkillDeactivate(
-    getDeactivator(skillPos1, skillPos2, debuffsReceived1),
-  );
+  // Runner A Solver:
+  // Self → skillPos1
+  // Other -> skillPos2
+  runnerARaceSolver.onSkillActivate(getActivator(skillPos1, skillPos2));
+  runnerARaceSolver.onSkillDeactivate(getDeactivator(skillPos1, skillPos2));
 
-  // compare (uma2's solver): Self → skillPos2, Other (debuffs uma2 receives) → debuffsReceived2
-  runnerBRaceSolver.onSkillActivate(
-    getActivator(skillPos2, skillPos1, debuffsReceived2),
-  );
-  runnerBRaceSolver.onSkillDeactivate(
-    getDeactivator(skillPos2, skillPos1, debuffsReceived2),
-  );
+  // Runner B Solver:
+  // Self → skillPos2
+  // Other -> skillPos1
+  runnerBRaceSolver.onSkillActivate(getActivator(skillPos2, skillPos1));
+  runnerBRaceSolver.onSkillDeactivate(getDeactivator(skillPos2, skillPos1));
 
   const a = runnerARaceSolver.build();
   const b = runnerBRaceSolver.build();
@@ -753,9 +766,8 @@ export function runComparison(params: RunComparisonParams): CompareResult {
     // Also handles skills with very short durations that might deactivate in the same frame
     const cleanupActiveSkills = (
       solver: RaceSolver,
-      selfSkillSet: Map<string, [number, number][]>,
-      otherSkillSet: Map<string, [number, number][]>,
-      debuffsReceivedSet: Map<string, [number, number][]>,
+      selfSkillSet: Map<string, SkillActivation[]>,
+      otherSkillSet: Map<string, SkillActivation[]>,
     ) => {
       const allActiveSkills = [
         ...solver.activeTargetSpeedSkills,
@@ -767,7 +779,7 @@ export function runComparison(params: RunComparisonParams): CompareResult {
         // Call the deactivator to set the end position to course.distance
         // This handles both race-end cleanup and very short duration skills
         // Use the correct skill position maps for this solver
-        getDeactivator(selfSkillSet, otherSkillSet, debuffsReceivedSet)(
+        getDeactivator(selfSkillSet, otherSkillSet)(
           solver,
           skill.skillId,
           skill.perspective,
@@ -779,19 +791,13 @@ export function runComparison(params: RunComparisonParams): CompareResult {
     // s1 comes from generator 'a' (standard), s2 comes from generator 'b' (compare)
     // standard uses skillPos1 for self, skillPos2 for other, debuffsReceived1 for debuffs received
     // compare uses skillPos2 for self, skillPos1 for other, debuffsReceived2 for debuffs received
-    cleanupActiveSkills(solverA, skillPos1, skillPos2, debuffsReceived1);
-    cleanupActiveSkills(solverB, skillPos2, skillPos1, debuffsReceived2);
+    cleanupActiveSkills(solverA, skillPos1, skillPos2);
+    cleanupActiveSkills(solverB, skillPos2, skillPos1);
 
     data.sk[runnerAIndex] = snapshotSkillData(skillPos1);
     data.sk[runnerBIndex] = snapshotSkillData(skillPos2);
     skillPos1.clear();
     skillPos2.clear();
-
-    // Store debuffs received by each runner
-    data.debuffsReceived[runnerAIndex] = snapshotSkillData(debuffsReceived1);
-    data.debuffsReceived[runnerBIndex] = snapshotSkillData(debuffsReceived2);
-    debuffsReceived1.clear();
-    debuffsReceived2.clear();
 
     retry = false;
 
@@ -1076,12 +1082,12 @@ export const run1Round = (params: Run1RoundParams) => {
 };
 
 function snapshotSkillData(
-  skillMap: Map<string, [number, number][]>,
-): Map<string, [number, number][]> {
+  skillMap: Map<string, SkillActivation[]>,
+): Map<string, SkillActivation[]> {
   return new Map(
     Array.from(skillMap.entries()).map(([key, value]) => [
       key,
-      value.map((tuple) => [...tuple] as [number, number]),
+      value.map((tuple) => [...tuple]),
     ]),
   );
 }

@@ -9,27 +9,6 @@ import {
 } from '@simulation/compare.types';
 import { SpurtCandidate } from '@simulation/lib/SpurtCalculator';
 
-export const initialChartData: SimulationRun = {
-  t: [[], []],
-  p: [[], []],
-  v: [[], []],
-  hp: [[], []],
-  currentLane: [[], []],
-  pacerGap: [[], []],
-  sk: [new Map(), new Map()],
-  debuffsReceived: [new Map(), new Map()],
-  sdly: [0, 0],
-  rushed: [[], []],
-  posKeep: [[], []],
-  competeFight: [[], []],
-  leadCompetition: [[], []],
-  pacerV: [[], [], []],
-  pacerP: [[], [], []],
-  pacerT: [[], [], []],
-  pacerPosKeep: [[], [], []],
-  pacerLeadCompetition: [[], [], []],
-};
-
 type IRaceStore = {
   results: number[];
   runData: SimulationData | null;

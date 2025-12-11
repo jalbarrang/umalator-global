@@ -8,9 +8,9 @@ import {
 import { useShallow } from 'zustand/shallow';
 import { useMemo, useState } from 'react';
 import {
-  RegionActivation,
   SimulationData,
   SimulationRun,
+  SkillActivation,
   initializeSimulationRun,
 } from '../compare.types';
 import { useRaceStore } from './compare.store';
@@ -82,7 +82,7 @@ export const useChartData = () => {
 
   const chartData: SimulationRun = useMemo(() => {
     const chartData: SimulationRun = initializeSimulationRun();
-    const mergedMap = new Map<string, RegionActivation[]>();
+    const mergedMap = new Map<string, SkillActivation[]>();
 
     // Directly merge into one Map without recreation
     for (const [skill, skillResults] of relevantResults.entries()) {
@@ -92,8 +92,8 @@ export const useChartData = () => {
       // Index 1 is uma that used the new skill for sim
       const skillActivations = selectedData.sk[1];
       if (!skillActivations) continue;
-      const regions: RegionActivation[] = skillActivations.get(skill) ?? [];
-      mergedMap.set(skill, regions);
+      const activations: SkillActivation[] = skillActivations.get(skill) ?? [];
+      mergedMap.set(skill, activations);
     }
 
     chartData.sk[0] = mergedMap;

@@ -36,7 +36,7 @@ export const SkillsTab = () => {
     for (const [id, positions] of chartData.sk[0].entries()) {
       const skillName = getSkillNameById(id);
 
-      positions.forEach(([start, end]: [number, number]) => {
+      positions.forEach(([start, end]) => {
         skillPositions.push({
           id,
           name: skillName,
@@ -57,7 +57,7 @@ export const SkillsTab = () => {
     for (const [id, positions] of chartData.sk[1].entries()) {
       const skillName = getSkillNameById(id);
 
-      positions.forEach(([start, end]: [number, number]) => {
+      positions.forEach(([start, end]) => {
         skillPositions.push({
           id,
           name: skillName,

@@ -56,11 +56,11 @@ export const StaminaTab = () => {
 
   // Get debuffs received - actual from simulation or theoretical from opponent's skills
   const actualDebuffsReceived1 = useActualDebuffsReceived(
-    chartData?.debuffsReceived?.[0],
+    chartData?.sk?.[1],
     analysis1.maxHp,
   );
   const actualDebuffsReceived2 = useActualDebuffsReceived(
-    chartData?.debuffsReceived?.[1],
+    chartData?.sk?.[0],
     analysis2.maxHp,
   );
   // Theoretical debuffs: uma1 could receive debuffs from uma2, and vice versa

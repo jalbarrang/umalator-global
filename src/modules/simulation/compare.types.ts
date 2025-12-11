@@ -1,9 +1,4 @@
 import { cloneDeep } from 'es-toolkit';
-import {
-  ISkillPerspective,
-  ISkillTarget,
-  ISkillType,
-} from './lib/race-solver/types';
 
 export interface CompareResult {
   results: number[];
@@ -50,8 +45,7 @@ export interface SimulationRun {
   hp: Array<number[]>;
   currentLane: Array<number[]>;
   pacerGap: Array<number[]>;
-  sk: Sk[];
-  debuffsReceived: Sk[]; // Debuffs received by each runner [uma1, uma2]
+  sk: SkillActivationMap[];
   sdly: number[];
   rushed: RegionActivation[][];
   posKeep: Array<Array<number[]>>;
@@ -66,14 +60,16 @@ export interface SimulationRun {
 
 // [RegionStart, RegionEnd]
 export type RegionActivation = [number, number];
-export type Sk = Map<string, RegionActivation[]>;
-export type SkillActivation = {
-  start: number;
-  end: number;
-  skillType: ISkillType;
-  perspective: ISkillPerspective;
-  target: ISkillTarget;
-};
+// export type Sk = Map<string, RegionActivation[]>;
+export type SkillActivation = [
+  start: number,
+  end: number,
+  perspective: string,
+  type: string,
+  // perspective: ISkillPerspective,
+  // skillType: ISkillType,
+  // target: ISkillTarget,
+];
 export type SkillActivationMap = Map<string, SkillActivation[]>;
 
 export interface StaminaStats {
@@ -94,7 +90,6 @@ const defaultSimulationRun: SimulationRun = {
   currentLane: [[], []],
   pacerGap: [[], []],
   sk: [new Map(), new Map()],
-  debuffsReceived: [new Map(), new Map()],
   sdly: [0, 0],
   rushed: [[], []],
   posKeep: [[], []],

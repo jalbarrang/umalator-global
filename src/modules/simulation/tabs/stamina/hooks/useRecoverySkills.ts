@@ -6,6 +6,7 @@ import {
   estimateSkillActivationPhase,
 } from '@/modules/skills/utils';
 import { SkillTarget, SkillType } from '@simulation/lib/race-solver/types';
+import { SkillActivationMap } from '@/modules/simulation/compare.types';
 
 export interface RecoverySkillActivation {
   skillId: string;
@@ -121,7 +122,7 @@ function getEstimatedPosition(skillId: string, courseDistance: number): number {
  * Includes both pure heals and self-heals from dual-effect debuff skills
  */
 export function useActualRecoverySkills(
-  skillData: Map<string, [number, number][]> | undefined,
+  skillData: SkillActivationMap | undefined,
   maxHp: number,
 ): RecoverySkillActivation[] {
   return useMemo(() => {
@@ -129,7 +130,7 @@ export function useActualRecoverySkills(
 
     const skills: RecoverySkillActivation[] = [];
 
-    for (const [skillId, positions] of skillData.entries()) {
+    for (const [skillId, activations] of skillData.entries()) {
       const { staminaRecovered, hasRecovery } = applyStaminaRecovery(skillId);
 
       // Include skills that have self-healing (positive or from dual-effect debuffs)
@@ -138,7 +139,9 @@ export function useActualRecoverySkills(
         // Recovery modifier is percentage of max HP (divided by 10000)
         const hpRecovered = (staminaRecovered / 10000) * maxHp;
 
-        for (const [start] of positions) {
+        for (const [start, _end, perspective, type] of activations) {
+          if (type !== 'heal' || perspective !== 'self') continue;
+
           skills.push({
             skillId,
             skillName,
@@ -160,14 +163,14 @@ export function useActualRecoverySkills(
  * These are HP drain skills used by opponents against this runner
  */
 export function useActualDebuffsReceived(
-  debuffsData: Map<string, [number, number][]> | undefined,
+  skillsSet: SkillActivationMap | undefined,
   maxHp: number,
 ): RecoverySkillActivation[] {
   return useMemo(() => {
-    if (!debuffsData) return [];
+    if (!skillsSet) return [];
 
     const skills: RecoverySkillActivation[] = [];
-    for (const [skillId, positions] of debuffsData.entries()) {
+    for (const [skillId, activations] of skillsSet.entries()) {
       const { staminaDrain, hasStaminaDrain } = applyStaminaDrain(skillId);
 
       // Only include skills that have debuff effects on others
@@ -177,7 +180,9 @@ export function useActualDebuffsReceived(
         // Modifier is typically negative, so hpRecovered will be negative (HP drain)
         const hpRecovered = (staminaDrain / 10000) * maxHp;
 
-        positions.forEach(([start]) => {
+        for (const [start, _end, perspective, type] of activations) {
+          if (type !== 'debuff' || perspective === 'self') continue;
+
           skills.push({
             skillId,
             skillName,
@@ -186,12 +191,12 @@ export function useActualDebuffsReceived(
             isEstimated: false,
             isDebuff: true,
           });
-        });
+        }
       }
     }
 
     return skills.toSorted((a, b) => a.position - b.position);
-  }, [debuffsData, maxHp]);
+  }, [skillsSet, maxHp]);
 }
 
 /**
