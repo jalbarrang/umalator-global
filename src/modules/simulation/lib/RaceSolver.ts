@@ -1762,129 +1762,7 @@ export class RaceSolver {
         (this.course.distance / 1000) *
         skillDurationScaling;
 
-      // and not just pinks
-      switch (skillEffect.type) {
-        // Green skills
-        case SkillType.SpeedUp:
-          this.horse.speed = Math.max(
-            this.horse.speed + skillEffect.modifier,
-            1,
-          );
-          break;
-        case SkillType.StaminaUp:
-          this.horse.stamina = Math.max(
-            this.horse.stamina + skillEffect.modifier,
-            1,
-          );
-          this.horse.rawStamina = Math.max(
-            this.horse.rawStamina + skillEffect.modifier,
-            1,
-          );
-          break;
-        case SkillType.PowerUp:
-          this.horse.power = Math.max(
-            this.horse.power + skillEffect.modifier,
-            1,
-          );
-          break;
-        case SkillType.GutsUp:
-          this.horse.guts = Math.max(this.horse.guts + skillEffect.modifier, 1);
-          break;
-        case SkillType.WisdomUp:
-          this.horse.wisdom = Math.max(
-            this.horse.wisdom + skillEffect.modifier,
-            1,
-          );
-          break;
-
-        // Instant/point effects and pre-race modifiers
-        case SkillType.MultiplyStartDelay:
-          this.startDelay *= skillEffect.modifier;
-          break;
-        case SkillType.SetStartDelay:
-          this.startDelay = skillEffect.modifier;
-          break;
-
-        // Duration-based effects
-        case SkillType.TargetSpeed:
-          this.modifiers.targetSpeed.add(skillEffect.modifier);
-          this.activeTargetSpeedSkills.push({
-            executionId,
-            skillId: skill.skillId,
-            perspective: skill.perspective,
-            durationTimer: this.getNewTimer(-scaledDuration),
-            modifier: skillEffect.modifier,
-            effectType: skillEffect.type,
-            effectTarget: skillEffect.target,
-          });
-          break;
-        case SkillType.Accel:
-          this.modifiers.accel.add(skillEffect.modifier);
-          this.activeAccelSkills.push({
-            executionId,
-            skillId: skill.skillId,
-            perspective: skill.perspective,
-            durationTimer: this.getNewTimer(-scaledDuration),
-            modifier: skillEffect.modifier,
-            effectType: skillEffect.type,
-            effectTarget: skillEffect.target,
-          });
-          break;
-        case SkillType.LaneMovementSpeed:
-          this.activeLaneMovementSkills.push({
-            executionId,
-            skillId: skill.skillId,
-            perspective: skill.perspective,
-            durationTimer: this.getNewTimer(-scaledDuration),
-            modifier: skillEffect.modifier,
-            effectType: skillEffect.type,
-            effectTarget: skillEffect.target,
-          });
-          break;
-        case SkillType.CurrentSpeed:
-        case SkillType.CurrentSpeedWithNaturalDeceleration:
-          this.modifiers.currentSpeed.add(skillEffect.modifier);
-          this.activeCurrentSpeedSkills.push({
-            executionId,
-            skillId: skill.skillId,
-            perspective: skill.perspective,
-            durationTimer: this.getNewTimer(-scaledDuration),
-            modifier: skillEffect.modifier,
-            naturalDeceleration:
-              skillEffect.type == SkillType.CurrentSpeedWithNaturalDeceleration,
-            effectType: skillEffect.type,
-            effectTarget: skillEffect.target,
-          });
-          break;
-        case SkillType.Recovery:
-          ++this.activateCountHeal;
-          // Pass state to recover for dynamic spurt recalculation in accuracy mode
-
-          this.hp.recover(skillEffect.modifier, this);
-
-          if (this.phase >= 2 && !this.isLastSpurt) {
-            this.updateLastSpurtState();
-          }
-          break;
-        case SkillType.ActivateRandomGold:
-          this.doActivateRandomGold(skillEffect.modifier);
-          break;
-        case SkillType.ExtendEvolvedDuration:
-          this.modifiers.specialSkillDurationScaling = skillEffect.modifier;
-          break;
-        case SkillType.ChangeLane:
-          this.activeChangeLaneSkills.push({
-            executionId,
-            skillId: skill.skillId,
-            perspective: skill.perspective,
-            durationTimer: this.getNewTimer(-scaledDuration),
-            modifier: skillEffect.modifier,
-            effectType: skillEffect.type,
-            effectTarget: skillEffect.target,
-          });
-          break;
-      }
-
+      // Track first
       if (shouldTrackEffect(skillEffect)) {
         this.onSkillActivate(
           this,
@@ -1895,10 +1773,148 @@ export class RaceSolver {
           skillEffect.target,
         );
       }
+
+      // Then apply the effect
+
+      this.applyEffect({
+        skillEffect,
+        executionId,
+        skillId: skill.skillId,
+        perspective: skill.perspective,
+        scaledDuration,
+      });
     }
 
     ++this.activateCount[this.phase];
     this.usedSkills.add(skill.skillId);
+  }
+
+  applyEffect(options: {
+    skillEffect: SkillEffect;
+    executionId: string;
+    skillId: string;
+    perspective: ISkillPerspective;
+    scaledDuration: number;
+  }) {
+    const { skillEffect, executionId, skillId, perspective, scaledDuration } =
+      options;
+
+    // and not just pinks
+    switch (skillEffect.type) {
+      // Green skills
+      case SkillType.SpeedUp:
+        this.horse.speed = Math.max(this.horse.speed + skillEffect.modifier, 1);
+        break;
+      case SkillType.StaminaUp:
+        this.horse.stamina = Math.max(
+          this.horse.stamina + skillEffect.modifier,
+          1,
+        );
+        this.horse.rawStamina = Math.max(
+          this.horse.rawStamina + skillEffect.modifier,
+          1,
+        );
+        break;
+      case SkillType.PowerUp:
+        this.horse.power = Math.max(this.horse.power + skillEffect.modifier, 1);
+        break;
+      case SkillType.GutsUp:
+        this.horse.guts = Math.max(this.horse.guts + skillEffect.modifier, 1);
+        break;
+      case SkillType.WisdomUp:
+        this.horse.wisdom = Math.max(
+          this.horse.wisdom + skillEffect.modifier,
+          1,
+        );
+        break;
+
+      // Instant/point effects and pre-race modifiers
+      case SkillType.MultiplyStartDelay:
+        this.startDelay *= skillEffect.modifier;
+        break;
+      case SkillType.SetStartDelay:
+        this.startDelay = skillEffect.modifier;
+        break;
+
+      // Duration-based effects
+      case SkillType.TargetSpeed:
+        this.modifiers.targetSpeed.add(skillEffect.modifier);
+        this.activeTargetSpeedSkills.push({
+          executionId,
+          skillId,
+          perspective,
+          durationTimer: this.getNewTimer(-scaledDuration),
+          modifier: skillEffect.modifier,
+          effectType: skillEffect.type,
+          effectTarget: skillEffect.target,
+        });
+        break;
+      case SkillType.Accel:
+        this.modifiers.accel.add(skillEffect.modifier);
+        this.activeAccelSkills.push({
+          executionId,
+          skillId,
+          perspective,
+          durationTimer: this.getNewTimer(-scaledDuration),
+          modifier: skillEffect.modifier,
+          effectType: skillEffect.type,
+          effectTarget: skillEffect.target,
+        });
+        break;
+      case SkillType.LaneMovementSpeed:
+        this.activeLaneMovementSkills.push({
+          executionId,
+          skillId,
+          perspective,
+          durationTimer: this.getNewTimer(-scaledDuration),
+          modifier: skillEffect.modifier,
+          effectType: skillEffect.type,
+          effectTarget: skillEffect.target,
+        });
+        break;
+      case SkillType.CurrentSpeed:
+      case SkillType.CurrentSpeedWithNaturalDeceleration:
+        this.modifiers.currentSpeed.add(skillEffect.modifier);
+        this.activeCurrentSpeedSkills.push({
+          executionId,
+          skillId,
+          perspective,
+          durationTimer: this.getNewTimer(-scaledDuration),
+          modifier: skillEffect.modifier,
+          naturalDeceleration:
+            skillEffect.type == SkillType.CurrentSpeedWithNaturalDeceleration,
+          effectType: skillEffect.type,
+          effectTarget: skillEffect.target,
+        });
+        break;
+      case SkillType.Recovery:
+        ++this.activateCountHeal;
+        // Pass state to recover for dynamic spurt recalculation in accuracy mode
+
+        this.hp.recover(skillEffect.modifier, this);
+
+        if (this.phase >= 2 && !this.isLastSpurt) {
+          this.updateLastSpurtState();
+        }
+        break;
+      case SkillType.ActivateRandomGold:
+        this.doActivateRandomGold(skillEffect.modifier);
+        break;
+      case SkillType.ExtendEvolvedDuration:
+        this.modifiers.specialSkillDurationScaling = skillEffect.modifier;
+        break;
+      case SkillType.ChangeLane:
+        this.activeChangeLaneSkills.push({
+          executionId,
+          skillId,
+          perspective,
+          durationTimer: this.getNewTimer(-scaledDuration),
+          modifier: skillEffect.modifier,
+          effectType: skillEffect.type,
+          effectTarget: skillEffect.target,
+        });
+        break;
+    }
   }
 
   doActivateRandomGold(ngolds: number) {

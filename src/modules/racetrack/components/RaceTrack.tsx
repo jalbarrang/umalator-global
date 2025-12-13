@@ -410,10 +410,6 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
         </div>
       </div>
 
-      <div className="flex">
-        <RaceTrackTooltip data={tooltipData} visible={tooltipVisible} />
-      </div>
-
       <div className="flex justify-center">
         <svg
           version="1.1"
@@ -510,6 +506,40 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
             ></text>
           </svg>
 
+          <RaceTrackTooltip
+            data={tooltipData}
+            visible={tooltipVisible}
+            position={{ xOffset, yOffset }}
+          />
+
+          <ThresholdMarker
+            threshold={course.distance / 2}
+            text={`Halfway (${course.distance / 2}m)`}
+            distance={course.distance}
+            xOffset={xOffset}
+            yOffset={yOffset}
+            width={width}
+            height={height}
+          />
+
+          <ThresholdMarker
+            threshold={777}
+            distance={course.distance}
+            xOffset={xOffset}
+            yOffset={yOffset}
+            width={width}
+            height={height}
+          />
+
+          <ThresholdMarker
+            threshold={200}
+            distance={course.distance}
+            xOffset={xOffset}
+            yOffset={yOffset}
+            width={width}
+            height={height}
+          />
+
           {props.children}
         </svg>
       </div>
@@ -574,5 +604,45 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
         </div>
       </div>
     </div>
+  );
+};
+
+type ThresholdMarkerProps = {
+  threshold: number;
+  text?: string;
+  distance: number;
+  xOffset: number;
+  yOffset: number;
+  width: number;
+  height: number;
+};
+
+const ThresholdMarker = (props: ThresholdMarkerProps) => {
+  const { threshold, text, distance, xOffset, yOffset, width, height } = props;
+  return (
+    <g className="threshold-marker">
+      {/* Dashed vertical line */}
+      <line
+        x1={xOffset + ((distance - threshold) / distance) * width}
+        y1={yOffset - 20}
+        x2={xOffset + ((distance - threshold) / distance) * width}
+        y2={yOffset + height}
+        stroke="rgb(239, 68, 68)"
+        strokeWidth="1"
+        strokeDasharray="5,5"
+      />
+
+      {/* Label text */}
+      <text
+        x={xOffset + ((distance - threshold) / distance) * width}
+        y={yOffset - 25}
+        fontSize="10px"
+        textAnchor="middle"
+        fill="white"
+        fontWeight="bold"
+      >
+        {text ?? `${threshold}m left`}
+      </text>
+    </g>
   );
 };

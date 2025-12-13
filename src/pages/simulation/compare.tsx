@@ -66,14 +66,15 @@ export const ComparePage = () => {
         <RaceTrack
           courseid={courseId}
           chartData={chartData ?? initializeSimulationRun()}
-          xOffset={20}
-          yOffset={15}
+          xOffset={35}
+          yOffset={35}
           yExtra={20}
         >
           <VelocityLines
             data={chartData}
             courseDistance={course.distance}
-            xOffset={20}
+            xOffset={35}
+            yOffset={25}
             horseLane={course.horseLane}
             showVirtualPacemaker={showVirtualPacemakerOnGraph}
             selectedPacemakers={selectedPacemakers}
