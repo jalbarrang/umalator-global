@@ -17,6 +17,26 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from '@/components/ui/empty';
+import {
+  ISkillTarget,
+  ISkillType,
+  SkillTarget,
+} from '../lib/race-solver/types';
+import { EffectQuery } from '@/modules/skills/effects-query';
+import { SkillActivation } from '../compare.types';
+
+const toSkillPosition = (activation: SkillActivation) => {
+  return {
+    id: activation.skillId,
+    name: getSkillNameById(activation.skillId),
+    start: activation.start,
+    end: activation.end,
+    duration: activation.end - activation.start,
+    effectType: activation.effectType,
+    effectTarget: activation.effectTarget,
+    targetsOpponent: activation.effectTarget !== SkillTarget.Self,
+  };
+};
 
 type SkillPosition = {
   id: string;
@@ -24,51 +44,29 @@ type SkillPosition = {
   start: number;
   end: number;
   duration: number;
+  effectType: ISkillType;
+  effectTarget: ISkillTarget;
 };
 
 export const SkillsTab = () => {
   const { chartData } = useRaceStore();
 
   const skillPositionsUma1: SkillPosition[] = useMemo(() => {
-    if (!chartData?.sk?.[0]) return [];
+    if (!chartData) return [];
 
-    const skillPositions: SkillPosition[] = [];
-    for (const [id, positions] of chartData.sk[0].entries()) {
-      const skillName = getSkillNameById(id);
-
-      positions.forEach(([start, end]) => {
-        skillPositions.push({
-          id,
-          name: skillName,
-          start,
-          end,
-          duration: end - start,
-        });
-      });
-    }
-
-    return skillPositions.toSorted((a, b) => a.start - b.start);
+    return EffectQuery.from(chartData.sk[0])
+      .toList()
+      .map(toSkillPosition)
+      .toSorted((a, b) => a.start - b.start);
   }, [chartData]);
 
   const skillPositionsUma2: SkillPosition[] = useMemo(() => {
-    if (!chartData?.sk?.[1]) return [];
+    if (!chartData) return [];
 
-    const skillPositions: SkillPosition[] = [];
-    for (const [id, positions] of chartData.sk[1].entries()) {
-      const skillName = getSkillNameById(id);
-
-      positions.forEach(([start, end]) => {
-        skillPositions.push({
-          id,
-          name: skillName,
-          start,
-          end,
-          duration: end - start,
-        });
-      });
-    }
-
-    return skillPositions.toSorted((a, b) => a.start - b.start);
+    return EffectQuery.from(chartData.sk[1])
+      .toList()
+      .map(toSkillPosition)
+      .toSorted((a, b) => a.start - b.start);
   }, [chartData]);
 
   if (!chartData) {

@@ -1,5 +1,5 @@
 import { RegionDisplayType } from '@/modules/racetrack/types';
-import { getSkillMetaById, getSkillNameById } from '@/modules/skills/utils';
+import { getSkillNameById } from '@/modules/skills/utils';
 import { useShallow } from 'zustand/shallow';
 import { useSettingsStore } from '@/store/settings.store';
 import { useSelectedPacemakerIndices } from '@/store/settings/actions';
@@ -10,12 +10,16 @@ import {
   posKeepColors,
   rushedColors,
 } from '@/utils/colors';
-import { hiddenSkills } from '@/utils/constants';
 import { PosKeepLabel } from '@/utils/races';
 import { CourseHelpers } from '@simulation/lib/CourseData';
 import { PosKeepMode } from '@simulation/lib/RaceSolver';
 import { useMemo } from 'react';
-import { SimulationRun } from '@/modules/simulation/compare.types';
+import {
+  SimulationRun,
+  SkillActivation,
+} from '@/modules/simulation/compare.types';
+import { SkillTarget } from '@/modules/simulation/lib/race-solver/types';
+import { EffectQuery } from '@/modules/skills/effects-query';
 
 export type RegionData = {
   type: RegionDisplayType;
@@ -50,6 +54,22 @@ const getStateName = (state: number) => {
   }
 };
 
+const getSkillsActivated = (umaIndex: number) => {
+  return (activation: SkillActivation) => {
+    const { start, end, effectTarget, skillId } = activation;
+    const color = effectTarget === SkillTarget.Self ? colors[0] : colors[1];
+
+    return {
+      type: RegionDisplayType.Textbox,
+      color: color,
+      text: getSkillNameById(skillId),
+      skillId: skillId,
+      umaIndex: umaIndex,
+      regions: [{ start, end }],
+    };
+  };
+};
+
 type UseVisualizationDataProps = {
   chartData: SimulationRun;
 };
@@ -75,38 +95,59 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
 
   const skillActivations: RegionData[] = useMemo(() => {
-    if (!chartData) return [];
-    if (!chartData.sk) return [];
+    if (!chartData?.sk) return [];
 
-    const skillActivations: RegionData[] = [];
+    const mapRunnerASkills = getSkillsActivated(0);
+    const runnerASkills = EffectQuery.from(chartData.sk[0])
+      .toList()
+      .map(mapRunnerASkills);
 
-    for (const [umaIndex, umaActivations] of chartData.sk.entries()) {
-      for (const [skillId, activations] of umaActivations.entries()) {
-        const skillMeta = getSkillMetaById(skillId);
+    const mapRunnerBSkills = getSkillsActivated(1);
+    const runnerBSkills = EffectQuery.from(chartData.sk[1])
+      .toList()
+      .map(mapRunnerBSkills);
 
-        if (hiddenSkills.indexOf(skillMeta.iconId) > -1) {
-          continue;
-        }
+    return [...runnerASkills, ...runnerBSkills];
 
-        for (const activation of activations) {
-          const color = colors[umaIndex as keyof typeof colors] as {
-            stroke: string;
-            fill: string;
-          };
+    // const skillActivations: RegionData[] = [];
 
-          skillActivations.push({
-            type: RegionDisplayType.Textbox,
-            color: color,
-            text: getSkillNameById(skillId),
-            skillId: skillId,
-            umaIndex: umaIndex,
-            regions: [{ start: activation[0], end: activation[1] }],
-          });
-        }
-      }
-    }
+    // for (const [umaIndex, umaActivations] of chartData.sk.entries()) {
+    //   for (const [skillId, activations] of umaActivations.entries()) {
+    //     const skillMeta = getSkillMetaById(skillId);
 
-    return skillActivations;
+    //     if (hiddenSkills.indexOf(skillMeta.iconId) > -1) {
+    //       continue;
+    //     }
+
+    //     for (const activation of activations) {
+    //       const [start, end, _perspective, _effectType, effectTarget] =
+    //         activation;
+    //       const targetsOthers =
+    //         effectTarget && effectTarget !== SkillTarget.Self;
+
+    //       const baseColor = colors[umaIndex as keyof typeof colors] as {
+    //         stroke: string;
+    //         fill: string;
+    //       };
+
+    //       // Optional: Use different styling for effects targeting others
+    //       const color = targetsOthers
+    //         ? { ...baseColor, stroke: baseColor.stroke, fill: 'transparent' } // Outline only
+    //         : baseColor;
+
+    //       skillActivations.push({
+    //         type: RegionDisplayType.Textbox,
+    //         color: color,
+    //         text: getSkillNameById(skillId) + (targetsOthers ? ' →' : ''), // Add indicator
+    //         skillId: skillId,
+    //         umaIndex: umaIndex,
+    //         regions: [{ start, end }],
+    //       });
+    //     }
+    //   }
+    // }
+
+    // return skillActivations;
   }, [chartData]);
 
   const rushedIndicators: RegionData[] = useMemo(() => {

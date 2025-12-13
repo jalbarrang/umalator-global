@@ -1,4 +1,4 @@
-# Uma Musume Race Mechanics
+# Uma Musume Race Mechanics - Global Server Edition
 
 by KuromiAK
 
@@ -230,7 +230,7 @@ Beware that some mechanics and bugs differ based on your respective server. You 
 
 [Charge Up / Fully Charged | Conserve Power / Release 足を貯める / 脚色十分](#charge-up-/-fully-charged-|-conserve-power-/-release-足を貯める-/-脚色十分)
 
-[Compete Before Spurt 位置取り調整](#compete-before-spurt-位置取り調整)
+[Compete Before Spurt 位置取り調整](#repositioning-位置取り調整)
 
 [Stamina Keep 持久力温存](#stamina-keep-持久力温存)
 
@@ -273,10 +273,12 @@ A race course is divided into 24 sections of equal distance. Sections are number
 
 A race is divided into 4 phases. Phases affect a uma’s behavior and target speed. Some skills only activate in a certain phase. Phases are numbered from 0 to 3\.
 
-- Early-race (0): Section 1 to 4\.
-- Mid-race (1): Section 5 to 16\.
-- Late-race (2): Section 17 to 20\.
-- Last Spurt (3): Section 21 to 24\. Not to be confused with the concept of last spurt.
+| Phase          | Section                                                               |
+| :------------- | :-------------------------------------------------------------------- |
+| Early-race (0) | Section 1 to 4\.                                                      |
+| Mid-race (1)   | Section 5 to 16\.                                                     |
+| Late-race (2)  | Section 17 to 20\.                                                    |
+| Last Spurt (3) | Section 21 to 24\. Not to be confused with the concept of last spurt. |
 
 During a race, the progress bar at top of the screen has a tick between early-race and mid-race, and another tick between mid-race and late-race. During the last spurt, the UI fades away.
 
@@ -303,9 +305,9 @@ BaseStat=(RawStats+AoharuTeamRankBonus)\*MotivationCoef
 
 ### Motivation Coefficient {#motivation-coefficient}
 
-| 絶好調 | 好調 | 普通 | 不調 | 絶不調 |
-| :----- | :--- | :--- | :--- | :----- |
-| 1.04   | 1.02 | 1.0  | 0.98 | 0.96   |
+| Great | Good | Normal | Bad  | Awful |
+| :---- | :--- | :----- | :--- | :---- |
+| 1.04  | 1.02 | 1.0    | 0.98 | 0.96  |
 
 ## Adjusted Stats {#adjusted-stats}
 
@@ -314,23 +316,23 @@ AdjustedSpeed=BaseSpeed\*RaceCourseModifier+GroundModifier+SingleModeModifier
 AdjustedStamina=BaseStamina+SingleModeModifier
 AdjustedPower=BasePower+GroundModifier+SingleModeModifier
 AdjustedGuts=BaseGuts+SingleModeModifier
-AdjustedWiz=BaseWiz\*StrategyProficiencyModifier+SingleModeModifier
+AdjustedWiz=BaseWit\*StrategyProficiencyModifier+SingleModeModifier
 
 ### Ground Modifier {#ground-modifier}
 
 Ground modifier for speed
 
-|      | 良 Firm | 稍重 Good | 重 Soft | 不良 Heavy |
-| :--- | :------ | :-------- | :------ | :--------- |
-| Turf | 0       | 0         | 0       | \-50       |
-| Dirt | 0       | 0         | 0       | \-50       |
+|      | Firm | Good | Soft | Heavy |
+| :--- | :--- | :--- | :--- | :---- |
+| Turf | 0    | 0    | 0    | \-50  |
+| Dirt | 0    | 0    | 0    | \-50  |
 
 Ground modifier for power
 
-|      | 良 Firm | 稍重 Good | 重 Soft | 不良 Heavy |
-| :--- | :------ | :-------- | :------ | :--------- |
-| Turf | 0       | \-50      | \-50    | \-50       |
-| Dirt | \-100   | \-50      | \-100   | \-100      |
+|      | Firm  | Good | Soft  | Heavy |
+| :--- | :---- | :--- | :---- | :---- |
+| Turf | 0     | \-50 | \-50  | \-50  |
+| Dirt | \-100 | \-50 | \-100 | \-100 |
 
 ### Strategy Proficiency Modifier {#strategy-proficiency-modifier}
 
@@ -342,10 +344,12 @@ Ground modifier for power
 
 Some race courses have 1-2 stats as threshold stats. Having [base stat](#base-stats) that exceeds threshold provides a bonus to adjusted speed.
 
-- Stat \<= 300, \+0.05x
-- 300 \< Stat \<= 600, \+0.1x
-- 600 \< Stat \<= 900, \+0.15x
-- 900 \< Stat, \+0.2x
+| Threshold Stat      | Bonus  |
+| :------------------ | :----- |
+| \<= 300             | +0.05x |
+| 300 \< Stat \<= 600 | +0.1x  |
+| 600 \< Stat \<= 900 | +0.15x |
+| 900 \< Stat         | +0.2x  |
 
 The final modifier is the average of modifiers for all threshold stats. Therefore the maximum bonus achievable is \+0.2x.
 
@@ -367,10 +371,12 @@ Force-in modifier is applied in the early-race when an uma is more than 0.12 cou
 ForceInModifier=Random(0.1)+StrategyModifier\[m/s\]
 Strategy modifier is
 
-- Front Runner 0.02m/s
-- Pace Chaser 0.01m/s
-- Late Surger 0.01m/s
-- End Closer 0.03m/s
+| Strategy     | Strategy Modifier |
+| :----------- | :---------------- |
+| Front Runner | 0.02m/s           |
+| Pace Chaser  | 0.01m/s           |
+| Late Surger  | 0.01m/s           |
+| End Closer   | 0.03m/s           |
 
 Move lane modifier is applied when an uma is affected by a skill that modifies lane move speed, and has performed lane movement in the previous frame. Note that this was added after the 1st anniversary.
 MoveLaneModifier=(0.0002\*PowerStat)0.5\[m/s\]
@@ -379,7 +385,7 @@ MoveLaneModifier=(0.0002\*PowerStat)0.5\[m/s\]
 
 Slope modifier is applied when a uma is running on uphill or downhill, see [Course Events](#course-events).
 
-When running uphill, a uma loses target speed equal to SlopePer\*200/PowerStat. When running downhill, every second there is a chance of WizStat\*0.04% to enter downhill accel mode that increases target speed by 0.3+SlopePer/10 \[m/s\] and reduces HP consumption by 60%. Each second the downhill accel mode has a 20% chance to end.
+When running uphill, a uma loses target speed equal to SlopePer\*200/PowerStat. When running downhill, every second there is a chance of WitStat\*0.04% to enter downhill accel mode that increases target speed by 0.3+SlopePer/10 \[m/s\] and reduces HP consumption by 60%. Each second the downhill accel mode has a 20% chance to end.
 
 ## Base Speed {#base-speed}
 
@@ -419,8 +425,8 @@ BaseTargetSpeed=BaseSpeed\*StrategyPhaseCoef+sqrt(500\*SpeedStat)\*DistanceProfi
 
 ### Randomness Per Section {#randomness-per-section}
 
-At each [section](#section), [race base speed](#base-speed) multiplied by a random number is added to target speed. The random number is affected by wisdom stat. This randomness does not affect the last spurt calculation.
-Max=WizStat/5500\*log10(WizStat\*0.1)\[%\]
+At each [section](#section), [race base speed](#base-speed) multiplied by a random number is added to target speed. The random number is affected by Wit stat. This randomness does not affect the last spurt calculation.
+Max=WitStat/5500\*log10(WitStat\*0.1)\[%\]
 Min=Max-0.65\[%\]
 Examples:
 
@@ -437,7 +443,7 @@ Note that the guts component was added after the 1st anniversary.
 
 Upon entering the late-race, if the uma has enough HP to run the remaining distance at max target speed, she will immediately start the last spurt using the max target speed.
 
-If HP is insufficient, a list of last spurt speed and distance candidates are calculated by lowering the target speed by 0.1m/s each step, till the last spurt speed reaches base target speed of the late-race. Then candidates are sorted by the time it would take to finish the race (sum of respective distance divided by speed, ignoring acceleration). Going from best to worst time, each candidate has a chance of 15+0.05\*WizStat\[%\] chance to be accepted. If all candidates are exhausted without passing the wisdom check, the slowest candidate is chosen.
+If HP is insufficient, a list of last spurt speed and distance candidates are calculated by lowering the target speed by 0.1m/s each step, till the last spurt speed reaches base target speed of the late-race. Then candidates are sorted by the time it would take to finish the race (sum of respective distance divided by speed, ignoring acceleration). Going from best to worst time, each candidate has a chance of 15+0.05\*WitStat\[%\] chance to be accepted. If all candidates are exhausted without passing the Wit check, the slowest candidate is chosen.
 
 Last spurt calculation estimates the stamina usage up to 60m before the goal line. The calculation does not take into account the time it takes to accelerate to target speed. If an HP recovery skill activates after entering the late-race, the last spurt speed and distance are re-calculated. Debuffs on the other hand do not trigger a re-calculation. Note that the recalculation was added after the 1st anniversary.
 
@@ -511,11 +517,13 @@ After the end of a start dash, a uma is usually unable to accelerate to [minimum
 
 Deceleration is determined by phase
 
-- Early-race: \-1.2m/s2
-- Mid-race: \-0.8m/s2
-- Late-race: \-1.0m/s2
-- Pace Down mode (overriding all above, after 1.5 anniversary): \-0.5m/s2
-- Out of HP (overriding all above): \-1.2m/s2
+| Phase                                                        | Deceleration | In Global Server |
+| :----------------------------------------------------------- | :----------- | ---------------- |
+| Early-race                                                   | -1.2m/s2     | Yes              |
+| Mid-race                                                     | -0.8m/s2     | Yes              |
+| Late-race                                                    | -1.0m/s2     | Yes              |
+| Pace Down mode (overriding all above, after 1.5 anniversary) | -0.5m/s2     | No               |
+| Out of HP (overriding all above)                             | -1.2m/s2     | Yes              |
 
 # HP {#hp}
 
@@ -543,19 +551,21 @@ Status modifier is as follows (multiplicative):
 
 The ground modifier is affected by the track condition.
 
-|      | 良  | 稍重 | 重   | 不良 |
-| :--- | :-- | :--- | :--- | :--- |
-| Turf | 1   | 1    | 1.02 | 1.02 |
-| Dirt | 1   | 1    | 1.01 | 1.02 |
+|      | Firm | Good | Soft | Heavy |
+| :--- | :--- | :--- | :--- | :---- |
+| Turf | 1    | 1    | 1.02 | 1.02  |
+| Dirt | 1    | 1    | 1.01 | 1.02  |
 
 In the late-race and last spurt, HP consumption is multiplied by guts modifier.
 GutsModifier=1.0+(200/sqrt(600.0\*GutsStat))
 
 Examples:
 
-- 200 Guts, 1.577x
-- 400 Guts, 1.408x
-- 600 Guts, 1.333x
+| Guts | Guts Modifier |
+| :--- | :------------ |
+| 200  | 1.577x        |
+| 400  | 1.408x        |
+| 600  | 1.333x        |
 
 ## HP Recovery Skills {#hp-recovery-skills}
 
@@ -571,16 +581,17 @@ See [https://gametora.com/umamusume/skills](https://gametora.com/umamusume/skill
 
 ## Skill Activation Chance {#skill-activation-chance}
 
-Many skills need to pass a wisdom check BEFORE the race.
-ActivationChance=max(100-9000/BaseWiz,20)%
-Examples:
+Many skills need to pass a Wit check BEFORE the race.
+ActivationChance=max(100-9000/BaseWit,20)%
 
-- 300 Wit, 70.0%
-- 600 Wit, 85.0%
-- 900 Wit, 90.0%
-- 1200 Wit, 92.5%
+| Wit  | Activation Chance |
+| :--- | :---------------- |
+| 300  | 70.0%             |
+| 600  | 85.0%             |
+| 900  | 90.0%             |
+| 1200 | 92.5%             |
 
-Note that [base wisdom stat](#base-stats) is used here. As a result the activation chance is NOT affected by strategy proficiency or skills.
+Note that [base Wit stat](#base-stats) is used here. As a result the activation chance is NOT affected by strategy proficiency or skills.
 
 ## Skill Ability {#skill-ability}
 
@@ -663,11 +674,14 @@ order_rate_inXX_continue requires an uma to remain in top XX% until skill activa
 A uma is considered near if
 abs(DistanceGap)\<3m
 abs(LaneGap)\<3HorseLane
-Note that before the 1st anniversary, the distances used to be 1.5m and 1.5 horse lanes respectively.
+
+- Note 1: Before the 1st anniversary changes, the distances used to be 1.5m and 1.5 horse lanes respectively.
+- Note 2: We currently have the 1st anniversary changes in effect, so Note 1 is no longer applicable.
 
 ### is_surrounded {#is_surrounded}
 
 A uma is considered surrounded if for all 3 of the following directions another uma can be found. The same uma can fulfill more than 1 direction.
+
 Out: abs(DistanceGap)\<1.5m;0\<LaneGap\<3HorseLane
 Front: 0\<DistanceGap\<3.0m;abs(LaneGap)\<1.5HorseLane
 Behind: \-3.0m\<DistanceGap\<0;abs(LaneGap)\<1.5HorseLane
@@ -721,39 +735,49 @@ ScaledValue=min(1+0.01\*NumSkill, 1.2)
 
 The effectiveness of aoharu skills scales with your team’s total [base stats](#base-stats).
 
-- Total \< 1200, 0.8x
-- 1200 \<= Total \< 1800, 0.9x
-- 1800 \<= Total \< 2600, 1.0x
-- 2600 \<= Total \< 3600, 1.1x
-- 3600 \<= Total, 1.2x
+| Total                  | Effectiveness |
+| :--------------------- | :------------ |
+| Total \< 1200          | 0.8x          |
+| 1200 \<= Total \< 1800 | 0.9x          |
+| 1800 \<= Total \< 2600 | 1.0x          |
+| 2600 \<= Total \< 3600 | 1.1x          |
+| 3600 \<= Total         | 1.2x          |
 
 ### Multiply Random (8, 9\) {#multiply-random-(8,-9)}
 
 Type 1 (ID=8) and Type 2 (ID=9) are identical.
 
-- 60%, 0.0x
-- 30%, 0.02x
-- 10%, 0.04x
+| Percentage | Effectiveness |
+| :--------- | :------------ |
+| 60%        | 0.0x          |
+| 30%        | 0.02x         |
+| 10%        | 0.04x         |
 
 ### Climax Skills (10) {#climax-skills-(10)}
 
 The effectiveness of climax skills scales with the number of races won during training.
 
-- Races won \< 6, 0.8x
-- 6 \<= Races won \< 14, 0.9x
-- 14 \<= Races won \< 18, 1.0x
-- 18 \<= Races won \< 25, 1.1x
-- 25 \<= Races won, 1.2x
+| Races won              | Effectiveness |
+| :--------------------- | :------------ |
+| Races won \< 6         | 0.8x          |
+| 6 \<= Races won \< 14  | 0.9x          |
+| 14 \<= Races won \< 18 | 1.0x          |
+| 18 \<= Races won \< 25 | 1.1x          |
+| 25 \<= Races won       | 1.2x          |
+
+Note: Not implemented yet in Global Server.
 
 ### MultiplyMaximumRawStatus (13) {#multiplymaximumrawstatus-(13)}
 
 The effectiveness scales with the maximum raw stat of all 5 stats.
 
-- Stat \< 600, 0.8x
-- 600 \<= Stat \< 800, 0.9x
-- 800 \<= Stat \< 1000, 1.0x
-- 1000 \<= Stat \< 1100, 1.1x
-- 1100 \<= Stat, 1.2x
+| Stat                  | Effectiveness |
+| :-------------------- | :------------ |
+| Stat \< 600           | 0.8x          |
+| 600 \<= Stat \< 800   | 0.9x          |
+| 800 \<= Stat \< 1000  | 1.0x          |
+| 1000 \<= Stat \< 1100 | 1.1x          |
+| 1100 \<= Stat         | 1.2x          |
 
 ### MultiplyActivateSpecificTagSkillCount (14) {#multiplyactivatespecifictagskillcount-(14)}
 
@@ -768,8 +792,10 @@ The effectiveness scales with the number of green skills (skill tag 601-615) act
 
 Adds a flat amount of effectiveness when far enough away from the first place.
 
-- Distance \< 20m, \+0.0
-- Distance \>= 20m, \+0.1
+| Distance         | Effectiveness |
+| :--------------- | :------------ |
+| Distance \< 20m  | \+0.0         |
+| Distance \>= 20m | \+0.1         |
 
 ### MultiplyBlockedSideMaxContinueTimePhaseMiddleRun (20, 21\) {#multiplyblockedsidemaxcontinuetimephasemiddlerun-(20,-21)}
 
@@ -777,10 +803,12 @@ Scales with the max duration the uma is [blocked](#side-blocking) on either side
 
 Type 1 (ID=20)
 
-- Blocked \< 2s, 1.0x
-- Blocked \< 4s, 2.0x
-- Blocked \< 6s, 3.0x
-- Blocked \>= 6s, 4.0x
+| Blocked        | Effectiveness |
+| :------------- | :------------ |
+| Blocked \< 2s  | 1.0x          |
+| Blocked \< 4s  | 2.0x          |
+| Blocked \< 6s  | 3.0x          |
+| Blocked \>= 6s | 4.0x          |
 
 Type 2 (ID=21) is not implemented yet.
 
@@ -790,33 +818,43 @@ Scales with the uma’s final speed stat. This includes raw stat, motivation mod
 
 Type 1 (ID=22)
 
-- Speed \< 1700, 0.0x
-- 1700 \<= Speed \< 1800, 1.0x
-- 1800 \<= Speed \< 1900, 2.0x
-- 1900 \<= Speed \< 2000, 3.0x
-- 2000 \<= Speed, 4.0x
+| Speed                  | Effectiveness |
+| :--------------------- | :------------ |
+| Speed \< 1700          | 0.0x          |
+| 1700 \<= Speed \< 1800 | 1.0x          |
+| 1800 \<= Speed \< 1900 | 2.0x          |
+| 1900 \<= Speed \< 2000 | 3.0x          |
+| 2000 \<= Speed         | 4.0x          |
 
 Type 2 (ID=23)
 
-- Speed \< 1400, 1.0x
-- 1400 \<= Speed \< 1600, 2.0x
-- 1600 \<= Speed, 3.0x
+| Speed                  | Effectiveness |
+| :--------------------- | :------------ |
+| Speed \< 1400          | 1.0x          |
+| 1400 \<= Speed \< 1600 | 2.0x          |
+| 1600 \<= Speed         | 3.0x          |
 
 ### MultiplyArcGlobalPotentialLevel (24) {#multiplyarcglobalpotentiallevel-(24)}
 
 Scales with the uma’s total level of global potential in the L’arc scenario.
 
-- Lv \< 10, 1.0x
-- 10 \<= Lv \< 20, 1.1x
-- 20 \<= Lv, 1.2x
+| Level           | Effectiveness |
+| :-------------- | :------------ |
+| Lv \< 10        | 1.0x          |
+| 10 \<= Lv \< 20 | 1.1x          |
+| 20 \<= Lv       | 1.2x          |
+
+Note: Not implemented yet in Global Server.
 
 ### MultiplyTopLeadAmount (25) {#multiplytopleadamount-(25)}
 
 Scales with the uma’s maximum lead achieved between 0-66.6% of the course distance.
 
-- Lead \< 10m, 1.0x
-- 10m \<= Lead \< 25m, 1.4x
-- 25m \<= Lead, 1.8x
+| Lead                | Effectiveness |
+| :------------------ | :------------ |
+| Lead \< 10m         | 1.0x          |
+| 10m \<= Lead \< 25m | 1.4x          |
+| 25m \<= Lead        | 1.8x          |
 
 ## Duration Scaling, Ability Time Usage {#duration-scaling,-ability-time-usage}
 
@@ -833,22 +871,26 @@ ScaledDuration=BaseDuration\*min(0.8+DistanceFromTop / 62.5m, 1.6)
 The duration scales with the remaining [HP](#hp) at the time of skill activation.
 Type 1, for Mejiro Bright, Mejiro McQueen (ID=3)
 
-- HP \< 2000, 1.0x
-- 2000 \<= HP \< 2400, 1.5x
-- 2400 \<= HP \< 2600, 2.0x
-- 2600 \<= HP \< 2800, 2.2x
-- 2800 \<= HP \< 3000, 2.5x
-- 3000 \<= HP \< 3200, 3.0x
-- 3200 \<= HP \< 3500, 3.5x
-- 3500 \<= HP, 4.0x
+| HP                  | Effectiveness |
+| :------------------ | :------------ |
+| HP \< 2000          | 1.0x          |
+| 2000 \<= HP \< 2400 | 1.5x          |
+| 2400 \<= HP \< 2600 | 2.0x          |
+| 2600 \<= HP \< 2800 | 2.2x          |
+| 2800 \<= HP \< 3000 | 2.5x          |
+| 3000 \<= HP \< 3200 | 3.0x          |
+| 3200 \<= HP \< 3500 | 3.5x          |
+| 3500 \<= HP         | 4.0x          |
 
 Type 2, for Matikane Tannhauser (ID=7)
 
-- HP \< 1500, 1.0x
-- 1500 \<= HP \< 1800, 1.5x
-- 1800 \<= HP \< 2000, 2.0x
-- 2000 \<= HP \< 2100, 2.5x
-- 2100 \<= HP, 3.0x
+| HP                  | Effectiveness |
+| :------------------ | :------------ |
+| HP \< 1500          | 1.0x          |
+| 1500 \<= HP \< 1800 | 1.5x          |
+| 1800 \<= HP \< 2000 | 2.0x          |
+| 2000 \<= HP \< 2100 | 2.5x          |
+| 2100 \<= HP         | 3.0x          |
 
 ### IncrementOrderUp (4) {#incrementorderup-(4)}
 
@@ -859,10 +901,12 @@ The duration increases by 1 second for each time the uma successfully overtakes 
 The same logic as the ability value counterpart, see [MultiplyBlockedSideMaxContinueTimePhaseMiddleRun](<#multiplyblockedsidemaxcontinuetimephasemiddlerun-(20,-21)>).
 Type 1 (ID=5)
 
-- Blocked \< 2s, 1.0x
-- Blocked \< 4s, 2.0x
-- Blocked \< 6s, 3.0x
-- Blocked \>= 6s, 4.0x
+| Blocked        | Effectiveness |
+| :------------- | :------------ |
+| Blocked \< 2s  | 1.0x          |
+| Blocked \< 4s  | 2.0x          |
+| Blocked \< 6s  | 3.0x          |
+| Blocked \>= 6s | 4.0x          |
 
 Type 2 (ID=6) is not implemented yet.
 
@@ -892,7 +936,7 @@ The maximum may change throughout the race, though the only instances of this ar
 A uma’s initial lane is HorseIndex\*HorseLane+Adjustor where the adjustor is:
 
 - 0 for Ooi
-- 1.86 if gate \>= 14 for Longchamp
+- 1.86 if gate \>= 14 for Longchamp (L'arc scenario)
 - 0.6 if gate \>= 10 on other JRA courses
 
 ## Lane Change Speed {#lane-change-speed}
@@ -909,7 +953,9 @@ Current speed changes towards target speed over time. This value is not directio
 Accel=0.02\*1.5
 
 Actual speed accounts for skills and is faster when moving in.
+
 ActualSpeed=clamp(CurrentSpeed+SkillModifier,0, 0.6)\*DirectionModifier
+
 Direction modifier is 1 when moving out. And affected by lane distance when moving in.
 DirectionModifierOut=1
 DirectionModifierIn=-(1+LaneDistance)
@@ -959,9 +1005,12 @@ If the uma doesn’t have enough lane space to either side to reach a candidate,
 
 Score=abs(CandidateLane-LaneDistance)\*PhaseCoef
 Phase coefficient differs by whether the candidate is inside or outside.
-Early-race: In \= 1.0, Out \= 100.0
-Mid-race: In \= 1.0, Out \= 1.0
-Late-race, last spurt: In \= 1.0, Out \=1.15
+
+| Phase                 | Inside | Outside |
+| :-------------------- | :----- | :------ |
+| Early-race            | 1.0    | 100.0   |
+| Mid-race              | 1.0    | 1.0     |
+| Late-race, last spurt | 1.0    | 1.15    |
 
 If no candidate is good, the current lane is accepted as a candidate.
 
@@ -1017,18 +1066,22 @@ The formula suggests that the maximum width of the vision cone (triangle) is a c
 
 # Start Delay, Late Start {#start-delay,-late-start}
 
-When the race starts, a uma starts running after a random delay of up to 0.1s. The delay is NOT affected by wisdom. If the delay is more than 0.08s, it is considered a late start. If the delay is less than 0.02s, you gain a start dash score bonus in the team stadium.
+When the race starts, a uma starts running after a random delay of up to 0.1s. The delay is NOT affected by Wit. If the delay is more than 0.08s, it is considered a late start. If the delay is less than 0.02s, you gain a start dash score bonus in the team stadium.
 
 The following skills changes the random start delay to a fixed number:
 
-- アタシに指図しないで！！(0.085)
-- 超遊び癖(0.1)
+| Skill                        | Start Delay |
+| :--------------------------- | :---------- |
+| "You're Not the Boss of Me!" | 0.085       |
+| "Feelin' a Bit Silly"        | 0.1         |
 
 The following skills multiply the start delay:
 
-- Concentration コンセントレーション 0.4x
-- Focus 集中力 0.9x
-- Gatekept ゲート難 1.5x
+| Skill           | Modifier |
+| :-------------- | :------- |
+| "Concentration" | 0.4x     |
+| "Focus"         | 0.9x     |
+| "Gatekept"      | 1.5x     |
 
 When start delay is less than 1 [frame](#frame-rate), acceleration and HP consumption are unaffected. The distance traveled on the first frame is SpeedAfterAccel\*(1 frame-StartDelay).
 
@@ -1038,7 +1091,7 @@ When start delay is greater than 1 frame, no acceleration, HP consumption, or di
 
 Position keeping affects target speed between [section](#section) 1 to 10\. There are 5 modes besides normal mode. For front runners, there are 2 modes: speed up and overtake. For non-front runners, there are 2 modes: pace up and pace down. Then there is a shared pace up Ex mode.
 
-When in normal mode, a check to enter non-normal modes is performed every 2 seconds. The check consists of an entry condition and sometimes a wisdom check. Uma returns to normal mode once exit conditions are fulfilled, or after she has run in this mode for the length of 1 [section](#section) (3 sections for Runaway; distance of 1 section is rounded down before multiplying). Once exited, there is a 1 second cooldown (followed by the aforementioned 2 seconds interval for a total of 3 seconds) before the checks are run again.
+When in normal mode, a check to enter non-normal modes is performed every 2 seconds. The check consists of an entry condition and sometimes a Wit check. Uma returns to normal mode once exit conditions are fulfilled, or after she has run in this mode for the length of 1 [section](#section) (3 sections for Runaway; distance of 1 section is rounded down before multiplying). Once exited, there is a 1 second cooldown (followed by the aforementioned 2 seconds interval for a total of 3 seconds) before the checks are run again.
 
 ## Pacemaker {#pacemaker}
 
@@ -1053,38 +1106,41 @@ Front runners try to take first place and maintain a lead ahead of the second pl
 ### Speed up mode {#speed-up-mode}
 
 Target speed modifier: 1.04x
-Entry condition: uma is first place and less than 4.5m (front runner) / 17.5m (Runaway) ahead of the uma behind. The distance is increased to 12.5m if she is the only front runner after the 1.5th anniversary. Pass the wisdom check.
-Chance=20\*log10(WizStat\*0.1) \[%\]
+Entry condition: uma is first place and less than 4.5m (front runner) / 17.5m (Runaway) ahead of the uma behind. The distance is increased to 12.5m if she is the only front runner after the 1.5th anniversary. Pass the Wit check.
+Chance=20\*log10(WitStat\*0.1) \[%\]
 Exit condition: uma is more than 4.5m (front runner) / 17.5m (Runaway) ahead of the second place. The distance is increased to 12.5m if she is the only front runner after the 1.5th anniversary.
 
 ### Overtake mode {#overtake-mode-1}
 
 Not to be confused with overtake target lane mode.
 Target speed modifier: 1.05x
-Entry condition: uma is not first place within the same strategy. Pass the wisdom check.
-Chance=20\*log10(WizStat\*0.1) \[%\]
+Entry condition: uma is not first place within the same strategy. Pass the Wit check.
+Chance=20\*log10(WitStat\*0.1) \[%\]
 Exit condition: uma is 10m (27.5m for Runaway) ahead of second place among uma who have the same strategy.
 
 ## Non-Front Runner Modes {#non-front-runner-modes}
 
 Non-front runners try to maintain their distance with the pacemaker between 2 distance thresholds. The distance thresholds are:
 CourseFactor=0.0008\*(CourseLength-1000)+1.0
-Pace Chaser: Min=3.0 \[m\] Max=5.0\*CourseFactor \[m\]
-Late Surger: Min=6.5\*CourseFactor \[m\] Max=7.0\*CourseFactor \[m\]
-End Closer: Min=7.5\*CourseFactor \[m\] Max=8.0\*CourseFactor \[m\]
+
+| Strategy    | Min Distance            | Max Distance            |
+| :---------- | :---------------------- | :---------------------- |
+| Pace Chaser | 3.0 \[m\]               | 5.0\*CourseFactor \[m\] |
+| Late Surger | 6.5\*CourseFactor \[m\] | 7.0\*CourseFactor \[m\] |
+| End Closer  | 7.5\*CourseFactor \[m\] | 8.0\*CourseFactor \[m\] |
 
 ### Pace up mode {#pace-up-mode}
 
 Target speed modifier: 1.04x
-Entry condition: uma’s distance from the 1st place is above the maximum distance. Pass the wisdom check.
-Chance=15\*log10(WizStat\*0.1) \[%\]
+Entry condition: uma’s distance from the 1st place is above the maximum distance. Pass the Wit check.
+Chance=15\*log10(WitStat\*0.1) \[%\]
 Exit condition: uma’s distance from the 1st place is below a random value between the thresholds.
 
 ### Pace down mode {#pace-down-mode}
 
 Target speed modifier: 0.945x if in the mid-race after 1.5 anniversary; 0.915x otherwise
 Entry condition: uma’s distance from the 1st place is below the minimum distance. No target speed or current speed up skill effect is active.
-Exit condition: uma’s distance from the 1st place is above a random value between the thresholds. After the 1.5 anniversary, if in mid-race, the maximum distance is replaced with lerp(Min, Max, 0.5) before rolling the random value. Or when uma is affected by a skill that increases her current speed or target speed. (Debuffs used to also remove pace down mode. [\[example\]](https://x.com/hoffe_33/status/1555274618662834176) This was fixed on 2022-08-09.)
+Exit condition: uma’s distance from the 1st place is above a random value between the thresholds. After the 1.5 anniversary, if in mid-race, the maximum distance is replaced with lerp(Min, Max, 0.5) before rolling the random value. Or when uma is affected by a skill that increases her current speed or target speed. (Debuffs used to also remove pace down mode. [\[example\]](https://x.com/hoffe_33/status/1555274618662834176) This was fixed on 2022-08-09 in JP, Global Server doesn't have the 1.5 anniversary update yet)
 
 ## Pace Up Ex Mode {#pace-up-ex-mode}
 
@@ -1092,39 +1148,41 @@ Target speed modifier: 2.0x
 Entry condition for front runners: another uma whose strategy should be behind is ahead of the uma.
 Entry condition for others: pacemaker’s strategy should be behind the uma.
 Exit condition: no other uma whose strategy should be behind is ahead of the uma.
-This mode is prioritized over all other position keep modes. This mode was added after the 1.5 anniversary.
+This mode is prioritized over all other position keep modes. This mode was added after the 1.5 anniversary (not implemented yet in Global Server).
 
-## Rushed, Kakari 掛かり, Temptation {#rushed,-kakari-掛かり,-temptation}
+## Rushed State {#rushed,-kakari-掛かり,-temptation}
 
-Each uma rolls for the rushed state before the race starts. The chance is affected by wisdom.
-RushedChance=(6.5/log10(0.1\*WizStat+1))2%
+Each uma rolls for the rushed state before the race starts. The chance is affected by Wit.
+RushedChance=(6.5/log10(0.1\*WitStat+1))2%
 Examples:
 
-- 300 Wit, 19.00%
-- 600 Wit, 13.26%
-- 900 Wit, 11.01%
-- 1200 Wit, 9.74%
+| Wit      | Rushed Chance |
+| :------- | :------------ |
+| 300 Wit  | 19.00%        |
+| 600 Wit  | 13.26%        |
+| 900 Wit  | 11.01%        |
+| 1200 Wit | 9.74%         |
 
-自制心 reduces the chance by flat 3%. i.e. 19% to 16%.
+The "Restraint" skill (ID=202161) reduces the chance by flat 3%. i.e. 19% to 16%.
 
 If a uma were to enter the rushed state, she would do so in a random [section](#section) between 2 to 9\. She will enter the rushed state as soon as she enters the section.
 
-While rushed, HP consumption is increased to 1.6x. Rushed also forces the uma to change their position keeping strategy and succeed in all position keep wisdom rolls. Worth noting that this change in position keeping strategy only affects the AI, and does not affect things like strategy coefficient when calculating base target speed.
+While rushed, HP consumption is increased to 1.6x. Rushed also forces the uma to change their position keeping strategy and succeed in all position keep Wit rolls. Worth noting that this change in position keeping strategy only affects the AI, and does not affect things like strategy coefficient when calculating base target speed.
 
-- Front Runners will enter speed up mode
-- Pace Chasers will become runners
-- Late Surgers have a 75% chance to become runners, 25% chance to become leaders.
-- End Closers have a 70% chance to become runners, 20% chance to become leaders, 10% chance to become betweeners.
+- Front Runners will enter speed up mode.
+- Pace Chasers will become Front Runners.
+- Late Surgers have a 75% chance to become Front Runners, 25% chance to become Pace Chasers.
+- End Closers have a 70% chance to become Front Runners, 20% chance to become Pace Chasers, 10% chance to become Late Surgers
 
 Every 3 seconds while rushed, the uma has a 55% chance to snap out of it. Rushed ends if the uma is still affected after 12 seconds. Debuffs worsening the rushed state extends the timer by 5 seconds, this effect can be applied multiple times.
 
-# Spot Struggle | Lead Competition 位置取り争い {#spot-struggle-|-lead-competition-位置取り争い}
+# Spot Struggle {#spot-struggle}
 
 Note: Info in this section is inferred from the game’s parameter file, which is less concretely confirmed as results from reverse engineering. In the code, this mechanic is referred to as CompeteTop.
 
-When there are 2 or more front runners or Runaway, lead competition may be triggered between 150m from start to the 6th section.
+When there are 2 or more Front Runners or Runaways, Spot Struggle may be triggered between 150m from start to the 6th section.
 
-For front runners, their relative position must be:
+For Front Runners, their relative position must be:
 DistanceGap\<3.75m
 LaneGap\<0.165\*CourseWidth
 
@@ -1132,21 +1190,21 @@ For Runaway, their relative position must be :
 DistanceGap\<5.0m
 LaneGap\<0.416\*CourseWidth
 
-Front runners may compete with each other, Runaway may compete with each other, but a regular front runner does not compete with an Runaway.
+Front Runners may compete with each other, Runaways may compete with each other, but a regular Front Runner does not compete with an Runaway.
 
-During lead competition, the front runners gain additional speed based on their guts stat.
+During Spot Struggle, the Front Runners gain additional speed based on their guts stat.
 TargetSpeed+=(500\*GutsStat)0.6\*0.0001\[m/s\]
 Duration=(700\*GutsStat)0.5\*0.012\[s\]
 Lead competition always ends when the 9th section is reached, regardless of whether duration has expired.
 
-During lead competition, the HP consumption rate is multiplied by the following number:
+During Spot Struggle, the HP consumption rate is multiplied by the following number:
 
 - Front Runner: 1.4x
-- Front Runner \+ Rushed: 3.6x
+- Front Runner + Rushed: 3.6x
 - Runaway: 3.5x
-- Runaway \+ Rushed: 7.7x
+- Runaway + Rushed: 7.7x
 
-# Dueling | Compete Fight 追い比べ {#dueling-|-compete-fight-追い比べ}
+# Dueling {#dueling}
 
 Note: Info in this section is inferred from the game’s parameter file, which is less concretely confirmed as results from reverse engineering.
 
@@ -1161,7 +1219,10 @@ Accel+=(160\*GutsStat)0.59\*0.0001\[m/s\]
 
 Competition cannot occur when HP is less than 15%, and will end if HP is reduced to below 5%.
 
-# Charge Up / Fully Charged | Conserve Power / Release 足を貯める / 脚色十分 {#charge-up-/-fully-charged-|-conserve-power-/-release-足を貯める-/-脚色十分}
+# Power Conservation and Release (足を貯める and 脚色十分) {#charge-up-/-fully-charged}
+
+- This mechanic was added during the JP server's second anniversary on February 24, 2023.
+- Not implemented yet in Global Server, will probably be available in the 1.5th anniversary update.
 
 Note: Info in this section is inferred from the game’s parameter file, which is less concretely confirmed as results from reverse engineering.
 
@@ -1177,7 +1238,7 @@ Modes that increase conserved power:
 
 Modes that decrease conserved power:
 
-- ID 3\. Lead Competition (0.95)
+- ID 3\. Spot Struggle (0.95)
 - ID 4\. Rushed (0.8)
 
 When conserved power is decreased, the following 2 categories of skill ability type seem to also play an unknown role:
@@ -1198,7 +1259,7 @@ The strategy-distance coefficient is
 
 The activity coefficient is
 
-- ID 3\. Lead competition, 0.98
+- ID 3\. Spot Struggle, 0.98
 - ID 4\. Rushed, 0.8
 
 The duration of the acceleration is unclear, but may depend on how much power has been conserved. It lasts about 3 seconds based on observation. The following coefficients seem to be related:
@@ -1211,125 +1272,143 @@ ActivityTimeCoef=1450
 | Mid      | 0.875                        |
 | Long     | 0.8                          |
 
-# Compete Before Spurt 位置取り調整 {#compete-before-spurt-位置取り調整}
+# Repositioning (位置取り調整) {#repositioning}
+
+- These mechanics were added during the JP server's 2.5th anniversary on August 24, 2023.
+- Not implemented yet in Global Server, will probably be available in the 2nd anniversary update.
 
 Note: Info in this section is inferred from the game’s parameter file, which is less concretely confirmed as results from reverse engineering. The details are still under investigation.
 
-Competing before spurt occurs between section 11 and 15 of the race. Every 2 seconds, a check is performed to see if she is too far from the first place (scaling with wisdom), or has other umas nearby (scaling with guts, number of nearby uma, number of nearby uma with the same strategy). If the check succeeds, she enters a competition mode.
+Competing before spurt occurs between section 11 and 15 of the race. Every 2 seconds, a check is performed to see if she is too far from the first place (scaling with Wit), or has other umas nearby (scaling with guts, number of nearby uma, number of nearby uma with the same strategy). If the check succeeds, she enters a Compete Before Spurt mode.
 
 The exact condition is unclear. It involves the following threshold and a number of other parameters.
 Distance from the lead threshold (should scale with course distance)
 
-| Strategy | Distance |
-| :------- | :------- |
-| Runaway  | 0.0      |
-| Nige     | 0.0      |
-| Senkou   | 2.5      |
-| Sashi    | 5.0      |
-| Oikomi   | 10.0     |
+| Strategy     | Distance |
+| :----------- | :------- |
+| Runaway      | 0.0      |
+| Front Runner | 0.0      |
+| Pace Chaser  | 2.5      |
+| Late Surger  | 5.0      |
+| End Closer   | 10.0     |
 
 If the competition mode is activated, the uma speeds up at the cost of stamina for 2 seconds, then enters a cooldown of 1 second.
 TargetSpeedIncrease=((Power/1500)0.5\*2.0+(Guts/3000)0.2)\*0.1\*StrategyCoefficient
 
-| Strategy | Strategy Coefficient |
-| :------- | :------------------- |
-| Runaway  | 0.2                  |
-| Nige     | 0.8                  |
-| Senkou   | 1.0                  |
-| Sashi    | 1.0                  |
-| Oikomi   | 1.0                  |
+| Strategy     | Strategy Coefficient |
+| :----------- | :------------------- |
+| Runaway      | 0.2                  |
+| Front Runner | 0.8                  |
+| Pace Chaser  | 1.0                  |
+| Late Surger  | 1.0                  |
+| End Closer   | 1.0                  |
 
 StaminaConsumption=20\*(StrategyCoefficient\*DistanceCoefficient+NearFactor)
 Stamina consumption strategy coefficient
 
-| Strategy | Stamina Consumption Coefficient |
-| :------- | :------------------------------ |
-| Runaway  | 1.5                             |
-| Nige     | 1.2                             |
-| Senkou   | 1.0                             |
-| Sashi    | 1.0                             |
-| Oikomi   | 1.0                             |
+| Strategy     | Stamina Consumption Coefficient |
+| :----------- | :------------------------------ |
+| Runaway      | 1.5                             |
+| Front Runner | 1.2                             |
+| Pace Chaser  | 1.0                             |
+| Late Surger  | 1.0                             |
+| End Closer   | 1.0                             |
 
 Stamina consumption course distance coefficient
 
-- Distance \< 1401m, 0.3x
-- Distance \< 1801m, 0.3x \[sic\]
-- Distance \< 2101m, 0.5x
-- Distance \< 2201m, 0.8x
-- Distance \< 2401m, 1.0x
-- Distance \< 2601m, 1.1x
-- Distance \>= 2601m, 1.2x
+| Distance           | Stamina Consumption Coefficient |
+| :----------------- | :------------------------------ |
+| Distance \< 1401m  | 0.3x                            |
+| Distance \< 1801m  | 0.3x \[sic\]                    |
+| Distance \< 2101m  | 0.5x                            |
+| Distance \< 2201m  | 0.8x                            |
+| Distance \< 2401m  | 1.0x                            |
+| Distance \< 2601m  | 1.1x                            |
+| Distance \>= 2601m | 1.2x                            |
 
 Near factor of 0.5 is applied if the uma is NOT far from the first place. In other words the mode is activated due to having uma nearby alone.
 
 If a front runner uma does not have another uma with the same strategy within 10m, their bonus is further multiplied by the following factor. (There is an unexplained 20% threshold for this bonus.)
 
-| Strategy | Strategy Coefficient |
-| :------- | :------------------- |
-| Runaway  | 2.0                  |
-| Nige     | 1.1                  |
+| Strategy     | Strategy Coefficient |
+| :----------- | :------------------- |
+| Runaway      | 2.0                  |
+| Front Runner | 1.1                  |
 
-## Stamina Keep 持久力温存 {#stamina-keep-持久力温存}
+## Stamina Conservation (持久力温存) {#stamina-keep}
 
-The uma will try to conserve a random amount of HP that is 1.035-1.04x the required amount to finish the race. Every 2 seconds, the uma checks if she has enough HP left. If she does not have enough HP, there is a chance of 30%\*(Wisdom/1000+Wisdom0.03) for her to notice and enter stamina keep mode. During stamina keep mode, the uma will not participate in the competition.
-(The activation chance formula is highly speculative. We know that there are 3 parameters \- 30%, 1000 as a divisor, and 0.03 as an exponent. Packet capture testing has yielded 93/100 immediate activations with 1000 wisdom, which is higher than what the current formula predicts.)
+- These mechanics were added during the JP server's 2.5th anniversary on August 24, 2023.
+- Not implemented yet in Global Server, will probably be available in the 2nd anniversary update.
+
+The uma will try to conserve a random amount of HP that is 1.035-1.04x the required amount to finish the race. Every 2 seconds, the uma checks if she has enough HP left. If she does not have enough HP, there is a chance of 30%\*(Wit/1000+Wisdom0.03) for her to notice and enter stamina keep mode. During stamina keep mode, the uma will not participate in the competition.
+
+(The activation chance formula is highly speculative. We know that there are 3 parameters \- 30%, 1000 as a divisor, and 0.03 as an exponent. Packet capture testing has yielded 93/100 immediate activations with 1000 Wit, which is higher than what the current formula predicts.)
 
 Activating a HP recovery skill will reset the stamina keeping state, allowing for the competition to activate if HP is now sufficient.
 
-# Secure Lead リード確保 {#secure-lead-リード確保}
+# Securing the Lead (リード確保) {#secure-lead-リード確保}
+
+- This mechanic was added during the JP server's 2.5th anniversary on August 24, 2023.
+- Not implemented yet in Global Server, will probably be available in the 2nd anniversary update.
 
 Note: Info in this section is inferred from the game’s parameter file, which is less concretely confirmed as results from reverse engineering. The details are still under investigation.
 
-Secure lead can occur between section 11 and 15 of the race. It occurs when the uma’s lead against another uma who should be further behind according to their strategy is less than desirable. Every 2 seconds, if the lead is less than desirable, there is a 20% chance (should scale with wisdom, but the mechanics is unknown) for the uma to attempt to secure the lead.
+Secure lead can occur between section 11 and 15 of the race. It occurs when the uma’s lead against another uma who should be further behind according to their strategy is less than desirable. Every 2 seconds, if the lead is less than desirable, there is a 20% chance (should scale with Wit, but the mechanics is unknown) for the uma to attempt to secure the lead.
 
 DesirableLead=StrategyCoefficient+0.0003\*(CourseDistance+1000)\[m\]
 Desirable lead strategy coefficient
 
-|         | Nige | Senkou | Sashi | Oikomi |
-| :------ | :--- | :----- | :---- | :----- |
-| Runaway | 2.0  | 7.0    | 8.0   | 8.0    |
-| Nige    |      | 4.0    | 8.0   | 8.0    |
-| Senkou  |      |        | 5.0   | 6.0    |
-| Sashi   |      |        |       | 3.0    |
+|              | Front Runner | Pace Chaser | Late Surger | End Closer |
+| :----------- | :----------- | :---------- | :---------- | :--------- |
+| Runaway      | 2.0          | 7.0         | 8.0         | 8.0        |
+| Front Runner |              | 4.0         | 8.0         | 8.0        |
+| Pace Chaser  |              |             | 5.0         | 6.0        |
+| Late Surger  |              |             |             | 3.0        |
 
 The uma speeds up for 2 seconds at the cost of stamina, then enters a cooldown of 1 second.
 TargetSpeedIncrease=(Guts/2000)0.5\*0.3\*StrategyCoefficient\[m/s\]
 
-| Strategy | Strategy Coefficient |
-| :------- | :------------------- |
-| Runaway  | 0.2                  |
-| Nige     | 1.0                  |
-| Senkou   | 1.0                  |
-| Sashi    | 0.8                  |
+| Strategy     | Strategy Coefficient |
+| :----------- | :------------------- |
+| Runaway      | 0.2                  |
+| Front Runner | 1.0                  |
+| Pace Chaser  | 1.0                  |
+| Late Surger  | 0.8                  |
 
 StaminaConsumption=20\*StrategyCoefficient\*CourseDistanceCoefficient
+
 Stamina consumption strategy coefficient
 
-| Strategy | Stamina Consumption Coefficient |
-| :------- | :------------------------------ |
-| Runaway  | 1.2                             |
-| Nige     | 1.0                             |
-| Senkou   | 0.8                             |
-| Sashi    | 0.8                             |
+| Strategy     | Stamina Consumption Coefficient |
+| :----------- | :------------------------------ |
+| Runaway      | 1.2                             |
+| Front Runner | 1.0                             |
+| Pace Chaser  | 0.8                             |
+| Late Surger  | 0.8                             |
 
 Stamina consumption course distance coefficient
 
-- Distance \< 1401m, 0.3x
-- Distance \< 1801m, 0.3x \[sic\]
-- Distance \< 2101m, 0.5x
-- Distance \< 2201m, 0.8x
-- Distance \< 2401m, 1.0x
-- Distance \< 2601m, 1.1x
-- Distance \>= 2601m, 1.2x
+| Distance           | Stamina Consumption Coefficient |
+| :----------------- | :------------------------------ |
+| Distance \< 1401m  | 0.3x                            |
+| Distance \< 1801m  | 0.3x \[sic\]                    |
+| Distance \< 2101m  | 0.5x                            |
+| Distance \< 2201m  | 0.8x                            |
+| Distance \< 2401m  | 1.0x                            |
+| Distance \< 2601m  | 1.1x                            |
+| Distance \>= 2601m | 1.2x                            |
 
-If a nige uma does not have another uma with the same strategy within 10m, their bonus is further multiplied by the following factor. (There is an unexplained 20% threshold for this bonus.)
+If a Front Runner uma does not have another uma with the same strategy within 10m, their bonus is further multiplied by the following factor. (There is an unexplained 20% threshold for this bonus.)
 
-| Strategy | Strategy Coefficient |
-| :------- | :------------------- |
-| Runaway  | 7.0                  |
-| Nige     | 2.0                  |
+| Strategy     | Strategy Coefficient |
+| :----------- | :------------------- |
+| Runaway      | 7.0                  |
+| Front Runner | 2.0                  |
 
-# Stamina Limit Break スタミナ勝負 {#stamina-limit-break-スタミナ勝負}
+# Stamina Contest (スタミナ勝負) {#stamina-limit-break-スタミナ勝負}
+
+- This mechanic was added during the JP server's 2.5th anniversary on August 24, 2023.
+- Not implemented yet in Global Server, will probably be available in the 2nd anniversary update.
 
 Note: Info in this section is inferred from the game’s parameter file, which is less concretely confirmed as results from reverse engineering. The details are still under investigation.
 
@@ -1339,11 +1418,13 @@ TargetSpeedBuff=sqrt(StaminaStat-1200)\*0.0085\*DistanceFactor\*RandomFactor\[m/
 
 Distance Factor is determined by the racecourse distance:
 
-- Distance \< 2101m, 0.0x
-- Distance \< 2201m, 0.5x
-- Distance \< 2401m, 1.0x
-- Distance \< 2601m, 1.5x; 1.2x before 2024-10-29
-- Distance \>= 2601m, 1.8x; 1.5x before 2024-10-29
+| Distance           | Distance Factor              |
+| :----------------- | :--------------------------- |
+| Distance \< 2101m  | 0.0x                         |
+| Distance \< 2201m  | 0.5x                         |
+| Distance \< 2401m  | 1.0x                         |
+| Distance \< 2601m  | 1.5x; 1.2x before 2024-10-29 |
+| Distance \>= 2601m | 1.8x; 1.5x before 2024-10-29 |
 
 How the Random Factor is calculated is unclear. The parameter file lists "TargetSpeedRandomTableChangeProbabilityByPower": 500 and the following table.
 

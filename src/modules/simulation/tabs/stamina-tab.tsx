@@ -35,11 +35,11 @@ export const StaminaTab = () => {
   const analysis2 = useStaminaAnalysis(uma2, courseId, racedef.ground);
 
   // Get recovery skills - actual or theoretical based on mode
-  const actualRecoverySkills1 = useActualRecoverySkills(
+  const recordedRecoverySkillsA = useActualRecoverySkills(
     chartData?.sk?.[0],
     analysis1.maxHp,
   );
-  const actualRecoverySkills2 = useActualRecoverySkills(
+  const recordedRecoverySkillsB = useActualRecoverySkills(
     chartData?.sk?.[1],
     analysis2.maxHp,
   );
@@ -95,10 +95,10 @@ export const StaminaTab = () => {
 
   const recoverySkills1 = isUma1Theoretical
     ? theoreticalRecoverySkills1
-    : actualRecoverySkills1;
+    : recordedRecoverySkillsA;
   const recoverySkills2 = isUma2Theoretical
     ? theoreticalRecoverySkills2
-    : actualRecoverySkills2;
+    : recordedRecoverySkillsB;
 
   const debuffsReceived1 = isUma1Theoretical
     ? theoreticalDebuffsReceived1
