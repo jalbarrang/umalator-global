@@ -1,8 +1,8 @@
-"use client"
+'use client';
 
-import { CheckIcon, ChevronsUpDownIcon, XIcon } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { CheckIcon, ChevronsUpDownIcon, XIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 import {
   Command,
   CommandEmpty,
@@ -11,12 +11,12 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from "@/components/ui/command"
+} from '@/components/ui/command';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
+} from '@/components/ui/popover';
 import {
   createContext,
   useCallback,
@@ -26,18 +26,18 @@ import {
   useState,
   type ComponentPropsWithoutRef,
   type ReactNode,
-} from "react"
-import { Badge } from "@/components/ui/badge"
+} from 'react';
+import { Badge } from '@/components/ui/badge';
 
 type MultiSelectContextType = {
-  open: boolean
-  setOpen: (open: boolean) => void
-  selectedValues: Set<string>
-  toggleValue: (value: string) => void
-  items: Map<string, ReactNode>
-  onItemAdded: (value: string, label: ReactNode) => void
-}
-const MultiSelectContext = createContext<MultiSelectContextType | null>(null)
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  selectedValues: Set<string>;
+  toggleValue: (value: string) => void;
+  items: Map<string, ReactNode>;
+  onItemAdded: (value: string, label: ReactNode) => void;
+};
+const MultiSelectContext = createContext<MultiSelectContextType | null>(null);
 
 export function MultiSelect({
   children,
@@ -45,38 +45,38 @@ export function MultiSelect({
   defaultValues,
   onValuesChange,
 }: {
-  children: ReactNode
-  values?: string[]
-  defaultValues?: string[]
-  onValuesChange?: (values: string[]) => void
+  children: ReactNode;
+  values?: string[];
+  defaultValues?: string[];
+  onValuesChange?: (values: string[]) => void;
 }) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
   const [internalValues, setInternalValues] = useState(
     new Set<string>(values ?? defaultValues),
-  )
-  const selectedValues = values ? new Set(values) : internalValues
-  const [items, setItems] = useState<Map<string, ReactNode>>(new Map())
+  );
+  const selectedValues = values ? new Set(values) : internalValues;
+  const [items, setItems] = useState<Map<string, ReactNode>>(new Map());
 
   function toggleValue(value: string) {
     const getNewSet = (prev: Set<string>) => {
-      const newSet = new Set(prev)
+      const newSet = new Set(prev);
       if (newSet.has(value)) {
-        newSet.delete(value)
+        newSet.delete(value);
       } else {
-        newSet.add(value)
+        newSet.add(value);
       }
-      return newSet
-    }
-    setInternalValues(getNewSet)
-    onValuesChange?.([...getNewSet(selectedValues)])
+      return newSet;
+    };
+    setInternalValues(getNewSet);
+    onValuesChange?.([...getNewSet(selectedValues)]);
   }
 
   const onItemAdded = useCallback((value: string, label: ReactNode) => {
-    setItems(prev => {
-      if (prev.get(value) === label) return prev
-      return new Map(prev).set(value, label)
-    })
-  }, [])
+    setItems((prev) => {
+      if (prev.get(value) === label) return prev;
+      return new Map(prev).set(value, label);
+    });
+  }, []);
 
   return (
     <MultiSelectContext
@@ -93,7 +93,7 @@ export function MultiSelect({
         {children}
       </Popover>
     </MultiSelectContext>
-  )
+  );
 }
 
 export function MultiSelectTrigger({
@@ -101,18 +101,18 @@ export function MultiSelectTrigger({
   children,
   ...props
 }: {
-  className?: string
-  children?: ReactNode
+  className?: string;
+  children?: ReactNode;
 } & ComponentPropsWithoutRef<typeof Button>) {
-  const { open } = useMultiSelectContext()
+  const { open } = useMultiSelectContext();
 
   return (
     <PopoverTrigger asChild>
       <Button
         {...props}
-        variant={props.variant ?? "outline"}
-        role={props.role ?? "combobox"}
-        aria-expanded={props["aria-expanded"] ?? open}
+        variant={props.variant ?? 'outline'}
+        role={props.role ?? 'combobox'}
+        aria-expanded={props['aria-expanded'] ?? open}
         className={cn(
           "flex h-auto min-h-9 w-fit items-center justify-between gap-2 overflow-hidden rounded-md border border-input bg-transparent px-3 py-1.5 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 data-[placeholder]:text-muted-foreground dark:bg-input/30 dark:hover:bg-input/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground",
           className,
@@ -122,82 +122,82 @@ export function MultiSelectTrigger({
         <ChevronsUpDownIcon className="size-4 shrink-0 opacity-50" />
       </Button>
     </PopoverTrigger>
-  )
+  );
 }
 
 export function MultiSelectValue({
   placeholder,
   clickToRemove = true,
   className,
-  overflowBehavior = "wrap-when-open",
+  overflowBehavior = 'wrap-when-open',
   ...props
 }: {
-  placeholder?: string
-  clickToRemove?: boolean
-  overflowBehavior?: "wrap" | "wrap-when-open" | "cutoff"
-} & Omit<ComponentPropsWithoutRef<"div">, "children">) {
-  const { selectedValues, toggleValue, items, open } = useMultiSelectContext()
-  const [overflowAmount, setOverflowAmount] = useState(0)
-  const valueRef = useRef<HTMLDivElement>(null)
-  const overflowRef = useRef<HTMLDivElement>(null)
+  placeholder?: string;
+  clickToRemove?: boolean;
+  overflowBehavior?: 'wrap' | 'wrap-when-open' | 'cutoff';
+} & Omit<ComponentPropsWithoutRef<'div'>, 'children'>) {
+  const { selectedValues, toggleValue, items, open } = useMultiSelectContext();
+  const [overflowAmount, setOverflowAmount] = useState(0);
+  const valueRef = useRef<HTMLDivElement>(null);
+  const overflowRef = useRef<HTMLDivElement>(null);
 
   const shouldWrap =
-    overflowBehavior === "wrap" ||
-    (overflowBehavior === "wrap-when-open" && open)
+    overflowBehavior === 'wrap' ||
+    (overflowBehavior === 'wrap-when-open' && open);
 
   const checkOverflow = useCallback(() => {
-    if (valueRef.current == null) return
+    if (valueRef.current == null) return;
 
-    const containerElement = valueRef.current
-    const overflowElement = overflowRef.current
+    const containerElement = valueRef.current;
+    const overflowElement = overflowRef.current;
     const items = containerElement.querySelectorAll<HTMLElement>(
-      "[data-selected-item]",
-    )
+      '[data-selected-item]',
+    );
 
-    if (overflowElement != null) overflowElement.style.display = "none"
-    items.forEach(child => child.style.removeProperty("display"))
-    let amount = 0
+    if (overflowElement != null) overflowElement.style.display = 'none';
+    items.forEach((child) => child.style.removeProperty('display'));
+    let amount = 0;
     for (let i = items.length - 1; i >= 0; i--) {
-      const child = items[i]!
+      const child = items[i]!;
       if (containerElement.scrollWidth <= containerElement.clientWidth) {
-        break
+        break;
       }
-      amount = items.length - i
-      child.style.display = "none"
-      overflowElement?.style.removeProperty("display")
+      amount = items.length - i;
+      child.style.display = 'none';
+      overflowElement?.style.removeProperty('display');
     }
-    setOverflowAmount(amount)
-  }, [])
+    setOverflowAmount(amount);
+  }, []);
 
   const handleResize = useCallback(
     (node: HTMLDivElement) => {
-      valueRef.current = node
+      valueRef.current = node;
 
-      const mutationObserver = new MutationObserver(checkOverflow)
-      const observer = new ResizeObserver(debounce(checkOverflow, 100))
+      const mutationObserver = new MutationObserver(checkOverflow);
+      const observer = new ResizeObserver(debounce(checkOverflow, 100));
 
       mutationObserver.observe(node, {
         childList: true,
         attributes: true,
-        attributeFilter: ["class", "style"],
-      })
-      observer.observe(node)
+        attributeFilter: ['class', 'style'],
+      });
+      observer.observe(node);
 
       return () => {
-        observer.disconnect()
-        mutationObserver.disconnect()
-        valueRef.current = null
-      }
+        observer.disconnect();
+        mutationObserver.disconnect();
+        valueRef.current = null;
+      };
     },
     [checkOverflow],
-  )
+  );
 
   if (selectedValues.size === 0 && placeholder) {
     return (
       <span className="min-w-0 overflow-hidden font-normal text-muted-foreground">
         {placeholder}
       </span>
-    )
+    );
   }
 
   return (
@@ -205,14 +205,14 @@ export function MultiSelectValue({
       {...props}
       ref={handleResize}
       className={cn(
-        "flex w-full gap-1.5 overflow-hidden",
-        shouldWrap && "h-full flex-wrap",
+        'flex w-full gap-1.5 overflow-hidden',
+        shouldWrap && 'h-full flex-wrap',
         className,
       )}
     >
       {[...selectedValues]
-        .filter(value => items.has(value))
-        .map(value => (
+        .filter((value) => items.has(value))
+        .map((value) => (
           <Badge
             variant="outline"
             data-selected-item
@@ -220,9 +220,9 @@ export function MultiSelectValue({
             key={value}
             onClick={
               clickToRemove
-                ? e => {
-                    e.stopPropagation()
-                    toggleValue(value)
+                ? (e) => {
+                    e.stopPropagation();
+                    toggleValue(value);
                   }
                 : undefined
             }
@@ -235,7 +235,7 @@ export function MultiSelectValue({
         ))}
       <Badge
         style={{
-          display: overflowAmount > 0 && !shouldWrap ? "block" : "none",
+          display: overflowAmount > 0 && !shouldWrap ? 'block' : 'none',
         }}
         variant="outline"
         ref={overflowRef}
@@ -243,7 +243,7 @@ export function MultiSelectValue({
         +{overflowAmount}
       </Badge>
     </div>
-  )
+  );
 }
 
 export function MultiSelectContent({
@@ -251,14 +251,14 @@ export function MultiSelectContent({
   children,
   ...props
 }: {
-  search?: boolean | { placeholder?: string; emptyMessage?: string }
-  children: ReactNode
-} & Omit<ComponentPropsWithoutRef<typeof Command>, "children">) {
-  const canSearch = typeof search === "object" ? true : search
+  search?: boolean | { placeholder?: string; emptyMessage?: string };
+  children: ReactNode;
+} & Omit<ComponentPropsWithoutRef<typeof Command>, 'children'>) {
+  const canSearch = typeof search === 'object' ? true : search;
 
   return (
     <>
-      <div style={{ display: "none" }}>
+      <div style={{ display: 'none' }}>
         <Command>
           <CommandList>{children}</CommandList>
         </Command>
@@ -268,7 +268,7 @@ export function MultiSelectContent({
           {canSearch ? (
             <CommandInput
               placeholder={
-                typeof search === "object" ? search.placeholder : undefined
+                typeof search === 'object' ? search.placeholder : undefined
               }
             />
           ) : (
@@ -277,7 +277,7 @@ export function MultiSelectContent({
           <CommandList>
             {canSearch && (
               <CommandEmpty>
-                {typeof search === "object" ? search.emptyMessage : undefined}
+                {typeof search === 'object' ? search.emptyMessage : undefined}
               </CommandEmpty>
             )}
             {children}
@@ -285,7 +285,7 @@ export function MultiSelectContent({
         </Command>
       </PopoverContent>
     </>
-  )
+  );
 }
 
 export function MultiSelectItem({
@@ -295,61 +295,61 @@ export function MultiSelectItem({
   onSelect,
   ...props
 }: {
-  badgeLabel?: ReactNode
-  value: string
-} & Omit<ComponentPropsWithoutRef<typeof CommandItem>, "value">) {
-  const { toggleValue, selectedValues, onItemAdded } = useMultiSelectContext()
-  const isSelected = selectedValues.has(value)
+  badgeLabel?: ReactNode;
+  value: string;
+} & Omit<ComponentPropsWithoutRef<typeof CommandItem>, 'value'>) {
+  const { toggleValue, selectedValues, onItemAdded } = useMultiSelectContext();
+  const isSelected = selectedValues.has(value);
 
   useEffect(() => {
-    onItemAdded(value, badgeLabel ?? children)
-  }, [value, children, onItemAdded, badgeLabel])
+    onItemAdded(value, badgeLabel ?? children);
+  }, [value, children, onItemAdded, badgeLabel]);
 
   return (
     <CommandItem
       {...props}
       onSelect={() => {
-        toggleValue(value)
-        onSelect?.(value)
+        toggleValue(value);
+        onSelect?.(value);
       }}
     >
       <CheckIcon
-        className={cn("mr-2 size-4", isSelected ? "opacity-100" : "opacity-0")}
+        className={cn('mr-2 size-4', isSelected ? 'opacity-100' : 'opacity-0')}
       />
       {children}
     </CommandItem>
-  )
+  );
 }
 
 export function MultiSelectGroup(
   props: ComponentPropsWithoutRef<typeof CommandGroup>,
 ) {
-  return <CommandGroup {...props} />
+  return <CommandGroup {...props} />;
 }
 
 export function MultiSelectSeparator(
   props: ComponentPropsWithoutRef<typeof CommandSeparator>,
 ) {
-  return <CommandSeparator {...props} />
+  return <CommandSeparator {...props} />;
 }
 
 function useMultiSelectContext() {
-  const context = useContext(MultiSelectContext)
+  const context = useContext(MultiSelectContext);
   if (context == null) {
     throw new Error(
-      "useMultiSelectContext must be used within a MultiSelectContext",
-    )
+      'useMultiSelectContext must be used within a MultiSelectContext',
+    );
   }
-  return context
+  return context;
 }
 
 function debounce<T extends (...args: never[]) => void>(
   func: T,
   wait: number,
 ): (...args: Parameters<T>) => void {
-  let timeout: ReturnType<typeof setTimeout> | null = null
+  let timeout: ReturnType<typeof setTimeout> | null = null;
   return function (this: unknown, ...args: Parameters<T>) {
-    if (timeout) clearTimeout(timeout)
-    timeout = setTimeout(() => func.apply(this, args), wait)
-  }
+    if (timeout) clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), wait);
+  };
 }

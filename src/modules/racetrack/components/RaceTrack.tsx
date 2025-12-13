@@ -18,6 +18,7 @@ import {
 import {
   toggleShowHp,
   toggleShowLanes,
+  toggleShowThresholds,
   toggleShowUma1,
   toggleShowUma2,
   useSettingsStore,
@@ -29,7 +30,7 @@ import {
 } from '@simulation/compare.types';
 import { CourseHelpers } from '@simulation/lib/CourseData';
 import { SettingsIcon } from 'lucide-react';
-import { Fragment, useMemo, useRef } from 'react';
+import { Activity, Fragment, useMemo, useRef } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { useDragSkill } from '../hooks/useDragSkill';
 import { useRaceTrackTooltip } from '../hooks/useRaceTrackTooltip';
@@ -259,7 +260,8 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
   );
 
   const { racedef } = useSettingsStore();
-  const { showHp, showLanes, showUma1, showUma2 } = useSettingsStore();
+  const { showHp, showLanes, showUma1, showUma2, showThresholds } =
+    useSettingsStore();
 
   const { tooltipData, tooltipVisible, rtMouseMove, rtMouseLeave } =
     useRaceTrackTooltip({
@@ -512,33 +514,35 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
             position={{ xOffset, yOffset }}
           />
 
-          <ThresholdMarker
-            threshold={course.distance / 2}
-            text={`Halfway (${course.distance / 2}m)`}
-            distance={course.distance}
-            xOffset={xOffset}
-            yOffset={yOffset}
-            width={width}
-            height={height}
-          />
+          <Activity mode={showThresholds ? 'visible' : 'hidden'}>
+            <ThresholdMarker
+              threshold={course.distance / 2}
+              text={`Halfway (${course.distance / 2}m)`}
+              distance={course.distance}
+              xOffset={xOffset}
+              yOffset={yOffset}
+              width={width}
+              height={height}
+            />
 
-          <ThresholdMarker
-            threshold={777}
-            distance={course.distance}
-            xOffset={xOffset}
-            yOffset={yOffset}
-            width={width}
-            height={height}
-          />
+            <ThresholdMarker
+              threshold={777}
+              distance={course.distance}
+              xOffset={xOffset}
+              yOffset={yOffset}
+              width={width}
+              height={height}
+            />
 
-          <ThresholdMarker
-            threshold={200}
-            distance={course.distance}
-            xOffset={xOffset}
-            yOffset={yOffset}
-            width={width}
-            height={height}
-          />
+            <ThresholdMarker
+              threshold={200}
+              distance={course.distance}
+              xOffset={xOffset}
+              yOffset={yOffset}
+              width={width}
+              height={height}
+            />
+          </Activity>
 
           {props.children}
         </svg>
@@ -570,6 +574,20 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
             className="text-sm font-normal cursor-pointer"
           >
             Show Lanes
+          </Label>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="showthresholds"
+            checked={showThresholds}
+            onCheckedChange={toggleShowThresholds}
+          />
+          <Label
+            htmlFor="showthresholds"
+            className="text-sm font-normal cursor-pointer"
+          >
+            Show thresholds (777m, 200m, Halfway)
           </Label>
         </div>
 

@@ -44,6 +44,7 @@ type ISettingsStore = {
   showHp: boolean;
   showUma1: boolean;
   showUma2: boolean;
+  showThresholds: boolean;
 };
 
 export const useSettingsStore = create<ISettingsStore>()(
@@ -77,6 +78,7 @@ export const useSettingsStore = create<ISettingsStore>()(
       showHp: false,
       showUma1: true,
       showUma2: true,
+      showThresholds: true,
     }),
     {
       name: 'umalator-settings',
@@ -136,6 +138,7 @@ export const useRaceTrackUI = () =>
       showUma2: state.showUma2,
       showLanes: state.showLanes,
       showHp: state.showHp,
+      showThresholds: state.showThresholds,
     })),
   );
 
@@ -153,4 +156,10 @@ export const toggleShowLanes = () => {
 
 export const toggleShowHp = () => {
   useSettingsStore.setState((state) => ({ showHp: !state.showHp }));
+};
+
+export const toggleShowThresholds = () => {
+  useSettingsStore.setState((state) => ({
+    showThresholds: !state.showThresholds,
+  }));
 };
