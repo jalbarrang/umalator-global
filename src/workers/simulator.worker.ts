@@ -43,7 +43,7 @@ const runRunnersComparison = (params: CompareParams) => {
     n < nsamples;
     n = Math.min(n * mul, nsamples), mul = Math.max(mul - 1, 2)
   ) {
-    const results = runComparison({
+    runComparison({
       nsamples: n,
       course,
       racedef,
@@ -56,7 +56,11 @@ const runRunnersComparison = (params: CompareParams) => {
     // Only post progress update if enough time has elapsed
     const now = Date.now();
     if (now - lastUpdateTime >= UPDATE_INTERVAL_MS) {
-      postMessage({ type: 'compare', results });
+      postMessage({
+        type: 'compare-progress',
+        currentSamples: n,
+        totalSamples: nsamples,
+      });
       lastUpdateTime = now;
     }
   }

@@ -18,12 +18,14 @@ import { useRaceStore } from './compare.store';
 type ISkillBasinStore = {
   results: SkillBasinResponse;
   metrics: PoolMetrics | null;
+  isSimulationRunning: boolean;
 };
 
 export const useSkillBasinStore = create<ISkillBasinStore>()(
   immer((_) => ({
     results: new Map(),
     metrics: null,
+    isSimulationRunning: false,
   })),
 );
 
@@ -51,6 +53,12 @@ export const appendResultsToTable = (results: SkillBasinResponse) => {
 export const setMetrics = (metrics: PoolMetrics) => {
   useSkillBasinStore.setState((draft) => {
     draft.metrics = metrics;
+  });
+};
+
+export const setIsSimulationRunning = (isSimulationRunning: boolean) => {
+  useSkillBasinStore.setState((draft) => {
+    draft.isSimulationRunning = isSimulationRunning;
   });
 };
 

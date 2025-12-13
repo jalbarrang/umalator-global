@@ -1,23 +1,25 @@
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button-group';
+import { LoadingOverlay } from '@/components/loading-overlay';
 import { VelocityLines } from '@/components/VelocityLines';
 import { RaceTrack } from '@/modules/racetrack/components/RaceTrack';
 import { initializeSimulationRun } from '@/modules/simulation/compare.types';
 import { useSimulationRunner } from '@/modules/simulation/hooks/compare/useSimulationRunner';
 import { CourseHelpers } from '@/modules/simulation/lib/CourseData';
-import { PosKeepMode } from '@/modules/simulation/lib/RaceSolver';
 import { SimulationResultTabs } from '@/modules/simulation/tabs/simulation-result-tabs';
 import { ResultButtonGroups } from '@/modules/simulation/tabs/summary-tab';
 import { useSettingsStore } from '@/store/settings.store';
 import { useSelectedPacemakerBooleans } from '@/store/settings/actions';
 import { useUIStore } from '@/store/ui.store';
 import { resetResults, useRaceStore } from '@simulation/stores/compare.store';
-import { useMemo } from 'react';
+import { Loader2 } from 'lucide-react';
+import { Activity, useMemo } from 'react';
 
 export const ComparePage = () => {
-  const { chartData, results } = useRaceStore();
-  const { posKeepMode, courseId } = useSettingsStore();
-  const { showVirtualPacemakerOnGraph, isSimulationRunning } = useUIStore();
+  const { chartData, results, isSimulationRunning, simulationProgress } =
+    useRaceStore();
+  const { courseId } = useSettingsStore();
+  const { showVirtualPacemakerOnGraph } = useUIStore();
   const selectedPacemakers = useSelectedPacemakerBooleans();
   const { handleRunCompare, handleRunOnce } = useSimulationRunner();
 
@@ -25,6 +27,12 @@ export const ComparePage = () => {
 
   return (
     <div className="flex flex-col gap-4">
+      <LoadingOverlay
+        isVisible={isSimulationRunning}
+        currentSamples={simulationProgress?.current}
+        totalSamples={simulationProgress?.total}
+      />
+
       <div className="flex items-center gap-2">
         <ButtonGroup>
           <Button
@@ -33,6 +41,9 @@ export const ComparePage = () => {
             variant="default"
           >
             Run all samples
+            {isSimulationRunning && (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            )}
           </Button>
           <Button
             onClick={handleRunOnce}
@@ -46,31 +57,33 @@ export const ComparePage = () => {
             disabled={isSimulationRunning || results.length === 0}
             variant="outline"
           >
-            Reset
+            Clear
           </Button>
         </ButtonGroup>
       </div>
 
-      <RaceTrack
-        courseid={courseId}
-        chartData={chartData ?? initializeSimulationRun()}
-        xOffset={20}
-        yOffset={15}
-        yExtra={20}
-      >
-        <VelocityLines
-          data={chartData}
-          courseDistance={course.distance}
+      <Activity mode={!isSimulationRunning ? 'visible' : 'hidden'}>
+        <RaceTrack
+          courseid={courseId}
+          chartData={chartData ?? initializeSimulationRun()}
           xOffset={20}
-          horseLane={course.horseLane}
-          showVirtualPacemaker={showVirtualPacemakerOnGraph}
-          selectedPacemakers={selectedPacemakers}
-        />
-      </RaceTrack>
+          yOffset={15}
+          yExtra={20}
+        >
+          <VelocityLines
+            data={chartData}
+            courseDistance={course.distance}
+            xOffset={20}
+            horseLane={course.horseLane}
+            showVirtualPacemaker={showVirtualPacemakerOnGraph}
+            selectedPacemakers={selectedPacemakers}
+          />
+        </RaceTrack>
 
-      {results.length > 0 && <ResultButtonGroups />}
+        {results.length > 0 && <ResultButtonGroups />}
 
-      <SimulationResultTabs />
+        <SimulationResultTabs />
+      </Activity>
     </div>
   );
 };

@@ -18,7 +18,6 @@ import {
   SimulationRun,
   SkillActivation,
 } from '@/modules/simulation/compare.types';
-import { SkillTarget } from '@/modules/simulation/lib/race-solver/types';
 import { EffectQuery } from '@/modules/skills/effects-query';
 
 export type RegionData = {
@@ -56,12 +55,11 @@ const getStateName = (state: number) => {
 
 const getSkillsActivated = (umaIndex: number) => {
   return (activation: SkillActivation) => {
-    const { start, end, effectTarget, skillId } = activation;
-    const color = effectTarget === SkillTarget.Self ? colors[0] : colors[1];
+    const { start, end, skillId } = activation;
 
     return {
       type: RegionDisplayType.Textbox,
-      color: color,
+      color: colors[umaIndex],
       text: getSkillNameById(skillId),
       skillId: skillId,
       umaIndex: umaIndex,

@@ -1,34 +1,20 @@
-import { Fragment, useMemo, useRef } from 'react';
-import { CourseHelpers } from '@simulation/lib/CourseData';
-import './RaceTrack.css';
-import i18n from '@/i18n';
-import { useDragSkill } from '../hooks/useDragSkill';
-import { SlopeVisualization } from './slope-visualization';
-import { SlopeLabelBar } from './slope-label-bar';
-import { SectionBar } from './section-bar';
-import { PhaseBar } from './phase-bar';
-import { SectionNumbers } from './section-numbers';
-import { SkillMarker } from './skill-marker';
+import { SeasonIcon } from '@/components/race-settings/SeasonSelect';
+import { WeatherIcon } from '@/components/race-settings/WeatherSelect';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 import {
-  RegionData,
-  useVisualizationData,
-} from '../hooks/useVisualizationData';
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import i18n from '@/i18n';
+import { CourseData } from '@/modules/simulation/lib/courses/types';
 import {
   updateForcedSkillPosition,
   useRunnersStore,
 } from '@/store/runners.store';
-import { SettingsIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-} from '@/components/ui/tooltip';
-import { setLeftSidebar } from '@/store/ui.store';
-import { RegionDisplayType } from '../types';
-import { trackDescription } from '../labels';
-import { SeasonIcon } from '@/components/race-settings/SeasonSelect';
-import { WeatherIcon } from '@/components/race-settings/WeatherSelect';
 import {
   toggleShowHp,
   toggleShowLanes,
@@ -36,17 +22,31 @@ import {
   toggleShowUma2,
   useSettingsStore,
 } from '@/store/settings.store';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { RaceTrackTooltip } from './racetrack-tooltip';
-import { useRaceTrackTooltip } from '../hooks/useRaceTrackTooltip';
+import { setLeftSidebar } from '@/store/ui.store';
 import {
   initializeSimulationRun,
   SimulationRun,
 } from '@simulation/compare.types';
-import { Separator } from '@/components/ui/separator';
+import { CourseHelpers } from '@simulation/lib/CourseData';
+import { SettingsIcon } from 'lucide-react';
+import { Fragment, useMemo, useRef } from 'react';
 import { useShallow } from 'zustand/shallow';
-import { CourseData } from '@/modules/simulation/lib/courses/types';
+import { useDragSkill } from '../hooks/useDragSkill';
+import { useRaceTrackTooltip } from '../hooks/useRaceTrackTooltip';
+import {
+  RegionData,
+  useVisualizationData,
+} from '../hooks/useVisualizationData';
+import { trackDescription } from '../labels';
+import { RegionDisplayType } from '../types';
+import { PhaseBar } from './phase-bar';
+import { RaceTrackTooltip } from './racetrack-tooltip';
+import './RaceTrack.css';
+import { SectionBar } from './section-bar';
+import { SectionNumbers } from './section-numbers';
+import { SkillMarker } from './skill-marker';
+import { SlopeLabelBar } from './slope-label-bar';
+import { SlopeVisualization } from './slope-visualization';
 
 // Helper function for efficient rung collision detection
 const findAvailableRung = (
@@ -172,7 +172,7 @@ const RegionSegment = (props: RegionSegmentProps) => {
 
           const handleOnDragStart = (e: React.MouseEvent) => {
             if (!desc.skillId) return;
-            if (!desc.umaIndex) return;
+            if (desc.umaIndex === undefined) return;
 
             onDragStart(e, desc.skillId, desc.umaIndex, start, end);
           };
@@ -306,18 +306,27 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
     useDragSkill({
       xOffset,
       courseDistance: course.distance,
+      viewBoxWidth: width + xOffset + xExtra,
       onSkillDrag: handleSkillDrag,
     });
 
   const doMouseMove: React.MouseEventHandler<SVGSVGElement> = (e) => {
     const svg = e.currentTarget;
-    const offsetX = e.nativeEvent.offsetX;
-    const offsetY = e.nativeEvent.offsetY;
-    if (offsetX < xOffset) return;
 
-    const w = svg.getBoundingClientRect().width - xOffset;
-    const x = offsetX - xOffset;
-    const y = offsetY - yOffset;
+    // Convert client coordinates to SVG coordinate space
+    const ctm = svg.getScreenCTM();
+    if (!ctm) return;
+
+    const point = svg.createSVGPoint();
+    point.x = e.clientX;
+    point.y = e.clientY;
+    const svgPoint = point.matrixTransform(ctm.inverse());
+
+    // svgPoint is now in viewBox coordinate space
+    if (svgPoint.x < xOffset) return;
+
+    const x = svgPoint.x - xOffset;
+    const y = svgPoint.y - yOffset;
 
     // Use refs instead of querySelector
     if (mouseLineRef.current) {
@@ -327,14 +336,14 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
     if (mouseTextRef.current) {
       mouseTextRef.current.setAttribute(
         'x',
-        (x > w - 45 ? x - 45 : x + 5).toString(),
+        (x > width - 45 ? x - 45 : x + 5).toString(),
       );
       mouseTextRef.current.setAttribute('y', y.toString());
       mouseTextRef.current.textContent =
-        Math.round((x / w) * course.distance) + 'm';
+        Math.round((x / width) * course.distance) + 'm';
     }
 
-    rtMouseMove(x / w);
+    rtMouseMove(x / width);
 
     // Handle drag via custom hook
     if (draggedSkill) {
@@ -405,102 +414,105 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
         <RaceTrackTooltip data={tooltipData} visible={tooltipVisible} />
       </div>
 
-      <svg
-        version="1.1"
-        xmlns="http://www.w3.org/2000/svg"
-        // viewBox={`0 0 ${width + xOffset + xExtra} ${height + yOffset + yExtra}`}
-        // preserveAspectRatio="xMidYMid meet"
-        width={width + xOffset + xExtra}
-        height={height + yOffset + yExtra}
-        className="racetrackView"
-        data-courseid={props.courseid}
-        onMouseMove={doMouseMove}
-        onMouseLeave={doMouseLeave}
-        onMouseUp={handleDragEnd}
-      >
-        <svg x={xOffset} y={yOffset} width={width} height={height}>
-          <SlopeVisualization
-            slopes={course.slopes}
-            distance={course.distance}
-          />
+      <div className="flex justify-center">
+        <svg
+          version="1.1"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox={`0 0 ${width + xOffset + xExtra} ${height + yOffset + yExtra}`}
+          preserveAspectRatio="xMidYMid meet"
+          className="racetrackView w-full"
+          style={{ maxWidth: `1200px` }} // Optional: cap max size
+          data-courseid={props.courseid}
+          onMouseMove={doMouseMove}
+          onMouseLeave={doMouseLeave}
+          onMouseUp={handleDragEnd}
+        >
+          <svg x={xOffset} y={yOffset} width={width} height={height}>
+            <SlopeVisualization
+              slopes={course.slopes}
+              distance={course.distance}
+            />
 
-          <SlopeLabelBar slopes={course.slopes} distance={course.distance} />
+            <SlopeLabelBar slopes={course.slopes} distance={course.distance} />
 
-          <SectionBar
-            straights={course.straights}
-            corners={course.corners}
-            distance={course.distance}
-          />
+            <SectionBar
+              straights={course.straights}
+              corners={course.corners}
+              distance={course.distance}
+            />
 
-          <PhaseBar distance={course.distance} />
-          <SectionNumbers />
+            <PhaseBar distance={course.distance} />
+            <SectionNumbers />
 
-          <RegionSegment
-            allRegions={allRegions}
-            course={course}
-            onDragStart={handleDragStart}
-          />
+            <RegionSegment
+              allRegions={allRegions}
+              course={course}
+              onDragStart={handleDragStart}
+            />
 
-          {posKeepLabels &&
-            posKeepLabels.map((label, index) => {
-              if (label.umaIndex === 0 && !showUma1) return null;
-              if (label.umaIndex === 1 && !showUma2) return null;
+            {posKeepLabels &&
+              posKeepLabels.map((label, index) => {
+                if (label.umaIndex === 0 && !showUma1) return null;
+                if (label.umaIndex === 1 && !showUma2) return null;
 
-              if (
-                label.x == null ||
-                label.width == null ||
-                label.yOffset == null
-              )
-                return null;
+                if (
+                  label.x == null ||
+                  label.width == null ||
+                  label.yOffset == null
+                )
+                  return null;
 
-              return (
-                <g key={index} className="poskeep-label">
-                  <text
-                    x={label.x + label.width / 2}
-                    y={5 + label.yOffset}
-                    fill={label.color.stroke}
-                    fontSize="10px"
-                    fontWeight="bold"
-                    textAnchor="middle"
-                    dominantBaseline="hanging"
-                  >
-                    {label.text}
-                  </text>
+                return (
+                  <g key={index} className="poskeep-label">
+                    <text
+                      x={label.x + label.width / 2}
+                      y={5 + label.yOffset}
+                      fill={label.color.stroke}
+                      fontSize="10px"
+                      fontWeight="bold"
+                      textAnchor="middle"
+                      dominantBaseline="hanging"
+                    >
+                      {label.text}
+                    </text>
 
-                  <line
-                    x1={label.x}
-                    y1={5 + label.yOffset + 12}
-                    x2={label.x + label.width}
-                    y2={5 + label.yOffset + 12}
-                    stroke={label.color.stroke}
-                    strokeWidth="2"
-                  />
-                </g>
-              );
-            })}
+                    <line
+                      x1={label.x}
+                      y1={5 + label.yOffset + 12}
+                      x2={label.x + label.width}
+                      y2={5 + label.yOffset + 12}
+                      stroke={label.color.stroke}
+                      strokeWidth="2"
+                    />
+                  </g>
+                );
+              })}
 
-          <line
-            ref={mouseLineRef}
-            className="mouseoverLine"
-            x1="-5"
-            y1="0"
-            x2="-5"
-            y2="100%"
-            stroke="rgb(121,64,22)"
-            strokeWidth="2"
-          />
+            <line
+              ref={mouseLineRef}
+              className="mouseoverLine"
+              x1="-5"
+              y1="0"
+              x2="-5"
+              y2="100%"
+              stroke="rgb(121,64,22)"
+              strokeWidth="2"
+              pointerEvents="none"
+            />
 
-          <text
-            ref={mouseTextRef}
-            className="mouseoverText"
-            x="-5"
-            y="-5"
-            fill="rgb(121,64,22)"
-          ></text>
+            <text
+              ref={mouseTextRef}
+              className="mouseoverText"
+              x="-5"
+              y="-5"
+              fill="rgb(121,64,22)"
+              pointerEvents="none"
+            ></text>
+          </svg>
+
+          {props.children}
         </svg>
-
-        {props.children}
-      </svg>
+      </div>
 
       <div className="flex items-center gap-4 bg-secondary px-4 py-2 rounded-md">
         <div className="flex items-center gap-2">

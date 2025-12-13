@@ -19,6 +19,8 @@ type IRaceStore = {
   spurtInfo: SpurtCandidate | null;
   staminaStats: StaminaStats | null;
   firstUmaStats: FirstUMAStats | null;
+  isSimulationRunning: boolean;
+  simulationProgress: { current: number; total: number } | null;
 };
 
 export const useRaceStore = create<IRaceStore>()((_) => ({
@@ -31,6 +33,8 @@ export const useRaceStore = create<IRaceStore>()((_) => ({
   spurtInfo: null,
   staminaStats: null,
   firstUmaStats: null,
+  isSimulationRunning: false,
+  simulationProgress: null,
 }));
 
 export const setResults = (results: CompareResult) => {
@@ -73,5 +77,16 @@ export const resetResults = () => {
     spurtInfo: null,
     staminaStats: null,
     firstUmaStats: null,
+    simulationProgress: null,
   });
+};
+
+export const setIsSimulationRunning = (isSimulationRunning: boolean) => {
+  useRaceStore.setState({ isSimulationRunning });
+};
+
+export const setSimulationProgress = (
+  progress: { current: number; total: number } | null,
+) => {
+  useRaceStore.setState({ simulationProgress: progress });
 };

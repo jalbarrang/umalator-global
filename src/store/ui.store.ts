@@ -7,8 +7,7 @@ type ISidebar = {
 };
 
 export type IUIStore = {
-  // Simulation runtime state
-  isSimulationRunning: boolean;
+  // UI counter state
   runOnceCounter: number;
 
   // Dropdown/modal state (ephemeral, not persisted)
@@ -21,7 +20,6 @@ export type IUIStore = {
 };
 
 export const useUIStore = create<IUIStore>()((_) => ({
-  isSimulationRunning: false,
   runOnceCounter: 0,
   isPacemakerDropdownOpen: false,
   showVirtualPacemakerOnGraph: false,
@@ -32,10 +30,6 @@ export const useUIStore = create<IUIStore>()((_) => ({
     hidden: false,
   },
 }));
-
-export const setIsSimulationRunning = (isSimulationRunning: boolean) => {
-  useUIStore.setState({ isSimulationRunning });
-};
 
 export const setRunOnceCounter = (runOnceCounter: number) => {
   useUIStore.setState({ runOnceCounter });
