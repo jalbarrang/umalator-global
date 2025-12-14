@@ -109,6 +109,7 @@ export const SkillBassinPage = () => {
             onSelectionChange={basinnChartSelection}
             onAddSkill={addSkillFromTable}
             selectedSkills={selectedSkills}
+            isSimulationRunning={isSimulationRunning}
           />
         </div>
       </Activity>

@@ -16,7 +16,7 @@ export const SkillIcon = (props: { iconId: string }) => {
   return <img className="w-6 h-6" src={`/icons/${props.iconId}.png`} />;
 };
 
-type SkillItemProps = {
+type SkillItemProps = React.HTMLAttributes<HTMLDivElement> & {
   skillId: string;
   selected?: boolean;
   dismissable?: boolean;
@@ -24,9 +24,6 @@ type SkillItemProps = {
   distanceFactor?: number;
   forcedPosition?: number;
   onPositionChange?: (position: string | undefined) => void;
-  itemProps?: {
-    className?: string;
-  };
 };
 
 export const SkillItem = memo((props: SkillItemProps) => {
@@ -59,11 +56,12 @@ export const SkillItem = memo((props: SkillItemProps) => {
       <div
         className={cn(
           'rounded-md bg-background border-2 flex h-[44px]',
-          props.itemProps?.className,
           {
             selected: selected,
           },
+          props.className,
         )}
+        style={props.style}
         data-event="select-skill"
         data-skillid={skillId}
       >
@@ -108,16 +106,17 @@ export const SkillItem = memo((props: SkillItemProps) => {
       className={cn({
         'max-h-[44px]': !expanded,
       })}
+      style={props.style}
     >
       <div
         onClick={() => setExpanded(!expanded)}
         className={cn(
           'rounded-md bg-background border-2 flex h-[44px]',
-          props.itemProps?.className,
           {
             selected: selected,
             'rounded-b-none': expanded,
           },
+          props.className,
         )}
       >
         <div

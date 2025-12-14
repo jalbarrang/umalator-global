@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Activity, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Empty,
@@ -9,7 +9,6 @@ import {
   EmptyTitle,
 } from '@/components/ui/empty';
 import { SavedRunnerCard } from '@/modules/runners/components/saved-runner-card';
-import { RunnerEditorDialog } from '@/modules/runners/components/runner-editor-dialog';
 import {
   useRunnerLibraryStore,
   SavedRunner,
@@ -28,24 +27,19 @@ import { useNavigate } from 'react-router';
 
 const RunnersPage = () => {
   const navigate = useNavigate();
-  const { runners, addRunner, updateRunner, deleteRunner, duplicateRunner } =
-    useRunnerLibraryStore();
+  const { runners, deleteRunner, duplicateRunner } = useRunnerLibraryStore();
 
-  const [editorOpen, setEditorOpen] = useState(false);
-  const [editingRunner, setEditingRunner] = useState<SavedRunner | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [runnerToDelete, setRunnerToDelete] = useState<string | null>(null);
   const [loadDialogOpen, setLoadDialogOpen] = useState(false);
   const [runnerToLoad, setRunnerToLoad] = useState<SavedRunner | null>(null);
 
   const handleAddNew = () => {
-    setEditingRunner(null);
-    setEditorOpen(true);
+    navigate('/runners/new');
   };
 
   const handleEdit = (runner: SavedRunner) => {
-    setEditingRunner(runner);
-    setEditorOpen(true);
+    navigate(`/runners/${runner.id}/edit`);
   };
 
   const handleDeleteClick = (id: string) => {
@@ -79,11 +73,13 @@ const RunnersPage = () => {
   return (
     <div className="flex flex-col flex-1 p-4 gap-4 overflow-y-auto min-h-0">
       {/* Header */}
-      <div className="flex items-center justify-end p-2 border-b">
-        <Button onClick={handleAddNew}>
-          <Plus className="w-4 h-4 mr-2" />
-          Add Runner
-        </Button>
+      <div className="flex items-center justify-end">
+        <Activity mode={runners.length > 0 ? 'visible' : 'hidden'}>
+          <Button onClick={handleAddNew}>
+            <Plus className="w-4 h-4 mr-2" />
+            Add Runner
+          </Button>
+        </Activity>
       </div>
 
       {/* Content */}
@@ -96,9 +92,10 @@ const RunnersPage = () => {
               </EmptyMedia>
               <EmptyTitle>No runners saved</EmptyTitle>
               <EmptyDescription>
-                Create your first runner to get started
+                Register your first runner to get started
               </EmptyDescription>
             </EmptyHeader>
+
             <EmptyContent>
               <Button onClick={handleAddNew}>
                 <Plus className="w-4 h-4 mr-2" />
@@ -121,15 +118,6 @@ const RunnersPage = () => {
           </div>
         )}
       </div>
-
-      {/* Editor Dialog */}
-      <RunnerEditorDialog
-        open={editorOpen}
-        onOpenChange={setEditorOpen}
-        runner={editingRunner}
-        onSave={addRunner}
-        onUpdate={updateRunner}
-      />
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

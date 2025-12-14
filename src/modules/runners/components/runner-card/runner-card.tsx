@@ -30,7 +30,7 @@ const runawaySkillId = '202051' as const;
 
 type RunnerCardProps = {
   value: RunnerState;
-  courseDistance: number;
+  courseDistance?: number;
   runnerId: string;
 
   // Events
@@ -38,10 +38,20 @@ type RunnerCardProps = {
   onReset: () => void;
   onCopy: () => void;
   onSwap: () => void;
+
+  // Options
+  hideSkillButton?: boolean;
 };
 
 export const RunnerCard = (props: RunnerCardProps) => {
-  const { value: state, onChange, onReset, onCopy, onSwap } = props;
+  const {
+    value: state,
+    onChange,
+    onReset,
+    onCopy,
+    onSwap,
+    hideSkillButton = false,
+  } = props;
 
   const isMobile = useIsMobile();
 
@@ -349,17 +359,21 @@ export const RunnerCard = (props: RunnerCardProps) => {
         </div>
       </div>
 
-      <div className="bg-primary text-white font-bold rounded-sm flex items-center h-8">
-        <div className="flex-1 text-center">Skills</div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleOpenSkillPicker}
-          className="w-24 rounded-none rounded-r-sm"
-        >
-          Open
-        </Button>
-      </div>
+      {!hideSkillButton && (
+        <div className="bg-primary text-white font-bold rounded-sm flex items-center h-8">
+          <div className="flex-1 text-center">Skills</div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleOpenSkillPicker}
+            className="w-24 rounded-none rounded-r-sm"
+          >
+            Open
+          </Button>
+        </div>
+      )}
+
+      {hideSkillButton && <div className="text-sm font-semibold">Skills</div>}
 
       <div
         className="grid grid-cols-1 md:grid-cols-2 gap-2"

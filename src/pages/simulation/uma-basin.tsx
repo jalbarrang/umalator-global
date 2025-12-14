@@ -119,6 +119,7 @@ export const UmaBassinPage = () => {
             onAddSkill={handleAddSkill}
             onReplaceOutfit={handleReplaceRunnerOutfit}
             showUmaIcons
+            isSimulationRunning={isSimulationRunning}
           />
         </div>
       </Activity>
