@@ -14,7 +14,6 @@ import { useShallow } from 'zustand/shallow';
 import { useUmaBasinPoolRunner } from '@/modules/simulation/hooks/pool/useUmaBasinPoolRunner';
 import { useChartData } from '@/modules/simulation/stores/uma-basin.store';
 import { ButtonGroup } from '@/components/ui/button-group';
-import { Loader2 } from 'lucide-react';
 import { getUmaForUniqueSkill } from '@/modules/skills/utils';
 import { LoadingOverlay } from '@/components/loading-overlay';
 
@@ -59,13 +58,7 @@ export const UmaBassinPage = () => {
   const { doBasinnChart, cancelSimulation } = useUmaBasinPoolRunner();
 
   return (
-    <div className="flex flex-col gap-4">
-      <LoadingOverlay
-        isVisible={isSimulationRunning}
-        currentSamples={metrics?.skillsProcessed}
-        totalSamples={metrics?.totalSamples}
-      />
-
+    <div className="flex flex-col flex-1 gap-4">
       <div className="flex items-center gap-2">
         <ButtonGroup>
           {!isSimulationRunning && (
@@ -77,7 +70,6 @@ export const UmaBassinPage = () => {
           {isSimulationRunning && (
             <Button variant="destructive" onClick={cancelSimulation}>
               Cancel Simulation
-              <Loader2 className="w-4 h-4 animate-spin" />
             </Button>
           )}
 
@@ -95,14 +87,15 @@ export const UmaBassinPage = () => {
         <RaceTrack
           courseid={courseId}
           chartData={chartData}
-          xOffset={20}
-          yOffset={15}
+          xOffset={35}
+          yOffset={35}
           yExtra={20}
         >
           <VelocityLines
             data={chartData}
             courseDistance={course.distance}
-            xOffset={20}
+            xOffset={35}
+            yOffset={25}
             horseLane={course.horseLane}
             showVirtualPacemaker={false}
             selectedPacemakers={[]}
@@ -122,6 +115,13 @@ export const UmaBassinPage = () => {
             isSimulationRunning={isSimulationRunning}
           />
         </div>
+      </Activity>
+
+      <Activity mode={isSimulationRunning ? 'visible' : 'hidden'}>
+        <LoadingOverlay
+          currentSamples={metrics?.skillsProcessed}
+          totalSamples={metrics?.totalSamples}
+        />
       </Activity>
     </div>
   );

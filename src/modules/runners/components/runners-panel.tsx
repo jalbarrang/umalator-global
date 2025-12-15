@@ -3,34 +3,34 @@ import {
   resetAllRunners,
   showRunner,
   swapWithRunner,
-  useRunner,
   syncRunnerToLibrary,
   unlinkRunner,
+  useRunner,
 } from '@/store/runners.store';
-import { CourseHelpers } from '@simulation/lib/CourseData';
-import { useMemo, useState } from 'react';
-import { RunnerCard } from './runner-card/runner-card';
 import { useSettingsStore } from '@/store/settings.store';
+import { CourseHelpers } from '@simulation/lib/CourseData';
+import { useMemo } from 'react';
+import { RunnerCard } from './runner-card/runner-card';
 
-import './style.css';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Panel,
   PanelContent,
   PanelHeader,
   PanelTitle,
 } from '@/components/ui/panel';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { SkillPickerModal } from '@/modules/skills/components/skill-list/SkillList';
-import { cn } from '@/lib/utils';
-import { PosKeepMode } from '@/modules/simulation/lib/RaceSolver';
-import { useRunnerLibraryStore } from '@/store/runner-library.store';
-import { Link2, Save, Link2Off } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
+import { PosKeepMode } from '@/modules/simulation/lib/RaceSolver';
+import { SkillPickerDrawer } from '@/modules/skills/components/skill-list/SkillPickerDrawer';
+import { useRunnerLibraryStore } from '@/store/runner-library.store';
+import { Link2, Link2Off, Save } from 'lucide-react';
+import './style.css';
 
 export const RunnersPanel = () => {
   const { runnerId, runner, updateRunner, resetRunner } = useRunner();
@@ -129,7 +129,7 @@ export const RunnersPanel = () => {
       </PanelHeader>
 
       <PanelContent className="p-0">
-        <SkillPickerModal />
+        <SkillPickerDrawer />
 
         {/* Library Link Indicator */}
         {isLinked && linkedRunner && runnerId !== 'pacer' && (

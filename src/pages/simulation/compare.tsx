@@ -12,7 +12,6 @@ import { useSettingsStore } from '@/store/settings.store';
 import { useSelectedPacemakerBooleans } from '@/store/settings/actions';
 import { useUIStore } from '@/store/ui.store';
 import { resetResults, useRaceStore } from '@simulation/stores/compare.store';
-import { Loader2 } from 'lucide-react';
 import { Activity, useMemo } from 'react';
 
 export const ComparePage = () => {
@@ -26,13 +25,7 @@ export const ComparePage = () => {
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
 
   return (
-    <div className="flex flex-col gap-4">
-      <LoadingOverlay
-        isVisible={isSimulationRunning}
-        currentSamples={simulationProgress?.current}
-        totalSamples={simulationProgress?.total}
-      />
-
+    <div className="flex flex-col flex-1 gap-4">
       <div className="flex items-center gap-2">
         <ButtonGroup>
           <Button
@@ -41,9 +34,6 @@ export const ComparePage = () => {
             variant="default"
           >
             Run all samples
-            {isSimulationRunning && (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            )}
           </Button>
           <Button
             onClick={handleRunOnce}
@@ -84,6 +74,13 @@ export const ComparePage = () => {
         {results.length > 0 && <ResultButtonGroups />}
 
         <SimulationResultTabs />
+      </Activity>
+
+      <Activity mode={isSimulationRunning ? 'visible' : 'hidden'}>
+        <LoadingOverlay
+          currentSamples={simulationProgress?.current}
+          totalSamples={simulationProgress?.total}
+        />
       </Activity>
     </div>
   );

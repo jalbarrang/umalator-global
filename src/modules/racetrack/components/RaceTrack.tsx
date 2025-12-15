@@ -521,8 +521,10 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
               distance={course.distance}
               xOffset={xOffset}
               yOffset={yOffset}
+              yExtra={-10}
               width={width}
               height={height}
+              strokeColor="var(--color-green-400)"
             />
 
             <ThresholdMarker
@@ -532,6 +534,7 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
               yOffset={yOffset}
               width={width}
               height={height}
+              strokeColor="var(--color-amber-400)"
             />
 
             <ThresholdMarker
@@ -541,6 +544,7 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
               yOffset={yOffset}
               width={width}
               height={height}
+              strokeColor="var(--color-amber-400)"
             />
           </Activity>
 
@@ -587,7 +591,7 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
             htmlFor="showthresholds"
             className="text-sm font-normal cursor-pointer"
           >
-            Show thresholds (777m, 200m, Halfway)
+            Show thresholds
           </Label>
         </div>
 
@@ -631,21 +635,33 @@ type ThresholdMarkerProps = {
   distance: number;
   xOffset: number;
   yOffset: number;
+  yExtra?: number;
   width: number;
   height: number;
+  strokeColor?: string;
 };
 
 const ThresholdMarker = (props: ThresholdMarkerProps) => {
-  const { threshold, text, distance, xOffset, yOffset, width, height } = props;
+  const {
+    threshold,
+    text,
+    distance,
+    xOffset,
+    yOffset,
+    yExtra = 0,
+    width,
+    height,
+    strokeColor = 'rgb(239, 68, 68)',
+  } = props;
   return (
     <g className="threshold-marker">
       {/* Dashed vertical line */}
       <line
         x1={xOffset + ((distance - threshold) / distance) * width}
-        y1={yOffset - 20}
+        y1={yOffset - 20 - yExtra}
         x2={xOffset + ((distance - threshold) / distance) * width}
         y2={yOffset + height}
-        stroke="rgb(239, 68, 68)"
+        stroke={strokeColor}
         strokeWidth="1"
         strokeDasharray="5,5"
       />
@@ -653,7 +669,7 @@ const ThresholdMarker = (props: ThresholdMarkerProps) => {
       {/* Label text */}
       <text
         x={xOffset + ((distance - threshold) / distance) * width}
-        y={yOffset - 25}
+        y={yOffset - 25 - yExtra}
         fontSize="10px"
         textAnchor="middle"
         fill="white"

@@ -13,7 +13,6 @@ import {
   useChartData,
   useSkillBasinStore,
 } from '@simulation/stores/skill-basin.store';
-import { Loader2 } from 'lucide-react';
 import { Activity, useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
 
@@ -51,13 +50,7 @@ export const SkillBassinPage = () => {
   const { doBasinnChart, cancelSimulation } = useSkillBasinPoolRunner();
 
   return (
-    <div className="flex flex-col gap-4">
-      <LoadingOverlay
-        isVisible={isSimulationRunning}
-        currentSamples={metrics?.skillsProcessed}
-        totalSamples={metrics?.totalSamples}
-      />
-
+    <div className="flex flex-col gap-4 flex-1">
       <div className="flex items-center gap-2">
         <ButtonGroup>
           {!isSimulationRunning && (
@@ -69,7 +62,6 @@ export const SkillBassinPage = () => {
           {isSimulationRunning && (
             <Button variant="destructive" onClick={cancelSimulation}>
               Cancel Simulation
-              <Loader2 className="w-4 h-4 animate-spin" />
             </Button>
           )}
 
@@ -87,14 +79,15 @@ export const SkillBassinPage = () => {
         <RaceTrack
           courseid={courseId}
           chartData={chartData}
-          xOffset={20}
-          yOffset={15}
+          xOffset={35}
+          yOffset={35}
           yExtra={20}
         >
           <VelocityLines
             data={chartData}
             courseDistance={course.distance}
-            xOffset={20}
+            xOffset={35}
+            yOffset={25}
             horseLane={course.horseLane}
             showVirtualPacemaker={false}
             selectedPacemakers={[]}
@@ -112,6 +105,13 @@ export const SkillBassinPage = () => {
             isSimulationRunning={isSimulationRunning}
           />
         </div>
+      </Activity>
+
+      <Activity mode={isSimulationRunning ? 'visible' : 'hidden'}>
+        <LoadingOverlay
+          currentSamples={metrics?.skillsProcessed}
+          totalSamples={metrics?.totalSamples}
+        />
       </Activity>
     </div>
   );

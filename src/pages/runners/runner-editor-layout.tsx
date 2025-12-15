@@ -4,7 +4,7 @@ import { Label } from '@/components/ui/label';
 import { useIsMobile } from '@/hooks/useBreakpoint';
 import { RunnerCard } from '@/modules/runners/components/runner-card/runner-card';
 import { RunnerState } from '@/modules/runners/components/runner-card/types';
-import { SkillPickerModal } from '@/modules/skills/components/skill-list/SkillList';
+import { SkillPickerDrawer } from '@/modules/skills/components/skill-list/SkillList';
 import { SkillPickerContent } from '@/modules/skills/components/skill-picker-content';
 import { updateCurrentSkills } from '@/modules/skills/store';
 import { getSelectableSkillsForUma } from '@/modules/skills/utils';
@@ -94,7 +94,7 @@ export const RunnerEditorLayout = ({
             </div>
 
             {/* Skill picker modal for mobile */}
-            <SkillPickerModal />
+            <SkillPickerDrawer />
           </div>
         ) : (
           /* Desktop layout: Two columns */
@@ -139,7 +139,7 @@ export const RunnerEditorLayout = ({
                 currentSkills={runnerState.skills}
                 onSelect={handleSetSkills}
                 hideSelected
-                className="flex-1"
+                className="overflow-y-auto"
               />
             </div>
           </div>

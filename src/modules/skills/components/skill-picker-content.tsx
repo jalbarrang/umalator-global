@@ -1,15 +1,5 @@
-import {
-  forwardRef,
-  useDeferredValue,
-  useMemo,
-  useReducer,
-  useRef,
-  useState,
-} from 'react';
-import { useHotkeys } from 'react-hotkeys-hook';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { VirtuosoGrid, VirtuosoGridProps } from 'react-virtuoso';
 import {
   InputGroup,
   InputGroupAddon,
@@ -29,6 +19,15 @@ import {
   matchRarity,
 } from '@/modules/skills/utils';
 import { SearchIcon, XIcon } from 'lucide-react';
+import {
+  useDeferredValue,
+  useImperativeHandle,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+} from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
 import { SkillIcon, SkillItem } from './skill-list/SkillItem';
 
 type IconFilterButtonProps = {
@@ -170,6 +169,7 @@ const getActiveFilters = (
 type IconIdPrefix = keyof typeof iconIdPrefixes;
 
 export type SkillPickerContentProps = {
+  ref: React.RefObject<{ focus: () => void } | null>;
   umaId: string;
   options: string[];
   currentSkills: string[];
@@ -180,6 +180,7 @@ export type SkillPickerContentProps = {
 
 export function SkillPickerContent(props: SkillPickerContentProps) {
   const {
+    ref,
     umaId,
     options,
     currentSkills,
@@ -354,6 +355,17 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
     searchRef.current?.select();
   });
 
+  useImperativeHandle(
+    ref,
+    () => ({
+      focus: () => {
+        searchRef.current?.focus();
+        searchRef.current?.select();
+      },
+    }),
+    [searchRef],
+  );
+
   return (
     <div className={cn('flex flex-col gap-3', className)}>
       <div data-filter-group="search">
@@ -364,7 +376,6 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
           <InputGroupInput
             ref={searchRef}
             type="text"
-            className="filterSearch"
             value={searchText}
             placeholder="Search skill by name"
             onChange={(e) => setSearchText(e.target.value)}
@@ -602,26 +613,17 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
               </span>
             </div>
 
-            <div className="flex-1">
-              <VirtuosoGrid
-                className="h-full"
-                totalCount={filteredSkills.length}
-                components={gridComponents}
-                onClick={toggleSelected}
-                itemContent={(index) => {
-                  const skill = filteredSkills[index];
-                  const isSelected =
-                    selectedMap.get(skill.meta.groupId) === skill.id;
-
-                  return (
-                    <SkillItem
-                      skillId={skill.id}
-                      selected={isSelected}
-                      className="cursor-pointer w-full"
-                    />
-                  );
-                }}
-              />
+            <div className="flex-1" onClick={toggleSelected}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 p-4">
+                {filteredSkills.map((skill) => (
+                  <SkillItem
+                    key={skill.id}
+                    skillId={skill.id}
+                    selected={selectedMap.get(skill.meta.groupId) === skill.id}
+                    className="cursor-pointer"
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -629,16 +631,3 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
     </div>
   );
 }
-
-const gridComponents: VirtuosoGridProps<undefined, undefined>['components'] = {
-  List: forwardRef(({ style, children, ...props }, ref) => (
-    <div
-      ref={ref}
-      {...props}
-      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 p-4"
-      style={style}
-    >
-      {children}
-    </div>
-  )),
-};
