@@ -41,4 +41,5 @@ export type RunnerState = {
   skills: string[];
   forcedSkillPositions: Record<string, number>; // TODO: Change to Map for easier serialization
   randomMobId?: number; // For placeholder image when no uma selected
+  linkedRunnerId?: string; // Link to saved runner in library
 };

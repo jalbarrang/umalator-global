@@ -101,6 +101,7 @@ const YAxis = memo((props: YAxisProps) => {
   return (
     <g transform={transform}>
       <line x1={0} x2={0} y1={rangeStart} y2={rangeEnd} stroke="currentColor" />
+
       {ticks.map((tick: number) => (
         <g key={tick} transform={`translate(0,${scale(tick)})`}>
           <line x2={-6} stroke="currentColor" />
@@ -109,6 +110,7 @@ const YAxis = memo((props: YAxisProps) => {
             textAnchor="end"
             alignmentBaseline="middle"
             fontSize={10}
+            fill="var(--color-foreground)"
           >
             {tick}
           </text>
@@ -124,6 +126,7 @@ type VelocityLinesProps = {
   width?: number;
   height?: number;
   xOffset: number;
+  yOffset?: number;
   horseLane: number;
   showVirtualPacemaker: boolean;
   selectedPacemakers: boolean[];
@@ -136,7 +139,7 @@ const ASPECT_RATIO = BASE_HEIGHT / BASE_WIDTH;
 export const VelocityLines = memo(function VelocityLines(
   props: VelocityLinesProps,
 ) {
-  const { data, courseDistance, xOffset } = props;
+  const { data, courseDistance, xOffset, yOffset = 0 } = props;
   const { showUma1, showUma2, showHp, showLanes } = useRaceTrackUI();
 
   const width = props.width ?? BASE_WIDTH;
@@ -200,11 +203,11 @@ export const VelocityLines = memo(function VelocityLines(
   if (!data || !yScale) {
     return (
       <>
-        <g transform={`translate(${xOffset},5)`} />
+        <g transform={`translate(${xOffset},${5 + yOffset})`} />
 
         <XAxis
           scale={xScale}
-          transform={`translate(${xOffset},${height + 5})`}
+          transform={`translate(${xOffset},${height + 5 + yOffset})`}
         />
       </>
     );
@@ -212,7 +215,7 @@ export const VelocityLines = memo(function VelocityLines(
 
   return (
     <>
-      <g transform={`translate(${xOffset},5)`}>
+      <g transform={`translate(${xOffset},${5 + yOffset})`}>
         {/* Velocity lines */}
         {data.v.map((v, i) => {
           if (i === 0 && !showUma1) return null;
@@ -326,8 +329,14 @@ export const VelocityLines = memo(function VelocityLines(
       </g>
 
       {/* Axes */}
-      <XAxis scale={xScale} transform={`translate(${xOffset},${height + 5})`} />
-      <YAxis scale={yScale} transform={`translate(${xOffset},4)`} />
+      <XAxis
+        scale={xScale}
+        transform={`translate(${xOffset},${height + 5 + yOffset})`}
+      />
+      <YAxis
+        scale={yScale}
+        transform={`translate(${xOffset},${4 + yOffset})`}
+      />
     </>
   );
 });

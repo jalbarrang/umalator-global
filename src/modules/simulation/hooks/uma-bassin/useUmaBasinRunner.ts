@@ -7,7 +7,7 @@ import { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { uniqueSkillIds } from '@/modules/skills/utils';
 import { useRunner, useRunnersStore } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
-import { setIsSimulationRunning } from '@/store/ui.store';
+import { setIsSimulationRunning } from '@simulation/stores/uma-basin.store';
 import { racedefToParams } from '@/utils/races';
 import { CourseHelpers } from '@simulation/lib/CourseData';
 import {

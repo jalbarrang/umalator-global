@@ -225,3 +225,39 @@ export const isUniqueSkill = (skillRarity: number) => {
 export const isEvolutionSkill = (skillRarity: number) => {
   return skillRarity === 6;
 };
+
+// Library Integration Functions
+
+export const loadRunnerFromLibrary = (
+  runner: RunnerType,
+  libraryRunner: RunnerState & { id: string },
+) => {
+  const runnerData = cloneDeep(libraryRunner);
+  runnerData.linkedRunnerId = libraryRunner.id;
+
+  useRunnersStore.setState({ [runner]: runnerData });
+  toast.success(`Loaded "${libraryRunner.id}" to simulation`);
+};
+
+export const syncRunnerToLibrary = (runner: RunnerType) => {
+  const state = useRunnersStore.getState();
+  const runnerState = state[runner];
+
+  if (!runnerState.linkedRunnerId) {
+    toast.error('No linked runner to sync');
+    return null;
+  }
+
+  return runnerState.linkedRunnerId;
+};
+
+export const unlinkRunner = (runner: RunnerType) => {
+  useRunnersStore.setState((prev) => {
+    const newRunnerState = cloneDeep(prev[runner]);
+    delete newRunnerState.linkedRunnerId;
+
+    return { ...prev, [runner]: newRunnerState };
+  });
+
+  toast.success('Runner unlinked from library');
+};

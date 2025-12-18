@@ -1,9 +1,6 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
-import icons from '@data/icons.json';
-
-import { umasForSearch } from '@/modules/runners/utils';
-import { useMemo } from 'react';
+import { umasForSearch, getUmaImageUrl } from '@/modules/runners/utils';
 import {
   Popover,
   PopoverContent,
@@ -29,10 +26,9 @@ type UmaSelectorProps = {
 export const UmaSelector = (props: UmaSelectorProps) => {
   const [open, setOpen] = useState(false);
 
-  const randomMob = useMemo(
-    () =>
-      `/icons/mob/trained_mob_chr_icon_${props.randomMobId ?? 8000}_000001_01.png`,
-    [props.randomMobId],
+  const imageUrl = useMemo(
+    () => getUmaImageUrl(props.value, props.randomMobId),
+    [props.value, props.randomMobId],
   );
 
   const selectedUma = useMemo(() => {
@@ -56,13 +52,7 @@ export const UmaSelector = (props: UmaSelectorProps) => {
       <PopoverTrigger asChild>
         <div className="flex flex-1 gap-2 cursor-pointer">
           <div className="w-18 h-18">
-            <img
-              src={
-                props.value
-                  ? icons[props.value as keyof typeof icons]
-                  : randomMob
-              }
-            />
+            <img src={imageUrl} alt={selectedUma?.name || 'Runner'} />
           </div>
 
           {selectedUma && (
@@ -94,8 +84,9 @@ export const UmaSelector = (props: UmaSelectorProps) => {
                   onSelect={() => handleSelectedItem(uma.id)}
                 >
                   <img
-                    src={icons[uma.id as keyof typeof icons]}
+                    src={getUmaImageUrl(uma.id)}
                     className="w-16 h-16"
+                    alt={uma.name}
                   />
                   <div>
                     <div className="text-xs font-bold">{uma.outfit}</div>

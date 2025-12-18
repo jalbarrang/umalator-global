@@ -160,6 +160,7 @@ type BasinnChartProps = {
   showUmaIcons?: boolean;
   metrics?: PoolMetrics | null;
   selectedSkills: string[];
+  isSimulationRunning: boolean;
   onAddSkill: (id: string) => void;
   onSelectionChange: (id: string) => void;
   onReplaceOutfit?: (id: string) => void;
@@ -170,14 +171,11 @@ export const BasinnChart = (props: BasinnChartProps) => {
     selectedSkills,
     onAddSkill,
     onSelectionChange,
-
     metrics,
-
     showUmaIcons = false,
     onReplaceOutfit,
+    isSimulationRunning,
   } = props;
-
-  const { isSimulationRunning } = useUIStore();
 
   const columns: ColumnDef<RoundResult>[] = [
     {

@@ -6,14 +6,14 @@
 
 The Perl scripts have been replaced with faster, type-safe TypeScript equivalents:
 
-| Legacy Perl Script | New TypeScript Script | Speed Improvement |
-|--------------------|----------------------|-------------------|
-| `make_global_skill_meta.pl` | `extract-skill-meta.ts` | 3-6x faster |
-| `make_global_skillnames.pl` | `extract-skillnames.ts` | 3-6x faster |
-| `make_global_skill_data.pl` | `extract-skill-data.ts` | 3-6x faster |
-| `make_global_uma_info.pl` | `extract-uma-info.ts` | 3-6x faster |
-| `make_global_course_data.pl` | `extract-course-data.ts` | 3-6x faster |
-| `update.bat` | `extract-all.ts` | - |
+| Legacy Perl Script           | New TypeScript Script    | Speed Improvement |
+| ---------------------------- | ------------------------ | ----------------- |
+| `make_global_skill_meta.pl`  | `extract-skill-meta.ts`  | 3-6x faster       |
+| `make_global_skillnames.pl`  | `extract-skillnames.ts`  | 3-6x faster       |
+| `make_global_skill_data.pl`  | `extract-skill-data.ts`  | 3-6x faster       |
+| `make_global_uma_info.pl`    | `extract-uma-info.ts`    | 3-6x faster       |
+| `make_global_course_data.pl` | `extract-course-data.ts` | 3-6x faster       |
+| `update.bat`                 | `extract-all.ts`         | -                 |
 
 ## Why Deprecated?
 
@@ -28,6 +28,7 @@ The Perl scripts have been replaced with faster, type-safe TypeScript equivalent
 See [`../README.md`](../README.md) for documentation on the new TypeScript extraction scripts.
 
 Quick start:
+
 ```bash
 bun run extract:all
 ```
@@ -35,6 +36,7 @@ bun run extract:all
 ## Why Keep These Files?
 
 These legacy scripts are preserved for:
+
 - Reference during migration verification
 - Historical documentation
 - Comparison testing
@@ -43,4 +45,3 @@ These legacy scripts are preserved for:
 ## Do Not Use
 
 These scripts are not maintained and may produce incorrect output with newer game versions. Always use the TypeScript equivalents in the parent `scripts/` directory.
-

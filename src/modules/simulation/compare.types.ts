@@ -1,4 +1,9 @@
 import { cloneDeep } from 'es-toolkit';
+import {
+  ISkillPerspective,
+  ISkillTarget,
+  ISkillType,
+} from './lib/race-solver/types';
 
 export interface CompareResult {
   results: number[];
@@ -45,7 +50,7 @@ export interface SimulationRun {
   hp: Array<number[]>;
   currentLane: Array<number[]>;
   pacerGap: Array<number[]>;
-  sk: SkillActivationMap[];
+  sk: [SkillActivationMap, SkillActivationMap];
   sdly: number[];
   rushed: RegionActivation[][];
   posKeep: Array<Array<number[]>>;
@@ -60,16 +65,17 @@ export interface SimulationRun {
 
 // [RegionStart, RegionEnd]
 export type RegionActivation = [number, number];
-// export type Sk = Map<string, RegionActivation[]>;
-export type SkillActivation = [
-  start: number,
-  end: number,
-  perspective: string,
-  type: string,
-  // perspective: ISkillPerspective,
-  // skillType: ISkillType,
-  // target: ISkillTarget,
-];
+
+export type SkillActivation = {
+  executionId: string;
+  skillId: string;
+  start: number;
+  end: number;
+  perspective: ISkillPerspective;
+  effectType: ISkillType;
+  effectTarget: ISkillTarget;
+};
+
 export type SkillActivationMap = Map<string, SkillActivation[]>;
 
 export interface StaminaStats {

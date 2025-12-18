@@ -5,8 +5,13 @@ import {
   getSkillNameById,
   estimateSkillActivationPhase,
 } from '@/modules/skills/utils';
-import { SkillTarget, SkillType } from '@simulation/lib/race-solver/types';
+import {
+  SkillPerspective,
+  SkillTarget,
+  SkillType,
+} from '@simulation/lib/race-solver/types';
 import { SkillActivationMap } from '@/modules/simulation/compare.types';
+import { EffectQuery } from '@/modules/skills/effects-query';
 
 export interface RecoverySkillActivation {
   skillId: string;
@@ -122,40 +127,35 @@ function getEstimatedPosition(skillId: string, courseDistance: number): number {
  * Includes both pure heals and self-heals from dual-effect debuff skills
  */
 export function useActualRecoverySkills(
-  skillData: SkillActivationMap | undefined,
+  skillActivationMap: SkillActivationMap | undefined,
   maxHp: number,
 ): RecoverySkillActivation[] {
   return useMemo(() => {
-    if (!skillData) return [];
+    if (!skillActivationMap) return [];
 
     const skills: RecoverySkillActivation[] = [];
 
-    for (const [skillId, activations] of skillData.entries()) {
-      const { staminaRecovered, hasRecovery } = applyStaminaRecovery(skillId);
+    const recoverySkills = EffectQuery.from(skillActivationMap).getSelfHeals();
 
-      // Include skills that have self-healing (positive or from dual-effect debuffs)
+    for (const activation of recoverySkills) {
+      const { staminaRecovered, hasRecovery } = applyStaminaRecovery(
+        activation.skillId,
+      );
+
       if (hasRecovery) {
-        const skillName = getSkillNameById(skillId);
-        // Recovery modifier is percentage of max HP (divided by 10000)
-        const hpRecovered = (staminaRecovered / 10000) * maxHp;
-
-        for (const [start, _end, perspective, type] of activations) {
-          if (type !== 'heal' || perspective !== 'self') continue;
-
-          skills.push({
-            skillId,
-            skillName,
-            position: start,
-            hpRecovered,
-            isEstimated: false,
-            isDebuff: false,
-          });
-        }
+        skills.push({
+          skillId: activation.skillId,
+          skillName: getSkillNameById(activation.skillId),
+          position: activation.start,
+          hpRecovered: (staminaRecovered / 10000) * maxHp,
+          isEstimated: false,
+          isDebuff: false,
+        });
       }
     }
 
     return skills.toSorted((a, b) => a.position - b.position);
-  }, [skillData, maxHp]);
+  }, [skillActivationMap, maxHp]);
 }
 
 /**
@@ -163,40 +163,36 @@ export function useActualRecoverySkills(
  * These are HP drain skills used by opponents against this runner
  */
 export function useActualDebuffsReceived(
-  skillsSet: SkillActivationMap | undefined,
+  opponentsSkills: SkillActivationMap | undefined,
   maxHp: number,
 ): RecoverySkillActivation[] {
   return useMemo(() => {
-    if (!skillsSet) return [];
+    if (!opponentsSkills) return [];
 
     const skills: RecoverySkillActivation[] = [];
-    for (const [skillId, activations] of skillsSet.entries()) {
-      const { staminaDrain, hasStaminaDrain } = applyStaminaDrain(skillId);
 
-      // Only include skills that have debuff effects on others
+    const staminaDebuffs =
+      EffectQuery.from(opponentsSkills).getStaminaDebuffs();
+
+    for (const activation of staminaDebuffs) {
+      const { staminaDrain, hasStaminaDrain } = applyStaminaDrain(
+        activation.skillId,
+      );
+
       if (hasStaminaDrain) {
-        const skillName = getSkillNameById(skillId);
-
-        // Modifier is typically negative, so hpRecovered will be negative (HP drain)
-        const hpRecovered = (staminaDrain / 10000) * maxHp;
-
-        for (const [start, _end, perspective, type] of activations) {
-          if (type !== 'debuff' || perspective === 'self') continue;
-
-          skills.push({
-            skillId,
-            skillName,
-            position: start,
-            hpRecovered, // This will be negative
-            isEstimated: false,
-            isDebuff: true,
-          });
-        }
+        skills.push({
+          skillId: activation.skillId,
+          skillName: getSkillNameById(activation.skillId),
+          position: activation.start,
+          hpRecovered: (staminaDrain / 10000) * maxHp,
+          isEstimated: false,
+          isDebuff: true,
+        });
       }
     }
 
     return skills.toSorted((a, b) => a.position - b.position);
-  }, [skillsSet, maxHp]);
+  }, [opponentsSkills, maxHp]);
 }
 
 /**

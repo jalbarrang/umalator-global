@@ -23,12 +23,12 @@ export const SkillMarker = React.memo<SkillMarkerProps>(
 
     return (
       <svg
-        className="drag-textbox"
+        className="drag-textbox select-none"
         x={`${x}%`}
         y={`${y}%`}
         width={`${width}%`}
         height="10%"
-        onMouseDown={isDraggable ? onDragStart : undefined}
+        onMouseDown={onDragStart}
         style={{ cursor: isDraggable ? 'grab' : 'default' }}
       >
         <rect
@@ -39,6 +39,7 @@ export const SkillMarker = React.memo<SkillMarkerProps>(
           fill={color.fill}
           stroke={color.stroke}
         />
+
         <text x="0" y="50%" fontSize="12px" dominantBaseline="central">
           {text}
         </text>
@@ -46,5 +47,3 @@ export const SkillMarker = React.memo<SkillMarkerProps>(
     );
   },
 );
-
-SkillMarker.displayName = 'SkillMarker';

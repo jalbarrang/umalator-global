@@ -1,7 +1,7 @@
 import { getBaseSkillsToTest } from '@/modules/skills/utils';
 import { useRunner, useRunnersStore } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
-import { setIsSimulationRunning } from '@/store/ui.store';
+import { setIsSimulationRunning } from '@simulation/stores/skill-basin.store';
 import { racedefToParams } from '@/utils/races';
 import { CourseHelpers } from '@simulation/lib/CourseData';
 import { useEffect, useMemo, useRef } from 'react';

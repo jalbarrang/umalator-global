@@ -1,3 +1,4 @@
+import { cloneDeep } from 'es-toolkit';
 import {
   ApproximateCondition,
   ApproximateMultiCondition,
@@ -18,6 +19,7 @@ import {
   IPositionKeepState,
   ISkillPerspective,
   ISkillRarity,
+  ISkillTarget,
   ISkillType,
   PositionKeepState,
   SkillPerspective,
@@ -57,10 +59,7 @@ function baseTargetSpeed(
   );
 }
 
-function lastSpurtSpeed(
-  horse: HorseParameters,
-  courseBaseSpeed: number,
-) {
+function lastSpurtSpeed(horse: HorseParameters, courseBaseSpeed: number) {
   let v =
     (baseTargetSpeed(horse, courseBaseSpeed, 2) + 0.01 * courseBaseSpeed) *
       1.05 +
@@ -216,12 +215,12 @@ export interface SkillEffect {
   type: ISkillType;
   baseDuration: number;
   modifier: number;
-  target?: number;
+  target: ISkillTarget;
 }
 
 export interface PendingSkill {
   skillId: string;
-  perspective?: ISkillPerspective;
+  perspective: ISkillPerspective;
   rarity: ISkillRarity;
   trigger: Region;
   extraCondition: DynamicCondition;
@@ -229,11 +228,14 @@ export interface PendingSkill {
   originWisdom?: number;
 }
 
-interface ActiveSkill {
+export interface ActiveSkill {
+  executionId: string;
   skillId: string;
-  perspective?: ISkillPerspective;
+  perspective: ISkillPerspective;
   durationTimer: Timer;
   modifier: number;
+  effectType: ISkillType;
+  effectTarget: ISkillTarget;
 }
 
 function noop(..._args: unknown[]) {}
@@ -289,13 +291,21 @@ export class RaceSolver {
   activateCountHeal: number;
   onSkillActivate: (
     raceSolver: RaceSolver,
+    currentPosition: number,
+    executionId: string,
     skillId: string,
-    perspective?: ISkillPerspective,
+    perspective: ISkillPerspective,
+    type: ISkillType,
+    target: ISkillTarget,
   ) => void;
   onSkillDeactivate: (
     raceSolver: RaceSolver,
+    currentPosition: number,
+    executionId: string,
     skillId: string,
-    perspective?: ISkillPerspective,
+    perspective: ISkillPerspective,
+    type: ISkillType,
+    target: ISkillTarget,
   ) => void;
   sectionLength: number;
   umas: RaceSolver[];
@@ -382,15 +392,23 @@ export class RaceSolver {
     onSkillActivate?:
       | ((
           raceSolver: RaceSolver,
+          currentPosition: number,
+          executionId: string,
           skillId: string,
-          perspective?: ISkillPerspective,
+          perspective: ISkillPerspective,
+          type: ISkillType,
+          target: ISkillTarget,
         ) => void)
       | null;
     onSkillDeactivate?:
       | ((
           raceSolver: RaceSolver,
+          currentPosition: number,
+          executionId: string,
           skillId: string,
-          perspective?: ISkillPerspective,
+          perspective: ISkillPerspective,
+          type: ISkillType,
+          target: ISkillTarget,
         ) => void)
       | null;
     disableRushed?: boolean;
@@ -407,7 +425,7 @@ export class RaceSolver {
     this.course = params.course;
     this.hp = params.hp;
     this.rng = params.rng;
-    this.pendingSkills = params.skills.slice(); // copy since we remove from it
+    this.pendingSkills = cloneDeep(params.skills); // copy since we remove from it
     this.pendingRemoval = new Set();
     this.usedSkills = new Set();
     this.syncRng = new Rule30CARng(this.rng.int32());
@@ -696,7 +714,7 @@ export class RaceSolver {
     const rushedChance =
       Math.pow(6.5 / Math.log10(0.1 * wisdomStat + 1), 2) / 100;
 
-    // Check if horse has 自制心 (Self-Control) skill - ID 202161
+    // Check if horse has The Restraint skill - ID 202161
     // This reduces rushed chance by flat 3%
     const hasSelfControl = this.pendingSkills.some(
       (s) => s.skillId === '202161',
@@ -1546,16 +1564,29 @@ export class RaceSolver {
   }
 
   processSkillActivations() {
+    const currentPosition = this.pos;
+
     // Process Speed Up Skills - optimized with swap-and-pop pattern
     let writeIdx = 0;
     for (let i = 0; i < this.activeTargetSpeedSkills.length; i++) {
       const skill = this.activeTargetSpeedSkills[i];
+
       if (skill.durationTimer.t < 0) {
         this.activeTargetSpeedSkills[writeIdx++] = skill;
-      } else {
-        this.modifiers.targetSpeed.add(-skill.modifier);
-        this.onSkillDeactivate(this, skill.skillId, skill.perspective);
+        continue;
       }
+
+      this.modifiers.targetSpeed.add(-skill.modifier);
+
+      this.onSkillDeactivate(
+        this,
+        currentPosition,
+        skill.executionId,
+        skill.skillId,
+        skill.perspective,
+        skill.effectType,
+        skill.effectTarget,
+      );
     }
     this.activeTargetSpeedSkills.length = writeIdx;
 
@@ -1565,13 +1596,24 @@ export class RaceSolver {
       const skill = this.activeCurrentSpeedSkills[i];
       if (skill.durationTimer.t < 0) {
         this.activeCurrentSpeedSkills[writeIdx++] = skill;
-      } else {
-        this.modifiers.currentSpeed.add(-skill.modifier);
-        if (skill.naturalDeceleration) {
-          this.modifiers.oneFrameAccel += skill.modifier;
-        }
-        this.onSkillDeactivate(this, skill.skillId, skill.perspective);
+        continue;
       }
+
+      this.modifiers.currentSpeed.add(-skill.modifier);
+
+      if (skill.naturalDeceleration) {
+        this.modifiers.oneFrameAccel += skill.modifier;
+      }
+
+      this.onSkillDeactivate(
+        this,
+        currentPosition,
+        skill.executionId,
+        skill.skillId,
+        skill.perspective,
+        skill.effectType,
+        skill.effectTarget,
+      );
     }
     this.activeCurrentSpeedSkills.length = writeIdx;
 
@@ -1581,10 +1623,19 @@ export class RaceSolver {
       const skill = this.activeAccelSkills[i];
       if (skill.durationTimer.t < 0) {
         this.activeAccelSkills[writeIdx++] = skill;
-      } else {
-        this.modifiers.accel.add(-skill.modifier);
-        this.onSkillDeactivate(this, skill.skillId, skill.perspective);
+        continue;
       }
+
+      this.modifiers.accel.add(-skill.modifier);
+      this.onSkillDeactivate(
+        this,
+        currentPosition,
+        skill.executionId,
+        skill.skillId,
+        skill.perspective,
+        skill.effectType,
+        skill.effectTarget,
+      );
     }
     this.activeAccelSkills.length = writeIdx;
 
@@ -1594,9 +1645,18 @@ export class RaceSolver {
       const skill = this.activeLaneMovementSkills[i];
       if (skill.durationTimer.t < 0) {
         this.activeLaneMovementSkills[writeIdx++] = skill;
-      } else {
-        this.onSkillDeactivate(this, skill.skillId, skill.perspective);
+        continue;
       }
+
+      this.onSkillDeactivate(
+        this,
+        currentPosition,
+        skill.executionId,
+        skill.skillId,
+        skill.perspective,
+        skill.effectType,
+        skill.effectTarget,
+      );
     }
     this.activeLaneMovementSkills.length = writeIdx;
 
@@ -1606,9 +1666,18 @@ export class RaceSolver {
       const skill = this.activeChangeLaneSkills[i];
       if (skill.durationTimer.t < 0) {
         this.activeChangeLaneSkills[writeIdx++] = skill;
-      } else {
-        this.onSkillDeactivate(this, skill.skillId, skill.perspective);
+        continue;
       }
+
+      this.onSkillDeactivate(
+        this,
+        currentPosition,
+        skill.executionId,
+        skill.skillId,
+        skill.perspective,
+        skill.effectType,
+        skill.effectTarget,
+      );
     }
     this.activeChangeLaneSkills.length = writeIdx;
 
@@ -1628,24 +1697,25 @@ export class RaceSolver {
       }
 
       if (this.pos >= skill.trigger.start && skill.extraCondition(this)) {
-        // Check wisdom for skill activation if enabled
+        // Wit Check for skill activation if enabled
         if (
           this.skillCheckChance &&
           !this.shouldSkipWisdomCheck(skill) &&
           !this.checkWisdomForSkill(skill)
         ) {
-          // Skill fails due to low wisdom - don't keep
-          continue;
-        } else {
-          this.activateSkill(skill);
-          // Skill activated - don't keep
+          // Wisdom check failed - don't keep
           continue;
         }
+
+        // Wisdom check passed - activate skill
+        this.activateSkill(skill);
+        continue;
       }
 
       // Skill still pending - keep it
       this.pendingSkills[writeIdx++] = skill;
     }
+
     this.pendingSkills.length = writeIdx;
   }
 
@@ -1667,8 +1737,8 @@ export class RaceSolver {
     // Green skills
     if (
       skill.effects.length > 0 &&
-      skill.effects[0].type >= 1 &&
-      skill.effects[0].type <= 5
+      skill.effects[0].type >= SkillType.SpeedUp &&
+      skill.effects[0].type <= SkillType.WisdomUp
     ) {
       return true;
     }
@@ -1690,122 +1760,174 @@ export class RaceSolver {
       (a, b) => +(a.type == 42) - +(b.type == 42),
     );
 
+    const executionId = `${skill.skillId}-${crypto.randomUUID()}`;
+    const currentPosition = this.pos;
+
     for (const skillEffect of sortedEffects) {
+      const skillDurationScaling =
+        skill.rarity == SkillRarity.Evolution
+          ? this.modifiers.specialSkillDurationScaling
+          : 1; // TODO should probably be awakened skills
+
       const scaledDuration =
         skillEffect.baseDuration *
         (this.course.distance / 1000) *
-        (skill.rarity == SkillRarity.Evolution
-          ? this.modifiers.specialSkillDurationScaling
-          : 1); // TODO should probably be awakened skills
+        skillDurationScaling;
 
-      // and not just pinks
-      switch (skillEffect.type) {
-        case SkillType.SpeedUp:
-          this.horse.speed = Math.max(
-            this.horse.speed + skillEffect.modifier,
-            1,
-          );
-          break;
-        case SkillType.StaminaUp:
-          this.horse.stamina = Math.max(
-            this.horse.stamina + skillEffect.modifier,
-            1,
-          );
-          this.horse.rawStamina = Math.max(
-            this.horse.rawStamina + skillEffect.modifier,
-            1,
-          );
-          break;
-        case SkillType.PowerUp:
-          this.horse.power = Math.max(
-            this.horse.power + skillEffect.modifier,
-            1,
-          );
-          break;
-        case SkillType.GutsUp:
-          this.horse.guts = Math.max(this.horse.guts + skillEffect.modifier, 1);
-          break;
-        case SkillType.WisdomUp:
-          this.horse.wisdom = Math.max(
-            this.horse.wisdom + skillEffect.modifier,
-            1,
-          );
-          break;
-        case SkillType.MultiplyStartDelay:
-          this.startDelay *= skillEffect.modifier;
-          break;
-        case SkillType.SetStartDelay:
-          this.startDelay = skillEffect.modifier;
-          break;
-        case SkillType.TargetSpeed:
-          this.modifiers.targetSpeed.add(skillEffect.modifier);
-          this.activeTargetSpeedSkills.push({
-            skillId: skill.skillId,
-            perspective: skill.perspective,
-            durationTimer: this.getNewTimer(-scaledDuration),
-            modifier: skillEffect.modifier,
-          });
-          break;
-        case SkillType.Accel:
-          this.modifiers.accel.add(skillEffect.modifier);
-          this.activeAccelSkills.push({
-            skillId: skill.skillId,
-            perspective: skill.perspective,
-            durationTimer: this.getNewTimer(-scaledDuration),
-            modifier: skillEffect.modifier,
-          });
-          break;
-        case SkillType.LaneMovementSpeed:
-          this.activeLaneMovementSkills.push({
-            skillId: skill.skillId,
-            perspective: skill.perspective,
-            durationTimer: this.getNewTimer(-scaledDuration),
-            modifier: skillEffect.modifier,
-          });
-          break;
-        case SkillType.CurrentSpeed:
-        case SkillType.CurrentSpeedWithNaturalDeceleration:
-          this.modifiers.currentSpeed.add(skillEffect.modifier);
-          this.activeCurrentSpeedSkills.push({
-            skillId: skill.skillId,
-            perspective: skill.perspective,
-            durationTimer: this.getNewTimer(-scaledDuration),
-            modifier: skillEffect.modifier,
-            naturalDeceleration:
-              skillEffect.type == SkillType.CurrentSpeedWithNaturalDeceleration,
-          });
-          break;
-        case SkillType.Recovery:
-          ++this.activateCountHeal;
-          // Pass state to recover for dynamic spurt recalculation in accuracy mode
-
-          this.hp.recover(skillEffect.modifier, this);
-
-          if (this.phase >= 2 && !this.isLastSpurt) {
-            this.updateLastSpurtState();
-          }
-          break;
-        case SkillType.ActivateRandomGold:
-          this.doActivateRandomGold(skillEffect.modifier);
-          break;
-        case SkillType.ExtendEvolvedDuration:
-          this.modifiers.specialSkillDurationScaling = skillEffect.modifier;
-          break;
-        case SkillType.ChangeLane:
-          this.activeChangeLaneSkills.push({
-            skillId: skill.skillId,
-            perspective: skill.perspective,
-            durationTimer: this.getNewTimer(-scaledDuration),
-            modifier: skillEffect.modifier,
-          });
-          break;
+      // Track first
+      if (shouldTrackEffect(skillEffect)) {
+        this.onSkillActivate(
+          this,
+          currentPosition,
+          executionId,
+          skill.skillId,
+          skill.perspective,
+          skillEffect.type,
+          skillEffect.target,
+        );
       }
+
+      // Then apply the effect
+
+      this.applyEffect({
+        skillEffect,
+        executionId,
+        skillId: skill.skillId,
+        perspective: skill.perspective,
+        scaledDuration,
+      });
     }
 
     ++this.activateCount[this.phase];
-
     this.usedSkills.add(skill.skillId);
-    this.onSkillActivate(this, skill.skillId, skill.perspective);
+  }
+
+  applyEffect(options: {
+    skillEffect: SkillEffect;
+    executionId: string;
+    skillId: string;
+    perspective: ISkillPerspective;
+    scaledDuration: number;
+  }) {
+    const { skillEffect, executionId, skillId, perspective, scaledDuration } =
+      options;
+
+    // and not just pinks
+    switch (skillEffect.type) {
+      // Green skills
+      case SkillType.SpeedUp:
+        this.horse.speed = Math.max(this.horse.speed + skillEffect.modifier, 1);
+        break;
+      case SkillType.StaminaUp:
+        this.horse.stamina = Math.max(
+          this.horse.stamina + skillEffect.modifier,
+          1,
+        );
+        this.horse.rawStamina = Math.max(
+          this.horse.rawStamina + skillEffect.modifier,
+          1,
+        );
+        break;
+      case SkillType.PowerUp:
+        this.horse.power = Math.max(this.horse.power + skillEffect.modifier, 1);
+        break;
+      case SkillType.GutsUp:
+        this.horse.guts = Math.max(this.horse.guts + skillEffect.modifier, 1);
+        break;
+      case SkillType.WisdomUp:
+        this.horse.wisdom = Math.max(
+          this.horse.wisdom + skillEffect.modifier,
+          1,
+        );
+        break;
+
+      // Instant/point effects and pre-race modifiers
+      case SkillType.MultiplyStartDelay:
+        this.startDelay *= skillEffect.modifier;
+        break;
+      case SkillType.SetStartDelay:
+        this.startDelay = skillEffect.modifier;
+        break;
+
+      // Duration-based effects
+      case SkillType.TargetSpeed:
+        this.modifiers.targetSpeed.add(skillEffect.modifier);
+        this.activeTargetSpeedSkills.push({
+          executionId,
+          skillId,
+          perspective,
+          durationTimer: this.getNewTimer(-scaledDuration),
+          modifier: skillEffect.modifier,
+          effectType: skillEffect.type,
+          effectTarget: skillEffect.target,
+        });
+        break;
+      case SkillType.Accel:
+        this.modifiers.accel.add(skillEffect.modifier);
+        this.activeAccelSkills.push({
+          executionId,
+          skillId,
+          perspective,
+          durationTimer: this.getNewTimer(-scaledDuration),
+          modifier: skillEffect.modifier,
+          effectType: skillEffect.type,
+          effectTarget: skillEffect.target,
+        });
+        break;
+      case SkillType.LaneMovementSpeed:
+        this.activeLaneMovementSkills.push({
+          executionId,
+          skillId,
+          perspective,
+          durationTimer: this.getNewTimer(-scaledDuration),
+          modifier: skillEffect.modifier,
+          effectType: skillEffect.type,
+          effectTarget: skillEffect.target,
+        });
+        break;
+      case SkillType.CurrentSpeed:
+      case SkillType.CurrentSpeedWithNaturalDeceleration:
+        this.modifiers.currentSpeed.add(skillEffect.modifier);
+        this.activeCurrentSpeedSkills.push({
+          executionId,
+          skillId,
+          perspective,
+          durationTimer: this.getNewTimer(-scaledDuration),
+          modifier: skillEffect.modifier,
+          naturalDeceleration:
+            skillEffect.type == SkillType.CurrentSpeedWithNaturalDeceleration,
+          effectType: skillEffect.type,
+          effectTarget: skillEffect.target,
+        });
+        break;
+      case SkillType.Recovery:
+        ++this.activateCountHeal;
+        // Pass state to recover for dynamic spurt recalculation in accuracy mode
+
+        this.hp.recover(skillEffect.modifier, this);
+
+        if (this.phase >= 2 && !this.isLastSpurt) {
+          this.updateLastSpurtState();
+        }
+        break;
+      case SkillType.ActivateRandomGold:
+        this.doActivateRandomGold(skillEffect.modifier);
+        break;
+      case SkillType.ExtendEvolvedDuration:
+        this.modifiers.specialSkillDurationScaling = skillEffect.modifier;
+        break;
+      case SkillType.ChangeLane:
+        this.activeChangeLaneSkills.push({
+          executionId,
+          skillId,
+          perspective,
+          durationTimer: this.getNewTimer(-scaledDuration),
+          modifier: skillEffect.modifier,
+          effectType: skillEffect.type,
+          effectTarget: skillEffect.target,
+        });
+        break;
+    }
   }
 
   doActivateRandomGold(ngolds: number) {
@@ -1825,26 +1947,35 @@ export class RaceSolver {
     }
 
     for (let i = 0; i < Math.min(ngolds, goldIndices.length); ++i) {
-      const s = this.pendingSkills[goldIndices[i]];
-      this.activateSkill(s);
+      const pendingSkill = this.pendingSkills[goldIndices[i]];
+
+      this.activateSkill(pendingSkill);
+
       // important: we can't actually remove this from pendingSkills directly, since this function runs inside the loop in
       // processSkillActivations. modifying the pendingSkills array here would mess up that loop. this function used to modify
       // the trigger on the skill itself to ensure it was before this.pos and force it to be cleaned up, but mutating the skill
       // is error-prone and undesirable since it means the same PendingSkill instance can't be used with multiple RaceSolvers.
       // instead, flag the skill later to be removed in processSkillActivations (either later in the loop that called us, or
       // the next time processSkillActivations is called).
-      this.pendingRemoval.add(s.skillId);
+      this.pendingRemoval.add(pendingSkill.skillId);
     }
   }
 
   // deactivate any skills that haven't finished their durations yet (intended to be called at the end of a simulation, when a skill
   // might have activated towards the end of the race and the race finished before the skill's duration)
   cleanup() {
-    const callDeactivateHook = (s: {
-      skillId: string;
-      perspective?: ISkillPerspective;
-    }) => {
-      this.onSkillDeactivate(this, s.skillId, s.perspective);
+    const callDeactivateHook = (activeSkill: ActiveSkill) => {
+      const currentPosition = this.pos;
+
+      this.onSkillDeactivate(
+        this,
+        currentPosition,
+        activeSkill.executionId,
+        activeSkill.skillId,
+        activeSkill.perspective,
+        activeSkill.effectType,
+        activeSkill.effectTarget,
+      );
     };
 
     this.activeTargetSpeedSkills.forEach(callDeactivateHook);
@@ -1888,3 +2019,39 @@ export class RaceSolver {
     }
   }
 }
+
+const durationBasedEffects = [
+  SkillType.TargetSpeed, // 27
+  SkillType.CurrentSpeed, // 21
+  SkillType.CurrentSpeedWithNaturalDeceleration, // 22
+  SkillType.Accel, // 31
+  SkillType.LaneMovementSpeed, // 28
+  SkillType.ChangeLane, // 35
+] as number[];
+
+const instantEffects = [
+  SkillType.Recovery, // 9 - HP recovery/drain
+  SkillType.SpeedUp, // 1 - Green skills (gate activation)
+  SkillType.StaminaUp, // 2
+  SkillType.PowerUp, // 3
+  SkillType.GutsUp, // 4
+  SkillType.WisdomUp, // 5
+  SkillType.MultiplyStartDelay, // 10 - Start modifiers
+  SkillType.SetStartDelay, // 14
+
+  // For future use
+  SkillType.ActivateRandomGold, // 37
+  SkillType.ExtendEvolvedDuration, // 42
+] as number[];
+
+const shouldTrackEffect = (effect: SkillEffect) => {
+  const type = effect.type;
+
+  // Duration-based effects (track start/end)
+  if (effect.baseDuration > 0) {
+    return durationBasedEffects.includes(type);
+  }
+
+  // Instant/point effects and pre-race modifiers
+  return instantEffects.includes(type);
+};

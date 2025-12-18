@@ -1,24 +1,5 @@
-import {
-  Activity,
-  useDeferredValue,
-  useMemo,
-  useReducer,
-  useRef,
-  useState,
-} from 'react';
-
-import { useHotkeys } from 'react-hotkeys-hook';
-
-import './SkillList.css';
-
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import {
   InputGroup,
   InputGroupAddon,
@@ -32,14 +13,23 @@ import { cn } from '@/lib/utils';
 import { groups_filters } from '@/modules/skills/filters';
 import { iconIdPrefixes } from '@/modules/skills/icons';
 import { SkillQuery } from '@/modules/skills/query';
-import { useSkillModalStore } from '@/modules/skills/store';
 import {
   getAllSkills,
   getUniqueSkillForByUmaId,
   matchRarity,
 } from '@/modules/skills/utils';
 import { SearchIcon, XIcon } from 'lucide-react';
-import { SkillIcon, SkillItem } from './SkillItem';
+import {
+  useDeferredValue,
+  useImperativeHandle,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+} from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
+import { SkillIcon, SkillItem } from './skill-list/SkillItem';
+import { VirtualizedSkillGrid } from './VirtualizedSkillGrid';
 
 type IconFilterButtonProps = {
   type: string;
@@ -179,9 +169,26 @@ const getActiveFilters = (
 
 type IconIdPrefix = keyof typeof iconIdPrefixes;
 
-export function SkillPickerModal() {
-  const { open, umaId, options, currentSkills, onSelect } =
-    useSkillModalStore();
+export type SkillPickerContentProps = {
+  ref: React.RefObject<{ focus: () => void } | null>;
+  umaId: string;
+  options: string[];
+  currentSkills: string[];
+  onSelect: (skills: string[]) => void;
+  className?: string;
+  hideSelected?: boolean;
+};
+
+export function SkillPickerContent(props: SkillPickerContentProps) {
+  const {
+    ref,
+    umaId,
+    options,
+    currentSkills,
+    onSelect,
+    className,
+    hideSelected = false,
+  } = props;
 
   const umaUniqueSkillId = getUniqueSkillForByUmaId(umaId);
 
@@ -308,10 +315,6 @@ export function SkillPickerModal() {
     dispatch({ type: 'SET_EXCLUSIVE_FILTER', group: 'rarity', filter });
   };
 
-  const handleOpenChange = (open: boolean) => {
-    useSkillModalStore.setState({ open });
-  };
-
   const handleIconTypeChecked = (filter: string) => {
     dispatch({ type: 'TOGGLE_ICON_TYPE', filter });
   };
@@ -353,290 +356,272 @@ export function SkillPickerModal() {
     searchRef.current?.select();
   });
 
+  useImperativeHandle(
+    ref,
+    () => ({
+      focus: () => {
+        searchRef.current?.focus();
+        searchRef.current?.select();
+      },
+    }),
+    [searchRef],
+  );
+
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent
-        className={cn([
-          'flex flex-col gap-3',
-          'min-w-screen min-h-screen max-h-screen overflow-y-auto',
-          'lg:min-w-[1024px]!',
-        ])}
-        onOpenAutoFocus={(e) => {
-          e.preventDefault();
+    <div className={cn('flex flex-col gap-3', className)}>
+      <div data-filter-group="search">
+        <InputGroup>
+          <InputGroupAddon>
+            <SearchIcon className="w-4 h-4" />
+          </InputGroupAddon>
+          <InputGroupInput
+            ref={searchRef}
+            type="text"
+            value={searchText}
+            placeholder="Search skill by name"
+            onChange={(e) => setSearchText(e.target.value)}
+          />
+          <InputGroupAddon align="inline-end">
+            <InputGroupText className="border p-1 rounded-md text-foreground">
+              <kbd>f</kbd>
+            </InputGroupText>
+          </InputGroupAddon>
+        </InputGroup>
+      </div>
 
-          searchRef.current?.focus();
-          searchRef.current?.select();
-        }}
-      >
-        <DialogHeader>
-          <DialogTitle>Add Skill to Runner</DialogTitle>
-        </DialogHeader>
+      <div className="flex flex-col gap-2 flex-1 min-h-0">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap gap-2">
+            {groups_filters['icontype'].map((iconType) => (
+              <IconFilterButton
+                key={iconType}
+                type={iconType}
+                filterState={filterState}
+                group="icontype"
+                onChecked={() => handleIconTypeChecked(iconType)}
+              />
+            ))}
+          </div>
 
-        <div data-filter-group="search">
-          <InputGroup>
-            <InputGroupAddon>
-              <SearchIcon className="w-4 h-4" />
-            </InputGroupAddon>
-            <InputGroupInput
-              ref={searchRef}
-              type="text"
-              className="filterSearch"
-              value={searchText}
-              placeholder="Search skill by name"
-              onChange={(e) => setSearchText(e.target.value)}
-            />
-            <InputGroupAddon align="inline-end">
-              <InputGroupText className="border p-1 rounded-md text-foreground">
-                <kbd>f</kbd>
-              </InputGroupText>
-            </InputGroupAddon>
-          </InputGroup>
-        </div>
-
-        <div className="grid grid-cols-1 gap-2">
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-wrap gap-2">
-              {groups_filters['icontype'].map((iconType) => (
-                <IconFilterButton
-                  key={iconType}
-                  type={iconType}
-                  filterState={filterState}
-                  group="icontype"
-                  onChecked={() => handleIconTypeChecked(iconType)}
-                />
-              ))}
+          <div className="flex flex-wrap gap-4">
+            <div className="flex flex-col gap-2">
+              <FilterButton
+                filter="white"
+                filterState={filterState}
+                group="rarity"
+                onChecked={() => handleRarityChecked('white')}
+              />
+              <FilterButton
+                filter="gold"
+                filterState={filterState}
+                group="rarity"
+                onChecked={() => handleRarityChecked('gold')}
+              />
+              <FilterButton
+                key="skill-pink"
+                filter="pink"
+                filterState={filterState}
+                group="rarity"
+                onChecked={() => handleRarityChecked('pink')}
+              />
+              <FilterButton
+                key="skill-unique"
+                filter="unique"
+                filterState={filterState}
+                group="rarity"
+                onChecked={() => handleRarityChecked('unique')}
+              />
+              <FilterButton
+                key="skill-inherit"
+                filter="inherit"
+                filterState={filterState}
+                group="rarity"
+                onChecked={() => handleRarityChecked('inherit')}
+              />
             </div>
 
-            <div className="flex flex-wrap gap-4">
-              <div className="flex flex-col gap-2">
-                <FilterButton
-                  filter="white"
-                  filterState={filterState}
-                  group="rarity"
-                  onChecked={() => handleRarityChecked('white')}
-                />
-                <FilterButton
-                  filter="gold"
-                  filterState={filterState}
-                  group="rarity"
-                  onChecked={() => handleRarityChecked('gold')}
-                />
-                <FilterButton
-                  key="skill-pink"
-                  filter="pink"
-                  filterState={filterState}
-                  group="rarity"
-                  onChecked={() => handleRarityChecked('pink')}
-                />
-                <FilterButton
-                  key="skill-unique"
-                  filter="unique"
-                  filterState={filterState}
-                  group="rarity"
-                  onChecked={() => handleRarityChecked('unique')}
-                />
-                <FilterButton
-                  key="skill-inherit"
-                  filter="inherit"
-                  filterState={filterState}
-                  group="rarity"
-                  onChecked={() => handleRarityChecked('inherit')}
-                />
-              </div>
+            <div className="flex flex-col gap-2">
+              <FilterButton
+                filter="nige"
+                filterState={filterState}
+                group="strategy"
+                onChecked={() => handleStrategyChecked('nige')}
+              />
 
-              <div className="flex flex-col gap-2">
-                <FilterButton
-                  filter="nige"
-                  filterState={filterState}
-                  group="strategy"
-                  onChecked={() => handleStrategyChecked('nige')}
-                />
+              <FilterButton
+                filter="senkou"
+                filterState={filterState}
+                group="strategy"
+                onChecked={() => handleStrategyChecked('senkou')}
+              />
 
-                <FilterButton
-                  filter="senkou"
-                  filterState={filterState}
-                  group="strategy"
-                  onChecked={() => handleStrategyChecked('senkou')}
-                />
+              <FilterButton
+                filter="sasi"
+                filterState={filterState}
+                group="strategy"
+                onChecked={() => handleStrategyChecked('sasi')}
+              />
 
-                <FilterButton
-                  filter="sasi"
-                  filterState={filterState}
-                  group="strategy"
-                  onChecked={() => handleStrategyChecked('sasi')}
-                />
-
-                <FilterButton
-                  filter="oikomi"
-                  filterState={filterState}
-                  group="strategy"
-                  onChecked={() => handleStrategyChecked('oikomi')}
-                />
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <FilterButton
-                  filter="short"
-                  filterState={filterState}
-                  group="distance"
-                  onChecked={() => handleDistanceChecked('short')}
-                />
-
-                <FilterButton
-                  filter="mile"
-                  filterState={filterState}
-                  group="distance"
-                  onChecked={() => handleDistanceChecked('mile')}
-                />
-
-                <FilterButton
-                  filter="medium"
-                  filterState={filterState}
-                  group="distance"
-                  onChecked={() => handleDistanceChecked('medium')}
-                />
-                <FilterButton
-                  filter="long"
-                  filterState={filterState}
-                  group="distance"
-                  onChecked={() => handleDistanceChecked('long')}
-                />
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <FilterButton
-                  filter="phase0"
-                  filterState={filterState}
-                  group="location"
-                  onChecked={() => handleLocationChecked('phase0')}
-                />
-
-                <FilterButton
-                  filter="phase1"
-                  filterState={filterState}
-                  group="location"
-                  onChecked={() => handleLocationChecked('phase1')}
-                />
-
-                <FilterButton
-                  filter="phase2"
-                  filterState={filterState}
-                  group="location"
-                  onChecked={() => handleLocationChecked('phase2')}
-                />
-
-                <FilterButton
-                  filter="phase3"
-                  filterState={filterState}
-                  group="location"
-                  onChecked={() => handleLocationChecked('phase3')}
-                />
-
-                <FilterButton
-                  filter="finalcorner"
-                  filterState={filterState}
-                  group="location"
-                  onChecked={() => handleLocationChecked('finalcorner')}
-                />
-
-                <FilterButton
-                  filter="finalstraight"
-                  filterState={filterState}
-                  group="location"
-                  onChecked={() => handleLocationChecked('finalstraight')}
-                />
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <FilterButton
-                  filter="turf"
-                  filterState={filterState}
-                  group="surface"
-                  onChecked={() => handleSurfaceChecked('turf')}
-                />
-
-                <FilterButton
-                  filter="dirt"
-                  filterState={filterState}
-                  group="surface"
-                  onChecked={() => handleSurfaceChecked('dirt')}
-                />
-              </div>
+              <FilterButton
+                filter="oikomi"
+                filterState={filterState}
+                group="strategy"
+                onChecked={() => handleStrategyChecked('oikomi')}
+              />
             </div>
 
-            <div>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={selectedOtherFiltersCount === 0}
-                onClick={handleClearFilters}
-              >
-                <XIcon className="w-4 h-4" />
-                Clear Filters
-                {selectedOtherFiltersCount > 0 && (
-                  <span className="text-xs text-gray-500">
-                    ({selectedOtherFiltersCount})
-                  </span>
-                )}
-              </Button>
+            <div className="flex flex-col gap-2">
+              <FilterButton
+                filter="short"
+                filterState={filterState}
+                group="distance"
+                onChecked={() => handleDistanceChecked('short')}
+              />
+
+              <FilterButton
+                filter="mile"
+                filterState={filterState}
+                group="distance"
+                onChecked={() => handleDistanceChecked('mile')}
+              />
+
+              <FilterButton
+                filter="medium"
+                filterState={filterState}
+                group="distance"
+                onChecked={() => handleDistanceChecked('medium')}
+              />
+              <FilterButton
+                filter="long"
+                filterState={filterState}
+                group="distance"
+                onChecked={() => handleDistanceChecked('long')}
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <FilterButton
+                filter="phase0"
+                filterState={filterState}
+                group="location"
+                onChecked={() => handleLocationChecked('phase0')}
+              />
+
+              <FilterButton
+                filter="phase1"
+                filterState={filterState}
+                group="location"
+                onChecked={() => handleLocationChecked('phase1')}
+              />
+
+              <FilterButton
+                filter="phase2"
+                filterState={filterState}
+                group="location"
+                onChecked={() => handleLocationChecked('phase2')}
+              />
+
+              <FilterButton
+                filter="phase3"
+                filterState={filterState}
+                group="location"
+                onChecked={() => handleLocationChecked('phase3')}
+              />
+
+              <FilterButton
+                filter="finalcorner"
+                filterState={filterState}
+                group="location"
+                onChecked={() => handleLocationChecked('finalcorner')}
+              />
+
+              <FilterButton
+                filter="finalstraight"
+                filterState={filterState}
+                group="location"
+                onChecked={() => handleLocationChecked('finalstraight')}
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <FilterButton
+                filter="turf"
+                filterState={filterState}
+                group="surface"
+                onChecked={() => handleSurfaceChecked('turf')}
+              />
+
+              <FilterButton
+                filter="dirt"
+                filterState={filterState}
+                group="surface"
+                onChecked={() => handleSurfaceChecked('dirt')}
+              />
             </div>
           </div>
 
-          <div className="flex flex-col gap-2">
-            <Activity mode={currentSkills.length > 0 ? 'visible' : 'hidden'}>
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-1">
-                  <span className="text-sm font-bold">Skills selected</span>
-                  <span className="text-xs text-muted-foreground">
-                    ({currentSkills.length})
-                  </span>
-                </div>
+          <div>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={selectedOtherFiltersCount === 0}
+              onClick={handleClearFilters}
+            >
+              <XIcon className="w-4 h-4" />
+              Clear Filters
+              {selectedOtherFiltersCount > 0 && (
+                <span className="text-xs text-gray-500">
+                  ({selectedOtherFiltersCount})
+                </span>
+              )}
+            </Button>
+          </div>
+        </div>
 
-                <div
-                  className="grid grid-cols-1 sm:grid-cols-2 gap-2"
-                  onClick={handleRemoveSkill}
-                >
-                  {currentSkills.map((skillId) => (
-                    <SkillItem
-                      key={skillId}
-                      skillId={skillId}
-                      dismissable={skillId !== umaUniqueSkillId}
-                      itemProps={{ className: 'cursor-pointer' }}
-                    />
-                  ))}
-                </div>
-              </div>
-            </Activity>
-
-            <Separator className="my-2" />
-
+        <div className="flex flex-col gap-2 flex-1 min-h-0">
+          {!hideSelected && (
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-1">
-                <span className="text-sm font-bold">Skills available</span>
+                <span className="text-sm font-bold">Skills selected</span>
                 <span className="text-xs text-muted-foreground">
-                  ({filteredSkills.length})
+                  ({currentSkills.length})
                 </span>
               </div>
 
               <div
                 className="grid grid-cols-1 sm:grid-cols-2 gap-2"
-                onClick={toggleSelected}
+                onClick={handleRemoveSkill}
               >
-                {filteredSkills.map((skill) => (
+                {currentSkills.map((skillId) => (
                   <SkillItem
-                    key={skill.id}
-                    skillId={skill.id}
-                    selected={selectedMap.get(skill.meta.groupId) === skill.id}
-                    itemProps={{
-                      className: 'cursor-pointer',
-                    }}
+                    key={skillId}
+                    skillId={skillId}
+                    dismissable={skillId !== umaUniqueSkillId}
+                    className="cursor-pointer"
                   />
                 ))}
               </div>
             </div>
+          )}
+
+          <Separator className="my-2" />
+
+          <div className="flex flex-col gap-2 flex-1 min-h-0">
+            <div className="flex md:hidden! items-center gap-1">
+              <span className="text-sm font-bold">Skills available</span>
+              <span className="text-xs text-muted-foreground">
+                ({filteredSkills.length})
+              </span>
+            </div>
+
+            <VirtualizedSkillGrid
+              items={filteredSkills}
+              selectedMap={selectedMap}
+              onClick={toggleSelected}
+            />
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 }

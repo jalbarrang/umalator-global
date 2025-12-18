@@ -1,4 +1,5 @@
 import umas from '@data/umas.json';
+import icons from '@data/icons.json';
 
 export type UmaData = typeof umas;
 export type UmaDataKey = keyof UmaData;
@@ -89,3 +90,57 @@ export function searchNames(query: string) {
   const q = query.toUpperCase().replace(/\./g, '');
   return umaAltIds.filter((oid) => umaNamesForSearch[oid].indexOf(q) > -1);
 }
+
+// Image URL Utilities
+
+/**
+ * Get the icon image URL for an Uma outfit ID
+ * Falls back to a random mob image if no outfit ID is provided
+ */
+export const getUmaImageUrl = (
+  outfitId: string | undefined,
+  randomMobId?: number,
+): string => {
+  if (outfitId) {
+    return icons[outfitId as keyof typeof icons];
+  }
+
+  return getMobImageUrl(randomMobId);
+};
+
+/**
+ * Get the image URL for a random mob
+ */
+export const getMobImageUrl = (randomMobId?: number): string => {
+  const mobId = randomMobId || 8000;
+  return `/icons/mob/trained_mob_chr_icon_${mobId}_000001_01.png`;
+};
+
+/**
+ * Get Uma outfit name by outfit ID
+ */
+export const getUmaOutfitName = (outfitId: string): string | null => {
+  try {
+    const uma = getUmaById(outfitId);
+    return uma.outfits[outfitId as UmaOutfitKey] || null;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * Get Uma display info (name + outfit) by outfit ID
+ */
+export const getUmaDisplayInfo = (
+  outfitId: string,
+): { name: string; outfit: string } | null => {
+  try {
+    const uma = getUmaById(outfitId);
+    return {
+      name: uma.name[1],
+      outfit: uma.outfits[outfitId as UmaOutfitKey],
+    };
+  } catch {
+    return null;
+  }
+};

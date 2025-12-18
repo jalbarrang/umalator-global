@@ -1,6 +1,3 @@
-import { cn } from '@/lib/utils';
-import { Activity } from 'react';
-
 export type TooltipData = {
   v1Text: string;
   v2Text: string;
@@ -13,73 +10,42 @@ type RaceTrackTooltipProps = {
   data: TooltipData | null;
   className?: string;
   visible: boolean;
+  position: {
+    xOffset: number;
+    yOffset: number;
+  };
 };
 
-export const RaceTrackTooltip: React.FC<RaceTrackTooltipProps> = ({
-  data,
-  className,
-  visible,
-}) => {
-  if (!data) {
+export const RaceTrackTooltip: React.FC<RaceTrackTooltipProps> = (props) => {
+  const { data, visible, position } = props;
+
+  const { xOffset, yOffset } = position;
+
+  if (!data || !visible) {
     return null;
   }
 
-  if (!visible) {
-    return (
-      <div
-        className={cn(
-          'border rounded-lg p-2 text-sm font-mono h-[62px] w-[350px]',
-          className,
-        )}
-      >
-        <div className="flex flex-col gap-1"></div>
-      </div>
-    );
-  }
-
   return (
-    <div className={cn('border rounded-lg p-2 text-sm font-mono', className)}>
-      <div className="flex flex-col gap-1">
-        <Activity mode={data.v1Text ? 'visible' : 'hidden'}>
-          <div className="flex items-center gap-2">
-            <span className="font-semibold" style={{ color: '#2a77c5' }}>
-              {data.v1Text}
-            </span>
-          </div>
-        </Activity>
+    <g className="font-mono">
+      <text x={xOffset + 5} y={yOffset - 25} fill="#2a77c5" fontSize="10px">
+        {data.v1Text}
+      </text>
 
-        <Activity mode={data.v2Text ? 'visible' : 'hidden'}>
-          <div className="flex items-center gap-2">
-            <span className="font-semibold" style={{ color: '#c52a2a' }}>
-              {data.v2Text}
-            </span>
-          </div>
-        </Activity>
+      <text x={xOffset + 5} y={yOffset - 10} fill="#c52a2a" fontSize="10px">
+        {data.v2Text}
+      </text>
 
-        <Activity mode={data.vpText ? 'visible' : 'hidden'}>
-          <div className="flex items-center gap-2">
-            <span className="font-semibold" style={{ color: '#22c55e' }}>
-              {data.vpText}
-            </span>
-          </div>
-        </Activity>
+      <text x={xOffset + 5} y={yOffset - 10} fill="#22c55e" fontSize="10px">
+        {data.vpText}
+      </text>
 
-        <Activity mode={data.pd1Text ? 'visible' : 'hidden'}>
-          <div className="flex items-center gap-2">
-            <span className="font-semibold" style={{ color: '#2a77c5' }}>
-              {data.pd1Text}
-            </span>
-          </div>
-        </Activity>
+      <text x={xOffset + 5} y={yOffset} fill="#2a77c5" fontSize="10px">
+        {data.pd1Text}
+      </text>
 
-        <Activity mode={data.pd2Text ? 'visible' : 'hidden'}>
-          <div className="flex items-center gap-2">
-            <span className="text-xs" style={{ color: '#c52a2a' }}>
-              {data.pd2Text}
-            </span>
-          </div>
-        </Activity>
-      </div>
-    </div>
+      <text x={xOffset + 5} y={yOffset + 10} fill="#2a77c5" fontSize="10px">
+        {data.pd2Text}
+      </text>
+    </g>
   );
 };

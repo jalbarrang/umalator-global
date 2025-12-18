@@ -1,7 +1,7 @@
 import { trackIds } from '@/i18n/lang/tracknames';
 
 import i18n from '@/i18n';
-import { useState } from 'react';
+import { useMemo } from 'react';
 import {
   getCourseByTrackId,
   getCourseIdByTrackIdAndIndex,
@@ -25,7 +25,11 @@ const getTrackName = (trackId: number) => {
 export function TrackSelect() {
   const { courseId } = useSettingsStore();
 
-  const [trackid, setTrackid] = useState(getDefaultTrackIdForCourse(courseId));
+  // Derive trackid from courseId instead of storing it as state
+  const trackid = useMemo(
+    () => getDefaultTrackIdForCourse(courseId),
+    [courseId],
+  );
 
   const handleChangeCourse = (value: string) => {
     setCourseId(+value);
@@ -33,8 +37,6 @@ export function TrackSelect() {
 
   const handleChangeTrack = (value: string) => {
     const newTrackId = +value;
-
-    setTrackid(newTrackId);
     setCourseId(getCourseIdByTrackIdAndIndex(newTrackId, 0));
   };
 

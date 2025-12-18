@@ -1,6 +1,9 @@
 import { useRunnersStore } from '@/store/runners.store';
 import { useSettingsStore, useWitVariance } from '@/store/settings.store';
-import { setIsSimulationRunning } from '@/store/ui.store';
+import {
+  setIsSimulationRunning,
+  setSimulationProgress,
+} from '@simulation/stores/compare.store';
 import { racedefToParams } from '@/utils/races';
 import { CourseHelpers } from '@simulation/lib/CourseData';
 import { PosKeepMode } from '@simulation/lib/RaceSolver';
@@ -8,10 +11,19 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { setResults } from '../../stores/compare.store';
 import { CompareResult } from '../../compare.types';
 
-type WorkerMessage<T> = {
-  type: 'compare' | 'compare-complete';
-  results: T;
-};
+type WorkerMessage<T> =
+  | {
+      type: 'compare';
+      results: T;
+    }
+  | {
+      type: 'compare-complete';
+    }
+  | {
+      type: 'compare-progress';
+      currentSamples: number;
+      totalSamples: number;
+    };
 
 export function useSimulationRunner() {
   const { uma1, uma2, pacer } = useRunnersStore();
@@ -36,19 +48,26 @@ export function useSimulationRunner() {
   const webWorkerRef = useRef<Worker | null>(null);
 
   const handleWorkerMessage = <T>(event: MessageEvent<WorkerMessage<T>>) => {
-    const { type, results } = event.data;
+    const { type } = event.data;
 
     console.log('compare:handleWorkerMessage', {
       type,
-      results,
+      data: event.data,
     });
 
     switch (type) {
       case 'compare':
-        setResults(results as CompareResult);
+        setResults(event.data.results as CompareResult);
+        break;
+      case 'compare-progress':
+        setSimulationProgress({
+          current: event.data.currentSamples,
+          total: event.data.totalSamples,
+        });
         break;
       case 'compare-complete':
         setIsSimulationRunning(false);
+        setSimulationProgress(null);
         break;
     }
   };
@@ -73,6 +92,7 @@ export function useSimulationRunner() {
 
   const handleRunCompare = () => {
     setIsSimulationRunning(true);
+    setSimulationProgress(null);
 
     webWorkerRef.current?.postMessage({
       msg: 'compare',
@@ -113,6 +133,7 @@ export function useSimulationRunner() {
 
   function handleRunOnce() {
     setIsSimulationRunning(true);
+    setSimulationProgress(null);
     const effectiveSeed = seed + runOnceCounter;
     setRunOnceCounter((prev) => prev + 1);
 

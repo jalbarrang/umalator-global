@@ -400,7 +400,7 @@ export const buildAdjustedStats = (
 
 export interface SkillData {
   skillId: string;
-  perspective?: ISkillPerspective;
+  perspective: ISkillPerspective;
   rarity: ISkillRarity;
   samplePolicy: ActivationSamplePolicy;
   regions: RegionList;
@@ -435,6 +435,7 @@ function buildSkillEffects(
         type: effect.type as ISkillType,
         baseDuration: skill.baseDuration / 10000,
         modifier: effect.modifier / 10000,
+        target: effect.target,
       });
     }
   }
@@ -703,7 +704,11 @@ export class RaceSolverBuilder {
   _rng: SeededRng;
   _seed: number;
   _parser: ConditionParser;
-  _skills: { id: string; p: ISkillPerspective; originWisdom?: number }[];
+  _skills: {
+    skillId: string;
+    perspective: ISkillPerspective;
+    originWisdom?: number;
+  }[];
   _samplePolicyOverride: Map<string, ActivationSamplePolicy>;
   _extraSkillHooks: ((
     skilldata: SkillData[],
@@ -713,15 +718,23 @@ export class RaceSolverBuilder {
   _onSkillActivate:
     | ((
         state: RaceSolver,
+        currentPosition: number,
+        executionId: string,
         skillId: string,
-        perspective?: ISkillPerspective,
+        perspective: ISkillPerspective,
+        type: ISkillType,
+        target: ISkillTarget,
       ) => void)
     | null;
   _onSkillDeactivate:
     | ((
         state: RaceSolver,
+        currentPosition: number,
+        executionId: string,
         skillId: string,
-        perspective?: ISkillPerspective,
+        perspective: ISkillPerspective,
+        type: ISkillType,
+        target: ISkillTarget,
       ) => void)
     | null;
   _disableRushed: boolean;
@@ -938,18 +951,21 @@ export class RaceSolverBuilder {
 
     this.setupPacerSkillTriggers(pacerRng);
 
-    const pacerSkills =
-      this._pacerSkillData.length > 0
-        ? this._pacerSkillData.map((sd, sdi) => ({
-            skillId: sd.skillId,
-            perspective: sd.perspective,
-            rarity: sd.rarity,
-            trigger:
-              this._pacerTriggers[sdi][i % this._pacerTriggers[sdi].length],
-            extraCondition: sd.extraCondition,
-            effects: sd.effects,
-          }))
-        : this._pacerSkills;
+    let pacerSkills: PendingSkill[] = this._pacerSkills;
+
+    if (this._pacerSkillData.length > 0) {
+      pacerSkills = this._pacerSkillData.map((skillData, skillDataIndex) => ({
+        skillId: skillData.skillId,
+        perspective: skillData.perspective,
+        rarity: skillData.rarity,
+        trigger:
+          this._pacerTriggers[skillDataIndex][
+            i % this._pacerTriggers[skillDataIndex].length
+          ],
+        extraCondition: skillData.extraCondition,
+        effects: skillData.effects,
+      }));
+    }
 
     return pacerHorse
       ? new RaceSolver({
@@ -989,7 +1005,12 @@ export class RaceSolverBuilder {
           trigger: new Region(0, 100),
           extraCondition: (_) => true,
           effects: [
-            { type: SkillType.Accel, baseDuration: 3.0, modifier: 0.2 },
+            {
+              type: SkillType.Accel,
+              baseDuration: 3.0,
+              modifier: 0.2,
+              target: SkillTarget.Self,
+            },
           ],
         },
         {
@@ -999,7 +1020,12 @@ export class RaceSolverBuilder {
           trigger: new Region(0, 100),
           extraCondition: (_) => true,
           effects: [
-            { type: SkillType.Accel, baseDuration: 1.2, modifier: 0.2 },
+            {
+              type: SkillType.Accel,
+              baseDuration: 1.2,
+              modifier: 0.2,
+              target: SkillTarget.Self,
+            },
           ],
         },
       ];
@@ -1027,9 +1053,9 @@ export class RaceSolverBuilder {
         const powerUp = sd.effects.find((ef) => ef.type == SkillType.PowerUp);
         if (powerUp && sd.regions.length > 0 && sd.regions[0].start < 9999) {
           return acc + powerUp.modifier;
-        } else {
-          return acc;
         }
+
+        return acc;
       }, baseDisplayedPower);
 
       if (power > 1200) {
@@ -1056,6 +1082,7 @@ export class RaceSolverBuilder {
                 horse.strategy,
                 course.distanceType,
               ),
+              target: SkillTarget.Self,
             },
           ],
         });
@@ -1105,6 +1132,7 @@ export class RaceSolverBuilder {
                 stamina,
                 course.distance,
               ),
+              target: SkillTarget.Self,
             },
           ],
         });
@@ -1119,10 +1147,16 @@ export class RaceSolverBuilder {
     samplePolicy?: ActivationSamplePolicy,
     originWisdom?: number,
   ) {
-    this._skills.push({ id: skillId, p: perspective, originWisdom });
-    if (samplePolicy != null) {
+    this._skills.push({
+      skillId: skillId,
+      perspective: perspective,
+      originWisdom,
+    });
+
+    if (samplePolicy) {
       this._samplePolicyOverride.set(skillId, samplePolicy);
     }
+
     return this;
   }
 
@@ -1201,8 +1235,12 @@ export class RaceSolverBuilder {
   onSkillActivate(
     cb: (
       state: RaceSolver,
+      currentPosition: number,
+      executionId: string,
       skillId: string,
-      perspective?: ISkillPerspective,
+      perspective: ISkillPerspective,
+      type: ISkillType,
+      target: ISkillTarget,
     ) => void,
   ) {
     this._onSkillActivate = cb;
@@ -1212,8 +1250,12 @@ export class RaceSolverBuilder {
   onSkillDeactivate(
     cb: (
       state: RaceSolver,
+      currentPosition: number,
+      executionId: string,
       skillId: string,
-      perspective?: ISkillPerspective,
+      perspective: ISkillPerspective,
+      type: ISkillType,
+      target: ISkillTarget,
     ) => void,
   ) {
     this._onSkillDeactivate = cb;
@@ -1272,7 +1314,10 @@ export class RaceSolverBuilder {
     const wholeCourse = new RegionList();
     wholeCourse.push(new Region(0, course.distance));
 
-    const makeSkill = buildSkillData.bind(
+    const makeSkill: (
+      skillId: string,
+      perspective: ISkillPerspective,
+    ) => SkillTrigger[] = buildSkillData.bind(
       null,
       horse,
       this._raceParams,
@@ -1281,15 +1326,20 @@ export class RaceSolverBuilder {
       this._parser,
     );
 
-    const skilldata = this._skills.flatMap(({ id, p }) => makeSkill(id, p));
-
-    this._extraSkillHooks.forEach((skillHook) =>
-      skillHook(skilldata, horse, course),
+    const skillDataList = this._skills.flatMap(({ skillId, perspective }) =>
+      makeSkill(skillId, perspective),
     );
 
-    const triggers = skilldata.map((sd) => {
-      const sp = this._samplePolicyOverride.get(sd.skillId) || sd.samplePolicy;
-      return sp.sample(sd.regions, this.nsamples, skillRng);
+    this._extraSkillHooks.forEach((skillHook) =>
+      skillHook(skillDataList, horse, course),
+    );
+
+    const triggers = skillDataList.map((skillData) => {
+      const samplePolicy =
+        this._samplePolicyOverride.get(skillData.skillId) ??
+        skillData.samplePolicy;
+
+      return samplePolicy.sample(skillData.regions, this.nsamples, skillRng);
     });
 
     // must come after skill activations are decided because conditions like base_power depend on base stats
@@ -1300,38 +1350,42 @@ export class RaceSolverBuilder {
     );
 
     for (let i = 0; i < this.nsamples; ++i) {
-      const solverRng = new Rule30CARng(this._rng.int32());
+      const raceSolverRNG = new Rule30CARng(this._rng.int32());
 
-      const skills = skilldata.map((sd, sdi) => ({
-        skillId: sd.skillId,
-        perspective: sd.perspective,
-        rarity: sd.rarity,
-        trigger: triggers[sdi][i % triggers[sdi].length],
-        extraCondition: sd.extraCondition,
-        effects: sd.effects,
-        originWisdom: this._skills[sdi].originWisdom,
-      }));
+      const skills: PendingSkill[] = skillDataList.map(
+        (skillData, skillDataIndex) => ({
+          skillId: skillData.skillId,
+          perspective: skillData.perspective,
+          rarity: skillData.rarity,
+          trigger:
+            triggers[skillDataIndex][i % triggers[skillDataIndex].length],
+          extraCondition: skillData.extraCondition,
+          effects: skillData.effects,
+          originWisdom: this._skills[skillDataIndex].originWisdom,
+        }),
+      );
 
-      const hpRng = new Rule30CARng(this._rng.int32());
-      const hpPolicy = this._useEnhancedSpurt
+      const runnerHPRNG = new Rule30CARng(this._rng.int32());
+
+      const runnerHPManager = this._useEnhancedSpurt
         ? new EnhancedHpPolicy(
             this._course,
             this._raceParams.groundCondition,
-            hpRng,
+            runnerHPRNG,
             this._accuracyMode,
           )
         : new GameHpPolicy(
             this._course,
             this._raceParams.groundCondition,
-            hpRng,
+            runnerHPRNG,
           );
 
-      const redo: boolean = yield new RaceSolver({
+      const redoRun: boolean = yield new RaceSolver({
         horse,
         course: this._course,
         skills,
-        hp: hpPolicy,
-        rng: solverRng,
+        hp: runnerHPManager,
+        rng: raceSolverRNG,
         onSkillActivate: this._onSkillActivate,
         onSkillDeactivate: this._onSkillDeactivate,
         disableRushed: this._disableRushed,
@@ -1342,7 +1396,7 @@ export class RaceSolverBuilder {
         mode: this._mode,
       });
 
-      if (redo) {
+      if (redoRun) {
         --i;
       }
     }

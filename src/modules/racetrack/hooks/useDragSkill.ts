@@ -1,5 +1,22 @@
 import { useState, useCallback } from 'react';
 
+// Helper to convert client coords to SVG space
+function clientToSvgCoords(
+  svg: SVGSVGElement,
+  clientX: number,
+  clientY: number,
+): { x: number; y: number } | null {
+  const ctm = svg.getScreenCTM();
+  if (!ctm) return null;
+
+  const point = svg.createSVGPoint();
+  point.x = clientX;
+  point.y = clientY;
+  const svgPoint = point.matrixTransform(ctm.inverse());
+
+  return { x: svgPoint.x, y: svgPoint.y };
+}
+
 export interface DraggedSkill {
   skillId: string;
   umaIndex: number;
@@ -15,6 +32,7 @@ interface DragOffset {
 interface UseDragSkillParams {
   xOffset: number;
   courseDistance: number;
+  viewBoxWidth: number; // Add this new param
   onSkillDrag?: (
     skillId: number,
     umaIndex: number,
@@ -26,6 +44,7 @@ interface UseDragSkillParams {
 export function useDragSkill({
   xOffset,
   courseDistance,
+  viewBoxWidth, // Add this
   onSkillDrag,
 }: UseDragSkillParams) {
   const [draggedSkill, setDraggedSkill] = useState<DraggedSkill | null>(null);
@@ -42,14 +61,18 @@ export function useDragSkill({
       e.preventDefault();
       e.stopPropagation();
 
-      // Get the main SVG element (the one with the race track)
-      const mainSvg = (e.currentTarget as Element).closest('.racetrackView');
+      // Get the main SVG element
+      const mainSvg = (e.currentTarget as Element).closest(
+        '.racetrackView',
+      ) as SVGSVGElement | null;
       if (!mainSvg) return;
 
-      const rect = mainSvg.getBoundingClientRect();
-      const w = rect.width - xOffset;
-      const x = e.clientX - rect.left - xOffset;
-      const dragX = (x / w) * courseDistance;
+      const svgCoords = clientToSvgCoords(mainSvg, e.clientX, e.clientY);
+      if (!svgCoords) return;
+
+      const trackWidth = viewBoxWidth - xOffset;
+      const x = svgCoords.x - xOffset;
+      const dragX = (x / trackWidth) * courseDistance;
 
       setDraggedSkill({
         skillId,
@@ -59,7 +82,7 @@ export function useDragSkill({
       });
       setDragOffset({ x: dragX - start, y: 0 });
     },
-    [xOffset, courseDistance],
+    [xOffset, courseDistance, viewBoxWidth],
   );
 
   const handleDragMove = useCallback(
@@ -67,14 +90,19 @@ export function useDragSkill({
       if (!draggedSkill) return;
 
       const svg = e.currentTarget;
-      const rect = svg.getBoundingClientRect();
-      const w = rect.width - xOffset;
-      const x = e.clientX - rect.left - xOffset;
+      const svgCoords = clientToSvgCoords(svg, e.clientX, e.clientY);
+      if (!svgCoords) return;
+
+      const trackWidth = viewBoxWidth - xOffset;
+      const x = svgCoords.x - xOffset;
 
       const newStart = Math.round(
         Math.max(
           0,
-          Math.min(courseDistance, (x / w) * courseDistance - dragOffset.x),
+          Math.min(
+            courseDistance,
+            (x / trackWidth) * courseDistance - dragOffset.x,
+          ),
         ),
       );
       const skillLength = Math.max(
@@ -97,7 +125,14 @@ export function useDragSkill({
         );
       }
     },
-    [draggedSkill, dragOffset, xOffset, courseDistance, onSkillDrag],
+    [
+      draggedSkill,
+      dragOffset,
+      xOffset,
+      courseDistance,
+      viewBoxWidth,
+      onSkillDrag,
+    ],
   );
 
   const handleDragEnd = useCallback(() => {
