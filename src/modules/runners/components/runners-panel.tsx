@@ -27,7 +27,6 @@ import {
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { PosKeepMode } from '@/modules/simulation/lib/RaceSolver';
-import { SkillPickerDrawer } from '@/modules/skills/components/skill-list/SkillPickerDrawer';
 import { useRunnerLibraryStore } from '@/store/runner-library.store';
 import { Link2, Link2Off, Save } from 'lucide-react';
 import './style.css';
@@ -129,8 +128,6 @@ export const RunnersPanel = () => {
       </PanelHeader>
 
       <PanelContent className="p-0">
-        <SkillPickerDrawer />
-
         {/* Library Link Indicator */}
         {isLinked && linkedRunner && runnerId !== 'pacer' && (
           <div className="flex items-center justify-between gap-2 p-2 bg-muted/50 border-b">

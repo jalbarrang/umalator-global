@@ -1,15 +1,12 @@
-import { useMemo } from 'react';
-import { useRaceStore } from '@simulation/stores/compare.store';
 import { getSkillNameById } from '@/modules/skills/utils';
+import { useRaceStore } from '@simulation/stores/compare.store';
+import { useMemo } from 'react';
+
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Zap } from 'lucide-react';
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import {
   Empty,
   EmptyDescription,
@@ -17,56 +14,114 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from '@/components/ui/empty';
+import { ChevronsUpDown, Zap } from 'lucide-react';
 import {
   ISkillTarget,
   ISkillType,
-  SkillTarget,
+  SkillType,
+  translateSkillEffectTarget,
+  translateSkillEffectType,
 } from '../lib/race-solver/types';
-import { EffectQuery } from '@/modules/skills/effects-query';
-import { SkillActivation } from '../compare.types';
 
-const toSkillPosition = (activation: SkillActivation) => {
-  return {
-    id: activation.skillId,
-    name: getSkillNameById(activation.skillId),
-    start: activation.start,
-    end: activation.end,
-    duration: activation.end - activation.start,
-    effectType: activation.effectType,
-    effectTarget: activation.effectTarget,
-    targetsOpponent: activation.effectTarget !== SkillTarget.Self,
-  };
+/**
+ * Returns skill activates grouped by skill id
+ */
+const useRunnerSkillsActivated = (runnerIndex: number) => {
+  const { chartData } = useRaceStore();
+
+  return useMemo(() => {
+    if (!chartData) return [];
+
+    const runnerSkills = chartData.sk[runnerIndex];
+
+    const skillPositions: SkillPosition[] = [];
+    for (const [skillId, activations] of runnerSkills) {
+      const firstActivation = activations[0];
+
+      skillPositions.push({
+        id: skillId,
+        name: getSkillNameById(skillId),
+        triggeredAt: firstActivation.start,
+        effects: activations.map((a) => ({
+          effectType: a.effectType,
+          effectTarget: a.effectTarget,
+          start: a.start,
+          end: a.end,
+          duration: a.end - a.start,
+        })),
+      });
+    }
+
+    return skillPositions.toSorted((a, b) => a.triggeredAt - b.triggeredAt);
+  }, [chartData, runnerIndex]);
 };
 
 type SkillPosition = {
   id: string;
   name: string;
-  start: number;
-  end: number;
-  duration: number;
-  effectType: ISkillType;
-  effectTarget: ISkillTarget;
+  triggeredAt: number;
+  effects: {
+    start: number;
+    end: number;
+    duration: number;
+    effectType: ISkillType;
+    effectTarget: ISkillTarget;
+  }[];
 };
 
 export const SkillsTab = () => {
   const { chartData } = useRaceStore();
 
-  const skillPositionsUma1: SkillPosition[] = useMemo(() => {
-    if (!chartData) return [];
+  const skillPositionsUma1 = useRunnerSkillsActivated(0);
+  const skillPositionsUma2 = useRunnerSkillsActivated(1);
 
-    return EffectQuery.from(chartData.sk[0])
-      .toList()
-      .map(toSkillPosition)
-      .toSorted((a, b) => a.start - b.start);
+  const hasUma1Skills = skillPositionsUma1.length > 0;
+  const hasUma2Skills = skillPositionsUma2.length > 0;
+
+  const totalSkillDistanceUma1 = useMemo(() => {
+    if (!chartData) return 0;
+
+    const runnerSkills = chartData.sk[0];
+    let totalSkillDistance = 0;
+
+    for (const [_, activations] of runnerSkills) {
+      let validActivation;
+      for (const activation of activations) {
+        if (activation.effectType !== SkillType.Recovery) {
+          validActivation = activation;
+          break;
+        }
+      }
+
+      if (!validActivation) continue;
+
+      totalSkillDistance += validActivation.end - validActivation.start;
+    }
+
+    return totalSkillDistance;
   }, [chartData]);
 
-  const skillPositionsUma2: SkillPosition[] = useMemo(() => {
-    if (!chartData) return [];
+  const totalSkillDistanceUma2 = useMemo(() => {
+    if (!chartData) return 0;
 
-    return EffectQuery.from(chartData.sk[1])
-      .toList()
-      .map(toSkillPosition)
-      .toSorted((a, b) => a.start - b.start);
+    const runnerSkills = chartData.sk[1];
+    let totalSkillDistance = 0;
+
+    for (const [_, activations] of runnerSkills) {
+      let validActivation;
+      for (const activation of activations) {
+        if (activation.effectType !== SkillType.Recovery) {
+          validActivation = activation;
+          break;
+        }
+      }
+
+      if (!validActivation) continue;
+
+      totalSkillDistance += validActivation.end - validActivation.start;
+    }
+
+    return totalSkillDistance;
   }, [chartData]);
 
   if (!chartData) {
@@ -86,9 +141,6 @@ export const SkillsTab = () => {
     );
   }
 
-  const hasUma1Skills = skillPositionsUma1.length > 0;
-  const hasUma2Skills = skillPositionsUma2.length > 0;
-
   if (!hasUma1Skills && !hasUma2Skills) {
     return (
       <div className="flex items-center justify-center py-12 text-foreground">
@@ -102,92 +154,20 @@ export const SkillsTab = () => {
       {/* Side-by-side skill tables */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Uma 1 Skills */}
-        <div className="border rounded-lg overflow-hidden">
-          <div className="bg-[#2a77c5] dark:bg-blue-500 text-white text-center py-2 font-bold">
-            Umamusume 1 Skills
-            {hasUma1Skills && (
-              <span className="ml-2 text-sm font-normal opacity-80">
-                ({skillPositionsUma1.length} activations)
-              </span>
-            )}
-          </div>
-          {hasUma1Skills ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Skill</TableHead>
-                  <TableHead className="text-right">Start</TableHead>
-                  <TableHead className="text-right">End</TableHead>
-                  <TableHead className="text-right">Duration</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {skillPositionsUma1.map((skill, index) => (
-                  <TableRow key={`${skill.id}-${index}`}>
-                    <TableCell className="font-medium">{skill.name}</TableCell>
-                    <TableCell className="text-right font-mono text-sm">
-                      {skill.start.toFixed(1)}m
-                    </TableCell>
-                    <TableCell className="text-right font-mono text-sm">
-                      {skill.end.toFixed(1)}m
-                    </TableCell>
-                    <TableCell className="text-right font-mono text-sm">
-                      {skill.duration.toFixed(1)}m
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <div className="p-4 text-center text-foreground text-sm">
-              No skills activated
-            </div>
-          )}
-        </div>
+        <RunnerSkillsTable
+          title="Umamusume 1 Skills"
+          skills={skillPositionsUma1}
+          hasSkills={hasUma1Skills}
+          runnerColor="#2a77c5"
+        />
 
         {/* Uma 2 Skills */}
-        <div className="border rounded-lg overflow-hidden">
-          <div className="bg-[#c52a2a] text-white text-center py-2 font-bold">
-            Umamusume 2 Skills
-            {hasUma2Skills && (
-              <span className="ml-2 text-sm font-normal opacity-80">
-                ({skillPositionsUma2.length} activations)
-              </span>
-            )}
-          </div>
-          {hasUma2Skills ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Skill</TableHead>
-                  <TableHead className="text-right">Start</TableHead>
-                  <TableHead className="text-right">End</TableHead>
-                  <TableHead className="text-right">Duration</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {skillPositionsUma2.map((skill, index) => (
-                  <TableRow key={`${skill.id}-${index}`}>
-                    <TableCell className="font-medium">{skill.name}</TableCell>
-                    <TableCell className="text-right font-mono text-sm">
-                      {skill.start.toFixed(1)}m
-                    </TableCell>
-                    <TableCell className="text-right font-mono text-sm">
-                      {skill.end.toFixed(1)}m
-                    </TableCell>
-                    <TableCell className="text-right font-mono text-sm">
-                      {skill.duration.toFixed(1)}m
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <div className="p-4 text-center text-foreground text-sm">
-              No skills activated
-            </div>
-          )}
-        </div>
+        <RunnerSkillsTable
+          title="Umamusume 2 Skills"
+          skills={skillPositionsUma2}
+          hasSkills={hasUma2Skills}
+          runnerColor="#c52a2a"
+        />
       </div>
 
       {/* Skills Summary */}
@@ -211,12 +191,7 @@ export const SkillsTab = () => {
           </div>
           <div className="flex flex-col items-center p-3  rounded-lg border">
             <span className="text-[#2a77c5] font-bold text-lg font-mono">
-              {hasUma1Skills
-                ? skillPositionsUma1
-                    .reduce((sum, s) => sum + s.duration, 0)
-                    .toFixed(1)
-                : '0'}
-              m
+              {totalSkillDistanceUma1.toFixed(1)}m
             </span>
             <span className="text-foreground text-xs">
               Uma 1 Total Skill Distance
@@ -224,12 +199,7 @@ export const SkillsTab = () => {
           </div>
           <div className="flex flex-col items-center p-3  rounded-lg border">
             <span className="text-[#c52a2a] font-bold text-lg font-mono">
-              {hasUma2Skills
-                ? skillPositionsUma2
-                    .reduce((sum, s) => sum + s.duration, 0)
-                    .toFixed(1)
-                : '0'}
-              m
+              {totalSkillDistanceUma2.toFixed(1)}m
             </span>
             <span className="text-foreground text-xs">
               Uma 2 Total Skill Distance
@@ -237,6 +207,107 @@ export const SkillsTab = () => {
           </div>
         </div>
       </div>
+    </div>
+  );
+};
+
+type RunnerSkillsTableProps = {
+  title: string;
+  skills: SkillPosition[];
+  hasSkills: boolean;
+  runnerColor: string;
+};
+
+const RunnerSkillsTable = (props: RunnerSkillsTableProps) => {
+  const { title, skills, hasSkills, runnerColor } = props;
+
+  return (
+    <div className="border rounded-lg overflow-hidden">
+      <div
+        className={`bg-[${runnerColor}] text-white text-center py-2 font-bold`}
+      >
+        {title}
+        {hasSkills && (
+          <span className="ml-2 text-sm font-normal opacity-80">
+            ({skills.length} activations)
+          </span>
+        )}
+      </div>
+      {hasSkills ? (
+        <div className="grid grid-cols-1">
+          <div className="grid grid-cols-2 border-b last:border-b-0 p-2">
+            <div>Skill</div>
+            <div className="text-right">Trigger At</div>
+          </div>
+
+          <div className="grid grid-cols-1">
+            {skills.map((skill, index) => (
+              <div
+                key={`${skill.id}-${index}`}
+                className="grid grid-cols-1 border-b last:border-b-0 p-2"
+              >
+                <Collapsible>
+                  <CollapsibleTrigger asChild>
+                    <div className="grid grid-cols-2">
+                      <div className="flex items-center gap-2 cursor-pointer">
+                        <ChevronsUpDown className="size-4" />
+                        <span className="font-medium text-sm select-none">
+                          {skill.name}
+                        </span>
+                      </div>
+                      <div className="font-mono text-end text-sm">
+                        {skill.triggeredAt.toFixed(1)}m
+                      </div>
+                    </div>
+                  </CollapsibleTrigger>
+
+                  <CollapsibleContent className="flex flex-col gap-2 pt-2">
+                    <div className="grid grid-cols-5">
+                      <div className="text-sm">Type</div>
+                      <div className="text-end text-sm">Target</div>
+                      <div className="text-end text-sm">Start</div>
+                      <div className="text-end text-sm">End</div>
+                      <div className="text-end text-sm">Duration</div>
+                    </div>
+
+                    {skill.effects.map((effect, index) => {
+                      const effectType = translateSkillEffectType(
+                        effect.effectType,
+                      );
+                      const effectTarget = translateSkillEffectTarget(
+                        effect.effectTarget,
+                      );
+
+                      return (
+                        <div
+                          key={`${skill.id}-${index}`}
+                          className="grid grid-cols-5"
+                        >
+                          <div className="text-sm">{effectType}</div>
+                          <div className="text-end text-sm">{effectTarget}</div>
+                          <div className="text-end text-sm">
+                            {effect.start.toFixed(1)}m
+                          </div>
+                          <div className="text-end text-sm">
+                            {effect.end.toFixed(1)}m
+                          </div>
+                          <div className="text-end text-sm">
+                            {effect.duration.toFixed(1)}m
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </CollapsibleContent>
+                </Collapsible>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="p-4 text-center text-foreground text-sm">
+          No skills activated
+        </div>
+      )}
     </div>
   );
 };

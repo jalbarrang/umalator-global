@@ -122,3 +122,47 @@ export const SkillPrecondition = {
 
 export type ISkillPrecondition =
   (typeof SkillPrecondition)[keyof typeof SkillPrecondition];
+
+export const translateSkillEffectType = (type: ISkillType) => {
+  return SkillEffectTranslation[type];
+};
+
+export const translateSkillEffectTarget = (target: ISkillTarget) => {
+  return SkillEffectTargetTranslation[target];
+};
+
+export const SkillEffectTranslation: Record<ISkillType, string> = {
+  [SkillType.SpeedUp]: 'Speed Up',
+  [SkillType.StaminaUp]: 'Stamina Up',
+  [SkillType.PowerUp]: 'Power Up',
+  [SkillType.GutsUp]: 'Guts Up',
+  [SkillType.WisdomUp]: 'Wisdom Up',
+  [SkillType.Recovery]: 'Recovery',
+  [SkillType.MultiplyStartDelay]: 'Multiply Start Delay',
+  [SkillType.SetStartDelay]: 'Set Start Delay',
+  [SkillType.CurrentSpeed]: 'Current Speed',
+  [SkillType.CurrentSpeedWithNaturalDeceleration]:
+    'Current Speed With Natural Deceleration',
+  [SkillType.TargetSpeed]: 'Target Speed',
+  [SkillType.LaneMovementSpeed]: 'Lane Movement Speed',
+  [SkillType.Accel]: 'Acceleration',
+  [SkillType.ChangeLane]: 'Change Lane',
+  [SkillType.ActivateRandomGold]: 'Activate Random Gold',
+  [SkillType.ExtendEvolvedDuration]: 'Extend Evolved Duration',
+};
+
+export const SkillEffectTargetTranslation: Record<ISkillTarget, string> = {
+  [SkillTarget.Self]: 'Self',
+  [SkillTarget.All]: 'All',
+  [SkillTarget.InFov]: 'In FOV',
+  [SkillTarget.AheadOfPosition]: 'Ahead of Position',
+  [SkillTarget.AheadOfSelf]: 'Ahead of Self',
+  [SkillTarget.BehindSelf]: 'Behind Self',
+  [SkillTarget.AllAllies]: 'All Allies',
+  [SkillTarget.EnemyStrategy]: 'Enemy Strategy',
+  [SkillTarget.KakariAhead]: 'Kakari Ahead',
+  [SkillTarget.KakariBehind]: 'Kakari Behind',
+  [SkillTarget.KakariStrategy]: 'Kakari Strategy',
+  [SkillTarget.UmaId]: 'Uma ID',
+  [SkillTarget.UsedRecovery]: 'Used Recovery',
+};

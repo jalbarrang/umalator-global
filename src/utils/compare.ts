@@ -15,11 +15,11 @@ import {
 } from '@simulation/lib/race-solver/types';
 
 import {
-  RaceSolverBuilder,
   buildAdjustedStats,
   buildBaseStats,
   parseAptitude,
   parseStrategy,
+  RaceSolverBuilder,
 } from '@simulation/lib/RaceSolverBuilder';
 
 import { RunnerState } from '@/modules/runners/components/runner-card/types';
@@ -29,7 +29,6 @@ import {
   TheoreticalMaxSpurtResult,
   type Run1RoundParams,
 } from '@/modules/simulation/types';
-import { skillsById } from '@/modules/skills/utils';
 import {
   CompareResult,
   initializeSimulationRun,
@@ -359,6 +358,7 @@ export function runComparison(params: RunComparisonParams): CompareResult {
   ) => {
     return (
       raceSolver: RaceSolver,
+      currentPosition: number,
       executionId: string,
       skillId: string,
       perspective: ISkillPerspective,
@@ -375,8 +375,8 @@ export function runComparison(params: RunComparisonParams): CompareResult {
         skillSetValue.push({
           executionId,
           skillId,
-          start: raceSolver.pos,
-          end: raceSolver.pos,
+          start: currentPosition,
+          end: currentPosition,
           perspective,
           effectType,
           effectTarget,
@@ -391,8 +391,8 @@ export function runComparison(params: RunComparisonParams): CompareResult {
         skillSetValue.push({
           executionId,
           skillId,
-          start: raceSolver.pos,
-          end: raceSolver.pos,
+          start: currentPosition,
+          end: currentPosition,
           perspective,
           effectType,
           effectTarget,
@@ -408,7 +408,8 @@ export function runComparison(params: RunComparisonParams): CompareResult {
     _othersSet: Map<string, SkillActivation[]>,
   ) => {
     return (
-      raceSolver: RaceSolver,
+      _raceSolver: RaceSolver,
+      currentPosition: number,
       executionId: string,
       skillId: string,
       _perspective: ISkillPerspective,
@@ -422,14 +423,17 @@ export function runComparison(params: RunComparisonParams): CompareResult {
       const skillActivations = skillsSet.get(executionId);
 
       if (skillActivations && skillActivations.length > 0) {
-        const activationPos =
-          skillActivations[skillActivations.length - 1].start;
+        const firstActivation = skillActivations?.[0];
 
-        if (raceSolver.pos > activationPos) {
-          skillActivations[skillActivations.length - 1].end = Math.min(
-            raceSolver.pos,
-            course.distance,
-          );
+        for (let i = 0; i < skillActivations.length; i++) {
+          if (skillActivations[i].effectType === SkillType.Recovery) continue;
+
+          if (currentPosition > firstActivation.start) {
+            skillActivations[i].end = Math.min(
+              currentPosition,
+              course.distance,
+            );
+          }
         }
 
         skillsSet.set(executionId, skillActivations);
@@ -745,8 +749,10 @@ export function runComparison(params: RunComparisonParams): CompareResult {
         // Call the deactivator to set the end position to course.distance
         // This handles both race-end cleanup and very short duration skills
         // Use the correct skill position maps for this solver
+        const currentPosition = solver.pos;
         getDeactivator(selfSkillSet, othersSkillSet)(
           solver,
+          currentPosition,
           skill.executionId,
           skill.skillId,
           skill.perspective,

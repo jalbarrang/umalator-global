@@ -28,7 +28,7 @@ export function SkillPickerDrawer() {
       onOpenChange={handleOpenChange}
       autoFocus
     >
-      <DrawerContent className="px-2 w-full! md:w-1/2! 2xl:w-1/3! max-w-none!">
+      <DrawerContent className="px-2 w-full! md:w-1/2! max-w-none!">
         <DrawerHeader>
           <DrawerTitle>Add Skill to Runner</DrawerTitle>
         </DrawerHeader>
@@ -39,7 +39,7 @@ export function SkillPickerDrawer() {
           options={options}
           currentSkills={currentSkills}
           onSelect={onSelect}
-          className="overflow-y-auto"
+          className="flex-1 min-h-0"
         />
       </DrawerContent>
     </Drawer>

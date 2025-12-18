@@ -718,6 +718,7 @@ export class RaceSolverBuilder {
   _onSkillActivate:
     | ((
         state: RaceSolver,
+        currentPosition: number,
         executionId: string,
         skillId: string,
         perspective: ISkillPerspective,
@@ -728,6 +729,7 @@ export class RaceSolverBuilder {
   _onSkillDeactivate:
     | ((
         state: RaceSolver,
+        currentPosition: number,
         executionId: string,
         skillId: string,
         perspective: ISkillPerspective,
@@ -1233,6 +1235,7 @@ export class RaceSolverBuilder {
   onSkillActivate(
     cb: (
       state: RaceSolver,
+      currentPosition: number,
       executionId: string,
       skillId: string,
       perspective: ISkillPerspective,
@@ -1247,6 +1250,7 @@ export class RaceSolverBuilder {
   onSkillDeactivate(
     cb: (
       state: RaceSolver,
+      currentPosition: number,
       executionId: string,
       skillId: string,
       perspective: ISkillPerspective,

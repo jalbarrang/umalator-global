@@ -291,6 +291,7 @@ export class RaceSolver {
   activateCountHeal: number;
   onSkillActivate: (
     raceSolver: RaceSolver,
+    currentPosition: number,
     executionId: string,
     skillId: string,
     perspective: ISkillPerspective,
@@ -299,6 +300,7 @@ export class RaceSolver {
   ) => void;
   onSkillDeactivate: (
     raceSolver: RaceSolver,
+    currentPosition: number,
     executionId: string,
     skillId: string,
     perspective: ISkillPerspective,
@@ -390,6 +392,7 @@ export class RaceSolver {
     onSkillActivate?:
       | ((
           raceSolver: RaceSolver,
+          currentPosition: number,
           executionId: string,
           skillId: string,
           perspective: ISkillPerspective,
@@ -400,6 +403,7 @@ export class RaceSolver {
     onSkillDeactivate?:
       | ((
           raceSolver: RaceSolver,
+          currentPosition: number,
           executionId: string,
           skillId: string,
           perspective: ISkillPerspective,
@@ -1560,6 +1564,8 @@ export class RaceSolver {
   }
 
   processSkillActivations() {
+    const currentPosition = this.pos;
+
     // Process Speed Up Skills - optimized with swap-and-pop pattern
     let writeIdx = 0;
     for (let i = 0; i < this.activeTargetSpeedSkills.length; i++) {
@@ -1574,6 +1580,7 @@ export class RaceSolver {
 
       this.onSkillDeactivate(
         this,
+        currentPosition,
         skill.executionId,
         skill.skillId,
         skill.perspective,
@@ -1600,6 +1607,7 @@ export class RaceSolver {
 
       this.onSkillDeactivate(
         this,
+        currentPosition,
         skill.executionId,
         skill.skillId,
         skill.perspective,
@@ -1621,6 +1629,7 @@ export class RaceSolver {
       this.modifiers.accel.add(-skill.modifier);
       this.onSkillDeactivate(
         this,
+        currentPosition,
         skill.executionId,
         skill.skillId,
         skill.perspective,
@@ -1641,6 +1650,7 @@ export class RaceSolver {
 
       this.onSkillDeactivate(
         this,
+        currentPosition,
         skill.executionId,
         skill.skillId,
         skill.perspective,
@@ -1661,6 +1671,7 @@ export class RaceSolver {
 
       this.onSkillDeactivate(
         this,
+        currentPosition,
         skill.executionId,
         skill.skillId,
         skill.perspective,
@@ -1749,7 +1760,8 @@ export class RaceSolver {
       (a, b) => +(a.type == 42) - +(b.type == 42),
     );
 
-    const executionId = crypto.randomUUID();
+    const executionId = `${skill.skillId}-${crypto.randomUUID()}`;
+    const currentPosition = this.pos;
 
     for (const skillEffect of sortedEffects) {
       const skillDurationScaling =
@@ -1766,6 +1778,7 @@ export class RaceSolver {
       if (shouldTrackEffect(skillEffect)) {
         this.onSkillActivate(
           this,
+          currentPosition,
           executionId,
           skill.skillId,
           skill.perspective,
@@ -1952,8 +1965,11 @@ export class RaceSolver {
   // might have activated towards the end of the race and the race finished before the skill's duration)
   cleanup() {
     const callDeactivateHook = (activeSkill: ActiveSkill) => {
+      const currentPosition = this.pos;
+
       this.onSkillDeactivate(
         this,
+        currentPosition,
         activeSkill.executionId,
         activeSkill.skillId,
         activeSkill.perspective,

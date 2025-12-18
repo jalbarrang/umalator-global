@@ -29,6 +29,7 @@ import {
 } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { SkillIcon, SkillItem } from './skill-list/SkillItem';
+import { VirtualizedSkillGrid } from './VirtualizedSkillGrid';
 
 type IconFilterButtonProps = {
   type: string;
@@ -388,7 +389,7 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
         </InputGroup>
       </div>
 
-      <div className="flex flex-col flex-1 gap-2">
+      <div className="flex flex-col gap-2 flex-1 min-h-0">
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap gap-2">
             {groups_filters['icontype'].map((iconType) => (
@@ -577,7 +578,7 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
           </div>
         </div>
 
-        <div className="flex flex-col flex-1 gap-2">
+        <div className="flex flex-col gap-2 flex-1 min-h-0">
           {!hideSelected && (
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-1">
@@ -605,26 +606,19 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
 
           <Separator className="my-2" />
 
-          <div className="flex flex-col flex-1 gap-2">
-            <div className="flex items-center gap-1">
+          <div className="flex flex-col gap-2 flex-1 min-h-0">
+            <div className="flex md:hidden! items-center gap-1">
               <span className="text-sm font-bold">Skills available</span>
               <span className="text-xs text-muted-foreground">
                 ({filteredSkills.length})
               </span>
             </div>
 
-            <div className="flex-1" onClick={toggleSelected}>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 p-4">
-                {filteredSkills.map((skill) => (
-                  <SkillItem
-                    key={skill.id}
-                    skillId={skill.id}
-                    selected={selectedMap.get(skill.meta.groupId) === skill.id}
-                    className="cursor-pointer"
-                  />
-                ))}
-              </div>
-            </div>
+            <VirtualizedSkillGrid
+              items={filteredSkills}
+              selectedMap={selectedMap}
+              onClick={toggleSelected}
+            />
           </div>
         </div>
       </div>

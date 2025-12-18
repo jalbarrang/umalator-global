@@ -4,11 +4,11 @@ import { Label } from '@/components/ui/label';
 import { useIsMobile } from '@/hooks/useBreakpoint';
 import { RunnerCard } from '@/modules/runners/components/runner-card/runner-card';
 import { RunnerState } from '@/modules/runners/components/runner-card/types';
-import { SkillPickerDrawer } from '@/modules/skills/components/skill-list/SkillList';
+import { SkillPickerDrawer } from '@/modules/skills/components/skill-list/SkillPickerDrawer';
 import { SkillPickerContent } from '@/modules/skills/components/skill-picker-content';
 import { updateCurrentSkills } from '@/modules/skills/store';
 import { getSelectableSkillsForUma } from '@/modules/skills/utils';
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 
 type RunnerEditorLayoutProps = {
   runnerName: string;
@@ -45,6 +45,8 @@ export const RunnerEditorLayout = ({
     onRunnerStateChange(newState);
     updateCurrentSkills(newState.skills);
   };
+
+  const childRef = useRef<{ focus: () => void }>(null);
 
   return (
     <div className="flex flex-col flex-1">
@@ -134,12 +136,13 @@ export const RunnerEditorLayout = ({
               <h2 className="text-lg font-semibold">Skills</h2>
 
               <SkillPickerContent
+                ref={childRef}
                 umaId={runnerState.outfitId}
                 options={selectableSkills}
                 currentSkills={runnerState.skills}
                 onSelect={handleSetSkills}
                 hideSelected
-                className="overflow-y-auto"
+                className="flex-1 min-h-0"
               />
             </div>
           </div>
