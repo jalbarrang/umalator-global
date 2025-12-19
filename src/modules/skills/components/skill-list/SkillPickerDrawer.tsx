@@ -39,7 +39,7 @@ export function SkillPickerDrawer() {
           options={options}
           currentSkills={currentSkills}
           onSelect={onSelect}
-          className="flex-1 min-h-0"
+          className="flex-1 overflow-y-auto lg:overflow-y-hidden lg:min-h-0"
         />
       </DrawerContent>
     </Drawer>

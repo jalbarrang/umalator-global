@@ -1,14 +1,17 @@
-import { SeasonIcon } from '@/components/race-settings/SeasonSelect';
-import { WeatherIcon } from '@/components/race-settings/WeatherSelect';
-import { Button } from '@/components/ui/button';
+import { RacePresets } from '@/components/race-presets';
+import { GroundSelect } from '@/components/race-settings/GroundSelect';
+import {
+  SeasonIcon,
+  SeasonSelect,
+} from '@/components/race-settings/SeasonSelect';
+import { TimeOfDaySelect } from '@/components/race-settings/TimeOfDaySelect';
+import {
+  WeatherIcon,
+  WeatherSelect,
+} from '@/components/race-settings/WeatherSelect';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import i18n from '@/i18n';
 import { CourseData } from '@/modules/simulation/lib/courses/types';
 import {
@@ -23,13 +26,11 @@ import {
   toggleShowUma2,
   useSettingsStore,
 } from '@/store/settings.store';
-import { setLeftSidebar } from '@/store/ui.store';
 import {
   initializeSimulationRun,
   SimulationRun,
 } from '@simulation/compare.types';
 import { CourseHelpers } from '@simulation/lib/CourseData';
-import { SettingsIcon } from 'lucide-react';
 import { Activity, Fragment, useMemo, useRef } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { useDragSkill } from '../hooks/useDragSkill';
@@ -48,6 +49,7 @@ import { SectionNumbers } from './section-numbers';
 import { SkillMarker } from './skill-marker';
 import { SlopeLabelBar } from './slope-label-bar';
 import { SlopeVisualization } from './slope-visualization';
+import { TrackSelect } from './track-select';
 
 // Helper function for efficient rung collision detection
 const findAvailableRung = (
@@ -259,8 +261,7 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
     [props.courseid],
   );
 
-  const { racedef } = useSettingsStore();
-  const { showHp, showLanes, showUma1, showUma2, showThresholds } =
+  const { showHp, showLanes, showUma1, showUma2, showThresholds, racedef } =
     useSettingsStore();
 
   const { tooltipData, tooltipVisible, rtMouseMove, rtMouseLeave } =
@@ -379,26 +380,6 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
           <div className="text-xl text-foreground font-bold">
             {i18n.t(`tracknames.${course.raceTrackId}`)} {courseLabel}
           </div>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  setLeftSidebar({
-                    activePanel: 'racetrack-settings',
-                    hidden: false,
-                  })
-                }
-              >
-                <SettingsIcon className="h-6 w-6" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Race Settings</p>
-            </TooltipContent>
-          </Tooltip>
         </div>
 
         <div className="flex">
@@ -552,7 +533,40 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
         </svg>
       </div>
 
-      <div className="flex items-center gap-4 bg-secondary px-4 py-2 rounded-md">
+      <div className="grid grid-cols-1 2xl:grid-cols-2 gap-4 bg-secondary px-4 py-2 rounded-md">
+        <div className="flex flex-col md:flex-row md:items-center gap-4">
+          <RacePresets />
+
+          <div className="flex flex-col gap-2">
+            <Label className="text-xs font-medium">Track</Label>
+            <TrackSelect />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label className="text-xs font-medium">Time of Day</Label>
+            <TimeOfDaySelect />
+          </div>
+        </div>
+
+        <div className="flex flex-col md:flex-row md:items-center gap-4">
+          <div className="flex flex-col gap-2">
+            <Label className="text-xs font-medium">Season</Label>
+            <SeasonSelect />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label className="text-xs font-medium">Weather</Label>
+            <WeatherSelect />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label className="text-xs font-medium">Ground</Label>
+            <GroundSelect />
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col md:flex-row gap-4 bg-secondary px-4 py-2 rounded-md">
         <div className="flex items-center gap-2">
           <Checkbox
             id="showhp"
@@ -595,7 +609,7 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
           </Label>
         </div>
 
-        <Separator orientation="vertical" />
+        <Separator orientation="vertical" className="hidden md:block" />
 
         <div className="flex items-center gap-2">
           <Checkbox

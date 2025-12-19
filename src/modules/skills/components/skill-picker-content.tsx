@@ -579,8 +579,8 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
         </div>
 
         <div className="flex flex-col gap-2 flex-1 min-h-0">
-          {!hideSelected && (
-            <div className="flex flex-col gap-2">
+          {/* {!hideSelected && (
+            <div className="flex md:hidden! flex-col gap-2">
               <div className="flex items-center gap-1">
                 <span className="text-sm font-bold">Skills selected</span>
                 <span className="text-xs text-muted-foreground">
@@ -602,12 +602,12 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
                 ))}
               </div>
             </div>
-          )}
+          )} */}
 
-          <Separator className="my-2" />
+          {/* <Separator className="my-2" /> */}
 
           <div className="flex flex-col gap-2 flex-1 min-h-0">
-            <div className="flex md:hidden! items-center gap-1">
+            <div className="flex items-center gap-1">
               <span className="text-sm font-bold">Skills available</span>
               <span className="text-xs text-muted-foreground">
                 ({filteredSkills.length})

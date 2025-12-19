@@ -27,7 +27,7 @@ export const RacePresets = () => {
   };
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex flex-col gap-2">
       <Label htmlFor="preset-select">Preset:</Label>
 
       <Select onValueChange={handleChange}>
