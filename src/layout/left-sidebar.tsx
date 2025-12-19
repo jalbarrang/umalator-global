@@ -5,9 +5,10 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { UsersIcon, SlidersHorizontalIcon } from 'lucide-react';
+import { UsersIcon, SlidersHorizontalIcon, BookmarkIcon } from 'lucide-react';
 import { RunnersPanel } from '@/modules/runners/components/runners-panel';
 import { AdvancedSettingsPanel } from '@/components/advanced-settings-panel';
+import { PresetsPanel } from '@/components/presets-panel';
 import { setLeftSidebar, useLeftSidebar } from '@/store/ui.store';
 import { useMemo } from 'react';
 
@@ -17,6 +18,12 @@ const panels = [
     label: 'Runners',
     icon: UsersIcon,
     content: <RunnersPanel />,
+  },
+  {
+    id: 'presets',
+    label: 'Presets',
+    icon: BookmarkIcon,
+    content: <PresetsPanel />,
   },
   {
     id: 'advanced-settings',

@@ -2,11 +2,13 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,31 +24,52 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { addPreset } from '@/store/race/preset.store';
-import { useSettingsStore } from '@/store/settings.store';
+import {
+  addPreset,
+  updatePreset,
+  usePresetStore,
+} from '@/store/race/preset.store';
+import { setSelectedPresetId, useSettingsStore } from '@/store/settings.store';
 import { EventType } from '@/utils/races';
 import dayjs from 'dayjs';
-import { CalendarIcon } from 'lucide-react';
+import { BookmarkPlus, CalendarIcon } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-type SavePresetModalProps = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-};
-
-export const SavePresetModal = ({
-  open,
-  onOpenChange,
-}: SavePresetModalProps) => {
+export const SavePresetModal = () => {
+  const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [eventType, setEventType] = useState<EventType>(EventType.CM);
   const [calendarOpen, setCalendarOpen] = useState(false);
 
   const { courseId, racedef } = useSettingsStore();
+  const { selectedPresetId } = useSettingsStore();
+  const { presets } = usePresetStore();
 
-  const handleSave = () => {
+  const handleOpen = (open: boolean) => {
+    const preset = selectedPresetId ? presets[selectedPresetId] : null;
+
+    if (open && preset) {
+      // Load On Open
+      setName(preset.name);
+      setDate(dayjs(preset.date).toDate());
+      setEventType(preset.type);
+      setOpen(open);
+
+      return;
+    }
+
+    // Reset On Close
+    setName('');
+    setDate(undefined);
+    setEventType(EventType.CM);
+    setOpen(open);
+  };
+
+  const handleUpdate = () => {
+    if (!selectedPresetId) return;
+
     if (!name.trim()) {
       toast.error('Please enter a preset name');
       return;
@@ -59,7 +82,8 @@ export const SavePresetModal = ({
 
     const dateStr = dayjs(date).format('YYYY-MM-DD');
 
-    addPreset({
+    updatePreset(selectedPresetId, {
+      id: selectedPresetId,
       name: name.trim(),
       type: eventType,
       date: dateStr,
@@ -70,31 +94,63 @@ export const SavePresetModal = ({
       time: racedef.time,
     });
 
+    toast.success('Preset updated successfully!');
+
+    handleOpen(false);
+  };
+
+  const handleSaveAsNew = () => {
+    if (!name.trim()) {
+      toast.error('Please enter a preset name');
+      return;
+    }
+
+    if (!date) {
+      toast.error('Please select a date');
+      return;
+    }
+
+    const dateStr = dayjs(date).format('YYYY-MM-DD');
+    const newId = crypto.randomUUID();
+
+    addPreset({
+      id: newId,
+      name: name.trim(),
+      type: eventType,
+      date: dateStr,
+      courseId,
+      ground: racedef.ground,
+      weather: racedef.weather,
+      season: racedef.season,
+      time: racedef.time,
+    });
+
+    setSelectedPresetId(newId);
     toast.success('Preset saved successfully!');
 
-    // Reset form
-    setName('');
-    setDate(new Date());
-    setEventType(EventType.CM);
-
-    onOpenChange(false);
+    handleOpen(false);
   };
 
-  const handleCancel = () => {
-    // Reset form on cancel
-    setName('');
-    setDate(new Date());
-    setEventType(EventType.CM);
-    onOpenChange(false);
-  };
+  const isUpdating = !!selectedPresetId;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline">
+          <BookmarkPlus className="h-4 w-4" />
+          Save
+        </Button>
+      </DialogTrigger>
+
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Save Race Preset</DialogTitle>
+          <DialogTitle>
+            {isUpdating ? 'Update Preset' : 'Save Race Preset'}
+          </DialogTitle>
           <DialogDescription>
-            Save the current race settings as a preset for quick access later.
+            {isUpdating
+              ? 'Update the existing preset or save as a new one.'
+              : 'Save the current race settings as a preset for quick access later.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -151,7 +207,7 @@ export const SavePresetModal = ({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value={EventType.CM.toString()}>
-                  Champion's Meeting (CM)
+                  Champions Meeting (CM)
                 </SelectItem>
                 <SelectItem value={EventType.LOH.toString()}>
                   Legend of Heroes (LOH)
@@ -162,10 +218,20 @@ export const SavePresetModal = ({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={handleCancel}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave}>Save Preset</Button>
+          <DialogClose asChild>
+            <Button variant="outline">Cancel</Button>
+          </DialogClose>
+
+          {isUpdating ? (
+            <>
+              <Button variant="outline" onClick={handleSaveAsNew}>
+                Save as New
+              </Button>
+              <Button onClick={handleUpdate}>Update Preset</Button>
+            </>
+          ) : (
+            <Button onClick={handleSaveAsNew}>Save Preset</Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

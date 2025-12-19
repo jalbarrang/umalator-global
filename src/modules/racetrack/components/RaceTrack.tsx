@@ -1,5 +1,4 @@
 import { RacePresets } from '@/components/race-presets';
-import { SavePresetModal } from '@/components/save-preset-modal';
 import { GroundSelect } from '@/components/race-settings/GroundSelect';
 import {
   SeasonIcon,
@@ -10,7 +9,7 @@ import {
   WeatherIcon,
   WeatherSelect,
 } from '@/components/race-settings/WeatherSelect';
-import { Button } from '@/components/ui/button';
+import { SavePresetModal } from '@/components/save-preset-modal';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
@@ -33,8 +32,7 @@ import {
   SimulationRun,
 } from '@simulation/compare.types';
 import { CourseHelpers } from '@simulation/lib/CourseData';
-import { BookmarkPlus } from 'lucide-react';
-import { Activity, Fragment, useMemo, useRef, useState } from 'react';
+import { Activity, Fragment, useMemo, useRef } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { useDragSkill } from '../hooks/useDragSkill';
 import { useRaceTrackTooltip } from '../hooks/useRaceTrackTooltip';
@@ -266,8 +264,6 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
 
   const { showHp, showLanes, showUma1, showUma2, showThresholds, racedef } =
     useSettingsStore();
-
-  const [savePresetModalOpen, setSavePresetModalOpen] = useState(false);
 
   const { tooltipData, tooltipVisible, rtMouseMove, rtMouseLeave } =
     useRaceTrackTooltip({
@@ -543,13 +539,7 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
           <div className="flex items-end md:items-center gap-2">
             <RacePresets className="flex flex-col md:flex-row md:items-center gap-2" />
 
-            <Button
-              variant="outline"
-              onClick={() => setSavePresetModalOpen(true)}
-            >
-              <BookmarkPlus className="h-4 w-4" />
-              Save
-            </Button>
+            <SavePresetModal />
           </div>
 
           <Separator orientation="vertical" className="hidden md:block" />
@@ -664,11 +654,6 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
           </Label>
         </div>
       </div>
-
-      <SavePresetModal
-        open={savePresetModalOpen}
-        onOpenChange={setSavePresetModalOpen}
-      />
     </div>
   );
 };

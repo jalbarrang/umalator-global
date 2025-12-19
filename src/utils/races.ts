@@ -61,6 +61,7 @@ export const createRaceConditions = (
 };
 
 export type RacePreset = {
+  id: string;
   name: string;
   type: EventType;
   date: string;
@@ -73,6 +74,7 @@ export type RacePreset = {
 
 export const presets = [
   {
+    id: '550e8400-e29b-41d4-a716-446655440001',
     name: 'Champions Meeting Oct',
     type: EventType.CM,
     date: '2025-10',
@@ -83,6 +85,7 @@ export const presets = [
     time: Time.Midday,
   },
   {
+    id: '550e8400-e29b-41d4-a716-446655440002',
     name: 'Champions Meeting Sep',
     type: EventType.CM,
     date: '2025-09',
@@ -93,6 +96,7 @@ export const presets = [
     time: Time.Midday,
   },
   {
+    id: '550e8400-e29b-41d4-a716-446655440003',
     name: 'Champions Meeting Aug',
     type: EventType.CM,
     date: '2025-08',
