@@ -43,7 +43,10 @@ export const RacePresets = (props: RacePresetsProps) => {
     <div className={cn(className)} {...rest}>
       <Label htmlFor="preset-select">Preset:</Label>
 
-      <Select value={selectedPresetId ?? undefined} onValueChange={handleChange}>
+      <Select
+        value={selectedPresetId ?? undefined}
+        onValueChange={handleChange}
+      >
         <SelectTrigger id="preset-select" className="w-full">
           <SelectValue placeholder="Select a preset" />
         </SelectTrigger>

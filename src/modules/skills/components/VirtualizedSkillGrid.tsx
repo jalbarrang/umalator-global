@@ -74,8 +74,12 @@ export function VirtualizedSkillGrid({
     const totalRows = Math.ceil(items.length / columnCount);
     const totalHeight = totalRows * ROW_HEIGHT;
 
-    const startRow = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - OVERSCAN_ROWS);
-    const visibleRows = Math.ceil(containerHeight / ROW_HEIGHT) + OVERSCAN_ROWS * 2;
+    const startRow = Math.max(
+      0,
+      Math.floor(scrollTop / ROW_HEIGHT) - OVERSCAN_ROWS,
+    );
+    const visibleRows =
+      Math.ceil(containerHeight / ROW_HEIGHT) + OVERSCAN_ROWS * 2;
     const endRow = Math.min(totalRows, startRow + visibleRows);
 
     return {
@@ -133,4 +137,3 @@ export function VirtualizedSkillGrid({
     </div>
   );
 }
-
