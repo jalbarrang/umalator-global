@@ -1,4 +1,5 @@
 import { RacePresets } from '@/components/race-presets';
+import { SavePresetModal } from '@/components/save-preset-modal';
 import { GroundSelect } from '@/components/race-settings/GroundSelect';
 import {
   SeasonIcon,
@@ -9,6 +10,7 @@ import {
   WeatherIcon,
   WeatherSelect,
 } from '@/components/race-settings/WeatherSelect';
+import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
@@ -31,7 +33,8 @@ import {
   SimulationRun,
 } from '@simulation/compare.types';
 import { CourseHelpers } from '@simulation/lib/CourseData';
-import { Activity, Fragment, useMemo, useRef } from 'react';
+import { BookmarkPlus } from 'lucide-react';
+import { Activity, Fragment, useMemo, useRef, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { useDragSkill } from '../hooks/useDragSkill';
 import { useRaceTrackTooltip } from '../hooks/useRaceTrackTooltip';
@@ -263,6 +266,8 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
 
   const { showHp, showLanes, showUma1, showUma2, showThresholds, racedef } =
     useSettingsStore();
+
+  const [savePresetModalOpen, setSavePresetModalOpen] = useState(false);
 
   const { tooltipData, tooltipVisible, rtMouseMove, rtMouseLeave } =
     useRaceTrackTooltip({
@@ -533,35 +538,55 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
         </svg>
       </div>
 
-      <div className="grid grid-cols-1 2xl:grid-cols-2 gap-4 bg-secondary px-4 py-2 rounded-md">
+      <div className="flex flex-col gap-4 bg-secondary p-4 rounded-md">
         <div className="flex flex-col md:flex-row md:items-center gap-4">
-          <RacePresets />
+          <div className="flex items-end md:items-center gap-2">
+            <RacePresets className="flex flex-col md:flex-row md:items-center gap-2" />
 
-          <div className="flex flex-col gap-2">
-            <Label className="text-xs font-medium">Track</Label>
-            <TrackSelect />
+            <Button
+              variant="outline"
+              onClick={() => setSavePresetModalOpen(true)}
+            >
+              <BookmarkPlus className="h-4 w-4" />
+              Save
+            </Button>
           </div>
 
-          <div className="flex flex-col gap-2">
-            <Label className="text-xs font-medium">Time of Day</Label>
-            <TimeOfDaySelect />
+          <Separator orientation="vertical" className="hidden md:block" />
+
+          <div className="flex flex-col md:flex-row md:items-center gap-2">
+            <Label className="text-xs font-medium">Track</Label>
+            <TrackSelect className="flex flex-col md:flex-row md:items-center gap-2" />
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row md:items-center gap-4">
-          <div className="flex flex-col gap-2">
-            <Label className="text-xs font-medium">Season</Label>
-            <SeasonSelect />
-          </div>
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex flex-col md:flex-row md:items-center gap-4">
+            <div className="flex flex-col gap-2">
+              <Label className="text-xs font-medium">Time of Day</Label>
+              <TimeOfDaySelect />
+            </div>
 
-          <div className="flex flex-col gap-2">
-            <Label className="text-xs font-medium">Weather</Label>
-            <WeatherSelect />
-          </div>
+            <Separator orientation="vertical" className="hidden md:block" />
 
-          <div className="flex flex-col gap-2">
-            <Label className="text-xs font-medium">Ground</Label>
-            <GroundSelect />
+            <div className="flex flex-col gap-2">
+              <Label className="text-xs font-medium">Season</Label>
+              <SeasonSelect />
+            </div>
+
+            <Separator orientation="vertical" className="hidden md:block" />
+
+            <div className="flex flex-col gap-2">
+              <Label className="text-xs font-medium">Weather</Label>
+              <WeatherSelect />
+            </div>
+
+            <Separator orientation="vertical" className="hidden md:block" />
+
+            <div className="flex flex-col gap-2">
+              <Label className="text-xs font-medium">Ground</Label>
+              <GroundSelect />
+            </div>
           </div>
         </div>
       </div>
@@ -639,6 +664,11 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
           </Label>
         </div>
       </div>
+
+      <SavePresetModal
+        open={savePresetModalOpen}
+        onOpenChange={setSavePresetModalOpen}
+      />
     </div>
   );
 };

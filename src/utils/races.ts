@@ -61,6 +61,7 @@ export const createRaceConditions = (
 };
 
 export type RacePreset = {
+  name: string;
   type: EventType;
   date: string;
   courseId: number;
@@ -72,6 +73,7 @@ export type RacePreset = {
 
 export const presets = [
   {
+    name: 'Champions Meeting Oct',
     type: EventType.CM,
     date: '2025-10',
     courseId: 10602,
@@ -81,6 +83,7 @@ export const presets = [
     time: Time.Midday,
   },
   {
+    name: 'Champions Meeting Sep',
     type: EventType.CM,
     date: '2025-09',
     courseId: 10811,
@@ -90,6 +93,7 @@ export const presets = [
     time: Time.Midday,
   },
   {
+    name: 'Champions Meeting Aug',
     type: EventType.CM,
     date: '2025-08',
     courseId: 10606,

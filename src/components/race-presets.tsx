@@ -1,5 +1,8 @@
+import { cn } from '@/lib/utils';
+import { usePresetStore } from '@/store/race/preset.store';
 import { setCourseId, setRaceParams } from '@/store/settings.store';
-import { createRaceConditions, EventType } from '@/utils/races';
+import { createRaceConditions } from '@/utils/races';
+import dayjs from 'dayjs';
 import { Label } from './ui/label';
 import {
   Select,
@@ -8,10 +11,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from './ui/select';
-import { usePresetStore } from '@/store/race/preset.store';
-import dayjs from 'dayjs';
 
-export const RacePresets = () => {
+type RacePresetsProps = React.HTMLAttributes<HTMLDivElement>;
+
+export const RacePresets = (props: RacePresetsProps) => {
+  const { className, ...rest } = props;
+
   const { presets } = usePresetStore();
 
   const handleChange = (value: string) => {
@@ -27,18 +32,17 @@ export const RacePresets = () => {
   };
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className={cn(className)} {...rest}>
       <Label htmlFor="preset-select">Preset:</Label>
 
       <Select onValueChange={handleChange}>
         <SelectTrigger id="preset-select" className="w-full">
-          <SelectValue placeholder="Track Preset" />
+          <SelectValue placeholder="Select a preset" />
         </SelectTrigger>
         <SelectContent>
           {Object.values(presets).map((p) => (
             <SelectItem key={p.date} value={p.date}>
-              {dayjs(p.date).format('YYYY-MM-DD')}&nbsp;
-              {p.type === EventType.CM ? 'CM' : 'LOH'}
+              {p.name} - {dayjs(p.date).format('YYYY-MM-DD')}
             </SelectItem>
           ))}
         </SelectContent>
