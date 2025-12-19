@@ -21,6 +21,7 @@ import { setShowChangelogModal, setShowCreditsModal } from '@/store/ui.store';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { ChangelogModal } from '@/components/changelog-modal';
 import { CreditsModal } from '@/components/credits-modal';
+import { ThemeStoreProvider } from '@/providers/theme/provider';
 
 export const Route = createRootRoute({
   head: () => ({
@@ -124,7 +125,7 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
         <HeadContent />
       </head>
       <body>
-        {children}
+        <ThemeStoreProvider>{children}</ThemeStoreProvider>
         <Scripts />
       </body>
     </html>

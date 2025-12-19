@@ -12,7 +12,11 @@ export default defineConfig({
       projects: ['./tsconfig.json'],
     }),
     ...(process.env.NODE_ENV === 'production' ? [netlify()] : []),
-    tanstackStart(),
+    tanstackStart({
+      spa: {
+        enabled: true,
+      },
+    }),
     react({
       babel: {
         plugins: ['babel-plugin-react-compiler'],
@@ -20,7 +24,4 @@ export default defineConfig({
     }),
     tailwindcss(),
   ],
-  server: {
-    port: 3000,
-  },
 });

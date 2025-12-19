@@ -1,6 +1,6 @@
 import React from 'react';
 import { SunIcon, MoonIcon } from 'lucide-react';
-import { setTheme, useTheme } from '@/store/theme.store';
+import { useThemeStore } from '@/providers/theme/context';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
@@ -9,7 +9,7 @@ interface ThemeToggleProps {
 }
 
 export const ThemeToggle: React.FC<ThemeToggleProps> = ({ className }) => {
-  const { theme } = useTheme();
+  const { theme, setTheme } = useThemeStore((state) => state);
 
   const handleToggle = () => {
     switch (theme) {

@@ -11,6 +11,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { setResults } from '../../stores/compare.store';
 import { CompareResult } from '../../compare.types';
 
+import CompareWorker from '@/workers/simulator.worker.ts?worker';
+
 type WorkerMessage<T> =
   | {
       type: 'compare';
@@ -73,10 +75,7 @@ export function useSimulationRunner() {
   };
 
   useEffect(() => {
-    const webWorker = new Worker(
-      new URL('@/workers/simulator.worker.ts', import.meta.url),
-      { type: 'module' },
-    );
+    const webWorker = new CompareWorker();
 
     webWorker.addEventListener('message', handleWorkerMessage);
 

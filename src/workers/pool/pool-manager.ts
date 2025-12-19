@@ -21,12 +21,15 @@ export class PoolManager {
   private callbacks: PoolManagerCallbacks = {};
   private startTime = 0;
   private totalSkills = 0;
-  private workerUrl: URL;
+  private workerGenerator: (options: { name: string }) => Worker;
   private poolSize: number;
   private isRunning = false;
 
-  constructor(workerUrl: URL, poolSize = navigator.hardwareConcurrency || 4) {
-    this.workerUrl = workerUrl;
+  constructor(
+    workerGenerator: (options: { name: string }) => Worker,
+    poolSize = navigator.hardwareConcurrency || 4,
+  ) {
+    this.workerGenerator = workerGenerator;
     this.poolSize = Math.max(2, Math.min(poolSize, 16)); // Clamp between 2 and 16
   }
 
@@ -37,8 +40,7 @@ export class PoolManager {
     this.terminateWorkers();
 
     this.workers = Array.from({ length: this.poolSize }, (_, id) => {
-      const worker = new Worker(this.workerUrl, {
-        type: 'module',
+      const worker = this.workerGenerator({
         name: `pool-worker-${id}`,
       });
 
