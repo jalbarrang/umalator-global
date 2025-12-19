@@ -12,8 +12,33 @@ import { GroundCondition } from './RaceParameters';
 import { PRNG } from './Random';
 import { EnhancedHpPolicy } from './EnhancedHpPolicy';
 import { GameHpPolicy } from './HpPolicy';
+import {
+  ISkillPerspective,
+  ISkillTarget,
+  ISkillType,
+} from './race-solver/types';
 
-export interface RaceSolverConfig {
+export type OnSkillActivateCallback = (
+  raceSolver: RaceSolver,
+  currentPosition: number,
+  executionId: string,
+  skillId: string,
+  perspective: ISkillPerspective,
+  type: ISkillType,
+  target: ISkillTarget,
+) => void;
+
+export type OnSkillDeactivateCallback = (
+  raceSolver: RaceSolver,
+  currentPosition: number,
+  executionId: string,
+  skillId: string,
+  perspective: ISkillPerspective,
+  type: ISkillType,
+  target: ISkillTarget,
+) => void;
+
+export type RaceSolverConfig = {
   horse: HorseParameters;
   course: CourseData;
   ground: GroundCondition;
@@ -21,11 +46,11 @@ export interface RaceSolverConfig {
   skills: PendingSkill[];
   pacer?: RaceSolver;
   useEnhancedSpurt?: boolean; // Whether to use enhanced spurt calculations
-  onSkillActivate?: (s: RaceSolver, skillId: string) => void;
-  onSkillDeactivate?: (s: RaceSolver, skillId: string) => void;
+  onSkillActivate?: OnSkillActivateCallback;
+  onSkillDeactivate?: OnSkillDeactivateCallback;
   disableRushed?: boolean;
   disableDownhill?: boolean;
-}
+};
 
 /**
  * Create a RaceSolver with optional enhanced spurt calculation

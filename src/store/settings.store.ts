@@ -38,6 +38,7 @@ type ISettingsStore = {
   pacemakerCount: number;
   selectedPacemakers: boolean[];
   witVarianceSettings: WitVarianceSettings;
+  selectedPresetId: string | null;
 
   // Race Track UI settings
   showLanes: boolean;
@@ -72,6 +73,7 @@ export const useSettingsStore = create<ISettingsStore>()(
       showVirtualPacemakerOnGraph: false,
       pacemakerCount: 1,
       selectedPacemakers: [false, false, false],
+      selectedPresetId: null,
 
       // Race Track UI settings
       showLanes: false,
@@ -122,11 +124,15 @@ export const setPosKeepMode = (posKeepMode: PosKeepMode) => {
 };
 
 export const setRaceParams = (raceParams: RaceConditions) => {
-  useSettingsStore.setState({ racedef: raceParams });
+  useSettingsStore.setState({ racedef: raceParams, selectedPresetId: null });
 };
 
 export const setCourseId = (courseId: number) => {
-  useSettingsStore.setState({ courseId });
+  useSettingsStore.setState({ courseId, selectedPresetId: null });
+};
+
+export const setSelectedPresetId = (presetId: string | null) => {
+  useSettingsStore.setState({ selectedPresetId: presetId });
 };
 
 // Race Track UI settings

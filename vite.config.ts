@@ -1,33 +1,27 @@
-import react from '@vitejs/plugin-react';
-import tailwindcss from '@tailwindcss/vite';
-import path from 'path';
+import { tanstackStart } from '@tanstack/react-start/plugin/vite';
 import { defineConfig } from 'vite';
 
-export default defineConfig(({ mode }) => {
-  const isDev = mode === 'development';
+import netlify from '@netlify/vite-plugin-tanstack-start';
+import tailwindcss from '@tailwindcss/vite';
+import react from '@vitejs/plugin-react';
+import tsConfigPaths from 'vite-tsconfig-paths';
 
-  return {
-    plugins: [
-      react({
-        babel: {
-          plugins: ['babel-plugin-react-compiler'],
-        },
-      }),
-      tailwindcss(),
-    ],
-    resolve: {
-      alias: {
-        // Find from Project Root
-        '@': path.resolve(__dirname, './src'),
-        '@data': path.resolve(__dirname, './src/modules/data'),
-        '@simulation': path.resolve(__dirname, './src/modules/simulation'),
-        '@skills': path.resolve(__dirname, './src/modules/skills'),
+export default defineConfig({
+  plugins: [
+    tsConfigPaths({
+      projects: ['./tsconfig.json'],
+    }),
+    ...(process.env.NODE_ENV === 'production' ? [netlify()] : []),
+    tanstackStart({
+      spa: {
+        enabled: true,
       },
-    },
-    define: {
-      // Global constants (replaces define from build.mjs)
-      CC_DEBUG: JSON.stringify(isDev),
-      'process.env': {},
-    },
-  };
+    }),
+    react({
+      babel: {
+        plugins: ['babel-plugin-react-compiler'],
+      },
+    }),
+    tailwindcss(),
+  ],
 });

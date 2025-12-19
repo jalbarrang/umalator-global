@@ -5,10 +5,10 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { SettingsIcon, UsersIcon, SlidersHorizontalIcon } from 'lucide-react';
+import { UsersIcon, SlidersHorizontalIcon, BookmarkIcon } from 'lucide-react';
 import { RunnersPanel } from '@/modules/runners/components/runners-panel';
-import { RacetrackSettings } from '@/modules/racetrack/components/race-settings-panel';
 import { AdvancedSettingsPanel } from '@/components/advanced-settings-panel';
+import { PresetsPanel } from '@/components/presets-panel';
 import { setLeftSidebar, useLeftSidebar } from '@/store/ui.store';
 import { useMemo } from 'react';
 
@@ -20,10 +20,10 @@ const panels = [
     content: <RunnersPanel />,
   },
   {
-    id: 'racetrack-settings',
-    label: 'Race Settings',
-    icon: SettingsIcon,
-    content: <RacetrackSettings />,
+    id: 'presets',
+    label: 'Presets',
+    icon: BookmarkIcon,
+    content: <PresetsPanel />,
   },
   {
     id: 'advanced-settings',

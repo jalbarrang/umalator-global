@@ -9,6 +9,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
+import OcrWorker from '@/workers/ocr.worker.ts?worker';
 
 export interface UploadedFile {
   id: string;
@@ -69,12 +70,7 @@ export function useOcrImport(): UseOcrImportResult {
     setResults(null);
 
     // Create worker
-    const worker = new Worker(
-      new URL('@/workers/ocr.worker.ts', import.meta.url),
-      {
-        type: 'module',
-      },
-    );
+    const worker = new OcrWorker();
 
     workerRef.current = worker;
 

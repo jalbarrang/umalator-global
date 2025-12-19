@@ -25,6 +25,7 @@ import { openSkillPicker, updateCurrentSkills } from '@/modules/skills/store';
 import { Mood } from '@simulation/lib/RaceParameters';
 import { ArrowLeftRight, Copy, TrashIcon, Upload } from 'lucide-react';
 import './styles.css';
+import { ClientOnly } from '@tanstack/react-router';
 
 const runawaySkillId = '202051' as const;
 
@@ -229,13 +230,15 @@ export const RunnerCard = (props: RunnerCardProps) => {
   return (
     <div className="runner-card flex flex-col gap-4 p-2">
       <div className="flex gap-2">
-        <UmaSelector
-          value={umaId}
-          select={handleChangeRunner}
-          onReset={onReset}
-          onImport={() => setImportDialogOpen(true)}
-          randomMobId={state.randomMobId}
-        />
+        <ClientOnly>
+          <UmaSelector
+            value={umaId}
+            select={handleChangeRunner}
+            onReset={onReset}
+            onImport={() => setImportDialogOpen(true)}
+            randomMobId={state.randomMobId}
+          />
+        </ClientOnly>
 
         <div className="grid grid-cols-2 gap-2">
           {!isMobile && (

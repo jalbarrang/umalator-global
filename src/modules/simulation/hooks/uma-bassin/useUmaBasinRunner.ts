@@ -18,6 +18,7 @@ import {
 } from '@simulation/stores/uma-basin.store';
 import { SkillBasinResponse } from '@simulation/types';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
+import UmaBasinWorker from '@/workers/uma-basin.worker.ts?worker';
 
 type WorkerMessage<T> = {
   type: 'uma-bassin' | 'uma-bassin-done';
@@ -91,10 +92,7 @@ export function useUmaBasinRunner() {
   );
 
   useEffect(() => {
-    const webWorker = new Worker(
-      new URL('@/workers/uma-basin.worker.ts', import.meta.url),
-      { type: 'module' },
-    );
+    const webWorker = new UmaBasinWorker();
 
     webWorker.addEventListener('message', handleWorkerMessage);
     worker1Ref.current = webWorker;
@@ -106,10 +104,7 @@ export function useUmaBasinRunner() {
   }, [handleWorkerMessage]);
 
   useEffect(() => {
-    const webWorker = new Worker(
-      new URL('@/workers/uma-basin.worker.ts', import.meta.url),
-      { type: 'module' },
-    );
+    const webWorker = new UmaBasinWorker();
 
     webWorker.addEventListener('message', handleWorkerMessage);
     worker2Ref.current = webWorker;

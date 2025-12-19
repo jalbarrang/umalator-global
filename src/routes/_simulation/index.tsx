@@ -14,7 +14,13 @@ import { useUIStore } from '@/store/ui.store';
 import { resetResults, useRaceStore } from '@simulation/stores/compare.store';
 import { Activity, useMemo } from 'react';
 
-export const ComparePage = () => {
+import { createFileRoute } from '@tanstack/react-router';
+
+export const Route = createFileRoute('/_simulation/')({
+  component: Home,
+});
+
+function Home() {
   const { chartData, results, isSimulationRunning, simulationProgress } =
     useRaceStore();
   const { courseId } = useSettingsStore();
@@ -84,4 +90,4 @@ export const ComparePage = () => {
       </Activity>
     </div>
   );
-};
+}

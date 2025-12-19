@@ -61,6 +61,8 @@ export const createRaceConditions = (
 };
 
 export type RacePreset = {
+  id: string;
+  name: string;
   type: EventType;
   date: string;
   courseId: number;
@@ -68,52 +70,6 @@ export type RacePreset = {
   ground: GroundCondition;
   weather: Weather;
   time: Time;
-};
-
-export const presets = [
-  {
-    type: EventType.CM,
-    date: '2025-10',
-    courseId: 10602,
-    season: Season.Summer,
-    ground: GroundCondition.Good,
-    weather: Weather.Sunny,
-    time: Time.Midday,
-  },
-  {
-    type: EventType.CM,
-    date: '2025-09',
-    courseId: 10811,
-    season: Season.Spring,
-    ground: GroundCondition.Good,
-    weather: Weather.Sunny,
-    time: Time.Midday,
-  },
-  {
-    type: EventType.CM,
-    date: '2025-08',
-    courseId: 10606,
-    season: Season.Spring,
-    ground: GroundCondition.Good,
-    weather: Weather.Sunny,
-    time: Time.Midday,
-  },
-];
-
-export const getPresets = () => {
-  return presets
-    .map((def) => ({
-      type: def.type,
-      date: new Date(def.date),
-      courseId: def.courseId,
-      racedef: createRaceConditions({
-        ground: def.type == EventType.CM ? def.ground : GroundCondition.Good,
-        weather: def.type == EventType.CM ? def.weather : Weather.Sunny,
-        season: def.season,
-        time: def.time,
-      }),
-    }))
-    .toSorted((a, b) => +b.date - +a.date);
 };
 
 export function racedefToParams(

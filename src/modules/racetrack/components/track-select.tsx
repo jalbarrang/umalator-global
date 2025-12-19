@@ -22,7 +22,11 @@ const getTrackName = (trackId: number) => {
   return i18n.t(`tracknames.${trackId}`);
 };
 
-export function TrackSelect() {
+type TrackSelectProps = React.HTMLAttributes<HTMLDivElement>;
+
+export function TrackSelect(props: TrackSelectProps) {
+  const { className, ...rest } = props;
+
   const { courseId } = useSettingsStore();
 
   // Derive trackid from courseId instead of storing it as state
@@ -41,7 +45,7 @@ export function TrackSelect() {
   };
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className={className} {...rest}>
       <Select value={trackid.toString()} onValueChange={handleChangeTrack}>
         <SelectTrigger className="w-full">
           <SelectValue>{getTrackName(trackid)}</SelectValue>

@@ -1,3 +1,4 @@
+import { createFileRoute } from '@tanstack/react-router';
 import { BasinnChart } from '@/components/bassin-chart/BasinnChart';
 import { LoadingOverlay } from '@/components/loading-overlay';
 import { Button } from '@/components/ui/button';
@@ -16,7 +17,11 @@ import {
 import { Activity, useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
 
-export const SkillBassinPage = () => {
+export const Route = createFileRoute('/_simulation/skill-bassin')({
+  component: RouteComponent,
+});
+
+function RouteComponent() {
   const { chartData, selectedSkills, setSelectedSkills } = useChartData();
   const {
     results: skillBasinResults,
@@ -115,4 +120,4 @@ export const SkillBassinPage = () => {
       </Activity>
     </div>
   );
-};
+}

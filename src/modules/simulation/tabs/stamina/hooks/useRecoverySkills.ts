@@ -5,11 +5,7 @@ import {
   getSkillNameById,
   estimateSkillActivationPhase,
 } from '@/modules/skills/utils';
-import {
-  SkillPerspective,
-  SkillTarget,
-  SkillType,
-} from '@simulation/lib/race-solver/types';
+import { SkillTarget, SkillType } from '@simulation/lib/race-solver/types';
 import { SkillActivationMap } from '@/modules/simulation/compare.types';
 import { EffectQuery } from '@/modules/skills/effects-query';
 
