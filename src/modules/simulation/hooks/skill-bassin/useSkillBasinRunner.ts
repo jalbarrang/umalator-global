@@ -17,9 +17,12 @@ import {
   setTable,
 } from '@simulation/stores/skill-basin.store';
 import { SkillBasinResponse } from '@simulation/types';
-import SkillBasinWorker from '@/workers/skill-basin.worker.ts?worker';
+
+import SkillBasinWorker from '@workers/skill-basin.worker.ts?worker';
 
 const baseSkillsToTest = getBaseSkillsToTest();
+
+const createSkillBasinWorker = () => new SkillBasinWorker();
 
 type WorkerMessage<T> = {
   type: 'skill-bassin' | 'skill-bassin-done';
@@ -100,7 +103,7 @@ export function useSkillBasinRunner() {
   }, [handleWorkerMessage]);
 
   useEffect(() => {
-    const webWorker = new SkillBasinWorker();
+    const webWorker = createSkillBasinWorker();
 
     webWorker.addEventListener('message', handleWorkerMessage);
     worker2Ref.current = webWorker;

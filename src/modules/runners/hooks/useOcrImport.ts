@@ -9,7 +9,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
-import OcrWorker from '@/workers/ocr.worker.ts?worker';
+
+import OcrWorker from '@workers/ocr.worker.ts?worker';
 
 export interface UploadedFile {
   id: string;
@@ -44,6 +45,8 @@ const fileToBlob = (file: Blob) => {
   });
 };
 
+const createOcrWorker = () => new OcrWorker();
+
 export function useOcrImport(): UseOcrImportResult {
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [results, setResults] = useState<Partial<ExtractedUmaData> | null>(
@@ -70,7 +73,7 @@ export function useOcrImport(): UseOcrImportResult {
     setResults(null);
 
     // Create worker
-    const worker = new OcrWorker();
+    const worker = createOcrWorker();
 
     workerRef.current = worker;
 

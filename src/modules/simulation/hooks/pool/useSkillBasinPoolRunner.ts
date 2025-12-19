@@ -18,7 +18,11 @@ import {
 } from '@simulation/stores/skill-basin.store';
 import { SkillBasinResponse } from '@simulation/types';
 import { PoolManager } from '@/workers/pool/pool-manager';
-import SkillBasinPoolWorker from '@/workers/pool/skill-basin/skill-basin.pool.worker.ts?worker';
+
+import SkillBasinPoolWorker from '@workers/pool/skill-basin/skill-basin.pool.worker.ts?worker';
+
+const createSkillBasinPoolWorker = (options: { name: string }) =>
+  new SkillBasinPoolWorker(options);
 
 const baseSkillsToTest = getBaseSkillsToTest();
 
@@ -33,8 +37,8 @@ export function useSkillBasinPoolRunner() {
 
   // Initialize pool manager on mount
   useEffect(() => {
-    const poolManager = new PoolManager(
-      (options) => new SkillBasinPoolWorker(options),
+    const poolManager = new PoolManager((options) =>
+      createSkillBasinPoolWorker(options),
     );
 
     poolManagerRef.current = poolManager;

@@ -19,7 +19,11 @@ import {
 import { SkillBasinResponse } from '@simulation/types';
 import { useEffect, useMemo, useRef } from 'react';
 import { PoolManager } from '@/workers/pool/pool-manager';
-import UmaBasinPoolWorker from '@/workers/pool/uma-basin/uma-basin.pool.worker.ts?worker';
+
+import UmaBasinPoolWorker from '@workers/pool/uma-basin/uma-basin.pool.worker.ts?worker';
+
+const createUmaBasinPoolWorker = (options: { name: string }) =>
+  new UmaBasinPoolWorker(options);
 
 function removeUniqueSkillsFromRunner(uma: RunnerState): RunnerState {
   const filteredSkills = uma.skills.filter(
@@ -40,8 +44,8 @@ export function useUmaBasinPoolRunner() {
 
   // Initialize pool manager on mount
   useEffect(() => {
-    const poolManager = new PoolManager(
-      (options) => new UmaBasinPoolWorker(options),
+    const poolManager = new PoolManager((options) =>
+      createUmaBasinPoolWorker(options),
     );
 
     poolManagerRef.current = poolManager;

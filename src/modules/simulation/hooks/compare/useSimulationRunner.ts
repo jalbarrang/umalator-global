@@ -8,10 +8,11 @@ import { racedefToParams } from '@/utils/races';
 import { CourseHelpers } from '@simulation/lib/CourseData';
 import { PosKeepMode } from '@simulation/lib/RaceSolver';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { setResults } from '../../stores/compare.store';
-import { CompareResult } from '../../compare.types';
+import { setResults } from '@simulation/stores/compare.store';
+import { CompareResult } from '@simulation/compare.types';
+import CompareWorker from '@workers/simulator.worker.ts?worker';
 
-import CompareWorker from '@/workers/simulator.worker.ts?worker';
+const createCompareWorker = () => new CompareWorker();
 
 type WorkerMessage<T> =
   | {
@@ -75,7 +76,7 @@ export function useSimulationRunner() {
   };
 
   useEffect(() => {
-    const webWorker = new CompareWorker();
+    const webWorker = createCompareWorker();
 
     webWorker.addEventListener('message', handleWorkerMessage);
 

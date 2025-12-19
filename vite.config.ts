@@ -1,16 +1,13 @@
+import path from 'path';
 import { tanstackStart } from '@tanstack/react-start/plugin/vite';
 import { defineConfig } from 'vite';
 
 import netlify from '@netlify/vite-plugin-tanstack-start';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
-import tsConfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig({
   plugins: [
-    tsConfigPaths({
-      projects: ['./tsconfig.json'],
-    }),
     ...(process.env.NODE_ENV === 'production' ? [netlify()] : []),
     tanstackStart({
       spa: {
@@ -24,4 +21,15 @@ export default defineConfig({
     }),
     tailwindcss(),
   ],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+      '@data': path.resolve(__dirname, './src/modules/data'),
+      '@simulation': path.resolve(__dirname, './src/modules/simulation'),
+      '@skills': path.resolve(__dirname, './src/modules/skills'),
+      '@workers': path.resolve(__dirname, './src/workers'),
+      '@scripts': path.resolve(__dirname, './scripts'),
+      '@cli': path.resolve(__dirname, './cli'),
+    },
+  },
 });
