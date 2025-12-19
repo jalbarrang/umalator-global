@@ -5,3 +5,6 @@ dist/
 results/
 .env
 db/
+
+# Local Netlify folder
+.netlify

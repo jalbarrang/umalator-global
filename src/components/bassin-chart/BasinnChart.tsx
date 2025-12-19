@@ -30,7 +30,6 @@ import i18n from '@/i18n';
 import { cn } from '@/lib/utils';
 import { PoolMetrics, RoundResult } from '@/modules/simulation/types';
 import { allSkills } from '@/modules/skills/utils';
-import { useUIStore } from '@/store/ui.store';
 import { formatMs } from '@/utils/time';
 import {
   ArrowDown,

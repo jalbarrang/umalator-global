@@ -1,3 +1,5 @@
+import { createFileRoute } from '@tanstack/react-router';
+
 import { Activity, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,9 +25,13 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { loadRunnerFromLibrary, showRunner } from '@/store/runners.store';
-import { useNavigate } from 'react-router';
+import { useNavigate } from '@tanstack/react-router';
 
-const RunnersPage = () => {
+export const Route = createFileRoute('/runners/')({
+  component: RouteComponent,
+});
+
+function RouteComponent() {
   const navigate = useNavigate();
   const { runners, deleteRunner, duplicateRunner } = useRunnerLibraryStore();
 
@@ -35,11 +41,11 @@ const RunnersPage = () => {
   const [runnerToLoad, setRunnerToLoad] = useState<SavedRunner | null>(null);
 
   const handleAddNew = () => {
-    navigate('/runners/new');
+    navigate({ to: '/runners/new' });
   };
 
   const handleEdit = (runner: SavedRunner) => {
-    navigate(`/runners/${runner.id}/edit`);
+    navigate({ to: `/runners/${runner.id}/edit` });
   };
 
   const handleDeleteClick = (id: string) => {
@@ -66,7 +72,7 @@ const RunnersPage = () => {
       showRunner(slot);
       setLoadDialogOpen(false);
       setRunnerToLoad(null);
-      navigate('/');
+      navigate({ to: '/' });
     }
   };
 
@@ -187,7 +193,4 @@ const RunnersPage = () => {
       </Dialog>
     </div>
   );
-};
-
-// Default export so we can use lazy import in the router
-export default RunnersPage;
+}

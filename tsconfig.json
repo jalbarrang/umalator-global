@@ -40,5 +40,5 @@
       "@cli/*": ["./cli/*"]
     }
   },
-  "include": ["src", "vite.config.ts", "src", "cli", "scripts"]
+  "include": ["src", "vite.config.ts", "cli", "scripts"]
 }

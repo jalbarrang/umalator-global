@@ -1,10 +1,16 @@
+import { createFileRoute } from '@tanstack/react-router';
+
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
-import { RunnerEditorLayout } from './runner-editor-layout';
+import { useNavigate } from '@tanstack/react-router';
+import { RunnerEditorLayout } from '@/layout/runner-editor-layout';
 import { createRunnerState } from '@/modules/runners/components/runner-card/types';
 import { useRunnerLibraryStore } from '@/store/runner-library.store';
 
-const NewRunnerPage = () => {
+export const Route = createFileRoute('/runners/new')({
+  component: RouteComponent,
+});
+
+function RouteComponent() {
   const navigate = useNavigate();
   const { addRunner } = useRunnerLibraryStore();
 
@@ -21,11 +27,11 @@ const NewRunnerPage = () => {
       notes: runnerName.trim(),
     });
 
-    navigate('/runners');
+    navigate({ to: '/runners' });
   };
 
   const handleCancel = () => {
-    navigate('/runners');
+    navigate({ to: '/runners' });
   };
 
   return (
@@ -39,6 +45,4 @@ const NewRunnerPage = () => {
       isEditMode={false}
     />
   );
-};
-
-export default NewRunnerPage;
+}

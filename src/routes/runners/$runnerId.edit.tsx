@@ -1,6 +1,8 @@
+import { createFileRoute } from '@tanstack/react-router';
+
 import { useState, useMemo } from 'react';
-import { useNavigate, useParams } from 'react-router';
-import { RunnerEditorLayout } from '../runner-editor-layout';
+import { useNavigate, useParams } from '@tanstack/react-router';
+import { RunnerEditorLayout } from '@/layout/runner-editor-layout';
 import { useRunnerLibraryStore } from '@/store/runner-library.store';
 import { RunnerState } from '@/modules/runners/components/runner-card/types';
 import {
@@ -14,9 +16,13 @@ import {
 import { AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-const EditRunnerPage = () => {
+export const Route = createFileRoute('/runners/$runnerId/edit')({
+  component: RouteComponent,
+});
+
+function RouteComponent() {
   const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
+  const { runnerId: id } = useParams({ from: '/runners/$runnerId/edit' });
   const { getRunner, updateRunner } = useRunnerLibraryStore();
 
   // Get the runner from the store
@@ -42,11 +48,11 @@ const EditRunnerPage = () => {
       notes: runnerName.trim(),
     });
 
-    navigate('/runners');
+    navigate({ to: '/runners' });
   };
 
   const handleCancel = () => {
-    navigate('/runners');
+    navigate({ to: '/runners' });
   };
 
   if (notFound) {
@@ -63,7 +69,7 @@ const EditRunnerPage = () => {
             </EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
-            <Button onClick={() => navigate('/runners')}>
+            <Button onClick={() => navigate({ to: '/runners' })}>
               Back to Runners
             </Button>
           </EmptyContent>
@@ -91,6 +97,4 @@ const EditRunnerPage = () => {
       isEditMode={true}
     />
   );
-};
-
-export default EditRunnerPage;
+}

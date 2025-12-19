@@ -9,6 +9,9 @@ import {
   SkillTarget,
   SkillPerspective,
   SkillRarity,
+  ISkillPerspective,
+  ISkillType,
+  ISkillTarget,
 } from '../race-solver/types';
 import { GameHpPolicy } from '../HpPolicy';
 import { GroundCondition } from '../RaceParameters';
@@ -220,20 +223,25 @@ describe('RaceSolver.processSkillActivations', () => {
   test('should call onSkillActivate callback when skill activates', () => {
     let activationCalled = false;
     let activatedSkillId: string = '';
-    let activatedType: number = 0;
+    let activatedPerspective: ISkillPerspective = SkillPerspective.Self;
+    let activatedType: ISkillType = SkillType.Recovery;
+    let activatedTarget: ISkillTarget = SkillTarget.AheadOfSelf;
 
     // Set up callback to track activation
     solver.onSkillActivate = (
       _solver: RaceSolver,
+      _currentPosition: number,
       _executionId: string,
       skillId: string,
-      _perspective: number,
-      type: number,
-      _target: number,
+      perspective: ISkillPerspective,
+      type: ISkillType,
+      target: ISkillTarget,
     ) => {
       activationCalled = true;
       activatedSkillId = skillId;
+      activatedPerspective = perspective;
       activatedType = type;
+      activatedTarget = target;
     };
 
     // Process skill activations
@@ -242,7 +250,9 @@ describe('RaceSolver.processSkillActivations', () => {
     // Verify callback was called with correct parameters
     expect(activationCalled).toBe(true);
     expect(activatedSkillId).toBe('stamina_siphon_test');
+    expect(activatedPerspective).toBe(SkillPerspective.Self);
     expect(activatedType).toBe(SkillType.Recovery);
+    expect(activatedTarget).toBe(SkillTarget.AheadOfSelf);
   });
 
   test('should mark skill as used after activation', () => {

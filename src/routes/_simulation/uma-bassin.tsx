@@ -1,3 +1,5 @@
+import { createFileRoute } from '@tanstack/react-router';
+
 import { BasinnChart } from '@/components/bassin-chart/BasinnChart';
 import { Button } from '@/components/ui/button';
 import { VelocityLines } from '@/components/VelocityLines';
@@ -17,7 +19,11 @@ import { ButtonGroup } from '@/components/ui/button-group';
 import { getUmaForUniqueSkill } from '@/modules/skills/utils';
 import { LoadingOverlay } from '@/components/loading-overlay';
 
-export const UmaBassinPage = () => {
+export const Route = createFileRoute('/_simulation/uma-bassin')({
+  component: RouteComponent,
+});
+
+function RouteComponent() {
   const { chartData, selectedSkills, setSelectedSkills } = useChartData();
   const {
     results: umaBasinResults,
@@ -125,4 +131,4 @@ export const UmaBassinPage = () => {
       </Activity>
     </div>
   );
-};
+}

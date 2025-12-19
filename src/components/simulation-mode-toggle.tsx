@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 import { Button } from './ui/button';
 import { ButtonGroup } from '@/components/ui/button-group';
-import { Link, useLocation } from 'react-router';
+import { Link, useLocation } from '@tanstack/react-router';
 
 export const SimulationModeToggle = () => {
   const location = useLocation();
