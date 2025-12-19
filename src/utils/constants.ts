@@ -1,15 +1,17 @@
-import { getPresets } from './races';
+// using preset store, if the user has no preset selected, use the first preset that is close to the current date
+
+import { usePresetStore } from '@/store/race/preset.store';
 import { dayjs } from './time';
 
-const presets = getPresets();
+const { presets: storedPresets } = usePresetStore.getState();
 
+const presets = Object.values(storedPresets);
 const currentDate = dayjs();
 const currentPresetIndex =
   presets.findIndex((p) => dayjs(p.date).endOf('month').isBefore(currentDate)) -
   1;
-const DEFAULT_PRESET_INDEX = Math.max(currentPresetIndex, 0);
 
-export const DEFAULT_PRESET = presets[DEFAULT_PRESET_INDEX];
+const DEFAULT_PRESET = presets[Math.max(currentPresetIndex, 0)];
 
 export const DEFAULT_SAMPLES = 500;
 export const DEFAULT_SEED = 2615953739;
