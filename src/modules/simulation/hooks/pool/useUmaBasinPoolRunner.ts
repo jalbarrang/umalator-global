@@ -1,26 +1,24 @@
+import { appendResultsToTable,
+  resetTable,
+  setIsSimulationRunning,
+  setMetrics,
+  setTable } from '@simulation/stores/uma-basin.store';
+import { CourseHelpers } from '@simulation/lib/CourseData';
+import { useEffect, useMemo, useRef } from 'react';
+import UmaBasinPoolWorker from '@workers/pool/uma-basin/uma-basin.pool.worker.ts?worker';
+import type { SkillBasinResponse } from '@simulation/types';
+import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import {
   defaultSimulationOptions,
   getActivateableSkills,
   getNullRow,
 } from '@/components/bassin-chart/utils';
-import { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { uniqueSkillIds } from '@/modules/skills/utils';
 import { useRunner, useRunnersStore } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
-import { setIsSimulationRunning } from '@simulation/stores/uma-basin.store';
 import { racedefToParams } from '@/utils/races';
-import { CourseHelpers } from '@simulation/lib/CourseData';
-import {
-  appendResultsToTable,
-  resetTable,
-  setMetrics,
-  setTable,
-} from '@simulation/stores/uma-basin.store';
-import { SkillBasinResponse } from '@simulation/types';
-import { useEffect, useMemo, useRef } from 'react';
 import { PoolManager } from '@/workers/pool/pool-manager';
 
-import UmaBasinPoolWorker from '@workers/pool/uma-basin/uma-basin.pool.worker.ts?worker';
 
 const createUmaBasinPoolWorker = (options: { name: string }) =>
   new UmaBasinPoolWorker(options);

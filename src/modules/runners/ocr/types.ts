@@ -25,9 +25,9 @@ export interface ExtractedUmaData {
   wisdom?: number;
 
   // Skills
-  skills: ExtractedSkill[];
+  skills: Array<ExtractedSkill>;
 
   // Metadata
   imageCount: number;
-  unrecognized: string[];
+  unrecognized: Array<string>;
 }

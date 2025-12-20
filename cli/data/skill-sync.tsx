@@ -1,18 +1,18 @@
 #!/usr/bin/env tsx
-/* eslint-disable react-refresh/only-export-components */
-
-import React, { useMemo, useState } from 'react';
-import { render, Box, Text, useInput, useApp } from 'ink';
+import { useMemo, useState } from 'react';
+import { Box, Text, render, useApp, useInput } from 'ink';
 import Spinner from 'ink-spinner';
 import TextInput from 'ink-text-input';
-import MultiSelect, { ListedItem } from '../components/MultiSelect';
+import MultiSelect from '../components/MultiSelect';
+import { syncSkills } from './sync-skills';
+import type { ListedItem } from '../components/MultiSelect';
 
 // Import your sync functions
-import { syncSkills, FilterConfig } from './sync-skills';
+import type { FilterConfig } from './sync-skills';
 
 interface SyncState {
   charId: string;
-  charIds: number[];
+  charIds: Array<number>;
   dryRun: boolean;
   isProcessing: boolean;
   isDone: boolean;
@@ -21,7 +21,7 @@ interface SyncState {
     mainSkills: number;
     geneSkills: number;
     total: number;
-    skillIds?: number[];
+    skillIds?: Array<number>;
     skillNames?: Array<{ id: number; name: string }>;
     dryRun?: boolean;
   } | null;
@@ -40,10 +40,10 @@ const App = () => {
   });
 
   const [availableSkills, setAvailableSkills] = useState<
-    { id: number; name: string }[]
+    Array<{ id: number; name: string }>
   >([]);
   const [selectedSkillIds, setSelectedSkillIds] = useState<
-    { value: number; label: string }[]
+    Array<{ value: number; label: string }>
   >([]);
 
   const skillOptions = useMemo(() => {

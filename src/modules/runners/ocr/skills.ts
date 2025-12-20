@@ -4,22 +4,22 @@
 
 import type { ExtractedSkill } from './types';
 import {
-  normalize,
   findBestSkillMatch,
   getSkillLookup,
+  normalize,
 } from '@/modules/runners/data/search';
 
 /** Extract skills from OCR text */
 export function extractSkills(
   text: string,
   imageIndex: number,
-): ExtractedSkill[] {
+): Array<ExtractedSkill> {
   const skillLookup = getSkillLookup();
   const lines = text
     .split('\n')
     .map((l) => l.trim())
     .filter(Boolean);
-  const skills: ExtractedSkill[] = [];
+  const skills: Array<ExtractedSkill> = [];
   const seenIds = new Set<string>();
 
   // Try matching each line, and also try splitting by common separators

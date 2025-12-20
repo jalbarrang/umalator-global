@@ -1,17 +1,19 @@
 import { create } from 'zustand';
+import { PosKeepMode } from '@simulation/lib/RaceSolver';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import { useShallow } from 'zustand/shallow';
+import type {
+  RunnerState} from '@/modules/runners/components/runner-card/types';
+import type { RaceConditions } from '@/utils/races';
 import {
-  createRunnerState,
-  RunnerState,
+  createRunnerState
 } from '@/modules/runners/components/runner-card/types';
 import {
   DEFAULT_COURSE_ID,
   DEFAULT_SAMPLES,
   DEFAULT_SEED,
 } from '@/utils/constants';
-import { createRaceConditions, RaceConditions } from '@/utils/races';
-import { PosKeepMode } from '@simulation/lib/RaceSolver';
-import { createJSONStorage, persist } from 'zustand/middleware';
-import { useShallow } from 'zustand/shallow';
+import { createRaceConditions } from '@/utils/races';
 
 export type WitVarianceSettings = {
   allowRushedUma1: boolean;
@@ -36,7 +38,7 @@ type ISettingsStore = {
   pacer: RunnerState;
   showVirtualPacemakerOnGraph: boolean;
   pacemakerCount: number;
-  selectedPacemakers: boolean[];
+  selectedPacemakers: Array<boolean>;
   witVarianceSettings: WitVarianceSettings;
   selectedPresetId: string | null;
 

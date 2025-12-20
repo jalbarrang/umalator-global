@@ -1,18 +1,18 @@
 import { createFileRoute } from '@tanstack/react-router';
 
+import {
+  resetTable,
+  useUniqueSkillBasinStore,
+} from '@simulation/stores/uma-basin.store';
+import { Activity, useMemo } from 'react';
+import { useShallow } from 'zustand/shallow';
 import { BasinnChart } from '@/components/bassin-chart/BasinnChart';
 import { Button } from '@/components/ui/button';
 import { VelocityLines } from '@/components/VelocityLines';
 import { RaceTrack } from '@/modules/racetrack/components/RaceTrack';
 import { CourseHelpers } from '@/modules/simulation/lib/CourseData';
-import {
-  resetTable,
-  useUniqueSkillBasinStore,
-} from '@simulation/stores/uma-basin.store';
 import { replaceRunnerOutfit, useRunner } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
-import { Activity, useMemo } from 'react';
-import { useShallow } from 'zustand/shallow';
 import { useUmaBasinPoolRunner } from '@/modules/simulation/hooks/pool/useUmaBasinPoolRunner';
 import { useChartData } from '@/modules/simulation/stores/uma-basin.store';
 import { ButtonGroup } from '@/components/ui/button-group';

@@ -1,16 +1,10 @@
-import { Skill } from '@/modules/skills/utils';
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type CSSProperties,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { SkillItem } from './skill-list/SkillItem';
+import type { CSSProperties } from 'react';
+import type { Skill } from '@/modules/skills/utils';
 
 type VirtualizedSkillGridProps = {
-  items: Skill[];
+  items: Array<Skill>;
   selectedMap: Map<string, string>;
   onClick: React.MouseEventHandler<HTMLDivElement>;
   className?: string;
@@ -72,7 +66,7 @@ export function VirtualizedSkillGrid({
   // Calculate visible range based on scroll position
   const { startIndex, endIndex, totalHeight } = useMemo(() => {
     const totalRows = Math.ceil(items.length / columnCount);
-    const totalHeight = totalRows * ROW_HEIGHT;
+    const calculatedtotalHeight = totalRows * ROW_HEIGHT;
 
     const startRow = Math.max(
       0,
@@ -85,7 +79,7 @@ export function VirtualizedSkillGrid({
     return {
       startIndex: startRow * columnCount,
       endIndex: Math.min(items.length, endRow * columnCount),
-      totalHeight,
+      totalHeight: calculatedtotalHeight,
     };
   }, [items.length, columnCount, scrollTop, containerHeight]);
 

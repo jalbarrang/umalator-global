@@ -1,9 +1,9 @@
+import type { RecoverySkillActivation } from '../hooks/useRecoverySkills';
 import { cn } from '@/lib/utils';
-import { RecoverySkillActivation } from '../hooks/useRecoverySkills';
 
 type RecoverySkillsListProps = {
-  recoverySkills: RecoverySkillActivation[];
-  debuffsReceived: RecoverySkillActivation[];
+  recoverySkills: Array<RecoverySkillActivation>;
+  debuffsReceived: Array<RecoverySkillActivation>;
   isTheoretical: boolean;
 };
 

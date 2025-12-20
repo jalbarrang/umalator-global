@@ -1,12 +1,12 @@
 import { useMemo } from 'react';
-import { RunnerState } from '@/modules/runners/components/runner-card/types';
+import { SkillTarget, SkillType } from '@simulation/lib/race-solver/types';
+import type { SkillActivationMap } from '@/modules/simulation/compare.types';
+import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import {
+  estimateSkillActivationPhase,
   getSkillDataById,
   getSkillNameById,
-  estimateSkillActivationPhase,
 } from '@/modules/skills/utils';
-import { SkillTarget, SkillType } from '@simulation/lib/race-solver/types';
-import { SkillActivationMap } from '@/modules/simulation/compare.types';
 import { EffectQuery } from '@/modules/skills/effects-query';
 
 export interface RecoverySkillActivation {
@@ -125,11 +125,11 @@ function getEstimatedPosition(skillId: string, courseDistance: number): number {
 export function useActualRecoverySkills(
   skillActivationMap: SkillActivationMap | undefined,
   maxHp: number,
-): RecoverySkillActivation[] {
+): Array<RecoverySkillActivation> {
   return useMemo(() => {
     if (!skillActivationMap) return [];
 
-    const skills: RecoverySkillActivation[] = [];
+    const skills: Array<RecoverySkillActivation> = [];
 
     const recoverySkills = EffectQuery.from(skillActivationMap).getSelfHeals();
 
@@ -161,11 +161,11 @@ export function useActualRecoverySkills(
 export function useActualDebuffsReceived(
   opponentsSkills: SkillActivationMap | undefined,
   maxHp: number,
-): RecoverySkillActivation[] {
+): Array<RecoverySkillActivation> {
   return useMemo(() => {
     if (!opponentsSkills) return [];
 
-    const skills: RecoverySkillActivation[] = [];
+    const skills: Array<RecoverySkillActivation> = [];
 
     const staminaDebuffs =
       EffectQuery.from(opponentsSkills).getStaminaDebuffs();
@@ -199,9 +199,9 @@ export function useTheoreticalRecoverySkills(
   runner: RunnerState,
   maxHp: number,
   courseDistance: number,
-): RecoverySkillActivation[] {
+): Array<RecoverySkillActivation> {
   return useMemo(() => {
-    const skills: RecoverySkillActivation[] = [];
+    const skills: Array<RecoverySkillActivation> = [];
 
     for (const skillId of runner.skills) {
       const { staminaRecovered, hasRecovery } = applyStaminaRecovery(skillId);
@@ -236,9 +236,9 @@ export function useTheoreticalDebuffsReceived(
   opponent: RunnerState,
   maxHp: number,
   courseDistance: number,
-): RecoverySkillActivation[] {
+): Array<RecoverySkillActivation> {
   return useMemo(() => {
-    const skills: RecoverySkillActivation[] = [];
+    const skills: Array<RecoverySkillActivation> = [];
 
     for (const skillId of opponent.skills) {
       const { staminaDrain, hasStaminaDrain } = applyStaminaDrain(skillId);

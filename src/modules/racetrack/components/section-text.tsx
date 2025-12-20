@@ -20,7 +20,7 @@ export const SectionText: React.FC<SectionTextProps> = (props) => {
       width="100%"
       fill="rgb(121,64,22)"
     >
-      {i18n.t(translationKey, fields) as string}
+      {i18n.t(translationKey, fields)}
     </text>
   );
 };

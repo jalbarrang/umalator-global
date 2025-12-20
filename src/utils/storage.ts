@@ -1,10 +1,12 @@
-import {
-  createRunnerState,
-  RunnerState,
-} from '@/modules/runners/components/runner-card/types';
 import { PosKeepMode } from '@simulation/lib/RaceSolver';
 import { DEFAULT_COURSE_ID, DEFAULT_SAMPLES, DEFAULT_SEED } from './constants';
-import { createRaceConditions, RaceConditions } from './races';
+import { createRaceConditions } from './races';
+import type { RaceConditions } from './races';
+import type {
+  RunnerState} from '@/modules/runners/components/runner-card/types';
+import {
+  createRunnerState
+} from '@/modules/runners/components/runner-card/types';
 
 export async function serialize(
   courseId: number,
@@ -17,7 +19,7 @@ export async function serialize(
   pacer: RunnerState,
   showVirtualPacemakerOnGraph: boolean,
   pacemakerCount: number,
-  selectedPacemakers: boolean[],
+  selectedPacemakers: Array<boolean>,
   showLanes: boolean,
   witVarianceSettings: {
     allowRushedUma1: boolean;
@@ -187,7 +189,7 @@ export async function saveToLocalStorage(
   pacer: RunnerState,
   showVirtualPacemakerOnGraph: boolean,
   pacemakerCount: number,
-  selectedPacemakers: boolean[],
+  selectedPacemakers: Array<boolean>,
   showLanes: boolean,
   witVarianceSettings: {
     allowRushedUma1: boolean;

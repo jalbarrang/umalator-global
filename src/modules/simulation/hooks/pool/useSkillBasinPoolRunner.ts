@@ -1,25 +1,23 @@
+import { appendResultsToTable,
+  resetTable,
+  setIsSimulationRunning,
+  setMetrics,
+  setTable } from '@simulation/stores/skill-basin.store';
+import { CourseHelpers } from '@simulation/lib/CourseData';
+import { useEffect, useMemo, useRef } from 'react';
+import SkillBasinPoolWorker from '@workers/pool/skill-basin/skill-basin.pool.worker.ts?worker';
+import type { SkillBasinResponse } from '@simulation/types';
 import { getBaseSkillsToTest } from '@/modules/skills/utils';
 import { useRunner, useRunnersStore } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
-import { setIsSimulationRunning } from '@simulation/stores/skill-basin.store';
 import { racedefToParams } from '@/utils/races';
-import { CourseHelpers } from '@simulation/lib/CourseData';
-import { useEffect, useMemo, useRef } from 'react';
 import {
   defaultSimulationOptions,
   getActivateableSkills,
   getNullRow,
 } from '@/components/bassin-chart/utils';
-import {
-  appendResultsToTable,
-  resetTable,
-  setMetrics,
-  setTable,
-} from '@simulation/stores/skill-basin.store';
-import { SkillBasinResponse } from '@simulation/types';
 import { PoolManager } from '@/workers/pool/pool-manager';
 
-import SkillBasinPoolWorker from '@workers/pool/skill-basin/skill-basin.pool.worker.ts?worker';
 
 const createSkillBasinPoolWorker = (options: { name: string }) =>
   new SkillBasinPoolWorker(options);

@@ -32,8 +32,8 @@ export const ThresholdStat = {
   Int: 5,
 } as const;
 
-export const phases: readonly number[] = [0, 1, 2, 3];
-export const thresholds: readonly number[] = [1, 2, 3, 4, 5];
-export const surfaces: readonly number[] = [1, 2];
-export const distances: readonly number[] = [1, 2, 3, 4];
-export const orientations: readonly number[] = [1, 2, 3, 4];
+export const phases: ReadonlyArray<number> = [0, 1, 2, 3];
+export const thresholds: ReadonlyArray<number> = [1, 2, 3, 4, 5];
+export const surfaces: ReadonlyArray<number> = [1, 2];
+export const distances: ReadonlyArray<number> = [1, 2, 3, 4];
+export const orientations: ReadonlyArray<number> = [1, 2, 3, 4];

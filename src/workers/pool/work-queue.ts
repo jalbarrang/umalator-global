@@ -7,7 +7,7 @@ export type StageConfig = {
   includeRunData: boolean;
 };
 
-export const STAGE_CONFIGS: StageConfig[] = [
+export const STAGE_CONFIGS: Array<StageConfig> = [
   { stage: 1, nsamples: 5, includeRunData: false },
   { stage: 2, nsamples: 20, includeRunData: false },
   { stage: 3, nsamples: 50, includeRunData: false },
@@ -15,15 +15,15 @@ export const STAGE_CONFIGS: StageConfig[] = [
 ];
 
 export class WorkQueue {
-  private skills: string[] = [];
+  private skills: Array<string> = [];
   private currentStageIndex = 0;
   private batchSize: number;
   private nextBatchId = 0;
-  private pendingBatches = new Map<number, string[]>(); // batchId -> skills
+  private pendingBatches = new Map<number, Array<string>>(); // batchId -> skills
   private completedBatches = new Map<number, SkillBasinResponse>();
   private stageResults: SkillBasinResponse = new Map();
 
-  constructor(skills: string[], batchSize = 10) {
+  constructor(skills: Array<string>, batchSize = 10) {
     this.skills = [...skills];
     this.batchSize = batchSize;
   }
@@ -113,7 +113,7 @@ export class WorkQueue {
     }
 
     const currentStage = STAGE_CONFIGS[this.currentStageIndex].stage;
-    const nextSkills: string[] = [];
+    const nextSkills: Array<string> = [];
 
     // Apply filter based on current stage
     this.stageResults.forEach((result, skillId) => {

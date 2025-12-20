@@ -1,8 +1,11 @@
 import { useMemo, useState } from 'react';
 
+import { ArrowLeftRight, Copy, TrashIcon, Upload } from 'lucide-react';
+import { ClientOnly } from '@tanstack/react-router';
+import type { RunnerState } from './types';
+import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
+import type { Mood } from '@simulation/lib/RaceParameters';
 import { SkillItem } from '@/modules/skills/components/skill-list/SkillItem';
-
-import { RunnerState } from './types';
 
 import {
   getSelectableSkillsForUma,
@@ -16,16 +19,12 @@ import { StatInput } from '@/modules/runners/components/StatInput';
 import { StrategySelect } from '@/modules/runners/components/StrategySelect';
 import { OcrImportDialog } from '@/modules/runners/components/ocr-import-dialog';
 import { UmaSelector } from '@/modules/runners/components/runner-selector';
-import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
 
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useIsMobile } from '@/hooks/useBreakpoint';
 import { openSkillPicker, updateCurrentSkills } from '@/modules/skills/store';
-import { Mood } from '@simulation/lib/RaceParameters';
-import { ArrowLeftRight, Copy, TrashIcon, Upload } from 'lucide-react';
 import './styles.css';
-import { ClientOnly } from '@tanstack/react-router';
 
 const runawaySkillId = '202051' as const;
 
@@ -61,7 +60,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
   // OCR Import dialog state
   const [importDialogOpen, setImportDialogOpen] = useState(false);
 
-  const handleSetSkills = (skills: string[]) => {
+  const handleSetSkills = (skills: Array<string>) => {
     onChange({ ...state, skills: skills });
     updateCurrentSkills(skills);
 
@@ -106,7 +105,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
   };
 
   function handleChangeRunner(outfitId: string) {
-    const newSkills: string[] = [];
+    const newSkills: Array<string> = [];
 
     for (const skillId of state.skills) {
       const skillData = skillsById.get(skillId);
@@ -169,7 +168,11 @@ export const RunnerCard = (props: RunnerCardProps) => {
 
   const hasRunawaySkill = state.skills.includes(runawaySkillId);
 
-  const handleUpdateStrategy = (value: string) => {
+  const handleUpdateStrategy = (value: string | null) => {
+    if (!value) {
+      return;
+    }
+
     const hasRunawaySkill = state.skills.includes(runawaySkillId);
     const shouldForceRunaway = hasRunawaySkill && value !== 'Oonige';
 

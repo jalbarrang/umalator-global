@@ -1,6 +1,6 @@
-import { program, Option } from 'commander';
+import { Option, program } from 'commander';
 
-import { getParser } from '../src/modules/simulation/lib/ConditionParser';
+import { getDefaultParser } from '../src/modules/simulation/lib/ConditionParser';
 import {
   mockConditions,
   treeMatch,
@@ -34,7 +34,7 @@ program
 program.parse();
 const opts = program.opts();
 
-const { parseAny, parse, tokenize } = getParser(mockConditions);
+const { parseAny, parse, tokenize } = getDefaultParser(mockConditions);
 
 const match = opts.name
   ? opts.condition.toUpperCase()

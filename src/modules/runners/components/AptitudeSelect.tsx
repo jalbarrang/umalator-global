@@ -4,23 +4,31 @@ import {
   SelectItem,
   SelectTrigger,
 } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 import { Aptitude } from '@/modules/simulation/lib/HorseTypes';
 
 type AptitudeSelectProps = {
   value: string;
   onChange: (value: string) => void;
+  className?: string;
 };
 
 export const AptitudeSelect = (props: AptitudeSelectProps) => {
-  const { value, onChange } = props;
+  const { value, onChange, className = '' } = props;
 
-  const handleChange = (newValue: string) => {
+  const handleChange = (newValue: string | null) => {
+    if (!newValue) {
+      return;
+    }
+
     onChange(newValue);
   };
 
   return (
     <Select value={value.toString()} onValueChange={handleChange}>
-      <SelectTrigger className="border-none rounded-none shadow-none">
+      <SelectTrigger
+        className={cn('border-none rounded-none shadow-none', className)}
+      >
         <AptitudeIcon aptitude={value} className="w-4 h-4" />
       </SelectTrigger>
 

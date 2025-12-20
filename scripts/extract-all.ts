@@ -20,7 +20,7 @@ async function extractAll() {
   console.log('='.repeat(60));
 
   const startTime = Date.now();
-  const results: { name: string; success: boolean; error?: string }[] = [];
+  const results: Array<{ name: string; success: boolean; error?: string }> = [];
 
   // Run extractions in sequence
   const extractions = [

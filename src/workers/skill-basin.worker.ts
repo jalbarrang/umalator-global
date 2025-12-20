@@ -5,13 +5,13 @@
 import type { CourseData } from '@/modules/simulation/lib/courses/types';
 import type { RaceParameters } from '@simulation/lib/RaceParameters';
 
-import { RunnerState } from '@/modules/runners/components/runner-card/types';
-import { Run1RoundParams, SimulationOptions } from '@/modules/simulation/types';
+import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import type { Run1RoundParams, SimulationOptions } from '@/modules/simulation/types';
 import { mergeResultSets } from '@/workers/utils';
 import { run1Round } from '@/utils/compare';
 
 type RunChartParams = {
-  skills: string[];
+  skills: Array<string>;
   course: CourseData;
   racedef: RaceParameters;
   uma: RunnerState;

@@ -1,4 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { useSkillBasinPoolRunner } from '@simulation/hooks/pool/useSkillBasinPoolRunner';
+import {
+  resetTable,
+  useChartData,
+  useSkillBasinStore,
+} from '@simulation/stores/skill-basin.store';
+import { Activity, useMemo } from 'react';
+import { useShallow } from 'zustand/shallow';
 import { BasinnChart } from '@/components/bassin-chart/BasinnChart';
 import { LoadingOverlay } from '@/components/loading-overlay';
 import { Button } from '@/components/ui/button';
@@ -8,14 +16,6 @@ import { RaceTrack } from '@/modules/racetrack/components/RaceTrack';
 import { CourseHelpers } from '@/modules/simulation/lib/CourseData';
 import { setSkillToRunner, useRunner } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
-import { useSkillBasinPoolRunner } from '@simulation/hooks/pool/useSkillBasinPoolRunner';
-import {
-  resetTable,
-  useChartData,
-  useSkillBasinStore,
-} from '@simulation/stores/skill-basin.store';
-import { Activity, useMemo } from 'react';
-import { useShallow } from 'zustand/shallow';
 
 export const Route = createFileRoute('/_simulation/skill-bassin')({
   component: RouteComponent,

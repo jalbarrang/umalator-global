@@ -1,7 +1,4 @@
-import { RunnerState } from '@/modules/runners/components/runner-card/types';
-import { getParser } from '@simulation/lib/ConditionParser';
-import { CourseData } from '@/modules/simulation/lib/courses/types';
-import { RaceParameters } from '@simulation/lib/RaceParameters';
+import { getDefaultParser } from '@simulation/lib/ConditionParser';
 import { PosKeepMode } from '@simulation/lib/RaceSolver';
 import { SkillPerspective } from '@simulation/lib/race-solver/types';
 import {
@@ -9,15 +6,18 @@ import {
   buildSkillData,
 } from '@simulation/lib/RaceSolverBuilder';
 import { Region, RegionList } from '@simulation/lib/Region';
-import { RoundResult } from '@/modules/simulation/types';
+import type { RaceParameters } from '@simulation/lib/RaceParameters';
+import type { RoundResult } from '@/modules/simulation/types';
+import type { CourseData } from '@/modules/simulation/lib/courses/types';
+import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 
 export function getActivateableSkills(
-  skills: string[],
+  skills: Array<string>,
   horse: RunnerState,
   course: CourseData,
   racedef: RaceParameters,
 ) {
-  const parser = getParser();
+  const parser = getDefaultParser();
   const runnerB = buildBaseStats(horse);
 
   const wholeCourse = new RegionList();

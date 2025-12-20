@@ -5,7 +5,7 @@
  * These utilities can be used standalone or integrated with EnhancedHpPolicy
  */
 
-import { GroundCondition } from './RaceParameters';
+import type { GroundCondition } from './RaceParameters';
 
 export interface SpurtCandidate {
   transitionPosition: number; // Position where spurt begins
@@ -215,7 +215,7 @@ export function findOptimalSpurt(
   groundCoef: number,
   gutsModifier: number,
   speedIncrement: number = 0.1,
-): SpurtCandidate[] {
+): Array<SpurtCandidate> {
   const remainingDistance = courseDistance - currentPosition;
 
   // Check if can do max speed for full distance
@@ -274,7 +274,7 @@ export function findOptimalSpurt(
   }
 
   // Generate candidates between base and max speed
-  const candidates: SpurtCandidate[] = [];
+  const candidates: Array<SpurtCandidate> = [];
 
   for (let speed = baseSpeed; speed <= maxSpeed; speed += speedIncrement) {
     const spurtDist = calculateSpurtDistance(
@@ -367,9 +367,9 @@ export function simulateHpConsumption(
   statusModifier: (position: number) => number = () => 1.0,
   inSpurtPhase: boolean = false,
   _dt: number = 1 / 15, // Default to 15 FPS
-): { finalHp: number; consumptionBySegment: number[] } {
+): { finalHp: number; consumptionBySegment: Array<number> } {
   let hp = startHp;
-  const consumption: number[] = [];
+  const consumption: Array<number> = [];
   const distance = endPosition - startPosition;
   const segments = Math.ceil(distance / 10); // 10m segments
 
@@ -426,3 +426,79 @@ export function calculateEquivalentStamina(
   // Convert back to equivalent stamina
   return actualHeal / (0.8 * coef);
 }
+
+/**
+ * HP = 0.8 * StrategyCoefficient * StaminaStat + CourseDistance
+ */
+export const calculateMaxHP = (options: {
+  coefficient: number;
+  stamina: number;
+  distance: number;
+}) => {
+  const { coefficient, stamina, distance } = options;
+
+  return 0.8 * coefficient * stamina + distance;
+};
+
+/**
+ * GutsModifier = 1.0 + 200.0 / Math.sqrt(600.0 * GutsStat)
+ */
+export const calculateGutsModifier = (guts: number): number => {
+  return 1.0 + 200.0 / Math.sqrt(600.0 * guts);
+};
+
+/**
+ * LastSpurtSpeedMax =
+ *  (BaseTargetSpeedMidRace + 0.01 * RaceBaseSpeed)
+ *  * 1.05 + sqrt(500 * RunnersSpeedStat) * DistanceProficiencyModifier * 0.002
+ *  + (450 * GutsStat)**0.597 * 0.0001
+ */
+export const calculateMaxSpurtSpeed = (options: {
+  runnerSpeed: number;
+  runnerGuts: number;
+  baseSpeed: number;
+  baseMidRaceTargetSpeed: number;
+  distanceProficiencyModifier: number;
+}) => {
+  const {
+    runnerSpeed,
+    baseSpeed,
+    baseMidRaceTargetSpeed,
+    runnerGuts,
+    distanceProficiencyModifier,
+  } = options;
+
+  return (
+    (baseMidRaceTargetSpeed + 0.01 * baseSpeed) * 1.05 +
+    Math.sqrt(500.0 * runnerSpeed) * distanceProficiencyModifier * 0.002 +
+    Math.pow(450.0 * runnerGuts, 0.597) * 0.0001
+  );
+};
+
+export const calculateBaseMidRaceTargetSpeed = (options: {
+  runnerSpeed: number;
+  baseSpeed: number;
+  strategySpeedCoefficient: number;
+  distanceProficiencyModifier: number;
+}) => {
+  const {
+    runnerSpeed,
+    baseSpeed,
+    strategySpeedCoefficient,
+    distanceProficiencyModifier,
+  } = options;
+
+  return (
+    baseSpeed * strategySpeedCoefficient +
+    Math.sqrt(500.0 * runnerSpeed) * distanceProficiencyModifier * 0.002
+  );
+};
+
+export const calculateRequiredHpForLastSpurt = (options: {
+  totalHpNeeded: number;
+  distance: number;
+  hpStrategyCoefficient: number;
+}) => {
+  const { totalHpNeeded, distance, hpStrategyCoefficient } = options;
+  return Math.ceil((totalHpNeeded - distance) / (0.8 * hpStrategyCoefficient));
+};

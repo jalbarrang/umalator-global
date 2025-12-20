@@ -1,3 +1,7 @@
+import dayjs from 'dayjs';
+import { BookmarkPlus, CalendarIcon } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -31,10 +35,6 @@ import {
 } from '@/store/race/preset.store';
 import { setSelectedPresetId, useSettingsStore } from '@/store/settings.store';
 import { EventType } from '@/utils/races';
-import dayjs from 'dayjs';
-import { BookmarkPlus, CalendarIcon } from 'lucide-react';
-import { useState } from 'react';
-import { toast } from 'sonner';
 
 export const SavePresetModal = () => {
   const [open, setOpen] = useState(false);
@@ -47,15 +47,15 @@ export const SavePresetModal = () => {
   const { selectedPresetId } = useSettingsStore();
   const { presets } = usePresetStore();
 
-  const handleOpen = (open: boolean) => {
+  const handleOpen = (isOpen: boolean) => {
     const preset = selectedPresetId ? presets[selectedPresetId] : null;
 
-    if (open && preset) {
+    if (isOpen && preset) {
       // Load On Open
       setName(preset.name);
       setDate(dayjs(preset.date).toDate());
       setEventType(preset.type);
-      setOpen(open);
+      setOpen(isOpen);
 
       return;
     }
@@ -64,7 +64,7 @@ export const SavePresetModal = () => {
     setName('');
     setDate(undefined);
     setEventType(EventType.CM);
-    setOpen(open);
+    setOpen(isOpen);
   };
 
   const handleUpdate = () => {
@@ -135,7 +135,7 @@ export const SavePresetModal = () => {
 
   return (
     <Dialog open={open} onOpenChange={handleOpen}>
-      <DialogTrigger asChild>
+      <DialogTrigger>
         <Button variant="outline">
           <BookmarkPlus className="h-4 w-4" />
           Save
@@ -170,7 +170,7 @@ export const SavePresetModal = () => {
           <div className="grid gap-2">
             <Label htmlFor="preset-date">Date *</Label>
             <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-              <PopoverTrigger asChild>
+              <PopoverTrigger>
                 <Button
                   id="preset-date"
                   variant="outline"
@@ -218,7 +218,7 @@ export const SavePresetModal = () => {
         </div>
 
         <DialogFooter>
-          <DialogClose asChild>
+          <DialogClose>
             <Button variant="outline">Cancel</Button>
           </DialogClose>
 

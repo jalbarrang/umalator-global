@@ -1,13 +1,13 @@
-import { SkillActivation, SkillActivationMap } from '@simulation/compare.types';
 import {
   SkillPerspective,
   SkillTarget,
   SkillType,
 } from '@simulation/lib/race-solver/types';
+import type { SkillActivation, SkillActivationMap } from '@simulation/compare.types';
 
 export class EffectQuery {
   private activations: SkillActivationMap;
-  private flatList: SkillActivation[];
+  private flatList: Array<SkillActivation>;
 
   private constructor(activations: SkillActivationMap) {
     this.activations = activations;
@@ -18,11 +18,11 @@ export class EffectQuery {
     return new EffectQuery(activations);
   }
 
-  toList(): SkillActivation[] {
+  toList(): Array<SkillActivation> {
     return this.flatList;
   }
 
-  toIds(): string[] {
+  toIds(): Array<string> {
     return Array.from(this.activations.keys());
   }
 
@@ -32,7 +32,7 @@ export class EffectQuery {
   }
 
   // Filter methods become clearer
-  getSelfBuffs(): SkillActivation[] {
+  getSelfBuffs(): Array<SkillActivation> {
     return this.flatList.filter(
       (a) =>
         a.perspective === SkillPerspective.Self &&
@@ -40,7 +40,7 @@ export class EffectQuery {
     );
   }
 
-  getDebuffs(): SkillActivation[] {
+  getDebuffs(): Array<SkillActivation> {
     return this.flatList.filter(
       (a) =>
         a.perspective !== SkillPerspective.Self &&
@@ -48,7 +48,7 @@ export class EffectQuery {
     );
   }
 
-  getStaminaDebuffs(): SkillActivation[] {
+  getStaminaDebuffs(): Array<SkillActivation> {
     return this.flatList.filter(
       (a) =>
         a.perspective === SkillPerspective.Other &&
@@ -58,11 +58,11 @@ export class EffectQuery {
   }
 
   // Get all effects from a specific activation
-  getEffectsForExecution(executionId: string): SkillActivation[] {
+  getEffectsForExecution(executionId: string): Array<SkillActivation> {
     return this.flatList.filter((a) => a.executionId === executionId);
   }
 
-  getSelfHeals(): SkillActivation[] {
+  getSelfHeals(): Array<SkillActivation> {
     return this.flatList.filter(
       (a) =>
         a.perspective === SkillPerspective.Self &&

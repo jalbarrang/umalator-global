@@ -1,3 +1,4 @@
+import { STAGE_CONFIGS, WorkQueue } from './work-queue';
 import type { PoolMetrics, SkillBasinResponse } from '@simulation/types';
 import type {
   SimulationParams,
@@ -5,7 +6,6 @@ import type {
   WorkerOutMessage,
   WorkerState,
 } from './types';
-import { STAGE_CONFIGS, WorkQueue } from './work-queue';
 
 export type PoolManagerCallbacks = {
   onProgress?: (results: SkillBasinResponse) => void;
@@ -15,7 +15,7 @@ export type PoolManagerCallbacks = {
 };
 
 export class PoolManager {
-  private workers: Worker[] = [];
+  private workers: Array<Worker> = [];
   private workerStates: Map<number, WorkerState> = new Map();
   private workQueue: WorkQueue | null = null;
   private callbacks: PoolManagerCallbacks = {};
@@ -152,7 +152,7 @@ export class PoolManager {
    * Send a message to a specific worker
    */
   private sendToWorker(workerId: number, message: WorkerInMessage): void {
-    const worker = this.workers[workerId];
+    const worker = this.workers.at(workerId);
     if (worker) {
       worker.postMessage(message);
     }
@@ -195,11 +195,11 @@ export class PoolManager {
   /**
    * Run simulation with given skills and parameters
    */
-  async run(
-    skills: string[],
+  public run(
+    skills: Array<string>,
     params: SimulationParams,
     callbacks: PoolManagerCallbacks,
-  ): Promise<void> {
+  ) {
     if (this.isRunning) {
       throw new Error('Simulation already running');
     }

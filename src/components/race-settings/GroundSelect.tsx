@@ -1,4 +1,3 @@
-import { setRaceParams, useSettingsStore } from '@/store/settings.store';
 import {
   Select,
   SelectContent,
@@ -6,6 +5,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
+import { setRaceParams, useSettingsStore } from '@/store/settings.store';
 
 const groundConditions = {
   '1': 'Firm',
@@ -14,12 +14,14 @@ const groundConditions = {
   '4': 'Heavy',
 } as const;
 
-type GroundCondition = keyof typeof groundConditions;
-
 export const GroundSelect = () => {
   const { racedef } = useSettingsStore();
 
-  const handleChangeGround = (value: GroundCondition) => {
+  const handleChangeGround = (value: string | null) => {
+    if (!value) {
+      return;
+    }
+
     setRaceParams({ ...racedef, ground: +value });
   };
 

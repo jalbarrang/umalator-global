@@ -1,4 +1,5 @@
-import { SkillData } from '@/modules/skills/utils';
+import { useEffect, useRef } from 'react';
+import type { SkillData } from '@/modules/skills/utils';
 import {
   FormatParser,
   formatEffect,
@@ -13,7 +14,6 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from '@/components/ui/input-group';
-import { useEffect, useRef } from 'react';
 
 type ExpandedSkillDetailsProps = {
   id: string;

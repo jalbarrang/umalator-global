@@ -1,7 +1,13 @@
-import { getSkillNameById } from '@/modules/skills/utils';
 import { useRaceStore } from '@simulation/stores/compare.store';
 import { useMemo } from 'react';
 
+import { ChevronsUpDown, Zap } from 'lucide-react';
+import {
+  SkillType,
+  translateSkillEffectTarget,
+  translateSkillEffectType,
+} from '../lib/race-solver/types';
+import type { ISkillTarget, ISkillType } from '../lib/race-solver/types';
 import {
   Collapsible,
   CollapsibleContent,
@@ -14,14 +20,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from '@/components/ui/empty';
-import { ChevronsUpDown, Zap } from 'lucide-react';
-import {
-  ISkillTarget,
-  ISkillType,
-  SkillType,
-  translateSkillEffectTarget,
-  translateSkillEffectType,
-} from '../lib/race-solver/types';
+import { getSkillNameById } from '@/modules/skills/utils';
 
 /**
  * Returns skill activates grouped by skill id
@@ -34,7 +33,7 @@ const useRunnerSkillsActivated = (runnerIndex: number) => {
 
     const runnerSkills = chartData.sk[runnerIndex];
 
-    const skillPositions: SkillPosition[] = [];
+    const skillPositions: Array<SkillPosition> = [];
     for (const [skillId, activations] of runnerSkills) {
       const firstActivation = activations[0];
 
@@ -60,13 +59,13 @@ type SkillPosition = {
   id: string;
   name: string;
   triggeredAt: number;
-  effects: {
+  effects: Array<{
     start: number;
     end: number;
     duration: number;
     effectType: ISkillType;
     effectTarget: ISkillTarget;
-  }[];
+  }>;
 };
 
 export const SkillsTab = () => {
@@ -213,7 +212,7 @@ export const SkillsTab = () => {
 
 type RunnerSkillsTableProps = {
   title: string;
-  skills: SkillPosition[];
+  skills: Array<SkillPosition>;
   hasSkills: boolean;
   runnerColor: string;
 };
@@ -247,7 +246,7 @@ const RunnerSkillsTable = (props: RunnerSkillsTableProps) => {
                 className="grid grid-cols-1 border-b last:border-b-0 p-2"
               >
                 <Collapsible>
-                  <CollapsibleTrigger asChild>
+                  <CollapsibleTrigger>
                     <div className="grid grid-cols-2">
                       <div className="flex items-center gap-2 cursor-pointer">
                         <ChevronsUpDown className="size-4" />
@@ -270,7 +269,7 @@ const RunnerSkillsTable = (props: RunnerSkillsTableProps) => {
                       <div className="text-end text-sm">Duration</div>
                     </div>
 
-                    {skill.effects.map((effect, index) => {
+                    {skill.effects.map((effect, effectIndex) => {
                       const effectType = translateSkillEffectType(
                         effect.effectType,
                       );
@@ -280,7 +279,7 @@ const RunnerSkillsTable = (props: RunnerSkillsTableProps) => {
 
                       return (
                         <div
-                          key={`${skill.id}-${index}`}
+                          key={`${skill.id}-${effectIndex}`}
                           className="grid grid-cols-5"
                         >
                           <div className="text-sm">{effectType}</div>

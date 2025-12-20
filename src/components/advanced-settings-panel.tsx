@@ -1,10 +1,13 @@
+import { DicesIcon } from 'lucide-react';
+import { PositionKeepSettings } from './position-keeps/position-keep-settings';
+import type {
+  WitVarianceSettings} from '@/store/settings.store';
 import {
   setSamples,
   setSeed,
   setWitVariance,
   useSettingsStore,
-  useWitVariance,
-  WitVarianceSettings,
+  useWitVariance
 } from '@/store/settings.store';
 import { setRunOnceCounter } from '@/store/ui.store';
 
@@ -12,7 +15,6 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
-import { DicesIcon } from 'lucide-react';
 import {
   Panel,
   PanelContent,
@@ -20,7 +22,6 @@ import {
   PanelTitle,
 } from '@/components/ui/panel';
 import { Separator } from '@/components/ui/separator';
-import { PositionKeepSettings } from './position-keeps/position-keep-settings';
 
 const WitVarianceSettingRow = ({
   label,
@@ -52,7 +53,7 @@ const WitVarianceSettingRow = ({
           Uma 1
         </span>
         <Checkbox
-          checked={settings[uma1Key] as boolean}
+          checked={settings[uma1Key]}
           onCheckedChange={() => onToggle(uma1Key)}
           disabled={disabled}
         />
@@ -65,7 +66,7 @@ const WitVarianceSettingRow = ({
           Uma 2
         </span>
         <Checkbox
-          checked={settings[uma2Key] as boolean}
+          checked={settings[uma2Key]}
           onCheckedChange={() => onToggle(uma2Key)}
           disabled={disabled}
         />

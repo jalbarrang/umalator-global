@@ -1,4 +1,3 @@
-import { EventType, RacePreset } from '@/utils/races';
 import {
   GroundCondition,
   Season,
@@ -7,6 +6,8 @@ import {
 } from '@simulation/lib/RaceParameters';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import type { RacePreset } from '@/utils/races';
+import { EventType } from '@/utils/races';
 
 const PRESET_STORE_NAME = 'umalator-presets';
 

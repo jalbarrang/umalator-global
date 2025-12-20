@@ -1,7 +1,7 @@
 import courses from '@data/course_data.json';
-import { Courses } from '../simulation/lib/courses/types';
+import type { Courses } from '../simulation/lib/courses/types';
 
-export type CourseByTrack = Record<number, number[]>;
+export type CourseByTrack = Record<number, Array<number>>;
 
 export const getCoursesByTrack = () => {
   const newObject: CourseByTrack = {};

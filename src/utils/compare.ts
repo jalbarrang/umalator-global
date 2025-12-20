@@ -1,42 +1,41 @@
-import { CourseData } from '@/modules/simulation/lib/courses/types';
-import { GroundCondition } from '@simulation/lib/RaceParameters';
+import { PosKeepMode } from '@simulation/lib/RaceSolver';
 import {
-  ActiveSkill,
-  PosKeepMode,
-  RaceSolver,
-} from '@simulation/lib/RaceSolver';
-import {
-  ISkillPerspective,
-  ISkillTarget,
-  ISkillType,
   SkillPerspective,
   SkillTarget,
   SkillType,
 } from '@simulation/lib/race-solver/types';
 
 import {
+  RaceSolverBuilder,
   buildAdjustedStats,
   buildBaseStats,
   parseAptitude,
   parseStrategy,
-  RaceSolverBuilder,
 } from '@simulation/lib/RaceSolverBuilder';
 
-import { RunnerState } from '@/modules/runners/components/runner-card/types';
-import {
+import { initializeSimulationRun } from '@simulation/compare.types';
+import { Rule30CARng } from '@simulation/lib/Random';
+import { cloneDeep } from 'es-toolkit';
+import type {
+  Run1RoundParams,
   RunComparisonParams,
   SkillBasinResponse,
   TheoreticalMaxSpurtResult,
-  type Run1RoundParams,
 } from '@/modules/simulation/types';
-import {
+import type {
   CompareResult,
-  initializeSimulationRun,
   SimulationRun,
   SkillActivation,
 } from '@simulation/compare.types';
-import { Rule30CARng } from '@simulation/lib/Random';
-import { cloneDeep } from 'es-toolkit';
+import type {
+  ISkillPerspective,
+  ISkillTarget,
+  ISkillType,
+} from '@simulation/lib/race-solver/types';
+import type { ActiveSkill, RaceSolver } from '@simulation/lib/RaceSolver';
+import type { GroundCondition } from '@simulation/lib/RaceParameters';
+import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import type { CourseData } from '@/modules/simulation/lib/courses/types';
 
 export function calculateTheoreticalMaxSpurt(
   horse: RunnerState,
@@ -139,13 +138,13 @@ export function calculateTheoreticalMaxSpurt(
 }
 
 interface RushedStats {
-  uma1: { lengths: number[]; count: number };
-  uma2: { lengths: number[]; count: number };
+  uma1: { lengths: Array<number>; count: number };
+  uma2: { lengths: Array<number>; count: number };
 }
 
 interface LeadCompetitionStats {
-  uma1: { lengths: number[]; count: number };
-  uma2: { lengths: number[]; count: number };
+  uma1: { lengths: Array<number>; count: number };
+  uma2: { lengths: Array<number>; count: number };
 }
 
 interface StaminaStats {
@@ -153,13 +152,13 @@ interface StaminaStats {
   uma2: { hpDiedCount: number; fullSpurtCount: number; total: number };
 }
 
-const getCommonIndex = (skills: string[], id: string) => {
+const getCommonIndex = (skills: Array<string>, id: string) => {
   const index = skills.indexOf(id);
 
   return index > -1 ? index : skills.length;
 };
 
-const skillSorter = (commonSkills: string[]) => (a: string, b: string) =>
+const skillSorter = (commonSkills: Array<string>) => (a: string, b: string) =>
   getCommonIndex(commonSkills, a) - getCommonIndex(commonSkills, b) || +a - +b;
 
 export function runComparison(params: RunComparisonParams): CompareResult {
@@ -349,12 +348,18 @@ export function runComparison(params: RunComparisonParams): CompareResult {
     }
   }
 
-  const runnerASkillActivations: Map<string, SkillActivation[]> = new Map();
-  const runnerBSkillActivations: Map<string, SkillActivation[]> = new Map();
+  const runnerASkillActivations: Map<
+    string,
+    Array<SkillActivation>
+  > = new Map();
+  const runnerBSkillActivations: Map<
+    string,
+    Array<SkillActivation>
+  > = new Map();
 
   const getActivator = (
-    skillsSet: Map<string, SkillActivation[]>,
-    othersSet: Map<string, SkillActivation[]>,
+    skillsSet: Map<string, Array<SkillActivation>>,
+    othersSet: Map<string, Array<SkillActivation>>,
   ) => {
     return (
       raceSolver: RaceSolver,
@@ -404,8 +409,8 @@ export function runComparison(params: RunComparisonParams): CompareResult {
   };
 
   const getDeactivator = (
-    skillsSet: Map<string, SkillActivation[]>,
-    _othersSet: Map<string, SkillActivation[]>,
+    skillsSet: Map<string, Array<SkillActivation>>,
+    _othersSet: Map<string, Array<SkillActivation>>,
   ) => {
     return (
       _raceSolver: RaceSolver,
@@ -470,12 +475,12 @@ export function runComparison(params: RunComparisonParams): CompareResult {
   const sign = 1;
   const diff = [];
 
-  let min: number = Infinity;
-  let max: number = -Infinity;
-  let estMean: number = 0;
-  let estMedian: number = 0;
-  let bestMeanDiff: number = Infinity;
-  let bestMedianDiff: number = Infinity;
+  let min = Infinity;
+  let max = -Infinity;
+  let estMean = 0;
+  let estMedian = 0;
+  let bestMeanDiff = Infinity;
+  let bestMedianDiff = Infinity;
 
   let minrun: SimulationRun = initializeSimulationRun();
   let maxrun: SimulationRun = initializeSimulationRun();
@@ -484,7 +489,7 @@ export function runComparison(params: RunComparisonParams): CompareResult {
 
   const sampleCutoff = Math.max(Math.floor(nsamples * 0.8), nsamples - 200);
 
-  let retry: boolean = false;
+  let retry = false;
 
   // Track rushed statistics across all simulations
   const rushedStats: RushedStats = {
@@ -520,20 +525,21 @@ export function runComparison(params: RunComparisonParams): CompareResult {
   const basePacerRng = new Rule30CARng(options.seed ?? 0 + 1);
 
   for (let i = 0; i < nsamples; ++i) {
-    const pacers: RaceSolver[] = [];
+    const pacers: Array<RaceSolver> = [];
 
     for (let j = 0; j < options.pacemakerCount; ++j) {
       const pacerRng = new Rule30CARng(basePacerRng.int32());
-      const pacer: RaceSolver | null = pacerHorse
+      const currPacer: RaceSolver | null = pacerHorse
         ? runnerARaceSolver.buildPacer(pacerHorse, i, pacerRng)
         : null;
 
-      if (pacer) {
-        pacers.push(pacer);
+      if (currPacer) {
+        pacers.push(currPacer);
       }
     }
 
-    const pacer: RaceSolver | null = pacers.length > 0 ? pacers[0] : null;
+    const confirmedPacer: RaceSolver | null =
+      pacers.length > 0 ? pacers[0] : null;
 
     const solverA = a.next(retry).value as RaceSolver;
     const solverB = b.next(retry).value as RaceSolver;
@@ -559,10 +565,10 @@ export function runComparison(params: RunComparisonParams): CompareResult {
     while (!solverAFinished || !solverBFinished) {
       let currentPacer: RaceSolver | null = null;
 
-      if (pacer) {
-        currentPacer = pacer.getPacer();
+      if (confirmedPacer) {
+        currentPacer = confirmedPacer.getPacer();
 
-        pacer.umas.forEach((runner) => {
+        confirmedPacer.umas.forEach((runner) => {
           if (currentPacer) {
             runner.updatePacer(currentPacer);
           }
@@ -585,19 +591,19 @@ export function runComparison(params: RunComparisonParams): CompareResult {
 
       // Update pacer data for each pacer
       for (let j = 0; j < options.pacemakerCount; j++) {
-        const currentPacer = j < pacers.length ? pacers[j] : null;
+        const currPacer = j < pacers.length ? pacers[j] : null;
 
-        if (!currentPacer || currentPacer.pos >= course.distance) continue;
+        if (!currPacer || currPacer.pos >= course.distance) continue;
 
-        currentPacer.step(1 / 15);
+        currPacer.step(1 / 15);
         data.pacerV[j].push(
-          currentPacer.currentSpeed +
-            (currentPacer.modifiers.currentSpeed.acc +
-              currentPacer.modifiers.currentSpeed.err),
+          currPacer.currentSpeed +
+            (currPacer.modifiers.currentSpeed.acc +
+              currPacer.modifiers.currentSpeed.err),
         );
 
-        data.pacerP[j].push(currentPacer.pos);
-        data.pacerT[j].push(currentPacer.accumulatetime.t);
+        data.pacerP[j].push(currPacer.pos);
+        data.pacerT[j].push(currPacer.accumulatetime.t);
       }
 
       // Update solver B
@@ -742,8 +748,8 @@ export function runComparison(params: RunComparisonParams): CompareResult {
     // Also handles skills with very short durations that might deactivate in the same frame
     const cleanupActiveSkills = (
       solver: RaceSolver,
-      selfSkillSet: Map<string, SkillActivation[]>,
-      othersSkillSet: Map<string, SkillActivation[]>,
+      selfSkillSet: Map<string, Array<SkillActivation>>,
+      othersSkillSet: Map<string, Array<SkillActivation>>,
     ) => {
       const callDeactivator = (skill: ActiveSkill) => {
         // Call the deactivator to set the end position to course.distance
@@ -901,9 +907,9 @@ export function runComparison(params: RunComparisonParams): CompareResult {
       maxrun = data;
     }
     if (i == sampleCutoff) {
-      diff.sort((a, b) => a - b);
+      diff.sort((bassiA, basinB) => bassiA - basinB);
 
-      estMean = diff.reduce((a, b) => a + b) / diff.length;
+      estMean = diff.reduce((basinA, basinB) => basinA + basinB) / diff.length;
 
       const mid = Math.floor(diff.length / 2);
 
@@ -925,22 +931,23 @@ export function runComparison(params: RunComparisonParams): CompareResult {
       }
     }
   }
-  diff.sort((a, b) => a - b);
+  diff.sort((basinA, basinB) => basinA - basinB);
 
   // Calculate rushed statistics
-  const calculateStats = (stats: { lengths: number[]; count: number }) => {
+  const calculateStats = (stats: { lengths: Array<number>; count: number }) => {
     if (stats.lengths.length === 0) {
       return { min: 0, max: 0, mean: 0, frequency: 0 };
     }
 
-    const min = Math.min(...stats.lengths);
-    const max = Math.max(...stats.lengths);
+    const statMin = Math.min(...stats.lengths);
+    const statMax = Math.max(...stats.lengths);
     const mean =
-      stats.lengths.reduce((a, b) => a + b, 0) / stats.lengths.length;
+      stats.lengths.reduce((statA, statB) => statA + statB, 0) /
+      stats.lengths.length;
 
     const frequency = (stats.count / nsamples) * 100; // percentage
 
-    return { min, max, mean, frequency };
+    return { min: statMin, max: statMax, mean, frequency };
   };
 
   const rushedStatsSummary = {

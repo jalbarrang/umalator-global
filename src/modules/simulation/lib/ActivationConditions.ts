@@ -1,7 +1,5 @@
 import {
-  ActivationSamplePolicy,
   AllCornerRandomPolicy,
-  DistributionRandomPolicy,
   ErlangRandomPolicy,
   ImmediatePolicy,
   LogNormalRandomPolicy,
@@ -10,12 +8,17 @@ import {
   UniformRandomPolicy,
 } from './ActivationSamplePolicy';
 import { CourseHelpers } from './CourseData';
-import { CourseData, IPhase } from './courses/types';
-import { HorseParameters, Strategy, StrategyHelpers } from './HorseTypes';
-import { RaceParameters } from './RaceParameters';
-import { DynamicCondition, RaceState } from './RaceSolver';
+import { Strategy, StrategyHelpers } from './HorseTypes';
 import { Region, RegionList } from './Region';
 import { calculateEarlyRaceAverageSpeed } from './SpurtCalculator';
+import type {
+  ActivationSamplePolicy,
+  DistributionRandomPolicy,
+} from './ActivationSamplePolicy';
+import type { CourseData, IPhase } from './courses/types';
+import type { HorseParameters } from './HorseTypes';
+import type { RaceParameters } from './RaceParameters';
+import type { DynamicCondition, RaceState } from './RaceSolver';
 
 // K as in SKI combinators
 function kTrue(_: RaceState) {
@@ -31,12 +34,12 @@ function withDefaultCond(r: RegionList | [RegionList, DynamicCondition]) {
 
 export interface Operator {
   samplePolicy: ActivationSamplePolicy;
-  apply(
+  apply: (
     regions: RegionList,
     course: CourseData,
     horse: HorseParameters,
     extra: RaceParameters,
-  ): [RegionList, DynamicCondition];
+  ) => [RegionList, DynamicCondition];
 }
 
 export interface CmpOperator extends Operator {
@@ -257,48 +260,48 @@ export class OrOperator {
 
 export interface Condition {
   samplePolicy: ActivationSamplePolicy;
-  filterEq(
+  filterEq: (
     regions: RegionList,
     arg: number,
     course: CourseData,
     horse: HorseParameters,
     extra: RaceParameters,
-  ): RegionList | [RegionList, DynamicCondition];
-  filterNeq(
+  ) => RegionList | [RegionList, DynamicCondition];
+  filterNeq: (
     regions: RegionList,
     arg: number,
     course: CourseData,
     horse: HorseParameters,
     extra: RaceParameters,
-  ): RegionList | [RegionList, DynamicCondition];
-  filterLt(
+  ) => RegionList | [RegionList, DynamicCondition];
+  filterLt: (
     regions: RegionList,
     arg: number,
     course: CourseData,
     horse: HorseParameters,
     extra: RaceParameters,
-  ): RegionList | [RegionList, DynamicCondition];
-  filterLte(
+  ) => RegionList | [RegionList, DynamicCondition];
+  filterLte: (
     regions: RegionList,
     arg: number,
     course: CourseData,
     horse: HorseParameters,
     extra: RaceParameters,
-  ): RegionList | [RegionList, DynamicCondition];
-  filterGt(
+  ) => RegionList | [RegionList, DynamicCondition];
+  filterGt: (
     regions: RegionList,
     arg: number,
     course: CourseData,
     horse: HorseParameters,
     extra: RaceParameters,
-  ): RegionList | [RegionList, DynamicCondition];
-  filterGte(
+  ) => RegionList | [RegionList, DynamicCondition];
+  filterGte: (
     regions: RegionList,
     arg: number,
     course: CourseData,
     horse: HorseParameters,
     extra: RaceParameters,
-  ): RegionList | [RegionList, DynamicCondition];
+  ) => RegionList | [RegionList, DynamicCondition];
 }
 
 function notSupported(
@@ -364,19 +367,19 @@ export const random = (other: Partial<Condition>): Condition => {
   return { ...defaultRandom, ...other };
 };
 
-type DistributionRandomPolicyConstructor<Ts extends unknown[]> = new (
-  ...args: Ts
+type DistributionRandomPolicyConstructor<TArgs extends Array<unknown>> = new (
+  ...args: TArgs
 ) => DistributionRandomPolicy;
 
 // ive tried various things to make this return a [xRandom,noopXRandom] pair but seem to run into some typescript bugs
 // or something
 // it doesnt really make sense to me
-const distributionRandomFactory = <Ts extends unknown[]>(
-  cls: DistributionRandomPolicyConstructor<Ts>,
+const distributionRandomFactory = <TArgs extends Array<unknown>>(
+  cls: DistributionRandomPolicyConstructor<TArgs>,
 ) => {
   const cache = Object.create(null);
 
-  return (...args: [...clsArgs: Ts, condition: Partial<Condition>]) => {
+  return (...args: [...clsArgs: TArgs, condition: Partial<Condition>]) => {
     const condition = args.pop() as Partial<Condition>;
     const key = args.join(',');
 
@@ -386,7 +389,7 @@ const distributionRandomFactory = <Ts extends unknown[]>(
     if (cache[key]) {
       policy = cache[key];
     } else {
-      policy = new cls(...(args as unknown as Ts));
+      policy = new cls(...(args as unknown as TArgs));
       cache[key] = policy;
     }
 
@@ -1021,7 +1024,7 @@ export const Conditions: { [cond: string]: Condition } = {
         }
         return regions.rmap((r) => nonCorners.map((s) => r.intersect(s)));
       } else if (course.corners.length + cornerNum >= 5) {
-        const corners: Region[] = [];
+        const corners: Array<Region> = [];
 
         for (
           let cornerIdx = course.corners.length + cornerNum - 5;
@@ -1837,8 +1840,8 @@ export const Conditions: { [cond: string]: Condition } = {
       CourseHelpers.assertIsPhase(phase);
 
       const phaseBounds = new Region(
-        CourseHelpers.phaseStart(course.distance, phase as IPhase),
-        CourseHelpers.phaseEnd(course.distance, phase as IPhase),
+        CourseHelpers.phaseStart(course.distance, phase),
+        CourseHelpers.phaseEnd(course.distance, phase),
       );
 
       return regions

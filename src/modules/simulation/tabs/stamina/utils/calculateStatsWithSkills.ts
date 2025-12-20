@@ -1,12 +1,13 @@
-import { RunnerState } from '@/modules/runners/components/runner-card/types';
-import { CourseHelpers } from '@/modules/simulation/lib/CourseData';
-import { getSkillDataById } from '@/modules/skills/utils';
-import { GroundCondition } from '@simulation/lib/RaceParameters';
 import {
-  BaseStats,
   buildAdjustedStats,
   buildBaseStats,
 } from '@simulation/lib/RaceSolverBuilder';
+import type {
+  BaseStats} from '@simulation/lib/RaceSolverBuilder';
+import type { GroundCondition } from '@simulation/lib/RaceParameters';
+import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import { CourseHelpers } from '@/modules/simulation/lib/CourseData';
+import { getSkillDataById } from '@/modules/skills/utils';
 
 // Skill effect types from race mechanics
 const SkillEffectType = {
@@ -37,7 +38,7 @@ export interface StatsWithSkillsResult {
  * Both positive (buffs) and negative (debuffs) modifiers are summed
  */
 export function parseGreenSkillModifiers(
-  skillIds: string[],
+  skillIds: Array<string>,
 ): GreenSkillModifiers {
   const modifiers: GreenSkillModifiers = {
     speed: 0,

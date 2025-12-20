@@ -6,20 +6,24 @@
 
 import { useRef, useState } from 'react';
 import {
+  AlertCircle,
+  CheckCircle,
+  ImageIcon,
+  Loader2,
   Upload,
   X,
-  CheckCircle,
-  AlertCircle,
-  Loader2,
-  ImageIcon,
 } from 'lucide-react';
 
+import icons from '@data/icons.json';
+import { toast } from 'sonner';
+import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
+import type { UploadedFile } from '@/modules/runners/hooks/useOcrImport';
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import {
@@ -36,17 +40,10 @@ import {
   CommandList,
 } from '@/components/ui/command';
 
-import {
-  useOcrImport,
-  type UploadedFile,
-} from '@/modules/runners/hooks/useOcrImport';
-import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
+import { useOcrImport } from '@/modules/runners/hooks/useOcrImport';
 import { umasForSearch } from '@/modules/runners/utils';
 import { getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import { SkillItem } from '@/modules/skills/components/skill-list/SkillItem';
-
-import icons from '@data/icons.json';
-import { toast } from 'sonner';
 
 interface OcrImportDialogProps {
   open: boolean;
@@ -97,11 +94,11 @@ export function OcrImportDialog({
   };
 
   // Handle dialog close
-  const handleOpenChange = (open: boolean) => {
-    if (!open) {
+  const handleOpenChange = (isOpen: boolean) => {
+    if (!isOpen) {
       reset();
     }
-    onOpenChange(open);
+    onOpenChange(isOpen);
   };
 
   // Handle file input change
@@ -291,7 +288,7 @@ export function OcrImportDialog({
                       open={umaSelectOpen}
                       onOpenChange={setUmaSelectOpen}
                     >
-                      <PopoverTrigger asChild>
+                      <PopoverTrigger>
                         <div className="flex items-center gap-3 p-2 border rounded-md cursor-pointer hover:bg-muted/50 transition-colors">
                           <img
                             src={icons[results.outfitId as keyof typeof icons]}
@@ -340,7 +337,7 @@ export function OcrImportDialog({
                       open={umaSelectOpen}
                       onOpenChange={setUmaSelectOpen}
                     >
-                      <PopoverTrigger asChild>
+                      <PopoverTrigger>
                         <div className="p-2 border rounded-md text-muted-foreground text-sm cursor-pointer hover:bg-muted/50 transition-colors">
                           {isProcessing
                             ? 'Detecting...'

@@ -1,12 +1,13 @@
-import { trackIds } from '@/i18n/lang/tracknames';
-
-import i18n from '@/i18n';
 import { useMemo } from 'react';
 import {
   getCourseByTrackId,
   getCourseIdByTrackIdAndIndex,
   getDefaultTrackIdForCourse,
 } from '../courses';
+import { trackDescription } from '../labels';
+import { trackIds } from '@/i18n/lang/tracknames';
+
+import i18n from '@/i18n';
 
 import {
   Select,
@@ -16,7 +17,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { setCourseId, useSettingsStore } from '@/store/settings.store';
-import { trackDescription } from '../labels';
 
 const getTrackName = (trackId: number) => {
   return i18n.t(`tracknames.${trackId}`);
@@ -35,11 +35,19 @@ export function TrackSelect(props: TrackSelectProps) {
     [courseId],
   );
 
-  const handleChangeCourse = (value: string) => {
+  const handleChangeCourse = (value: string | null) => {
+    if (!value) {
+      return;
+    }
+
     setCourseId(+value);
   };
 
-  const handleChangeTrack = (value: string) => {
+  const handleChangeTrack = (value: string | null) => {
+    if (!value) {
+      return;
+    }
+
     const newTrackId = +value;
     setCourseId(getCourseIdByTrackIdAndIndex(newTrackId, 0));
   };

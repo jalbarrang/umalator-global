@@ -1,5 +1,8 @@
 import './SkillList.css';
 
+import { XIcon } from 'lucide-react';
+import { useRef } from 'react';
+import { SkillPickerContent } from '../skill-picker-content';
 import {
   Drawer,
   DrawerClose,
@@ -11,9 +14,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { useBreakpoint } from '@/hooks/useBreakpoint';
 import { useSkillModalStore } from '@/modules/skills/store';
-import { XIcon } from 'lucide-react';
-import { useRef } from 'react';
-import { SkillPickerContent } from '../skill-picker-content';
 
 export function SkillPickerDrawer() {
   const { open, umaId, options, currentSkills, onSelect } =
@@ -21,8 +21,8 @@ export function SkillPickerDrawer() {
 
   const { isMobile } = useBreakpoint();
 
-  const handleOpenChange = (open: boolean) => {
-    useSkillModalStore.setState({ open });
+  const handleOpenChange = (isOpen: boolean) => {
+    useSkillModalStore.setState({ open: isOpen });
   };
 
   const childRef = useRef<{ focus: () => void }>(null);

@@ -1,7 +1,7 @@
 // using preset store, if the user has no preset selected, use the first preset that is close to the current date
 
-import { usePresetStore } from '@/store/race/preset.store';
 import { dayjs } from './time';
+import { usePresetStore } from '@/store/race/preset.store';
 
 const { presets: storedPresets } = usePresetStore.getState();
 
@@ -17,7 +17,7 @@ export const DEFAULT_SAMPLES = 500;
 export const DEFAULT_SEED = 2615953739;
 export const DEFAULT_COURSE_ID = DEFAULT_PRESET.courseId;
 
-export const hiddenSkills: readonly string[] = [
+export const hiddenSkills: ReadonlyArray<string> = [
   '10011',
   '10012',
   '10016',

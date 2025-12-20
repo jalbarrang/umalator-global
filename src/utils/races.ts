@@ -1,12 +1,13 @@
 import {
   Grade,
   GroundCondition,
-  Mood,
-  RaceParameters,
   Season,
   Time,
   Weather,
 } from '@simulation/lib/RaceParameters';
+import type {
+  Mood,
+  RaceParameters} from '@simulation/lib/RaceParameters';
 
 export type PosKeepLabel = {
   umaIndex: number;

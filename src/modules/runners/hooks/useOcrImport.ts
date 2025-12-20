@@ -7,10 +7,10 @@
  * - No useCallback needed - React Compiler handles memoization automatically
  */
 
-import { useState, useRef, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import OcrWorker from '@workers/ocr.worker.ts?worker';
 import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
 
-import OcrWorker from '@workers/ocr.worker.ts?worker';
 
 export interface UploadedFile {
   id: string;
@@ -21,8 +21,8 @@ export interface UploadedFile {
 }
 
 export interface UseOcrImportResult {
-  files: UploadedFile[];
-  addFiles: (files: File[], autoProcess?: boolean) => void;
+  files: Array<UploadedFile>;
+  addFiles: (files: Array<File>, autoProcess?: boolean) => void;
   removeFile: (id: string) => void;
   clearFiles: () => void;
   results: Partial<ExtractedUmaData> | null;
@@ -48,7 +48,7 @@ const fileToBlob = (file: Blob) => {
 const createOcrWorker = () => new OcrWorker();
 
 export function useOcrImport(): UseOcrImportResult {
-  const [files, setFiles] = useState<UploadedFile[]>([]);
+  const [files, setFiles] = useState<Array<UploadedFile>>([]);
   const [results, setResults] = useState<Partial<ExtractedUmaData> | null>(
     null,
   );
@@ -63,7 +63,7 @@ export function useOcrImport(): UseOcrImportResult {
   const generateId = () => Math.random().toString(36).substr(2, 9);
 
   // Internal function to start OCR processing on specific files
-  const startProcessing = (filesToProcess: UploadedFile[]) => {
+  const startProcessing = (filesToProcess: Array<UploadedFile>) => {
     if (filesToProcess.length === 0 || isProcessing) return;
 
     setIsProcessing(true);
@@ -148,11 +148,11 @@ export function useOcrImport(): UseOcrImportResult {
 
   // Add files to the list (and optionally auto-process)
   // This follows React best practices: trigger processing in event handler, not via Effect
-  const addFiles = (newFiles: File[], autoProcess = true) => {
+  const addFiles = (newFiles: Array<File>, autoProcess = true) => {
     const imageFiles = newFiles.filter((f) => f.type.startsWith('image/'));
     if (imageFiles.length === 0) return;
 
-    const uploadedFiles: UploadedFile[] = imageFiles.map((file) => ({
+    const uploadedFiles: Array<UploadedFile> = imageFiles.map((file) => ({
       id: generateId(),
       file,
       preview: URL.createObjectURL(file),

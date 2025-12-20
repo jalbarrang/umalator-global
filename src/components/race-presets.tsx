@@ -1,12 +1,3 @@
-import { cn } from '@/lib/utils';
-import { usePresetStore } from '@/store/race/preset.store';
-import {
-  setCourseId,
-  setRaceParams,
-  setSelectedPresetId,
-  useSettingsStore,
-} from '@/store/settings.store';
-import { createRaceConditions } from '@/utils/races';
 import dayjs from 'dayjs';
 import { Label } from './ui/label';
 import {
@@ -16,6 +7,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from './ui/select';
+import { cn } from '@/lib/utils';
+import { usePresetStore } from '@/store/race/preset.store';
+import {
+  setCourseId,
+  setRaceParams,
+  setSelectedPresetId,
+  useSettingsStore,
+} from '@/store/settings.store';
+import { createRaceConditions } from '@/utils/races';
 
 type RacePresetsProps = React.HTMLAttributes<HTMLDivElement>;
 
@@ -25,7 +25,11 @@ export const RacePresets = (props: RacePresetsProps) => {
   const { presets } = usePresetStore();
   const selectedPresetId = useSettingsStore((state) => state.selectedPresetId);
 
-  const handleChange = (value: string) => {
+  const handleChange = (value: string | null) => {
+    if (!value) {
+      return;
+    }
+
     const preset = presets[value];
     setCourseId(preset.courseId);
     setRaceParams(
@@ -47,8 +51,12 @@ export const RacePresets = (props: RacePresetsProps) => {
         value={selectedPresetId ?? undefined}
         onValueChange={handleChange}
       >
-        <SelectTrigger id="preset-select" className="w-full">
-          <SelectValue placeholder="Select a preset" />
+        <SelectTrigger
+          id="preset-select"
+          className="w-full"
+          data-placeholder="Select a preset"
+        >
+          <SelectValue />
         </SelectTrigger>
         <SelectContent>
           {Object.values(presets).map((p) => (

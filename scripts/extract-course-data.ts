@@ -4,8 +4,8 @@
  * Ports make_global_course_data.pl to TypeScript
  */
 
-import path from 'path';
-import { openDatabase, closeDatabase, queryAll } from './lib/database';
+import path from 'node:path';
+import { closeDatabase, openDatabase, queryAll } from './lib/database';
 import {
   resolveMasterDbPath,
   sortByNumericKey,
@@ -34,11 +34,11 @@ interface CourseRow {
 interface CourseEvent {
   _paramType: number;
   _distance: number;
-  _values: number[];
+  _values: Array<number>;
 }
 
 interface CourseEventParams {
-  courseParams: CourseEvent[];
+  courseParams: Array<CourseEvent>;
 }
 
 interface Corner {
@@ -68,10 +68,10 @@ interface CourseData {
   laneMax: number;
   finishTimeMin: number;
   finishTimeMax: number;
-  courseSetStatus: number[];
-  corners: Corner[];
-  straights: Straight[];
-  slopes: Slope[];
+  courseSetStatus: Array<number>;
+  corners: Array<Corner>;
+  straights: Array<Straight>;
+  slopes: Array<Slope>;
 }
 
 /**
@@ -109,7 +109,7 @@ async function extractCourseData() {
        FROM race_course_set_status`,
     );
 
-    const courseSetStatus: Record<number, number[]> = {};
+    const courseSetStatus: Record<number, Array<number>> = {};
     for (const row of statusRows) {
       const statuses = [row.target_status_1];
       if (row.target_status_2 !== 0) {
@@ -155,9 +155,9 @@ async function extractCourseData() {
       }
 
       // Process events
-      const corners: Corner[] = [];
-      const straights: Straight[] = [];
-      const slopes: Slope[] = [];
+      const corners: Array<Corner> = [];
+      const straights: Array<Straight> = [];
+      const slopes: Array<Slope> = [];
 
       let pendingStraight: Partial<Straight> | null = null;
       let straightState = 0; // 0 = not in straight, 1 = in straight

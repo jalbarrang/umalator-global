@@ -1,11 +1,11 @@
 import { useMemo } from 'react';
+import { useShallow } from 'zustand/shallow';
 import { useRunnersStore } from '../runners.store';
 import { useSettingsStore } from '../settings.store';
-import { RunnerState } from '@/modules/runners/components/runner-card/types';
-import { useShallow } from 'zustand/shallow';
+import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 
 // Convert boolean array to indices array
-export const getSelectedPacemakerIndices = (): number[] => {
+export const getSelectedPacemakerIndices = (): Array<number> => {
   const { selectedPacemakers } = useSettingsStore.getState();
 
   return selectedPacemakers
@@ -13,7 +13,7 @@ export const getSelectedPacemakerIndices = (): number[] => {
     .filter((index) => index !== -1);
 };
 
-export const useSelectedPacemakerIndices = (): number[] => {
+export const useSelectedPacemakerIndices = (): Array<number> => {
   const selectedPacemakers = useSettingsStore(
     useShallow((state) => state.selectedPacemakers),
   );
@@ -26,7 +26,7 @@ export const useSelectedPacemakerIndices = (): number[] => {
 };
 
 // Convert indices array to boolean array
-export const setSelectedPacemakerIndices = (indices: number[]) => {
+export const setSelectedPacemakerIndices = (indices: Array<number>) => {
   const selectedPacemakers = [false, false, false];
 
   indices.forEach((index) => {
@@ -46,7 +46,7 @@ export const togglePacemakerSelection = (index: number) => {
   useSettingsStore.setState({ selectedPacemakers: newSelection });
 };
 
-export const togglePaceMakers = (indices: number[]) => {
+export const togglePaceMakers = (indices: Array<number>) => {
   console.log('togglePaceMakers', indices);
 
   const { selectedPacemakers } = useSettingsStore.getState();
@@ -75,7 +75,7 @@ export const setPacemakerCount = (count: number) => {
   });
 };
 
-export const getSelectedPacemakersAsArray = (): boolean[] => {
+export const getSelectedPacemakersAsArray = (): Array<boolean> => {
   const result = [false, false, false];
   const indices = getSelectedPacemakerIndices();
 
@@ -88,7 +88,7 @@ export const getSelectedPacemakersAsArray = (): boolean[] => {
   return result;
 };
 
-export const useSelectedPacemakers = (): RunnerState[] => {
+export const useSelectedPacemakers = (): Array<RunnerState> => {
   const { uma1, uma2, pacer } = useRunnersStore();
   const selectedPacemakers = useSelectedPacemakerIndices();
 
@@ -97,7 +97,7 @@ export const useSelectedPacemakers = (): RunnerState[] => {
   }, [uma1, uma2, pacer, selectedPacemakers]);
 };
 
-export const useSelectedPacemakerBooleans = (): boolean[] => {
+export const useSelectedPacemakerBooleans = (): Array<boolean> => {
   const { selectedPacemakers } = useSettingsStore();
 
   return useMemo(() => {

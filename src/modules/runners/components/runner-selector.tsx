@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
-import { umasForSearch, getUmaImageUrl } from '@/modules/runners/utils';
+import { getUmaImageUrl, umasForSearch } from '@/modules/runners/utils';
 import {
   Popover,
   PopoverContent,
@@ -32,7 +32,7 @@ export const UmaSelector = (props: UmaSelectorProps) => {
   );
 
   const selectedUma = useMemo(() => {
-    const uma = umasForSearch.find((uma) => uma.id === props.value);
+    const uma = umasForSearch.find((currUma) => currUma.id === props.value);
 
     if (!uma) return null;
 
@@ -49,7 +49,7 @@ export const UmaSelector = (props: UmaSelectorProps) => {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
+      <PopoverTrigger>
         <div className="flex flex-1 gap-2 cursor-pointer">
           <div className="w-18 h-18">
             <img src={imageUrl} alt={selectedUma?.name || 'Runner'} />

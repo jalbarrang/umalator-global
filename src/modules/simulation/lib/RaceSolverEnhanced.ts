@@ -5,14 +5,15 @@
  * with the enhanced HP/spurt calculation system from umasim
  */
 
-import { RaceSolver, PendingSkill } from './RaceSolver';
-import { HorseParameters } from './HorseTypes';
-import { CourseData } from './courses/types';
-import { GroundCondition } from './RaceParameters';
-import { PRNG } from './Random';
+import { RaceSolver } from './RaceSolver';
 import { EnhancedHpPolicy } from './EnhancedHpPolicy';
 import { GameHpPolicy } from './HpPolicy';
-import {
+import type { PendingSkill } from './RaceSolver';
+import type { HorseParameters } from './HorseTypes';
+import type { CourseData } from './courses/types';
+import type { GroundCondition } from './RaceParameters';
+import type { PRNG } from './Random';
+import type {
   ISkillPerspective,
   ISkillTarget,
   ISkillType,
@@ -43,7 +44,7 @@ export type RaceSolverConfig = {
   course: CourseData;
   ground: GroundCondition;
   rng: PRNG;
-  skills: PendingSkill[];
+  skills: Array<PendingSkill>;
   pacer?: RaceSolver;
   useEnhancedSpurt?: boolean; // Whether to use enhanced spurt calculations
   onSkillActivate?: OnSkillActivateCallback;
@@ -94,7 +95,7 @@ export function compareSpurtCalculations(
   course: CourseData,
   ground: GroundCondition,
   rng: PRNG,
-  skills: PendingSkill[],
+  skills: Array<PendingSkill>,
 ): {
   standard: RaceSolver;
   enhanced: RaceSolver;

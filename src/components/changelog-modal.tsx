@@ -1,3 +1,4 @@
+import type {ChangelogEntry} from '@/data/changelog';
 import {
   Dialog,
   DialogContent,
@@ -5,7 +6,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { setShowChangelogModal, useUIStore } from '@/store/ui.store';
-import { changelog, type ChangelogEntry } from '@/data/changelog';
+import {  changelog } from '@/data/changelog';
 import { cn } from '@/lib/utils';
 
 const changeTypeBadge: Record<

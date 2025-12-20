@@ -1,15 +1,20 @@
 import { useMemo } from 'react';
-import {
-  parseStrategy,
-  parseAptitude,
-} from '@simulation/lib/RaceSolverBuilder';
-import { RunnerState } from '@/modules/runners/components/runner-card/types';
+import { buildBaseStats } from '@simulation/lib/RaceSolverBuilder';
+import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import {
   HpConsumptionGroundModifier,
   HpStrategyCoefficient,
 } from '@/modules/simulation/lib/HpPolicy';
 import { Speed } from '@/modules/simulation/lib/RaceSolver';
 import { CourseHelpers } from '@/modules/simulation/lib/CourseData';
+import {
+  calculateBaseMidRaceTargetSpeed,
+  calculateBaseSpeed,
+  calculateGutsModifier,
+  calculateMaxHP,
+  calculateMaxSpurtSpeed,
+  calculateRequiredHpForLastSpurt,
+} from '@/modules/simulation/lib/SpurtCalculator';
 
 export interface PhaseBreakdown {
   phase: string;
@@ -27,10 +32,15 @@ export interface StaminaAnalysis {
   canMaxSpurt: boolean;
   requiredStamina: number;
   staminaDeficit: number;
-  phases: PhaseBreakdown[];
+  phases: Array<PhaseBreakdown>;
   maxSpurtSpeed: number;
   baseTargetSpeed2: number;
 }
+
+const EarlyRacePhase = 0;
+const MidRacePhase = 1;
+const LateRacePhase = 2;
+// const LastSpurtPhase = 3;
 
 export function calculateStaminaAnalysis(
   runner: RunnerState,
@@ -39,35 +49,59 @@ export function calculateStaminaAnalysis(
 ): StaminaAnalysis {
   const course = CourseHelpers.getCourse(courseId);
 
-  const strategy = parseStrategy(runner.strategy);
-  const distanceAptitude = parseAptitude(runner.distanceAptitude, 'distance');
+  const runnerBaseStats = buildBaseStats({
+    speed: runner.speed,
+    stamina: runner.stamina,
+    power: runner.power,
+    guts: runner.guts,
+    wisdom: runner.wisdom,
+    strategy: runner.strategy,
+    distanceAptitude: runner.distanceAptitude,
+    surfaceAptitude: runner.surfaceAptitude,
+    strategyAptitude: runner.strategyAptitude,
+    mood: runner.mood,
+  });
 
-  const distance = course.distance;
-  const baseSpeed = 20.0 - (distance - 2000) / 1000.0;
+  const strategy = runnerBaseStats.strategy;
+  const distanceAptitude = runnerBaseStats.distanceAptitude;
+
+  const gutsModifier = calculateGutsModifier(runnerBaseStats.guts);
+  const hpStrategyCoefficient = HpStrategyCoefficient[strategy];
   const groundModifier =
     HpConsumptionGroundModifier[course.surface]?.[groundCondition] ?? 1.0;
-  const gutsModifier = 1.0 + 200.0 / Math.sqrt(600.0 * runner.guts);
 
-  // Calculate max HP: 0.8 * StrategyCoefficient * StaminaStat + CourseDistance
-  const maxHp =
-    0.8 * HpStrategyCoefficient[strategy] * runner.stamina + distance;
+  const speedStrategyCoefficient = Speed.StrategyPhaseCoefficient[strategy];
+  const distanceProficiencyModifier =
+    Speed.DistanceProficiencyModifier[distanceAptitude];
+
+  const distance = course.distance;
+  const baseSpeed = calculateBaseSpeed(distance);
+
+  const maxHp = calculateMaxHP({
+    coefficient: hpStrategyCoefficient,
+    stamina: runnerBaseStats.stamina,
+    distance: distance,
+  });
 
   // Calculate speeds for each phase
-  const phase0Speed = baseSpeed * Speed.StrategyPhaseCoefficient[strategy][0];
-  const phase1Speed = baseSpeed * Speed.StrategyPhaseCoefficient[strategy][1];
-  const baseTargetSpeed2 =
-    baseSpeed * Speed.StrategyPhaseCoefficient[strategy][2] +
-    Math.sqrt(500.0 * runner.speed) *
-      Speed.DistanceProficiencyModifier[distanceAptitude] *
-      0.002;
+  const phase0Speed = baseSpeed * speedStrategyCoefficient[EarlyRacePhase];
+  const phase1Speed = baseSpeed * speedStrategyCoefficient[MidRacePhase];
+
+  const baseMidRaceTargetSpeed = calculateBaseMidRaceTargetSpeed({
+    runnerSpeed: runnerBaseStats.speed,
+    baseSpeed: baseSpeed,
+    strategySpeedCoefficient: speedStrategyCoefficient[LateRacePhase],
+    distanceProficiencyModifier: distanceProficiencyModifier,
+  });
 
   // Calculate max spurt speed (includes guts component - post-1st anniversary)
-  const maxSpurtSpeed =
-    (baseTargetSpeed2 + 0.01 * baseSpeed) * 1.05 +
-    Math.sqrt(500.0 * runner.speed) *
-      Speed.DistanceProficiencyModifier[distanceAptitude] *
-      0.002 +
-    Math.pow(450.0 * runner.guts, 0.597) * 0.0001;
+  const maxSpurtSpeed = calculateMaxSpurtSpeed({
+    runnerSpeed: runnerBaseStats.speed,
+    runnerGuts: runnerBaseStats.guts,
+    baseSpeed: baseSpeed,
+    baseMidRaceTargetSpeed: baseMidRaceTargetSpeed,
+    distanceProficiencyModifier: distanceProficiencyModifier,
+  });
 
   // Phase distances (matching game terminology)
   // Phase 0 (Early-race): 0 to 1/6 (~16.7%)
@@ -99,7 +133,7 @@ export function calculateStaminaAnalysis(
   const phase1Time = phase1Distance / phase1Speed;
   const phase1Hp = phase1HpPerSec * phase1Time;
 
-  // Phase 2 (Late-race/Final leg) - uses guts modifier and max spurt speed
+  // Phase 2 (Late-race) - uses guts modifier and max spurt speed
   const phase2HpPerSec = calcHpPerSecond(maxSpurtSpeed, true);
   const phase2Time = phase2Distance / maxSpurtSpeed;
   const phase2Hp = phase2HpPerSec * phase2Time;
@@ -116,10 +150,13 @@ export function calculateStaminaAnalysis(
   // Calculate required stamina for max spurt
   // Solve: 0.8 * coef * stamina + distance >= totalHpNeeded
   // stamina >= (totalHpNeeded - distance) / (0.8 * coef)
-  const requiredStamina = Math.ceil(
-    (totalHpNeeded - distance) / (0.8 * HpStrategyCoefficient[strategy]),
-  );
-  const staminaDeficit = Math.max(0, requiredStamina - runner.stamina);
+  const requiredStamina = calculateRequiredHpForLastSpurt({
+    totalHpNeeded: totalHpNeeded,
+    distance: distance,
+    hpStrategyCoefficient: hpStrategyCoefficient,
+  });
+
+  const staminaDeficit = Math.max(0, requiredStamina - runnerBaseStats.stamina);
 
   // Calculate phase start/end positions
   const phase0Start = 0;
@@ -131,7 +168,7 @@ export function calculateStaminaAnalysis(
   const phase3Start = phase2End;
   const phase3End = distance;
 
-  const phases: PhaseBreakdown[] = [
+  const phases: Array<PhaseBreakdown> = [
     {
       phase: 'Early-race',
       startDistance: phase0Start,
@@ -175,7 +212,7 @@ export function calculateStaminaAnalysis(
     staminaDeficit,
     phases,
     maxSpurtSpeed,
-    baseTargetSpeed2,
+    baseTargetSpeed2: baseMidRaceTargetSpeed,
   };
 }
 

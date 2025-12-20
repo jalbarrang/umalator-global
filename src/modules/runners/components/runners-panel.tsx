@@ -1,3 +1,7 @@
+import { CourseHelpers } from '@simulation/lib/CourseData';
+import { useMemo } from 'react';
+import { Link2, Link2Off, Save } from 'lucide-react';
+import { RunnerCard } from './runner-card/runner-card';
 import {
   copyToRunner,
   resetAllRunners,
@@ -8,9 +12,6 @@ import {
   useRunner,
 } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
-import { CourseHelpers } from '@simulation/lib/CourseData';
-import { useMemo } from 'react';
-import { RunnerCard } from './runner-card/runner-card';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -28,7 +29,6 @@ import {
 import { cn } from '@/lib/utils';
 import { PosKeepMode } from '@/modules/simulation/lib/RaceSolver';
 import { useRunnerLibraryStore } from '@/store/runner-library.store';
-import { Link2, Link2Off, Save } from 'lucide-react';
 import './style.css';
 
 export const RunnersPanel = () => {
@@ -139,7 +139,7 @@ export const RunnersPanel = () => {
             </div>
             <div className="flex gap-1">
               <Tooltip>
-                <TooltipTrigger asChild>
+                <TooltipTrigger>
                   <Button
                     size="sm"
                     variant="ghost"
@@ -151,7 +151,7 @@ export const RunnersPanel = () => {
                 <TooltipContent>Save changes to library</TooltipContent>
               </Tooltip>
               <Tooltip>
-                <TooltipTrigger asChild>
+                <TooltipTrigger>
                   <Button size="sm" variant="ghost" onClick={handleUnlink}>
                     <Link2Off className="w-4 h-4" />
                   </Button>

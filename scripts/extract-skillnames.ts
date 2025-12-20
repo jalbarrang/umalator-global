@@ -4,8 +4,8 @@
  * Ports make_global_skillnames.pl to TypeScript
  */
 
-import path from 'path';
-import { openDatabase, closeDatabase, queryAll } from './lib/database';
+import path from 'node:path';
+import { closeDatabase, openDatabase, queryAll } from './lib/database';
 import {
   resolveMasterDbPath,
   sortByNumericKey,

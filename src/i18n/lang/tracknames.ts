@@ -20,4 +20,4 @@ const extractTrackNamesForLanguage = (language: 'ja' | 'en') => {
 export const TRACKNAMES_ja = extractTrackNamesForLanguage('ja');
 export const TRACKNAMES_en = extractTrackNamesForLanguage('en');
 
-export const trackIds = Object.keys(trackNameList) as TrackId[];
+export const trackIds = Object.keys(trackNameList);

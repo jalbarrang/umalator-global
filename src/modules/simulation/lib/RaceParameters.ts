@@ -1,4 +1,4 @@
-export const moods: readonly number[] = [-2, -1, 0, 1, 2];
+export const moods: ReadonlyArray<number> = [-2, -1, 0, 1, 2];
 export type Mood = (typeof moods)[number];
 
 export const asMood = (value: number): Mood => {
@@ -6,7 +6,7 @@ export const asMood = (value: number): Mood => {
     throw new Error(`Invalid mood value: ${value}`);
   }
 
-  return value as Mood;
+  return value;
 };
 
 export enum GroundCondition {

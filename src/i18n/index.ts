@@ -1,8 +1,8 @@
+import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
 import skills_en from './lang/en/skills';
 import skills_ja from './lang/ja/skills';
 
-import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
 
 import { TRACKNAMES_en, TRACKNAMES_ja } from './lang/tracknames';
 import { GroundCondition } from '@/modules/simulation/lib/RaceParameters';

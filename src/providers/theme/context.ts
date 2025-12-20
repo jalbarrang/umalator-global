@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react';
-import { createThemeStore, ThemeStore } from './store';
 import { useStore } from 'zustand';
+import type { ThemeStore, createThemeStore } from './store';
 
 export type ThemeStoreApi = ReturnType<typeof createThemeStore>;
 

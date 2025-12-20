@@ -8,7 +8,7 @@ export type UmaOutfitKey = keyof UmaEntry['outfits'];
 export type UmaOutfit = UmaEntry['outfits'][UmaOutfitKey];
 
 export type Uma = {
-  name: string[];
+  name: Array<string>;
   outfits: Record<string, string>;
 };
 

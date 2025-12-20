@@ -14,8 +14,8 @@ interface Corner {
 }
 
 interface SectionBarProps {
-  straights: readonly Straight[];
-  corners: readonly Corner[];
+  straights: ReadonlyArray<Straight>;
+  corners: ReadonlyArray<Corner>;
   distance: number;
 }
 
@@ -110,7 +110,7 @@ export const SectionBar = React.memo<SectionBarProps>(
 
       // Distance markers for section boundaries
       const sectionMarkers = allSections.flatMap((s, i) => {
-        const nodes: React.ReactElement[] = [];
+        const nodes: Array<React.ReactElement> = [];
         let markedStart = false;
 
         if (s.start !== 0 && (i === 0 || s.start !== allSections[i - 1].end)) {

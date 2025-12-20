@@ -1,13 +1,13 @@
+import type { StaminaAnalysis } from '../hooks/useStaminaAnalysis';
+import type { ActualPhaseHp } from '../hooks/usePhaseHp';
+import type { RecoverySkillActivation } from '../hooks/useRecoverySkills';
 import { cn } from '@/lib/utils';
-import { StaminaAnalysis } from '../hooks/useStaminaAnalysis';
-import { ActualPhaseHp } from '../hooks/usePhaseHp';
-import { RecoverySkillActivation } from '../hooks/useRecoverySkills';
 
 interface PhaseBreakdownProps {
   analysis: StaminaAnalysis;
-  phaseHp: ActualPhaseHp[];
-  recoverySkills: RecoverySkillActivation[];
-  debuffsReceived: RecoverySkillActivation[];
+  phaseHp: Array<ActualPhaseHp>;
+  recoverySkills: Array<RecoverySkillActivation>;
+  debuffsReceived: Array<RecoverySkillActivation>;
   isTheoretical: boolean;
 }
 

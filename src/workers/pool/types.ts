@@ -7,7 +7,7 @@ export type WorkerState = 'idle' | 'busy' | 'terminated';
 
 export type WorkBatch = {
   batchId: number;
-  skills: string[];
+  skills: Array<string>;
   stage: 1 | 2 | 3 | 4;
   nsamples: number;
   includeRunData: boolean;

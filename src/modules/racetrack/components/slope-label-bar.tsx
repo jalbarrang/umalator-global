@@ -9,7 +9,7 @@ interface Slope {
 }
 
 interface SlopeLabelBarProps {
-  slopes: readonly Slope[];
+  slopes: ReadonlyArray<Slope>;
   distance: number;
 }
 
@@ -73,7 +73,7 @@ export const SlopeLabelBar = React.memo<SlopeLabelBarProps>(
 
       // Distance markers for slopes
       const slopeMarkers = slopes.map((s, i) => {
-        const nodes: React.ReactElement[] = [];
+        const nodes: Array<React.ReactElement> = [];
         let markedStart = false;
 
         // Show start marker if there's a gap from previous slope

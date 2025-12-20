@@ -1,24 +1,22 @@
-import { getBaseSkillsToTest } from '@/modules/skills/utils';
-import { useRunner, useRunnersStore } from '@/store/runners.store';
-import { useSettingsStore } from '@/store/settings.store';
-import { setIsSimulationRunning } from '@simulation/stores/skill-basin.store';
-import { racedefToParams } from '@/utils/races';
+import { appendResultsToTable,
+  resetTable,
+  setIsSimulationRunning,
+  setMetrics,
+  setTable } from '@simulation/stores/skill-basin.store';
 import { CourseHelpers } from '@simulation/lib/CourseData';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
+import SkillBasinWorker from '@workers/skill-basin.worker.ts?worker';
+import type { SkillBasinResponse } from '@simulation/types';
 import {
   defaultSimulationOptions,
   getActivateableSkills,
   getNullRow,
 } from '@/components/bassin-chart/utils';
-import {
-  appendResultsToTable,
-  resetTable,
-  setMetrics,
-  setTable,
-} from '@simulation/stores/skill-basin.store';
-import { SkillBasinResponse } from '@simulation/types';
 
-import SkillBasinWorker from '@workers/skill-basin.worker.ts?worker';
+import { racedefToParams } from '@/utils/races';
+import { useSettingsStore } from '@/store/settings.store';
+import { useRunner, useRunnersStore } from '@/store/runners.store';
+import { getBaseSkillsToTest } from '@/modules/skills/utils';
 
 const baseSkillsToTest = getBaseSkillsToTest();
 

@@ -1,6 +1,6 @@
+import { useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { rankForStat } from '@/modules/runners/utils';
-import { useEffect, useState } from 'react';
 
 type StatImageProps = React.HTMLAttributes<HTMLImageElement> & {
   value: number;

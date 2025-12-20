@@ -1,20 +1,23 @@
-import { describe, test, expect, beforeEach } from 'bun:test';
-import { RaceSolver, PendingSkill, type RaceState } from '../RaceSolver';
-import { CourseData, IDistanceType } from '../courses/types';
-import { HorseParameters, Strategy, Aptitude } from '../HorseTypes';
+import { beforeEach, describe, expect, test } from 'bun:test';
+import { RaceSolver  } from '../RaceSolver';
+import { Aptitude, Strategy } from '../HorseTypes';
 import { Rule30CARng } from '../Random';
 import { Region } from '../Region';
 import {
-  SkillType,
-  SkillTarget,
   SkillPerspective,
   SkillRarity,
-  ISkillPerspective,
-  ISkillType,
-  ISkillTarget,
+  SkillTarget,
+  SkillType
 } from '../race-solver/types';
 import { GameHpPolicy } from '../HpPolicy';
 import { GroundCondition } from '../RaceParameters';
+import type {
+  ISkillPerspective,
+  ISkillTarget,
+  ISkillType} from '../race-solver/types';
+import type { HorseParameters} from '../HorseTypes';
+import type {PendingSkill, RaceState} from '../RaceSolver';
+import type { CourseData, IDistanceType } from '../courses/types';
 
 /**
  * Test suite for RaceSolver.processSkillActivations()
@@ -222,7 +225,7 @@ describe('RaceSolver.processSkillActivations', () => {
 
   test('should call onSkillActivate callback when skill activates', () => {
     let activationCalled = false;
-    let activatedSkillId: string = '';
+    let activatedSkillId = '';
     let activatedPerspective: ISkillPerspective = SkillPerspective.Self;
     let activatedType: ISkillType = SkillType.Recovery;
     let activatedTarget: ISkillTarget = SkillTarget.AheadOfSelf;

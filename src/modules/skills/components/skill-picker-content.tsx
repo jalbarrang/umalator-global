@@ -1,3 +1,15 @@
+import { SearchIcon, XIcon } from 'lucide-react';
+import {
+  useDeferredValue,
+  useImperativeHandle,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+} from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
+import { SkillIcon, SkillItem } from './skill-list/SkillItem';
+import { VirtualizedSkillGrid } from './VirtualizedSkillGrid';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -18,18 +30,6 @@ import {
   getUniqueSkillForByUmaId,
   matchRarity,
 } from '@/modules/skills/utils';
-import { SearchIcon, XIcon } from 'lucide-react';
-import {
-  useDeferredValue,
-  useImperativeHandle,
-  useMemo,
-  useReducer,
-  useRef,
-  useState,
-} from 'react';
-import { useHotkeys } from 'react-hotkeys-hook';
-import { SkillIcon, SkillItem } from './skill-list/SkillItem';
-import { VirtualizedSkillGrid } from './VirtualizedSkillGrid';
 
 type IconFilterButtonProps = {
   type: string;
@@ -88,7 +88,7 @@ type FilterAction =
 
 function createInitialFilterState(): FilterState {
   const state: FilterState = {};
-  const groupKeys = Object.keys(groups_filters) as FilterGroup[];
+  const groupKeys = Object.keys(groups_filters) as Array<FilterGroup>;
 
   for (const group of groupKeys) {
     state[group] = {};
@@ -161,7 +161,7 @@ function filterReducer(state: FilterState, action: FilterAction): FilterState {
 const getActiveFilters = (
   filterState: FilterState,
   group: string,
-): string[] => {
+): Array<string> => {
   return groups_filters[group as FilterGroup].filter(
     (f) => filterState[group][f],
   );
@@ -172,9 +172,9 @@ type IconIdPrefix = keyof typeof iconIdPrefixes;
 export type SkillPickerContentProps = {
   ref: React.RefObject<{ focus: () => void } | null>;
   umaId: string;
-  options: string[];
-  currentSkills: string[];
-  onSelect: (skills: string[]) => void;
+  options: Array<string>;
+  currentSkills: Array<string>;
+  onSelect: (skills: Array<string>) => void;
   className?: string;
   hideSelected?: boolean;
   isMobile?: boolean;
@@ -254,7 +254,7 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
 
   // Build selected map using the pre-built lookup
   const selectedMap = (() => {
-    const selected: [string, string][] = [];
+    const selected: Array<[string, string]> = [];
 
     for (const id of currentSkills) {
       // Use the pre-built map for O(1) lookup
@@ -283,7 +283,7 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
     if (eventType !== 'select-skill') return;
 
     let id = eventElement.dataset.skillid;
-    const skill = skills.find((skill) => skill.id === id);
+    const skill = skills.find((currSkill) => currSkill.id === id);
     if (!skill) return;
 
     const groupId = skill.meta.groupId;
@@ -297,8 +297,8 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
       // For debuffs, find the next available suffix
       let count = 0;
 
-      for (const selectedId of newSelected) {
-        if (selectedId.split('-')[0] === id) {
+      for (const currSelectedId of newSelected) {
+        if (currSelectedId.split('-')[0] === id) {
           count++;
         }
       }

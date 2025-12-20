@@ -1,5 +1,8 @@
-import { SimulationData } from '@/modules/simulation/compare.types';
-import { RoundResult, SkillBasinResponse } from '@/modules/simulation/types';
+import type { SimulationData } from '@/modules/simulation/compare.types';
+import type {
+  RoundResult,
+  SkillBasinResponse,
+} from '@/modules/simulation/types';
 
 export const mergeResults = (resultA: RoundResult, resultB: RoundResult) => {
   if (resultA.id !== resultB.id) {

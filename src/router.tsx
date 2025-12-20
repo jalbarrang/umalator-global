@@ -1,8 +1,8 @@
 import { createRouter } from '@tanstack/react-router';
 import './i18n';
 
-import { routeTree } from './routeTree.gen';
 import { enableMapSet } from 'immer';
+import { routeTree } from './routeTree.gen';
 
 enableMapSet();
 

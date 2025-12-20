@@ -7,7 +7,7 @@ interface Slope {
 }
 
 interface SlopeVisualizationProps {
-  slopes: readonly Slope[];
+  slopes: ReadonlyArray<Slope>;
   distance: number;
 }
 
@@ -38,7 +38,7 @@ export const SlopeVisualization = React.memo<SlopeVisualizationProps>(
         highestPoint - (lowestPoint + highestPoint > -30 ? 0 : lowestPoint);
 
       // Fill in flat sections between slopes
-      const full: Slope[] = slopes.slice();
+      const full: Array<Slope> = slopes.slice();
       let lastEnd = 0;
 
       slopes.forEach((s) => {
@@ -60,7 +60,7 @@ export const SlopeVisualization = React.memo<SlopeVisualizationProps>(
 
       // Calculate terrain elements
       const slopeEndHeights = [50];
-      const terrainElements = full.reduce<React.ReactElement[]>(
+      const terrainElements = full.reduce<Array<React.ReactElement>>(
         (elems, s, i) => {
           const lastEndHeight = slopeEndHeights[slopeEndHeights.length - 1];
           const thisEndHeight =

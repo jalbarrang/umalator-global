@@ -1,12 +1,12 @@
 import { cloneDeep } from 'es-toolkit';
-import {
+import type {
   ISkillPerspective,
   ISkillTarget,
   ISkillType,
 } from './lib/race-solver/types';
 
 export interface CompareResult {
-  results: number[];
+  results: Array<number>;
   runData: SimulationData;
   rushedStats: Stats;
   leadCompetitionStats: Stats;
@@ -44,22 +44,22 @@ export interface SimulationData {
 }
 
 export interface SimulationRun {
-  t: Array<number[]>;
-  p: Array<number[]>;
-  v: Array<number[]>;
-  hp: Array<number[]>;
-  currentLane: Array<number[]>;
-  pacerGap: Array<number[]>;
+  t: Array<Array<number>>;
+  p: Array<Array<number>>;
+  v: Array<Array<number>>;
+  hp: Array<Array<number>>;
+  currentLane: Array<Array<number>>;
+  pacerGap: Array<Array<number>>;
   sk: [SkillActivationMap, SkillActivationMap];
-  sdly: number[];
-  rushed: RegionActivation[][];
-  posKeep: Array<Array<number[]>>;
+  sdly: Array<number>;
+  rushed: Array<Array<RegionActivation>>;
+  posKeep: Array<Array<Array<number>>>;
   competeFight: Array<RegionActivation | []>;
   leadCompetition: Array<RegionActivation | []>;
-  pacerV: Array<number[]>;
-  pacerP: Array<number[]>;
-  pacerT: Array<number[]>;
-  pacerPosKeep: Array<Array<number[]>>;
+  pacerV: Array<Array<number>>;
+  pacerP: Array<Array<number>>;
+  pacerT: Array<Array<number>>;
+  pacerPosKeep: Array<Array<Array<number>>>;
   pacerLeadCompetition: Array<RegionActivation | []>;
 }
 
@@ -76,7 +76,7 @@ export type SkillActivation = {
   effectTarget: ISkillTarget;
 };
 
-export type SkillActivationMap = Map<string, SkillActivation[]>;
+export type SkillActivationMap = Map<string, Array<SkillActivation>>;
 
 export interface StaminaStats {
   uma1: StaminaStatsUma1;

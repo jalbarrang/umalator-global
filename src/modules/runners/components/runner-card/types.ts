@@ -1,4 +1,4 @@
-import { Mood } from '@simulation/lib/RaceParameters';
+import type { Mood } from '@simulation/lib/RaceParameters';
 
 export const defaultRunnerState: RunnerState = {
   outfitId: '',
@@ -38,7 +38,7 @@ export type RunnerState = {
   surfaceAptitude: string;
   strategyAptitude: string;
   mood: Mood;
-  skills: string[];
+  skills: Array<string>;
   forcedSkillPositions: Record<string, number>; // TODO: Change to Map for easier serialization
   randomMobId?: number; // For placeholder image when no uma selected
   linkedRunnerId?: string; // Link to saved runner in library

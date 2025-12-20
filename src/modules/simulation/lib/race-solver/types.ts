@@ -94,14 +94,14 @@ export type IPositionKeepState =
 
 export type ISkillData = {
   rarity: ISkillRarity;
-  alternatives: ISkillAlternative[];
+  alternatives: Array<ISkillAlternative>;
 };
 
 export type ISkillAlternative = {
   precondition: ISkillPrecondition;
   condition: string;
   baseDuration: number;
-  effects: ISkillEffect[];
+  effects: Array<ISkillEffect>;
 };
 
 export type RawSkillEffect = {

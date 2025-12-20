@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import { PhaseBreakdown, StaminaAnalysis } from './useStaminaAnalysis';
-import { RecoverySkillActivation } from './useRecoverySkills';
+import type { PhaseBreakdown, StaminaAnalysis } from './useStaminaAnalysis';
+import type { RecoverySkillActivation } from './useRecoverySkills';
 
 export interface ActualPhaseHp {
   hpAtStart: number;
@@ -12,8 +12,8 @@ export interface ActualPhaseHp {
  * Helper to find HP at a specific position from simulation data
  */
 function findHpAtPosition(
-  positions: number[],
-  hpValues: number[],
+  positions: Array<number>,
+  hpValues: Array<number>,
   targetPosition: number,
 ): number | null {
   if (!positions || !hpValues || positions.length === 0) return null;
@@ -39,11 +39,11 @@ function findHpAtPosition(
  * Calculate actual HP values from simulation data
  */
 export function useActualPhaseHp(
-  positions: number[] | undefined,
-  hpValues: number[] | undefined,
-  phases: PhaseBreakdown[],
+  positions: Array<number> | undefined,
+  hpValues: Array<number> | undefined,
+  phases: Array<PhaseBreakdown>,
   maxHp: number,
-): ActualPhaseHp[] | null {
+): Array<ActualPhaseHp> | null {
   return useMemo(() => {
     if (!positions || !hpValues) return null;
 
@@ -64,11 +64,11 @@ export function useActualPhaseHp(
  */
 export function useTheoreticalPhaseHp(
   analysis: StaminaAnalysis,
-  recoverySkills: RecoverySkillActivation[],
-  debuffsReceived: RecoverySkillActivation[] = [],
-): ActualPhaseHp[] {
+  recoverySkills: Array<RecoverySkillActivation>,
+  debuffsReceived: Array<RecoverySkillActivation> = [],
+): Array<ActualPhaseHp> {
   return useMemo(() => {
-    return analysis.phases.reduce<ActualPhaseHp[]>((acc, phase) => {
+    return analysis.phases.reduce<Array<ActualPhaseHp>>((acc, phase) => {
       const hpAtStart =
         acc.length === 0 ? analysis.maxHp : acc[acc.length - 1].hpAtEnd;
 

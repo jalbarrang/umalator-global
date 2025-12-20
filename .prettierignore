@@ -4,3 +4,7 @@ src/modules/data/*.json
 src/modules/skills/*.json
 src/modules/simulation/*.json
 *.mdb
+
+package-lock.json
+pnpm-lock.yaml
+yarn.lock

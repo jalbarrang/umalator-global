@@ -2,7 +2,7 @@
  * Shared utilities for data extraction scripts
  */
 
-import path from 'path';
+import path from 'node:path';
 import { getUniqueSkillForByUmaId as getUniqueSkillForByUmaIdFromUtils } from '@skills/utils';
 
 /**
@@ -32,11 +32,11 @@ export const getUniqueSkillForOutfit = getUniqueSkillForByUmaIdFromUtils;
  * Matches the canonical format used by Perl scripts (sorted keys, no pretty-print)
  */
 export async function writeJsonFile(
-  path: string,
+  filePath: string,
   data: Record<string, unknown>,
 ): Promise<void> {
   const output = JSON.stringify(data) + '\n';
-  await Bun.write(path, output);
+  await Bun.write(filePath, output);
 }
 
 /**

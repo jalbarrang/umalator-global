@@ -2,9 +2,9 @@
  * Web Worker for running simulations
  */
 
-import { RunnerState } from '@/modules/runners/components/runner-card/types';
+import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import type { CompareParams } from '@/modules/simulation/types';
 import { runComparison } from '@/utils/compare';
-import { CompareParams } from '@/modules/simulation/types';
 
 // Throttle interval for progress updates (100ms = 10 FPS max)
 const UPDATE_INTERVAL_MS = 100;

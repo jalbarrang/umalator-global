@@ -7,9 +7,9 @@ import GametoraSkills from '@data/gametora/skills.json';
 import type { ISkill } from '@/modules/skills/types';
 import type {
   SkillLookupEntry,
-  UmaLookupEntry,
-  UmaData,
   SkillMatch,
+  UmaData,
+  UmaLookupEntry,
   UmaMatch,
 } from './types';
 
@@ -29,7 +29,7 @@ export function normalize(text: string): string {
 
 /** Levenshtein distance for fuzzy matching */
 export function levenshteinDistance(a: string, b: string): number {
-  const matrix: number[][] = [];
+  const matrix: Array<Array<number>> = [];
 
   for (let i = 0; i <= b.length; i++) {
     matrix[i] = [i];
@@ -79,7 +79,7 @@ const skillLookup = new Map<string, SkillLookupEntry>();
 function buildSkillLookup() {
   if (skillLookup.size > 0) return;
 
-  for (const skill of GametoraSkills as ISkill[]) {
+  for (const skill of GametoraSkills as Array<ISkill>) {
     const id = String(skill.id);
 
     // Add main skill name_en
@@ -114,7 +114,7 @@ const umaLookup = new Map<string, UmaLookupEntry>();
 function buildUmaLookup() {
   if (umaLookup.size > 0) return;
 
-  for (const [_baseId, uma] of Object.entries(umas) as [string, UmaData][]) {
+  for (const [_baseId, uma] of Object.entries(umas) as Array<[string, UmaData]>) {
     const umaName = uma.name[1] || '';
 
     for (const [outfitId, outfitName] of Object.entries(uma.outfits)) {

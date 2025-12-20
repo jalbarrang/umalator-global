@@ -1,3 +1,6 @@
+import { resetResults, useRaceStore } from '@simulation/stores/compare.store';
+import { Activity, useMemo } from 'react';
+import { createFileRoute } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button-group';
 import { LoadingOverlay } from '@/components/loading-overlay';
@@ -11,10 +14,7 @@ import { ResultButtonGroups } from '@/modules/simulation/tabs/summary-tab';
 import { useSettingsStore } from '@/store/settings.store';
 import { useSelectedPacemakerBooleans } from '@/store/settings/actions';
 import { useUIStore } from '@/store/ui.store';
-import { resetResults, useRaceStore } from '@simulation/stores/compare.store';
-import { Activity, useMemo } from 'react';
 
-import { createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/_simulation/')({
   component: Home,

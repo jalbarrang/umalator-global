@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
 
 // Helper to convert client coords to SVG space
 function clientToSvgCoords(
@@ -62,9 +62,9 @@ export function useDragSkill({
       e.stopPropagation();
 
       // Get the main SVG element
-      const mainSvg = (e.currentTarget as Element).closest(
+      const mainSvg = (e.currentTarget as Element).closest<SVGSVGElement>(
         '.racetrackView',
-      ) as SVGSVGElement | null;
+      );
       if (!mainSvg) return;
 
       const svgCoords = clientToSvgCoords(mainSvg, e.clientX, e.clientY);

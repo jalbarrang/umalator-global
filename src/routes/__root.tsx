@@ -1,22 +1,23 @@
 // src/routes/__root.tsx
 /// <reference types="vite/client" />
 
+import { useMemo } from 'react';
+import {
+  HeadContent,
+  Outlet,
+  Scripts,
+  createRootRoute,
+  useLocation,
+  useNavigate,
+} from '@tanstack/react-router';
+import { HeartIcon, ScrollTextIcon } from 'lucide-react';
 import stylesCss from '../styles.css?url';
 import appCss from '../app.css?url';
-
 import type { ReactNode } from 'react';
-import {
-  Outlet,
-  createRootRoute,
-  HeadContent,
-  Scripts,
-  useNavigate,
-  useLocation,
-} from '@tanstack/react-router';
+
 import { Toaster } from '@/components/ui/sonner';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { HeartIcon, ScrollTextIcon } from 'lucide-react';
 import { setShowChangelogModal, setShowCreditsModal } from '@/store/ui.store';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { ChangelogModal } from '@/components/changelog-modal';
@@ -50,9 +51,17 @@ function RootComponent() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const currentTab = location.pathname.startsWith('/runners')
-    ? 'runners'
-    : 'simulation';
+  const currentTab = useMemo(() => {
+    if (location.pathname === '/') {
+      return 'simulation';
+    } else if (location.pathname === '/runners') {
+      return 'runners';
+    } else if (location.pathname === '/stamina-calculator') {
+      return 'stamina-calculator';
+    } else {
+      return 'simulation';
+    }
+  }, [location.pathname]);
 
   return (
     <RootDocument>
@@ -62,16 +71,25 @@ function RootComponent() {
             <Tabs
               value={currentTab}
               onValueChange={(value) => {
-                if (value === 'simulation') {
-                  navigate({ to: '/' });
-                } else if (value === 'runners') {
-                  navigate({ to: '/runners' });
+                switch (value) {
+                  case 'simulation':
+                    navigate({ to: '/' });
+                    break;
+                  case 'runners':
+                    navigate({ to: '/runners' });
+                    break;
+                  case 'stamina-calculator':
+                    navigate({ to: '/stamina-calculator' });
+                    break;
                 }
               }}
             >
               <TabsList>
                 <TabsTrigger value="simulation">Umalator</TabsTrigger>
                 <TabsTrigger value="runners">Veterans</TabsTrigger>
+                <TabsTrigger value="stamina-calculator">
+                  Stamina Calculator
+                </TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -93,7 +111,8 @@ function RootComponent() {
               <HeartIcon className="h-4 w-4 mr-1" />
               <span className="hidden md:inline!">Credits</span>
             </Button>
-            <Button variant="outline" size="sm" asChild>
+
+            <Button variant="outline" size="sm">
               <a
                 href="https://github.com/jalbarrang/umalator-global"
                 target="_blank"

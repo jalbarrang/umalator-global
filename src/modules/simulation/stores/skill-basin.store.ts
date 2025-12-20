@@ -1,19 +1,19 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import {
+import { useShallow } from 'zustand/shallow';
+import { useMemo, useState } from 'react';
+import { initializeSimulationRun } from '../compare.types';
+import { useRaceStore } from './compare.store';
+import type {
+  SimulationData,
+  SimulationRun,
+  SkillActivation,
+} from '../compare.types';
+import type {
   PoolMetrics,
   RoundResult,
   SkillBasinResponse,
 } from '@simulation/types';
-import { useShallow } from 'zustand/shallow';
-import { useMemo, useState } from 'react';
-import {
-  SimulationData,
-  SimulationRun,
-  SkillActivation,
-  initializeSimulationRun,
-} from '../compare.types';
-import { useRaceStore } from './compare.store';
 
 type ISkillBasinStore = {
   results: SkillBasinResponse;
@@ -72,7 +72,7 @@ export const useChartData = () => {
     useShallow((state) => state.displaying as keyof SimulationData),
   );
 
-  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const [selectedSkills, setSelectedSkills] = useState<Array<string>>([]);
 
   const relevantResults = useMemo(() => {
     const relevant: Map<string, RoundResult> = new Map();
@@ -89,8 +89,8 @@ export const useChartData = () => {
   }, [results, selectedSkills]);
 
   const chartData: SimulationRun = useMemo(() => {
-    const chartData: SimulationRun = initializeSimulationRun();
-    const mergedMap = new Map<string, SkillActivation[]>();
+    const currentData: SimulationRun = initializeSimulationRun();
+    const mergedMap = new Map<string, Array<SkillActivation>>();
 
     // Directly merge into one Map without recreation
     for (const [skill, skillResults] of relevantResults.entries()) {
@@ -100,13 +100,14 @@ export const useChartData = () => {
       // Index 1 is uma that used the new skill for sim
       const skillActivations = selectedData.sk[1];
       if (!skillActivations) continue;
-      const activations: SkillActivation[] = skillActivations.get(skill) ?? [];
+      const activations: Array<SkillActivation> =
+        skillActivations.get(skill) ?? [];
       mergedMap.set(skill, activations);
     }
 
-    chartData.sk[0] = mergedMap;
+    currentData.sk[0] = mergedMap;
 
-    return chartData;
+    return currentData;
   }, [relevantResults, displaying]);
 
   return { chartData, selectedSkills, setSelectedSkills };

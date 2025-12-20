@@ -1,8 +1,8 @@
 import fs from 'node:fs';
-import { program, Option } from 'commander';
+import { Option, program } from 'commander';
 import { CourseHelpers } from '../src/modules/simulation/lib/CourseData';
 import { RaceSolverBuilder } from '../src/modules/simulation/lib/RaceSolverBuilder';
-import { RaceSolver } from '../src/modules/simulation/lib/RaceSolver';
+import type { RaceSolver } from '../src/modules/simulation/lib/RaceSolver';
 
 program
   .argument(
@@ -88,13 +88,13 @@ while (base.accumulatetime.t <= min.accumulatetime.t) {
   base.step(dt);
 }
 
-const gain: number[][] = [];
+const gain: Array<Array<number>> = [];
 for (
   let guts = opts.gutsRange[0];
   guts <= opts.gutsRange[1];
   guts += opts.step
 ) {
-  const row: number[] = [];
+  const row: Array<number> = [];
   gain.push(row);
   for (
     let speed = opts.speedRange[0];

@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet } from '@tanstack/react-router';
+import { Outlet, createFileRoute } from '@tanstack/react-router';
 
 import { LeftSidebar } from '@/layout/left-sidebar';
 import { SimulationModeToggle } from '@/components/simulation-mode-toggle';

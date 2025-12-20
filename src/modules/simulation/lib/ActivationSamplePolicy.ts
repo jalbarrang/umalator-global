@@ -1,8 +1,9 @@
-import { Region, RegionList } from './Region';
-import { PRNG } from './Random';
+import { Region } from './Region';
+import type { RegionList } from './Region';
+import type { PRNG } from './Random';
 
 export interface ActivationSamplePolicy {
-  sample(regions: RegionList, nsamples: number, rng: PRNG): Region[];
+  sample: (regions: RegionList, nsamples: number, rng: PRNG) => Array<Region>;
 
   // essentially, when two conditions are combined with an AndOperator one should take precedence over the other
   // immediate transitions into anything and straight_random/all_corner_random dominate everything except each other
@@ -11,18 +12,18 @@ export interface ActivationSamplePolicy {
   // the actual x_random (phase_random, down_slope_random, etc) ones should dominate the ones that are not actually
   // random but merely modeled with a probability distribution
   // use smalltalk-style double dispatch to implement the transitions
-  reconcile(other: ActivationSamplePolicy): ActivationSamplePolicy;
-  reconcileImmediate(other: ActivationSamplePolicy): ActivationSamplePolicy;
-  reconcileDistributionRandom(
+  reconcile: (other: ActivationSamplePolicy) => ActivationSamplePolicy;
+  reconcileImmediate: (other: ActivationSamplePolicy) => ActivationSamplePolicy;
+  reconcileDistributionRandom: (
     other: ActivationSamplePolicy,
-  ): ActivationSamplePolicy;
-  reconcileRandom(other: ActivationSamplePolicy): ActivationSamplePolicy;
-  reconcileStraightRandom(
+  ) => ActivationSamplePolicy;
+  reconcileRandom: (other: ActivationSamplePolicy) => ActivationSamplePolicy;
+  reconcileStraightRandom: (
     other: ActivationSamplePolicy,
-  ): ActivationSamplePolicy;
-  reconcileAllCornerRandom(
+  ) => ActivationSamplePolicy;
+  reconcileAllCornerRandom: (
     other: ActivationSamplePolicy,
-  ): ActivationSamplePolicy;
+  ) => ActivationSamplePolicy;
 }
 
 export const ImmediatePolicy = {
@@ -85,7 +86,7 @@ export const RandomPolicy = {
 };
 
 export abstract class DistributionRandomPolicy {
-  abstract distribution(upper: number, nsamples: number, rng: PRNG): number[];
+  abstract distribution(upper: number, nsamples: number, rng: PRNG): Array<number>;
 
   sample(regions: RegionList, nsamples: number, rng: PRNG) {
     if (regions.length == 0) {

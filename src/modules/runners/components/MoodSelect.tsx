@@ -1,18 +1,23 @@
+import type { Mood } from '@/modules/simulation/lib/RaceParameters';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
 } from '@/components/ui/select';
-import { asMood, Mood } from '@/modules/simulation/lib/RaceParameters';
+import { cn } from '@/lib/utils';
+import { asMood } from '@/modules/simulation/lib/RaceParameters';
 
 type MoodSelectProps = {
   value: Mood;
   onChange: (value: Mood) => void;
+  className?: string;
 };
 
 export function MoodSelect(props: MoodSelectProps) {
-  const moodValues: { value: Mood; icon: string; label: string }[] = [
+  const { className = '' } = props;
+
+  const moodValues: Array<{ value: Mood; icon: string; label: string }> = [
     { value: 2, icon: 'utx_ico_motivation_m_04', label: 'Great' },
     { value: 1, icon: 'utx_ico_motivation_m_03', label: 'Good' },
     { value: 0, icon: 'utx_ico_motivation_m_02', label: 'Normal' },
@@ -20,13 +25,19 @@ export function MoodSelect(props: MoodSelectProps) {
     { value: -2, icon: 'utx_ico_motivation_m_00', label: 'Awful' },
   ];
 
-  const handleChange = (value: string) => {
+  const handleChange = (value: string | null) => {
+    if (!value) {
+      return;
+    }
+
     props.onChange(asMood(+value));
   };
 
   return (
     <Select value={props.value.toString()} onValueChange={handleChange}>
-      <SelectTrigger className="border-none rounded-none shadow-none">
+      <SelectTrigger
+        className={cn('border-none rounded-none shadow-none', className)}
+      >
         <img
           src={`/icons/global/${
             moodValues.find((m) => m.value === props.value)?.icon

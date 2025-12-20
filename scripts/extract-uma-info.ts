@@ -4,10 +4,10 @@
  * Ports make_global_uma_info.pl to TypeScript
  */
 
-import path from 'path';
+import path from 'node:path';
 import {
-  openDatabase,
   closeDatabase,
+  openDatabase,
   queryAll,
   queryAllWithParams,
 } from './lib/database';

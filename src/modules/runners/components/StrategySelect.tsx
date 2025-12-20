@@ -5,19 +5,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 
 type StrategySelectProps = {
   value: string;
-  onChange: (value: string) => void;
+  onChange: (value: string | null) => void;
   disabled?: boolean;
+  className?: string;
 };
 
 export function StrategySelect(props: StrategySelectProps) {
-  const { value, onChange, disabled = false } = props;
+  const { value, onChange, disabled = false, className = '' } = props;
 
   return (
     <Select value={value} onValueChange={onChange} disabled={disabled}>
-      <SelectTrigger className="border-none rounded-none shadow-none">
+      <SelectTrigger
+        className={cn('border-none rounded-none shadow-none', className)}
+      >
         <SelectValue />
       </SelectTrigger>
       <SelectContent>

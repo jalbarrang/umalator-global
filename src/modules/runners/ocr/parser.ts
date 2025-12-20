@@ -2,10 +2,10 @@
  * Main OCR parser - orchestrates extraction of all data from OCR text
  */
 
-import type { ExtractedUmaData } from './types';
 import { extractStats } from './stats';
 import { extractUmaIdentity } from './uma';
 import { extractSkills } from './skills';
+import type { ExtractedUmaData } from './types';
 
 /** Parse complete OCR result and extract all uma data */
 export function parseOcrResult(

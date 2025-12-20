@@ -1,3 +1,4 @@
+import { cloneDeep } from 'es-toolkit';
 import {
   Conditions,
   immediate,
@@ -5,60 +6,51 @@ import {
   random,
 } from './ActivationConditions';
 import {
-  ActivationSamplePolicy,
-  createFixedPositionPolicy,
   ImmediatePolicy,
+  createFixedPositionPolicy,
 } from './ActivationSamplePolicy';
-import { getParser } from './ConditionParser';
+import { Parser, getDefaultParser } from './ConditionParser';
 import { CourseHelpers } from './CourseData';
-import { CourseData, IDistanceType } from './courses/types';
 import { EnhancedHpPolicy } from './EnhancedHpPolicy';
-import {
-  Aptitude,
-  HorseParameters,
-  IAptitude,
-  IStrategy,
-  Strategy,
-} from './HorseTypes';
+import { Aptitude, Strategy } from './HorseTypes';
 import { GameHpPolicy, NoopHpPolicy } from './HpPolicy';
 import {
   Grade,
   GroundCondition,
-  Mood,
-  RaceParameters,
   Season,
   Time,
   Weather,
 } from './RaceParameters';
-import {
-  DynamicCondition,
-  PendingSkill,
-  PosKeepMode,
-  RaceSolver,
-  RaceState,
-  SkillEffect,
-} from './RaceSolver';
-import { Rule30CARng, SeededRng } from './Random';
+import { PosKeepMode, RaceSolver } from './RaceSolver';
+import { Rule30CARng } from './Random';
 import { Region, RegionList } from './Region';
 
-import { Operator } from './ActivationConditions';
 import {
-  ISkillPerspective,
-  ISkillRarity,
-  ISkillTarget,
-  ISkillType,
   SkillPerspective,
   SkillRarity,
   SkillTarget,
   SkillType,
 } from './race-solver/types';
-import { Skill, skillsById } from '@/modules/skills/utils';
-import { cloneDeep } from 'es-toolkit';
-
-interface ConditionParser {
-  tokenize(s: string): Generator<unknown, unknown, unknown>;
-  parse(tokens: Iterator<unknown, unknown>): Operator;
-}
+import type { DefaultParser} from './ConditionParser';
+import type {
+  ISkillPerspective,
+  ISkillRarity,
+  ISkillTarget,
+  ISkillType,
+} from './race-solver/types';
+import type { SeededRng } from './Random';
+import type {
+  DynamicCondition,
+  PendingSkill,
+  RaceState,
+  SkillEffect,
+} from './RaceSolver';
+import type { Mood, RaceParameters } from './RaceParameters';
+import type { HorseParameters, IAptitude, IStrategy } from './HorseTypes';
+import type { CourseData, IDistanceType } from './courses/types';
+import type { ActivationSamplePolicy } from './ActivationSamplePolicy';
+import type { Skill } from '@/modules/skills/utils';
+import { skillsById } from '@/modules/skills/utils';
 
 export type RawSkillEffect = {
   modifier: number;
@@ -70,7 +62,7 @@ export type SkillAlternative = {
   baseDuration: number;
   condition: string;
   precondition?: string;
-  effects: RawSkillEffect[];
+  effects: Array<RawSkillEffect>;
 };
 
 type PartialRaceParameters = Omit<
@@ -405,7 +397,7 @@ export interface SkillData {
   samplePolicy: ActivationSamplePolicy;
   regions: RegionList;
   extraCondition: DynamicCondition;
-  effects: SkillEffect[];
+  effects: Array<SkillEffect>;
 }
 
 function isTarget(self: ISkillPerspective, targetType: ISkillTarget) {
@@ -427,7 +419,7 @@ function buildSkillEffects(
   skill: SkillAlternative,
   perspective: ISkillPerspective,
 ) {
-  const effects: SkillEffect[] = [];
+  const effects: Array<SkillEffect> = [];
 
   for (const effect of skill.effects) {
     if (isTarget(perspective, effect.target)) {
@@ -451,7 +443,7 @@ export type SkillTrigger = {
   samplePolicy: ActivationSamplePolicy;
   regions: RegionList;
   extraCondition: DynamicCondition;
-  effects: SkillEffect[];
+  effects: Array<SkillEffect>;
 };
 
 export function buildSkillData(
@@ -459,11 +451,11 @@ export function buildSkillData(
   raceParams: PartialRaceParameters,
   course: CourseData,
   wholeCourse: RegionList,
-  parser: ConditionParser,
+  parser: DefaultParser,
   skillId: string,
   perspective: ISkillPerspective,
   ignoreNullEffects: boolean = false,
-): SkillTrigger[] {
+): Array<SkillTrigger> {
   const skill: Skill | undefined = skillsById.get(skillId);
 
   if (!skill) {
@@ -689,32 +681,34 @@ export const conditionsWithActivateCountsAsRandom = Object.assign(
   },
 );
 
-const defaultParser = getParser();
-const acrParser = getParser(conditionsWithActivateCountsAsRandom);
+const defaultParser = getDefaultParser();
+const acrParser = getDefaultParser(conditionsWithActivateCountsAsRandom);
 
 export class RaceSolverBuilder {
   _course: CourseData | null;
   _raceParams: PartialRaceParameters;
   _horse: HorseDesc | null;
-  _pacerSkills: PendingSkill[];
-  _pacerSkillIds: string[];
+  _pacerSkills: Array<PendingSkill>;
+  _pacerSkillIds: Array<string>;
   _pacerSpeedUpRate: number;
-  _pacerSkillData: SkillData[];
-  _pacerTriggers: Region[][];
+  _pacerSkillData: Array<SkillData>;
+  _pacerTriggers: Array<Array<Region>>;
   _rng: SeededRng;
   _seed: number;
-  _parser: ConditionParser;
-  _skills: {
+  _parser: DefaultParser;
+  _skills: Array<{
     skillId: string;
     perspective: ISkillPerspective;
     originWisdom?: number;
-  }[];
+  }>;
   _samplePolicyOverride: Map<string, ActivationSamplePolicy>;
-  _extraSkillHooks: ((
-    skilldata: SkillData[],
-    horse: HorseParameters,
-    course: CourseData,
-  ) => void)[];
+  _extraSkillHooks: Array<
+    (
+      skilldata: Array<SkillData>,
+      horse: HorseParameters,
+      course: CourseData,
+    ) => void
+  >;
   _onSkillActivate:
     | ((
         state: RaceSolver,
@@ -899,7 +893,7 @@ export class RaceSolverBuilder {
     const wholeCourse = new RegionList();
     wholeCourse.push(new Region(0, this._course.distance));
 
-    let pacerSkillData: SkillData[] = [];
+    let pacerSkillData: Array<SkillData> = [];
 
     if (pacerBaseHorse) {
       const makePacerSkill = buildSkillData.bind(
@@ -927,7 +921,7 @@ export class RaceSolverBuilder {
     const wholeCourse = new RegionList();
     wholeCourse.push(new Region(0, this._course.distance));
 
-    let pacerTriggers: Region[][] = [];
+    let pacerTriggers: Array<Array<Region>> = [];
 
     if (this._pacerSkillIds.length > 0) {
       pacerTriggers = this._pacerSkillData.map((sd) => {
@@ -951,7 +945,7 @@ export class RaceSolverBuilder {
 
     this.setupPacerSkillTriggers(pacerRng);
 
-    let pacerSkills: PendingSkill[] = this._pacerSkills;
+    let pacerSkills: Array<PendingSkill> = this._pacerSkills;
 
     if (this._pacerSkillData.length > 0) {
       pacerSkills = this._pacerSkillData.map((skillData, skillDataIndex) => ({
@@ -1317,7 +1311,7 @@ export class RaceSolverBuilder {
     const makeSkill: (
       skillId: string,
       perspective: ISkillPerspective,
-    ) => SkillTrigger[] = buildSkillData.bind(
+    ) => Array<SkillTrigger> = buildSkillData.bind(
       null,
       horse,
       this._raceParams,
@@ -1352,7 +1346,7 @@ export class RaceSolverBuilder {
     for (let i = 0; i < this.nsamples; ++i) {
       const raceSolverRNG = new Rule30CARng(this._rng.int32());
 
-      const skills: PendingSkill[] = skillDataList.map(
+      const skills: Array<PendingSkill> = skillDataList.map(
         (skillData, skillDataIndex) => ({
           skillId: skillData.skillId,
           perspective: skillData.perspective,

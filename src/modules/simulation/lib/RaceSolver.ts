@@ -1,33 +1,34 @@
 import { cloneDeep } from 'es-toolkit';
 import {
-  ApproximateCondition,
   ApproximateMultiCondition,
   ApproximateStartContinue,
-  ConditionEntry,
-  ConditionState,
 } from './ApproximateStartContinue';
 import { CourseHelpers } from './CourseData';
-import { CourseData, IPhase } from './courses/types';
+import { Strategy, StrategyHelpers } from './HorseTypes';
 import {
-  HorseParameters,
-  IStrategy,
-  Strategy,
-  StrategyHelpers,
-} from './HorseTypes';
-import type { HpPolicy } from './HpPolicy';
-import {
-  IPositionKeepState,
-  ISkillPerspective,
-  ISkillRarity,
-  ISkillTarget,
-  ISkillType,
   PositionKeepState,
   SkillPerspective,
   SkillRarity,
   SkillType,
 } from './race-solver/types';
-import { PRNG, Rule30CARng } from './Random';
-import { Region } from './Region';
+import { Rule30CARng } from './Random';
+import type {
+  IPositionKeepState,
+  ISkillPerspective,
+  ISkillRarity,
+  ISkillTarget,
+  ISkillType,
+} from './race-solver/types';
+import type { PRNG } from './Random';
+import type { Region } from './Region';
+import type { HorseParameters, IStrategy } from './HorseTypes';
+import type { CourseData, IPhase } from './courses/types';
+import type {
+  ApproximateCondition,
+  ConditionEntry,
+  ConditionState,
+} from './ApproximateStartContinue';
+import type { HpPolicy } from './HpPolicy';
 
 export const Speed = {
   StrategyPhaseCoefficient: [
@@ -86,25 +87,41 @@ export const Acceleration = {
 const BaseAccel = 0.0006;
 const UphillBaseAccel = 0.0004;
 
-function baseAccel(baseAccel: number, horse: HorseParameters, phase: IPhase) {
+/**
+ * Calculates the base acceleration for a runner in a given race phase
+ *
+ * Formula:
+ * Accel = BaseAcceleration * sqrt(500.0 * PowerStat) * StrategyPhaseCoefficient * GroundTypeProficiencyModifier * DistanceProficiencyModifier
+ *
+ * @param baseAcceleration - The base acceleration value (0.0006 for flat courses, 0.0004 for uphill courses)
+ * @param runnerParameters - The runner parameters
+ * @param racePhase - The race phase (0: Early-race, 1: Mid-race, 2: Late-race, 3: Last spurt)
+ * @returns The resulting acceleration value
+ */
+function calculateBaseAcceleration(
+  baseAcceleration: number,
+  runnerParameters: HorseParameters,
+  racePhase: IPhase,
+) {
   const strategyCoefficient =
-    Acceleration.StrategyPhaseCoefficient[horse.strategy][phase];
+    Acceleration.StrategyPhaseCoefficient[runnerParameters.strategy][racePhase];
   const groundTypeProficiencyModifier =
-    Acceleration.GroundTypeProficiencyModifier[horse.surfaceAptitude];
+    Acceleration.GroundTypeProficiencyModifier[
+      runnerParameters.surfaceAptitude
+    ];
   const distanceProficiencyModifier =
-    Acceleration.DistanceProficiencyModifier[horse.distanceAptitude];
+    Acceleration.DistanceProficiencyModifier[runnerParameters.distanceAptitude];
 
-  // Accel = BaseAccel * sqrt(500.0 * PowerStat) * StrategyPhaseCoefficient * GroundTypeProficiencyModifier * DistanceProficiencyModifier
   return (
-    baseAccel *
-    Math.sqrt(500.0 * horse.power) *
+    baseAcceleration *
+    Math.sqrt(500.0 * runnerParameters.power) *
     strategyCoefficient *
     groundTypeProficiencyModifier *
     distanceProficiencyModifier
   );
 }
 
-export const PhaseDeceleration: readonly number[] = [-1.2, -0.8, -1.0];
+export const PhaseDeceleration: ReadonlyArray<number> = [-1.2, -0.8, -1.0];
 
 export const PositionKeep = {
   BaseMinimumThreshold: [0, 0, 3.0, 6.5, 7.5],
@@ -154,7 +171,7 @@ export class CompensatedAccumulator {
 
 export type RaceState = {
   accumulatetime: Readonly<Timer>;
-  activateCount: number[];
+  activateCount: Array<number>;
   activateCountHeal: number;
   currentSpeed: number;
   isLastSpurt: boolean;
@@ -224,7 +241,7 @@ export interface PendingSkill {
   rarity: ISkillRarity;
   trigger: Region;
   extraCondition: DynamicCondition;
-  effects: SkillEffect[];
+  effects: Array<SkillEffect>;
   originWisdom?: number;
 }
 
@@ -238,7 +255,7 @@ export interface ActiveSkill {
   effectTarget: ISkillTarget;
 }
 
-function noop(..._args: unknown[]) {}
+function noop(..._args: Array<unknown>) {}
 
 export class RaceSolver {
   accumulatetime: Timer;
@@ -247,16 +264,16 @@ export class RaceSolver {
   currentSpeed: number;
   targetSpeed: number;
   accel: number;
-  baseTargetSpeed: number[];
+  baseTargetSpeed: Array<number>;
   lastSpurtSpeed: number;
   lastSpurtTransition: number;
-  sectionModifier: number[];
-  baseAccel: number[];
+  sectionModifier: Array<number>;
+  baseAccel: Array<number>;
   horse: { -readonly [P in keyof HorseParameters]: HorseParameters[P] };
   course: CourseData;
   // Cached values for performance optimization
   baseSpeed: number;
-  cachedSlopePenalties: number[];
+  cachedSlopePenalties: Array<number>;
   hp: HpPolicy;
   rng: PRNG;
   syncRng: PRNG;
@@ -266,7 +283,7 @@ export class RaceSolver {
   wisdomRollRng: PRNG;
   posKeepRng: PRNG;
   laneMovementRng: PRNG;
-  timers: Timer[];
+  timers: Array<Timer>;
   startDash: boolean;
   startDelay: number;
   startDelayAccumulator: number;
@@ -275,19 +292,21 @@ export class RaceSolver {
   declare isLastSpurt: boolean;
   phase: IPhase;
   nextPhaseTransition: number;
-  activeTargetSpeedSkills: ActiveSkill[];
-  activeCurrentSpeedSkills: (ActiveSkill & { naturalDeceleration: boolean })[];
-  activeAccelSkills: ActiveSkill[];
-  activeLaneMovementSkills: ActiveSkill[];
-  activeChangeLaneSkills: ActiveSkill[];
-  pendingSkills: PendingSkill[];
+  activeTargetSpeedSkills: Array<ActiveSkill>;
+  activeCurrentSpeedSkills: Array<
+    ActiveSkill & { naturalDeceleration: boolean }
+  >;
+  activeAccelSkills: Array<ActiveSkill>;
+  activeLaneMovementSkills: Array<ActiveSkill>;
+  activeChangeLaneSkills: Array<ActiveSkill>;
+  pendingSkills: Array<PendingSkill>;
   pendingRemoval: Set<string>;
   usedSkills: Set<string>;
   declare nHills: number;
   declare hillIdx: number;
-  declare hillStart: number[];
-  declare hillEnd: number[];
-  activateCount: number[];
+  declare hillStart: Array<number>;
+  declare hillEnd: Array<number>;
+  activateCount: Array<number>;
   activateCountHeal: number;
   onSkillActivate: (
     raceSolver: RaceSolver,
@@ -308,7 +327,7 @@ export class RaceSolver {
     target: ISkillTarget,
   ) => void;
   sectionLength: number;
-  umas: RaceSolver[];
+  umas: Array<RaceSolver>;
   isPacer: boolean;
   pacerOverride: boolean;
   posKeepMinThreshold: number;
@@ -387,7 +406,7 @@ export class RaceSolver {
     horse: HorseParameters;
     course: CourseData;
     rng: PRNG;
-    skills: PendingSkill[];
+    skills: Array<PendingSkill>;
     hp: HpPolicy;
     onSkillActivate?:
       | ((
@@ -589,7 +608,7 @@ export class RaceSolver {
     this.hp.init(this.horse);
 
     this.baseAccel = [0, 1, 2, 0, 1, 2].map((phase, i) =>
-      baseAccel(
+      calculateBaseAcceleration(
         i > 2 ? UphillBaseAccel : BaseAccel,
         this.horse,
         phase as IPhase,
@@ -601,7 +620,7 @@ export class RaceSolver {
   }
 
   private registerBlockedSideCondition(): void {
-    const conditions: ConditionEntry[] = [
+    const conditions: Array<ConditionEntry> = [
       {
         condition: new ApproximateStartContinue('Outer lane', 0.0, 0.0),
         predicate: (state: ConditionState) => {
@@ -638,7 +657,7 @@ export class RaceSolver {
   }
 
   private registerOvertakeCondition(): void {
-    const conditions: ConditionEntry[] = [
+    const conditions: Array<ConditionEntry> = [
       {
         condition: new ApproximateStartContinue('逃げ', 0.05, 0.5),
         predicate: (state: ConditionState) => {
@@ -665,7 +684,7 @@ export class RaceSolver {
     this.registerCondition('overtake', overtakeCondition);
   }
 
-  initUmas(umas: RaceSolver[]) {
+  initUmas(umas: Array<RaceSolver>) {
     this.umas = [...umas.filter((uma) => uma != null), this];
   }
 
@@ -947,8 +966,8 @@ export class RaceSolver {
       const umas = this.umas.filter((uma) => uma.posKeepStrategy === strategy);
 
       if (umas.length > 0) {
-        const uma = umas.reduce((max, uma) => {
-          return uma.pos > max.pos ? uma : max;
+        const uma = umas.reduce((max, currUma) => {
+          return currUma.pos > max.pos ? currUma : max;
         }, umas[0]);
 
         return uma;
@@ -969,8 +988,8 @@ export class RaceSolver {
       );
 
       if (umas.length > 0) {
-        const uma = umas.reduce((max, uma) => {
-          return uma.pos > max.pos ? uma : max;
+        const uma = umas.reduce((max, currUma) => {
+          return currUma.pos > max.pos ? currUma : max;
         }, umas[0]);
 
         uma.pacerOverride = true;
@@ -992,7 +1011,7 @@ export class RaceSolver {
     return null;
   }
 
-  getUmaByDistanceDescending(): RaceSolver[] {
+  getUmaByDistanceDescending(): Array<RaceSolver> {
     return this.umas.toSorted((a, b) => b.pos - a.pos);
   }
 
@@ -1939,7 +1958,7 @@ export class RaceSolver {
       )
         acc.push(i);
       return acc;
-    }, [] as number[]);
+    }, [] as Array<number>);
 
     for (let i = goldIndices.length; --i >= 0; ) {
       const j = this.gorosiRng.uniform(i + 1);
@@ -2027,7 +2046,7 @@ const durationBasedEffects = [
   SkillType.Accel, // 31
   SkillType.LaneMovementSpeed, // 28
   SkillType.ChangeLane, // 35
-] as number[];
+] as Array<number>;
 
 const instantEffects = [
   SkillType.Recovery, // 9 - HP recovery/drain
@@ -2042,7 +2061,7 @@ const instantEffects = [
   // For future use
   SkillType.ActivateRandomGold, // 37
   SkillType.ExtendEvolvedDuration, // 42
-] as number[];
+] as Array<number>;
 
 const shouldTrackEffect = (effect: SkillEffect) => {
   const type = effect.type;

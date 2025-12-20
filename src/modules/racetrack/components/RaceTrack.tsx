@@ -1,20 +1,30 @@
+import { initializeSimulationRun } from '@simulation/compare.types';
+import { CourseHelpers } from '@simulation/lib/CourseData';
+import { Activity, Fragment, useMemo, useRef } from 'react';
+import { useShallow } from 'zustand/shallow';
+import { useDragSkill } from '../hooks/useDragSkill';
+import { useRaceTrackTooltip } from '../hooks/useRaceTrackTooltip';
+import { useVisualizationData } from '../hooks/useVisualizationData';
+import { trackDescription } from '../labels';
+import { RegionDisplayType } from '../types';
+import { PhaseBar } from './phase-bar';
+import { RaceTrackTooltip } from './racetrack-tooltip';
+import './RaceTrack.css';
+import { SectionBar } from './section-bar';
+import { SectionNumbers } from './section-numbers';
+import { SkillMarker } from './skill-marker';
+import { SlopeLabelBar } from './slope-label-bar';
+import { SlopeVisualization } from './slope-visualization';
+import { TrackSelect } from './track-select';
+import type { RegionData } from '../hooks/useVisualizationData';
+import type { SimulationRun } from '@simulation/compare.types';
+import type { CourseData } from '@/modules/simulation/lib/courses/types';
 import { RacePresets } from '@/components/race-presets';
 import { GroundSelect } from '@/components/race-settings/GroundSelect';
 import {
   SeasonIcon,
   SeasonSelect,
 } from '@/components/race-settings/SeasonSelect';
-import { TimeOfDaySelect } from '@/components/race-settings/TimeOfDaySelect';
-import {
-  WeatherIcon,
-  WeatherSelect,
-} from '@/components/race-settings/WeatherSelect';
-import { SavePresetModal } from '@/components/save-preset-modal';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
-import i18n from '@/i18n';
-import { CourseData } from '@/modules/simulation/lib/courses/types';
 import {
   updateForcedSkillPosition,
   useRunnersStore,
@@ -27,30 +37,16 @@ import {
   toggleShowUma2,
   useSettingsStore,
 } from '@/store/settings.store';
+import i18n from '@/i18n';
+import { Separator } from '@/components/ui/separator';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { SavePresetModal } from '@/components/save-preset-modal';
+import { TimeOfDaySelect } from '@/components/race-settings/TimeOfDaySelect';
 import {
-  initializeSimulationRun,
-  SimulationRun,
-} from '@simulation/compare.types';
-import { CourseHelpers } from '@simulation/lib/CourseData';
-import { Activity, Fragment, useMemo, useRef } from 'react';
-import { useShallow } from 'zustand/shallow';
-import { useDragSkill } from '../hooks/useDragSkill';
-import { useRaceTrackTooltip } from '../hooks/useRaceTrackTooltip';
-import {
-  RegionData,
-  useVisualizationData,
-} from '../hooks/useVisualizationData';
-import { trackDescription } from '../labels';
-import { RegionDisplayType } from '../types';
-import { PhaseBar } from './phase-bar';
-import { RaceTrackTooltip } from './racetrack-tooltip';
-import './RaceTrack.css';
-import { SectionBar } from './section-bar';
-import { SectionNumbers } from './section-numbers';
-import { SkillMarker } from './skill-marker';
-import { SlopeLabelBar } from './slope-label-bar';
-import { SlopeVisualization } from './slope-visualization';
-import { TrackSelect } from './track-select';
+  WeatherIcon,
+  WeatherSelect,
+} from '@/components/race-settings/WeatherSelect';
 
 // Helper function for efficient rung collision detection
 const findAvailableRung = (
@@ -68,7 +64,7 @@ const findAvailableRung = (
 };
 
 type RegionSegmentProps = {
-  allRegions: RegionData[];
+  allRegions: Array<RegionData>;
   course: CourseData;
   onDragStart: (
     e: React.MouseEvent,
@@ -227,9 +223,9 @@ const RegionSegment = (props: RegionSegmentProps) => {
       seen: new Set<number>(),
       rungs: Array.from(
         { length: 10 },
-        () => [] as { start: number; end: number }[],
+        () => [] as Array<{ start: number; end: number }>,
       ),
-      elem: [] as React.ReactElement[],
+      elem: [] as Array<React.ReactElement>,
     },
   ).elem;
 };

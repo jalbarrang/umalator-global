@@ -1,9 +1,9 @@
+import { Activity, memo, useMemo, useState } from 'react';
+import { X } from 'lucide-react';
+import { ExpandedSkillDetails } from '../ExpandedSkillDetails';
 import { getSkillDataById, getSkillMetaById } from '@/modules/skills/utils';
 import { cn } from '@/lib/utils';
 import i18n from '@/i18n';
-import { Activity, memo, useMemo, useState } from 'react';
-import { ExpandedSkillDetails } from '../ExpandedSkillDetails';
-import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   isEvolutionSkill,

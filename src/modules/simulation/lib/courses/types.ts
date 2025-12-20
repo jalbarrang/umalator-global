@@ -1,4 +1,4 @@
-import {
+import type {
   DistanceType,
   Orientation,
   Phase,
@@ -22,10 +22,10 @@ export type ICourse = {
   laneMax: number;
   finishTimeMin: number;
   finishTimeMax: number;
-  courseSetStatus: IThresholdStat[];
-  corners: { start: number; length: number }[];
-  straights: { start: number; end: number; frontType: number }[];
-  slopes: { start: number; length: number; slope: number }[];
+  courseSetStatus: Array<IThresholdStat>;
+  corners: Array<{ start: number; length: number }>;
+  straights: Array<{ start: number; end: number; frontType: number }>;
+  slopes: Array<{ start: number; length: number; slope: number }>;
 };
 
 export type Courses = Record<number, ICourse>;
@@ -37,23 +37,23 @@ export type CourseData = {
   readonly surface: ISurface;
   readonly turn: IOrientation;
 
-  readonly courseSetStatus: readonly IThresholdStat[];
-  readonly corners: readonly {
+  readonly courseSetStatus: ReadonlyArray<IThresholdStat>;
+  readonly corners: ReadonlyArray<{
     readonly start: number;
     readonly length: number;
-  }[];
+  }>;
 
-  readonly straights: readonly {
+  readonly straights: ReadonlyArray<{
     readonly start: number;
     readonly end: number;
     readonly frontType: number;
-  }[];
+  }>;
 
-  readonly slopes: readonly {
+  readonly slopes: ReadonlyArray<{
     readonly start: number;
     readonly length: number;
     readonly slope: number;
-  }[];
+  }>;
 
   readonly laneMax: number;
   readonly courseWidth: number;

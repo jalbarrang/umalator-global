@@ -1,9 +1,8 @@
 import { useMemo, useState } from 'react';
-import { useRunnersStore } from '@/store/runners.store';
-import { useSettingsStore } from '@/store/settings.store';
 import { useRaceStore } from '@simulation/stores/compare.store';
-
+import { CourseHelpers } from '../lib/CourseData';
 import { StaminaCard } from './stamina/components';
+
 import { useStaminaAnalysis } from './stamina/hooks/useStaminaAnalysis';
 import {
   useActualDebuffsReceived,
@@ -15,7 +14,8 @@ import {
   useActualPhaseHp,
   useTheoreticalPhaseHp,
 } from './stamina/hooks/usePhaseHp';
-import { CourseHelpers } from '../lib/CourseData';
+import { useSettingsStore } from '@/store/settings.store';
+import { useRunnersStore } from '@/store/runners.store';
 
 export const StaminaTab = () => {
   const { uma1, uma2 } = useRunnersStore();

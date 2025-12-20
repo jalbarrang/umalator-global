@@ -4,8 +4,8 @@
  * Ports make_global_skill_data.pl to TypeScript
  */
 
-import path from 'path';
-import { openDatabase, closeDatabase, queryAll } from './lib/database';
+import path from 'node:path';
+import { closeDatabase, openDatabase, queryAll } from './lib/database';
 import {
   resolveMasterDbPath,
   sortByNumericKey,
@@ -49,12 +49,12 @@ interface SkillAlternative {
   precondition: string;
   condition: string;
   baseDuration: number;
-  effects: SkillEffect[];
+  effects: Array<SkillEffect>;
 }
 
 interface SkillDataEntry {
   rarity: number;
-  alternatives: SkillAlternative[];
+  alternatives: Array<SkillAlternative>;
 }
 
 // Scenario skills that need 1.2x modifier
@@ -136,7 +136,7 @@ async function extractSkillData() {
 
     for (const row of rows) {
       // Build effects for first alternative
-      const effects1: SkillEffect[] = [
+      const effects1: Array<SkillEffect> = [
         {
           type: row.ability_type_1_1,
           modifier: patchModifier(row.id, row.float_ability_value_1_1),
@@ -161,7 +161,7 @@ async function extractSkillData() {
       }
 
       // Build alternatives array
-      const alternatives: SkillAlternative[] = [
+      const alternatives: Array<SkillAlternative> = [
         {
           precondition: '',
           condition: row.condition_1,
@@ -176,7 +176,7 @@ async function extractSkillData() {
         row.condition_2 !== '' &&
         row.condition_2 !== '0'
       ) {
-        const effects2: SkillEffect[] = [
+        const effects2: Array<SkillEffect> = [
           {
             type: row.ability_type_2_1,
             modifier: patchModifier(row.id, row.float_ability_value_2_1),

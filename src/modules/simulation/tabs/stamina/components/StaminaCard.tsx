@@ -1,29 +1,29 @@
-import { cn } from '@/lib/utils';
-import { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { parseStrategy } from '@simulation/lib/RaceSolverBuilder';
+import { Activity, Calculator } from 'lucide-react';
+import { useMemo } from 'react';
+import { GroundCondition } from '@simulation/lib/RaceParameters';
+import { calculateStatsWithSkills } from '../utils/calculateStatsWithSkills';
+import { RecoverySkillsList } from './RecoverySkillsList';
+import { PhaseBreakdown } from './PhaseBreakdown';
+import type { StaminaAnalysis } from '../hooks/useStaminaAnalysis';
+import type { RecoverySkillActivation } from '../hooks/useRecoverySkills';
+import type { ActualPhaseHp } from '../hooks/usePhaseHp';
+import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import { cn } from '@/lib/utils';
 import { getCourseById } from '@/modules/racetrack/courses';
 import { useSettingsStore } from '@/store/settings.store';
 
-import { RecoverySkillsList } from './RecoverySkillsList';
-import { PhaseBreakdown } from './PhaseBreakdown';
-import { Calculator, Activity } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
-import { useMemo } from 'react';
-import { StaminaAnalysis } from '../hooks/useStaminaAnalysis';
-import { RecoverySkillActivation } from '../hooks/useRecoverySkills';
-import { ActualPhaseHp } from '../hooks/usePhaseHp';
 import { HpStrategyCoefficient } from '@/modules/simulation/lib/HpPolicy';
-import { calculateStatsWithSkills } from '../utils/calculateStatsWithSkills';
-import { GroundCondition } from '@simulation/lib/RaceParameters';
 
 interface StaminaCardProps {
   runner: RunnerState;
   analysis: StaminaAnalysis;
   label: string;
   color: string;
-  recoverySkills: RecoverySkillActivation[];
-  debuffsReceived: RecoverySkillActivation[];
-  phaseHp: ActualPhaseHp[];
+  recoverySkills: Array<RecoverySkillActivation>;
+  debuffsReceived: Array<RecoverySkillActivation>;
+  phaseHp: Array<ActualPhaseHp>;
   isTheoretical: boolean;
   hasSimulationData?: boolean;
   onModeToggle?: () => void;

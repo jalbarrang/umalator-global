@@ -4,9 +4,9 @@
 
 import type { UmaMatch } from '@/modules/runners/data/types';
 import {
-  normalize,
   findBestUmaMatch,
   getUmaLookup,
+  normalize,
 } from '@/modules/runners/data/search';
 
 /** Extract uma identity (outfit and name) from OCR text */

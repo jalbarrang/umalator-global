@@ -1,3 +1,5 @@
+import { BookmarkIcon, SlidersHorizontalIcon, UsersIcon } from 'lucide-react';
+import { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Tooltip,
@@ -5,12 +7,10 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { UsersIcon, SlidersHorizontalIcon, BookmarkIcon } from 'lucide-react';
 import { RunnersPanel } from '@/modules/runners/components/runners-panel';
 import { AdvancedSettingsPanel } from '@/components/advanced-settings-panel';
 import { PresetsPanel } from '@/components/presets-panel';
 import { setLeftSidebar, useLeftSidebar } from '@/store/ui.store';
-import { useMemo } from 'react';
 
 const panels = [
   {
@@ -47,7 +47,7 @@ export const LeftSidebar = () => {
         <div className="flex flex-col gap-1 p-1">
           {panels.map((panel) => (
             <Tooltip key={panel.id}>
-              <TooltipTrigger asChild>
+              <TooltipTrigger>
                 <Button
                   variant={activePanel === panel.id ? 'secondary' : 'ghost'}
                   size="icon"

@@ -1,13 +1,14 @@
-import { getCourseById } from '@/modules/racetrack/courses';
 import { distances, orientations, phases, surfaces } from './courses/constants';
 import {
+  ICourse
+} from './courses/types';
+import type {
   CourseData,
-  ICourse,
   IDistanceType,
   IOrientation,
   IPhase,
-  ISurface,
-} from './courses/types';
+  ISurface} from './courses/types';
+import { getCourseById } from '@/modules/racetrack/courses';
 
 export class CourseHelpers {
   static assertIsPhase(phase: number): asserts phase is IPhase {
@@ -40,7 +41,7 @@ export class CourseHelpers {
     }
   }
 
-  static isSortedByStart(arr: readonly { readonly start: number }[]) {
+  static isSortedByStart(arr: ReadonlyArray<{ readonly start: number }>) {
     // typescript seems to have some trouble inferring tuple types, presumably because it doesn't really
     // sufficiently distinguish tuples from arrays
     // so dance around a little bit to make it work
@@ -111,7 +112,7 @@ export class CourseHelpers {
   }
 
   static getCourse(courseId: number): CourseData {
-    const course = getCourseById(courseId) as ICourse;
+    const course = getCourseById(courseId);
 
     let slopes = course.slopes;
     if (!this.isSortedByStart(slopes)) {

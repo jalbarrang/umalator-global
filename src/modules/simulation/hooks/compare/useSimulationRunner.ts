@@ -1,16 +1,15 @@
-import { useRunnersStore } from '@/store/runners.store';
-import { useSettingsStore, useWitVariance } from '@/store/settings.store';
 import {
   setIsSimulationRunning,
-  setSimulationProgress,
+  setResults, setSimulationProgress 
 } from '@simulation/stores/compare.store';
-import { racedefToParams } from '@/utils/races';
 import { CourseHelpers } from '@simulation/lib/CourseData';
 import { PosKeepMode } from '@simulation/lib/RaceSolver';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { setResults } from '@simulation/stores/compare.store';
-import { CompareResult } from '@simulation/compare.types';
 import CompareWorker from '@workers/simulator.worker.ts?worker';
+import type { CompareResult } from '@simulation/compare.types';
+import { racedefToParams } from '@/utils/races';
+import { useSettingsStore, useWitVariance } from '@/store/settings.store';
+import { useRunnersStore } from '@/store/runners.store';
 
 const createCompareWorker = () => new CompareWorker();
 

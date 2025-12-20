@@ -1,3 +1,7 @@
+import dayjs from 'dayjs';
+import { Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Panel,
@@ -12,10 +16,7 @@ import {
   setSelectedPresetId,
   useSettingsStore,
 } from '@/store/settings.store';
-import { createRaceConditions, EventType } from '@/utils/races';
-import dayjs from 'dayjs';
-import { Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { EventType, createRaceConditions } from '@/utils/races';
 import { cn } from '@/lib/utils';
 import {
   AlertDialog,
@@ -27,7 +28,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useState } from 'react';
 
 export const PresetsPanel = () => {
   const { presets } = usePresetStore();

@@ -1,5 +1,6 @@
-import { skillFilterLookUp, type Skill } from '@/modules/skills/utils';
 import { SkillRarity } from '../simulation/lib/race-solver/types';
+import type {Skill} from '@/modules/skills/utils';
+import {  skillFilterLookUp } from '@/modules/skills/utils';
 
 // A predicate that takes a skill and returns whether it passes
 type SkillPredicate = (skill: Skill) => boolean;
@@ -48,15 +49,15 @@ function fuzzyMatch(pattern: string, target: string): number {
  *     .execute();
  */
 export class SkillQuery {
-  private skills: Skill[];
-  private predicates: SkillPredicate[] = [];
+  private skills: Array<Skill>;
+  private predicates: Array<SkillPredicate> = [];
   private textSearchState = { allowConditionSearch: true };
 
-  private constructor(skills: Skill[]) {
+  private constructor(skills: Array<Skill>) {
     this.skills = skills;
   }
 
-  static from(skills: Skill[]): SkillQuery {
+  static from(skills: Array<Skill>): SkillQuery {
     return new SkillQuery(skills);
   }
 
@@ -93,7 +94,7 @@ export class SkillQuery {
    * Skips if no values are active (no filter applied)
    */
   whereAny<T>(
-    activeValues: T[],
+    activeValues: Array<T>,
     matchFn: (skill: Skill, value: T) => boolean,
   ): this {
     if (activeValues.length === 0) return this;
@@ -109,7 +110,7 @@ export class SkillQuery {
    * WHERE skill's condition tree matches ANY of the filter operations
    * Used for strategy, distance, surface, location filters
    */
-  whereConditionMatch(activeFilters: string[]): this {
+  whereConditionMatch(activeFilters: Array<string>): this {
     if (activeFilters.length === 0) return this;
 
     this.predicates.push((skill) =>
@@ -133,7 +134,7 @@ export class SkillQuery {
    * Execute the query and return filtered skills
    * All predicates are ANDed together
    */
-  execute(): Skill[] {
+  execute(): Array<Skill> {
     // Reset text search state for each execution
     this.textSearchState.allowConditionSearch = true;
 
@@ -168,7 +169,7 @@ export const SkillMatchers = {
     },
 
   iconType:
-    (iconPrefixes: Record<string, string[]>) =>
+    (iconPrefixes: Record<string, Array<string>>) =>
     (iconKey: string) =>
     (skill: Skill): boolean => {
       if (!skill.meta) return false;

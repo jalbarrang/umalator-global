@@ -9,13 +9,13 @@
  * - Includes proper HP consumption modeling for different race phases
  */
 
+import { PositionKeepState } from './race-solver/types';
+import type { HorseParameters } from './HorseTypes';
+import type { CourseData, IPhase  } from './courses/types';
+import type { GroundCondition } from './RaceParameters';
+import type { PRNG } from './Random';
+import type { IPositionKeepState} from './race-solver/types';
 import type { RaceState } from './RaceSolver';
-import { HorseParameters } from './HorseTypes';
-import { IPhase } from './courses/types';
-import { CourseData } from './courses/types';
-import { GroundCondition } from './RaceParameters';
-import { PRNG } from './Random';
-import { IPositionKeepState, PositionKeepState } from './race-solver/types';
 
 export const HpStrategyCoefficient = [0, 0.95, 0.89, 1.0, 0.995, 0.86] as const;
 export const HpConsumptionGroundModifier = [
@@ -48,11 +48,11 @@ export class EnhancedHpPolicy {
 
   // Accuracy mode: dynamically recalculate spurt on heals (like Kotlin)
   private recalculateOnHeal: boolean;
-  private recalculationCount: number = 0;
+  private recalculationCount = 0;
 
   // Track if max spurt was achieved on FIRST calculation (matches Kotlin behavior)
-  private maxSpurtAchieved: boolean = false;
-  private hasCalculatedSpurtOnce: boolean = false;
+  private maxSpurtAchieved = false;
+  private hasCalculatedSpurtOnce = false;
 
   constructor(
     course: CourseData,
@@ -244,7 +244,7 @@ export class EnhancedHpPolicy {
           };
         } else {
           // Generate candidates and select optimal
-          const candidates: SpurtParameters[] = [];
+          const candidates: Array<SpurtParameters> = [];
           for (
             let speed = this.baseTargetSpeed2;
             speed < this.maxSpurtSpeed;
@@ -447,7 +447,7 @@ export class EnhancedHpPolicy {
     }
 
     // Calculate candidates for suboptimal spurt
-    const candidates: SpurtParameters[] = [];
+    const candidates: Array<SpurtParameters> = [];
     // const remainDistance = maxDistance - 60;
 
     // Try speeds from v3 to maxSpurtSpeed in 0.1 increments
