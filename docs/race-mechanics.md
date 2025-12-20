@@ -316,7 +316,7 @@ AdjustedSpeed=BaseSpeed\*RaceCourseModifier+GroundModifier+SingleModeModifier
 AdjustedStamina=BaseStamina+SingleModeModifier
 AdjustedPower=BasePower+GroundModifier+SingleModeModifier
 AdjustedGuts=BaseGuts+SingleModeModifier
-AdjustedWiz=BaseWit\*StrategyProficiencyModifier+SingleModeModifier
+AdjustedWit=BaseWit\*StrategyProficiencyModifier+SingleModeModifier
 
 ### Ground Modifier {#ground-modifier}
 

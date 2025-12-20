@@ -1,28 +1,10 @@
----
-name: Detailed Stamina Calculator
-overview: Implement accurate, detailed phase breakdown for the stamina calculator, accounting for acceleration periods and kinematics during phase transitions. This provides more precise HP consumption estimates than the simplified constant-speed approach.
-todos:
-  - id: accel-utils
-    content: Add acceleration helper functions and coefficients to SpurtCalculator.ts
-    status: pending
-  - id: detailed-phases
-    content: Implement detailed phase breakdown with kinematics in calculator.ts
-    status: pending
-  - id: decel-handling
-    content: Handle deceleration cases when target speed decreases between phases
-    status: pending
-  - id: phase-table-ui
-    content: Update phase-table.tsx to clearly display 8-10 detailed phase rows
-    status: pending
----
-
-# Detailed Stamina Calculator Implementation
+# 001-ADR: Detailed Stamina Calculations
 
 ## Overview
 
 Restore and enhance the stamina calculator to use **detailed acceleration phases** with kinematic calculations. The simplified calculator assumes constant speed throughout each phase, but the accurate version will model:
 
-1. **Start Dash acceleration** (3 m/s → 0.85×baseSpeed)
+1. **Start Dash acceleration** (`3` m/s → `0.85 * BaseSpeed`)
 2. **Phase transition accelerations** (between each phase's target speed)
 3. **Top-speed segments** (remaining distance at constant target speed)
 
@@ -30,7 +12,29 @@ This provides more accurate HP consumption estimates, especially for low-power b
 
 ## Global Server Half Anniversary Mechanics
 
-The following mechanics are **included** (available on Global Server):| Mechanic | Status | Notes ||----------|--------|-------|| Base acceleration formula | Yes | 0.0006 m/s² (0.0004 uphill) || Start dash +24 m/s² | Yes | Ends at 0.85×baseSpeed || Guts component in last spurt | Yes | Added after 1st anniversary: `(450×GutsStat)^0.597 × 0.0001` || Last spurt recalculation on HP recovery | Yes | Added after 1st anniversary || Deceleration by phase | Yes | Early: -1.2, Mid: -0.8, Late: -1.0 m/s² || Guts modifier for HP consumption | Yes | `1.0 + 200/sqrt(600×GutsStat)` in phase 2+ || Strategy phase coefficients | Yes | For both speed and acceleration || Ground/Distance aptitude modifiers | Yes | For acceleration |The following mechanics are **NOT included** (post-Half Anniversary / JP-only):| Mechanic | Status | Notes ||----------|--------|-------|| Pace Down mode -0.5 deceleration | No | 1.5 anniversary feature || Pace Up Ex mode | No | 1.5 anniversary feature || Conserve Power / Fully Charged | No | Post-Half Anniversary || Compete Before Spurt | No | Post-Half Anniversary || Stamina Limit Break | No | Post-Half Anniversary || Move Lane modifier | No | Post-1st anniversary (not in Global) |---
+The following mechanics are **included** (available on Global Server):
+
+| Mechanic                                | Status | Notes                                                          |
+| --------------------------------------- | ------ | -------------------------------------------------------------- |
+| Base acceleration formula               | Yes    | `0.0006` m/s² (0.0004 uphill)                                  |
+| Start dash +24 m/s²                     | Yes    | Ends at `0.85 * BaseSpeed`                                     |
+| Guts component in last spurt            | Yes    | Added after 1st anniversary: `(450 * GutsStat)^0.597 × 0.0001` |
+| Last spurt recalculation on HP recovery | Yes    | Added after 1st anniversary                                    |
+| Deceleration by phase                   | Yes    | Early: `-1.2`, Mid: `-0.8`, Late: `-1.0` m/s²                  |
+| Guts modifier for HP consumption        | Yes    | `1.0 + 200 / sqrt(600 * GutsStat)` in phase 2+                 |
+| Strategy phase coefficients             | Yes    | For both speed and acceleration                                |
+| Ground/Distance aptitude modifiers      | Yes    | For acceleration                                               |
+
+The following mechanics are **NOT included** (post-Half Anniversary / JP-only):
+
+| Mechanic                         | Status | Notes                                |
+| -------------------------------- | ------ | ------------------------------------ |
+| Pace Down mode -0.5 deceleration | No     | 1.5 anniversary feature              |
+| Pace Up Ex mode                  | No     | 1.5 anniversary feature              |
+| Conserve Power / Fully Charged   | No     | Post-Half Anniversary                |
+| Compete Before Spurt             | No     | Post-Half Anniversary                |
+| Stamina Limit Break              | No     | Post-Half Anniversary                |
+| Move Lane modifier               | No     | Post-1st anniversary (not in Global) |
 
 ## Key Formulas (from docs/race-mechanics.md)
 
@@ -42,8 +46,8 @@ Accel = BaseAccel × sqrt(500 × PowerStat) × StrategyPhaseCoef ×
         SkillModifier + StartDashModifier
 ```
 
-- **BaseAccel**: 0.0006 m/s² (0.0004 uphill)
-- **Start Dash Modifier**: +24.0 m/s² (ends when speed reaches 0.85×baseSpeed)
+- **BaseAccel**: `0.0006` m/s² (0.0004 uphill)
+- **Start Dash Modifier**: `+24.0` m/s² (ends when speed reaches `0.85 * BaseSpeed`)
 
 ### Kinematics During Acceleration
 
@@ -231,7 +235,7 @@ export interface PhaseBreakdownRow {
 
 ### 4. Update Phase Table Component
 
-Modify [`src/modules/stamina-calculator/components/phase-table.tsx`](src/modules/stamina-calculator/components/phase-table.tsx) to display more rows with the detailed breakdown.---
+Modify [`src/modules/stamina-calculator/components/phase-table.tsx`](src/modules/stamina-calculator/components/phase-table.tsx) to display more rows with the detailed breakdown.
 
 ## Edge Cases to Handle
 
@@ -242,10 +246,12 @@ Modify [`src/modules/stamina-calculator/components/phase-table.tsx`](src/modules
 
 ---
 
-## Files to Modify
-
-| File | Changes ||------|---------|| [`src/modules/simulation/lib/SpurtCalculator.ts`](src/modules/simulation/lib/SpurtCalculator.ts) | Add acceleration helpers and coefficients || [`src/modules/stamina-calculator/lib/calculator.ts`](src/modules/stamina-calculator/lib/calculator.ts) | Implement detailed phase breakdown with kinematics || [`src/modules/stamina-calculator/components/phase-table.tsx`](src/modules/stamina-calculator/components/phase-table.tsx) | Update to display more phases clearly |---
-
 ## Expected Output
 
-The phase table will show ~8-10 rows instead of 4, like:| Phase | Start Speed | Goal Speed | Accel | Time | Distance | HP ||-------|-------------|------------|-------|------|----------|-----|| Start Dash | 3.00 | 16.66 | 24.84 | 0.55s | 5.4m | 8.2 || Early Accel | 16.66 | 19.56 | 0.84 | 3.45s | 62.5m | 98.1 || Early Top | 19.56 | 19.56 | 0 | 16.98s | 332.1m | 530.5 |
+The phase table will show ~8-10 rows instead of 4, like:
+
+| Phase       | Start Speed | Goal Speed | Accel | Time   | Distance | HP    |
+| ----------- | ----------- | ---------- | ----- | ------ | -------- | ----- |
+| Start Dash  | 3.00        | 16.66      | 24.84 | 0.55s  | 5.4m     | 8.2   |
+| Early Accel | 16.66       | 19.56      | 0.84  | 3.45s  | 62.5m    | 98.1  |
+| Early Top   | 19.56       | 19.56      | 0     | 16.98s | 332.1m   | 530.5 |

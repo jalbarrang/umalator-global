@@ -146,13 +146,3 @@ export function compareSpurtCalculations(
     timeDiff: enhancedTime - standardTime,
   };
 }
-
-/**
- * Export enhanced HP policy for direct use
- */
-export { EnhancedHpPolicy } from './EnhancedHpPolicy';
-
-/**
- * Export spurt calculation utilities
- */
-export * from './SpurtCalculator';

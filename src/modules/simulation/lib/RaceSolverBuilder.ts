@@ -9,7 +9,7 @@ import {
   ImmediatePolicy,
   createFixedPositionPolicy,
 } from './ActivationSamplePolicy';
-import { Parser, getDefaultParser } from './ConditionParser';
+import { getDefaultParser } from './ConditionParser';
 import { CourseHelpers } from './CourseData';
 import { EnhancedHpPolicy } from './EnhancedHpPolicy';
 import { Aptitude, Strategy } from './HorseTypes';
@@ -1396,3 +1396,4 @@ export class RaceSolverBuilder {
     }
   }
 }
+

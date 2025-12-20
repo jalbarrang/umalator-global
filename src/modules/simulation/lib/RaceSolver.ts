@@ -728,7 +728,7 @@ export class RaceSolver {
     }
 
     // Calculate rushed chance based on wisdom
-    // Formula: RushedChance = (6.5 / log10(0.1 * WizStat + 1))²%
+    // Formula: RushedChance = (6.5 / log10(0.1 * WitStat + 1))²%
     const wisdomStat = this.horse.wisdom;
     const rushedChance =
       Math.pow(6.5 / Math.log10(0.1 * wisdomStat + 1), 2) / 100;
