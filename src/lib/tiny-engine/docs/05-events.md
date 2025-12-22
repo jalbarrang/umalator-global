@@ -68,6 +68,7 @@ class MilestoneBehavior extends Behavior {
 ```
 
 **Event structure**:
+
 - Event name (string)
 - Event data (any type, but objects are conventional)
 
@@ -77,17 +78,17 @@ Use clear, descriptive names with namespace prefixes:
 
 ```typescript
 // ✅ Good: Namespace:Action pattern
-'skill:activated'
-'runner:finished'
-'phase:changed'
-'debuff:applied'
-'collision:detected'
+'skill:activated';
+'runner:finished';
+'phase:changed';
+'debuff:applied';
+'collision:detected';
 
 // ❌ Avoid: Generic or unclear
-'update'
-'change'
-'event'
-'notify'
+'update';
+'change';
+'event';
+'notify';
 ```
 
 **Why namespace?** Prevents collisions and makes event flow clear.
@@ -183,6 +184,7 @@ class MyBehavior extends Behavior {
 ```
 
 **Why in onUpdate?** Because:
+
 - `onAttach` runs before entity is added to engine
 - `onUpdate` runs after engine reference is set
 - First tick is a safe place to subscribe
@@ -516,15 +518,17 @@ engine.eventBus.emit('skill:activated', {
 ```typescript
 // ✅ Consistent pattern
 type EventPayload = {
-  entityId: string;    // Who
-  timestamp: number;   // When
-  data: any;          // What
+  entityId: string; // Who
+  timestamp: number; // When
+  data: any; // What
 };
 
 engine.eventBus.emit('event:name', {
   entityId: this.owner.id,
   timestamp: this.owner.engine.time,
-  data: { /* specific data */ },
+  data: {
+    /* specific data */
+  },
 });
 ```
 
@@ -568,7 +572,8 @@ Filter events by checking the payload:
 ```typescript
 // Listen only to phase changes entering last spurt
 this.owner?.engine?.eventBus.on('race:phaseChanged', (data) => {
-  if (data.newPhase === 3) { // Phase 3 = Last Spurt
+  if (data.newPhase === 3) {
+    // Phase 3 = Last Spurt
     this.enterLastSpurt();
   }
 });
@@ -591,9 +596,7 @@ class EventLoggerBehavior extends Behavior {
   override onUpdate(): void {
     if (!this.subscribed && this.owner?.engine) {
       // Listen to ALL events (not recommended for production!)
-      const originalEmit = this.owner.engine.eventBus.emit.bind(
-        this.owner.engine.eventBus
-      );
+      const originalEmit = this.owner.engine.eventBus.emit.bind(this.owner.engine.eventBus);
 
       this.owner.engine.eventBus.emit = (event: any, ...args: any[]) => {
         console.log('[Event]', event, args);
@@ -614,11 +617,7 @@ class EventCounterBehavior extends Behavior {
 
   override onUpdate(): void {
     if (!this.subscribed && this.owner?.engine) {
-      const events = [
-        'skill:activated',
-        'phase:changed',
-        'runner:finished',
-      ];
+      const events = ['skill:activated', 'phase:changed', 'runner:finished'];
 
       for (const eventName of events) {
         this.owner.engine.eventBus.on(eventName, () => {
@@ -733,7 +732,7 @@ class MyBehavior extends Behavior {
 ## Next Steps
 
 You now understand event-driven communication! Ready for more?
+
 - [Advanced Patterns](06-advanced-patterns.md) - Production-ready techniques
 - [Best Practices](07-best-practices.md) - Design principles
 - [API Reference](08-api-reference.md) - Complete event bus documentation
-

@@ -1,14 +1,9 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { BarChartIcon, BrainIcon, ChartBarIcon, HeartPulseIcon } from 'lucide-react';
 import { DistributionTab } from './distribution-tab';
 import { RunnerStatsTab } from './runner-stats-tab';
 import { SkillsTab } from './skills-tab';
 import { StaminaTab } from './stamina-tab';
-import {
-  BarChartIcon,
-  BrainIcon,
-  ChartBarIcon,
-  HeartPulseIcon,
-} from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export const SimulationResultTabs = () => {
   return (

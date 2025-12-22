@@ -1,3 +1,15 @@
+import { SearchIcon, XIcon } from 'lucide-react';
+import {
+  useDeferredValue,
+  useImperativeHandle,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+} from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
+import { SkillIcon, SkillItem } from './skill-list/SkillItem';
+import { VirtualizedSkillGrid } from './VirtualizedSkillGrid';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -13,23 +25,7 @@ import { cn } from '@/lib/utils';
 import { groups_filters } from '@/modules/skills/filters';
 import { iconIdPrefixes } from '@/modules/skills/icons';
 import { SkillQuery } from '@/modules/skills/query';
-import {
-  getAllSkills,
-  getUniqueSkillForByUmaId,
-  matchRarity,
-} from '@/modules/skills/utils';
-import { SearchIcon, XIcon } from 'lucide-react';
-import {
-  useDeferredValue,
-  useImperativeHandle,
-  useMemo,
-  useReducer,
-  useRef,
-  useState,
-} from 'react';
-import { useHotkeys } from 'react-hotkeys-hook';
-import { SkillIcon, SkillItem } from './skill-list/SkillItem';
-import { VirtualizedSkillGrid } from './VirtualizedSkillGrid';
+import { getAllSkills, getUniqueSkillForByUmaId, matchRarity } from '@/modules/skills/utils';
 
 type IconFilterButtonProps = {
   type: string;
@@ -68,11 +64,7 @@ const FilterButton = (props: FilterButtonProps) => {
 
   return (
     <div className="flex items-center gap-3">
-      <Checkbox
-        id={filter}
-        checked={filterState[group][filter]}
-        onCheckedChange={onChecked}
-      />
+      <Checkbox id={filter} checked={filterState[group][filter]} onCheckedChange={onChecked} />
       <Label htmlFor={filter}>{i18n.t(`skillfilters.${filter}`)}</Label>
     </div>
   );
@@ -88,7 +80,7 @@ type FilterAction =
 
 function createInitialFilterState(): FilterState {
   const state: FilterState = {};
-  const groupKeys = Object.keys(groups_filters) as FilterGroup[];
+  const groupKeys = Object.keys(groups_filters) as Array<FilterGroup>;
 
   for (const group of groupKeys) {
     state[group] = {};
@@ -158,13 +150,8 @@ function filterReducer(state: FilterState, action: FilterAction): FilterState {
   }
 }
 
-const getActiveFilters = (
-  filterState: FilterState,
-  group: string,
-): string[] => {
-  return groups_filters[group as FilterGroup].filter(
-    (f) => filterState[group][f],
-  );
+const getActiveFilters = (filterState: FilterState, group: string): Array<string> => {
+  return groups_filters[group as FilterGroup].filter((f) => filterState[group][f]);
 };
 
 type IconIdPrefix = keyof typeof iconIdPrefixes;
@@ -172,9 +159,9 @@ type IconIdPrefix = keyof typeof iconIdPrefixes;
 export type SkillPickerContentProps = {
   ref: React.RefObject<{ focus: () => void } | null>;
   umaId: string;
-  options: string[];
-  currentSkills: string[];
-  onSelect: (skills: string[]) => void;
+  options: Array<string>;
+  currentSkills: Array<string>;
+  onSelect: (skills: Array<string>) => void;
   className?: string;
   hideSelected?: boolean;
   isMobile?: boolean;
@@ -198,11 +185,7 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
   const [searchText, setSearchText] = useState('');
   const deferredSearchText = useDeferredValue(searchText);
 
-  const [filterState, dispatch] = useReducer(
-    filterReducer,
-    null,
-    createInitialFilterState,
-  );
+  const [filterState, dispatch] = useReducer(filterReducer, null, createInitialFilterState);
 
   const skills = getAllSkills().filter((skill) => options.includes(skill.id));
 
@@ -219,9 +202,7 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
       .whereText(deferredSearchText)
       .whereAny(activeRarities, (skill, r) => matchRarity(skill.id, r))
       .whereAny(activeIconTypes, (skill, iconKey) =>
-        iconIdPrefixes[iconKey as IconIdPrefix]?.some((p) =>
-          skill.meta.iconId.startsWith(p),
-        ),
+        iconIdPrefixes[iconKey as IconIdPrefix]?.some((p) => skill.meta.iconId.startsWith(p)),
       )
       .whereConditionMatch(activeStrategies)
       .whereConditionMatch(activeDistances)
@@ -254,7 +235,7 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
 
   // Build selected map using the pre-built lookup
   const selectedMap = (() => {
-    const selected: [string, string][] = [];
+    const selected: Array<[string, string]> = [];
 
     for (const id of currentSkills) {
       // Use the pre-built map for O(1) lookup
@@ -339,9 +320,7 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
 
   const handleRemoveSkill: React.MouseEventHandler<HTMLDivElement> = (e) => {
     const target = e.target as HTMLElement;
-    const eventElement = target.closest(
-      '[data-event="remove-skill"]',
-    ) as HTMLElement;
+    const eventElement = target.closest('[data-event="remove-skill"]') as HTMLElement;
     if (!eventElement) return;
 
     const skillId = eventElement.dataset.skillid;
@@ -370,13 +349,7 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
   );
 
   return (
-    <div
-      className={cn(
-        'flex flex-col gap-3',
-        isMobile ? '' : 'overflow-hidden h-full',
-        className,
-      )}
-    >
+    <div className={cn('flex flex-col gap-3', isMobile ? '' : 'overflow-hidden h-full', className)}>
       <div data-filter-group="search">
         <InputGroup>
           <InputGroupAddon>
@@ -578,9 +551,7 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
               <XIcon className="w-4 h-4" />
               Clear Filters
               {selectedOtherFiltersCount > 0 && (
-                <span className="text-xs text-gray-500">
-                  ({selectedOtherFiltersCount})
-                </span>
+                <span className="text-xs text-gray-500">({selectedOtherFiltersCount})</span>
               )}
             </Button>
           </div>
@@ -592,15 +563,10 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-1">
                   <span className="text-sm font-bold">Skills selected</span>
-                  <span className="text-xs text-muted-foreground">
-                    ({currentSkills.length})
-                  </span>
+                  <span className="text-xs text-muted-foreground">({currentSkills.length})</span>
                 </div>
 
-                <div
-                  className="grid grid-cols-1 sm:grid-cols-2 gap-2"
-                  onClick={handleRemoveSkill}
-                >
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2" onClick={handleRemoveSkill}>
                   {currentSkills.map((skillId) => (
                     <SkillItem
                       key={skillId}
@@ -616,17 +582,10 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
             </>
           )}
 
-          <div
-            className={cn(
-              'flex flex-col gap-2',
-              isMobile ? 'h-[400px]' : 'flex-1 min-h-0',
-            )}
-          >
+          <div className={cn('flex flex-col gap-2', isMobile ? 'h-[400px]' : 'flex-1 min-h-0')}>
             <div className="flex items-center gap-1">
               <span className="text-sm font-bold">Skills available</span>
-              <span className="text-xs text-muted-foreground">
-                ({filteredSkills.length})
-              </span>
+              <span className="text-xs text-muted-foreground">({filteredSkills.length})</span>
             </div>
 
             <VirtualizedSkillGrid

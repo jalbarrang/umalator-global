@@ -2,7 +2,7 @@
  * Shared utilities for data extraction scripts
  */
 
-import path from 'path';
+import path from 'node:path';
 import { getUniqueSkillForByUmaId as getUniqueSkillForByUmaIdFromUtils } from '@skills/utils';
 
 /**
@@ -31,10 +31,7 @@ export const getUniqueSkillForOutfit = getUniqueSkillForByUmaIdFromUtils;
  * Write JSON data to file with minified format and trailing newline
  * Matches the canonical format used by Perl scripts (sorted keys, no pretty-print)
  */
-export async function writeJsonFile(
-  path: string,
-  data: Record<string, unknown>,
-): Promise<void> {
+export async function writeJsonFile(path: string, data: Record<string, unknown>): Promise<void> {
   const output = JSON.stringify(data) + '\n';
   await Bun.write(path, output);
 }
@@ -47,10 +44,7 @@ export function getDefaultMasterDbPath(): string {
 
   if (platform === 'win32') {
     // Windows path
-    const appData =
-      process.env.APPDATA ||
-      process.env.LOCALAPPDATA ||
-      process.env.USERPROFILE;
+    const appData = process.env.APPDATA || process.env.LOCALAPPDATA || process.env.USERPROFILE;
     if (!appData) {
       throw new Error('Could not determine AppData path on Windows');
     }

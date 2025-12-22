@@ -70,7 +70,9 @@ Called when the behavior is removed from an entity:
 
 ```typescript
 class EventListenerBehavior extends Behavior {
-  private handler = (data: any) => { /* ... */ };
+  private handler = (data: any) => {
+    /* ... */
+  };
 
   override onUpdate(): void {
     if (!this.subscribed && this.owner?.engine) {
@@ -127,18 +129,30 @@ Here's a suggested priority scheme for racing simulations:
 
 ```typescript
 // Physics & Movement (run first)
-class MovementBehavior extends Behavior { priority = 0; }
-class LaneBehavior extends Behavior { priority = 5; }
+class MovementBehavior extends Behavior {
+  priority = 0;
+}
+class LaneBehavior extends Behavior {
+  priority = 5;
+}
 
 // Game Logic
-class SkillBehavior extends Behavior { priority = 10; }
-class AIBehavior extends Behavior { priority = 15; }
+class SkillBehavior extends Behavior {
+  priority = 10;
+}
+class AIBehavior extends Behavior {
+  priority = 15;
+}
 
 // Resource Management (run after logic)
-class StaminaBehavior extends Behavior { priority = 20; }
+class StaminaBehavior extends Behavior {
+  priority = 20;
+}
 
 // Validation & Clamping (run last)
-class BoundaryBehavior extends Behavior { priority = 100; }
+class BoundaryBehavior extends Behavior {
+  priority = 100;
+}
 ```
 
 ## Stateful vs Stateless Behaviors
@@ -186,7 +200,7 @@ class DragBehavior extends Behavior {
     const movement = this.owner?.getBehavior(MovementBehavior);
     if (movement) {
       // Apply drag force
-      movement.velocity *= (1 - this.dragCoefficient * dt);
+      movement.velocity *= 1 - this.dragCoefficient * dt;
     }
   }
 }
@@ -225,6 +239,7 @@ debug.enabled = true;
 ```
 
 **Use cases**:
+
 - Conditional logic (skills that only work in certain phases)
 - Debugging toggles
 - Performance optimization (disable expensive behaviors when not needed)
@@ -329,18 +344,19 @@ class Runner extends Entity {
     super(id);
 
     // Add behaviors in priority order
-    this.addBehavior(new SpeedCalculationBehavior(params));  // priority: 0
-    this.addBehavior(new AccelerationBehavior(params));      // priority: 5
-    this.addBehavior(new MovementBehavior());                // priority: 10
-    this.addBehavior(new SkillBehavior(params.skills));      // priority: 15
-    this.addBehavior(new StaminaBehavior(params));           // priority: 20
-    this.addBehavior(new LaneBehavior(params));              // priority: 25
-    this.addBehavior(new BoundaryBehavior());                // priority: 100
+    this.addBehavior(new SpeedCalculationBehavior(params)); // priority: 0
+    this.addBehavior(new AccelerationBehavior(params)); // priority: 5
+    this.addBehavior(new MovementBehavior()); // priority: 10
+    this.addBehavior(new SkillBehavior(params.skills)); // priority: 15
+    this.addBehavior(new StaminaBehavior(params)); // priority: 20
+    this.addBehavior(new LaneBehavior(params)); // priority: 25
+    this.addBehavior(new BoundaryBehavior()); // priority: 100
   }
 }
 ```
 
 **Execution each tick**:
+
 1. Calculate target speed
 2. Calculate acceleration
 3. Update position
@@ -415,7 +431,7 @@ if (skillExpired) {
 ## Next Steps
 
 Now you understand behaviors! Next, learn how they communicate:
+
 - [Events](05-events.md) - Event-driven architecture
 - [Advanced Patterns](06-advanced-patterns.md) - Complex behavior chains
 - [Best Practices](07-best-practices.md) - Design principles
-

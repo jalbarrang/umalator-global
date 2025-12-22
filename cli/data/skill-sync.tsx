@@ -39,12 +39,10 @@ const App = () => {
     stats: null,
   });
 
-  const [availableSkills, setAvailableSkills] = useState<
-    Array<{ id: number; name: string }>
-  >([]);
-  const [selectedSkillIds, setSelectedSkillIds] = useState<
-    Array<{ value: number; label: string }>
-  >([]);
+  const [availableSkills, setAvailableSkills] = useState<Array<{ id: number; name: string }>>([]);
+  const [selectedSkillIds, setSelectedSkillIds] = useState<Array<{ value: number; label: string }>>(
+    [],
+  );
 
   const skillOptions = useMemo(() => {
     return availableSkills.map((skill) => ({
@@ -53,9 +51,9 @@ const App = () => {
     }));
   }, [availableSkills]);
 
-  const [stage, setStage] = useState<
-    'input-char' | 'confirm' | 'skill-selection' | 'processing'
-  >('input-char');
+  const [stage, setStage] = useState<'input-char' | 'confirm' | 'skill-selection' | 'processing'>(
+    'input-char',
+  );
 
   const handleSync = async () => {
     setState((prev) => ({ ...prev, isProcessing: true, error: null }));
@@ -72,9 +70,7 @@ const App = () => {
         const result = await syncSkills(config);
 
         setAvailableSkills(
-          Array.from(result.processedSkills.values()).toSorted(
-            (a, b) => a.id - b.id,
-          ),
+          Array.from(result.processedSkills.values()).toSorted((a, b) => a.id - b.id),
         );
         setSelectedSkillIds(
           Array.from(result.processedSkills.values()).map((s) => ({
@@ -153,20 +149,12 @@ const App = () => {
     }
 
     // Toggle dry run with 'D' key
-    if (
-      (input === 'd' || input === 'D') &&
-      stage === 'confirm' &&
-      !state.isProcessing
-    ) {
+    if ((input === 'd' || input === 'D') && stage === 'confirm' && !state.isProcessing) {
       setState((prev) => ({ ...prev, dryRun: !prev.dryRun }));
     }
 
     // After dry run, allow user to proceed with actual sync with 'P' key
-    if (
-      (input === 'p' || input === 'P') &&
-      state.isDone &&
-      state.stats?.dryRun
-    ) {
+    if ((input === 'p' || input === 'P') && state.isDone && state.stats?.dryRun) {
       setState((prev) => ({
         ...prev,
         dryRun: false,
@@ -244,18 +232,14 @@ const App = () => {
             <Text bold>Sync Character Skills by OutfitID</Text>
           </Box>
           <Box marginBottom={1}>
-            <Text dimColor>
-              Enter outfit ID(s) to sync skills (comma-separated for multiple)
-            </Text>
+            <Text dimColor>Enter outfit ID(s) to sync skills (comma-separated for multiple)</Text>
           </Box>
           <Box marginBottom={1} marginTop={1}>
             <Box>
               <Text>Outfit ID(s): </Text>
               <TextInput
                 value={state.charId}
-                onChange={(value) =>
-                  setState((prev) => ({ ...prev, charId: value }))
-                }
+                onChange={(value) => setState((prev) => ({ ...prev, charId: value }))}
                 onSubmit={() => {
                   // Parse and validate character IDs
                   const ids = state.charId
@@ -284,14 +268,10 @@ const App = () => {
             </Box>
           </Box>
           <Box marginTop={1}>
-            <Text dimColor>
-              Will sync skills from outfit(s): {state.charId || 'N/A'}
-            </Text>
+            <Text dimColor>Will sync skills from outfit(s): {state.charId || 'N/A'}</Text>
           </Box>
           <Box marginTop={1}>
-            <Text dimColor>
-              Examples: 100101 (Special Week), 106801 (Kitasan Black)
-            </Text>
+            <Text dimColor>Examples: 100101 (Special Week), 106801 (Kitasan Black)</Text>
           </Box>
           <Box marginTop={1}>
             <Text dimColor>Multiple IDs: 100101, 106801, 100301</Text>
@@ -314,8 +294,7 @@ const App = () => {
           </Box>
           <Box marginBottom={1}>
             <Text>
-              Number of characters:{' '}
-              <Text color="cyan">{state.charIds.length}</Text>
+              Number of characters: <Text color="cyan">{state.charIds.length}</Text>
             </Text>
           </Box>
 
@@ -374,9 +353,8 @@ const App = () => {
             </Box>
             <Box>
               <Text dimColor>
-                <Text bold>SPACE</Text> toggle • <Text bold>↑↓</Text> navigate •{' '}
-                <Text bold>A</Text> select all • <Text bold>B</Text> go back •{' '}
-                <Text bold>ESC</Text> cancel
+                <Text bold>SPACE</Text> toggle • <Text bold>↑↓</Text> navigate • <Text bold>A</Text>{' '}
+                select all • <Text bold>B</Text> go back • <Text bold>ESC</Text> cancel
               </Text>
             </Box>
           </Box>
@@ -387,8 +365,7 @@ const App = () => {
         <Box flexDirection="column">
           <Box marginBottom={1}>
             <Text color="cyan">
-              <Spinner type="dots" />{' '}
-              {state.dryRun ? 'Analyzing skills...' : 'Syncing skills...'}
+              <Spinner type="dots" /> {state.dryRun ? 'Analyzing skills...' : 'Syncing skills...'}
             </Text>
           </Box>
         </Box>
@@ -398,9 +375,7 @@ const App = () => {
         <Box flexDirection="column">
           <Box marginBottom={1}>
             <Text color={state.stats.dryRun ? 'cyan' : 'green'} bold>
-              {state.stats.dryRun
-                ? '🔍 Dry Run Preview'
-                : '✓ Sync completed successfully!'}
+              {state.stats.dryRun ? '🔍 Dry Run Preview' : '✓ Sync completed successfully!'}
             </Text>
           </Box>
           <Box marginBottom={1}>
@@ -444,9 +419,7 @@ const App = () => {
           {state.stats.dryRun ? (
             <Box marginTop={1} flexDirection="column">
               <Box marginBottom={1}>
-                <Text color="yellow">
-                  ⚠ No files were written (dry run mode)
-                </Text>
+                <Text color="yellow">⚠ No files were written (dry run mode)</Text>
               </Box>
               <Box>
                 <Text dimColor>

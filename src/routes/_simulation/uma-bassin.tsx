@@ -1,18 +1,15 @@
 import { createFileRoute } from '@tanstack/react-router';
 
+import { resetTable, useUniqueSkillBasinStore } from '@simulation/stores/uma-basin.store';
+import { Activity, useMemo } from 'react';
+import { useShallow } from 'zustand/shallow';
 import { BasinnChart } from '@/components/bassin-chart/BasinnChart';
 import { Button } from '@/components/ui/button';
 import { VelocityLines } from '@/components/VelocityLines';
 import { RaceTrack } from '@/modules/racetrack/components/RaceTrack';
 import { CourseHelpers } from '@/modules/simulation/lib/CourseData';
-import {
-  resetTable,
-  useUniqueSkillBasinStore,
-} from '@simulation/stores/uma-basin.store';
 import { replaceRunnerOutfit, useRunner } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
-import { Activity, useMemo } from 'react';
-import { useShallow } from 'zustand/shallow';
 import { useUmaBasinPoolRunner } from '@/modules/simulation/hooks/pool/useUmaBasinPoolRunner';
 import { useChartData } from '@/modules/simulation/stores/uma-basin.store';
 import { ButtonGroup } from '@/components/ui/button-group';
@@ -25,11 +22,7 @@ export const Route = createFileRoute('/_simulation/uma-bassin')({
 
 function RouteComponent() {
   const { chartData, selectedSkills, setSelectedSkills } = useChartData();
-  const {
-    results: umaBasinResults,
-    metrics,
-    isSimulationRunning,
-  } = useUniqueSkillBasinStore();
+  const { results: umaBasinResults, metrics, isSimulationRunning } = useUniqueSkillBasinStore();
   const courseId = useSettingsStore(useShallow((state) => state.courseId));
 
   const { runner, updateRunner, addSkill } = useRunner();
@@ -79,24 +72,14 @@ function RouteComponent() {
             </Button>
           )}
 
-          <Button
-            variant="outline"
-            onClick={resetTable}
-            disabled={umaBasinResults.size === 0}
-          >
+          <Button variant="outline" onClick={resetTable} disabled={umaBasinResults.size === 0}>
             Clear
           </Button>
         </ButtonGroup>
       </div>
 
       <Activity mode={!isSimulationRunning ? 'visible' : 'hidden'}>
-        <RaceTrack
-          courseid={courseId}
-          chartData={chartData}
-          xOffset={35}
-          yOffset={35}
-          yExtra={20}
-        >
+        <RaceTrack courseid={courseId} chartData={chartData} xOffset={35} yOffset={35} yExtra={20}>
           <VelocityLines
             data={chartData}
             courseDistance={course.distance}

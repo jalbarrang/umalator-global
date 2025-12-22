@@ -1,8 +1,6 @@
-import { SkillData } from '@/modules/skills/utils';
-import {
-  FormatParser,
-  formatEffect,
-} from '@/modules/skills/components/formatters';
+import { useEffect, useRef } from 'react';
+import type { SkillData } from '@/modules/skills/utils';
+import { FormatParser, formatEffect } from '@/modules/skills/components/formatters';
 import { cn } from '@/lib/utils';
 import i18n from '@/i18n';
 import { Label } from '@/components/ui/label';
@@ -13,7 +11,6 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from '@/components/ui/input-group';
-import { useEffect, useRef } from 'react';
 
 type ExpandedSkillDetailsProps = {
   id: string;
@@ -52,9 +49,7 @@ export function ExpandedSkillDetails(props: ExpandedSkillDetailsProps) {
                 <>
                   {i18n.t('skilldetails.preconditions')}
                   <div className="skillConditions">
-                    {FormatParser.parse(
-                      FormatParser.tokenize(precondition),
-                    ).format()}
+                    {FormatParser.parse(FormatParser.tokenize(precondition)).format()}
                   </div>
                 </>
               )}
@@ -62,9 +57,7 @@ export function ExpandedSkillDetails(props: ExpandedSkillDetailsProps) {
               {i18n.t('skilldetails.conditions')}
 
               <div className="skillConditions">
-                {FormatParser.parse(
-                  FormatParser.tokenize(alternative.condition),
-                ).format()}
+                {FormatParser.parse(FormatParser.tokenize(alternative.condition)).format()}
               </div>
 
               {i18n.t('skilldetails.effects')}
@@ -73,17 +66,12 @@ export function ExpandedSkillDetails(props: ExpandedSkillDetailsProps) {
                 {alternative.effects.map((ef, effectIndex) => {
                   const type = ef.type;
                   const modifier = ef.modifier / 10000;
-                  const effectType =
-                    formatEffect[type as keyof typeof formatEffect];
-                  const effectValue = effectType
-                    ? effectType(modifier)
-                    : modifier;
+                  const effectType = formatEffect[type as keyof typeof formatEffect];
+                  const effectValue = effectType ? effectType(modifier) : modifier;
 
                   return (
                     <div key={effectIndex} className="skillEffect">
-                      <span className="skillEffectType">
-                        {i18n.t(`skilleffecttypes.${type}`)}
-                      </span>
+                      <span className="skillEffectType">{i18n.t(`skilleffecttypes.${type}`)}</span>
 
                       <span className="skillEffectValue">{effectValue}</span>
                     </div>

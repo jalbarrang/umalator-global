@@ -1,5 +1,8 @@
 import './SkillList.css';
 
+import { XIcon } from 'lucide-react';
+import { useRef } from 'react';
+import { SkillPickerContent } from '../skill-picker-content';
 import {
   Drawer,
   DrawerClose,
@@ -11,9 +14,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { useBreakpoint } from '@/hooks/useBreakpoint';
 import { useSkillModalStore } from '@/modules/skills/store';
-import { XIcon } from 'lucide-react';
-import { useRef } from 'react';
-import { SkillPickerContent } from '../skill-picker-content';
 
 export function SkillPickerDrawer() {
   const { open, umaId, options, currentSkills, onSelect } = useSkillModalStore();

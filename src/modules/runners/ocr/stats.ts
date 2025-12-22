@@ -29,15 +29,11 @@ export function extractStats(text: string): Partial<ExtractedUmaData> {
 
   // Look for numbers in the stats line and the line after
   const searchText =
-    statsLineIndex >= 0
-      ? lines.slice(statsLineIndex, statsLineIndex + 2).join(' ')
-      : text;
+    statsLineIndex >= 0 ? lines.slice(statsLineIndex, statsLineIndex + 2).join(' ') : text;
 
   // Extract all numbers that could be stats (3-4 digits, 100-2000 range)
   const allNumbers = searchText.match(/\d+/g) || [];
-  const validStats = allNumbers
-    .map((n) => parseInt(n, 10))
-    .filter((n) => n >= 100 && n <= 2000);
+  const validStats = allNumbers.map((n) => parseInt(n, 10)).filter((n) => n >= 100 && n <= 2000);
 
   // We need exactly 5 stats in order
   if (validStats.length >= 5) {

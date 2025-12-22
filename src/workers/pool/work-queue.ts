@@ -7,7 +7,7 @@ export type StageConfig = {
   includeRunData: boolean;
 };
 
-export const STAGE_CONFIGS: StageConfig[] = [
+export const STAGE_CONFIGS: Array<StageConfig> = [
   { stage: 1, nsamples: 5, includeRunData: false },
   { stage: 2, nsamples: 20, includeRunData: false },
   { stage: 3, nsamples: 50, includeRunData: false },
@@ -15,15 +15,15 @@ export const STAGE_CONFIGS: StageConfig[] = [
 ];
 
 export class WorkQueue {
-  private skills: string[] = [];
+  private skills: Array<string> = [];
   private currentStageIndex = 0;
   private batchSize: number;
   private nextBatchId = 0;
-  private pendingBatches = new Map<number, string[]>(); // batchId -> skills
+  private pendingBatches = new Map<number, Array<string>>(); // batchId -> skills
   private completedBatches = new Map<number, SkillBasinResponse>();
   private stageResults: SkillBasinResponse = new Map();
 
-  constructor(skills: string[], batchSize = 10) {
+  constructor(skills: Array<string>, batchSize = 10) {
     this.skills = [...skills];
     this.batchSize = batchSize;
   }
@@ -65,10 +65,7 @@ export class WorkQueue {
       const existing = this.stageResults.get(key);
       if (existing) {
         // Merge with existing results
-        const combinedResults = [
-          ...existing.results,
-          ...value.results,
-        ].toSorted((a, b) => a - b);
+        const combinedResults = [...existing.results, ...value.results].toSorted((a, b) => a - b);
 
         const mid = Math.floor(combinedResults.length / 2);
         const newMedian =
@@ -77,8 +74,7 @@ export class WorkQueue {
             : combinedResults[mid];
 
         const combinedMean =
-          (existing.mean * existing.results.length +
-            value.mean * value.results.length) /
+          (existing.mean * existing.results.length + value.mean * value.results.length) /
           combinedResults.length;
 
         this.stageResults.set(key, {
@@ -113,7 +109,7 @@ export class WorkQueue {
     }
 
     const currentStage = STAGE_CONFIGS[this.currentStageIndex].stage;
-    const nextSkills: string[] = [];
+    const nextSkills: Array<string> = [];
 
     // Apply filter based on current stage
     this.stageResults.forEach((result, skillId) => {
@@ -157,10 +153,7 @@ export class WorkQueue {
    * Check if all stages are complete
    */
   isComplete(): boolean {
-    return (
-      this.currentStageIndex >= STAGE_CONFIGS.length - 1 &&
-      this.isStageComplete()
-    );
+    return this.currentStageIndex >= STAGE_CONFIGS.length - 1 && this.isStageComplete();
   }
 
   /**

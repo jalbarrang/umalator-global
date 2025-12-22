@@ -31,14 +31,7 @@ export const SkillMarker = React.memo<SkillMarkerProps>(
         onMouseDown={onDragStart}
         style={{ cursor: isDraggable ? 'grab' : 'default' }}
       >
-        <rect
-          x="0"
-          y="0"
-          width="100%"
-          height="100%"
-          fill={color.fill}
-          stroke={color.stroke}
-        />
+        <rect x="0" y="0" width="100%" height="100%" fill={color.fill} stroke={color.stroke} />
 
         <text x="0" y="50%" fontSize="12px" dominantBaseline="central">
           {text}

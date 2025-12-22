@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
 
 // Helper to convert client coords to SVG space
 function clientToSvgCoords(
@@ -33,12 +33,7 @@ interface UseDragSkillParams {
   xOffset: number;
   courseDistance: number;
   viewBoxWidth: number; // Add this new param
-  onSkillDrag?: (
-    skillId: number,
-    umaIndex: number,
-    start: number,
-    end: number,
-  ) => void;
+  onSkillDrag?: (skillId: number, umaIndex: number, start: number, end: number) => void;
 }
 
 export function useDragSkill({
@@ -51,20 +46,12 @@ export function useDragSkill({
   const [dragOffset, setDragOffset] = useState<DragOffset>({ x: 0, y: 0 });
 
   const handleDragStart = useCallback(
-    (
-      e: React.MouseEvent,
-      skillId: string,
-      umaIndex: number,
-      start: number,
-      end: number,
-    ) => {
+    (e: React.MouseEvent, skillId: string, umaIndex: number, start: number, end: number) => {
       e.preventDefault();
       e.stopPropagation();
 
       // Get the main SVG element
-      const mainSvg = (e.currentTarget as Element).closest(
-        '.racetrackView',
-      ) as SVGSVGElement | null;
+      const mainSvg = (e.currentTarget as Element).closest('.racetrackView');
       if (!mainSvg) return;
 
       const svgCoords = clientToSvgCoords(mainSvg, e.clientX, e.clientY);
@@ -97,42 +84,18 @@ export function useDragSkill({
       const x = svgCoords.x - xOffset;
 
       const newStart = Math.round(
-        Math.max(
-          0,
-          Math.min(
-            courseDistance,
-            (x / trackWidth) * courseDistance - dragOffset.x,
-          ),
-        ),
+        Math.max(0, Math.min(courseDistance, (x / trackWidth) * courseDistance - dragOffset.x)),
       );
-      const skillLength = Math.max(
-        50,
-        draggedSkill.originalEnd - draggedSkill.originalStart,
-      );
+      const skillLength = Math.max(50, draggedSkill.originalEnd - draggedSkill.originalStart);
       const newEnd = Math.round(
-        Math.max(
-          newStart + skillLength,
-          Math.min(courseDistance, newStart + skillLength),
-        ),
+        Math.max(newStart + skillLength, Math.min(courseDistance, newStart + skillLength)),
       );
 
       if (onSkillDrag) {
-        onSkillDrag(
-          parseInt(draggedSkill.skillId, 10),
-          draggedSkill.umaIndex,
-          newStart,
-          newEnd,
-        );
+        onSkillDrag(parseInt(draggedSkill.skillId, 10), draggedSkill.umaIndex, newStart, newEnd);
       }
     },
-    [
-      draggedSkill,
-      dragOffset,
-      xOffset,
-      courseDistance,
-      viewBoxWidth,
-      onSkillDrag,
-    ],
+    [draggedSkill, dragOffset, xOffset, courseDistance, viewBoxWidth, onSkillDrag],
   );
 
   const handleDragEnd = useCallback(() => {

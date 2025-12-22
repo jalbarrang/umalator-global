@@ -4,13 +4,9 @@
  * Ports make_global_skill_meta.pl to TypeScript
  */
 
-import path from 'path';
-import { openDatabase, closeDatabase, queryAll } from './lib/database';
-import {
-  resolveMasterDbPath,
-  sortByNumericKey,
-  writeJsonFile,
-} from './lib/shared';
+import path from 'node:path';
+import { closeDatabase, openDatabase, queryAll } from './lib/database';
+import { resolveMasterDbPath, sortByNumericKey, writeJsonFile } from './lib/shared';
 
 interface SkillMetaRow {
   id: number;
@@ -31,8 +27,7 @@ async function extractSkillMeta() {
   console.log('📖 Extracting skill metadata...\n');
 
   const dbPath = await resolveMasterDbPath();
-  const replaceMode =
-    process.argv.includes('--replace') || process.argv.includes('--full');
+  const replaceMode = process.argv.includes('--replace') || process.argv.includes('--full');
 
   console.log(
     `Mode: ${replaceMode ? '⚠️  Full Replacement' : '✓ Merge (preserves future content)'}`,
@@ -64,10 +59,7 @@ async function extractSkillMeta() {
     }
 
     // Merge with existing data (unless replace mode)
-    const outputPath = path.join(
-      process.cwd(),
-      'src/modules/data/skill_meta.json',
-    );
+    const outputPath = path.join(process.cwd(), 'src/modules/data/skill_meta.json');
 
     let finalSkillMeta: Record<string, SkillMetaEntry>;
 
@@ -91,9 +83,7 @@ async function extractSkillMeta() {
 
         console.log(`\n✓ Merge mode:`);
         console.log(`  → ${newCount} skills from master.mdb (current content)`);
-        console.log(
-          `  → ${preserved} additional skills preserved (future content)`,
-        );
+        console.log(`  → ${preserved} additional skills preserved (future content)`);
         console.log(`  → ${finalCount} total skills`);
       } else {
         finalSkillMeta = skillMeta;

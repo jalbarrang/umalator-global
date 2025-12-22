@@ -1,9 +1,9 @@
 import Prando from 'prando';
 
 export interface PRNG {
-  int32(): number;
-  random(): number;
-  uniform(upper: number): number;
+  int32: () => number;
+  random: () => number;
+  uniform: (upper: number) => number;
 }
 
 export class SeededRng {

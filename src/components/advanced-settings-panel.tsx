@@ -1,13 +1,12 @@
 import { DicesIcon } from 'lucide-react';
 import { PositionKeepSettings } from './position-keeps/position-keep-settings';
-import type {
-  WitVarianceSettings} from '@/store/settings.store';
+import type { WitVarianceSettings } from '@/store/settings.store';
 import {
   setSamples,
   setSeed,
   setWitVariance,
   useSettingsStore,
-  useWitVariance
+  useWitVariance,
 } from '@/store/settings.store';
 import { setRunOnceCounter } from '@/store/ui.store';
 
@@ -15,12 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
-import {
-  Panel,
-  PanelContent,
-  PanelHeader,
-  PanelTitle,
-} from '@/components/ui/panel';
+import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/ui/panel';
 import { Separator } from '@/components/ui/separator';
 
 const WitVarianceSettingRow = ({
@@ -39,9 +33,7 @@ const WitVarianceSettingRow = ({
   disabled?: boolean;
 }) => (
   <div className="flex items-center justify-between py-2">
-    <span
-      className={`text-sm ${disabled ? 'text-muted-foreground/50' : 'text-muted-foreground'}`}
-    >
+    <span className={`text-sm ${disabled ? 'text-muted-foreground/50' : 'text-muted-foreground'}`}>
       {label}
     </span>
     <div className="flex items-center gap-4">

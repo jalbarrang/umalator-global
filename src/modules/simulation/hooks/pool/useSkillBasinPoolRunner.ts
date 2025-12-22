@@ -1,28 +1,26 @@
+import {
+  appendResultsToTable,
+  resetTable,
+  setIsSimulationRunning,
+  setMetrics,
+  setTable,
+} from '@simulation/stores/skill-basin.store';
+import { CourseHelpers } from '@simulation/lib/CourseData';
+import { useEffect, useMemo, useRef } from 'react';
+import SkillBasinPoolWorker from '@workers/pool/skill-basin/skill-basin.pool.worker.ts?worker';
+import type { SkillBasinResponse } from '@simulation/types';
 import { getBaseSkillsToTest } from '@/modules/skills/utils';
 import { useRunner, useRunnersStore } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
-import { setIsSimulationRunning } from '@simulation/stores/skill-basin.store';
 import { racedefToParams } from '@/utils/races';
-import { CourseHelpers } from '@simulation/lib/CourseData';
-import { useEffect, useMemo, useRef } from 'react';
 import {
   defaultSimulationOptions,
   getActivateableSkills,
   getNullRow,
 } from '@/components/bassin-chart/utils';
-import {
-  appendResultsToTable,
-  resetTable,
-  setMetrics,
-  setTable,
-} from '@simulation/stores/skill-basin.store';
-import { SkillBasinResponse } from '@simulation/types';
 import { PoolManager } from '@/workers/pool/pool-manager';
 
-import SkillBasinPoolWorker from '@workers/pool/skill-basin/skill-basin.pool.worker.ts?worker';
-
-const createSkillBasinPoolWorker = (options: { name: string }) =>
-  new SkillBasinPoolWorker(options);
+const createSkillBasinPoolWorker = (options: { name: string }) => new SkillBasinPoolWorker(options);
 
 const baseSkillsToTest = getBaseSkillsToTest();
 
@@ -37,9 +35,7 @@ export function useSkillBasinPoolRunner() {
 
   // Initialize pool manager on mount
   useEffect(() => {
-    const poolManager = new PoolManager((options) =>
-      createSkillBasinPoolWorker(options),
-    );
+    const poolManager = new PoolManager((options) => createSkillBasinPoolWorker(options));
 
     poolManagerRef.current = poolManager;
 
@@ -62,8 +58,7 @@ export function useSkillBasinPoolRunner() {
       baseSkillsToTest.filter(
         (skillId) =>
           !runner.skills.includes(skillId) &&
-          (!skillId.startsWith('9') ||
-            !runner.skills.includes('1' + skillId.slice(1))),
+          (!skillId.startsWith('9') || !runner.skills.includes('1' + skillId.slice(1))),
       ),
       runner,
       course,
@@ -97,9 +92,7 @@ export function useSkillBasinPoolRunner() {
           appendResultsToTable(results);
         },
         onStageComplete: (stage, results) => {
-          const activeSkills = Array.from(results.values()).filter(
-            (r) => !r.filterReason,
-          );
+          const activeSkills = Array.from(results.values()).filter((r) => !r.filterReason);
           console.log(
             `Stage ${stage} complete with ${results.size} total skills (${activeSkills.length} active, ${results.size - activeSkills.length} filtered)`,
           );

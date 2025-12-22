@@ -54,6 +54,7 @@ That's it! You just simulated 2 seconds of motion with frame-perfect precision.
 ### 🎯 Headless Execution
 
 No graphics, no rendering, no window management. Pure simulation logic. Perfect for:
+
 - Backend simulations
 - Data analysis
 - Automated testing
@@ -62,6 +63,7 @@ No graphics, no rendering, no window management. Pure simulation logic. Perfect 
 ### 🔄 Deterministic by Design
 
 Run the same simulation 1000 times, get the same result 1000 times. Critical for:
+
 - Reproducible results
 - Debugging
 - Seeded randomness
@@ -110,6 +112,7 @@ Tiny Engine is perfect for:
 - **Data Scientists** - Simulating complex systems for analysis
 
 You probably **don't** need Tiny Engine if:
+
 - You need graphics rendering
 - You're building a real-time multiplayer game
 - You want built-in physics or collision detection
@@ -133,4 +136,3 @@ By the end, you'll have the knowledge to build your own simulation systems on to
 Ready to dive in? Start with [Core Concepts](02-core-concepts.md) to understand the four pillars of Tiny Engine.
 
 Already familiar with the concepts? Jump to [Your First Simulation](03-your-first-simulation.md) and build something working in 5 minutes.
-

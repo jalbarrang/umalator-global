@@ -3,33 +3,22 @@
  */
 
 import type { ExtractedSkill } from './types';
-import {
-  normalize,
-  findBestSkillMatch,
-  getSkillLookup,
-} from '@/modules/runners/data/search';
+import { findBestSkillMatch, getSkillLookup, normalize } from '@/modules/runners/data/search';
 
 /** Extract skills from OCR text */
-export function extractSkills(
-  text: string,
-  imageIndex: number,
-): ExtractedSkill[] {
+export function extractSkills(text: string, imageIndex: number): Array<ExtractedSkill> {
   const skillLookup = getSkillLookup();
   const lines = text
     .split('\n')
     .map((l) => l.trim())
     .filter(Boolean);
-  const skills: ExtractedSkill[] = [];
+  const skills: Array<ExtractedSkill> = [];
   const seenIds = new Set<string>();
 
   // Try matching each line, and also try splitting by common separators
   for (const line of lines) {
     // Skip very short lines or lines that are just numbers/single letters
-    if (
-      line.length < 4 ||
-      /^[\d\s]+$/.test(line) ||
-      /^[A-Za-z]$/.test(line.trim())
-    ) {
+    if (line.length < 4 || /^[\d\s]+$/.test(line) || /^[A-Za-z]$/.test(line.trim())) {
       continue;
     }
 

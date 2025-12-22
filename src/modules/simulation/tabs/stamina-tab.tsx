@@ -1,9 +1,8 @@
 import { useMemo, useState } from 'react';
-import { useRunnersStore } from '@/store/runners.store';
-import { useSettingsStore } from '@/store/settings.store';
 import { useRaceStore } from '@simulation/stores/compare.store';
-
+import { CourseHelpers } from '../lib/CourseData';
 import { StaminaCard } from './stamina/components';
+
 import { useStaminaAnalysis } from './stamina/hooks/useStaminaAnalysis';
 import {
   useActualDebuffsReceived,
@@ -11,11 +10,9 @@ import {
   useTheoreticalDebuffsReceived,
   useTheoreticalRecoverySkills,
 } from './stamina/hooks/useRecoverySkills';
-import {
-  useActualPhaseHp,
-  useTheoreticalPhaseHp,
-} from './stamina/hooks/usePhaseHp';
-import { CourseHelpers } from '../lib/CourseData';
+import { useActualPhaseHp, useTheoreticalPhaseHp } from './stamina/hooks/usePhaseHp';
+import { useSettingsStore } from '@/store/settings.store';
+import { useRunnersStore } from '@/store/runners.store';
 
 export const StaminaTab = () => {
   const { uma1, uma2 } = useRunnersStore();
@@ -35,14 +32,8 @@ export const StaminaTab = () => {
   const analysis2 = useStaminaAnalysis(uma2, courseId, racedef.ground);
 
   // Get recovery skills - actual or theoretical based on mode
-  const recordedRecoverySkillsA = useActualRecoverySkills(
-    chartData?.sk?.[0],
-    analysis1.maxHp,
-  );
-  const recordedRecoverySkillsB = useActualRecoverySkills(
-    chartData?.sk?.[1],
-    analysis2.maxHp,
-  );
+  const recordedRecoverySkillsA = useActualRecoverySkills(chartData?.sk?.[0], analysis1.maxHp);
+  const recordedRecoverySkillsB = useActualRecoverySkills(chartData?.sk?.[1], analysis2.maxHp);
   const theoreticalRecoverySkills1 = useTheoreticalRecoverySkills(
     uma1,
     analysis1.maxHp,
@@ -55,14 +46,8 @@ export const StaminaTab = () => {
   );
 
   // Get debuffs received - actual from simulation or theoretical from opponent's skills
-  const actualDebuffsReceived1 = useActualDebuffsReceived(
-    chartData?.sk?.[1],
-    analysis1.maxHp,
-  );
-  const actualDebuffsReceived2 = useActualDebuffsReceived(
-    chartData?.sk?.[0],
-    analysis2.maxHp,
-  );
+  const actualDebuffsReceived1 = useActualDebuffsReceived(chartData?.sk?.[1], analysis1.maxHp);
+  const actualDebuffsReceived2 = useActualDebuffsReceived(chartData?.sk?.[0], analysis2.maxHp);
   // Theoretical debuffs: uma1 could receive debuffs from uma2, and vice versa
   const theoreticalDebuffsReceived1 = useTheoreticalDebuffsReceived(
     uma2, // uma1 receives debuffs from uma2
@@ -93,30 +78,14 @@ export const StaminaTab = () => {
   const isUma1Theoretical = !hasSimulationData || uma1Theoretical;
   const isUma2Theoretical = !hasSimulationData || uma2Theoretical;
 
-  const recoverySkills1 = isUma1Theoretical
-    ? theoreticalRecoverySkills1
-    : recordedRecoverySkillsA;
-  const recoverySkills2 = isUma2Theoretical
-    ? theoreticalRecoverySkills2
-    : recordedRecoverySkillsB;
+  const recoverySkills1 = isUma1Theoretical ? theoreticalRecoverySkills1 : recordedRecoverySkillsA;
+  const recoverySkills2 = isUma2Theoretical ? theoreticalRecoverySkills2 : recordedRecoverySkillsB;
 
-  const debuffsReceived1 = isUma1Theoretical
-    ? theoreticalDebuffsReceived1
-    : actualDebuffsReceived1;
-  const debuffsReceived2 = isUma2Theoretical
-    ? theoreticalDebuffsReceived2
-    : actualDebuffsReceived2;
+  const debuffsReceived1 = isUma1Theoretical ? theoreticalDebuffsReceived1 : actualDebuffsReceived1;
+  const debuffsReceived2 = isUma2Theoretical ? theoreticalDebuffsReceived2 : actualDebuffsReceived2;
 
-  const theoreticalPhaseHp1 = useTheoreticalPhaseHp(
-    analysis1,
-    recoverySkills1,
-    debuffsReceived1,
-  );
-  const theoreticalPhaseHp2 = useTheoreticalPhaseHp(
-    analysis2,
-    recoverySkills2,
-    debuffsReceived2,
-  );
+  const theoreticalPhaseHp1 = useTheoreticalPhaseHp(analysis1, recoverySkills1, debuffsReceived1);
+  const theoreticalPhaseHp2 = useTheoreticalPhaseHp(analysis2, recoverySkills2, debuffsReceived2);
 
   const phaseHp1 = isUma1Theoretical
     ? theoreticalPhaseHp1

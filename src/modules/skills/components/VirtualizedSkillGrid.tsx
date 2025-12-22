@@ -1,16 +1,10 @@
-import { Skill } from '@/modules/skills/utils';
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type CSSProperties,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { SkillItem } from './skill-list/SkillItem';
+import type { CSSProperties } from 'react';
+import type { Skill } from '@/modules/skills/utils';
 
 type VirtualizedSkillGridProps = {
-  items: Skill[];
+  items: Array<Skill>;
   selectedMap: Map<string, string>;
   onClick: React.MouseEventHandler<HTMLDivElement>;
   className?: string;
@@ -74,12 +68,8 @@ export function VirtualizedSkillGrid({
     const totalRows = Math.ceil(items.length / columnCount);
     const totalHeight = totalRows * ROW_HEIGHT;
 
-    const startRow = Math.max(
-      0,
-      Math.floor(scrollTop / ROW_HEIGHT) - OVERSCAN_ROWS,
-    );
-    const visibleRows =
-      Math.ceil(containerHeight / ROW_HEIGHT) + OVERSCAN_ROWS * 2;
+    const startRow = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - OVERSCAN_ROWS);
+    const visibleRows = Math.ceil(containerHeight / ROW_HEIGHT) + OVERSCAN_ROWS * 2;
     const endRow = Math.min(totalRows, startRow + visibleRows);
 
     return {

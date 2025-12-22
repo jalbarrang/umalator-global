@@ -41,9 +41,7 @@ export const incrementRunOnceCounter = () => {
   }));
 };
 
-export const setIsPacemakerDropdownOpen = (
-  isPacemakerDropdownOpen: boolean,
-) => {
+export const setIsPacemakerDropdownOpen = (isPacemakerDropdownOpen: boolean) => {
   useUIStore.setState({ isPacemakerDropdownOpen });
 };
 

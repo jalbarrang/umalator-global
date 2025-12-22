@@ -1,24 +1,24 @@
-import { getBaseSkillsToTest } from '@/modules/skills/utils';
-import { useRunner, useRunnersStore } from '@/store/runners.store';
-import { useSettingsStore } from '@/store/settings.store';
-import { setIsSimulationRunning } from '@simulation/stores/skill-basin.store';
-import { racedefToParams } from '@/utils/races';
+import {
+  appendResultsToTable,
+  resetTable,
+  setIsSimulationRunning,
+  setMetrics,
+  setTable,
+} from '@simulation/stores/skill-basin.store';
 import { CourseHelpers } from '@simulation/lib/CourseData';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
+import SkillBasinWorker from '@workers/skill-basin.worker.ts?worker';
+import type { SkillBasinResponse } from '@simulation/types';
 import {
   defaultSimulationOptions,
   getActivateableSkills,
   getNullRow,
 } from '@/components/bassin-chart/utils';
-import {
-  appendResultsToTable,
-  resetTable,
-  setMetrics,
-  setTable,
-} from '@simulation/stores/skill-basin.store';
-import { SkillBasinResponse } from '@simulation/types';
 
-import SkillBasinWorker from '@workers/skill-basin.worker.ts?worker';
+import { racedefToParams } from '@/utils/races';
+import { useSettingsStore } from '@/store/settings.store';
+import { useRunner, useRunnersStore } from '@/store/runners.store';
+import { getBaseSkillsToTest } from '@/modules/skills/utils';
 
 const baseSkillsToTest = getBaseSkillsToTest();
 
@@ -67,8 +67,7 @@ export function useSkillBasinRunner() {
             // Each skill goes through at least stage 1 (5 samples)
             // Filtered skills stop early, remaining go through all stages
             const totalSamples =
-              totalSkillsRef.current *
-              SAMPLES_PER_STAGE.reduce((a, b) => a + b, 0);
+              totalSkillsRef.current * SAMPLES_PER_STAGE.reduce((a, b) => a + b, 0);
 
             setMetrics({
               timeTaken: Math.round(timeTaken),
@@ -88,10 +87,9 @@ export function useSkillBasinRunner() {
   );
 
   useEffect(() => {
-    const webWorker = new Worker(
-      new URL('@/workers/skill-basin.worker.ts', import.meta.url),
-      { type: 'module' },
-    );
+    const webWorker = new Worker(new URL('@/workers/skill-basin.worker.ts', import.meta.url), {
+      type: 'module',
+    });
 
     webWorker.addEventListener('message', handleWorkerMessage);
     worker1Ref.current = webWorker;
@@ -126,8 +124,7 @@ export function useSkillBasinRunner() {
       baseSkillsToTest.filter(
         (skillId) =>
           !runner.skills.includes(skillId) &&
-          (!skillId.startsWith('9') ||
-            !runner.skills.includes('1' + skillId.slice(1))),
+          (!skillId.startsWith('9') || !runner.skills.includes('1' + skillId.slice(1))),
       ),
       runner,
       course,

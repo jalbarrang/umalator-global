@@ -23,12 +23,5 @@ export const groups_filters = {
   strategy: ['nige', 'senkou', 'sasi', 'oikomi'],
   distance: ['short', 'mile', 'medium', 'long'],
   surface: ['turf', 'dirt'],
-  location: [
-    'phase0',
-    'phase1',
-    'phase2',
-    'phase3',
-    'finalcorner',
-    'finalstraight',
-  ],
+  location: ['phase0', 'phase1', 'phase2', 'phase3', 'finalcorner', 'finalstraight'],
 };

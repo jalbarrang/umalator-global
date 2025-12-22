@@ -1,12 +1,7 @@
-import type {ChangelogEntry} from '@/data/changelog';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import type { ChangelogEntry } from '@/data/changelog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { setShowChangelogModal, useUIStore } from '@/store/ui.store';
-import {  changelog } from '@/data/changelog';
+import { changelog } from '@/data/changelog';
 import { cn } from '@/lib/utils';
 
 const changeTypeBadge: Record<
@@ -48,9 +43,7 @@ export function ChangelogModal() {
                 {/* Version header */}
                 <header className="flex items-baseline gap-3 mb-3">
                   <h3 className="font-semibold text-base">v{entry.version}</h3>
-                  <time className="text-sm text-muted-foreground">
-                    {entry.date}
-                  </time>
+                  <time className="text-sm text-muted-foreground">{entry.date}</time>
                   {idx === 0 && (
                     <span className="text-xs px-1.5 py-0.5 rounded bg-primary/15 text-primary font-medium">
                       Latest
@@ -83,9 +76,7 @@ export function ChangelogModal() {
                 </div>
 
                 {/* Separator between entries */}
-                {idx < changelog.length - 1 && (
-                  <div className="mt-5 border-t border-border/50" />
-                )}
+                {idx < changelog.length - 1 && <div className="mt-5 border-t border-border/50" />}
               </article>
             ))}
           </div>

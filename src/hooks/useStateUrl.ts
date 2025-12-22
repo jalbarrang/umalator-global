@@ -57,11 +57,7 @@ export function useStateUrl() {
       },
     );
 
-    const url =
-      window.location.protocol +
-      '//' +
-      window.location.host +
-      window.location.pathname;
+    const url = window.location.protocol + '//' + window.location.host + window.location.pathname;
 
     window.navigator.clipboard.writeText(url + '#' + hash);
   }, []);

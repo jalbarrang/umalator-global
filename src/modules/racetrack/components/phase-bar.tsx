@@ -64,13 +64,7 @@ export const PhaseBar = React.memo<PhaseBarProps>(({ distance }) => {
           height="18%"
         >
           <rect x="0" y="0" height="90%" width="100%" fill={phase.mainColor} />
-          <rect
-            x="0"
-            y="90%"
-            height="10%"
-            width="100%"
-            fill={phase.accentColor}
-          />
+          <rect x="0" y="90%" height="10%" width="100%" fill={phase.accentColor} />
           <SectionText id={phase.id} w={phase.w} />
         </svg>
       ))}

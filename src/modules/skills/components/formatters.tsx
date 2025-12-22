@@ -1,11 +1,11 @@
-import { Tooltip } from '@/components/Tooltip';
 import { getParser } from '@simulation/lib/ConditionParser';
+import type { ReactNode } from 'react';
+import { Tooltip } from '@/components/Tooltip';
 import i18n from '@/i18n';
-import { ReactNode } from 'react';
 
 export interface ConditionFormatter {
   name: string;
-  formatArg(arg: number): ReactNode;
+  formatArg: (arg: number) => ReactNode;
 }
 
 function fmtSeconds(arg: number) {
@@ -124,7 +124,7 @@ const conditionFormatters = new Proxy(
 );
 
 interface OpFormatter {
-  format(): ReactNode;
+  format: () => ReactNode;
 }
 
 class AndFormatter {
@@ -200,14 +200,12 @@ function forceSign(n: number) {
   return n <= 0 ? n.toString() : '+' + n;
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const formatStat = forceSign;
 
 function formatSpeed(n: number) {
   return i18n.t('skilldetails.speed', { n: forceSign(n) });
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const formatEffect = {
   1: formatStat,
   2: formatStat,

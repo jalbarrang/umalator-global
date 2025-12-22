@@ -1,17 +1,17 @@
-import { SavedRunner } from '@/store/runner-library.store';
+import { Copy, Edit, MoreVertical, PlayCircle, Trash2 } from 'lucide-react';
+import { useMemo } from 'react';
+import { getUmaDisplayInfo, getUmaImageUrl } from '../utils';
+import { STRATEGY_LABELS } from '../constants';
+import { StatImage } from './StatInput';
+import type { SavedRunner } from '@/store/runner-library.store';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Copy, Edit, MoreVertical, PlayCircle, Trash2 } from 'lucide-react';
-import { getUmaDisplayInfo, getUmaImageUrl } from '../utils';
-import { STRATEGY_LABELS } from '../constants';
-import { useMemo } from 'react';
-import { StatImage } from './StatInput';
 
 type SavedRunnerCardProps = {
   runner: SavedRunner;

@@ -1,12 +1,10 @@
 import { createContext, useContext } from 'react';
-import { createThemeStore, ThemeStore } from './store';
 import { useStore } from 'zustand';
+import type { ThemeStore, createThemeStore } from './store';
 
 export type ThemeStoreApi = ReturnType<typeof createThemeStore>;
 
-export const ThemeStoreContext = createContext<ThemeStoreApi | undefined>(
-  undefined,
-);
+export const ThemeStoreContext = createContext<ThemeStoreApi | undefined>(undefined);
 
 export const useThemeStore = <T>(selector: (store: ThemeStore) => T): T => {
   const themeStoreContext = useContext(ThemeStoreContext);

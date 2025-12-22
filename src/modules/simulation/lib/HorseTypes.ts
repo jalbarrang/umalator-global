@@ -1,4 +1,4 @@
-export const strategies: readonly number[] = [1, 2, 3, 4, 5];
+export const strategies: ReadonlyArray<number> = [1, 2, 3, 4, 5];
 export const Strategy = {
   Nige: 1,
   Senkou: 2,
@@ -8,7 +8,7 @@ export const Strategy = {
 } as const;
 export type IStrategy = (typeof Strategy)[keyof typeof Strategy];
 
-export const aptitudes: readonly number[] = [0, 1, 2, 3, 4, 5, 6, 7];
+export const aptitudes: ReadonlyArray<number> = [0, 1, 2, 3, 4, 5, 6, 7];
 export const Aptitude = {
   S: 0,
   A: 1,
@@ -43,10 +43,8 @@ export class StrategyHelpers {
 
   static strategyMatches(strategyA: IStrategy, strategyB: IStrategy) {
     const areSame = strategyA === strategyB;
-    const aIsRunaway =
-      strategyA == Strategy.Nige && strategyB == Strategy.Oonige;
-    const bIsRunaway =
-      strategyB == Strategy.Nige && strategyA == Strategy.Oonige;
+    const aIsRunaway = strategyA == Strategy.Nige && strategyB == Strategy.Oonige;
+    const bIsRunaway = strategyB == Strategy.Nige && strategyA == Strategy.Oonige;
 
     return areSame || aIsRunaway || bIsRunaway;
   }

@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { toast } from 'sonner';
 import { cloneDeep } from 'es-toolkit';
+import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 
 export type SavedRunner = RunnerState & {
   id: string;
@@ -12,10 +12,8 @@ export type SavedRunner = RunnerState & {
 };
 
 type RunnerLibraryStore = {
-  runners: SavedRunner[];
-  addRunner: (
-    runner: Omit<SavedRunner, 'id' | 'createdAt' | 'updatedAt'>,
-  ) => string;
+  runners: Array<SavedRunner>;
+  addRunner: (runner: Omit<SavedRunner, 'id' | 'createdAt' | 'updatedAt'>) => string;
   updateRunner: (id: string, updates: Partial<SavedRunner>) => void;
   deleteRunner: (id: string) => void;
   getRunner: (id: string) => SavedRunner | undefined;
@@ -53,9 +51,7 @@ export const useRunnerLibraryStore = create<RunnerLibraryStore>()(
       updateRunner: (id, updates) => {
         set((state) => ({
           runners: state.runners.map((runner) =>
-            runner.id === id
-              ? { ...runner, ...updates, updatedAt: Date.now() }
-              : runner,
+            runner.id === id ? { ...runner, ...updates, updatedAt: Date.now() } : runner,
           ),
         }));
 

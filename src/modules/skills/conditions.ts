@@ -2,7 +2,7 @@ import SkillsDataList from '@data/skill_data.json';
 
 import { getParser } from '@simulation/lib/ConditionParser';
 import { mockConditions } from '@simulation/lib/tools/ConditionMatcher';
-import { Operator } from '@simulation/lib/ActivationConditions';
+import type { Operator } from '@simulation/lib/ActivationConditions';
 
 const Parser = getParser(mockConditions);
 
@@ -18,7 +18,7 @@ const tokenizeSkillsConditions = () => {
       );
       return acc;
     },
-    {} as Record<string, Operator[]>,
+    {} as Record<string, Array<Operator>>,
   );
 };
 

@@ -1,13 +1,13 @@
+import type { StaminaAnalysis } from '../hooks/useStaminaAnalysis';
+import type { ActualPhaseHp } from '../hooks/usePhaseHp';
+import type { RecoverySkillActivation } from '../hooks/useRecoverySkills';
 import { cn } from '@/lib/utils';
-import { StaminaAnalysis } from '../hooks/useStaminaAnalysis';
-import { ActualPhaseHp } from '../hooks/usePhaseHp';
-import { RecoverySkillActivation } from '../hooks/useRecoverySkills';
 
 interface PhaseBreakdownProps {
   analysis: StaminaAnalysis;
-  phaseHp: ActualPhaseHp[];
-  recoverySkills: RecoverySkillActivation[];
-  debuffsReceived: RecoverySkillActivation[];
+  phaseHp: Array<ActualPhaseHp>;
+  recoverySkills: Array<RecoverySkillActivation>;
+  debuffsReceived: Array<RecoverySkillActivation>;
   isTheoretical: boolean;
 }
 
@@ -27,28 +27,21 @@ export const PhaseBreakdown = ({
         const hpConsumed = hp?.hpConsumed ?? phase.hpConsumed;
 
         // Percentages relative to maxHp
-        const hpAtStartPercent = Math.max(
-          0,
-          (hpAtStart / analysis.maxHp) * 100,
-        );
+        const hpAtStartPercent = Math.max(0, (hpAtStart / analysis.maxHp) * 100);
         const hpConsumedPercent = (hpConsumed / analysis.maxHp) * 100;
         const hpRemainingPercent = (hpAfterPhase / analysis.maxHp) * 100;
 
         // Calculate heals that activated during THIS phase
         const healsDuringPhase = recoverySkills
           .filter(
-            (skill) =>
-              skill.position >= phase.startDistance &&
-              skill.position < phase.endDistance,
+            (skill) => skill.position >= phase.startDistance && skill.position < phase.endDistance,
           )
           .reduce((sum, skill) => sum + skill.hpRecovered, 0);
 
         // Calculate debuffs received during THIS phase (hpRecovered is negative)
         const debuffsDuringPhase = debuffsReceived
           .filter(
-            (skill) =>
-              skill.position >= phase.startDistance &&
-              skill.position < phase.endDistance,
+            (skill) => skill.position >= phase.startDistance && skill.position < phase.endDistance,
           )
           .reduce((sum, skill) => sum + skill.hpRecovered, 0);
 
@@ -66,22 +59,13 @@ export const PhaseBreakdown = ({
                 >
                   {hpAfterPhase.toFixed(0)}
                 </span>
-                <span className="text-muted-foreground">
-                  {' '}
-                  / {analysis.maxHp.toFixed(0)} HP
-                </span>
-                <span className="text-blue-600 ml-1">
-                  (-{hpConsumed.toFixed(0)})
-                </span>
+                <span className="text-muted-foreground"> / {analysis.maxHp.toFixed(0)} HP</span>
+                <span className="text-blue-600 ml-1">(-{hpConsumed.toFixed(0)})</span>
                 {healsDuringPhase > 0 && (
-                  <span className="text-green-500 ml-1">
-                    (+{healsDuringPhase.toFixed(0)})
-                  </span>
+                  <span className="text-green-500 ml-1">(+{healsDuringPhase.toFixed(0)})</span>
                 )}
                 {debuffsDuringPhase < 0 && (
-                  <span className="text-red-500 ml-1">
-                    ({debuffsDuringPhase.toFixed(0)})
-                  </span>
+                  <span className="text-red-500 ml-1">({debuffsDuringPhase.toFixed(0)})</span>
                 )}
               </span>
             </div>
@@ -115,8 +99,8 @@ export const PhaseBreakdown = ({
             </div>
             <div className="flex justify-between text-muted-foreground mt-0.5">
               <span>
-                {phase.startDistance.toFixed(0)}m -{' '}
-                {phase.endDistance.toFixed(0)}m @ {phase.speed.toFixed(2)} m/s
+                {phase.startDistance.toFixed(0)}m - {phase.endDistance.toFixed(0)}m @{' '}
+                {phase.speed.toFixed(2)} m/s
               </span>
               <span>{phase.timeSeconds.toFixed(1)}s</span>
             </div>

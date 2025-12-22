@@ -3,16 +3,11 @@
  * Processes batches of skills and reports results back to pool manager
  */
 
-import { run1Round } from '@/utils/compare';
 import type { SkillBasinResponse } from '@simulation/types';
-import type {
-  SimulationParams,
-  WorkBatch,
-  WorkerInMessage,
-  WorkerOutMessage,
-} from '../types';
+import type { SimulationParams, WorkBatch, WorkerInMessage, WorkerOutMessage } from '../types';
+import { run1Round } from '@/utils/compare';
 
-let workerId: number = -1;
+let workerId = -1;
 let simulationParams: SimulationParams | null = null;
 
 function sendMessage(message: WorkerOutMessage): void {

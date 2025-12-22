@@ -1,6 +1,8 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 
 import { Activity, useState } from 'react';
+import { Plus, Users } from 'lucide-react';
+import type { SavedRunner } from '@/store/runner-library.store';
 import { Button } from '@/components/ui/button';
 import {
   Empty,
@@ -11,21 +13,16 @@ import {
   EmptyTitle,
 } from '@/components/ui/empty';
 import { SavedRunnerCard } from '@/modules/runners/components/saved-runner-card';
-import {
-  useRunnerLibraryStore,
-  SavedRunner,
-} from '@/store/runner-library.store';
-import { Plus, Users } from 'lucide-react';
+import { useRunnerLibraryStore } from '@/store/runner-library.store';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog';
 import { loadRunnerFromLibrary, showRunner } from '@/store/runners.store';
-import { useNavigate } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/runners/')({
   component: RouteComponent,
@@ -97,9 +94,7 @@ function RouteComponent() {
                 <Users />
               </EmptyMedia>
               <EmptyTitle>No runners saved</EmptyTitle>
-              <EmptyDescription>
-                Register your first runner to get started
-              </EmptyDescription>
+              <EmptyDescription>Register your first runner to get started</EmptyDescription>
             </EmptyHeader>
 
             <EmptyContent>
@@ -131,15 +126,11 @@ function RouteComponent() {
           <DialogHeader>
             <DialogTitle>Delete Runner</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this runner? This action cannot be
-              undone.
+              Are you sure you want to delete this runner? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDeleteDialogOpen(false)}
-            >
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
               Cancel
             </Button>
             <Button variant="destructive" onClick={handleDeleteConfirm}>
@@ -159,27 +150,15 @@ function RouteComponent() {
             </DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4 py-4">
-            <Button
-              variant="outline"
-              className="h-20"
-              onClick={() => handleLoadToSlot('uma1')}
-            >
+            <Button variant="outline" className="h-20" onClick={() => handleLoadToSlot('uma1')}>
               <div className="text-center">
-                <div className="text-lg font-semibold text-[#2a77c5]">
-                  Uma 1
-                </div>
+                <div className="text-lg font-semibold text-[#2a77c5]">Uma 1</div>
                 <div className="text-sm text-muted-foreground">Blue slot</div>
               </div>
             </Button>
-            <Button
-              variant="outline"
-              className="h-20"
-              onClick={() => handleLoadToSlot('uma2')}
-            >
+            <Button variant="outline" className="h-20" onClick={() => handleLoadToSlot('uma2')}>
               <div className="text-center">
-                <div className="text-lg font-semibold text-[#c52a2a]">
-                  Uma 2
-                </div>
+                <div className="text-lg font-semibold text-[#c52a2a]">Uma 2</div>
                 <div className="text-sm text-muted-foreground">Red slot</div>
               </div>
             </Button>

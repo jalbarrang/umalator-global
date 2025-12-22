@@ -1,3 +1,6 @@
+import { resetResults, useRaceStore } from '@simulation/stores/compare.store';
+import { Activity, useMemo } from 'react';
+import { createFileRoute } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button-group';
 import { LoadingOverlay } from '@/components/loading-overlay';
@@ -11,18 +14,13 @@ import { ResultButtonGroups } from '@/modules/simulation/tabs/summary-tab';
 import { useSettingsStore } from '@/store/settings.store';
 import { useSelectedPacemakerBooleans } from '@/store/settings/actions';
 import { useUIStore } from '@/store/ui.store';
-import { resetResults, useRaceStore } from '@simulation/stores/compare.store';
-import { Activity, useMemo } from 'react';
-
-import { createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/_simulation/')({
   component: Home,
 });
 
 function Home() {
-  const { chartData, results, isSimulationRunning, simulationProgress } =
-    useRaceStore();
+  const { chartData, results, isSimulationRunning, simulationProgress } = useRaceStore();
   const { courseId } = useSettingsStore();
   const { showVirtualPacemakerOnGraph } = useUIStore();
   const selectedPacemakers = useSelectedPacemakerBooleans();
@@ -34,18 +32,10 @@ function Home() {
     <div className="flex flex-col flex-1 gap-4">
       <div className="flex items-center gap-2">
         <ButtonGroup>
-          <Button
-            onClick={handleRunCompare}
-            disabled={isSimulationRunning}
-            variant="default"
-          >
+          <Button onClick={handleRunCompare} disabled={isSimulationRunning} variant="default">
             Run all samples
           </Button>
-          <Button
-            onClick={handleRunOnce}
-            disabled={isSimulationRunning}
-            variant="outline"
-          >
+          <Button onClick={handleRunOnce} disabled={isSimulationRunning} variant="outline">
             Run one sample
           </Button>
           <Button

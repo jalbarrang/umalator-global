@@ -5,13 +5,7 @@
 import umas from '@data/umas.json';
 import GametoraSkills from '@data/gametora/skills.json';
 import type { ISkill } from '@/modules/skills/types';
-import type {
-  SkillLookupEntry,
-  UmaLookupEntry,
-  UmaData,
-  SkillMatch,
-  UmaMatch,
-} from './types';
+import type { SkillLookupEntry, SkillMatch, UmaData, UmaLookupEntry, UmaMatch } from './types';
 
 // =============================================================================
 // Text Normalization & Similarity
@@ -29,7 +23,7 @@ export function normalize(text: string): string {
 
 /** Levenshtein distance for fuzzy matching */
 export function levenshteinDistance(a: string, b: string): number {
-  const matrix: number[][] = [];
+  const matrix: Array<Array<number>> = [];
 
   for (let i = 0; i <= b.length; i++) {
     matrix[i] = [i];
@@ -79,7 +73,7 @@ const skillLookup = new Map<string, SkillLookupEntry>();
 function buildSkillLookup() {
   if (skillLookup.size > 0) return;
 
-  for (const skill of GametoraSkills as ISkill[]) {
+  for (const skill of GametoraSkills as Array<ISkill>) {
     const id = String(skill.id);
 
     // Add main skill name_en
@@ -88,9 +82,7 @@ function buildSkillLookup() {
       if (key && !skillLookup.has(key)) {
         skillLookup.set(key, {
           id,
-          geneId: skill.gene_version?.id
-            ? `${skill.gene_version.id}`
-            : undefined,
+          geneId: skill.gene_version?.id ? `${skill.gene_version.id}` : undefined,
           name: skill.name_en,
           rarity: skill.rarity,
         });
@@ -114,7 +106,7 @@ const umaLookup = new Map<string, UmaLookupEntry>();
 function buildUmaLookup() {
   if (umaLookup.size > 0) return;
 
-  for (const [_baseId, uma] of Object.entries(umas) as [string, UmaData][]) {
+  for (const [_baseId, uma] of Object.entries(umas) as Array<[string, UmaData]>) {
     const umaName = uma.name[1] || '';
 
     for (const [outfitId, outfitName] of Object.entries(uma.outfits)) {
@@ -175,11 +167,7 @@ export function findBestSkillMatch(ocrText: string): SkillMatch | null {
     }
 
     // Also try if skill name contains OCR text (partial match)
-    if (
-      score < minThreshold &&
-      key.includes(normalizedOcr) &&
-      normalizedOcr.length >= 5
-    ) {
+    if (score < minThreshold && key.includes(normalizedOcr) && normalizedOcr.length >= 5) {
       score = 0.75;
     }
 
@@ -199,10 +187,7 @@ export function findBestSkillMatch(ocrText: string): SkillMatch | null {
 }
 
 /** Find best uma match from outfit and name */
-export function findBestUmaMatch(
-  outfit: string,
-  umaName: string,
-): UmaMatch | null {
+export function findBestUmaMatch(outfit: string, umaName: string): UmaMatch | null {
   const lookup = getUmaLookup();
   const normalizedOutfit = normalize(outfit.replace(/[[\]]/g, ''));
   const normalizedUmaName = normalize(umaName);

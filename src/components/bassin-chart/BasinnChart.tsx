@@ -30,12 +30,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
-import type {
-  CellContext,
-  Column,
-  ColumnDef,
-  SortingState,
-} from '@tanstack/react-table';
+import type { CellContext, Column, ColumnDef, SortingState } from '@tanstack/react-table';
 import type { PoolMetrics, RoundResult } from '@/modules/simulation/types';
 import {
   Table,
@@ -93,11 +88,7 @@ const skillNameCell =
         const icon = icons[umaId as keyof typeof icons];
 
         return (
-          <div
-            className="flex items-center gap-2"
-            data-itemtype="uma"
-            data-itemid={umaId}
-          >
+          <div className="flex items-center gap-2" data-itemtype="uma" data-itemid={umaId}>
             <img src={icon} className="w-8 h-8" />
             <span>{i18n.t(`skillnames.${id}`)}</span>
           </div>
@@ -107,22 +98,14 @@ const skillNameCell =
 
     if (!skill) {
       return (
-        <div
-          className="flex items-center gap-2"
-          data-itemtype="skill"
-          data-itemid={id}
-        >
+        <div className="flex items-center gap-2" data-itemtype="skill" data-itemid={id}>
           <span>{i18n.t(`skillnames.${id}`)}</span>
         </div>
       );
     }
 
     return (
-      <div
-        className="flex items-center gap-2"
-        data-itemtype="skill"
-        data-itemid={id}
-      >
+      <div className="flex items-center gap-2" data-itemtype="skill" data-itemid={id}>
         <img src={`/icons/${skill.meta.iconId}.png`} className="w-4 h-4" />
         <span>{i18n.t(`skillnames.${id}`)}</span>
       </div>
@@ -195,12 +178,7 @@ export const BasinnChart = (props: BasinnChartProps) => {
 
         if (!onReplaceOutfit) {
           return (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleClick}
-              className="h-8 w-8 p-0"
-            >
+            <Button variant="outline" size="sm" onClick={handleClick} className="h-8 w-8 p-0">
               <ArrowLeft className="h-4 w-4" />
             </Button>
           );
@@ -214,9 +192,7 @@ export const BasinnChart = (props: BasinnChartProps) => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
-              <DropdownMenuItem onClick={handleClick}>
-                Add Skill to Runner
-              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleClick}>Add Skill to Runner</DropdownMenuItem>
               <DropdownMenuItem onClick={handleReplaceOutfit}>
                 Replace Runner Outfit
               </DropdownMenuItem>
@@ -240,11 +216,9 @@ export const BasinnChart = (props: BasinnChartProps) => {
           if (filterReason === 'negligible-effect') {
             tooltipText = 'Skill effect too small to measure (< 0.1 bashin)';
           } else if (filterReason === 'low-variance') {
-            tooltipText =
-              'Skill effect too consistent to need detailed analysis';
+            tooltipText = 'Skill effect too consistent to need detailed analysis';
           } else {
-            tooltipText =
-              'No detailed data available (filtered during simulation)';
+            tooltipText = 'No detailed data available (filtered during simulation)';
           }
         }
 
@@ -309,9 +283,7 @@ export const BasinnChart = (props: BasinnChartProps) => {
     },
   ];
 
-  const [sorting, setSorting] = useState<SortingState>([
-    { id: 'mean', desc: true },
-  ]);
+  const [sorting, setSorting] = useState<SortingState>([{ id: 'mean', desc: true }]);
   const [rowSelection, setRowSelection] = useState({});
 
   const table = useReactTable({
@@ -369,10 +341,7 @@ export const BasinnChart = (props: BasinnChartProps) => {
                   <TableHead key={header.id} colSpan={header.colSpan}>
                     {header.isPlaceholder
                       ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
+                      : flexRender(header.column.columnDef.header, header.getContext())}
                   </TableHead>
                 ))}
               </TableRow>
@@ -395,10 +364,7 @@ export const BasinnChart = (props: BasinnChartProps) => {
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
                 </TableRow>

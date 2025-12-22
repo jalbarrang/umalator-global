@@ -3,11 +3,7 @@
  */
 
 import type { UmaMatch } from '@/modules/runners/data/types';
-import {
-  normalize,
-  findBestUmaMatch,
-  getUmaLookup,
-} from '@/modules/runners/data/search';
+import { findBestUmaMatch, getUmaLookup, normalize } from '@/modules/runners/data/search';
 
 /** Extract uma identity (outfit and name) from OCR text */
 export function extractUmaIdentity(text: string): UmaMatch | null {
@@ -59,11 +55,7 @@ export function extractUmaIdentity(text: string): UmaMatch | null {
   if (!umaName) {
     for (const line of lines) {
       // Skip lines that are clearly not uma names
-      if (
-        line.match(
-          /speed|stamina|power|guts|wit|track|distance|style|skills|lvl|close/i,
-        )
-      ) {
+      if (line.match(/speed|stamina|power|guts|wit|track|distance|style|skills|lvl|close/i)) {
         continue;
       }
 

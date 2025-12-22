@@ -1,34 +1,30 @@
 import {
+  appendResultsToTable,
+  resetTable,
+  setIsSimulationRunning,
+  setMetrics,
+  setTable,
+} from '@simulation/stores/uma-basin.store';
+import { CourseHelpers } from '@simulation/lib/CourseData';
+import { useEffect, useMemo, useRef } from 'react';
+import UmaBasinPoolWorker from '@workers/pool/uma-basin/uma-basin.pool.worker.ts?worker';
+import type { SkillBasinResponse } from '@simulation/types';
+import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import {
   defaultSimulationOptions,
   getActivateableSkills,
   getNullRow,
 } from '@/components/bassin-chart/utils';
-import { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { uniqueSkillIds } from '@/modules/skills/utils';
 import { useRunner, useRunnersStore } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
-import { setIsSimulationRunning } from '@simulation/stores/uma-basin.store';
 import { racedefToParams } from '@/utils/races';
-import { CourseHelpers } from '@simulation/lib/CourseData';
-import {
-  appendResultsToTable,
-  resetTable,
-  setMetrics,
-  setTable,
-} from '@simulation/stores/uma-basin.store';
-import { SkillBasinResponse } from '@simulation/types';
-import { useEffect, useMemo, useRef } from 'react';
 import { PoolManager } from '@/workers/pool/pool-manager';
 
-import UmaBasinPoolWorker from '@workers/pool/uma-basin/uma-basin.pool.worker.ts?worker';
-
-const createUmaBasinPoolWorker = (options: { name: string }) =>
-  new UmaBasinPoolWorker(options);
+const createUmaBasinPoolWorker = (options: { name: string }) => new UmaBasinPoolWorker(options);
 
 function removeUniqueSkillsFromRunner(uma: RunnerState): RunnerState {
-  const filteredSkills = uma.skills.filter(
-    (skillId) => !uniqueSkillIds.includes(skillId),
-  );
+  const filteredSkills = uma.skills.filter((skillId) => !uniqueSkillIds.includes(skillId));
 
   return { ...uma, skills: filteredSkills };
 }
@@ -44,9 +40,7 @@ export function useUmaBasinPoolRunner() {
 
   // Initialize pool manager on mount
   useEffect(() => {
-    const poolManager = new PoolManager((options) =>
-      createUmaBasinPoolWorker(options),
-    );
+    const poolManager = new PoolManager((options) => createUmaBasinPoolWorker(options));
 
     poolManagerRef.current = poolManager;
 
@@ -65,12 +59,7 @@ export function useUmaBasinPoolRunner() {
 
     const params = racedefToParams(racedef, runner.strategy);
 
-    const skills = getActivateableSkills(
-      uniqueSkillIds,
-      runner,
-      course,
-      params,
-    );
+    const skills = getActivateableSkills(uniqueSkillIds, runner, course, params);
 
     const umaWithoutUniques = removeUniqueSkillsFromRunner(runner);
     const uma = umaWithoutUniques;
@@ -100,9 +89,7 @@ export function useUmaBasinPoolRunner() {
           appendResultsToTable(results);
         },
         onStageComplete: (stage, results) => {
-          const activeSkills = Array.from(results.values()).filter(
-            (r) => !r.filterReason,
-          );
+          const activeSkills = Array.from(results.values()).filter((r) => !r.filterReason);
           console.log(
             `Stage ${stage} complete with ${results.size} total skills (${activeSkills.length} active, ${results.size - activeSkills.length} filtered)`,
           );

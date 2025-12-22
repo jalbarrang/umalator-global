@@ -9,12 +9,13 @@ The main simulation loop orchestrator.
 ### Constructor
 
 ```typescript
-new GameEngine()
+new GameEngine();
 ```
 
 Creates a new engine instance with fresh event bus and empty entity list.
 
 **Example**:
+
 ```typescript
 const engine = new GameEngine();
 ```
@@ -26,6 +27,7 @@ const engine = new GameEngine();
 Global event bus for cross-entity communication.
 
 **Example**:
+
 ```typescript
 engine.eventBus.on('tick', (data) => console.log(data));
 ```
@@ -35,6 +37,7 @@ engine.eventBus.on('tick', (data) => console.log(data));
 Current simulation time in seconds.
 
 **Example**:
+
 ```typescript
 console.log(engine.time); // 5.432
 ```
@@ -44,6 +47,7 @@ console.log(engine.time); // 5.432
 Whether the simulation is currently executing.
 
 **Example**:
+
 ```typescript
 if (engine.isRunning) {
   console.log('Simulation in progress');
@@ -55,6 +59,7 @@ if (engine.isRunning) {
 Number of entities currently in the engine.
 
 **Example**:
+
 ```typescript
 console.log(`Managing ${engine.entityCount} entities`);
 ```
@@ -66,15 +71,18 @@ console.log(`Managing ${engine.entityCount} entities`);
 Registers an entity with the engine. Calls `entity.onAddedToEngine(this)` and emits `'entityAdded'` event.
 
 **Parameters**:
+
 - `entity` - The entity to add
 
 **Example**:
+
 ```typescript
 const runner = new Entity('runner-1');
 engine.addEntity(runner);
 ```
 
 **Notes**:
+
 - Duplicate entities are ignored (no error thrown)
 - Entity's `engine` property is set automatically
 
@@ -85,14 +93,17 @@ engine.addEntity(runner);
 Unregisters an entity from the engine. Calls `entity.onRemovedFromEngine()` and emits `'entityRemoved'` event.
 
 **Parameters**:
+
 - `entity` - The entity to remove
 
 **Example**:
+
 ```typescript
 engine.removeEntity(runner);
 ```
 
 **Notes**:
+
 - Removing non-existent entity is safe (no error thrown)
 - Entity's `engine` property is set to `null` automatically
 
@@ -103,11 +114,13 @@ engine.removeEntity(runner);
 Returns all entities, optionally filtered by type.
 
 **Type Parameters**:
+
 - `T` - Entity type for filtering (optional)
 
 **Returns**: Array of entities
 
 **Example**:
+
 ```typescript
 const allEntities = engine.getEntities();
 const runners = engine.getEntities<Runner>();
@@ -120,11 +133,13 @@ const runners = engine.getEntities<Runner>();
 Finds an entity by its ID.
 
 **Parameters**:
+
 - `id` - The entity ID to search for
 
 **Returns**: The entity or `undefined` if not found
 
 **Example**:
+
 ```typescript
 const runner = engine.getEntityById('runner-1');
 if (runner) {
@@ -139,14 +154,17 @@ if (runner) {
 Single simulation step. Advances time by `dt` and updates all enabled entities.
 
 **Parameters**:
+
 - `dt` - Delta time in seconds
 
 **Example**:
+
 ```typescript
 engine.tick(0.016); // One frame at ~60fps
 ```
 
 **Notes**:
+
 - Time advances before entity updates
 - Entities update in insertion order (deterministic)
 - Disabled entities are skipped
@@ -159,15 +177,18 @@ engine.tick(0.016); // One frame at ~60fps
 Runs the simulation for a specified duration. Calls `tick(dt)` repeatedly until `time >= duration`.
 
 **Parameters**:
+
 - `duration` - Total simulation time in seconds
 - `dt` - Delta time per tick in seconds
 
 **Example**:
+
 ```typescript
 engine.run(10.0, 0.0666); // 10 seconds at 15fps
 ```
 
 **Notes**:
+
 - Sets `isRunning` to `true` during execution
 - Emits `'simulationStarted'` before first tick
 - Emits `'simulationEnded'` after last tick
@@ -180,13 +201,15 @@ engine.run(10.0, 0.0666); // 10 seconds at 15fps
 Resets engine to initial state. Removes all entities, resets time to 0, and clears event listeners.
 
 **Example**:
+
 ```typescript
 engine.reset();
-console.log(engine.time);        // 0
+console.log(engine.time); // 0
 console.log(engine.entityCount); // 0
 ```
 
 **Notes**:
+
 - Emits `'engineReset'` before clearing listeners
 - Calls `onRemovedFromEngine()` on all entities
 - Use for reusing engine instance across multiple runs
@@ -284,9 +307,11 @@ new Entity(id: string)
 Creates an entity with the specified ID.
 
 **Parameters**:
+
 - `id` - Unique identifier for this entity
 
 **Example**:
+
 ```typescript
 const runner = new Entity('runner-1');
 const race = new Entity('race-simulator');
@@ -299,6 +324,7 @@ const race = new Entity('race-simulator');
 Unique identifier for this entity.
 
 **Example**:
+
 ```typescript
 console.log(entity.id); // 'runner-1'
 ```
@@ -308,6 +334,7 @@ console.log(entity.id); // 'runner-1'
 Reference to the engine this entity belongs to. `null` if not added to an engine.
 
 **Example**:
+
 ```typescript
 if (entity.engine) {
   entity.engine.eventBus.emit('event', data);
@@ -319,9 +346,10 @@ if (entity.engine) {
 Whether this entity should receive updates.
 
 **Example**:
+
 ```typescript
 entity.enabled = false; // Stop updating
-entity.enabled = true;  // Resume updating
+entity.enabled = true; // Resume updating
 ```
 
 ### Methods
@@ -331,15 +359,18 @@ entity.enabled = true;  // Resume updating
 Attaches a behavior to this entity. Behaviors are automatically sorted by priority.
 
 **Parameters**:
+
 - `behavior` - The behavior to attach
 
 **Example**:
+
 ```typescript
 const movement = new MovementBehavior();
 entity.addBehavior(movement);
 ```
 
 **Notes**:
+
 - Calls `behavior.onAttach(this)`
 - Sorts all behaviors by priority after adding
 - Duplicate behaviors are ignored
@@ -351,14 +382,17 @@ entity.addBehavior(movement);
 Detaches a behavior from this entity.
 
 **Parameters**:
+
 - `behavior` - The behavior to remove
 
 **Example**:
+
 ```typescript
 entity.removeBehavior(movement);
 ```
 
 **Notes**:
+
 - Calls `behavior.onDetach()`
 - Removing non-existent behavior is safe
 
@@ -369,14 +403,17 @@ entity.removeBehavior(movement);
 Gets the first behavior of a specific type.
 
 **Type Parameters**:
+
 - `T` - Behavior class type
 
 **Parameters**:
+
 - `behaviorClass` - The behavior class constructor
 
 **Returns**: Behavior instance or `undefined`
 
 **Example**:
+
 ```typescript
 const movement = entity.getBehavior(MovementBehavior);
 if (movement) {
@@ -391,14 +428,17 @@ if (movement) {
 Checks if entity has a behavior of specific type.
 
 **Type Parameters**:
+
 - `T` - Behavior class type
 
 **Parameters**:
+
 - `behaviorClass` - The behavior class constructor
 
 **Returns**: `true` if behavior is attached
 
 **Example**:
+
 ```typescript
 if (entity.hasBehavior(MovementBehavior)) {
   console.log('Entity can move');
@@ -414,6 +454,7 @@ Gets all behaviors attached to this entity.
 **Returns**: Read-only array of all behaviors
 
 **Example**:
+
 ```typescript
 const behaviors = entity.getBehaviors();
 console.log(`Has ${behaviors.length} behaviors`);
@@ -426,14 +467,17 @@ console.log(`Has ${behaviors.length} behaviors`);
 Updates all enabled behaviors in priority order. Called by GameEngine each tick.
 
 **Parameters**:
+
 - `dt` - Delta time in seconds
 
 **Example**:
+
 ```typescript
 entity.update(0.016); // Manually update (usually engine does this)
 ```
 
 **Notes**:
+
 - Disabled behaviors are skipped
 - Behaviors execute in priority order
 
@@ -444,9 +488,11 @@ entity.update(0.016); // Manually update (usually engine does this)
 Called when entity is added to an engine. Sets the `engine` property.
 
 **Parameters**:
+
 - `engine` - The engine this entity was added to
 
 **Notes**:
+
 - Usually called automatically by `engine.addEntity()`
 - Can be overridden in subclasses for custom setup
 
@@ -457,6 +503,7 @@ Called when entity is added to an engine. Sets the `engine` property.
 Called when entity is removed from an engine. Clears the `engine` property.
 
 **Notes**:
+
 - Usually called automatically by `engine.removeEntity()`
 - Can be overridden in subclasses for custom cleanup
 
@@ -469,12 +516,13 @@ Base class for all simulation logic.
 ### Constructor
 
 ```typescript
-new Behavior()
+new Behavior();
 ```
 
 Creates a behavior with default values.
 
 **Example**:
+
 ```typescript
 class MyBehavior extends Behavior {
   constructor() {
@@ -491,6 +539,7 @@ class MyBehavior extends Behavior {
 The entity this behavior is attached to. `null` if not attached.
 
 **Example**:
+
 ```typescript
 const entityId = this.owner?.id;
 ```
@@ -500,6 +549,7 @@ const entityId = this.owner?.id;
 Execution priority. Lower values run first. Default: `0`.
 
 **Example**:
+
 ```typescript
 class HighPriorityBehavior extends Behavior {
   priority = -100; // Runs early
@@ -515,9 +565,10 @@ class LowPriorityBehavior extends Behavior {
 Whether this behavior should receive updates. Default: `true`.
 
 **Example**:
+
 ```typescript
 behavior.enabled = false; // Pause behavior
-behavior.enabled = true;  // Resume behavior
+behavior.enabled = true; // Resume behavior
 ```
 
 ### Methods
@@ -527,9 +578,11 @@ behavior.enabled = true;  // Resume behavior
 Called when behavior is attached to an entity.
 
 **Parameters**:
+
 - `owner` - The entity this behavior is being attached to
 
 **Example**:
+
 ```typescript
 class MyBehavior extends Behavior {
   override onAttach(owner: Entity): void {
@@ -540,6 +593,7 @@ class MyBehavior extends Behavior {
 ```
 
 **Notes**:
+
 - Sets `this.owner` property
 - Override for custom initialization
 - Engine reference not available yet!
@@ -551,6 +605,7 @@ class MyBehavior extends Behavior {
 Called when behavior is removed from an entity.
 
 **Example**:
+
 ```typescript
 class MyBehavior extends Behavior {
   override onDetach(): void {
@@ -561,6 +616,7 @@ class MyBehavior extends Behavior {
 ```
 
 **Notes**:
+
 - Clears `this.owner` property
 - Override for cleanup (event listeners, timers, etc.)
 
@@ -571,9 +627,11 @@ class MyBehavior extends Behavior {
 Called each tick if behavior is enabled.
 
 **Parameters**:
+
 - `dt` - Delta time in seconds since last tick
 
 **Example**:
+
 ```typescript
 class MovementBehavior extends Behavior {
   position = 0;
@@ -586,6 +644,7 @@ class MovementBehavior extends Behavior {
 ```
 
 **Notes**:
+
 - Override this method to implement behavior logic
 - Not called if `enabled` is `false`
 - Called in priority order within entity
@@ -599,19 +658,21 @@ Thin wrapper around EventEmitter3 for pub/sub communication.
 ### Constructor
 
 ```typescript
-new EventBus<EventTypes>()
+new EventBus<EventTypes>();
 ```
 
 Creates a new event bus with optional type-safe event map.
 
 **Type Parameters**:
+
 - `EventTypes` - Event map type (optional)
 
 **Example**:
+
 ```typescript
 type MyEvents = {
-  'tick': { time: number };
-  'finish': { winner: string };
+  tick: { time: number };
+  finish: { winner: string };
 };
 
 const bus = new EventBus<MyEvents>();
@@ -624,12 +685,14 @@ const bus = new EventBus<MyEvents>();
 Subscribe to an event. Handler is called every time the event is emitted.
 
 **Parameters**:
+
 - `event` - Event name (string or symbol)
 - `handler` - Callback function
 
 **Returns**: `this` (for chaining)
 
 **Example**:
+
 ```typescript
 engine.eventBus.on('runner:moved', (data) => {
   console.log(`${data.id} moved to ${data.position}`);
@@ -643,12 +706,14 @@ engine.eventBus.on('runner:moved', (data) => {
 Subscribe to an event once. Handler is auto-removed after first call.
 
 **Parameters**:
+
 - `event` - Event name
 - `handler` - Callback function
 
 **Returns**: `this` (for chaining)
 
 **Example**:
+
 ```typescript
 engine.eventBus.once('race:started', () => {
   console.log('Race has started');
@@ -662,12 +727,14 @@ engine.eventBus.once('race:started', () => {
 Unsubscribe from an event.
 
 **Parameters**:
+
 - `event` - Event name
 - `handler` - The same handler reference passed to `on()`
 
 **Returns**: `this` (for chaining)
 
 **Example**:
+
 ```typescript
 const handler = (data) => console.log(data);
 engine.eventBus.on('event', handler);
@@ -683,12 +750,14 @@ engine.eventBus.off('event', handler);
 Publish an event synchronously.
 
 **Parameters**:
+
 - `event` - Event name
 - `...args` - Arguments passed to handlers
 
 **Returns**: `true` if listeners exist, `false` otherwise
 
 **Example**:
+
 ```typescript
 engine.eventBus.emit('runner:moved', {
   id: 'runner-1',
@@ -698,6 +767,7 @@ engine.eventBus.emit('runner:moved', {
 ```
 
 **Notes**:
+
 - Handlers execute synchronously
 - Handlers execute in subscription order
 
@@ -708,11 +778,13 @@ engine.eventBus.emit('runner:moved', {
 Clears all event listeners.
 
 **Parameters**:
+
 - `event` - Specific event to clear (optional, clears all if omitted)
 
 **Returns**: `this` (for chaining)
 
 **Example**:
+
 ```typescript
 // Clear all listeners for specific event
 engine.eventBus.removeAllListeners('tick');
@@ -728,11 +800,13 @@ engine.eventBus.removeAllListeners();
 Returns the number of listeners for an event.
 
 **Parameters**:
+
 - `event` - Event name
 
 **Returns**: Number of listeners
 
 **Example**:
+
 ```typescript
 console.log(engine.eventBus.listenerCount('tick')); // 5
 ```
@@ -777,11 +851,9 @@ type BehaviorClass<T extends IBehavior> = new (...args: any[]) => T;
 ```
 
 **Usage**:
+
 ```typescript
-function hasBehavior<T extends Behavior>(
-  entity: Entity,
-  behaviorClass: BehaviorClass<T>
-): boolean {
+function hasBehavior<T extends Behavior>(entity: Entity, behaviorClass: BehaviorClass<T>): boolean {
   return entity.hasBehavior(behaviorClass);
 }
 ```
@@ -916,4 +988,3 @@ const results = runBatch(generateSeeds(10000));
 - [Events](05-events.md) - Event-driven architecture
 - [Advanced Patterns](06-advanced-patterns.md) - Production techniques
 - [Best Practices](07-best-practices.md) - Design principles
-

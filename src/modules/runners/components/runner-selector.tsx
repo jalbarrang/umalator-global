@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
-import { umasForSearch, getUmaImageUrl } from '@/modules/runners/utils';
+import { getUmaImageUrl, umasForSearch } from '@/modules/runners/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Command,

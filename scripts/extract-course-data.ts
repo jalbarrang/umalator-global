@@ -4,13 +4,9 @@
  * Ports make_global_course_data.pl to TypeScript
  */
 
-import path from 'path';
-import { openDatabase, closeDatabase, queryAll } from './lib/database';
-import {
-  resolveMasterDbPath,
-  sortByNumericKey,
-  writeJsonFile,
-} from './lib/shared';
+import path from 'node:path';
+import { closeDatabase, openDatabase, queryAll } from './lib/database';
+import { resolveMasterDbPath, sortByNumericKey, writeJsonFile } from './lib/shared';
 
 interface CourseSetStatusRow {
   course_set_status_id: number;
@@ -34,11 +30,11 @@ interface CourseRow {
 interface CourseEvent {
   _paramType: number;
   _distance: number;
-  _values: number[];
+  _values: Array<number>;
 }
 
 interface CourseEventParams {
-  courseParams: CourseEvent[];
+  courseParams: Array<CourseEvent>;
 }
 
 interface Corner {
@@ -68,10 +64,10 @@ interface CourseData {
   laneMax: number;
   finishTimeMin: number;
   finishTimeMax: number;
-  courseSetStatus: number[];
-  corners: Corner[];
-  straights: Straight[];
-  slopes: Slope[];
+  courseSetStatus: Array<number>;
+  corners: Array<Corner>;
+  straights: Array<Straight>;
+  slopes: Array<Slope>;
 }
 
 /**
@@ -88,10 +84,8 @@ async function extractCourseData() {
   console.log('📖 Extracting course data...\n');
 
   const dbPath = await resolveMasterDbPath();
-  const replaceMode =
-    process.argv.includes('--replace') || process.argv.includes('--full');
-  const courseEventParamsPath =
-    process.argv[3] || path.join(process.cwd(), 'courseeventparams');
+  const replaceMode = process.argv.includes('--replace') || process.argv.includes('--full');
+  const courseEventParamsPath = process.argv[3] || path.join(process.cwd(), 'courseeventparams');
 
   console.log(
     `Mode: ${replaceMode ? '⚠️  Full Replacement' : '✓ Merge (preserves future content)'}`,
@@ -109,7 +103,7 @@ async function extractCourseData() {
        FROM race_course_set_status`,
     );
 
-    const courseSetStatus: Record<number, number[]> = {};
+    const courseSetStatus: Record<number, Array<number>> = {};
     for (const row of statusRows) {
       const statuses = [row.target_status_1];
       if (row.target_status_2 !== 0) {
@@ -139,25 +133,20 @@ async function extractCourseData() {
       }
 
       // Read course event params JSON file
-      const eventParamsPath = path.join(
-        courseEventParamsPath,
-        `${row.id}.json`,
-      );
+      const eventParamsPath = path.join(courseEventParamsPath, `${row.id}.json`);
 
       let eventParams: CourseEventParams;
       try {
         eventParams = await Bun.file(eventParamsPath).json();
       } catch {
-        console.warn(
-          `Warning: Could not read ${eventParamsPath}, skipping course ${row.id}`,
-        );
+        console.warn(`Warning: Could not read ${eventParamsPath}, skipping course ${row.id}`);
         continue;
       }
 
       // Process events
-      const corners: Corner[] = [];
-      const straights: Straight[] = [];
-      const slopes: Slope[] = [];
+      const corners: Array<Corner> = [];
+      const straights: Array<Straight> = [];
+      const slopes: Array<Slope> = [];
 
       let pendingStraight: Partial<Straight> | null = null;
       let straightState = 0; // 0 = not in straight, 1 = in straight
@@ -236,18 +225,13 @@ async function extractCourseData() {
     }
 
     // Merge with existing data (unless replace mode)
-    const outputPath = path.join(
-      process.cwd(),
-      'src/modules/data/course_data.json',
-    );
+    const outputPath = path.join(process.cwd(), 'src/modules/data/course_data.json');
 
     let finalCourses: Record<string, CourseData>;
 
     if (replaceMode) {
       finalCourses = courses;
-      console.log(
-        `\n⚠️  Full replacement mode: ${processedCount} courses from master.mdb only`,
-      );
+      console.log(`\n⚠️  Full replacement mode: ${processedCount} courses from master.mdb only`);
     } else {
       const existingFile = Bun.file(outputPath);
 
@@ -261,12 +245,8 @@ async function extractCourseData() {
         const preserved = finalCount - processedCount;
 
         console.log(`\n✓ Merge mode:`);
-        console.log(
-          `  → ${processedCount} courses from master.mdb (current content)`,
-        );
-        console.log(
-          `  → ${preserved} additional courses preserved (future content)`,
-        );
+        console.log(`  → ${processedCount} courses from master.mdb (current content)`);
+        console.log(`  → ${preserved} additional courses preserved (future content)`);
         console.log(`  → ${finalCount} total courses`);
       } else {
         finalCourses = courses;

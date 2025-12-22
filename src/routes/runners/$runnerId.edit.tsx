@@ -1,10 +1,10 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate, useParams } from '@tanstack/react-router';
 
-import { useState, useMemo } from 'react';
-import { useNavigate, useParams } from '@tanstack/react-router';
+import { useMemo, useState } from 'react';
+import { AlertCircle } from 'lucide-react';
+import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { RunnerEditorLayout } from '@/layout/runner-editor-layout';
 import { useRunnerLibraryStore } from '@/store/runner-library.store';
-import { RunnerState } from '@/modules/runners/components/runner-card/types';
 import {
   Empty,
   EmptyContent,
@@ -13,7 +13,6 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from '@/components/ui/empty';
-import { AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export const Route = createFileRoute('/runners/$runnerId/edit')({
@@ -32,9 +31,7 @@ function RouteComponent() {
   }, [id, getRunner]);
 
   const [runnerName, setRunnerName] = useState(initialRunner?.notes || '');
-  const [runnerState, setRunnerState] = useState<RunnerState | null>(
-    initialRunner || null,
-  );
+  const [runnerState, setRunnerState] = useState<RunnerState | null>(initialRunner || null);
 
   const notFound = !initialRunner;
 
@@ -69,9 +66,7 @@ function RouteComponent() {
             </EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
-            <Button onClick={() => navigate({ to: '/runners' })}>
-              Back to Runners
-            </Button>
+            <Button onClick={() => navigate({ to: '/runners' })}>Back to Runners</Button>
           </EmptyContent>
         </Empty>
       </div>

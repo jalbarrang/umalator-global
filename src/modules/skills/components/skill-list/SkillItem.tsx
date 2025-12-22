@@ -1,16 +1,11 @@
+import { Activity, memo, useMemo, useState } from 'react';
+import { X } from 'lucide-react';
+import { ExpandedSkillDetails } from '../ExpandedSkillDetails';
 import { getSkillDataById, getSkillMetaById } from '@/modules/skills/utils';
 import { cn } from '@/lib/utils';
 import i18n from '@/i18n';
-import { Activity, memo, useMemo, useState } from 'react';
-import { ExpandedSkillDetails } from '../ExpandedSkillDetails';
-import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  isEvolutionSkill,
-  isGoldSkill,
-  isUniqueSkill,
-  isWhiteSkill,
-} from '@/store/runners.store';
+import { isEvolutionSkill, isGoldSkill, isUniqueSkill, isWhiteSkill } from '@/store/runners.store';
 
 export const SkillIcon = (props: { iconId: string }) => {
   return <img className="w-6 h-6" src={`/icons/${props.iconId}.png`} />;

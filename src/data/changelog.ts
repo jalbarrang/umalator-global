@@ -122,9 +122,7 @@ export const changelog: Array<ChangelogEntry> = [
     changes: [
       {
         type: 'added',
-        items: [
-          '[Simulation] Enabled Dueling (Compete Fight) mechanic on the final straight',
-        ],
+        items: ['[Simulation] Enabled Dueling (Compete Fight) mechanic on the final straight'],
       },
       {
         type: 'fixed',
@@ -184,9 +182,7 @@ export const changelog: Array<ChangelogEntry> = [
       },
       {
         type: 'fixed',
-        items: [
-          '[Runner] Fixed inherited unique skills showing as original version in OCR import',
-        ],
+        items: ['[Runner] Fixed inherited unique skills showing as original version in OCR import'],
       },
       {
         type: 'changed',

@@ -46,9 +46,7 @@ export type SelectedItem = {
 function Indicator({ isHighlighted }: IndicatorProps) {
   return (
     <Box marginRight={1}>
-      <Text color={isHighlighted ? 'blue' : undefined}>
-        {isHighlighted ? '❯' : ' '}
-      </Text>
+      <Text color={isHighlighted ? 'blue' : undefined}>{isHighlighted ? '❯' : ' '}</Text>
     </Box>
   );
 }
@@ -59,9 +57,7 @@ function Indicator({ isHighlighted }: IndicatorProps) {
 function CheckBox({ isSelected }: CheckBoxProps) {
   return (
     <Box marginRight={1}>
-      <Text color={isSelected ? 'green' : undefined}>
-        {isSelected ? '◉' : '◯'}
-      </Text>
+      <Text color={isSelected ? 'green' : undefined}>{isSelected ? '◉' : '◯'}</Text>
     </Box>
   );
 }
@@ -170,22 +166,18 @@ function MultiSelect({
   const isControlled = selected !== undefined;
 
   // Internal selection state for uncontrolled mode
-  const [internalSelected, setInternalSelected] =
-    useState<Array<SelectedItem>>(defaultSelected);
+  const [internalSelected, setInternalSelected] = useState<Array<SelectedItem>>(defaultSelected);
 
   // Get the current selection based on mode
   const currentSelected = isControlled ? selected : internalSelected;
 
   // Calculate limit and scroll state
-  const hasLimit =
-    typeof customLimit === 'number' && items.length > customLimit;
+  const hasLimit = typeof customLimit === 'number' && items.length > customLimit;
   const limit = hasLimit ? Math.min(customLimit, items.length) : items.length;
   const lastIndex = limit - 1;
 
   // Track item values to detect changes and reset navigation
-  const [prevItemValues, setPrevItemValues] = useState(() =>
-    items.map((item) => item.value),
-  );
+  const [prevItemValues, setPrevItemValues] = useState(() => items.map((item) => item.value));
   const currentItemValues = items.map((item) => item.value);
   const itemsChanged = !isDeepStrictEqual(prevItemValues, currentItemValues);
 
@@ -254,9 +246,7 @@ function MultiSelect({
           const atFirstIndex = highlightedIndex === 0;
           const nextIndex = hasLimit ? highlightedIndex : lastIndex;
           const nextRotateIndex = atFirstIndex ? rotateIndex + 1 : rotateIndex;
-          const nextHighlightedIndex = atFirstIndex
-            ? nextIndex
-            : highlightedIndex - 1;
+          const nextHighlightedIndex = atFirstIndex ? nextIndex : highlightedIndex - 1;
 
           setRotateIndex(nextRotateIndex);
           setHighlightedIndex(nextHighlightedIndex);
@@ -272,13 +262,10 @@ function MultiSelect({
 
         // Navigate down
         if (input === 'j' || key.downArrow) {
-          const atLastIndex =
-            highlightedIndex === (hasLimit ? limit : items.length) - 1;
+          const atLastIndex = highlightedIndex === (hasLimit ? limit : items.length) - 1;
           const nextIndex = hasLimit ? highlightedIndex : 0;
           const nextRotateIndex = atLastIndex ? rotateIndex - 1 : rotateIndex;
-          const nextHighlightedIndex = atLastIndex
-            ? nextIndex
-            : highlightedIndex + 1;
+          const nextHighlightedIndex = atLastIndex ? nextIndex : highlightedIndex + 1;
 
           setRotateIndex(nextRotateIndex);
           setHighlightedIndex(nextHighlightedIndex);
@@ -294,9 +281,7 @@ function MultiSelect({
 
         // Toggle selection with space
         if (input === ' ') {
-          const slicedItems = hasLimit
-            ? arrayToRotated(items, rotateIndex).slice(0, limit)
-            : items;
+          const slicedItems = hasLimit ? arrayToRotated(items, rotateIndex).slice(0, limit) : items;
           const currentItem = slicedItems[highlightedIndex];
           if (currentItem) {
             toggleSelection(currentItem);
@@ -327,9 +312,7 @@ function MultiSelect({
   );
 
   // Get visible items based on limit and rotation
-  const slicedItems = hasLimit
-    ? arrayToRotated(items, rotateIndex).slice(0, limit)
-    : items;
+  const slicedItems = hasLimit ? arrayToRotated(items, rotateIndex).slice(0, limit) : items;
 
   return (
     <Box flexDirection="column">

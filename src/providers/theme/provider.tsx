@@ -14,9 +14,5 @@ export const ThemeStoreProvider = ({ children }: ThemeStoreProviderProps) => {
     applyTheme(theme);
   }, [store]);
 
-  return (
-    <ThemeStoreContext.Provider value={store}>
-      {children}
-    </ThemeStoreContext.Provider>
-  );
+  return <ThemeStoreContext.Provider value={store}>{children}</ThemeStoreContext.Provider>;
 };

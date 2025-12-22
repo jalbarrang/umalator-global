@@ -1,4 +1,4 @@
-export function binSearch(a: number[], x: number) {
+export function binSearch(a: Array<number>, x: number) {
   let lo = 0;
   let hi = a.length - 1;
 

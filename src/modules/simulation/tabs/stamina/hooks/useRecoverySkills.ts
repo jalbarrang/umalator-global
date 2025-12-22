@@ -1,12 +1,12 @@
 import { useMemo } from 'react';
-import { RunnerState } from '@/modules/runners/components/runner-card/types';
+import { SkillTarget, SkillType } from '@simulation/lib/race-solver/types';
+import type { SkillActivationMap } from '@/modules/simulation/compare.types';
+import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import {
+  estimateSkillActivationPhase,
   getSkillDataById,
   getSkillNameById,
-  estimateSkillActivationPhase,
 } from '@/modules/skills/utils';
-import { SkillTarget, SkillType } from '@simulation/lib/race-solver/types';
-import { SkillActivationMap } from '@/modules/simulation/compare.types';
 import { EffectQuery } from '@/modules/skills/effects-query';
 
 export interface RecoverySkillActivation {
@@ -34,9 +34,7 @@ export function applyStaminaRecovery(skillId: string): StaminaRecoveryResult {
   for (const alternative of data.alternatives) {
     const effects = alternative.effects;
     // Filter for type 9 (Recovery) effects
-    const recoveryEffects = effects.filter(
-      (e) => e.type === SkillType.Recovery,
-    );
+    const recoveryEffects = effects.filter((e) => e.type === SkillType.Recovery);
 
     for (const effect of recoveryEffects) {
       const isTargetSelf = effect.target === SkillTarget.Self;
@@ -67,9 +65,7 @@ export function applyStaminaDrain(skillId: string): StaminaDrainResult {
   for (const alternative of data.alternatives) {
     const effects = alternative.effects;
     // Filter for type 9 (Recovery/Stamina Drain) effects
-    const recoveryEffects = effects.filter(
-      (e) => e.type === SkillType.Recovery,
-    );
+    const recoveryEffects = effects.filter((e) => e.type === SkillType.Recovery);
 
     for (const effect of recoveryEffects) {
       const doesntTargetSelf = effect.target !== SkillTarget.Self;
@@ -125,18 +121,16 @@ function getEstimatedPosition(skillId: string, courseDistance: number): number {
 export function useActualRecoverySkills(
   skillActivationMap: SkillActivationMap | undefined,
   maxHp: number,
-): RecoverySkillActivation[] {
+): Array<RecoverySkillActivation> {
   return useMemo(() => {
     if (!skillActivationMap) return [];
 
-    const skills: RecoverySkillActivation[] = [];
+    const skills: Array<RecoverySkillActivation> = [];
 
     const recoverySkills = EffectQuery.from(skillActivationMap).getSelfHeals();
 
     for (const activation of recoverySkills) {
-      const { staminaRecovered, hasRecovery } = applyStaminaRecovery(
-        activation.skillId,
-      );
+      const { staminaRecovered, hasRecovery } = applyStaminaRecovery(activation.skillId);
 
       if (hasRecovery) {
         skills.push({
@@ -161,19 +155,16 @@ export function useActualRecoverySkills(
 export function useActualDebuffsReceived(
   opponentsSkills: SkillActivationMap | undefined,
   maxHp: number,
-): RecoverySkillActivation[] {
+): Array<RecoverySkillActivation> {
   return useMemo(() => {
     if (!opponentsSkills) return [];
 
-    const skills: RecoverySkillActivation[] = [];
+    const skills: Array<RecoverySkillActivation> = [];
 
-    const staminaDebuffs =
-      EffectQuery.from(opponentsSkills).getStaminaDebuffs();
+    const staminaDebuffs = EffectQuery.from(opponentsSkills).getStaminaDebuffs();
 
     for (const activation of staminaDebuffs) {
-      const { staminaDrain, hasStaminaDrain } = applyStaminaDrain(
-        activation.skillId,
-      );
+      const { staminaDrain, hasStaminaDrain } = applyStaminaDrain(activation.skillId);
 
       if (hasStaminaDrain) {
         skills.push({
@@ -199,9 +190,9 @@ export function useTheoreticalRecoverySkills(
   runner: RunnerState,
   maxHp: number,
   courseDistance: number,
-): RecoverySkillActivation[] {
+): Array<RecoverySkillActivation> {
   return useMemo(() => {
-    const skills: RecoverySkillActivation[] = [];
+    const skills: Array<RecoverySkillActivation> = [];
 
     for (const skillId of runner.skills) {
       const { staminaRecovered, hasRecovery } = applyStaminaRecovery(skillId);
@@ -236,9 +227,9 @@ export function useTheoreticalDebuffsReceived(
   opponent: RunnerState,
   maxHp: number,
   courseDistance: number,
-): RecoverySkillActivation[] {
+): Array<RecoverySkillActivation> {
   return useMemo(() => {
-    const skills: RecoverySkillActivation[] = [];
+    const skills: Array<RecoverySkillActivation> = [];
 
     for (const skillId of opponent.skills) {
       const { staminaDrain, hasStaminaDrain } = applyStaminaDrain(skillId);

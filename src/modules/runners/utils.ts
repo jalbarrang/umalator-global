@@ -8,7 +8,7 @@ export type UmaOutfitKey = keyof UmaEntry['outfits'];
 export type UmaOutfit = UmaEntry['outfits'][UmaOutfitKey];
 
 export type Uma = {
-  name: string[];
+  name: Array<string>;
   outfits: Record<string, string>;
 };
 
@@ -50,9 +50,7 @@ export const umaNamesForSearch = Object.fromEntries(
 
     return [
       id,
-      (uma.outfits[id as UmaOutfitKey] + ' ' + uma.name[1])
-        .toUpperCase()
-        .replace(/\./g, ''),
+      (uma.outfits[id as UmaOutfitKey] + ' ' + uma.name[1]).toUpperCase().replace(/\./g, ''),
     ];
   }),
 );
@@ -70,10 +68,7 @@ export const umasForSearch = umaAltIds.map((id) => {
 export function rankForStat(x: number) {
   if (x > 1200) {
     // over 1200 letter (eg UG) goes up by 100 and minor number (eg UG8) goes up by 10
-    return Math.min(
-      18 + Math.floor((x - 1200) / 100) * 10 + (Math.floor(x / 10) % 10),
-      97,
-    );
+    return Math.min(18 + Math.floor((x - 1200) / 100) * 10 + (Math.floor(x / 10) % 10), 97);
   } else if (x >= 1150) {
     return 17; // SS+
   } else if (x >= 1100) {
@@ -97,10 +92,7 @@ export function searchNames(query: string) {
  * Get the icon image URL for an Uma outfit ID
  * Falls back to a random mob image if no outfit ID is provided
  */
-export const getUmaImageUrl = (
-  outfitId: string | undefined,
-  randomMobId?: number,
-): string => {
+export const getUmaImageUrl = (outfitId: string | undefined, randomMobId?: number): string => {
   if (outfitId) {
     return icons[outfitId as keyof typeof icons];
   }
@@ -131,9 +123,7 @@ export const getUmaOutfitName = (outfitId: string): string | null => {
 /**
  * Get Uma display info (name + outfit) by outfit ID
  */
-export const getUmaDisplayInfo = (
-  outfitId: string,
-): { name: string; outfit: string } | null => {
+export const getUmaDisplayInfo = (outfitId: string): { name: string; outfit: string } | null => {
   try {
     const uma = getUmaById(outfitId);
     return {

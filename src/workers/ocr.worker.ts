@@ -3,8 +3,8 @@
  */
 
 import Tesseract from 'tesseract.js';
-import { parseOcrResult } from '@/modules/runners/ocr/parser';
 import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
+import { parseOcrResult } from '@/modules/runners/ocr/parser';
 
 let tesseractWorker: Tesseract.Worker | null = null;
 
@@ -70,7 +70,7 @@ async function processImage(
 }
 
 // Process multiple images
-async function processImages(images: (Blob | File)[]): Promise<void> {
+async function processImages(images: Array<Blob | File>): Promise<void> {
   let accumulatedData: Partial<ExtractedUmaData> | undefined;
 
   for (let i = 0; i < images.length; i++) {
@@ -138,7 +138,7 @@ self.addEventListener('message', async (e: MessageEvent) => {
 
 // Export for type checking (not used at runtime)
 export type OcrWorkerMessage =
-  | { type: 'extract'; images: (Blob | File)[] }
+  | { type: 'extract'; images: Array<Blob | File> }
   | { type: 'extract'; imageData: Blob | File }
   | { type: 'terminate' };
 

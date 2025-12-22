@@ -20,15 +20,7 @@ type DataPathProps = {
 };
 
 const DataPath = memo((props: DataPathProps) => {
-  const {
-    positions,
-    values,
-    xScale,
-    yScale,
-    color,
-    strokeWidth = 2.5,
-    strokeDasharray,
-  } = props;
+  const { positions, values, xScale, yScale, color, strokeWidth = 2.5, strokeDasharray } = props;
 
   const pathD = useMemo(() => {
     const lineGenerator = d3
@@ -63,22 +55,11 @@ const XAxis = memo((props: XAxisProps) => {
 
   return (
     <g transform={transform}>
-      <line
-        x1={rangeStart}
-        x2={rangeEnd}
-        y1={0}
-        y2={0}
-        stroke="var(--color-black)"
-      />
+      <line x1={rangeStart} x2={rangeEnd} y1={0} y2={0} stroke="var(--color-black)" />
       {ticks.map((tick: number) => (
         <g key={tick} transform={`translate(${scale(tick)},0)`}>
           <line y2={6} stroke="var(--color-black)" />
-          <text
-            y={20}
-            textAnchor="middle"
-            fontSize={10}
-            fill="var(--color-foreground)"
-          >
+          <text y={20} textAnchor="middle" fontSize={10} fill="var(--color-foreground)">
             {tick}
           </text>
         </g>
@@ -136,9 +117,7 @@ const BASE_WIDTH = 960;
 const BASE_HEIGHT = 240;
 const ASPECT_RATIO = BASE_HEIGHT / BASE_WIDTH;
 
-export const VelocityLines = memo(function VelocityLines(
-  props: VelocityLinesProps,
-) {
+export const VelocityLines = memo(function VelocityLines(props: VelocityLinesProps) {
   const { data, courseDistance, xOffset, yOffset = 0 } = props;
   const { showUma1, showUma2, showHp, showLanes } = useRaceTrackUI();
 
@@ -173,9 +152,7 @@ export const VelocityLines = memo(function VelocityLines(
   const pacemakerYScale = useMemo(() => {
     if (!data?.pacerGap) return null;
 
-    const allValues = data.pacerGap.flatMap((gap) =>
-      gap.filter((d) => d !== undefined),
-    );
+    const allValues = data.pacerGap.flatMap((gap) => gap.filter((d) => d !== undefined));
 
     if (allValues.length === 0) return null;
 
@@ -205,10 +182,7 @@ export const VelocityLines = memo(function VelocityLines(
       <>
         <g transform={`translate(${xOffset},${5 + yOffset})`} />
 
-        <XAxis
-          scale={xScale}
-          transform={`translate(${xOffset},${height + 5 + yOffset})`}
-        />
+        <XAxis scale={xScale} transform={`translate(${xOffset},${height + 5 + yOffset})`} />
       </>
     );
   }
@@ -307,9 +281,7 @@ export const VelocityLines = memo(function VelocityLines(
               if (!pacerV || !pacerP) return null;
 
               const validIndices = pacerP
-                .map((pos, j) =>
-                  pos !== undefined && pacerV[j] !== undefined ? j : -1,
-                )
+                .map((pos, j) => (pos !== undefined && pacerV[j] !== undefined ? j : -1))
                 .filter((j) => j >= 0);
               if (validIndices.length === 0) return null;
 
@@ -329,14 +301,8 @@ export const VelocityLines = memo(function VelocityLines(
       </g>
 
       {/* Axes */}
-      <XAxis
-        scale={xScale}
-        transform={`translate(${xOffset},${height + 5 + yOffset})`}
-      />
-      <YAxis
-        scale={yScale}
-        transform={`translate(${xOffset},${4 + yOffset})`}
-      />
+      <XAxis scale={xScale} transform={`translate(${xOffset},${height + 5 + yOffset})`} />
+      <YAxis scale={yScale} transform={`translate(${xOffset},${4 + yOffset})`} />
     </>
   );
 });

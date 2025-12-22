@@ -25,6 +25,7 @@ graph TB
 ## GameEngine: The Conductor
 
 The `GameEngine` is your simulation's main loop. It:
+
 - Manages all entities
 - Advances time each tick
 - Provides the shared event bus
@@ -54,6 +55,7 @@ const raceSimulator = new Entity('race-simulator');
 ```
 
 Entities are like actors in your simulation. Each has:
+
 - A unique `id`
 - A collection of `behaviors`
 - A reference to the `engine` (when added)
@@ -206,6 +208,7 @@ class ConsumerBehavior extends Behavior {
 ```
 
 This is **crucial** for complex systems. In a racing simulator:
+
 - Skills emit debuff events
 - Other runners listen for those debuffs
 - Phase changes notify all behaviors
@@ -268,6 +271,7 @@ sequenceDiagram
 ```
 
 Notice:
+
 - **Entities update in order** (insertion order, deterministic)
 - **Behaviors update by priority** (within each entity)
 - **Events fire synchronously** (no async surprises)
@@ -306,7 +310,7 @@ This explicitness makes debugging easy and behavior predictable.
 Now that you understand the four pillars, let's build something! Head to [Your First Simulation](03-your-first-simulation.md) to create a working simulation from scratch.
 
 Want to dive deeper into any concept first?
+
 - [Behaviors in depth](04-behaviors.md)
 - [Event-driven architecture](05-events.md)
 - [Advanced patterns](06-advanced-patterns.md)
-

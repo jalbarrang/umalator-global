@@ -2,10 +2,10 @@
  * Main OCR parser - orchestrates extraction of all data from OCR text
  */
 
-import type { ExtractedUmaData } from './types';
 import { extractStats } from './stats';
 import { extractUmaIdentity } from './uma';
 import { extractSkills } from './skills';
+import type { ExtractedUmaData } from './types';
 
 /** Parse complete OCR result and extract all uma data */
 export function parseOcrResult(
@@ -17,9 +17,7 @@ export function parseOcrResult(
     umaConfidence: existingData?.umaConfidence ?? 0,
     skills: existingData?.skills ? [...existingData.skills] : [],
     imageCount: (existingData?.imageCount ?? 0) + 1,
-    unrecognized: existingData?.unrecognized
-      ? [...existingData.unrecognized]
-      : [],
+    unrecognized: existingData?.unrecognized ? [...existingData.unrecognized] : [],
   };
 
   // Extract uma identity from first image only
@@ -72,9 +70,7 @@ export function parseOcrResult(
     .split('\n')
     .map((l) => l.trim())
     .filter(Boolean);
-  const recognizedTexts = new Set([
-    ...result.skills.map((s) => s.originalText.toLowerCase()),
-  ]);
+  const recognizedTexts = new Set([...result.skills.map((s) => s.originalText.toLowerCase())]);
 
   for (const line of lines) {
     const lower = line.toLowerCase();

@@ -20,10 +20,7 @@ function ComboboxInput({ className, ...props }: ComboboxPrimitive.Input.Props) {
   );
 }
 
-function ComboboxTrigger({
-  className,
-  ...props
-}: ComboboxPrimitive.Trigger.Props) {
+function ComboboxTrigger({ className, ...props }: ComboboxPrimitive.Trigger.Props) {
   return (
     <ComboboxPrimitive.Trigger
       data-slot="combobox-trigger"
@@ -61,10 +58,7 @@ function ComboboxIcon({ className, ...props }: ComboboxPrimitive.Icon.Props) {
   return (
     <ComboboxPrimitive.Icon
       data-slot="combobox-icon"
-      className={cn(
-        'text-muted-foreground size-4 pointer-events-none',
-        className,
-      )}
+      className={cn('text-muted-foreground size-4 pointer-events-none', className)}
       {...props}
     />
   );
@@ -78,10 +72,7 @@ function ComboboxContent({
   alignOffset = 0,
   ...props
 }: ComboboxPrimitive.Popup.Props &
-  Pick<
-    ComboboxPrimitive.Positioner.Props,
-    'align' | 'alignOffset' | 'side' | 'sideOffset'
-  >) {
+  Pick<ComboboxPrimitive.Positioner.Props, 'align' | 'alignOffset' | 'side' | 'sideOffset'>) {
   return (
     <ComboboxPrimitive.Portal>
       <ComboboxPrimitive.Positioner
@@ -118,10 +109,7 @@ function ComboboxEmpty({ className, ...props }: ComboboxPrimitive.Empty.Props) {
   return (
     <ComboboxPrimitive.Empty
       data-slot="combobox-empty"
-      className={cn(
-        'text-muted-foreground px-1.5 py-1 text-center text-sm',
-        className,
-      )}
+      className={cn('text-muted-foreground px-1.5 py-1 text-center text-sm', className)}
       {...props}
     />
   );
@@ -140,10 +128,7 @@ function ComboboxItem({ className, ...props }: ComboboxPrimitive.Item.Props) {
   );
 }
 
-function ComboboxItemIndicator({
-  className,
-  ...props
-}: ComboboxPrimitive.ItemIndicator.Props) {
+function ComboboxItemIndicator({ className, ...props }: ComboboxPrimitive.ItemIndicator.Props) {
   return (
     <ComboboxPrimitive.ItemIndicator
       data-slot="combobox-item-indicator"
@@ -168,26 +153,17 @@ function ComboboxGroup({ className, ...props }: ComboboxPrimitive.Group.Props) {
   );
 }
 
-function ComboboxGroupLabel({
-  className,
-  ...props
-}: ComboboxPrimitive.GroupLabel.Props) {
+function ComboboxGroupLabel({ className, ...props }: ComboboxPrimitive.GroupLabel.Props) {
   return (
     <ComboboxPrimitive.GroupLabel
       data-slot="combobox-group-label"
-      className={cn(
-        'text-muted-foreground px-1.5 py-1 text-xs font-medium',
-        className,
-      )}
+      className={cn('text-muted-foreground px-1.5 py-1 text-xs font-medium', className)}
       {...props}
     />
   );
 }
 
-function ComboboxSeparator({
-  className,
-  ...props
-}: ComboboxPrimitive.Separator.Props) {
+function ComboboxSeparator({ className, ...props }: ComboboxPrimitive.Separator.Props) {
   return (
     <ComboboxPrimitive.Separator
       data-slot="combobox-separator"
@@ -197,10 +173,7 @@ function ComboboxSeparator({
   );
 }
 
-function ComboboxStatus({
-  className,
-  ...props
-}: ComboboxPrimitive.Status.Props) {
+function ComboboxStatus({ className, ...props }: ComboboxPrimitive.Status.Props) {
   return (
     <ComboboxPrimitive.Status
       data-slot="combobox-status"
@@ -233,10 +206,7 @@ function ComboboxChip({ className, ...props }: ComboboxPrimitive.Chip.Props) {
   );
 }
 
-function ComboboxChipRemove({
-  className,
-  ...props
-}: ComboboxPrimitive.ChipRemove.Props) {
+function ComboboxChipRemove({ className, ...props }: ComboboxPrimitive.ChipRemove.Props) {
   return (
     <ComboboxPrimitive.ChipRemove
       data-slot="combobox-chip-remove"

@@ -4,13 +4,9 @@
  * Ports make_global_skill_data.pl to TypeScript
  */
 
-import path from 'path';
-import { openDatabase, closeDatabase, queryAll } from './lib/database';
-import {
-  resolveMasterDbPath,
-  sortByNumericKey,
-  writeJsonFile,
-} from './lib/shared';
+import path from 'node:path';
+import { closeDatabase, openDatabase, queryAll } from './lib/database';
+import { resolveMasterDbPath, sortByNumericKey, writeJsonFile } from './lib/shared';
 
 interface SkillDataRow {
   id: number;
@@ -49,12 +45,12 @@ interface SkillAlternative {
   precondition: string;
   condition: string;
   baseDuration: number;
-  effects: SkillEffect[];
+  effects: Array<SkillEffect>;
 }
 
 interface SkillDataEntry {
   rarity: number;
-  alternatives: SkillAlternative[];
+  alternatives: Array<SkillAlternative>;
 }
 
 // Scenario skills that need 1.2x modifier
@@ -101,8 +97,7 @@ async function extractSkillData() {
   console.log('📖 Extracting skill data...\n');
 
   const dbPath = await resolveMasterDbPath();
-  const replaceMode =
-    process.argv.includes('--replace') || process.argv.includes('--full');
+  const replaceMode = process.argv.includes('--replace') || process.argv.includes('--full');
 
   console.log(
     `Mode: ${replaceMode ? '⚠️  Full Replacement' : '✓ Merge (preserves future content)'}`,
@@ -136,7 +131,7 @@ async function extractSkillData() {
 
     for (const row of rows) {
       // Build effects for first alternative
-      const effects1: SkillEffect[] = [
+      const effects1: Array<SkillEffect> = [
         {
           type: row.ability_type_1_1,
           modifier: patchModifier(row.id, row.float_ability_value_1_1),
@@ -161,7 +156,7 @@ async function extractSkillData() {
       }
 
       // Build alternatives array
-      const alternatives: SkillAlternative[] = [
+      const alternatives: Array<SkillAlternative> = [
         {
           precondition: '',
           condition: row.condition_1,
@@ -171,12 +166,8 @@ async function extractSkillData() {
       ];
 
       // Add second alternative if it exists
-      if (
-        row.condition_2 &&
-        row.condition_2 !== '' &&
-        row.condition_2 !== '0'
-      ) {
-        const effects2: SkillEffect[] = [
+      if (row.condition_2 && row.condition_2 !== '' && row.condition_2 !== '0') {
+        const effects2: Array<SkillEffect> = [
           {
             type: row.ability_type_2_1,
             modifier: patchModifier(row.id, row.float_ability_value_2_1),
@@ -229,10 +220,7 @@ async function extractSkillData() {
     }
 
     // Merge with existing data (unless replace mode)
-    const outputPath = path.join(
-      process.cwd(),
-      'src/modules/data/skill_data.json',
-    );
+    const outputPath = path.join(process.cwd(), 'src/modules/data/skill_data.json');
 
     let finalSkillData: Record<string, SkillDataEntry>;
 
@@ -256,9 +244,7 @@ async function extractSkillData() {
 
         console.log(`\n✓ Merge mode:`);
         console.log(`  → ${newCount} skills from master.mdb (current content)`);
-        console.log(
-          `  → ${preserved} additional skills preserved (future content)`,
-        );
+        console.log(`  → ${preserved} additional skills preserved (future content)`);
         console.log(`  → ${finalCount} total skills`);
       } else {
         finalSkillData = skillData;

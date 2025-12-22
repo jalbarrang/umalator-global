@@ -137,9 +137,7 @@ class FinalSpeedBehavior extends Behavior {
     const skill = this.owner?.getBehavior(SkillSpeedBehavior);
     const terrain = this.owner?.getBehavior(TerrainSpeedBehavior);
 
-    this.finalSpeed = (base?.speed || 0)
-                    + (skill?.bonus || 0)
-                    + (terrain?.modifier || 0);
+    this.finalSpeed = (base?.speed || 0) + (skill?.bonus || 0) + (terrain?.modifier || 0);
 
     // Apply final clamps
     this.finalSpeed = Math.min(Math.max(this.finalSpeed, 0), 30);
@@ -367,9 +365,7 @@ class ValidatedBehavior extends Behavior {
   }
 
   private isValid(): boolean {
-    return this.owner !== null
-        && this.owner.engine !== null
-        && this.requiredBehaviors();
+    return this.owner !== null && this.owner.engine !== null && this.requiredBehaviors();
   }
 
   private requiredBehaviors(): boolean {
@@ -529,7 +525,7 @@ class SmartLoggerBehavior extends Behavior {
     if (Math.abs(movement.position - this.lastPosition) > 100) {
       console.log(
         `[${this.owner?.engine?.time.toFixed(2)}s] ` +
-        `${this.owner?.id} at ${movement.position.toFixed(2)}`
+          `${this.owner?.id} at ${movement.position.toFixed(2)}`,
       );
       this.lastPosition = movement.position;
     }
@@ -544,10 +540,7 @@ Running thousands of simulations requires special patterns:
 ### Pattern: Deterministic Setup
 
 ```typescript
-function runMonteCarloSimulation(
-  config: SimConfig,
-  seeds: number[]
-): SimResult[] {
+function runMonteCarloSimulation(config: SimConfig, seeds: number[]): SimResult[] {
   return seeds.map((seed) => {
     // Create engine
     const engine = new GameEngine();
@@ -556,11 +549,15 @@ function runMonteCarloSimulation(
     const rng = new SeededRng(seed);
 
     // Setup with deterministic parameters
-    const runner = new Runner('runner-1', {
-      speed: 1200,
-      stamina: 1000,
-      // ... more params
-    }, rng);
+    const runner = new Runner(
+      'runner-1',
+      {
+        speed: 1200,
+        stamina: 1000,
+        // ... more params
+      },
+      rng,
+    );
 
     engine.addEntity(runner);
 
@@ -801,7 +798,7 @@ describe('Determinism', () => {
     }
 
     // All results should be identical
-    expect(results.every(r => r === results[0])).toBe(true);
+    expect(results.every((r) => r === results[0])).toBe(true);
   });
 });
 ```
@@ -849,8 +846,8 @@ class MemoryMonitorBehavior extends Behavior {
 ## Next Steps
 
 You've mastered advanced patterns! Now learn how to design production systems:
+
 - [Best Practices](07-best-practices.md) - Design principles and conventions
 - [API Reference](08-api-reference.md) - Complete API documentation
 
 Want to see these patterns in action? Check the [integration tests](../__tests__/integration.test.ts) for working examples.
-

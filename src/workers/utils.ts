@@ -1,5 +1,5 @@
-import { SimulationData } from '@/modules/simulation/compare.types';
-import { RoundResult, SkillBasinResponse } from '@/modules/simulation/types';
+import type { SimulationData } from '@/modules/simulation/compare.types';
+import type { RoundResult, SkillBasinResponse } from '@/modules/simulation/types';
 
 export const mergeResults = (resultA: RoundResult, resultB: RoundResult) => {
   if (resultA.id !== resultB.id) {
@@ -9,13 +9,10 @@ export const mergeResults = (resultA: RoundResult, resultB: RoundResult) => {
   const resultSizeA = resultA.results.length;
   const resultSizeB = resultB.results.length;
 
-  const combinedResults = [...resultA.results, ...resultB.results].toSorted(
-    (a, b) => a - b,
-  );
+  const combinedResults = [...resultA.results, ...resultB.results].toSorted((a, b) => a - b);
 
   const combinedMean =
-    (resultA.mean * resultSizeA + resultB.mean * resultSizeB) /
-    (resultSizeA + resultSizeB);
+    (resultA.mean * resultSizeA + resultB.mean * resultSizeB) / (resultSizeA + resultSizeB);
 
   const mid = Math.floor(combinedResults.length / 2);
 
@@ -30,14 +27,8 @@ export const mergeResults = (resultA: RoundResult, resultB: RoundResult) => {
     mergedRunData = {
       // TODO should re-compute the bashin gain from .t/.p and pick whichever is closer to new mean/median
       ...(resultSizeB > resultSizeA ? resultB.runData : resultA.runData),
-      minrun:
-        resultA.min < resultB.min
-          ? resultA.runData.minrun
-          : resultB.runData.minrun,
-      maxrun:
-        resultA.max > resultB.max
-          ? resultA.runData.maxrun
-          : resultB.runData.maxrun,
+      minrun: resultA.min < resultB.min ? resultA.runData.minrun : resultB.runData.minrun,
+      maxrun: resultA.max > resultB.max ? resultA.runData.maxrun : resultB.runData.maxrun,
     };
   } else if (resultB.runData) {
     mergedRunData = resultB.runData;
@@ -58,10 +49,7 @@ export const mergeResults = (resultA: RoundResult, resultB: RoundResult) => {
   };
 };
 
-export const mergeResultSets = (
-  resultSetA: SkillBasinResponse,
-  resultSetB: SkillBasinResponse,
-) => {
+export const mergeResultSets = (resultSetA: SkillBasinResponse, resultSetB: SkillBasinResponse) => {
   resultSetB.forEach((resultB, id) => {
     const resultA = resultSetA.get(id);
     if (resultA) {

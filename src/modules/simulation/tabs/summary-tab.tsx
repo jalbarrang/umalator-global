@@ -22,9 +22,7 @@ export const ResultButtonGroups = () => {
   }, [results]);
 
   const median = useMemo(() => {
-    return results.length % 2 === 0
-      ? (results[mid - 1] + results[mid]) / 2
-      : results[mid];
+    return results.length % 2 === 0 ? (results[mid - 1] + results[mid]) / 2 : results[mid];
   }, [results, mid]);
 
   const resultsSummary = useMemo(() => {
@@ -65,12 +63,8 @@ export const ResultButtonGroups = () => {
             )}
             type="button"
           >
-            <span className="text-xs text-foreground font-medium">
-              {value.label}
-            </span>
-            <span className="text-2xl font-bold text-foreground">
-              {value.value}
-            </span>
+            <span className="text-xs text-foreground font-medium">{value.label}</span>
+            <span className="text-2xl font-bold text-foreground">{value.value}</span>
             <span className="text-xs text-foreground">lengths</span>
           </button>
         ))}
@@ -79,14 +73,10 @@ export const ResultButtonGroups = () => {
       {/* Results Explanation */}
       <div className="text-sm text-center text-foreground px-4">
         Negative numbers mean{' '}
-        <strong className="text-[#2a77c5] dark:text-blue-500 font-bold">
-          Umamusume 1
-        </strong>{' '}
-        is faster, positive numbers mean{' '}
-        <strong className="text-[#c52a2a] dark:text-red-500 font-bold">
-          Umamusume 2
-        </strong>{' '}
-        is faster.
+        <strong className="text-[#2a77c5] dark:text-blue-500 font-bold">Umamusume 1</strong> is
+        faster, positive numbers mean{' '}
+        <strong className="text-[#c52a2a] dark:text-red-500 font-bold">Umamusume 2</strong> is
+        faster.
       </div>
     </>
   );

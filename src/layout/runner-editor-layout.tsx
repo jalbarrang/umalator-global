@@ -1,14 +1,14 @@
+import { useMemo, useRef } from 'react';
+import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useIsMobile } from '@/hooks/useBreakpoint';
 import { RunnerCard } from '@/modules/runners/components/runner-card/runner-card';
-import { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { SkillPickerDrawer } from '@/modules/skills/components/skill-list/SkillPickerDrawer';
 import { SkillPickerContent } from '@/modules/skills/components/skill-picker-content';
 import { updateCurrentSkills } from '@/modules/skills/store';
 import { getSelectableSkillsForUma } from '@/modules/skills/utils';
-import { useMemo, useRef } from 'react';
 
 type RunnerEditorLayoutProps = {
   runnerName: string;
@@ -36,7 +36,7 @@ export const RunnerEditorLayout = ({
     [runnerState.outfitId],
   );
 
-  const handleSetSkills = (skills: string[]) => {
+  const handleSetSkills = (skills: Array<string>) => {
     onRunnerStateChange({ ...runnerState, skills });
     updateCurrentSkills(skills);
   };
@@ -52,9 +52,7 @@ export const RunnerEditorLayout = ({
     <div className="flex flex-col flex-1">
       {/* Header with title and actions */}
       <div className="flex items-center justify-between p-4 border-b shrink-0">
-        <h1 className="text-2xl font-bold">
-          {isEditMode ? 'Edit Runner' : 'Register Runner'}
-        </h1>
+        <h1 className="text-2xl font-bold">{isEditMode ? 'Edit Runner' : 'Register Runner'}</h1>
 
         <div className="flex gap-2">
           <Button variant="outline" onClick={onCancel}>

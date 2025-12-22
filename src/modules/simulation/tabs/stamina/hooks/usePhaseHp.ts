@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import { PhaseBreakdown, StaminaAnalysis } from './useStaminaAnalysis';
-import { RecoverySkillActivation } from './useRecoverySkills';
+import type { PhaseBreakdown, StaminaAnalysis } from './useStaminaAnalysis';
+import type { RecoverySkillActivation } from './useRecoverySkills';
 
 export interface ActualPhaseHp {
   hpAtStart: number;
@@ -12,8 +12,8 @@ export interface ActualPhaseHp {
  * Helper to find HP at a specific position from simulation data
  */
 function findHpAtPosition(
-  positions: number[],
-  hpValues: number[],
+  positions: Array<number>,
+  hpValues: Array<number>,
   targetPosition: number,
 ): number | null {
   if (!positions || !hpValues || positions.length === 0) return null;
@@ -39,19 +39,17 @@ function findHpAtPosition(
  * Calculate actual HP values from simulation data
  */
 export function useActualPhaseHp(
-  positions: number[] | undefined,
-  hpValues: number[] | undefined,
-  phases: PhaseBreakdown[],
+  positions: Array<number> | undefined,
+  hpValues: Array<number> | undefined,
+  phases: Array<PhaseBreakdown>,
   maxHp: number,
-): ActualPhaseHp[] | null {
+): Array<ActualPhaseHp> | null {
   return useMemo(() => {
     if (!positions || !hpValues) return null;
 
     return phases.map((phase) => {
-      const hpAtStart =
-        findHpAtPosition(positions, hpValues, phase.startDistance) ?? maxHp;
-      const hpAtEnd =
-        findHpAtPosition(positions, hpValues, phase.endDistance) ?? 0;
+      const hpAtStart = findHpAtPosition(positions, hpValues, phase.startDistance) ?? maxHp;
+      const hpAtEnd = findHpAtPosition(positions, hpValues, phase.endDistance) ?? 0;
       const hpConsumed = Math.max(0, hpAtStart - hpAtEnd);
 
       return { hpAtStart, hpAtEnd, hpConsumed };
@@ -64,35 +62,29 @@ export function useActualPhaseHp(
  */
 export function useTheoreticalPhaseHp(
   analysis: StaminaAnalysis,
-  recoverySkills: RecoverySkillActivation[],
-  debuffsReceived: RecoverySkillActivation[] = [],
-): ActualPhaseHp[] {
+  recoverySkills: Array<RecoverySkillActivation>,
+  debuffsReceived: Array<RecoverySkillActivation> = [],
+): Array<ActualPhaseHp> {
   return useMemo(() => {
-    return analysis.phases.reduce<ActualPhaseHp[]>((acc, phase) => {
-      const hpAtStart =
-        acc.length === 0 ? analysis.maxHp : acc[acc.length - 1].hpAtEnd;
+    return analysis.phases.reduce<Array<ActualPhaseHp>>((acc, phase) => {
+      const hpAtStart = acc.length === 0 ? analysis.maxHp : acc[acc.length - 1].hpAtEnd;
 
       // Add recovery skills that activate during this phase
       const healsDuringPhase = recoverySkills
         .filter(
-          (skill) =>
-            skill.position >= phase.startDistance &&
-            skill.position < phase.endDistance,
+          (skill) => skill.position >= phase.startDistance && skill.position < phase.endDistance,
         )
         .reduce((sum, skill) => sum + skill.hpRecovered, 0);
 
       // Subtract debuffs received during this phase (hpRecovered is negative)
       const debuffsDuringPhase = debuffsReceived
         .filter(
-          (skill) =>
-            skill.position >= phase.startDistance &&
-            skill.position < phase.endDistance,
+          (skill) => skill.position >= phase.startDistance && skill.position < phase.endDistance,
         )
         .reduce((sum, skill) => sum + skill.hpRecovered, 0); // Already negative
 
       // Calculate end HP: subtract consumed, add heals, add debuffs (negative)
-      const hpAtEnd =
-        hpAtStart - phase.hpConsumed + healsDuringPhase + debuffsDuringPhase;
+      const hpAtEnd = hpAtStart - phase.hpConsumed + healsDuringPhase + debuffsDuringPhase;
 
       acc.push({
         hpAtStart,

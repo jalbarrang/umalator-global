@@ -1,16 +1,10 @@
 import { useRaceStore } from '@simulation/stores/compare.store';
-import { useWitVariance } from '@/store/settings.store';
-import { formatTime } from '@/utils/time';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-} from '@/components/ui/table';
-import { cn } from '@/lib/utils';
 import { Activity, useMemo } from 'react';
 import { Timer } from 'lucide-react';
+import { useWitVariance } from '@/store/settings.store';
+import { formatTime } from '@/utils/time';
+import { Table, TableBody, TableCell, TableHead, TableRow } from '@/components/ui/table';
+import { cn } from '@/lib/utils';
 import {
   Empty,
   EmptyDescription,
@@ -20,8 +14,7 @@ import {
 } from '@/components/ui/empty';
 
 export const RunnerStatsTab = () => {
-  const { chartData, rushedStats, leadCompetitionStats, staminaStats } =
-    useRaceStore();
+  const { chartData, rushedStats, leadCompetitionStats, staminaStats } = useRaceStore();
   const { allowRushedUma2 } = useWitVariance();
 
   const uma1Stats = useMemo(() => {
@@ -57,8 +50,7 @@ export const RunnerStatsTab = () => {
           </EmptyMedia>
           <EmptyTitle>No Runner Statistics</EmptyTitle>
           <EmptyDescription>
-            Run a simulation to compare finish times, top speeds, and
-            performance metrics.
+            Run a simulation to compare finish times, top speeds, and performance metrics.
           </EmptyDescription>
         </EmptyHeader>
       </Empty>
@@ -79,35 +71,24 @@ export const RunnerStatsTab = () => {
             <TableBody>
               <TableRow>
                 <TableHead className="font-medium">Time to finish</TableHead>
-                <TableCell className="font-mono">
-                  {formatTime(uma1Stats.finishTime)}
-                </TableCell>
+                <TableCell className="font-mono">{formatTime(uma1Stats.finishTime)}</TableCell>
               </TableRow>
 
               <TableRow>
                 <TableHead className="font-medium">Start delay</TableHead>
-                <TableCell className="font-mono">
-                  {chartData.sdly[0].toFixed(4)} s
-                </TableCell>
+                <TableCell className="font-mono">{chartData.sdly[0].toFixed(4)} s</TableCell>
               </TableRow>
 
               <TableRow>
                 <TableHead className="font-medium">Top speed</TableHead>
-                <TableCell className="font-mono">
-                  {uma1Stats.topSpeed.toFixed(2)} m/s
-                </TableCell>
+                <TableCell className="font-mono">{uma1Stats.topSpeed.toFixed(2)} m/s</TableCell>
               </TableRow>
 
-              <Activity
-                mode={rushedStats && allowRushedUma2 ? 'visible' : 'hidden'}
-              >
+              <Activity mode={rushedStats && allowRushedUma2 ? 'visible' : 'hidden'}>
                 <TableRow>
-                  <TableHead className="font-medium">
-                    Rushed frequency
-                  </TableHead>
+                  <TableHead className="font-medium">Rushed frequency</TableHead>
                   <TableCell className="font-mono">
-                    {uma1Stats.rushedStats &&
-                    uma1Stats.rushedStats.frequency > 0
+                    {uma1Stats.rushedStats && uma1Stats.rushedStats.frequency > 0
                       ? `${uma1Stats.rushedStats.frequency.toFixed(
                           1,
                         )}% (${uma1Stats.rushedStats.mean.toFixed(1)}m)`
@@ -118,12 +99,9 @@ export const RunnerStatsTab = () => {
 
               <Activity mode={leadCompetitionStats ? 'visible' : 'hidden'}>
                 <TableRow>
-                  <TableHead className="font-medium">
-                    Spot Struggle frequency
-                  </TableHead>
+                  <TableHead className="font-medium">Spot Struggle frequency</TableHead>
                   <TableCell className="font-mono">
-                    {uma1Stats.leadCompetitionStats &&
-                    uma1Stats.leadCompetitionStats.frequency > 0
+                    {uma1Stats.leadCompetitionStats && uma1Stats.leadCompetitionStats.frequency > 0
                       ? `${uma1Stats.leadCompetitionStats.frequency.toFixed(1)}%`
                       : '0%'}
                   </TableCell>
@@ -158,35 +136,24 @@ export const RunnerStatsTab = () => {
             <TableBody>
               <TableRow>
                 <TableHead className="font-medium">Time to finish</TableHead>
-                <TableCell className="font-mono">
-                  {formatTime(uma2Stats.finishTime)}
-                </TableCell>
+                <TableCell className="font-mono">{formatTime(uma2Stats.finishTime)}</TableCell>
               </TableRow>
 
               <TableRow>
                 <TableHead className="font-medium">Start delay</TableHead>
-                <TableCell className="font-mono">
-                  {chartData.sdly[1].toFixed(4)} s
-                </TableCell>
+                <TableCell className="font-mono">{chartData.sdly[1].toFixed(4)} s</TableCell>
               </TableRow>
 
               <TableRow>
                 <TableHead className="font-medium">Top speed</TableHead>
-                <TableCell className="font-mono">
-                  {uma2Stats.topSpeed.toFixed(2)} m/s
-                </TableCell>
+                <TableCell className="font-mono">{uma2Stats.topSpeed.toFixed(2)} m/s</TableCell>
               </TableRow>
 
-              <Activity
-                mode={rushedStats && allowRushedUma2 ? 'visible' : 'hidden'}
-              >
+              <Activity mode={rushedStats && allowRushedUma2 ? 'visible' : 'hidden'}>
                 <TableRow>
-                  <TableHead className="font-medium">
-                    Rushed frequency
-                  </TableHead>
+                  <TableHead className="font-medium">Rushed frequency</TableHead>
                   <TableCell className="font-mono">
-                    {uma2Stats.rushedStats &&
-                    uma2Stats.rushedStats.frequency > 0
+                    {uma2Stats.rushedStats && uma2Stats.rushedStats.frequency > 0
                       ? `${uma2Stats.rushedStats.frequency.toFixed(
                           1,
                         )}% (${uma2Stats.rushedStats.mean.toFixed(1)}m)`
@@ -197,12 +164,9 @@ export const RunnerStatsTab = () => {
 
               <Activity mode={leadCompetitionStats ? 'visible' : 'hidden'}>
                 <TableRow>
-                  <TableHead className="font-medium">
-                    Spot Struggle frequency
-                  </TableHead>
+                  <TableHead className="font-medium">Spot Struggle frequency</TableHead>
                   <TableCell className="font-mono">
-                    {uma2Stats.leadCompetitionStats &&
-                    uma2Stats.leadCompetitionStats.frequency > 0
+                    {uma2Stats.leadCompetitionStats && uma2Stats.leadCompetitionStats.frequency > 0
                       ? `${uma2Stats.leadCompetitionStats.frequency.toFixed(1)}%`
                       : '0%'}
                   </TableCell>
@@ -230,51 +194,28 @@ export const RunnerStatsTab = () => {
 
       {/* Comparison Summary */}
       <div>
-        <h4 className="text-sm font-semibold text-foreground mb-3">
-          Quick Comparison
-        </h4>
+        <h4 className="text-sm font-semibold text-foreground mb-3">Quick Comparison</h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
           <div className="flex flex-col items-center p-3 bg-background border-2 rounded-lg">
             <span className="text-foreground mb-1">Time Difference</span>
             <span
               className={cn('text-lg font-bold', {
-                'text-[#2a77c5] dark:text-blue-500':
-                  uma1Stats.finishTime < uma2Stats.finishTime,
-                'text-[#c52a2a] dark:text-red-500':
-                  uma1Stats.finishTime > uma2Stats.finishTime,
+                'text-[#2a77c5] dark:text-blue-500': uma1Stats.finishTime < uma2Stats.finishTime,
+                'text-[#c52a2a] dark:text-red-500': uma1Stats.finishTime > uma2Stats.finishTime,
               })}
             >
-              {Math.abs(uma1Stats.finishTime - uma2Stats.finishTime).toFixed(3)}
-              s
+              {Math.abs(uma1Stats.finishTime - uma2Stats.finishTime).toFixed(3)}s
             </span>
             <span className="text-xs text-foreground">
-              <Activity
-                mode={
-                  uma1Stats.finishTime < uma2Stats.finishTime
-                    ? 'visible'
-                    : 'hidden'
-                }
-              >
+              <Activity mode={uma1Stats.finishTime < uma2Stats.finishTime ? 'visible' : 'hidden'}>
                 Uma 1 faster
               </Activity>
 
-              <Activity
-                mode={
-                  uma1Stats.finishTime > uma2Stats.finishTime
-                    ? 'visible'
-                    : 'hidden'
-                }
-              >
+              <Activity mode={uma1Stats.finishTime > uma2Stats.finishTime ? 'visible' : 'hidden'}>
                 Uma 2 faster
               </Activity>
 
-              <Activity
-                mode={
-                  uma1Stats.finishTime === uma2Stats.finishTime
-                    ? 'visible'
-                    : 'hidden'
-                }
-              >
+              <Activity mode={uma1Stats.finishTime === uma2Stats.finishTime ? 'visible' : 'hidden'}>
                 Uma 1 and Uma 2 finished at the same time
               </Activity>
             </span>
@@ -283,10 +224,8 @@ export const RunnerStatsTab = () => {
             <span className="text-foreground mb-1">Speed Advantage</span>
             <span
               className={cn('text-lg font-bold', {
-                'text-[#2a77c5] dark:text-blue-500':
-                  uma1Stats.topSpeed > uma2Stats.topSpeed,
-                'text-[#c52a2a] dark:text-red-500':
-                  uma1Stats.topSpeed < uma2Stats.topSpeed,
+                'text-[#2a77c5] dark:text-blue-500': uma1Stats.topSpeed > uma2Stats.topSpeed,
+                'text-[#c52a2a] dark:text-red-500': uma1Stats.topSpeed < uma2Stats.topSpeed,
               })}
             >
               {Math.abs(uma1Stats.topSpeed - uma2Stats.topSpeed).toFixed(2)} m/s
@@ -301,18 +240,14 @@ export const RunnerStatsTab = () => {
             <span className="text-foreground mb-1">Start Delay Diff</span>
             <span
               className={cn('text-lg font-bold', {
-                'text-[#2a77c5] dark:text-blue-500':
-                  chartData.sdly[0] < chartData.sdly[1],
-                'text-[#c52a2a] dark:text-red-500':
-                  chartData.sdly[0] > chartData.sdly[1],
+                'text-[#2a77c5] dark:text-blue-500': chartData.sdly[0] < chartData.sdly[1],
+                'text-[#c52a2a] dark:text-red-500': chartData.sdly[0] > chartData.sdly[1],
               })}
             >
               {Math.abs(chartData.sdly[0] - chartData.sdly[1]).toFixed(4)}s
             </span>
             <span className="text-xs text-foreground">
-              {chartData.sdly[0] < chartData.sdly[1]
-                ? 'Uma 1 faster start'
-                : 'Uma 2 faster start'}
+              {chartData.sdly[0] < chartData.sdly[1] ? 'Uma 1 faster start' : 'Uma 2 faster start'}
             </span>
           </div>
         </div>

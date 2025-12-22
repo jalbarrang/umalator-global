@@ -5,14 +5,18 @@
  */
 
 import { useRef, useState } from 'react';
-import { Upload, X, CheckCircle, AlertCircle, Loader2, ImageIcon } from 'lucide-react';
+import { AlertCircle, CheckCircle, ImageIcon, Loader2, Upload, X } from 'lucide-react';
 
+import icons from '@data/icons.json';
+import { toast } from 'sonner';
+import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
+import type { UploadedFile } from '@/modules/runners/hooks/useOcrImport';
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -25,14 +29,10 @@ import {
   CommandList,
 } from '@/components/ui/command';
 
-import { useOcrImport, type UploadedFile } from '@/modules/runners/hooks/useOcrImport';
-import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
+import { useOcrImport } from '@/modules/runners/hooks/useOcrImport';
 import { umasForSearch } from '@/modules/runners/utils';
 import { getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import { SkillItem } from '@/modules/skills/components/skill-list/SkillItem';
-
-import icons from '@data/icons.json';
-import { toast } from 'sonner';
 
 interface OcrImportDialogProps {
   open: boolean;

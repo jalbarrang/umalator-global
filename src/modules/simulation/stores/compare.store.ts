@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import {
+import type {
   CompareResult,
   FirstUMAStats,
   SimulationData,
@@ -7,10 +7,10 @@ import {
   StaminaStats,
   Stats,
 } from '@simulation/compare.types';
-import { SpurtCandidate } from '@simulation/lib/SpurtCalculator';
+import type { SpurtCandidate } from '@simulation/lib/SpurtCalculator';
 
 type IRaceStore = {
-  results: number[];
+  results: Array<number>;
   runData: SimulationData | null;
   chartData: SimulationRun | null;
   displaying: string;
@@ -85,8 +85,6 @@ export const setIsSimulationRunning = (isSimulationRunning: boolean) => {
   useRaceStore.setState({ isSimulationRunning });
 };
 
-export const setSimulationProgress = (
-  progress: { current: number; total: number } | null,
-) => {
+export const setSimulationProgress = (progress: { current: number; total: number } | null) => {
   useRaceStore.setState({ simulationProgress: progress });
 };

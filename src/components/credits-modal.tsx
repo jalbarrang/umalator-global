@@ -1,9 +1,4 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { setShowCreditsModal, useUIStore } from '@/store/ui.store';
 
 export function CreditsModal() {
@@ -21,36 +16,27 @@ export function CreditsModal() {
             <h3 className="font-semibold text-base mb-2">Current Developer</h3>
             <ul className="space-y-1 text-muted-foreground">
               <li>
-                <span className="font-medium text-foreground">Albhax</span>- New
-                UI design, post simulation Stamina calculator.
+                <span className="font-medium text-foreground">Albhax</span>- New UI design, post
+                simulation Stamina calculator.
               </li>
             </ul>
           </section>
 
           <section>
-            <h3 className="font-semibold text-base mb-2">
-              Enhanced Features By
-            </h3>
+            <h3 className="font-semibold text-base mb-2">Enhanced Features By</h3>
             <ul className="space-y-2 text-muted-foreground">
               <li>
-                <span className="font-medium text-foreground">
-                  Transparent Dino
-                </span>{' '}
-                — Enhanced Spurt calculator, Virtual Pacemaker, Downhills,
-                Rushed
+                <span className="font-medium text-foreground">Transparent Dino</span> — Enhanced
+                Spurt calculator, Virtual Pacemaker, Downhills, Rushed
               </li>
               <li>
-                <span className="font-medium text-foreground">
-                  jechtoff2dudes
-                </span>{' '}
-                — Frontrunner Overtake/Speedup mode, Dragging Skill Markers,
-                Downhills, Skill Activation check
+                <span className="font-medium text-foreground">jechtoff2dudes</span> — Frontrunner
+                Overtake/Speedup mode, Dragging Skill Markers, Downhills, Skill Activation check
               </li>
               <li>
-                <span className="font-medium text-foreground">Kachi</span> — Bug
-                fixes, UI improvements, mood, UI responsiveness, poskeep
-                rewrite, RNG rework, uniques chart, spot struggle/dueling, lane
-                movement
+                <span className="font-medium text-foreground">Kachi</span> — Bug fixes, UI
+                improvements, mood, UI responsiveness, poskeep rewrite, RNG rework, uniques chart,
+                spot struggle/dueling, lane movement
               </li>
             </ul>
           </section>
@@ -82,13 +68,10 @@ export function CreditsModal() {
           </section>
 
           <section>
-            <h3 className="font-semibold text-base mb-2">
-              Race Mechanics Documentation
-            </h3>
+            <h3 className="font-semibold text-base mb-2">Race Mechanics Documentation</h3>
             <ul className="space-y-1 text-muted-foreground">
               <li>
-                <span className="font-medium text-foreground">KuromiAK</span> —
-                Author
+                <span className="font-medium text-foreground">KuromiAK</span> — Author
               </li>
               <li>
                 <a

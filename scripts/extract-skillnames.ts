@@ -4,13 +4,9 @@
  * Ports make_global_skillnames.pl to TypeScript
  */
 
-import path from 'path';
-import { openDatabase, closeDatabase, queryAll } from './lib/database';
-import {
-  resolveMasterDbPath,
-  sortByNumericKey,
-  writeJsonFile,
-} from './lib/shared';
+import path from 'node:path';
+import { closeDatabase, openDatabase, queryAll } from './lib/database';
+import { resolveMasterDbPath, sortByNumericKey, writeJsonFile } from './lib/shared';
 
 interface SkillNameRow {
   index: number;
@@ -23,8 +19,7 @@ async function extractSkillNames() {
   console.log('📖 Extracting skill names...\n');
 
   const dbPath = await resolveMasterDbPath();
-  const replaceMode =
-    process.argv.includes('--replace') || process.argv.includes('--full');
+  const replaceMode = process.argv.includes('--replace') || process.argv.includes('--full');
 
   console.log(
     `Mode: ${replaceMode ? '⚠️  Full Replacement' : '✓ Merge (preserves future content)'}`,
@@ -61,10 +56,7 @@ async function extractSkillNames() {
     }
 
     // Merge with existing data (unless replace mode)
-    const outputPath = path.join(
-      process.cwd(),
-      'src/modules/data/skillnames.json',
-    );
+    const outputPath = path.join(process.cwd(), 'src/modules/data/skillnames.json');
 
     let finalSkillNames: Record<string, SkillNamesEntry>;
 
@@ -87,12 +79,8 @@ async function extractSkillNames() {
         const preserved = finalCount - newCount;
 
         console.log(`\n✓ Merge mode:`);
-        console.log(
-          `  → ${newCount} skill names from master.mdb (current content)`,
-        );
-        console.log(
-          `  → ${preserved} additional skill names preserved (future content)`,
-        );
+        console.log(`  → ${newCount} skill names from master.mdb (current content)`);
+        console.log(`  → ${preserved} additional skill names preserved (future content)`);
         console.log(`  → ${finalCount} total skill names`);
       } else {
         finalSkillNames = skillNames;

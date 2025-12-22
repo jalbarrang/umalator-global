@@ -1,16 +1,15 @@
 import {
-  Operator,
+  AndOperator,
+  Conditions,
   EqOperator,
-  NeqOperator,
-  LtOperator,
-  LteOperator,
   GtOperator,
   GteOperator,
-  AndOperator,
+  LtOperator,
+  LteOperator,
+  NeqOperator,
   OrOperator,
-  Condition,
-  Conditions,
 } from './ActivationConditions';
+import type { Condition, Operator } from './ActivationConditions';
 
 class ParseError extends Error {
   constructor(msg: string) {
@@ -30,10 +29,13 @@ const isIdentifier = (character: number) => {
   );
 };
 
-interface Token<T, U> {
+interface Token<TCondition, TOperator> {
   lbp: number;
-  led(state: ParserState<T, U>, left: Node<T, U>): Node<T, U>;
-  nud(state: ParserState<T, U>): Node<T, U>;
+  led: (
+    state: ParserState<TCondition, TOperator>,
+    left: Node<TCondition, TOperator>,
+  ) => Node<TCondition, TOperator>;
+  nud: (state: ParserState<TCondition, TOperator>) => Node<TCondition, TOperator>;
 }
 
 export const enum NodeType {
@@ -41,18 +43,18 @@ export const enum NodeType {
   Cond,
   Op,
 }
-export type Node<ConditionT = Condition, OperatorT = Operator> =
+export type Node<TCondition = Condition, TOperator = Operator> =
   | { type: NodeType.Int; value: number }
-  | { type: NodeType.Cond; cond: ConditionT }
-  | { type: NodeType.Op; op: OperatorT };
+  | { type: NodeType.Cond; cond: TCondition }
+  | { type: NodeType.Op; op: TOperator };
 
-type ParserState<T, U> = {
-  current: Token<T, U>;
-  next: Token<T, U>;
-  tokens: Iterator<Token<T, U>>;
+type ParserState<TCondition, TOperator> = {
+  current: Token<TCondition, TOperator>;
+  next: Token<TCondition, TOperator>;
+  tokens: Iterator<Token<TCondition, TOperator>>;
 };
 
-class IntValue<T, U> implements Token<T, U> {
+class IntValue<TCondition, TOperator> implements Token<TCondition, TOperator> {
   lbp = 0;
   value: number;
 
@@ -60,79 +62,56 @@ class IntValue<T, U> implements Token<T, U> {
     this.value = value;
   }
 
-  led(_state: ParserState<T, U>, _left: Node<T, U>): Node<T, U> {
+  led(
+    _state: ParserState<TCondition, TOperator>,
+    _left: Node<TCondition, TOperator>,
+  ): Node<TCondition, TOperator> {
     throw new ParseError('unexpected integer literal');
   }
 
-  nud(_state: ParserState<T, U>) {
-    return { type: NodeType.Int, value: this.value } as Node<T, U>;
+  nud(_state: ParserState<TCondition, TOperator>) {
+    return { type: NodeType.Int, value: this.value } as Node<TCondition, TOperator>;
   }
 }
 
-export function getParser<ConditionT = Condition, OperatorT = Operator>(
-  conditions: { [cond: string]: ConditionT } = Conditions as unknown as {
-    [cond: string]: ConditionT;
+export function getParser<TCondition = Condition, TOperator = Operator>(
+  conditions: { [cond: string]: TCondition } = Conditions as unknown as {
+    [cond: string]: TCondition;
   }, // as far as i can tell there's really no easy way to get this to work
   operators: {
-    and: new (left: OperatorT, right: OperatorT) => OperatorT;
-    or: new (left: OperatorT, right: OperatorT) => OperatorT;
-    eq: new (cond: ConditionT, arg: number) => OperatorT;
-    neq: new (cond: ConditionT, arg: number) => OperatorT;
-    lt: new (cond: ConditionT, arg: number) => OperatorT;
-    lte: new (cond: ConditionT, arg: number) => OperatorT;
-    gt: new (cond: ConditionT, arg: number) => OperatorT;
-    gte: new (cond: ConditionT, arg: number) => OperatorT;
+    and: new (left: TOperator, right: TOperator) => TOperator;
+    or: new (left: TOperator, right: TOperator) => TOperator;
+    eq: new (cond: TCondition, arg: number) => TOperator;
+    neq: new (cond: TCondition, arg: number) => TOperator;
+    lt: new (cond: TCondition, arg: number) => TOperator;
+    lte: new (cond: TCondition, arg: number) => TOperator;
+    gt: new (cond: TCondition, arg: number) => TOperator;
+    gte: new (cond: TCondition, arg: number) => TOperator;
   } = {
-    and: AndOperator as unknown as new (
-      left: OperatorT,
-      right: OperatorT,
-    ) => OperatorT, // this is really stupid
-    or: OrOperator as unknown as new (
-      left: OperatorT,
-      right: OperatorT,
-    ) => OperatorT,
-    eq: EqOperator as unknown as new (
-      cond: ConditionT,
-      arg: number,
-    ) => OperatorT,
-    neq: NeqOperator as unknown as new (
-      cond: ConditionT,
-      arg: number,
-    ) => OperatorT,
-    lt: LtOperator as unknown as new (
-      cond: ConditionT,
-      arg: number,
-    ) => OperatorT,
-    lte: LteOperator as unknown as new (
-      cond: ConditionT,
-      arg: number,
-    ) => OperatorT,
-    gt: GtOperator as unknown as new (
-      cond: ConditionT,
-      arg: number,
-    ) => OperatorT,
-    gte: GteOperator as unknown as new (
-      cond: ConditionT,
-      arg: number,
-    ) => OperatorT,
+    and: AndOperator as unknown as new (left: TOperator, right: TOperator) => TOperator, // this is really stupid
+    or: OrOperator as unknown as new (left: TOperator, right: TOperator) => TOperator,
+    eq: EqOperator as unknown as new (cond: TCondition, arg: number) => TOperator,
+    neq: NeqOperator as unknown as new (cond: TCondition, arg: number) => TOperator,
+    lt: LtOperator as unknown as new (cond: TCondition, arg: number) => TOperator,
+    lte: LteOperator as unknown as new (cond: TCondition, arg: number) => TOperator,
+    gt: GtOperator as unknown as new (cond: TCondition, arg: number) => TOperator,
+    gte: GteOperator as unknown as new (cond: TCondition, arg: number) => TOperator,
   },
 ) {
   const endOfFile = {
     lbp: 0,
     led: (
-      _state: ParserState<ConditionT, OperatorT>,
-      _left: Node<ConditionT, OperatorT>,
-    ): Node<ConditionT, OperatorT> => {
+      _state: ParserState<TCondition, TOperator>,
+      _left: Node<TCondition, TOperator>,
+    ): Node<TCondition, TOperator> => {
       throw new ParseError('unexpected eof');
     },
-    nud: (
-      _state: ParserState<ConditionT, OperatorT>,
-    ): Node<ConditionT, OperatorT> => {
+    nud: (_state: ParserState<TCondition, TOperator>): Node<TCondition, TOperator> => {
       throw new ParseError('unexpected eof');
     },
   };
 
-  class Identifier implements Token<ConditionT, OperatorT> {
+  class Identifier implements Token<TCondition, TOperator> {
     lbp = 0;
     value: string;
 
@@ -141,48 +120,39 @@ export function getParser<ConditionT = Condition, OperatorT = Operator>(
     }
 
     led(
-      _state: ParserState<ConditionT, OperatorT>,
-      _left: Node<ConditionT, OperatorT>,
-    ): Node<ConditionT, OperatorT> {
+      _state: ParserState<TCondition, TOperator>,
+      _left: Node<TCondition, TOperator>,
+    ): Node<TCondition, TOperator> {
       throw new ParseError('unexpected identifier');
     }
 
-    nud(_state: ParserState<ConditionT, OperatorT>) {
+    nud(_state: ParserState<TCondition, TOperator>) {
       return {
         type: NodeType.Cond,
         cond: conditions[this.value as keyof typeof conditions],
-      } as Node<ConditionT, OperatorT>;
+      } as Node<TCondition, TOperator>;
     }
   }
 
   class CmpOp {
     constructor(
       readonly lbp: number,
-      readonly opclass: new (cond: ConditionT, arg: number) => OperatorT,
+      readonly opclass: new (cond: TCondition, arg: number) => TOperator,
     ) {}
 
-    led(
-      state: ParserState<ConditionT, OperatorT>,
-      left: Node<ConditionT, OperatorT>,
-    ) {
+    led(state: ParserState<TCondition, TOperator>, left: Node<TCondition, TOperator>) {
       if (left.type != NodeType.Cond)
-        throw new ParseError(
-          'expected condition on left hand side of comparison',
-        );
+        throw new ParseError('expected condition on left hand side of comparison');
       const right = expression(state, this.lbp);
       if (right.type != NodeType.Int)
-        throw new ParseError(
-          'expected number on right hand side of comparison',
-        );
+        throw new ParseError('expected number on right hand side of comparison');
       return {
         type: NodeType.Op,
         op: new this.opclass(left.cond, right.value),
-      } as Node<ConditionT, OperatorT>;
+      } as Node<TCondition, TOperator>;
     }
 
-    nud(
-      _state: ParserState<ConditionT, OperatorT>,
-    ): Node<ConditionT, OperatorT> {
+    nud(_state: ParserState<TCondition, TOperator>): Node<TCondition, TOperator> {
       throw new ParseError('expected expression');
     }
   }
@@ -190,31 +160,22 @@ export function getParser<ConditionT = Condition, OperatorT = Operator>(
   class LogicalOp {
     constructor(
       readonly lbp: number,
-      readonly opclass: new (left: OperatorT, right: OperatorT) => OperatorT,
+      readonly opclass: new (left: TOperator, right: TOperator) => TOperator,
     ) {}
 
-    led(
-      state: ParserState<ConditionT, OperatorT>,
-      left: Node<ConditionT, OperatorT>,
-    ) {
+    led(state: ParserState<TCondition, TOperator>, left: Node<TCondition, TOperator>) {
       if (left.type != NodeType.Op)
-        throw new ParseError(
-          'expected comparison on left hand side of operator',
-        );
+        throw new ParseError('expected comparison on left hand side of operator');
       const right = expression(state, this.lbp);
       if (right.type != NodeType.Op)
-        throw new ParseError(
-          'expected comparison on right hand side of operator',
-        );
+        throw new ParseError('expected comparison on right hand side of operator');
       return {
         type: NodeType.Op,
         op: new this.opclass(left.op, right.op),
-      } as Node<ConditionT, OperatorT>;
+      } as Node<TCondition, TOperator>;
     }
 
-    nud(
-      _state: ParserState<ConditionT, OperatorT>,
-    ): Node<ConditionT, OperatorT> {
+    nud(_state: ParserState<TCondition, TOperator>): Node<TCondition, TOperator> {
       throw new ParseError('expected expression');
     }
   }
@@ -247,7 +208,7 @@ export function getParser<ConditionT = Condition, OperatorT = Operator>(
         }
 
         // Yield integer value
-        yield new IntValue<ConditionT, OperatorT>(digit);
+        yield new IntValue<TCondition, TOperator>(digit);
       } else if (isIdentifier(characterCode)) {
         const identifierStart = i;
 
@@ -301,12 +262,7 @@ export function getParser<ConditionT = Condition, OperatorT = Operator>(
     return endOfFile;
   }
 
-  function parseAny(
-    tokens: Iterator<
-      Token<ConditionT, OperatorT>,
-      Token<ConditionT, OperatorT>
-    >,
-  ) {
+  function parseAny(tokens: Iterator<Token<TCondition, TOperator>, Token<TCondition, TOperator>>) {
     const state = {
       current: endOfFile,
       next: tokens.next().value,
@@ -316,12 +272,7 @@ export function getParser<ConditionT = Condition, OperatorT = Operator>(
     return expression(state, 0);
   }
 
-  function parse(
-    tokens: Iterator<
-      Token<ConditionT, OperatorT>,
-      Token<ConditionT, OperatorT>
-    >,
-  ) {
+  function parse(tokens: Iterator<Token<TCondition, TOperator>, Token<TCondition, TOperator>>) {
     const node = parseAny(tokens);
 
     if (node.type != NodeType.Op) {
@@ -339,7 +290,7 @@ export function getParser<ConditionT = Condition, OperatorT = Operator>(
   //     Op ::= '==' | '!=' | '>' | '>=' | '<' | '<='
   // there are no parenthesis nor any other way to control precedence
 
-  function expression(state: ParserState<ConditionT, OperatorT>, rbp: number) {
+  function expression(state: ParserState<TCondition, TOperator>, rbp: number) {
     state.current = state.next;
     state.next = state.tokens.next().value;
 

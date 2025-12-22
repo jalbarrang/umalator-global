@@ -10,8 +10,7 @@ import { extractUmaInfo } from './extract-uma-info';
 import { extractCourseData } from './extract-course-data';
 
 async function extractAll() {
-  const replaceMode =
-    process.argv.includes('--replace') || process.argv.includes('--full');
+  const replaceMode = process.argv.includes('--replace') || process.argv.includes('--full');
 
   console.log('🚀 Starting full data extraction...\n');
   console.log(
@@ -20,7 +19,7 @@ async function extractAll() {
   console.log('='.repeat(60));
 
   const startTime = Date.now();
-  const results: { name: string; success: boolean; error?: string }[] = [];
+  const results: Array<{ name: string; success: boolean; error?: string }> = [];
 
   // Run extractions in sequence
   const extractions = [
@@ -62,14 +61,10 @@ async function extractAll() {
   const successCount = results.filter((r) => r.success).length;
   const totalCount = results.length;
 
-  console.log(
-    `\n✨ Completed ${successCount}/${totalCount} extractions in ${duration}s`,
-  );
+  console.log(`\n✨ Completed ${successCount}/${totalCount} extractions in ${duration}s`);
 
   if (successCount < totalCount) {
-    console.error(
-      '\n⚠️  Some extractions failed. Please check the errors above.',
-    );
+    console.error('\n⚠️  Some extractions failed. Please check the errors above.');
     process.exit(1);
   }
 }

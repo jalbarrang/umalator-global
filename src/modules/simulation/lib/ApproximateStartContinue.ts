@@ -1,4 +1,4 @@
-import { RaceSolver } from './RaceSolver';
+import type { RaceSolver } from './RaceSolver';
 import type { PRNG } from './Random';
 
 export interface ConditionState {
@@ -7,7 +7,7 @@ export interface ConditionState {
 
 export interface ApproximateCondition {
   valueOnStart: number;
-  update(state: ConditionState, currentValue: number): number;
+  update: (state: ConditionState, currentValue: number) => number;
 }
 
 export class ApproximateStartContinue implements ApproximateCondition {
@@ -40,7 +40,7 @@ export interface ConditionEntry {
 export class ApproximateMultiCondition implements ApproximateCondition {
   constructor(
     public readonly name: string,
-    public readonly conditions: readonly ConditionEntry[],
+    public readonly conditions: ReadonlyArray<ConditionEntry>,
     public readonly valueOnStart: number = 0,
   ) {}
 

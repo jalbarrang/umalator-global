@@ -21,7 +21,7 @@ export class Region {
 }
 
 export class RegionList extends Array<Region> {
-  rmap(f: (r: Region) => Region | Region[]) {
+  rmap(f: (r: Region) => Region | Array<Region>) {
     const out = new RegionList();
     this.forEach((r) => {
       const newr = f(r);
@@ -40,9 +40,7 @@ export class RegionList extends Array<Region> {
 
   union(other: RegionList) {
     const regionList = new RegionList();
-    const unitedRegions: Region[] = [...this, ...other].toSorted(
-      (a, b) => a.start - b.start,
-    );
+    const unitedRegions: Array<Region> = [...this, ...other].toSorted((a, b) => a.start - b.start);
 
     if (unitedRegions.length == 0) {
       return regionList;

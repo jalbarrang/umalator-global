@@ -5,6 +5,7 @@ Let's build a complete working simulation in 5 minutes. We'll create a simple ph
 ## What We're Building
 
 A ball that:
+
 - Moves at constant velocity
 - Tracks its position over time
 - Runs for 2 seconds
@@ -88,6 +89,7 @@ engine.run(2.0, 0.016);
 ```
 
 Behind the scenes:
+
 - Engine calls `tick(0.016)` repeatedly
 - Each tick updates all entities
 - Each entity updates all its behaviors
@@ -134,7 +136,7 @@ engine.run(2.0, 0.016);
 
 // Results
 console.log('Final position:', movement.position); // 20
-console.log('Final time:', engine.time);           // 2.0
+console.log('Final time:', engine.time); // 2.0
 ```
 
 **Try it yourself!** Copy this code and run it. Change the velocity, change the duration, see what happens.
@@ -185,7 +187,8 @@ Notice how `MovementBehavior` gets data from `AccelerationBehavior` using `getBe
 ```typescript
 // ❌ TypeScript won't warn you
 class MyBehavior extends Behavior {
-  onUpdate(dt: number): void { // Missing override keyword
+  onUpdate(dt: number): void {
+    // Missing override keyword
     // ...
   }
 }
@@ -240,9 +243,9 @@ ball.addBehavior(movement);
 Congratulations! You've built your first simulation.
 
 Ready to learn more?
+
 - [Behaviors in depth](04-behaviors.md) - Master behavior patterns
 - [Events](05-events.md) - Learn event-driven architecture
 - [Advanced Patterns](06-advanced-patterns.md) - Build production systems
 
 Want to see a more complex example? Check out [integration.test.ts](../__tests__/integration.test.ts) in the test suite.
-

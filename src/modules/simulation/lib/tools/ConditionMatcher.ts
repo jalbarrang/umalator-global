@@ -1,12 +1,8 @@
-import {
-  AndOperator,
-  CmpOperator,
-  Condition,
-  Operator,
-  OrOperator,
-} from '@simulation/lib/ActivationConditions';
-import { Node, NodeType } from '@simulation/lib/ConditionParser';
-import { ActivationSamplePolicy } from '../ActivationSamplePolicy';
+import { AndOperator, OrOperator } from '@simulation/lib/ActivationConditions';
+import { NodeType } from '@simulation/lib/ConditionParser';
+import type { CmpOperator, Condition, Operator } from '@simulation/lib/ActivationConditions';
+import type { Node } from '@simulation/lib/ConditionParser';
+import type { ActivationSamplePolicy } from '../ActivationSamplePolicy';
 
 function isCmpOperator(tree: Operator): tree is CmpOperator {
   return 'condition' in tree;
@@ -18,15 +14,13 @@ function assertIsCmpOperator(tree: Operator): asserts tree is CmpOperator {
   }
 }
 
-function assertIsLogicalOp(
-  tree: Operator,
-): asserts tree is AndOperator | OrOperator {
+function assertIsLogicalOp(tree: Operator): asserts tree is AndOperator | OrOperator {
   if (!('left' in tree && 'right' in tree)) {
     throw new Error('Tree is not a AndOperator or OrOperator');
   }
 }
 
-function flatten(node: AndOperator, conds: CmpOperator[]) {
+function flatten(node: AndOperator, conds: Array<CmpOperator>) {
   // due to the grammar the right branch of an & must be a comparison
   // (there are no parenthesis to override precedence and & is left-associative)
   assertIsCmpOperator(node.right);
@@ -62,7 +56,7 @@ function condMatcher(cond: Condition | CmpOperator, node: Operator): boolean {
   return condMatcher(cond, node.left) || condMatcher(cond, node.right);
 }
 
-function andMatcher(conds: CmpOperator[], node: Operator): boolean {
+function andMatcher(conds: Array<CmpOperator>, node: Operator): boolean {
   if (node instanceof OrOperator) {
     const conds2 = conds.slice(); // gets destructively modified
 

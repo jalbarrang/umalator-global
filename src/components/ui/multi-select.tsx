@@ -29,24 +29,15 @@ function MultiSelect<Value, Multiple extends boolean = true>({
   return <Combobox multiple={multiple} {...props} />;
 }
 
-function MultiSelectInput({
-  className,
-  ...props
-}: ComboboxPrimitive.Input.Props) {
+function MultiSelectInput({ className, ...props }: ComboboxPrimitive.Input.Props) {
   return <ComboboxInput className={className} {...props} />;
 }
 
-function MultiSelectTrigger({
-  className,
-  ...props
-}: ComboboxPrimitive.Trigger.Props) {
+function MultiSelectTrigger({ className, ...props }: ComboboxPrimitive.Trigger.Props) {
   return <ComboboxTrigger className={className} {...props} />;
 }
 
-function MultiSelectClear({
-  className,
-  ...props
-}: ComboboxPrimitive.Clear.Props) {
+function MultiSelectClear({ className, ...props }: ComboboxPrimitive.Clear.Props) {
   return <ComboboxClear className={className} {...props} />;
 }
 
@@ -57,18 +48,10 @@ function MultiSelectValue({
 }: ComboboxPrimitive.Chips.Props & {
   placeholder?: string;
 }) {
-  return (
-    <ComboboxChips
-      className={cn('flex flex-wrap gap-1.5', className)}
-      {...props}
-    />
-  );
+  return <ComboboxChips className={cn('flex flex-wrap gap-1.5', className)} {...props} />;
 }
 
-function MultiSelectChip({
-  className,
-  ...props
-}: ComboboxPrimitive.Chip.Props) {
+function MultiSelectChip({ className, ...props }: ComboboxPrimitive.Chip.Props) {
   return (
     <ComboboxChip
       className={cn(
@@ -80,10 +63,7 @@ function MultiSelectChip({
   );
 }
 
-function MultiSelectChipRemove({
-  className,
-  ...props
-}: ComboboxPrimitive.ChipRemove.Props) {
+function MultiSelectChipRemove({ className, ...props }: ComboboxPrimitive.ChipRemove.Props) {
   return (
     <ComboboxChipRemove
       className={cn(
@@ -101,31 +81,19 @@ function MultiSelectContent({
   className,
   ...props
 }: ComboboxPrimitive.Popup.Props &
-  Pick<
-    ComboboxPrimitive.Positioner.Props,
-    'align' | 'alignOffset' | 'side' | 'sideOffset'
-  >) {
+  Pick<ComboboxPrimitive.Positioner.Props, 'align' | 'alignOffset' | 'side' | 'sideOffset'>) {
   return <ComboboxContent className={className} {...props} />;
 }
 
-function MultiSelectList({
-  className,
-  ...props
-}: ComboboxPrimitive.List.Props) {
+function MultiSelectList({ className, ...props }: ComboboxPrimitive.List.Props) {
   return <ComboboxList className={className} {...props} />;
 }
 
-function MultiSelectEmpty({
-  className,
-  ...props
-}: ComboboxPrimitive.Empty.Props) {
+function MultiSelectEmpty({ className, ...props }: ComboboxPrimitive.Empty.Props) {
   return <ComboboxEmpty className={className} {...props} />;
 }
 
-function MultiSelectItem({
-  className,
-  ...props
-}: ComboboxPrimitive.Item.Props) {
+function MultiSelectItem({ className, ...props }: ComboboxPrimitive.Item.Props) {
   return (
     <ComboboxItem className={className} {...props}>
       <ComboboxItemIndicator />
@@ -134,24 +102,15 @@ function MultiSelectItem({
   );
 }
 
-function MultiSelectGroup({
-  className,
-  ...props
-}: ComboboxPrimitive.Group.Props) {
+function MultiSelectGroup({ className, ...props }: ComboboxPrimitive.Group.Props) {
   return <ComboboxGroup className={className} {...props} />;
 }
 
-function MultiSelectGroupLabel({
-  className,
-  ...props
-}: ComboboxPrimitive.GroupLabel.Props) {
+function MultiSelectGroupLabel({ className, ...props }: ComboboxPrimitive.GroupLabel.Props) {
   return <ComboboxGroupLabel className={className} {...props} />;
 }
 
-function MultiSelectSeparator({
-  className,
-  ...props
-}: ComboboxPrimitive.Separator.Props) {
+function MultiSelectSeparator({ className, ...props }: ComboboxPrimitive.Separator.Props) {
   return <ComboboxSeparator className={className} {...props} />;
 }
 

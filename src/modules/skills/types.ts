@@ -1,7 +1,7 @@
 export interface ISkill {
   activation: number;
-  char?: number[];
-  condition_groups: ISkillConditionGroup[];
+  char?: Array<number>;
+  condition_groups: Array<ISkillConditionGroup>;
   desc_en?: string;
   desc_ko?: string;
   desc_tw?: string;
@@ -17,24 +17,22 @@ export interface ISkill {
   name_ko?: string;
   name_tw?: string;
   rarity: number;
-  type: Type[];
+  type: Array<Type>;
   cost?: number;
-  versions?: number[];
-  char_e?: number[];
-  sup_e?: Array<number[]>;
-  sup_hint?: Array<number[]>;
-  sce_e?: number[];
-  evo?: Evo[];
-  evo_cond?: Array<
-    Array<Array<Array<number | string> | number | null | string>>
-  >;
+  versions?: Array<number>;
+  char_e?: Array<number>;
+  sup_e?: Array<Array<number>>;
+  sup_hint?: Array<Array<number>>;
+  sce_e?: Array<number>;
+  evo?: Array<Evo>;
+  evo_cond?: Array<Array<Array<Array<number | string> | number | null | string>>>;
   pre_evo?: PreEvo;
 }
 
 export interface ISkillConditionGroup {
   base_time: number;
   condition: string;
-  effects: PurpleEffect[];
+  effects: Array<PurpleEffect>;
   precondition?: string;
   cd?: number;
   time_scale?: number;
@@ -51,13 +49,13 @@ export interface PurpleEffect {
 
 export interface Evo {
   card_id?: number;
-  evos: number[];
+  evos: Array<number>;
   scenario_id?: number;
 }
 
 export interface ISkillGeneVersion {
   activation: number;
-  condition_groups: ISkillConditionGroup[];
+  condition_groups: Array<ISkillConditionGroup>;
   cost?: number;
   desc_en?: string;
   desc_ko?: string;
@@ -68,7 +66,7 @@ export interface ISkillGeneVersion {
   name_en?: string;
   name_ko?: string;
   name_tw?: string;
-  parent_skills: number[];
+  parent_skills: Array<number>;
   rarity: number;
 }
 
@@ -77,20 +75,20 @@ export interface ISkillLocalization {
 }
 
 export interface ISkillEnglishLocale {
-  char?: number[];
-  condition_groups?: ISkillEnglishConditionGroup[];
+  char?: Array<number>;
+  condition_groups?: Array<ISkillEnglishConditionGroup>;
   gene_version?: ISkillEnglishGeneVersion;
-  type?: Type[];
-  sup_e?: Array<number[]>;
-  sup_hint?: Array<number[]>;
-  char_e?: number[];
+  type?: Array<Type>;
+  sup_e?: Array<Array<number>>;
+  sup_hint?: Array<Array<number>>;
+  char_e?: Array<number>;
   iconid?: number;
 }
 
 export interface ISkillEnglishConditionGroup {
   base_time: number;
   condition: string;
-  effects: FluffyEffect[];
+  effects: Array<FluffyEffect>;
   precondition?: string;
   cd?: number;
 }
@@ -103,7 +101,7 @@ export interface FluffyEffect {
 }
 
 export interface ISkillEnglishGeneVersion {
-  condition_groups: ISkillEnglishConditionGroup[];
+  condition_groups: Array<ISkillEnglishConditionGroup>;
   iconid?: number;
 }
 

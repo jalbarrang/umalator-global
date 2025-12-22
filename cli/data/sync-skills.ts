@@ -82,15 +82,9 @@ function shouldIncludeSkill(
   }
 
   // Check multiple specific character IDs (filter by exact outfits)
-  if (
-    config.specificCharIds !== undefined &&
-    config.specificCharIds.length > 0
-  ) {
+  if (config.specificCharIds !== undefined && config.specificCharIds.length > 0) {
     // If filtering by characters, ONLY include skills that have at least one of these char IDs
-    if (
-      !skill.char ||
-      !config.specificCharIds.some((charId) => skill.char!.includes(charId))
-    ) {
+    if (!skill.char || !config.specificCharIds.some((charId) => skill.char!.includes(charId))) {
       return false;
     }
     // If the skill has any of the char IDs, include it (ignore other filters)
@@ -104,19 +98,14 @@ function shouldIncludeSkill(
 
   // Check ranges
   if (config.idRanges && config.idRanges.length > 0) {
-    return config.idRanges.some(
-      (range) => skillId >= range.min && skillId <= range.max,
-    );
+    return config.idRanges.some((range) => skillId >= range.min && skillId <= range.max);
   }
 
   // Default: include all
   return true;
 }
 
-function convertSkillToData(
-  skill: ISkill,
-  useEnglishVersion: boolean = true,
-): SkillDataEntry {
+function convertSkillToData(skill: ISkill, useEnglishVersion: boolean = true): SkillDataEntry {
   // Use English-specific conditions if available and requested, otherwise use default
   const conditionGroups =
     useEnglishVersion && skill.loc?.en?.condition_groups
@@ -217,15 +206,9 @@ export async function syncSkills(config: FilterConfig = {}) {
   );
 
   const existingIds = new Set(Object.keys(existingSkillData));
-  console.log(
-    `   skill_data.json: ${Object.keys(existingSkillData).length} skills`,
-  );
-  console.log(
-    `   skill_meta.json: ${Object.keys(existingSkillMeta).length} skills`,
-  );
-  console.log(
-    `   skillnames.json: ${Object.keys(existingSkillNames).length} skills\n`,
-  );
+  console.log(`   skill_data.json: ${Object.keys(existingSkillData).length} skills`);
+  console.log(`   skill_meta.json: ${Object.keys(existingSkillMeta).length} skills`);
+  console.log(`   skillnames.json: ${Object.keys(existingSkillNames).length} skills\n`);
 
   // Process skills
   const newSkillData: Record<string, SkillDataEntry> = {};
@@ -247,9 +230,7 @@ export async function syncSkills(config: FilterConfig = {}) {
 
       // If this skill has versions, include those too
       if (skill.versions) {
-        skill.versions.forEach((versionId) =>
-          skillVersionsToInclude.add(versionId),
-        );
+        skill.versions.forEach((versionId) => skillVersionsToInclude.add(versionId));
       }
     }
   }
@@ -308,9 +289,7 @@ export async function syncSkills(config: FilterConfig = {}) {
   console.log('✨ Processing complete:');
   console.log(`   Main skills to sync: ${mainSkillsProcessed}`);
   console.log(`   Gene skills to sync: ${geneSkillsProcessed}`);
-  console.log(
-    `   Total: ${mainSkillsProcessed + geneSkillsProcessed} skills\n`,
-  );
+  console.log(`   Total: ${mainSkillsProcessed + geneSkillsProcessed} skills\n`);
 
   if (config.dryRun) {
     console.log('🔍 DRY RUN - No files will be written\n');

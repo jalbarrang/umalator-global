@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useRaceStore } from '@simulation/stores/compare.store';
-import { Histogram } from '@/components/Histogram';
 import { BarChart3 } from 'lucide-react';
+import { Histogram } from '@/components/Histogram';
 import {
   Empty,
   EmptyDescription,
@@ -57,8 +57,7 @@ export const DistributionTab = () => {
           </EmptyMedia>
           <EmptyTitle>No Distribution Data</EmptyTitle>
           <EmptyDescription>
-            Run simulations to see win rate distribution, percentiles, and
-            statistical analysis.
+            Run simulations to see win rate distribution, percentiles, and statistical analysis.
           </EmptyDescription>
         </EmptyHeader>
       </Empty>
@@ -70,9 +69,7 @@ export const DistributionTab = () => {
       <div className="flex flex-col gap-2">
         {/* Basic Stats */}
         <div className="bg-background border-2 rounded-lg p-4">
-          <h4 className="text-sm font-semibold text-foreground mb-3">
-            Basic Statistics
-          </h4>
+          <h4 className="text-sm font-semibold text-foreground mb-3">Basic Statistics</h4>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-foreground">Mean:</span>
@@ -94,18 +91,14 @@ export const DistributionTab = () => {
             </div>
             <div className="flex justify-between">
               <span className="text-foreground">Sample Size:</span>
-              <span className="font-mono font-medium">
-                {distributionStats.sampleSize}
-              </span>
+              <span className="font-mono font-medium">{distributionStats.sampleSize}</span>
             </div>
           </div>
         </div>
 
         {/* Percentiles */}
         <div className="bg-background border-2 rounded-lg p-4">
-          <h4 className="text-sm font-semibold text-foreground mb-3">
-            Percentiles
-          </h4>
+          <h4 className="text-sm font-semibold text-foreground mb-3">Percentiles</h4>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-foreground">5th:</span>
@@ -142,15 +135,11 @@ export const DistributionTab = () => {
 
         {/* Win Rates */}
         <div className="bg-background border-2 rounded-lg p-4">
-          <h4 className="text-sm font-semibold text-foreground mb-3">
-            Win Distribution
-          </h4>
+          <h4 className="text-sm font-semibold text-foreground mb-3">Win Distribution</h4>
           <div className="space-y-3">
             <div>
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-[#2a77c5] dark:text-blue-500 font-medium">
-                  Uma 1 Wins
-                </span>
+                <span className="text-[#2a77c5] dark:text-blue-500 font-medium">Uma 1 Wins</span>
                 <span className="font-mono font-bold text-[#2a77c5]">
                   {distributionStats.winRates.uma1}%
                 </span>
@@ -199,9 +188,7 @@ export const DistributionTab = () => {
       <div>
         {/* Full-width Histogram */}
         <div className="w-full">
-          <h3 className="text-lg font-semibold text-foreground mb-3">
-            Result Distribution
-          </h3>
+          <h3 className="text-lg font-semibold text-foreground mb-3">Result Distribution</h3>
           <div className="flex justify-center h-[300px]">
             <Histogram data={results} className="w-full" />
           </div>
