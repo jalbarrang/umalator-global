@@ -1,14 +1,11 @@
 import fs from 'node:fs';
-import { program, Option } from 'commander';
-import { CourseHelpers } from '../src/modules/simulation/lib/CourseData';
-import { RaceSolverBuilder } from '../src/modules/simulation/lib/RaceSolverBuilder';
-import { RaceSolver } from '../src/modules/simulation/lib/RaceSolver';
+import { Option, program } from 'commander';
+import type { RaceRunner } from '@/modules/simulation/lib/RaceRunner';
+import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
+import { RaceRunnerBuilder } from '@/modules/simulation/lib/RaceRunnerBuilder';
 
 program
-  .argument(
-    '<horsefile>',
-    "path to a JSON file describing the horse's parameters",
-  )
+  .argument('<horsefile>', "path to a JSON file describing the horse's parameters")
   .requiredOption('-c, --course <id>', 'course ID')
   .addOption(
     new Option('-m, --mood <mood>', "the uma's mood")
@@ -22,27 +19,16 @@ program
       .default('good', 'good'),
   )
   .addOption(
-    new Option(
-      '--speed-range <range>',
-      'closed interval start,end of speed stats to test',
-    )
+    new Option('--speed-range <range>', 'closed interval start,end of speed stats to test')
       .default([400, 2000], '400,2000')
       .argParser((s) => s.split(',').map((x) => parseInt(x, 10))),
   )
   .addOption(
-    new Option(
-      '--guts-range <range>',
-      'closed interval start,end of guts stats to test',
-    )
+    new Option('--guts-range <range>', 'closed interval start,end of guts stats to test')
       .default([400, 2000], '400,2000')
       .argParser((s) => s.split(',').map((x) => parseInt(x, 10))),
   )
-  .option(
-    '--step <number>',
-    'increments of speed and guts to test',
-    (x) => parseInt(x, 10),
-    50,
-  )
+  .option('--step <number>', 'increments of speed and guts to test', (x) => parseInt(x, 10), 50)
   .addOption(
     new Option('--standard <speed,guts>', 'speed,guts pair to compare with')
       .default([1200, 600], '1200,600')
@@ -59,7 +45,7 @@ const course = CourseHelpers.getCourse(opts.course);
 const desc = JSON.parse(fs.readFileSync(program.args[0], 'utf8'));
 
 function buildSolver(speed: number, guts: number) {
-  const b = new RaceSolverBuilder(1)
+  const b = new RaceRunnerBuilder(1)
     .seed(seed)
     .course(course)
     .ground(opts.ground)
@@ -69,7 +55,7 @@ function buildSolver(speed: number, guts: number) {
     .withStaminaSyoubu();
 
   desc.skills.forEach((id: string) => b.addSkill(id));
-  return b.build().next().value as RaceSolver;
+  return b.build().next().value as RaceRunner;
 }
 
 const min = buildSolver(opts.speedRange[0], opts.gutsRange[0]);
@@ -88,19 +74,11 @@ while (base.accumulatetime.t <= min.accumulatetime.t) {
   base.step(dt);
 }
 
-const gain: number[][] = [];
-for (
-  let guts = opts.gutsRange[0];
-  guts <= opts.gutsRange[1];
-  guts += opts.step
-) {
-  const row: number[] = [];
+const gain: Array<Array<number>> = [];
+for (let guts = opts.gutsRange[0]; guts <= opts.gutsRange[1]; guts += opts.step) {
+  const row: Array<number> = [];
   gain.push(row);
-  for (
-    let speed = opts.speedRange[0];
-    speed <= opts.speedRange[1];
-    speed += opts.step
-  ) {
+  for (let speed = opts.speedRange[0]; speed <= opts.speedRange[1]; speed += opts.step) {
     const s = buildSolver(speed, guts);
     while (s.pos < course.distance) {
       s.step(dt);

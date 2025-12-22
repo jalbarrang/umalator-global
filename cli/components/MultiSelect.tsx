@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react';
 import { isDeepStrictEqual } from 'node:util';
+import React, { useCallback, useState } from 'react';
 import { Box, Text, useInput } from 'ink';
 import arrayToRotated from 'to-rotated';
 
@@ -79,17 +79,17 @@ export type MultiSelectProps = {
    * it may also optionally have a `key` prop.
    * If no `key` prop is provided, `value` will be used as the item key.
    */
-  items?: ListedItem[];
+  items?: Array<ListedItem>;
 
   /**
    * Items set as selected (controlled mode).
    */
-  selected?: SelectedItem[];
+  selected?: Array<SelectedItem>;
 
   /**
    * Items set as selected by default (uncontrolled mode).
    */
-  defaultSelected?: SelectedItem[];
+  defaultSelected?: Array<SelectedItem>;
 
   /**
    * Listen to user's input. Useful in case there are multiple input components
@@ -124,7 +124,7 @@ export type MultiSelectProps = {
    * Function to call when user submits selected items.
    * Selected Item list is passed to that function as an argument.
    */
-  onSubmit?: (items: ListedItem[]) => void;
+  onSubmit?: (items: Array<ListedItem>) => void;
 
   /**
    * Custom component to override the default indicator component.
@@ -171,7 +171,7 @@ function MultiSelect({
 
   // Internal selection state for uncontrolled mode
   const [internalSelected, setInternalSelected] =
-    useState<SelectedItem[]>(defaultSelected);
+    useState<Array<SelectedItem>>(defaultSelected);
 
   // Get the current selection based on mode
   const currentSelected = isControlled ? selected : internalSelected;
@@ -266,7 +266,7 @@ function MultiSelect({
             : items;
 
           if (onHighlight) {
-            onHighlight(slicedItems[nextHighlightedIndex]!);
+            onHighlight(slicedItems[nextHighlightedIndex]);
           }
         }
 
@@ -288,7 +288,7 @@ function MultiSelect({
             : items;
 
           if (onHighlight) {
-            onHighlight(slicedItems[nextHighlightedIndex]!);
+            onHighlight(slicedItems[nextHighlightedIndex]);
           }
         }
 

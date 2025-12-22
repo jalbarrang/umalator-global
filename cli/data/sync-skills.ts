@@ -1,8 +1,8 @@
 // scripts/sync_from_gametora.ts
-import fs from 'fs';
-import path from 'path';
-import type { ISkill } from '@skills/types';
+import fs from 'node:fs';
+import path from 'node:path';
 import { sortByNumericKey, writeJsonFile } from '../../scripts/lib/shared';
+import type { ISkill } from '@skills/types';
 
 // Target file structures
 interface SkillDataEntry {
@@ -33,15 +33,15 @@ export interface FilterConfig {
   // Filter by skill ID ranges (useful for syncing by time period)
   idRanges?: Array<{ min: number; max: number }>;
   // Only include these specific IDs
-  includeIds?: number[];
+  includeIds?: Array<number>;
   // Exclude these specific IDs
-  excludeIds?: number[];
+  excludeIds?: Array<number>;
   // Only sync skills that don't exist in target files
   onlyNew?: boolean;
   // Sync skills from a specific character/outfit ID
   specificCharId?: number;
   // Sync skills from multiple character/outfit IDs
-  specificCharIds?: number[];
+  specificCharIds?: Array<number>;
   // Dry run - show what would be synced without writing
   dryRun?: boolean;
   // Verbose output
@@ -198,7 +198,7 @@ export async function syncSkills(config: FilterConfig = {}) {
   const basePath = path.join(process.cwd(), 'src/modules/data');
 
   console.log('📖 Reading gametora skills...');
-  const gametoraSkills: ISkill[] = JSON.parse(
+  const gametoraSkills: Array<ISkill> = JSON.parse(
     fs.readFileSync(path.join(basePath, 'gametora/skills.json'), 'utf-8'),
   );
 
