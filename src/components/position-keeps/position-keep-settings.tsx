@@ -1,3 +1,7 @@
+import { useMemo } from 'react';
+import { Slider } from '../ui/slider';
+import type { IPosKeepMode } from '@/modules/simulation/lib/runner/definitions';
+import { PosKeepMode } from '@/modules/simulation/lib/runner/definitions';
 import {
   setPacemakerCount,
   setSelectedPacemakerIndices,
@@ -19,31 +23,35 @@ import {
   MultiSelectItem,
   MultiSelectTrigger,
 } from '@/components/ui/multi-select';
-import { PosKeepMode } from '@simulation/lib/RaceSolver';
 import { Label } from '@/components/ui/label';
-import { useMemo } from 'react';
-import { Slider } from '../ui/slider';
 
 export const PositionKeepSettings = () => {
   const { posKeepMode, pacemakerCount } = useSettingsStore();
   const selectedPacemakerIndices = useSelectedPacemakerIndices();
 
   const pacemakerNames = useMemo(
-    () =>
-      [...Array(pacemakerCount)].map((_, index) => `Pacemaker ${index + 1}`),
+    () => [...Array(pacemakerCount)].map((_, index) => `Pacemaker ${index + 1}`),
     [pacemakerCount],
   );
 
-  const handlePosKeepModeChange = (value: string) => {
-    setPosKeepMode(+value);
+  const handlePosKeepModeChange = (value: string | null) => {
+    if (!value) {
+      return;
+    }
+
+    setPosKeepMode(+value as IPosKeepMode);
   };
 
-  const handlePacemakerCountChange = (value: number[]) => {
+  const handlePacemakerCountChange = (value: number | ReadonlyArray<number>) => {
+    if (!Array.isArray(value)) {
+      return;
+    }
+
     if (value.length === 0) return;
     setPacemakerCount(value[0] ?? 1);
   };
 
-  const handleSelectedPacemakerIndicesChange = (values: string[]) => {
+  const handleSelectedPacemakerIndicesChange = (values: Array<string>) => {
     togglePaceMakers(values.map(Number));
     setSelectedPacemakerIndices(values.map(Number));
   };
@@ -53,21 +61,14 @@ export const PositionKeepSettings = () => {
       <div className="flex flex-col gap-1">
         <Label className="text-sm font-semibold">Position Keep</Label>
 
-        <Select
-          value={posKeepMode.toString()}
-          onValueChange={handlePosKeepModeChange}
-        >
+        <Select value={posKeepMode.toString()} onValueChange={handlePosKeepModeChange}>
           <SelectTrigger className="w-full">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={PosKeepMode.None.toString()}>None</SelectItem>
-            <SelectItem value={PosKeepMode.Approximate.toString()}>
-              Approximate
-            </SelectItem>
-            <SelectItem value={PosKeepMode.Virtual.toString()}>
-              Virtual Pacemaker
-            </SelectItem>
+            <SelectItem value={PosKeepMode.Approximate.toString()}>Approximate</SelectItem>
+            <SelectItem value={PosKeepMode.Virtual.toString()}>Virtual Pacemaker</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -81,8 +82,8 @@ export const PositionKeepSettings = () => {
           <div className="flex flex-col gap-1">
             <Label className="text-xs">Show Pacemakers:</Label>
             <MultiSelect
-              values={selectedPacemakerIndices.map(String)}
-              onValuesChange={handleSelectedPacemakerIndicesChange}
+              value={selectedPacemakerIndices.map(String)}
+              onValueChange={handleSelectedPacemakerIndicesChange}
             >
               <MultiSelectTrigger className="w-full">
                 {selectedPacemakerIndices.length === 0

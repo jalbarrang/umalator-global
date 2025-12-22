@@ -1,5 +1,5 @@
-import type { CourseData } from '@/modules/simulation/lib/courses/types';
-import type { RaceParameters } from '@simulation/lib/RaceParameters';
+import type { CourseData } from '@/modules/simulation/lib/course/definitions';
+import type { RaceParameters } from '@/modules/simulation/lib/definitions';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import type { SimulationOptions, SkillBasinResponse } from '@simulation/types';
 
@@ -7,7 +7,7 @@ export type WorkerState = 'idle' | 'busy' | 'terminated';
 
 export type WorkBatch = {
   batchId: number;
-  skills: string[];
+  skills: Array<string>;
   stage: 1 | 2 | 3 | 4;
   nsamples: number;
   includeRunData: boolean;

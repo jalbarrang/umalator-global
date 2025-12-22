@@ -1,55 +1,45 @@
-import { getCourseById } from '@/modules/racetrack/courses';
-import { distances, orientations, phases, surfaces } from './courses/constants';
-import {
+import { distances, orientations, phases, surfaces } from './course/definitions';
+import type {
   CourseData,
-  ICourse,
   IDistanceType,
   IOrientation,
   IPhase,
   ISurface,
-} from './courses/types';
+} from './course/definitions';
+import { getCourseById } from '@/modules/racetrack/courses';
 
 export class CourseHelpers {
   static assertIsPhase(phase: number): asserts phase is IPhase {
-    if (!phases.includes(phase)) {
+    if (!phases.includes(phase as IPhase)) {
       throw new Error(`Phase ${phase} is not a valid Phase`);
     }
   }
 
   static assertIsSurface(surface: number): asserts surface is ISurface {
-    if (!surfaces.includes(surface)) {
+    if (!surfaces.includes(surface as ISurface)) {
       throw new Error(`Surface ${surface} is not a valid Surface`);
     }
   }
 
-  static assertIsDistanceType(
-    distanceType: number,
-  ): asserts distanceType is IDistanceType {
-    if (!distances.includes(distanceType)) {
-      throw new Error(
-        `DistanceType ${distanceType} is not a valid DistanceType`,
-      );
+  static assertIsDistanceType(distanceType: number): asserts distanceType is IDistanceType {
+    if (!distances.includes(distanceType as IDistanceType)) {
+      throw new Error(`DistanceType ${distanceType} is not a valid DistanceType`);
     }
   }
 
-  static assertIsOrientation(
-    orientation: number,
-  ): asserts orientation is IOrientation {
-    if (!orientations.includes(orientation)) {
+  static assertIsOrientation(orientation: number): asserts orientation is IOrientation {
+    if (!orientations.includes(orientation as IOrientation)) {
       throw new Error(`Orientation ${orientation} is not a valid Orientation`);
     }
   }
 
-  static isSortedByStart(arr: readonly { readonly start: number }[]) {
+  static isSortedByStart(arr: ReadonlyArray<{ readonly start: number }>) {
     // typescript seems to have some trouble inferring tuple types, presumably because it doesn't really
     // sufficiently distinguish tuples from arrays
     // so dance around a little bit to make it work
     const init: [boolean, number] = [true, -1];
 
-    function isSorted(
-      a: [boolean, number],
-      b: { start: number },
-    ): [boolean, number] {
+    function isSorted(a: [boolean, number], b: { start: number }): [boolean, number] {
       return [a[0] && b.start > a[1], b.start];
     }
 
@@ -92,14 +82,9 @@ export class CourseHelpers {
       wisdom: number;
     }>,
   ) {
-    const statvalues = [
-      0,
-      stats.speed,
-      stats.stamina,
-      stats.power,
-      stats.guts,
-      stats.wisdom,
-    ].map((x) => Math.min(x, 901));
+    const statvalues = [0, stats.speed, stats.stamina, stats.power, stats.guts, stats.wisdom].map(
+      (x) => Math.min(x, 901),
+    );
 
     return (
       1 +
@@ -111,7 +96,7 @@ export class CourseHelpers {
   }
 
   static getCourse(courseId: number): CourseData {
-    const course = getCourseById(courseId) as ICourse;
+    const course = getCourseById(courseId);
 
     let slopes = course.slopes;
     if (!this.isSortedByStart(slopes)) {
@@ -123,8 +108,7 @@ export class CourseHelpers {
     const laneChangeAcceleration = 0.02 * 1.5;
     const laneChangeAccelerationPerFrame = laneChangeAcceleration / 15.0;
     const maxLaneDistance = (courseWidth * course.laneMax) / 10000.0;
-    const moveLanePoint =
-      course.corners.length > 0 ? course.corners[0].start : 30.0;
+    const moveLanePoint = course.corners.length > 0 ? course.corners[0].start : 30.0;
 
     const course2: CourseData = {
       ...course,

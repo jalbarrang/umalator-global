@@ -1,10 +1,9 @@
+import type { ISeason } from '@/modules/simulation/lib/course/definitions';
 import strings_en from '@/i18n/lang/en/skills';
 import { setRaceParams, useSettingsStore } from '@/store/settings.store';
 import { cn } from '@/lib/utils';
 
-export const SeasonIcon = (
-  props: { season: number } & React.HTMLAttributes<HTMLImageElement>,
-) => {
+export const SeasonIcon = (props: { season: number } & React.HTMLAttributes<HTMLImageElement>) => {
   const { season, className, ...rest } = props;
   const { racedef } = useSettingsStore();
 
@@ -35,7 +34,7 @@ export function SeasonSelect() {
     const season = target.dataset.season;
 
     if (!season) return;
-    setRaceParams({ ...racedef, season: +season });
+    setRaceParams({ ...racedef, season: +season as ISeason });
   };
 
   return (

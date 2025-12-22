@@ -5,7 +5,7 @@
  * These utilities can be used standalone or integrated with EnhancedHpPolicy
  */
 
-import { GroundCondition } from './RaceParameters';
+import type { IGroundCondition } from './course/definitions';
 
 export interface SpurtCandidate {
   transitionPosition: number; // Position where spurt begins
@@ -37,10 +37,7 @@ export function calculateEarlyRaceAverageSpeed(distance: number): number {
 /**
  * Calculate HP consumption coefficient based on ground type and condition
  */
-export function getGroundConsumptionCoef(
-  surface: number,
-  condition: GroundCondition,
-): number {
+export function getGroundConsumptionCoef(surface: number, condition: IGroundCondition): number {
   const coefficients = [
     [],
     [0, 1.0, 1.0, 1.02, 1.02], // Turf
@@ -76,10 +73,7 @@ export function calculateHpPerSecond(
 ): number {
   const guts = inSpurtPhase ? gutsModifier : 1.0;
   return (
-    ((20.0 * Math.pow(velocity - baseSpeed + 12.0, 2)) / 144.0) *
-    statusModifier *
-    groundCoef *
-    guts
+    ((20.0 * Math.pow(velocity - baseSpeed + 12.0, 2)) / 144.0) * statusModifier * groundCoef * guts
   );
 }
 
@@ -176,8 +170,7 @@ export function calculateSpurtDistance(
     1.0,
     true,
   );
-  const consumptionDiff =
-    consumptionAtTarget / targetSpeed - consumptionAtBase / baseSpeed;
+  const consumptionDiff = consumptionAtTarget / targetSpeed - consumptionAtBase / baseSpeed;
 
   if (consumptionDiff <= 0) {
     // Target speed is more efficient, can use for full distance
@@ -215,7 +208,7 @@ export function findOptimalSpurt(
   groundCoef: number,
   gutsModifier: number,
   speedIncrement: number = 0.1,
-): SpurtCandidate[] {
+): Array<SpurtCandidate> {
   const remainingDistance = courseDistance - currentPosition;
 
   // Check if can do max speed for full distance
@@ -274,7 +267,7 @@ export function findOptimalSpurt(
   }
 
   // Generate candidates between base and max speed
-  const candidates: SpurtCandidate[] = [];
+  const candidates: Array<SpurtCandidate> = [];
 
   for (let speed = baseSpeed; speed <= maxSpeed; speed += speedIncrement) {
     const spurtDist = calculateSpurtDistance(
@@ -367,18 +360,15 @@ export function simulateHpConsumption(
   statusModifier: (position: number) => number = () => 1.0,
   inSpurtPhase: boolean = false,
   _dt: number = 1 / 15, // Default to 15 FPS
-): { finalHp: number; consumptionBySegment: number[] } {
+): { finalHp: number; consumptionBySegment: Array<number> } {
   let hp = startHp;
-  const consumption: number[] = [];
+  const consumption: Array<number> = [];
   const distance = endPosition - startPosition;
   const segments = Math.ceil(distance / 10); // 10m segments
 
   for (let i = 0; i < segments; i++) {
     const segmentStart = startPosition + (i * distance) / segments;
-    const segmentEnd = Math.min(
-      segmentStart + distance / segments,
-      endPosition,
-    );
+    const segmentEnd = Math.min(segmentStart + distance / segments, endPosition);
     const segmentDistance = segmentEnd - segmentStart;
 
     const velocity = velocityFunc(segmentStart + segmentDistance / 2);

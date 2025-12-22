@@ -1,15 +1,16 @@
 // @ts-expect-error d3 types are not typed
 import * as d3 from 'd3'; // Keep for binning logic
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
+import type {
+  ChartConfig} from '@/components/ui/chart';
 import {
-  ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
 
 type HistogramProps = {
-  data: number[];
+  data: Array<number>;
   className?: string;
 };
 

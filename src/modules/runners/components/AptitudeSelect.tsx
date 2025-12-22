@@ -1,9 +1,4 @@
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
 import { Aptitude } from '@/modules/simulation/lib/HorseTypes';
 
 type AptitudeSelectProps = {
@@ -14,7 +9,11 @@ type AptitudeSelectProps = {
 export const AptitudeSelect = (props: AptitudeSelectProps) => {
   const { value, onChange } = props;
 
-  const handleChange = (newValue: string) => {
+  const handleChange = (newValue: string | null) => {
+    if (!newValue) {
+      return;
+    }
+
     onChange(newValue);
   };
 

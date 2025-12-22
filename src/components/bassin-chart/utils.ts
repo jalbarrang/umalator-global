@@ -1,18 +1,15 @@
-import { RunnerState } from '@/modules/runners/components/runner-card/types';
-import { getParser } from '@simulation/lib/ConditionParser';
-import { CourseData } from '@/modules/simulation/lib/courses/types';
-import { RaceParameters } from '@simulation/lib/RaceParameters';
-import { PosKeepMode } from '@simulation/lib/RaceSolver';
-import { SkillPerspective } from '@simulation/lib/race-solver/types';
-import {
-  buildBaseStats,
-  buildSkillData,
-} from '@simulation/lib/RaceSolverBuilder';
-import { Region, RegionList } from '@simulation/lib/Region';
-import { RoundResult } from '@/modules/simulation/types';
+import type { RoundResult } from '@/modules/simulation/types';
+import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import type { CourseData } from '@/modules/simulation/lib/course/definitions';
+import type { RaceParameters } from '@/modules/simulation/lib/definitions';
+import { buildBaseStats, buildSkillData } from '@/modules/simulation/lib/RaceSolverBuilder';
+import { getParser } from '@/modules/simulation/lib/ConditionParser';
+import { Region, RegionList } from '@/modules/simulation/lib/Region';
+import { SkillPerspective } from '@/modules/simulation/lib/skills/definitions';
+import { PosKeepMode } from '@/modules/simulation/lib/runner/definitions';
 
 export function getActivateableSkills(
-  skills: string[],
+  skills: Array<string>,
   horse: RunnerState,
   course: CourseData,
   racedef: RaceParameters,
@@ -37,10 +34,7 @@ export function getActivateableSkills(
     );
 
     if (
-      skillTriggers.some(
-        (trigger) =>
-          trigger.regions.length > 0 && trigger.regions[0].start < 9999,
-      )
+      skillTriggers.some((trigger) => trigger.regions.length > 0 && trigger.regions[0].start < 9999)
     ) {
       activableSkills.push(skillId);
     }

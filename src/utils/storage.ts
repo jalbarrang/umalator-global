@@ -1,23 +1,23 @@
-import {
-  createRunnerState,
-  RunnerState,
-} from '@/modules/runners/components/runner-card/types';
-import { PosKeepMode } from '@simulation/lib/RaceSolver';
 import { DEFAULT_COURSE_ID, DEFAULT_SAMPLES, DEFAULT_SEED } from './constants';
-import { createRaceConditions, RaceConditions } from './races';
+import { createRaceConditions } from './races';
+import type { RaceConditions } from './races';
+import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import type { IPosKeepMode } from '@/modules/simulation/lib/runner/definitions';
+import { PosKeepMode } from '@/modules/simulation/lib/runner/definitions';
+import { createRunnerState } from '@/modules/runners/components/runner-card/types';
 
 export async function serialize(
   courseId: number,
   nsamples: number,
   seed: number,
-  posKeepMode: PosKeepMode,
+  posKeepMode: IPosKeepMode,
   racedef: RaceConditions,
   uma1: RunnerState,
   uma2: RunnerState,
   pacer: RunnerState,
   showVirtualPacemakerOnGraph: boolean,
   pacemakerCount: number,
-  selectedPacemakers: boolean[],
+  selectedPacemakers: Array<boolean>,
   showLanes: boolean,
   witVarianceSettings: {
     allowRushedUma1: boolean;
@@ -133,14 +133,10 @@ export async function deserialize(hash: string) {
             simWitVariance: true,
           },
           showVirtualPacemakerOnGraph:
-            o.showVirtualPacemakerOnGraph != null
-              ? o.showVirtualPacemakerOnGraph
-              : false,
+            o.showVirtualPacemakerOnGraph != null ? o.showVirtualPacemakerOnGraph : false,
           pacemakerCount: o.pacemakerCount != null ? o.pacemakerCount : 1,
           selectedPacemakers:
-            o.selectedPacemakers != null
-              ? o.selectedPacemakers
-              : [false, false, false],
+            o.selectedPacemakers != null ? o.selectedPacemakers : [false, false, false],
           showLanes: o.showLanes != null ? o.showLanes : false,
         };
       } catch {
@@ -180,14 +176,14 @@ export async function saveToLocalStorage(
   courseId: number,
   nsamples: number,
   seed: number,
-  posKeepMode: PosKeepMode,
+  posKeepMode: IPosKeepMode,
   racedef: RaceConditions,
   uma1: RunnerState,
   uma2: RunnerState,
   pacer: RunnerState,
   showVirtualPacemakerOnGraph: boolean,
   pacemakerCount: number,
-  selectedPacemakers: boolean[],
+  selectedPacemakers: Array<boolean>,
   showLanes: boolean,
   witVarianceSettings: {
     allowRushedUma1: boolean;

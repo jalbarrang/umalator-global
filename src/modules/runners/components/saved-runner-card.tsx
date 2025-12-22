@@ -40,11 +40,7 @@ export const SavedRunnerCard = (props: SavedRunnerCardProps) => {
           {/* Uma Portrait */}
           <div className="shrink">
             <div className="w-24 h-24">
-              <img
-                src={imageUrl}
-                alt={runner.notes}
-                className="w-full h-full object-cover"
-              />
+              <img src={imageUrl} alt={runner.notes} className="w-full h-full object-cover" />
             </div>
           </div>
 
@@ -52,22 +48,19 @@ export const SavedRunnerCard = (props: SavedRunnerCardProps) => {
             <div className="flex flex-col flex-1 gap-2 min-w-0">
               {umaInfo && (
                 <div className="text-center">
-                  <div className="text-sm text-muted-foreground">
-                    {umaInfo.outfit}
-                  </div>
+                  <div className="text-sm text-muted-foreground">{umaInfo.outfit}</div>
                   <div className="text-sm font-semibold">{umaInfo.name}</div>
                 </div>
               )}
 
               <div className="text-sm truncate">
-                <span className="text-muted-foreground">Notes:</span>{' '}
-                {runner.notes ?? 'No notes'}
+                <span className="text-muted-foreground">Notes:</span> {runner.notes ?? 'No notes'}
               </div>
             </div>
 
             {/* Actions Menu */}
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+              <DropdownMenuTrigger>
                 <Button variant="ghost" size="icon" className="h-8 w-8">
                   <MoreVertical className="h-4 w-4" />
                 </Button>
@@ -86,10 +79,7 @@ export const SavedRunnerCard = (props: SavedRunnerCardProps) => {
                   Duplicate
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => onDelete(runner.id)}
-                  className="text-destructive"
-                >
+                <DropdownMenuItem onClick={() => onDelete(runner.id)} className="text-destructive">
                   <Trash2 className="h-4 w-4 mr-2 text-destructive" />
                   Delete
                 </DropdownMenuItem>

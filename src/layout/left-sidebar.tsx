@@ -1,9 +1,5 @@
 import { Button } from '@/components/ui/button';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { UsersIcon, SlidersHorizontalIcon, BookmarkIcon } from 'lucide-react';
 import { RunnersPanel } from '@/modules/runners/components/runners-panel';
@@ -47,14 +43,11 @@ export const LeftSidebar = () => {
         <div className="flex flex-col gap-1 p-1">
           {panels.map((panel) => (
             <Tooltip key={panel.id}>
-              <TooltipTrigger asChild>
+              <TooltipTrigger>
                 <Button
                   variant={activePanel === panel.id ? 'secondary' : 'ghost'}
                   size="icon"
-                  className={cn(
-                    'h-9 w-9',
-                    activePanel === panel.id && 'bg-accent',
-                  )}
+                  className={cn('h-9 w-9', activePanel === panel.id && 'bg-accent')}
                   onClick={() => {
                     if (activePanel === panel.id && !hidden) {
                       setLeftSidebar({ hidden: true });

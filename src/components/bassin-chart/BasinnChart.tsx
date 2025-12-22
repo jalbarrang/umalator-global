@@ -1,24 +1,11 @@
 import { useState } from 'react';
 
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-
-import {
-  CellContext,
-  Column,
-  ColumnDef,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  SortingState,
   useReactTable,
 } from '@tanstack/react-table';
 
@@ -26,11 +13,6 @@ import icons from '@data/icons.json';
 import skillnames from '@data/skillnames.json';
 import umas from '@data/umas.json';
 
-import i18n from '@/i18n';
-import { cn } from '@/lib/utils';
-import { PoolMetrics, RoundResult } from '@/modules/simulation/types';
-import { allSkills } from '@/modules/skills/utils';
-import { formatMs } from '@/utils/time';
 import {
   ArrowDown,
   ArrowLeft,
@@ -48,6 +30,26 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
+import type {
+  CellContext,
+  Column,
+  ColumnDef,
+  SortingState,
+} from '@tanstack/react-table';
+import type { PoolMetrics, RoundResult } from '@/modules/simulation/types';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+
+import { allSkills } from '@/modules/skills/utils';
+import { formatMs } from '@/utils/time';
+import { cn } from '@/lib/utils';
+import i18n from '@/i18n';
 
 function umaForUniqueSkill(skillId: string): string | null {
   const sid = parseInt(skillId);
@@ -82,7 +84,7 @@ const skillNameCell =
   (props: CellContext<RoundResult, unknown>) => {
     const id = props.getValue() as string;
 
-    const skill = allSkills.find((skill) => skill.originalId === id);
+    const skill = allSkills.find((currSkill) => currSkill.originalId === id);
 
     if (showUmaIcons) {
       const umaId = umaForUniqueSkill(id);
@@ -154,11 +156,11 @@ const sortableHeader =
   };
 
 type BasinnChartProps = {
-  data: RoundResult[];
-  hiddenSkills: string[];
+  data: Array<RoundResult>;
+  hiddenSkills: Array<string>;
   showUmaIcons?: boolean;
   metrics?: PoolMetrics | null;
-  selectedSkills: string[];
+  selectedSkills: Array<string>;
   isSimulationRunning: boolean;
   onAddSkill: (id: string) => void;
   onSelectionChange: (id: string) => void;
@@ -176,12 +178,12 @@ export const BasinnChart = (props: BasinnChartProps) => {
     isSimulationRunning,
   } = props;
 
-  const columns: ColumnDef<RoundResult>[] = [
+  const columns: Array<ColumnDef<RoundResult>> = [
     {
       id: 'actions',
       header: '',
       cell: (info: CellContext<RoundResult, unknown>) => {
-        const skillId = info.row.getValue('id') as string;
+        const skillId: string = info.row.getValue('id');
 
         const handleClick = () => {
           onAddSkill(skillId);
@@ -206,7 +208,7 @@ export const BasinnChart = (props: BasinnChartProps) => {
 
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+            <DropdownMenuTrigger>
               <Button variant="outline" size="sm" className="h-8 w-8 p-0">
                 <ArrowLeft className="h-4 w-4" />
               </Button>
@@ -229,7 +231,7 @@ export const BasinnChart = (props: BasinnChartProps) => {
       header: '',
       cell: (info: CellContext<RoundResult, unknown>) => {
         const row = info.row.original;
-        const skillId = row.id as string;
+        const skillId = row.id;
         const hasRunData = row.runData != null;
         const filterReason = row.filterReason;
 
@@ -312,7 +314,6 @@ export const BasinnChart = (props: BasinnChartProps) => {
   ]);
   const [rowSelection, setRowSelection] = useState({});
 
-  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     columns,
     data: props.data,

@@ -1,10 +1,9 @@
+import dayjs from 'dayjs';
+import { Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  Panel,
-  PanelContent,
-  PanelHeader,
-  PanelTitle,
-} from '@/components/ui/panel';
+import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/ui/panel';
 import { deletePreset, usePresetStore } from '@/store/race/preset.store';
 import {
   setCourseId,
@@ -12,10 +11,8 @@ import {
   setSelectedPresetId,
   useSettingsStore,
 } from '@/store/settings.store';
-import { createRaceConditions, EventType } from '@/utils/races';
-import dayjs from 'dayjs';
-import { Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { createRaceConditions } from '@/utils/races';
+import { EventType } from '@/modules/simulation/lib/course/definitions';
 import { cn } from '@/lib/utils';
 import {
   AlertDialog,
@@ -27,7 +24,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useState } from 'react';
 
 export const PresetsPanel = () => {
   const { presets } = usePresetStore();
@@ -86,9 +82,7 @@ export const PresetsPanel = () => {
         <PanelContent className="p-0">
           {presetList.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-8 text-center">
-              <p className="text-sm text-muted-foreground">
-                No presets saved yet.
-              </p>
+              <p className="text-sm text-muted-foreground">No presets saved yet.</p>
               <p className="text-xs text-muted-foreground mt-2">
                 Save your race settings as presets for quick access.
               </p>

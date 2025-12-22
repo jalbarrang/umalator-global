@@ -1,5 +1,5 @@
-import { Card } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
+import { Card } from '@/components/ui/card';
 
 interface LoadingOverlayProps {
   currentSamples?: number;

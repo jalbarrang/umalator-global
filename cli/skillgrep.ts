@@ -2,11 +2,8 @@ import { Option, program } from 'commander';
 
 import skills from '@data/skill_data.json';
 import skillnames from '@data/skillnames.json';
-import { getDefaultParser } from '@/modules/simulation/lib/skills/activation/ConditionParser';
-import {
-  mockConditions,
-  treeMatch,
-} from '@/modules/simulation/lib/skills/activation/ConditionMatcher';
+import { mockConditions, treeMatch } from '@/modules/simulation/lib/tools/ConditionMatcher';
+import { getParser } from '@/modules/simulation/lib/ConditionParser';
 
 program
   .argument(
@@ -30,7 +27,7 @@ program
 program.parse();
 const opts = program.opts();
 
-const { parseAny, parse, tokenize } = getDefaultParser(mockConditions);
+const { parseAny, parse, tokenize } = getParser(mockConditions);
 
 const match = opts.name ? opts.condition.toUpperCase() : parseAny(tokenize(opts.condition));
 

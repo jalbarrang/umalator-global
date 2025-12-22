@@ -1,25 +1,25 @@
-import type { RaceState } from './RaceSolver';
-import { IPositionKeepState, PositionKeepState } from './race-solver/types';
-import { HorseParameters, IStrategy, Strategy } from './HorseTypes';
+import { PositionKeepState } from './skills/definitions';
+import { Strategy } from './HorseTypes';
 import { CourseHelpers } from './CourseData';
-import { IPhase } from './courses/types';
-import { CourseData } from './courses/types';
-import { GroundCondition } from './RaceParameters';
-import { PRNG } from './Random';
+import type { HorseParameters, IStrategy } from './HorseTypes';
+import type { IPositionKeepState } from './skills/definitions';
+import type { CourseData, IGroundCondition, IPhase } from './course/definitions';
+import type { PRNG } from './Random';
+import type { RaceState } from './RaceSolver';
 
 export interface HpPolicy {
-  init(horse: HorseParameters): void;
-  tick(state: RaceState, dt: number): void;
-  hasRemainingHp(): boolean;
-  hpRatioRemaining(): number; // separate methods as the former can be much cheaper to check
-  recover(modifier: number, state?: RaceState): void;
-  getLastSpurtPair(
+  init: (horse: HorseParameters) => void;
+  tick: (state: RaceState, dt: number) => void;
+  hasRemainingHp: () => boolean;
+  hpRatioRemaining: () => number; // separate methods as the former can be much cheaper to check
+  recover: (modifier: number, state?: RaceState) => void;
+  getLastSpurtPair: (
     state: RaceState,
     maxSpeed: number,
     baseTargetSpeed2: number,
-  ): [number, number];
+  ) => [number, number];
   hp: number;
-  isMaxSpurt(): boolean;
+  isMaxSpurt: () => boolean;
 }
 
 export const NoopHpPolicy: HpPolicy = {
@@ -57,9 +57,9 @@ export class GameHpPolicy {
   declare gutsModifier: number;
   declare subparAcceptChance: number;
   rng: PRNG;
-  private achievedMaxSpurt: boolean = false;
+  private achievedMaxSpurt = false;
 
-  constructor(course: CourseData, ground: GroundCondition, rng: PRNG) {
+  constructor(course: CourseData, ground: IGroundCondition, rng: PRNG) {
     this.distance = course.distance;
     this.baseSpeed = 20.0 - (course.distance - 2000) / 1000.0;
     this.groundModifier = HpConsumptionGroundModifier[course.surface][ground];
@@ -71,9 +71,7 @@ export class GameHpPolicy {
   }
 
   init(horse: HorseParameters) {
-    this.maxHp =
-      0.8 * HpStrategyCoefficient[horse.strategy] * horse.stamina +
-      this.distance;
+    this.maxHp = 0.8 * HpStrategyCoefficient[horse.strategy] * horse.stamina + this.distance;
     this.hp = this.maxHp;
     this.gutsModifier = 1.0 + 200.0 / Math.sqrt(600.0 * horse.guts);
     this.subparAcceptChance = Math.round((15.0 + 0.05 * horse.wisdom) * 1000);
@@ -149,11 +147,7 @@ export class GameHpPolicy {
     this.hp = Math.min(this.maxHp, this.hp + this.maxHp * modifier);
   }
 
-  getLastSpurtPair(
-    state: RaceState,
-    maxSpeed: number,
-    baseTargetSpeed2: number,
-  ) {
+  getLastSpurtPair(state: RaceState, maxSpeed: number, baseTargetSpeed2: number) {
     const maxDist = this.distance - CourseHelpers.phaseStart(this.distance, 2);
     const s = (maxDist - 60) / maxSpeed;
     const lastleg = {
@@ -172,7 +166,7 @@ export class GameHpPolicy {
       }
       return [-1, maxSpeed] as [number, number];
     }
-    const candidates: [number, number][] = [];
+    const candidates: Array<[number, number]> = [];
     const remainDistance = this.distance - 60 - state.pos;
     // const statusModifier = this.getStatusModifier(lastleg);
 

@@ -1,3 +1,4 @@
+import type { IWeather } from '@/modules/simulation/lib/course/definitions';
 import strings_en from '@/i18n/lang/en/skills';
 import { setRaceParams, useSettingsStore } from '@/store/settings.store';
 import { cn } from '@/lib/utils';
@@ -37,7 +38,7 @@ export function WeatherSelect() {
     if (!weather) {
       return;
     }
-    setRaceParams({ ...racedef, weather: +weather });
+    setRaceParams({ ...racedef, weather: +weather as IWeather });
   };
 
   return (

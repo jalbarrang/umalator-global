@@ -1,17 +1,13 @@
 import { create } from 'zustand';
-import {
-  createRunnerState,
-  RunnerState,
-} from '@/modules/runners/components/runner-card/types';
-import {
-  DEFAULT_COURSE_ID,
-  DEFAULT_SAMPLES,
-  DEFAULT_SEED,
-} from '@/utils/constants';
-import { createRaceConditions, RaceConditions } from '@/utils/races';
-import { PosKeepMode } from '@simulation/lib/RaceSolver';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { useShallow } from 'zustand/shallow';
+import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import type { RaceConditions } from '@/utils/races';
+import type { IPosKeepMode } from '@/modules/simulation/lib/runner/definitions';
+import { PosKeepMode } from '@/modules/simulation/lib/runner/definitions';
+import { createRunnerState } from '@/modules/runners/components/runner-card/types';
+import { DEFAULT_COURSE_ID, DEFAULT_SAMPLES, DEFAULT_SEED } from '@/utils/constants';
+import { createRaceConditions } from '@/utils/races';
 
 export type WitVarianceSettings = {
   allowRushedUma1: boolean;
@@ -29,14 +25,14 @@ type ISettingsStore = {
   courseId: number;
   nsamples: number;
   seed: number;
-  posKeepMode: PosKeepMode;
+  posKeepMode: IPosKeepMode;
   racedef: RaceConditions;
   uma1: RunnerState;
   uma2: RunnerState;
   pacer: RunnerState;
   showVirtualPacemakerOnGraph: boolean;
   pacemakerCount: number;
-  selectedPacemakers: boolean[];
+  selectedPacemakers: Array<boolean>;
   witVarianceSettings: WitVarianceSettings;
   selectedPresetId: string | null;
 
@@ -92,12 +88,9 @@ export const useSettingsStore = create<ISettingsStore>()(
 export const useWitVariance = () =>
   useSettingsStore(useShallow((state) => state.witVarianceSettings));
 
-export const getWitVariance = () =>
-  useSettingsStore.getState().witVarianceSettings;
+export const getWitVariance = () => useSettingsStore.getState().witVarianceSettings;
 
-export const setWitVariance = (
-  witVarianceSettings: Partial<WitVarianceSettings>,
-) => {
+export const setWitVariance = (witVarianceSettings: Partial<WitVarianceSettings>) => {
   useSettingsStore.setState((state) => ({
     witVarianceSettings: {
       ...state.witVarianceSettings,
@@ -114,7 +107,7 @@ export const setSeed = (seed: number) => {
   useSettingsStore.setState({ seed });
 };
 
-export const setPosKeepMode = (posKeepMode: PosKeepMode) => {
+export const setPosKeepMode = (posKeepMode: IPosKeepMode) => {
   // const { currentIdx } = useUIStore.getState();
   useSettingsStore.setState({ posKeepMode });
 

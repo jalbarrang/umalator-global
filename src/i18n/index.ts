@@ -1,11 +1,10 @@
+import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
 import skills_en from './lang/en/skills';
 import skills_ja from './lang/ja/skills';
 
-import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
-
 import { TRACKNAMES_en, TRACKNAMES_ja } from './lang/tracknames';
-import { GroundCondition } from '@/modules/simulation/lib/RaceParameters';
+import { GroundCondition } from '@/modules/simulation/lib/course/definitions';
 
 const definitions = {
   en: {
@@ -29,8 +28,8 @@ const definitions = {
         phase2: 'Late-race',
         phase3: 'Last spurt',
         ground: {
-          [GroundCondition.Good]: 'Firm',
-          [GroundCondition.Yielding]: 'Good',
+          [GroundCondition.Firm]: 'Firm',
+          [GroundCondition.Good]: 'Good',
           [GroundCondition.Soft]: 'Soft',
           [GroundCondition.Heavy]: 'Heavy',
         },
@@ -45,8 +44,7 @@ const definitions = {
         medium: 'Medium',
         long: 'Long',
       },
-      coursedesc:
-        '{{surface}} {{distance}}m ({{distanceCategory}}) {{orientation}} / {{inout}}',
+      coursedesc: '{{surface}} {{distance}}m ({{distanceCategory}}) {{orientation}} / {{inout}}',
     },
   },
   ja: {
@@ -80,8 +78,7 @@ const definitions = {
         medium: '中距離',
         long: '長距離',
       },
-      coursedesc:
-        '{{surface}} {{distance}}m ({{distanceCategory}}) {{orientation}} / {{inout}}',
+      coursedesc: '{{surface}} {{distance}}m ({{distanceCategory}}) {{orientation}} / {{inout}}',
     },
   },
 };

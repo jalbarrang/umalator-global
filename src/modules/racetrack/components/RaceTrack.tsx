@@ -1,45 +1,9 @@
-import { RacePresets } from '@/components/race-presets';
-import { GroundSelect } from '@/components/race-settings/GroundSelect';
-import {
-  SeasonIcon,
-  SeasonSelect,
-} from '@/components/race-settings/SeasonSelect';
-import { TimeOfDaySelect } from '@/components/race-settings/TimeOfDaySelect';
-import {
-  WeatherIcon,
-  WeatherSelect,
-} from '@/components/race-settings/WeatherSelect';
-import { SavePresetModal } from '@/components/save-preset-modal';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
-import i18n from '@/i18n';
-import { CourseData } from '@/modules/simulation/lib/courses/types';
-import {
-  updateForcedSkillPosition,
-  useRunnersStore,
-} from '@/store/runners.store';
-import {
-  toggleShowHp,
-  toggleShowLanes,
-  toggleShowThresholds,
-  toggleShowUma1,
-  toggleShowUma2,
-  useSettingsStore,
-} from '@/store/settings.store';
-import {
-  initializeSimulationRun,
-  SimulationRun,
-} from '@simulation/compare.types';
 import { CourseHelpers } from '@simulation/lib/CourseData';
 import { Activity, Fragment, useMemo, useRef } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { useDragSkill } from '../hooks/useDragSkill';
 import { useRaceTrackTooltip } from '../hooks/useRaceTrackTooltip';
-import {
-  RegionData,
-  useVisualizationData,
-} from '../hooks/useVisualizationData';
+import { useVisualizationData } from '../hooks/useVisualizationData';
 import { trackDescription } from '../labels';
 import { RegionDisplayType } from '../types';
 import { PhaseBar } from './phase-bar';
@@ -51,6 +15,29 @@ import { SkillMarker } from './skill-marker';
 import { SlopeLabelBar } from './slope-label-bar';
 import { SlopeVisualization } from './slope-visualization';
 import { TrackSelect } from './track-select';
+import type { RegionData } from '../hooks/useVisualizationData';
+import type { CourseData } from '@/modules/simulation/lib/course/definitions';
+import type { SimulationRun } from '@/modules/simulation/compare.types';
+import { initializeSimulationRun } from '@/modules/simulation/compare.types';
+import { updateForcedSkillPosition, useRunnersStore } from '@/store/runners.store';
+import {
+  toggleShowHp,
+  toggleShowLanes,
+  toggleShowThresholds,
+  toggleShowUma1,
+  toggleShowUma2,
+  useSettingsStore,
+} from '@/store/settings.store';
+import i18n from '@/i18n';
+import { Separator } from '@/components/ui/separator';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { SavePresetModal } from '@/components/save-preset-modal';
+import { TimeOfDaySelect } from '@/components/race-settings/TimeOfDaySelect';
+import { WeatherIcon, WeatherSelect } from '@/components/race-settings/WeatherSelect';
+import { SeasonIcon, SeasonSelect } from '@/components/race-settings/SeasonSelect';
+import { RacePresets } from '@/components/race-presets';
+import { GroundSelect } from '@/components/race-settings/GroundSelect';
 
 // Helper function for efficient rung collision detection
 const findAvailableRung = (
@@ -59,16 +46,14 @@ const findAvailableRung = (
   rungs: Array<Array<{ start: number; end: number }>>,
 ): number => {
   for (let i = 0; i < 10; i++) {
-    const hasOverlap = rungs[i].some(
-      (b) => !(end <= b.start || start >= b.end),
-    );
+    const hasOverlap = rungs[i].some((b) => !(end <= b.start || start >= b.end));
     if (!hasOverlap) return i;
   }
   return 0;
 };
 
 type RegionSegmentProps = {
-  allRegions: RegionData[];
+  allRegions: Array<RegionData>;
   course: CourseData;
   onDragStart: (
     e: React.MouseEvent,
@@ -104,11 +89,7 @@ const RegionSegment = (props: RegionSegmentProps) => {
       uma2: uma2?.forcedSkillPositions ?? {},
       pacer: pacer?.forcedSkillPositions ?? {},
     }),
-    [
-      uma1?.forcedSkillPositions,
-      uma2?.forcedSkillPositions,
-      pacer?.forcedSkillPositions,
-    ],
+    [uma1?.forcedSkillPositions, uma2?.forcedSkillPositions, pacer?.forcedSkillPositions],
   );
 
   return allRegions.reduce(
@@ -116,10 +97,7 @@ const RegionSegment = (props: RegionSegmentProps) => {
       if (desc.umaIndex === 0 && !showUma1) return state;
       if (desc.umaIndex === 1 && !showUma2) return state;
 
-      if (
-        desc.type === RegionDisplayType.Immediate &&
-        desc.regions.length > 0
-      ) {
+      if (desc.type === RegionDisplayType.Immediate && desc.regions.length > 0) {
         let x = (desc.regions[0].start / course.distance) * 100;
 
         // Use percentage-based offset instead of width-dependent calculation
@@ -197,9 +175,7 @@ const RegionSegment = (props: RegionSegmentProps) => {
         });
 
         state.elem.push(
-          <Fragment key={`textbox-${descIndex}-${desc.skillId ?? 'none'}`}>
-            {markers}
-          </Fragment>,
+          <Fragment key={`textbox-${descIndex}-${desc.skillId ?? 'none'}`}>{markers}</Fragment>,
         );
 
         return state;
@@ -225,11 +201,8 @@ const RegionSegment = (props: RegionSegmentProps) => {
     },
     {
       seen: new Set<number>(),
-      rungs: Array.from(
-        { length: 10 },
-        () => [] as { start: number; end: number }[],
-      ),
-      elem: [] as React.ReactElement[],
+      rungs: Array.from({ length: 10 }, () => [] as Array<{ start: number; end: number }>),
+      elem: [] as Array<React.ReactElement>,
     },
   ).elem;
 };
@@ -252,24 +225,17 @@ type RaceTrackProps = {
 const BASE_WIDTH = 960;
 const BASE_HEIGHT = 240;
 
-export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
-  props,
-) => {
+export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (props) => {
   const { chartData } = props;
 
-  const course = useMemo(
-    () => CourseHelpers.getCourse(props.courseid),
-    [props.courseid],
-  );
+  const course = useMemo(() => CourseHelpers.getCourse(props.courseid), [props.courseid]);
 
-  const { showHp, showLanes, showUma1, showUma2, showThresholds, racedef } =
-    useSettingsStore();
+  const { showHp, showLanes, showUma1, showUma2, showThresholds, racedef } = useSettingsStore();
 
-  const { tooltipData, tooltipVisible, rtMouseMove, rtMouseLeave } =
-    useRaceTrackTooltip({
-      chartData: chartData ?? initializeSimulationRun(),
-      course,
-    });
+  const { tooltipData, tooltipVisible, rtMouseMove, rtMouseLeave } = useRaceTrackTooltip({
+    chartData: chartData ?? initializeSimulationRun(),
+    course,
+  });
 
   // Refs for mouseover elements (replacing querySelector)
   const mouseLineRef = useRef<SVGLineElement>(null);
@@ -283,8 +249,7 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
   const width = props.width ?? BASE_WIDTH;
   const height = props.height ?? BASE_HEIGHT;
 
-  const { skillActivations, rushedIndicators, posKeepLabels } =
-    useVisualizationData({ chartData });
+  const { skillActivations, rushedIndicators, posKeepLabels } = useVisualizationData({ chartData });
 
   const allRegions = useMemo(() => {
     return [...skillActivations, ...rushedIndicators];
@@ -306,13 +271,12 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
   };
 
   // Use custom hook for drag functionality
-  const { draggedSkill, handleDragStart, handleDragMove, handleDragEnd } =
-    useDragSkill({
-      xOffset,
-      courseDistance: course.distance,
-      viewBoxWidth: width + xOffset + xExtra,
-      onSkillDrag: handleSkillDrag,
-    });
+  const { draggedSkill, handleDragStart, handleDragMove, handleDragEnd } = useDragSkill({
+    xOffset,
+    courseDistance: course.distance,
+    viewBoxWidth: width + xOffset + xExtra,
+    onSkillDrag: handleSkillDrag,
+  });
 
   const doMouseMove: React.MouseEventHandler<SVGSVGElement> = (e) => {
     const svg = e.currentTarget;
@@ -338,13 +302,9 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
       mouseLineRef.current.setAttribute('x2', x.toString());
     }
     if (mouseTextRef.current) {
-      mouseTextRef.current.setAttribute(
-        'x',
-        (x > width - 45 ? x - 45 : x + 5).toString(),
-      );
+      mouseTextRef.current.setAttribute('x', (x > width - 45 ? x - 45 : x + 5).toString());
       mouseTextRef.current.setAttribute('y', y.toString());
-      mouseTextRef.current.textContent =
-        Math.round((x / width) * course.distance) + 'm';
+      mouseTextRef.current.textContent = Math.round((x / width) * course.distance) + 'm';
     }
 
     rtMouseMove(x / width);
@@ -387,9 +347,7 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
           <div className="flex items-center gap-2">
             <SeasonIcon season={racedef.season} className="w-6 h-6" />
             <WeatherIcon weather={racedef.weather} className="w-6 h-6" />
-            <div className="font-bold">
-              {i18n.t(`racetrack.ground.${racedef.ground}`)}
-            </div>
+            <div className="font-bold">{i18n.t(`racetrack.ground.${racedef.ground}`)}</div>
           </div>
         </div>
       </div>
@@ -408,10 +366,7 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
           onMouseUp={handleDragEnd}
         >
           <svg x={xOffset} y={yOffset} width={width} height={height}>
-            <SlopeVisualization
-              slopes={course.slopes}
-              distance={course.distance}
-            />
+            <SlopeVisualization slopes={course.slopes} distance={course.distance} />
 
             <SlopeLabelBar slopes={course.slopes} distance={course.distance} />
 
@@ -424,23 +379,14 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
             <PhaseBar distance={course.distance} />
             <SectionNumbers />
 
-            <RegionSegment
-              allRegions={allRegions}
-              course={course}
-              onDragStart={handleDragStart}
-            />
+            <RegionSegment allRegions={allRegions} course={course} onDragStart={handleDragStart} />
 
             {posKeepLabels &&
               posKeepLabels.map((label, index) => {
                 if (label.umaIndex === 0 && !showUma1) return null;
                 if (label.umaIndex === 1 && !showUma2) return null;
 
-                if (
-                  label.x == null ||
-                  label.width == null ||
-                  label.yOffset == null
-                )
-                  return null;
+                if (label.x == null || label.width == null || label.yOffset == null) return null;
 
                 return (
                   <g key={index} className="poskeep-label">
@@ -583,29 +529,15 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
 
       <div className="flex flex-col md:flex-row gap-4 bg-secondary px-4 py-2 rounded-md">
         <div className="flex items-center gap-2">
-          <Checkbox
-            id="showhp"
-            checked={showHp}
-            onCheckedChange={toggleShowHp}
-          />
-          <Label
-            htmlFor="showhp"
-            className="text-sm font-normal cursor-pointer"
-          >
+          <Checkbox id="showhp" checked={showHp} onCheckedChange={toggleShowHp} />
+          <Label htmlFor="showhp" className="text-sm font-normal cursor-pointer">
             Show HP
           </Label>
         </div>
 
         <div className="flex items-center gap-2">
-          <Checkbox
-            id="showlanes"
-            checked={showLanes}
-            onCheckedChange={toggleShowLanes}
-          />
-          <Label
-            htmlFor="showlanes"
-            className="text-sm font-normal cursor-pointer"
-          >
+          <Checkbox id="showlanes" checked={showLanes} onCheckedChange={toggleShowLanes} />
+          <Label htmlFor="showlanes" className="text-sm font-normal cursor-pointer">
             Show Lanes
           </Label>
         </div>
@@ -616,10 +548,7 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
             checked={showThresholds}
             onCheckedChange={toggleShowThresholds}
           />
-          <Label
-            htmlFor="showthresholds"
-            className="text-sm font-normal cursor-pointer"
-          >
+          <Label htmlFor="showthresholds" className="text-sm font-normal cursor-pointer">
             Show thresholds
           </Label>
         </div>
@@ -627,29 +556,15 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (
         <Separator orientation="vertical" className="hidden md:block" />
 
         <div className="flex items-center gap-2">
-          <Checkbox
-            id="show-uma1"
-            checked={showUma1}
-            onCheckedChange={toggleShowUma1}
-          />
-          <Label
-            htmlFor="show-uma1"
-            className="text-sm font-normal cursor-pointer"
-          >
+          <Checkbox id="show-uma1" checked={showUma1} onCheckedChange={toggleShowUma1} />
+          <Label htmlFor="show-uma1" className="text-sm font-normal cursor-pointer">
             Show Uma 1
           </Label>
         </div>
 
         <div className="flex items-center gap-2">
-          <Checkbox
-            id="show-uma2"
-            checked={showUma2}
-            onCheckedChange={toggleShowUma2}
-          />
-          <Label
-            htmlFor="show-uma2"
-            className="text-sm font-normal cursor-pointer"
-          >
+          <Checkbox id="show-uma2" checked={showUma2} onCheckedChange={toggleShowUma2} />
+          <Label htmlFor="show-uma2" className="text-sm font-normal cursor-pointer">
             Show Uma 2
           </Label>
         </div>

@@ -1,14 +1,9 @@
+import type { ITimeOfDay } from '@/modules/simulation/lib/course/definitions';
 import strings_en from '@/i18n/lang/en/skills';
 import { setRaceParams, useSettingsStore } from '@/store/settings.store';
 import { cn } from '@/lib/utils';
 
-const TimeOfDayIcon = ({
-  time,
-  icon: iconIndex,
-}: {
-  time: number;
-  icon: number;
-}) => {
+const TimeOfDayIcon = ({ time, icon: iconIndex }: { time: number; icon: number }) => {
   const { racedef } = useSettingsStore();
 
   return (
@@ -36,7 +31,7 @@ export const TimeOfDaySelect = () => {
       return;
     }
 
-    setRaceParams({ ...racedef, time: +timeofday });
+    setRaceParams({ ...racedef, time: +timeofday as ITimeOfDay });
   };
 
   // + 2 because for some reason the icons are 00-02 (noon/evening/night) but the enum values are 1-4 (morning(?) noon evening night)

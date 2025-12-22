@@ -1,36 +1,34 @@
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-} from '@/components/ui/select';
-import { asMood, Mood } from '@/modules/simulation/lib/RaceParameters';
+import type { IMood } from '@/modules/simulation/lib/runner/definitions';
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
+import { Mood } from '@/modules/simulation/lib/runner/definitions';
 
 type MoodSelectProps = {
-  value: Mood;
-  onChange: (value: Mood) => void;
+  value: IMood;
+  onChange: (value: IMood) => void;
 };
 
 export function MoodSelect(props: MoodSelectProps) {
-  const moodValues: { value: Mood; icon: string; label: string }[] = [
-    { value: 2, icon: 'utx_ico_motivation_m_04', label: 'Great' },
-    { value: 1, icon: 'utx_ico_motivation_m_03', label: 'Good' },
-    { value: 0, icon: 'utx_ico_motivation_m_02', label: 'Normal' },
-    { value: -1, icon: 'utx_ico_motivation_m_01', label: 'Bad' },
-    { value: -2, icon: 'utx_ico_motivation_m_00', label: 'Awful' },
+  const moodValues: Array<{ value: IMood; icon: string; label: string }> = [
+    { value: Mood.Great, icon: 'utx_ico_motivation_m_04', label: 'Great' },
+    { value: Mood.Good, icon: 'utx_ico_motivation_m_03', label: 'Good' },
+    { value: Mood.Normal, icon: 'utx_ico_motivation_m_02', label: 'Normal' },
+    { value: Mood.Bad, icon: 'utx_ico_motivation_m_01', label: 'Bad' },
+    { value: Mood.Awful, icon: 'utx_ico_motivation_m_00', label: 'Awful' },
   ];
 
-  const handleChange = (value: string) => {
-    props.onChange(asMood(+value));
+  const handleChange = (value: string | null) => {
+    if (!value) {
+      return;
+    }
+
+    props.onChange(+value as IMood);
   };
 
   return (
     <Select value={props.value.toString()} onValueChange={handleChange}>
       <SelectTrigger className="border-none rounded-none shadow-none">
         <img
-          src={`/icons/global/${
-            moodValues.find((m) => m.value === props.value)?.icon
-          }.png`}
+          src={`/icons/global/${moodValues.find((m) => m.value === props.value)?.icon}.png`}
           className="w-13 h-5"
         />
       </SelectTrigger>

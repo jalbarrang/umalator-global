@@ -9,13 +9,12 @@
  * - Includes proper HP consumption modeling for different race phases
  */
 
+import { PositionKeepState } from './skills/definitions';
+import type { HorseParameters } from './HorseTypes';
+import type { CourseData, IGroundCondition, IPhase } from './course/definitions';
+import type { PRNG } from './Random';
+import type { IPositionKeepState } from './skills/definitions';
 import type { RaceState } from './RaceSolver';
-import { HorseParameters } from './HorseTypes';
-import { IPhase } from './courses/types';
-import { CourseData } from './courses/types';
-import { GroundCondition } from './RaceParameters';
-import { PRNG } from './Random';
-import { IPositionKeepState, PositionKeepState } from './race-solver/types';
 
 export const HpStrategyCoefficient = [0, 0.95, 0.89, 1.0, 0.995, 0.86] as const;
 export const HpConsumptionGroundModifier = [
@@ -48,15 +47,15 @@ export class EnhancedHpPolicy {
 
   // Accuracy mode: dynamically recalculate spurt on heals (like Kotlin)
   private recalculateOnHeal: boolean;
-  private recalculationCount: number = 0;
+  private recalculationCount = 0;
 
   // Track if max spurt was achieved on FIRST calculation (matches Kotlin behavior)
-  private maxSpurtAchieved: boolean = false;
-  private hasCalculatedSpurtOnce: boolean = false;
+  private maxSpurtAchieved = false;
+  private hasCalculatedSpurtOnce = false;
 
   constructor(
     course: CourseData,
-    ground: GroundCondition,
+    ground: IGroundCondition,
     rng: PRNG,
     recalculateOnHeal: boolean = false,
   ) {
@@ -72,9 +71,7 @@ export class EnhancedHpPolicy {
   }
 
   init(horse: HorseParameters) {
-    this.maxHp =
-      0.8 * HpStrategyCoefficient[horse.strategy] * horse.stamina +
-      this.distance;
+    this.maxHp = 0.8 * HpStrategyCoefficient[horse.strategy] * horse.stamina + this.distance;
     this.hp = this.maxHp;
     this.gutsModifier = 1.0 + 200.0 / Math.sqrt(600.0 * horse.guts);
     this.subparAcceptChance = Math.round((15.0 + 0.05 * horse.wisdom) * 1000);
@@ -90,10 +87,7 @@ export class EnhancedHpPolicy {
     this.hasCalculatedSpurtOnce = false;
   }
 
-  private calculateBaseTargetSpeed(
-    horse: HorseParameters,
-    phase: IPhase,
-  ): number {
+  private calculateBaseTargetSpeed(horse: HorseParameters, phase: IPhase): number {
     const StrategyPhaseCoefficient = [
       [],
       [1.0, 0.98, 0.962],
@@ -102,9 +96,7 @@ export class EnhancedHpPolicy {
       [0.931, 1.0, 1.0],
       [1.063, 0.962, 0.95],
     ];
-    const DistanceProficiencyModifier = [
-      1.05, 1.0, 0.9, 0.8, 0.6, 0.4, 0.2, 0.1,
-    ];
+    const DistanceProficiencyModifier = [1.05, 1.0, 0.9, 0.8, 0.6, 0.4, 0.2, 0.1];
 
     return (
       this.baseSpeed * StrategyPhaseCoefficient[horse.strategy][phase] +
@@ -117,15 +109,11 @@ export class EnhancedHpPolicy {
   }
 
   private calculateMaxSpurtSpeed(horse: HorseParameters): number {
-    const DistanceProficiencyModifier = [
-      1.05, 1.0, 0.9, 0.8, 0.6, 0.4, 0.2, 0.1,
-    ];
+    const DistanceProficiencyModifier = [1.05, 1.0, 0.9, 0.8, 0.6, 0.4, 0.2, 0.1];
 
     const v =
       (this.baseTargetSpeed2 + 0.01 * this.baseSpeed) * 1.05 +
-      Math.sqrt(500.0 * horse.speed) *
-        DistanceProficiencyModifier[horse.distanceAptitude] *
-        0.002;
+      Math.sqrt(500.0 * horse.speed) * DistanceProficiencyModifier[horse.distanceAptitude] * 0.002;
 
     // Add guts contribution (commented out for CC_GLOBAL compatibility, but leaving the logic)
     // v += Math.pow(450.0 * horse.guts, 0.597) * 0.0001;
@@ -187,12 +175,7 @@ export class EnhancedHpPolicy {
 
     // Accuracy mode: Recalculate spurt parameters after heal in phase 2+
     // This matches the Kotlin implementation's dynamic recalculation behavior
-    if (
-      this.recalculateOnHeal &&
-      state &&
-      state.phase >= 2 &&
-      this.spurtParameters
-    ) {
+    if (this.recalculateOnHeal && state && state.phase >= 2 && this.spurtParameters) {
       // Kotlin REPLACES spurtParameters, not clears to null
       // We need to recalculate immediately to avoid breaking the null check
       this.recalculationCount++;
@@ -208,14 +191,7 @@ export class EnhancedHpPolicy {
         this.spurtParameters = {
           distance: maxDistance,
           speed: this.maxSpurtSpeed,
-          spDiff:
-            this.hp -
-            this.calcRequiredHp(
-              this.maxSpurtSpeed,
-              maxDistance - 60,
-              true,
-              false,
-            ),
+          spDiff: this.hp - this.calcRequiredHp(this.maxSpurtSpeed, maxDistance - 60, true, false),
           time: 0,
         };
       } else {
@@ -233,41 +209,20 @@ export class EnhancedHpPolicy {
             distance: 0.0,
             speed: this.baseTargetSpeed2,
             spDiff:
-              this.hp -
-              this.calcRequiredHp(
-                this.maxSpurtSpeed,
-                maxDistance - 60,
-                true,
-                false,
-              ),
+              this.hp - this.calcRequiredHp(this.maxSpurtSpeed, maxDistance - 60, true, false),
             time: 0,
           };
         } else {
           // Generate candidates and select optimal
-          const candidates: SpurtParameters[] = [];
-          for (
-            let speed = this.baseTargetSpeed2;
-            speed < this.maxSpurtSpeed;
-            speed += 0.1
-          ) {
-            const distanceV = Math.min(
-              maxDistance,
-              this.calcSpurtDistance(state, speed),
-            );
-            const time =
-              distanceV / speed +
-              (maxDistance - distanceV) / this.baseTargetSpeed2;
+          const candidates: Array<SpurtParameters> = [];
+          for (let speed = this.baseTargetSpeed2; speed < this.maxSpurtSpeed; speed += 0.1) {
+            const distanceV = Math.min(maxDistance, this.calcSpurtDistance(state, speed));
+            const time = distanceV / speed + (maxDistance - distanceV) / this.baseTargetSpeed2;
             candidates.push({
               distance: distanceV,
               speed: speed,
               spDiff:
-                this.hp -
-                this.calcRequiredHp(
-                  this.maxSpurtSpeed,
-                  maxDistance - 60,
-                  true,
-                  false,
-                ),
+                this.hp - this.calcRequiredHp(this.maxSpurtSpeed, maxDistance - 60, true, false),
               time: time,
             });
           }
@@ -301,19 +256,12 @@ export class EnhancedHpPolicy {
       phase: 2 as IPhase,
       positionKeepState: PositionKeepState.None,
     };
-    const baseConsumption =
-      (20.0 * Math.pow(velocity - this.baseSpeed + 12.0, 2)) / 144.0;
+    const baseConsumption = (20.0 * Math.pow(velocity - this.baseSpeed + 12.0, 2)) / 144.0;
     const gutsModifier = spurtPhase ? this.gutsModifier : 1.0;
-    const statusModifier = applyStatusModifier
-      ? this.getStatusModifier(state)
-      : 1.0;
+    const statusModifier = applyStatusModifier ? this.getStatusModifier(state) : 1.0;
 
     return (
-      (length / velocity) *
-      baseConsumption *
-      this.groundModifier *
-      gutsModifier *
-      statusModifier
+      (length / velocity) * baseConsumption * this.groundModifier * gutsModifier * statusModifier
     );
   }
 
@@ -364,11 +312,7 @@ export class EnhancedHpPolicy {
    * In accuracy mode (recalculateOnHeal=true), this will be called multiple
    * times if heals occur in phase 2+, matching Kotlin's dynamic behavior.
    */
-  getLastSpurtPair(
-    state: RaceState,
-    maxSpeed: number,
-    baseTargetSpeed2: number,
-  ): [number, number] {
+  getLastSpurtPair(state: RaceState, maxSpeed: number, baseTargetSpeed2: number): [number, number] {
     // Update internal values
     this.maxSpurtSpeed = maxSpeed;
     this.baseTargetSpeed2 = baseTargetSpeed2;
@@ -381,22 +325,14 @@ export class EnhancedHpPolicy {
     // In recalculation mode, allow re-computing if spurtParameters was cleared by heal
     if (this.spurtParameters !== null && !this.recalculateOnHeal) {
       // Return cached result in comparison mode
-      return [
-        this.distance - this.spurtParameters.distance,
-        this.spurtParameters.speed,
-      ];
+      return [this.distance - this.spurtParameters.distance, this.spurtParameters.speed];
     }
 
     const isFirstCalcEver = !this.hasCalculatedSpurtOnce;
 
     const maxDistance = this.distance - state.pos;
     const spurtDistance = this.calcSpurtDistance(state, this.maxSpurtSpeed);
-    const totalConsume = this.calcRequiredHp(
-      this.maxSpurtSpeed,
-      maxDistance - 60,
-      true,
-      false,
-    );
+    const totalConsume = this.calcRequiredHp(this.maxSpurtSpeed, maxDistance - 60, true, false);
 
     // Can spurt at max speed for the whole distance
     if (spurtDistance >= maxDistance) {
@@ -447,21 +383,13 @@ export class EnhancedHpPolicy {
     }
 
     // Calculate candidates for suboptimal spurt
-    const candidates: SpurtParameters[] = [];
+    const candidates: Array<SpurtParameters> = [];
     // const remainDistance = maxDistance - 60;
 
     // Try speeds from v3 to maxSpurtSpeed in 0.1 increments
-    for (
-      let speed = this.baseTargetSpeed2;
-      speed < this.maxSpurtSpeed;
-      speed += 0.1
-    ) {
-      const distanceV = Math.min(
-        maxDistance,
-        this.calcSpurtDistance(state, speed),
-      );
-      const time =
-        distanceV / speed + (maxDistance - distanceV) / this.baseTargetSpeed2;
+    for (let speed = this.baseTargetSpeed2; speed < this.maxSpurtSpeed; speed += 0.1) {
+      const distanceV = Math.min(maxDistance, this.calcSpurtDistance(state, speed));
+      const time = distanceV / speed + (maxDistance - distanceV) / this.baseTargetSpeed2;
 
       candidates.push({
         distance: distanceV,

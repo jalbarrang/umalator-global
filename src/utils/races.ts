@@ -1,12 +1,21 @@
+import type { RaceParameters } from '@/modules/simulation/lib/definitions';
+import type {
+  IEventType,
+  IGrade,
+  IGroundCondition,
+  ISeason,
+  ITimeOfDay,
+  IWeather,
+} from '@/modules/simulation/lib/course/definitions';
+import type { IMood } from '@/modules/simulation/lib/runner/definitions';
+import { Mood } from '@/modules/simulation/lib/runner/definitions';
 import {
   Grade,
   GroundCondition,
-  Mood,
-  RaceParameters,
   Season,
-  Time,
+  TimeOfDay,
   Weather,
-} from '@simulation/lib/RaceParameters';
+} from '@/modules/simulation/lib/course/definitions';
 
 export type PosKeepLabel = {
   umaIndex: number;
@@ -28,32 +37,25 @@ export const ORDER_RANGE_FOR_STRATEGY = {
   Oonige: [1, 1],
 };
 
-export enum EventType {
-  CM,
-  LOH,
-}
-
 export type RaceConditions = {
-  mood: Mood;
-  ground: GroundCondition;
-  weather: Weather;
-  season: Season;
-  time: Time;
-  grade: Grade;
+  mood: IMood;
+  ground: IGroundCondition;
+  weather: IWeather;
+  season: ISeason;
+  time: ITimeOfDay;
+  grade: IGrade;
 };
 
 export const defaultRaceConditions: RaceConditions = {
-  mood: 2,
-  ground: GroundCondition.Good,
+  mood: Mood.Normal,
+  ground: GroundCondition.Firm,
   weather: Weather.Sunny,
   season: Season.Spring,
-  time: Time.Midday,
+  time: TimeOfDay.Midday,
   grade: Grade.G1,
 };
 
-export const createRaceConditions = (
-  conditions: Partial<RaceConditions> = {},
-): RaceConditions => {
+export const createRaceConditions = (conditions: Partial<RaceConditions> = {}): RaceConditions => {
   return {
     ...defaultRaceConditions,
     ...conditions,
@@ -63,13 +65,13 @@ export const createRaceConditions = (
 export type RacePreset = {
   id: string;
   name: string;
-  type: EventType;
+  type: IEventType;
   date: string;
   courseId: number;
-  season: Season;
-  ground: GroundCondition;
-  weather: Weather;
-  time: Time;
+  season: ISeason;
+  ground: IGroundCondition;
+  weather: IWeather;
+  time: ITimeOfDay;
 };
 
 export function racedefToParams(

@@ -1,7 +1,7 @@
-import { cn } from '@/lib/utils';
-import { Button } from './ui/button';
-import { ButtonGroup } from '@/components/ui/button-group';
 import { Link, useLocation } from '@tanstack/react-router';
+import { Button } from './ui/button';
+import { cn } from '@/lib/utils';
+import { ButtonGroup } from '@/components/ui/button-group';
 
 export const SimulationModeToggle = () => {
   const location = useLocation();
@@ -15,7 +15,6 @@ export const SimulationModeToggle = () => {
       <ButtonGroup>
         <Button
           variant="outline"
-          asChild
           className={cn({
             'bg-primary!': isActive('/'),
           })}
@@ -25,7 +24,6 @@ export const SimulationModeToggle = () => {
 
         <Button
           variant="outline"
-          asChild
           className={cn({
             'bg-primary!': isActive('/skill-bassin'),
           })}
@@ -35,7 +33,6 @@ export const SimulationModeToggle = () => {
 
         <Button
           variant="outline"
-          asChild
           className={cn({
             'bg-primary!': isActive('/uma-bassin'),
           })}

@@ -1,29 +1,29 @@
-import { cn } from '@/lib/utils';
-import { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { parseStrategy } from '@simulation/lib/RaceSolverBuilder';
+import { Activity, Calculator } from 'lucide-react';
+import { useMemo } from 'react';
+import { calculateStatsWithSkills } from '../utils/calculateStatsWithSkills';
+import { RecoverySkillsList } from './RecoverySkillsList';
+import { PhaseBreakdown } from './PhaseBreakdown';
+import type { StaminaAnalysis } from '../hooks/useStaminaAnalysis';
+import type { RecoverySkillActivation } from '../hooks/useRecoverySkills';
+import type { ActualPhaseHp } from '../hooks/usePhaseHp';
+import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import { GroundCondition } from '@/modules/simulation/lib/course/definitions';
+import { cn } from '@/lib/utils';
 import { getCourseById } from '@/modules/racetrack/courses';
 import { useSettingsStore } from '@/store/settings.store';
 
-import { RecoverySkillsList } from './RecoverySkillsList';
-import { PhaseBreakdown } from './PhaseBreakdown';
-import { Calculator, Activity } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
-import { useMemo } from 'react';
-import { StaminaAnalysis } from '../hooks/useStaminaAnalysis';
-import { RecoverySkillActivation } from '../hooks/useRecoverySkills';
-import { ActualPhaseHp } from '../hooks/usePhaseHp';
 import { HpStrategyCoefficient } from '@/modules/simulation/lib/HpPolicy';
-import { calculateStatsWithSkills } from '../utils/calculateStatsWithSkills';
-import { GroundCondition } from '@simulation/lib/RaceParameters';
 
 interface StaminaCardProps {
   runner: RunnerState;
   analysis: StaminaAnalysis;
   label: string;
   color: string;
-  recoverySkills: RecoverySkillActivation[];
-  debuffsReceived: RecoverySkillActivation[];
-  phaseHp: ActualPhaseHp[];
+  recoverySkills: Array<RecoverySkillActivation>;
+  debuffsReceived: Array<RecoverySkillActivation>;
+  phaseHp: Array<ActualPhaseHp>;
   isTheoretical: boolean;
   hasSimulationData?: boolean;
   onModeToggle?: () => void;
@@ -45,16 +45,10 @@ export const StaminaCard = (props: StaminaCardProps) => {
 
   const { courseId, racedef } = useSettingsStore();
 
-  const strategy = useMemo(
-    () => parseStrategy(runner.strategy),
-    [runner.strategy],
-  );
+  const strategy = useMemo(() => parseStrategy(runner.strategy), [runner.strategy]);
   const course = useMemo(() => getCourseById(courseId), [courseId]);
 
-  const groundCondition = useMemo(
-    () => racedef?.ground ?? GroundCondition.Good,
-    [racedef],
-  );
+  const groundCondition = useMemo(() => racedef?.ground ?? GroundCondition.Good, [racedef]);
 
   // Calculate stats with green skills applied (includes both buffs and debuffs)
   const { adjustedStats, greenSkillModifiers } = useMemo(
@@ -65,10 +59,7 @@ export const StaminaCard = (props: StaminaCardProps) => {
   // Calculate max HP with green skill-adjusted stamina
   // Formula: MaxHP = 0.8 * StrategyCoefficient * adjustedStamina + CourseDistance
   const adjustedMaxHp = useMemo(() => {
-    return (
-      0.8 * HpStrategyCoefficient[strategy] * adjustedStats.stamina +
-      course.distance
-    );
+    return 0.8 * HpStrategyCoefficient[strategy] * adjustedStats.stamina + course.distance;
   }, [strategy, adjustedStats.stamina, course.distance]);
 
   const totalRecovery = useMemo(() => {
@@ -76,10 +67,7 @@ export const StaminaCard = (props: StaminaCardProps) => {
   }, [recoverySkills]);
 
   // debuffsReceived have negative hpRecovered values
-  const totalDebuff = debuffsReceived.reduce(
-    (sum, skill) => sum + skill.hpRecovered,
-    0,
-  );
+  const totalDebuff = debuffsReceived.reduce((sum, skill) => sum + skill.hpRecovered, 0);
 
   // Net HP effect from skills (heals - debuffs)
   const netHpEffect = totalRecovery + totalDebuff;
@@ -88,19 +76,14 @@ export const StaminaCard = (props: StaminaCardProps) => {
   // Formula: stamina >= (totalHpNeeded - netEffect - distance) / (0.8 * coef)
   const adjustedHpNeeded = Math.max(0, analysis.totalHpNeeded - netHpEffect);
   const adjustedRequiredStamina = Math.ceil(
-    (adjustedHpNeeded - course.distance) /
-      (0.8 * HpStrategyCoefficient[strategy]),
+    (adjustedHpNeeded - course.distance) / (0.8 * HpStrategyCoefficient[strategy]),
   );
 
   // Calculate stamina deficit using adjusted stamina (raw stamina + green skill modifiers)
-  const adjustedStaminaDeficit = Math.max(
-    0,
-    adjustedRequiredStamina - adjustedStats.stamina,
-  );
+  const adjustedStaminaDeficit = Math.max(0, adjustedRequiredStamina - adjustedStats.stamina);
 
   // Use adjustedMaxHp for determining if max spurt is achievable
-  const canMaxSpurtWithSkills =
-    adjustedMaxHp + netHpEffect >= analysis.totalHpNeeded;
+  const canMaxSpurtWithSkills = adjustedMaxHp + netHpEffect >= analysis.totalHpNeeded;
 
   return (
     <div className="bg-background border-2 rounded-lg p-4">
@@ -114,9 +97,7 @@ export const StaminaCard = (props: StaminaCardProps) => {
             <span
               className={cn(
                 'text-xs font-medium transition-colors',
-                !isTheoretical
-                  ? 'text-green-600 dark:text-green-400'
-                  : 'text-muted-foreground',
+                !isTheoretical ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground',
               )}
             >
               <Activity className="w-3 h-3 inline mr-1" />
@@ -134,9 +115,7 @@ export const StaminaCard = (props: StaminaCardProps) => {
             <span
               className={cn(
                 'text-xs font-medium transition-colors',
-                isTheoretical
-                  ? 'text-amber-600 dark:text-amber-400'
-                  : 'text-muted-foreground',
+                isTheoretical ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground',
               )}
             >
               <Calculator className="w-3 h-3 inline mr-1" />
@@ -167,14 +146,11 @@ export const StaminaCard = (props: StaminaCardProps) => {
       >
         {canMaxSpurtWithSkills ? (
           <span>
-            ✓ Can Max Spurt (
-            {(adjustedMaxHp + netHpEffect - analysis.totalHpNeeded).toFixed(0)}{' '}
-            HP remaining)
+            ✓ Can Max Spurt ({(adjustedMaxHp + netHpEffect - analysis.totalHpNeeded).toFixed(0)} HP
+            remaining)
           </span>
         ) : (
-          <span>
-            ✗ Cannot Max Spurt (need +{adjustedStaminaDeficit} stamina)
-          </span>
+          <span>✗ Cannot Max Spurt (need +{adjustedStaminaDeficit} stamina)</span>
         )}
       </div>
 
@@ -188,9 +164,7 @@ export const StaminaCard = (props: StaminaCardProps) => {
               <span
                 className={cn(
                   'ml-1',
-                  greenSkillModifiers.stamina > 0
-                    ? 'text-green-500'
-                    : 'text-red-500',
+                  greenSkillModifiers.stamina > 0 ? 'text-green-500' : 'text-red-500',
                 )}
               >
                 ({greenSkillModifiers.stamina > 0 ? '+' : ''}
@@ -207,9 +181,7 @@ export const StaminaCard = (props: StaminaCardProps) => {
               <span
                 className={cn(
                   'ml-1',
-                  greenSkillModifiers.guts > 0
-                    ? 'text-green-500'
-                    : 'text-red-500',
+                  greenSkillModifiers.guts > 0 ? 'text-green-500' : 'text-red-500',
                 )}
               >
                 ({greenSkillModifiers.guts > 0 ? '+' : ''}
@@ -223,16 +195,12 @@ export const StaminaCard = (props: StaminaCardProps) => {
           <span
             className={cn(
               'font-mono font-medium',
-              adjustedRequiredStamina > adjustedStats.stamina
-                ? 'text-red-500'
-                : 'text-green-500',
+              adjustedRequiredStamina > adjustedStats.stamina ? 'text-red-500' : 'text-green-500',
             )}
           >
             {adjustedRequiredStamina}
             {(netHpEffect !== 0 || greenSkillModifiers.stamina !== 0) && (
-              <span className="text-muted-foreground text-xs ml-1">
-                (w/ skills)
-              </span>
+              <span className="text-muted-foreground text-xs ml-1">(w/ skills)</span>
             )}
           </span>
         </div>
@@ -241,17 +209,13 @@ export const StaminaCard = (props: StaminaCardProps) => {
           <span className="font-mono font-medium">
             {adjustedMaxHp.toFixed(0)}
             {greenSkillModifiers.stamina !== 0 && (
-              <span className="text-muted-foreground text-xs ml-1">
-                (w/ greens)
-              </span>
+              <span className="text-muted-foreground text-xs ml-1">(w/ greens)</span>
             )}
           </span>
         </div>
         <div className="flex justify-between text-sm">
           <span className="text-foreground">HP Needed:</span>
-          <span className="font-mono font-medium">
-            {analysis.totalHpNeeded.toFixed(0)}
-          </span>
+          <span className="font-mono font-medium">{analysis.totalHpNeeded.toFixed(0)}</span>
         </div>
         {totalRecovery > 0 && (
           <div className="flex justify-between text-sm">
@@ -264,9 +228,7 @@ export const StaminaCard = (props: StaminaCardProps) => {
         {totalDebuff < 0 && (
           <div className="flex justify-between text-sm">
             <span className="text-foreground">HP Lost (Debuffs):</span>
-            <span className="font-mono font-medium text-red-500">
-              {totalDebuff.toFixed(0)}
-            </span>
+            <span className="font-mono font-medium text-red-500">{totalDebuff.toFixed(0)}</span>
           </div>
         )}
       </div>
@@ -282,12 +244,8 @@ export const StaminaCard = (props: StaminaCardProps) => {
       <div className="mb-4">
         <div className="text-sm text-foreground mb-1">HP after race</div>
         {(() => {
-          const hpRemaining =
-            adjustedMaxHp + netHpEffect - analysis.totalHpNeeded;
-          const hpRemainingPercent = Math.max(
-            0,
-            (hpRemaining / adjustedMaxHp) * 100,
-          );
+          const hpRemaining = adjustedMaxHp + netHpEffect - analysis.totalHpNeeded;
+          const hpRemainingPercent = Math.max(0, (hpRemaining / adjustedMaxHp) * 100);
           const isPositive = hpRemaining >= 0;
 
           return (
@@ -300,20 +258,13 @@ export const StaminaCard = (props: StaminaCardProps) => {
                     isPositive ? 'bg-green-500' : 'bg-red-500',
                   )}
                   style={{
-                    width: isPositive
-                      ? `${Math.min(100, hpRemainingPercent)}%`
-                      : '100%',
+                    width: isPositive ? `${Math.min(100, hpRemainingPercent)}%` : '100%',
                   }}
                 />
               </div>
               <div className="flex justify-between text-xs text-muted-foreground mt-1">
                 <span>0</span>
-                <span
-                  className={cn(
-                    'font-mono',
-                    isPositive ? 'text-green-500' : 'text-red-500',
-                  )}
-                >
+                <span className={cn('font-mono', isPositive ? 'text-green-500' : 'text-red-500')}>
                   {isPositive ? '+' : ''}
                   {hpRemaining.toFixed(0)} HP ({hpRemainingPercent.toFixed(1)}%)
                 </span>
@@ -337,17 +288,11 @@ export const StaminaCard = (props: StaminaCardProps) => {
       <div className="mt-4 pt-3 border-t border-border space-y-1 text-xs">
         <div className="flex justify-between">
           <span className="text-muted-foreground">Max Spurt Speed:</span>
-          <span className="font-mono">
-            {analysis.maxSpurtSpeed.toFixed(3)} m/s
-          </span>
+          <span className="font-mono">{analysis.maxSpurtSpeed.toFixed(3)} m/s</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-muted-foreground">
-            Base Target Speed (Phase 2):
-          </span>
-          <span className="font-mono">
-            {analysis.baseTargetSpeed2.toFixed(3)} m/s
-          </span>
+          <span className="text-muted-foreground">Base Target Speed (Phase 2):</span>
+          <span className="font-mono">{analysis.baseTargetSpeed2.toFixed(3)} m/s</span>
         </div>
       </div>
     </div>

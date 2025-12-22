@@ -5,18 +5,14 @@
  * with the enhanced HP/spurt calculation system from umasim
  */
 
-import { RaceSolver, PendingSkill } from './RaceSolver';
-import { HorseParameters } from './HorseTypes';
-import { CourseData } from './courses/types';
-import { GroundCondition } from './RaceParameters';
-import { PRNG } from './Random';
+import { RaceSolver } from './RaceSolver';
 import { EnhancedHpPolicy } from './EnhancedHpPolicy';
 import { GameHpPolicy } from './HpPolicy';
-import {
-  ISkillPerspective,
-  ISkillTarget,
-  ISkillType,
-} from './race-solver/types';
+import type { PendingSkill } from './RaceSolver';
+import type { HorseParameters } from './HorseTypes';
+import type { CourseData, IGroundCondition } from './course/definitions';
+import type { PRNG } from './Random';
+import type { ISkillPerspective, ISkillTarget, ISkillType } from './skills/definitions';
 
 export type OnSkillActivateCallback = (
   raceSolver: RaceSolver,
@@ -41,9 +37,9 @@ export type OnSkillDeactivateCallback = (
 export type RaceSolverConfig = {
   horse: HorseParameters;
   course: CourseData;
-  ground: GroundCondition;
+  ground: IGroundCondition;
   rng: PRNG;
-  skills: PendingSkill[];
+  skills: Array<PendingSkill>;
   pacer?: RaceSolver;
   useEnhancedSpurt?: boolean; // Whether to use enhanced spurt calculations
   onSkillActivate?: OnSkillActivateCallback;
@@ -79,9 +75,7 @@ export function createRaceSolver(config: RaceSolverConfig): RaceSolver {
 /**
  * Create a pacer (virtual opponent) with enhanced calculations
  */
-export function createPacer(
-  config: Omit<RaceSolverConfig, 'pacer'>,
-): RaceSolver {
+export function createPacer(config: Omit<RaceSolverConfig, 'pacer'>): RaceSolver {
   return createRaceSolver({ ...config, pacer: undefined });
 }
 
@@ -92,9 +86,9 @@ export function createPacer(
 export function compareSpurtCalculations(
   horse: HorseParameters,
   course: CourseData,
-  ground: GroundCondition,
+  ground: IGroundCondition,
   rng: PRNG,
-  skills: PendingSkill[],
+  skills: Array<PendingSkill>,
 ): {
   standard: RaceSolver;
   enhanced: RaceSolver;

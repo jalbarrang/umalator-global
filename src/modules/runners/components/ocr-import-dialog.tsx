@@ -5,14 +5,7 @@
  */
 
 import { useRef, useState } from 'react';
-import {
-  Upload,
-  X,
-  CheckCircle,
-  AlertCircle,
-  Loader2,
-  ImageIcon,
-} from 'lucide-react';
+import { Upload, X, CheckCircle, AlertCircle, Loader2, ImageIcon } from 'lucide-react';
 
 import {
   Dialog,
@@ -22,11 +15,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Command,
   CommandEmpty,
@@ -36,10 +25,7 @@ import {
   CommandList,
 } from '@/components/ui/command';
 
-import {
-  useOcrImport,
-  type UploadedFile,
-} from '@/modules/runners/hooks/useOcrImport';
+import { useOcrImport, type UploadedFile } from '@/modules/runners/hooks/useOcrImport';
 import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
 import { umasForSearch } from '@/modules/runners/utils';
 import { getUniqueSkillForByUmaId } from '@/modules/skills/utils';
@@ -54,11 +40,7 @@ interface OcrImportDialogProps {
   onApply: (data: ExtractedUmaData) => void;
 }
 
-export function OcrImportDialog({
-  open,
-  onOpenChange,
-  onApply,
-}: OcrImportDialogProps) {
+export function OcrImportDialog({ open, onOpenChange, onApply }: OcrImportDialogProps) {
   const {
     files,
     addFiles,
@@ -78,9 +60,7 @@ export function OcrImportDialog({
   const [umaSelectOpen, setUmaSelectOpen] = useState(false);
 
   // Get unique skill ID for the selected uma
-  const uniqueSkillId = results?.outfitId
-    ? getUniqueSkillForByUmaId(results.outfitId)
-    : null;
+  const uniqueSkillId = results?.outfitId ? getUniqueSkillForByUmaId(results.outfitId) : null;
 
   // Handle uma selection
   const handleSelectUma = (outfitId: string) => {
@@ -155,10 +135,7 @@ export function OcrImportDialog({
   };
 
   const hasResults =
-    results &&
-    (results.outfitId ||
-      results.speed ||
-      (results.skills && results.skills.length > 0));
+    results && (results.outfitId || results.speed || (results.skills && results.skills.length > 0));
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -185,9 +162,7 @@ export function OcrImportDialog({
               <Upload className="w-12 h-12 text-muted-foreground" />
               <div className="text-center">
                 <p className="text-lg font-medium">Drag files here</p>
-                <p className="text-sm text-muted-foreground">
-                  or click to browse
-                </p>
+                <p className="text-sm text-muted-foreground">or click to browse</p>
               </div>
               <input
                 ref={fileInputRef}
@@ -203,8 +178,7 @@ export function OcrImportDialog({
             {files.length > 0 && (
               <div className="space-y-2">
                 <p className="text-sm font-medium">
-                  Uploaded ({files.length}{' '}
-                  {files.length === 1 ? 'image' : 'images'}):
+                  Uploaded ({files.length} {files.length === 1 ? 'image' : 'images'}):
                 </p>
                 <div className="flex flex-wrap gap-2 max-h-[120px] overflow-y-auto">
                   {files.map((file) => (
@@ -230,10 +204,7 @@ export function OcrImportDialog({
                           <X className="w-3 h-3" />
                         </button>
                       </div>
-                      <div
-                        className="absolute bottom-1 right-1"
-                        title={file.error}
-                      >
+                      <div className="absolute bottom-1 right-1" title={file.error}>
                         {getStatusIcon(file)}
                       </div>
                     </div>
@@ -283,15 +254,10 @@ export function OcrImportDialog({
               <div className="space-y-4">
                 {/* Uma Detected */}
                 <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-muted-foreground">
-                    Uma Detected
-                  </h4>
+                  <h4 className="text-sm font-medium text-muted-foreground">Uma Detected</h4>
                   {results?.outfitId ? (
-                    <Popover
-                      open={umaSelectOpen}
-                      onOpenChange={setUmaSelectOpen}
-                    >
-                      <PopoverTrigger asChild>
+                    <Popover open={umaSelectOpen} onOpenChange={setUmaSelectOpen}>
+                      <PopoverTrigger>
                         <div className="flex items-center gap-3 p-2 border rounded-md cursor-pointer hover:bg-muted/50 transition-colors">
                           <img
                             src={icons[results.outfitId as keyof typeof icons]}
@@ -300,9 +266,7 @@ export function OcrImportDialog({
                           />
                           <div>
                             <p className="font-medium">{results.outfitName}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {results.umaName}
-                            </p>
+                            <p className="text-sm text-muted-foreground">{results.umaName}</p>
                           </div>
                         </div>
                       </PopoverTrigger>
@@ -323,9 +287,7 @@ export function OcrImportDialog({
                                     className="w-10 h-10 rounded mr-2"
                                   />
                                   <div>
-                                    <div className="text-xs font-bold">
-                                      {uma.outfit}
-                                    </div>
+                                    <div className="text-xs font-bold">{uma.outfit}</div>
                                     <div className="text-sm">{uma.name}</div>
                                   </div>
                                 </CommandItem>
@@ -336,15 +298,10 @@ export function OcrImportDialog({
                       </PopoverContent>
                     </Popover>
                   ) : (
-                    <Popover
-                      open={umaSelectOpen}
-                      onOpenChange={setUmaSelectOpen}
-                    >
-                      <PopoverTrigger asChild>
+                    <Popover open={umaSelectOpen} onOpenChange={setUmaSelectOpen}>
+                      <PopoverTrigger>
                         <div className="p-2 border rounded-md text-muted-foreground text-sm cursor-pointer hover:bg-muted/50 transition-colors">
-                          {isProcessing
-                            ? 'Detecting...'
-                            : 'Click to select uma'}
+                          {isProcessing ? 'Detecting...' : 'Click to select uma'}
                         </div>
                       </PopoverTrigger>
                       <PopoverContent className="p-0 w-80">
@@ -364,9 +321,7 @@ export function OcrImportDialog({
                                     className="w-10 h-10 rounded mr-2"
                                   />
                                   <div>
-                                    <div className="text-xs font-bold">
-                                      {uma.outfit}
-                                    </div>
+                                    <div className="text-xs font-bold">{uma.outfit}</div>
                                     <div className="text-sm">{uma.name}</div>
                                   </div>
                                 </CommandItem>
@@ -381,22 +336,14 @@ export function OcrImportDialog({
 
                 {/* Stats */}
                 <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-muted-foreground">
-                    Stats
-                  </h4>
+                  <h4 className="text-sm font-medium text-muted-foreground">Stats</h4>
                   <div className="grid grid-cols-5 gap-1 text-center">
                     <div className="bg-primary text-primary-foreground rounded-tl p-1 text-xs">
                       Speed
                     </div>
-                    <div className="bg-primary text-primary-foreground p-1 text-xs">
-                      Stamina
-                    </div>
-                    <div className="bg-primary text-primary-foreground p-1 text-xs">
-                      Power
-                    </div>
-                    <div className="bg-primary text-primary-foreground p-1 text-xs">
-                      Guts
-                    </div>
+                    <div className="bg-primary text-primary-foreground p-1 text-xs">Stamina</div>
+                    <div className="bg-primary text-primary-foreground p-1 text-xs">Power</div>
+                    <div className="bg-primary text-primary-foreground p-1 text-xs">Guts</div>
                     <div className="bg-primary text-primary-foreground rounded-tr p-1 text-xs">
                       Wit
                     </div>
@@ -409,9 +356,7 @@ export function OcrImportDialog({
                       placeholder="-"
                       onChange={(e) =>
                         updateResults({
-                          speed: e.target.value
-                            ? parseInt(e.target.value)
-                            : undefined,
+                          speed: e.target.value ? parseInt(e.target.value) : undefined,
                         })
                       }
                     />
@@ -424,9 +369,7 @@ export function OcrImportDialog({
                       placeholder="-"
                       onChange={(e) =>
                         updateResults({
-                          stamina: e.target.value
-                            ? parseInt(e.target.value)
-                            : undefined,
+                          stamina: e.target.value ? parseInt(e.target.value) : undefined,
                         })
                       }
                     />
@@ -439,9 +382,7 @@ export function OcrImportDialog({
                       placeholder="-"
                       onChange={(e) =>
                         updateResults({
-                          power: e.target.value
-                            ? parseInt(e.target.value)
-                            : undefined,
+                          power: e.target.value ? parseInt(e.target.value) : undefined,
                         })
                       }
                     />
@@ -454,9 +395,7 @@ export function OcrImportDialog({
                       placeholder="-"
                       onChange={(e) =>
                         updateResults({
-                          guts: e.target.value
-                            ? parseInt(e.target.value)
-                            : undefined,
+                          guts: e.target.value ? parseInt(e.target.value) : undefined,
                         })
                       }
                     />
@@ -469,9 +408,7 @@ export function OcrImportDialog({
                       placeholder="-"
                       onChange={(e) =>
                         updateResults({
-                          wisdom: e.target.value
-                            ? parseInt(e.target.value)
-                            : undefined,
+                          wisdom: e.target.value ? parseInt(e.target.value) : undefined,
                         })
                       }
                     />
@@ -488,9 +425,7 @@ export function OcrImportDialog({
                     onClick={(e) => {
                       // Handle remove-skill events from SkillItem via event delegation
                       const target = e.target as HTMLElement;
-                      const button = target.closest(
-                        '[data-event="remove-skill"]',
-                      );
+                      const button = target.closest('[data-event="remove-skill"]');
                       if (button) {
                         const skillId = button.getAttribute('data-skillid');
                         if (skillId) {
@@ -526,9 +461,7 @@ export function OcrImportDialog({
                       <button
                         className="text-xs text-muted-foreground hover:text-foreground absolute right-2 top-2"
                         onClick={() => {
-                          navigator.clipboard.writeText(
-                            results.unrecognized?.join('\n') ?? '',
-                          );
+                          navigator.clipboard.writeText(results.unrecognized?.join('\n') ?? '');
                           toast.success('Copied to clipboard');
                         }}
                       >

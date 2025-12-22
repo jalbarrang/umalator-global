@@ -1,10 +1,10 @@
 export type ChangelogEntry = {
   version: string;
   date: string;
-  changes: {
+  changes: Array<{
     type: 'added' | 'changed' | 'fixed' | 'removed';
-    items: string[];
-  }[];
+    items: Array<string>;
+  }>;
 };
 
 /**
@@ -23,7 +23,7 @@ export type ChangelogEntry = {
  *   ],
  * },
  */
-export const changelog: ChangelogEntry[] = [
+export const changelog: Array<ChangelogEntry> = [
   {
     version: '0.2.1',
     date: '2025-12-09',

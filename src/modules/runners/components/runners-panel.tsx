@@ -1,3 +1,7 @@
+import { CourseHelpers } from '@simulation/lib/CourseData';
+import { useMemo } from 'react';
+import { Link2, Link2Off, Save } from 'lucide-react';
+import { RunnerCard } from './runner-card/runner-card';
 import {
   copyToRunner,
   resetAllRunners,
@@ -8,27 +12,14 @@ import {
   useRunner,
 } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
-import { CourseHelpers } from '@simulation/lib/CourseData';
-import { useMemo } from 'react';
-import { RunnerCard } from './runner-card/runner-card';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  Panel,
-  PanelContent,
-  PanelHeader,
-  PanelTitle,
-} from '@/components/ui/panel';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/ui/panel';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { PosKeepMode } from '@/modules/simulation/lib/RaceSolver';
+import { PosKeepMode } from '@/modules/simulation/lib/runner/definitions';
 import { useRunnerLibraryStore } from '@/store/runner-library.store';
-import { Link2, Link2Off, Save } from 'lucide-react';
 import './style.css';
 
 export const RunnersPanel = () => {
@@ -41,9 +32,7 @@ export const RunnersPanel = () => {
 
   const showPacerTab = posKeepMode === PosKeepMode.Virtual;
   const isLinked = !!runner.linkedRunnerId;
-  const linkedRunner = isLinked
-    ? getLibraryRunner(runner.linkedRunnerId!)
-    : null;
+  const linkedRunner = isLinked ? getLibraryRunner(runner.linkedRunnerId!) : null;
 
   const handleCopyRunner = () => {
     if (runnerId === 'uma1') {
@@ -139,19 +128,15 @@ export const RunnersPanel = () => {
             </div>
             <div className="flex gap-1">
               <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={handleSyncToLibrary}
-                  >
+                <TooltipTrigger>
+                  <Button size="sm" variant="ghost" onClick={handleSyncToLibrary}>
                     <Save className="w-4 h-4" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>Save changes to library</TooltipContent>
               </Tooltip>
               <Tooltip>
-                <TooltipTrigger asChild>
+                <TooltipTrigger>
                   <Button size="sm" variant="ghost" onClick={handleUnlink}>
                     <Link2Off className="w-4 h-4" />
                   </Button>

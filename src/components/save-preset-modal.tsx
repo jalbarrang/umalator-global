@@ -1,3 +1,8 @@
+import dayjs from 'dayjs';
+import { BookmarkPlus, CalendarIcon } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import type { IEventType } from '@/modules/simulation/lib/course/definitions';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -12,11 +17,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
@@ -24,38 +25,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  addPreset,
-  updatePreset,
-  usePresetStore,
-} from '@/store/race/preset.store';
+import { addPreset, updatePreset, usePresetStore } from '@/store/race/preset.store';
 import { setSelectedPresetId, useSettingsStore } from '@/store/settings.store';
-import { EventType } from '@/utils/races';
-import dayjs from 'dayjs';
-import { BookmarkPlus, CalendarIcon } from 'lucide-react';
-import { useState } from 'react';
-import { toast } from 'sonner';
+import { EventType } from '@/modules/simulation/lib/course/definitions';
 
 export const SavePresetModal = () => {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [date, setDate] = useState<Date | undefined>(new Date());
-  const [eventType, setEventType] = useState<EventType>(EventType.CM);
+  const [eventType, setEventType] = useState<IEventType>(EventType.CM);
   const [calendarOpen, setCalendarOpen] = useState(false);
 
   const { courseId, racedef } = useSettingsStore();
   const { selectedPresetId } = useSettingsStore();
   const { presets } = usePresetStore();
 
-  const handleOpen = (open: boolean) => {
+  const handleOpen = (isOpen: boolean) => {
     const preset = selectedPresetId ? presets[selectedPresetId] : null;
 
-    if (open && preset) {
+    if (isOpen && preset) {
       // Load On Open
       setName(preset.name);
       setDate(dayjs(preset.date).toDate());
       setEventType(preset.type);
-      setOpen(open);
+      setOpen(isOpen);
 
       return;
     }
@@ -64,7 +57,7 @@ export const SavePresetModal = () => {
     setName('');
     setDate(undefined);
     setEventType(EventType.CM);
-    setOpen(open);
+    setOpen(isOpen);
   };
 
   const handleUpdate = () => {
@@ -135,7 +128,7 @@ export const SavePresetModal = () => {
 
   return (
     <Dialog open={open} onOpenChange={handleOpen}>
-      <DialogTrigger asChild>
+      <DialogTrigger>
         <Button variant="outline">
           <BookmarkPlus className="h-4 w-4" />
           Save
@@ -144,9 +137,7 @@ export const SavePresetModal = () => {
 
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>
-            {isUpdating ? 'Update Preset' : 'Save Race Preset'}
-          </DialogTitle>
+          <DialogTitle>{isUpdating ? 'Update Preset' : 'Save Race Preset'}</DialogTitle>
           <DialogDescription>
             {isUpdating
               ? 'Update the existing preset or save as a new one.'
@@ -170,7 +161,7 @@ export const SavePresetModal = () => {
           <div className="grid gap-2">
             <Label htmlFor="preset-date">Date *</Label>
             <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-              <PopoverTrigger asChild>
+              <PopoverTrigger>
                 <Button
                   id="preset-date"
                   variant="outline"
@@ -198,27 +189,21 @@ export const SavePresetModal = () => {
             <Label htmlFor="event-type">Event Type</Label>
             <Select
               value={eventType.toString()}
-              onValueChange={(value) =>
-                setEventType(Number(value) as EventType)
-              }
+              onValueChange={(value) => setEventType(Number(value) as IEventType)}
             >
               <SelectTrigger id="event-type">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={EventType.CM.toString()}>
-                  Champions Meeting (CM)
-                </SelectItem>
-                <SelectItem value={EventType.LOH.toString()}>
-                  Legend of Heroes (LOH)
-                </SelectItem>
+                <SelectItem value={EventType.CM.toString()}>Champions Meeting (CM)</SelectItem>
+                <SelectItem value={EventType.LOH.toString()}>Legend of Heroes (LOH)</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
 
         <DialogFooter>
-          <DialogClose asChild>
+          <DialogClose>
             <Button variant="outline">Cancel</Button>
           </DialogClose>
 

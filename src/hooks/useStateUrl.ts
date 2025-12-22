@@ -1,8 +1,8 @@
+import { useCallback } from 'react';
 import { useRunnersStore } from '@/store/runners.store';
 import { getWitVariance, useSettingsStore } from '@/store/settings.store';
 import { getSelectedPacemakersAsArray } from '@/store/settings/actions';
 import { serialize } from '@/utils/storage';
-import { useCallback } from 'react';
 
 export function useStateUrl() {
   const copyStateUrl = useCallback(async (e: Event) => {

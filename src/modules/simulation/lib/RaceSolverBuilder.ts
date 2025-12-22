@@ -1,63 +1,46 @@
-import {
-  Conditions,
-  immediate,
-  noopRandom,
-  random,
-} from './ActivationConditions';
-import {
-  ActivationSamplePolicy,
-  createFixedPositionPolicy,
-  ImmediatePolicy,
-} from './ActivationSamplePolicy';
+import { cloneDeep } from 'es-toolkit';
+import { Conditions, immediate, noopRandom, random } from './ActivationConditions';
+import { ImmediatePolicy, createFixedPositionPolicy } from './ActivationSamplePolicy';
 import { getParser } from './ConditionParser';
 import { CourseHelpers } from './CourseData';
-import { CourseData, IDistanceType } from './courses/types';
 import { EnhancedHpPolicy } from './EnhancedHpPolicy';
-import {
-  Aptitude,
-  HorseParameters,
-  IAptitude,
-  IStrategy,
-  Strategy,
-} from './HorseTypes';
+import { Aptitude, Strategy } from './HorseTypes';
 import { GameHpPolicy, NoopHpPolicy } from './HpPolicy';
-import {
-  Grade,
-  GroundCondition,
-  Mood,
-  RaceParameters,
-  Season,
-  Time,
-  Weather,
-} from './RaceParameters';
-import {
-  DynamicCondition,
-  PendingSkill,
-  PosKeepMode,
-  RaceSolver,
-  RaceState,
-  SkillEffect,
-} from './RaceSolver';
-import { Rule30CARng, SeededRng } from './Random';
+import { Grade, GroundCondition, Season, TimeOfDay, Weather } from './course/definitions';
+import { RaceSolver } from './RaceSolver';
+import { Rule30CARng } from './Random';
 import { Region, RegionList } from './Region';
-
-import { Operator } from './ActivationConditions';
-import {
+import { SkillPerspective, SkillRarity, SkillTarget, SkillType } from './skills/definitions';
+import { Mood, PosKeepMode } from './runner/definitions';
+import type { IMood, IPosKeepMode } from './runner/definitions';
+import type {
   ISkillPerspective,
   ISkillRarity,
   ISkillTarget,
   ISkillType,
-  SkillPerspective,
-  SkillRarity,
-  SkillTarget,
-  SkillType,
-} from './race-solver/types';
-import { Skill, skillsById } from '@/modules/skills/utils';
-import { cloneDeep } from 'es-toolkit';
+} from './skills/definitions';
+import type {
+  CourseData,
+  IDistanceType,
+  IGrade,
+  IGroundCondition,
+  ISeason,
+  ITimeOfDay,
+  IWeather,
+} from './course/definitions';
+
+import type { RaceParameters } from './definitions';
+import type { SeededRng } from './Random';
+import type { DynamicCondition, PendingSkill, RaceState, SkillEffect } from './RaceSolver';
+import type { HorseParameters, IAptitude, IStrategy } from './HorseTypes';
+import type { ActivationSamplePolicy } from './ActivationSamplePolicy';
+import type { Operator } from './ActivationConditions';
+import type { Skill } from '@/modules/skills/utils';
+import { skillsById } from '@/modules/skills/utils';
 
 interface ConditionParser {
-  tokenize(s: string): Generator<unknown, unknown, unknown>;
-  parse(tokens: Iterator<unknown, unknown>): Operator;
+  tokenize: (s: string) => Generator<unknown, unknown, unknown>;
+  parse: (tokens: Iterator<unknown, unknown>) => Operator;
 }
 
 export type RawSkillEffect = {
@@ -70,7 +53,7 @@ export type SkillAlternative = {
   baseDuration: number;
   condition: string;
   precondition?: string;
-  effects: RawSkillEffect[];
+  effects: Array<RawSkillEffect>;
 };
 
 type PartialRaceParameters = Omit<
@@ -88,7 +71,7 @@ export type HorseDesc = {
   distanceAptitude: string | IAptitude;
   surfaceAptitude: string | IAptitude;
   strategyAptitude: string | IAptitude;
-  mood: Mood;
+  mood: IMood;
 };
 
 export const GroundSpeedModifier = [
@@ -103,9 +86,7 @@ export const GroundPowerModifier = [
   [0, -100, -50, -100, -100],
 ] as const;
 
-export const StrategyProficiencyModifier = [
-  1.1, 1.0, 0.85, 0.75, 0.6, 0.4, 0.2, 0.1,
-] as const;
+export const StrategyProficiencyModifier = [1.1, 1.0, 0.85, 0.75, 0.6, 0.4, 0.2, 0.1] as const;
 
 // ? Whats Asitame?
 // Re: Its a skill that increases the speed of the uma when the power is high enough.
@@ -121,11 +102,7 @@ const Asitame = {
 
   BaseModifier: 0.00875 as const,
 
-  calcApproximateModifier(
-    power: number,
-    strategy: IStrategy,
-    distance: IDistanceType,
-  ) {
+  calcApproximateModifier(power: number, strategy: IStrategy, distance: IDistanceType) {
     return (
       this.BaseModifier *
       Math.sqrt(power - 1200) *
@@ -148,12 +125,7 @@ const StaminaSyoubu = {
   calcApproximateModifier(stamina: number, distance: number) {
     const randomFactor = 1.0; // TODO implement random factor scaling based on power (unclear how this works currently)
 
-    return (
-      Math.sqrt(stamina - 1200) *
-      0.0085 *
-      this.distanceFactor(distance) *
-      randomFactor
-    );
+    return Math.sqrt(stamina - 1200) * 0.0085 * this.distanceFactor(distance) * randomFactor;
   },
 };
 
@@ -204,15 +176,15 @@ export function parseAptitude(a: string | IAptitude, type: string) {
   }
 }
 
-export function parseGroundCondition(g: string | GroundCondition) {
+export function parseGroundCondition(g: string | IGroundCondition) {
   if (typeof g != 'string') {
     return g;
   }
   switch (g.toUpperCase()) {
     case 'GOOD':
-      return GroundCondition.Good;
+      return GroundCondition.Firm;
     case 'YIELDING':
-      return GroundCondition.Yielding;
+      return GroundCondition.Good;
     case 'SOFT':
       return GroundCondition.Soft;
     case 'HEAVY':
@@ -222,7 +194,7 @@ export function parseGroundCondition(g: string | GroundCondition) {
   }
 }
 
-export function parseWeather(w: string | Weather) {
+export function parseWeather(w: string | IWeather) {
   if (typeof w != 'string') {
     return w;
   }
@@ -240,7 +212,7 @@ export function parseWeather(w: string | Weather) {
   }
 }
 
-export function parseSeason(s: string | Season) {
+export function parseSeason(s: string | ISeason) {
   if (typeof s != 'string') {
     return s;
   }
@@ -260,7 +232,7 @@ export function parseSeason(s: string | Season) {
   }
 }
 
-export function parseTime(t: string | Time) {
+export function parseTime(t: string | ITimeOfDay) {
   if (typeof t != 'string') {
     return t;
   }
@@ -268,21 +240,21 @@ export function parseTime(t: string | Time) {
   switch (t.toUpperCase()) {
     case 'NONE':
     case 'NOTIME':
-      return Time.NoTime;
+      return TimeOfDay.NoTime;
     case 'MORNING':
-      return Time.Morning;
+      return TimeOfDay.Morning;
     case 'MIDDAY':
-      return Time.Midday;
+      return TimeOfDay.Midday;
     case 'EVENING':
-      return Time.Evening;
+      return TimeOfDay.Evening;
     case 'NIGHT':
-      return Time.Night;
+      return TimeOfDay.Night;
     default:
       throw new Error('Invalid race time.');
   }
 }
 
-export function parseGrade(g: string | Grade) {
+export function parseGrade(g: string | IGrade) {
   if (typeof g != 'string') {
     return g;
   }
@@ -313,12 +285,7 @@ export const adjustOvercap = (stat: number) => {
   return stat > 1200 ? 1200 + Math.floor((stat - 1200) / 2) : stat;
 };
 
-// Great: 4%
-// Good: 2%
-// Normal: 0%
-// Bad: -2%
-// Awful: -4%
-export const calculateMoodCoefficient = (mood: Mood) => {
+export const calculateMoodCoefficient = (mood: IMood) => {
   return 1 + 0.02 * mood;
 };
 
@@ -368,28 +335,19 @@ type AdjustedStats = {
 export const buildAdjustedStats = (
   baseStats: HorseParameters,
   course: CourseData,
-  ground: GroundCondition,
+  ground: IGroundCondition,
 ): AdjustedStats => {
-  const raceCourseModifier = CourseHelpers.courseSpeedModifier(
-    course,
-    baseStats,
-  );
+  const raceCourseModifier = CourseHelpers.courseSpeedModifier(course, baseStats);
 
   return {
     speed: Math.max(
-      baseStats.speed * raceCourseModifier +
-        GroundSpeedModifier[course.surface][ground],
+      baseStats.speed * raceCourseModifier + GroundSpeedModifier[course.surface][ground],
       1,
     ),
     stamina: baseStats.stamina,
-    power: Math.max(
-      baseStats.power + GroundPowerModifier[course.surface][ground],
-      1,
-    ),
+    power: Math.max(baseStats.power + GroundPowerModifier[course.surface][ground], 1),
     guts: baseStats.guts,
-    wisdom:
-      baseStats.wisdom *
-      StrategyProficiencyModifier[baseStats.strategyAptitude],
+    wisdom: baseStats.wisdom * StrategyProficiencyModifier[baseStats.strategyAptitude],
     strategy: baseStats.strategy,
     distanceAptitude: baseStats.distanceAptitude,
     surfaceAptitude: baseStats.surfaceAptitude,
@@ -405,7 +363,7 @@ export interface SkillData {
   samplePolicy: ActivationSamplePolicy;
   regions: RegionList;
   extraCondition: DynamicCondition;
-  effects: SkillEffect[];
+  effects: Array<SkillEffect>;
 }
 
 function isTarget(self: ISkillPerspective, targetType: ISkillTarget) {
@@ -423,11 +381,8 @@ function isTarget(self: ISkillPerspective, targetType: ISkillTarget) {
   return isSelfPerspectiveSelf == isTargetSelf;
 }
 
-function buildSkillEffects(
-  skill: SkillAlternative,
-  perspective: ISkillPerspective,
-) {
-  const effects: SkillEffect[] = [];
+function buildSkillEffects(skill: SkillAlternative, perspective: ISkillPerspective) {
+  const effects: Array<SkillEffect> = [];
 
   for (const effect of skill.effects) {
     if (isTarget(perspective, effect.target)) {
@@ -451,7 +406,7 @@ export type SkillTrigger = {
   samplePolicy: ActivationSamplePolicy;
   regions: RegionList;
   extraCondition: DynamicCondition;
-  effects: SkillEffect[];
+  effects: Array<SkillEffect>;
 };
 
 export function buildSkillData(
@@ -463,7 +418,7 @@ export function buildSkillData(
   skillId: string,
   perspective: ISkillPerspective,
   ignoreNullEffects: boolean = false,
-): SkillTrigger[] {
+): Array<SkillTrigger> {
   const skill: Skill | undefined = skillsById.get(skillId);
 
   if (!skill) {
@@ -482,25 +437,15 @@ export function buildSkillData(
     wholeCourse.forEach((r) => full.push(r));
 
     if (skillAlternative.precondition) {
-      const parsedPrecondition = parser.parse(
-        parser.tokenize(skillAlternative.precondition),
-      );
+      const parsedPrecondition = parser.parse(parser.tokenize(skillAlternative.precondition));
 
-      const preRegions = parsedPrecondition.apply(
-        wholeCourse,
-        course,
-        horse,
-        extra,
-      )[0];
+      const preRegions = parsedPrecondition.apply(wholeCourse, course, horse, extra)[0];
 
       if (preRegions.length == 0) {
         continue;
       }
 
-      const bounds = new Region(
-        preRegions[0].start,
-        wholeCourse[wholeCourse.length - 1].end,
-      );
+      const bounds = new Region(preRegions[0].start, wholeCourse[wholeCourse.length - 1].end);
 
       full = full.rmap((r) => r.intersect(bounds));
     }
@@ -508,12 +453,7 @@ export function buildSkillData(
     const conditionTokens = parser.tokenize(skillAlternative.condition);
     const parsedOperator = parser.parse(conditionTokens);
 
-    const [regions, extraCondition] = parsedOperator.apply(
-      full,
-      course,
-      horse,
-      extra,
-    );
+    const [regions, extraCondition] = parsedOperator.apply(full, course, horse, extra);
 
     if (regions.length === 0) {
       continue;
@@ -521,9 +461,7 @@ export function buildSkillData(
 
     if (
       triggers.length > 0 &&
-      !/is_activate_other_skill_detail|is_used_skill_id/.test(
-        skillAlternative.condition,
-      )
+      !/is_activate_other_skill_detail|is_used_skill_id/.test(skillAlternative.condition)
     ) {
       // i don't like this at all. the problem is some skills with two triggers (for example all the is_activate_other_skill_detail ones)
       // need to place two triggers so the second effect can activate, however, some other skills with two triggers only ever activate one
@@ -585,109 +523,105 @@ export function buildSkillData(
   ];
 }
 
-export const conditionsWithActivateCountsAsRandom = Object.assign(
-  {},
-  Conditions,
-  {
-    activate_count_all: random({
-      filterGte(
-        regions: RegionList,
-        n: number,
-        course: CourseData,
-        _1: HorseParameters,
-        _extra: RaceParameters,
-      ) {
-        // hard-code TM Opera O (NY) unique and Neo Universe unique to pretend they're immediate while allowing randomness for other skills
-        // (conveniently the only two with n == 7)
-        // ideally find a better solution
-        if (n == 7) {
-          const rl = new RegionList();
-          // note that RandomPolicy won't sample within 10m from the end so this has to be +11
-          regions.forEach((r) => rl.push(new Region(r.start, r.start + 11)));
-          return rl;
-        }
-        /*if (extra.skillId == '110151' || extra.skillId == '910151') {
+export const conditionsWithActivateCountsAsRandom = Object.assign({}, Conditions, {
+  activate_count_all: random({
+    filterGte(
+      regions: RegionList,
+      n: number,
+      course: CourseData,
+      _1: HorseParameters,
+      _extra: RaceParameters,
+    ) {
+      // hard-code TM Opera O (NY) unique and Neo Universe unique to pretend they're immediate while allowing randomness for other skills
+      // (conveniently the only two with n == 7)
+      // ideally find a better solution
+      if (n == 7) {
+        const rl = new RegionList();
+        // note that RandomPolicy won't sample within 10m from the end so this has to be +11
+        regions.forEach((r) => rl.push(new Region(r.start, r.start + 11)));
+        return rl;
+      }
+      /*if (extra.skillId == '110151' || extra.skillId == '910151') {
       const rl = new RegionList();
       rl.push(new Region(course.distance - 401, course.distance - 399));
       return rl;
     }*/
-        // somewhat arbitrarily decide you activate about 23 skills per race and then use a region n / 23 ± 20%
-        const bounds = new Region(
-          Math.min(n / 23.0 - 0.2, 0.6) * course.distance,
-          Math.min(n / 23.0 + 0.2, 1.0) * course.distance,
-        );
-        return regions.rmap((r) => r.intersect(bounds));
-      },
-      filterLte(
-        _regions: RegionList,
-        _n: number,
-        _course: CourseData,
-        _1: HorseParameters,
-        _extra: RaceParameters,
-      ) {
-        return new RegionList(); // tentatively, we're not really interested in the <= branch of these conditions
-      },
-    }),
-    activate_count_end_after: random({
-      filterGte(
-        regions: RegionList,
-        _0: number,
-        course: CourseData,
-        _1: HorseParameters,
-        _extra: RaceParameters,
-      ) {
-        const bounds = new Region(
-          CourseHelpers.phaseStart(course.distance, 2),
-          CourseHelpers.phaseEnd(course.distance, 3),
-        );
-        return regions.rmap((r) => r.intersect(bounds));
-      },
-    }),
-    activate_count_heal: noopRandom,
-    activate_count_later_half: random({
-      filterGte(
-        regions: RegionList,
-        _0: number,
-        course: CourseData,
-        _1: HorseParameters,
-        _extra: RaceParameters,
-      ) {
-        const bounds = new Region(course.distance / 2, course.distance);
-        return regions.rmap((r) => r.intersect(bounds));
-      },
-    }),
-    activate_count_middle: random({
-      filterGte(
-        regions: RegionList,
-        n: number,
-        course: CourseData,
-        _1: HorseParameters,
-        _extra: RaceParameters,
-      ) {
-        const start = CourseHelpers.phaseStart(course.distance, 1),
-          end = CourseHelpers.phaseEnd(course.distance, 1);
-        const bounds = new Region(start, start + (n / 10) * (end - start));
-        return regions.rmap((r) => r.intersect(bounds));
-      },
-    }),
-    activate_count_start: immediate({
-      // for 地固め - Start of the race
-      filterGte(
-        regions: RegionList,
-        _0: number,
-        course: CourseData,
-        _1: HorseParameters,
-        _extra: RaceParameters,
-      ) {
-        const bounds = new Region(
-          CourseHelpers.phaseStart(course.distance, 0),
-          CourseHelpers.phaseEnd(course.distance, 0),
-        );
-        return regions.rmap((r) => r.intersect(bounds));
-      },
-    }),
-  },
-);
+      // somewhat arbitrarily decide you activate about 23 skills per race and then use a region n / 23 ± 20%
+      const bounds = new Region(
+        Math.min(n / 23.0 - 0.2, 0.6) * course.distance,
+        Math.min(n / 23.0 + 0.2, 1.0) * course.distance,
+      );
+      return regions.rmap((r) => r.intersect(bounds));
+    },
+    filterLte(
+      _regions: RegionList,
+      _n: number,
+      _course: CourseData,
+      _1: HorseParameters,
+      _extra: RaceParameters,
+    ) {
+      return new RegionList(); // tentatively, we're not really interested in the <= branch of these conditions
+    },
+  }),
+  activate_count_end_after: random({
+    filterGte(
+      regions: RegionList,
+      _0: number,
+      course: CourseData,
+      _1: HorseParameters,
+      _extra: RaceParameters,
+    ) {
+      const bounds = new Region(
+        CourseHelpers.phaseStart(course.distance, 2),
+        CourseHelpers.phaseEnd(course.distance, 3),
+      );
+      return regions.rmap((r) => r.intersect(bounds));
+    },
+  }),
+  activate_count_heal: noopRandom,
+  activate_count_later_half: random({
+    filterGte(
+      regions: RegionList,
+      _0: number,
+      course: CourseData,
+      _1: HorseParameters,
+      _extra: RaceParameters,
+    ) {
+      const bounds = new Region(course.distance / 2, course.distance);
+      return regions.rmap((r) => r.intersect(bounds));
+    },
+  }),
+  activate_count_middle: random({
+    filterGte(
+      regions: RegionList,
+      n: number,
+      course: CourseData,
+      _1: HorseParameters,
+      _extra: RaceParameters,
+    ) {
+      const start = CourseHelpers.phaseStart(course.distance, 1),
+        end = CourseHelpers.phaseEnd(course.distance, 1);
+      const bounds = new Region(start, start + (n / 10) * (end - start));
+      return regions.rmap((r) => r.intersect(bounds));
+    },
+  }),
+  activate_count_start: immediate({
+    // for 地固め - Start of the race
+    filterGte(
+      regions: RegionList,
+      _0: number,
+      course: CourseData,
+      _1: HorseParameters,
+      _extra: RaceParameters,
+    ) {
+      const bounds = new Region(
+        CourseHelpers.phaseStart(course.distance, 0),
+        CourseHelpers.phaseEnd(course.distance, 0),
+      );
+      return regions.rmap((r) => r.intersect(bounds));
+    },
+  }),
+});
 
 const defaultParser = getParser();
 const acrParser = getParser(conditionsWithActivateCountsAsRandom);
@@ -696,25 +630,23 @@ export class RaceSolverBuilder {
   _course: CourseData | null;
   _raceParams: PartialRaceParameters;
   _horse: HorseDesc | null;
-  _pacerSkills: PendingSkill[];
-  _pacerSkillIds: string[];
+  _pacerSkills: Array<PendingSkill>;
+  _pacerSkillIds: Array<string>;
   _pacerSpeedUpRate: number;
-  _pacerSkillData: SkillData[];
-  _pacerTriggers: Region[][];
+  _pacerSkillData: Array<SkillData>;
+  _pacerTriggers: Array<Array<Region>>;
   _rng: SeededRng;
   _seed: number;
   _parser: ConditionParser;
-  _skills: {
+  _skills: Array<{
     skillId: string;
     perspective: ISkillPerspective;
     originWisdom?: number;
-  }[];
+  }>;
   _samplePolicyOverride: Map<string, ActivationSamplePolicy>;
-  _extraSkillHooks: ((
-    skilldata: SkillData[],
-    horse: HorseParameters,
-    course: CourseData,
-  ) => void)[];
+  _extraSkillHooks: Array<
+    (skilldata: Array<SkillData>, horse: HorseParameters, course: CourseData) => void
+  >;
   _onSkillActivate:
     | ((
         state: RaceSolver,
@@ -743,17 +675,17 @@ export class RaceSolverBuilder {
   _useEnhancedSpurt: boolean;
   _accuracyMode: boolean;
   _skillCheckChance: boolean;
-  _posKeepMode: PosKeepMode;
+  _posKeepMode: IPosKeepMode;
   _mode: string | undefined;
 
   constructor(readonly nsamples: number) {
     this._course = null;
     this._raceParams = {
-      mood: 2,
-      groundCondition: GroundCondition.Good,
+      mood: Mood.Great,
+      groundCondition: GroundCondition.Firm,
       weather: Weather.Sunny,
       season: Season.Spring,
-      time: Time.Midday,
+      time: TimeOfDay.Midday,
       grade: Grade.G1,
       popularity: 1,
     };
@@ -796,32 +728,32 @@ export class RaceSolverBuilder {
     return this;
   }
 
-  mood(mood: Mood) {
+  mood(mood: IMood) {
     this._raceParams.mood = mood;
     return this;
   }
 
-  ground(ground: string | GroundCondition) {
+  ground(ground: string | IGroundCondition) {
     this._raceParams.groundCondition = parseGroundCondition(ground);
     return this;
   }
 
-  weather(weather: string | Weather) {
+  weather(weather: string | IWeather) {
     this._raceParams.weather = parseWeather(weather);
     return this;
   }
 
-  season(season: string | Season) {
+  season(season: string | ISeason) {
     this._raceParams.season = parseSeason(season);
     return this;
   }
 
-  time(time: string | Time) {
+  time(time: string | ITimeOfDay) {
     this._raceParams.time = parseTime(time);
     return this;
   }
 
-  grade(grade: string | Grade) {
+  grade(grade: string | IGrade) {
     this._raceParams.grade = parseGrade(grade);
     return this;
   }
@@ -873,10 +805,7 @@ export class RaceSolverBuilder {
         this._horse.strategy.toUpperCase() == 'OONIGE'
       );
     } else {
-      return (
-        this._horse.strategy == Strategy.Nige ||
-        this._horse.strategy == Strategy.Oonige
-      );
+      return this._horse.strategy == Strategy.Nige || this._horse.strategy == Strategy.Oonige;
     }
   }
 
@@ -889,17 +818,13 @@ export class RaceSolverBuilder {
     const pacerBaseHorse = pacer ? buildBaseStats(pacer) : null;
 
     const pacerHorse = pacerBaseHorse
-      ? buildAdjustedStats(
-          pacerBaseHorse,
-          this._course,
-          this._raceParams.groundCondition,
-        )
+      ? buildAdjustedStats(pacerBaseHorse, this._course, this._raceParams.groundCondition)
       : null;
 
     const wholeCourse = new RegionList();
     wholeCourse.push(new Region(0, this._course.distance));
 
-    let pacerSkillData: SkillData[] = [];
+    let pacerSkillData: Array<SkillData> = [];
 
     if (pacerBaseHorse) {
       const makePacerSkill = buildSkillData.bind(
@@ -927,12 +852,11 @@ export class RaceSolverBuilder {
     const wholeCourse = new RegionList();
     wholeCourse.push(new Region(0, this._course.distance));
 
-    let pacerTriggers: Region[][] = [];
+    let pacerTriggers: Array<Array<Region>> = [];
 
     if (this._pacerSkillIds.length > 0) {
       pacerTriggers = this._pacerSkillData.map((sd) => {
-        const sp =
-          this._samplePolicyOverride.get(sd.skillId) || sd.samplePolicy;
+        const sp = this._samplePolicyOverride.get(sd.skillId) || sd.samplePolicy;
         return sp.sample(sd.regions, this.nsamples, pacerRng);
       });
     }
@@ -940,18 +864,14 @@ export class RaceSolverBuilder {
     this._pacerTriggers = pacerTriggers;
   }
 
-  buildPacer(
-    pacerHorse: HorseParameters,
-    i: number,
-    pacerRng: SeededRng,
-  ): RaceSolver | null {
+  buildPacer(pacerHorse: HorseParameters, i: number, pacerRng: SeededRng): RaceSolver | null {
     if (!this._course) {
       throw new Error('Course not set');
     }
 
     this.setupPacerSkillTriggers(pacerRng);
 
-    let pacerSkills: PendingSkill[] = this._pacerSkills;
+    let pacerSkills: Array<PendingSkill> = this._pacerSkills;
 
     if (this._pacerSkillData.length > 0) {
       pacerSkills = this._pacerSkillData.map((skillData, skillDataIndex) => ({
@@ -959,9 +879,7 @@ export class RaceSolverBuilder {
         perspective: skillData.perspective,
         rarity: skillData.rarity,
         trigger:
-          this._pacerTriggers[skillDataIndex][
-            i % this._pacerTriggers[skillDataIndex].length
-          ],
+          this._pacerTriggers[skillDataIndex][i % this._pacerTriggers[skillDataIndex].length],
         extraCondition: skillData.extraCondition,
         effects: skillData.effects,
       }));
@@ -1046,8 +964,7 @@ export class RaceSolverBuilder {
     }
 
     // for some reason, asitame (probably??) uses *displayed* power adjusted for motivation + greens
-    const baseDisplayedPower =
-      this._horse.power * (1 + 0.02 * this._raceParams.mood);
+    const baseDisplayedPower = this._horse.power * (1 + 0.02 * this._raceParams.mood);
     this._extraSkillHooks.push((skilldata, horse, course) => {
       const power = skilldata.reduce((acc, sd) => {
         const powerUp = sd.effects.find((ef) => ef.type == SkillType.PowerUp);
@@ -1060,12 +977,7 @@ export class RaceSolverBuilder {
 
       if (power > 1200) {
         const spurtStart = new RegionList();
-        spurtStart.push(
-          new Region(
-            CourseHelpers.phaseStart(course.distance, 2),
-            course.distance,
-          ),
-        );
+        spurtStart.push(new Region(CourseHelpers.phaseStart(course.distance, 2), course.distance));
         skilldata.push({
           skillId: 'asitame',
           perspective: SkillPerspective.Self,
@@ -1077,11 +989,7 @@ export class RaceSolverBuilder {
             {
               type: SkillType.Accel,
               baseDuration: 3.0 / (course.distance / 1000.0),
-              modifier: Asitame.calcApproximateModifier(
-                power,
-                horse.strategy,
-                course.distanceType,
-              ),
+              modifier: Asitame.calcApproximateModifier(power, horse.strategy, course.distanceType),
               target: SkillTarget.Self,
             },
           ],
@@ -1096,9 +1004,7 @@ export class RaceSolverBuilder {
       // unfortunately the simulator doesnt (yet) support dynamic modifiers, so we have to account for greens here
       // even though they are later added normally during execution
       const stamina = skilldata.reduce((acc, sd) => {
-        const staminaUp = sd.effects.find(
-          (ef) => ef.type == SkillType.StaminaUp,
-        );
+        const staminaUp = sd.effects.find((ef) => ef.type == SkillType.StaminaUp);
         if (staminaUp && sd.regions.length > 0 && sd.regions[0].start < 9999) {
           return acc + staminaUp.modifier;
         } else {
@@ -1108,12 +1014,7 @@ export class RaceSolverBuilder {
 
       if (stamina > 1200) {
         const spurtStart = new RegionList();
-        spurtStart.push(
-          new Region(
-            CourseHelpers.phaseStart(course.distance, 2),
-            course.distance,
-          ),
-        );
+        spurtStart.push(new Region(CourseHelpers.phaseStart(course.distance, 2), course.distance));
 
         skilldata.push({
           skillId: 'staminasyoubu',
@@ -1128,10 +1029,7 @@ export class RaceSolverBuilder {
             {
               type: SkillType.TargetSpeed,
               baseDuration: 9999.0,
-              modifier: StaminaSyoubu.calcApproximateModifier(
-                stamina,
-                course.distance,
-              ),
+              modifier: StaminaSyoubu.calcApproximateModifier(stamina, course.distance),
               target: SkillTarget.Self,
             },
           ],
@@ -1174,12 +1072,7 @@ export class RaceSolverBuilder {
     perspective: ISkillPerspective = SkillPerspective.Self,
     originWisdom?: number,
   ) {
-    return this.addSkill(
-      skillId,
-      perspective,
-      createFixedPositionPolicy(position),
-      originWisdom,
-    );
+    return this.addSkill(skillId, perspective, createFixedPositionPolicy(position), originWisdom);
   }
 
   /**
@@ -1222,7 +1115,7 @@ export class RaceSolverBuilder {
     return this;
   }
 
-  posKeepMode(mode: PosKeepMode) {
+  posKeepMode(mode: IPosKeepMode) {
     this._posKeepMode = mode;
     return this;
   }
@@ -1314,56 +1207,37 @@ export class RaceSolverBuilder {
     const wholeCourse = new RegionList();
     wholeCourse.push(new Region(0, course.distance));
 
-    const makeSkill: (
-      skillId: string,
-      perspective: ISkillPerspective,
-    ) => SkillTrigger[] = buildSkillData.bind(
-      null,
-      horse,
-      this._raceParams,
-      course,
-      wholeCourse,
-      this._parser,
-    );
+    const makeSkill: (skillId: string, perspective: ISkillPerspective) => Array<SkillTrigger> =
+      buildSkillData.bind(null, horse, this._raceParams, course, wholeCourse, this._parser);
 
     const skillDataList = this._skills.flatMap(({ skillId, perspective }) =>
       makeSkill(skillId, perspective),
     );
 
-    this._extraSkillHooks.forEach((skillHook) =>
-      skillHook(skillDataList, horse, course),
-    );
+    this._extraSkillHooks.forEach((skillHook) => skillHook(skillDataList, horse, course));
 
     const triggers = skillDataList.map((skillData) => {
       const samplePolicy =
-        this._samplePolicyOverride.get(skillData.skillId) ??
-        skillData.samplePolicy;
+        this._samplePolicyOverride.get(skillData.skillId) ?? skillData.samplePolicy;
 
       return samplePolicy.sample(skillData.regions, this.nsamples, skillRng);
     });
 
     // must come after skill activations are decided because conditions like base_power depend on base stats
-    horse = buildAdjustedStats(
-      horse,
-      this._course,
-      this._raceParams.groundCondition,
-    );
+    horse = buildAdjustedStats(horse, this._course, this._raceParams.groundCondition);
 
     for (let i = 0; i < this.nsamples; ++i) {
       const raceSolverRNG = new Rule30CARng(this._rng.int32());
 
-      const skills: PendingSkill[] = skillDataList.map(
-        (skillData, skillDataIndex) => ({
-          skillId: skillData.skillId,
-          perspective: skillData.perspective,
-          rarity: skillData.rarity,
-          trigger:
-            triggers[skillDataIndex][i % triggers[skillDataIndex].length],
-          extraCondition: skillData.extraCondition,
-          effects: skillData.effects,
-          originWisdom: this._skills[skillDataIndex].originWisdom,
-        }),
-      );
+      const skills: Array<PendingSkill> = skillDataList.map((skillData, skillDataIndex) => ({
+        skillId: skillData.skillId,
+        perspective: skillData.perspective,
+        rarity: skillData.rarity,
+        trigger: triggers[skillDataIndex][i % triggers[skillDataIndex].length],
+        extraCondition: skillData.extraCondition,
+        effects: skillData.effects,
+        originWisdom: this._skills[skillDataIndex].originWisdom,
+      }));
 
       const runnerHPRNG = new Rule30CARng(this._rng.int32());
 
@@ -1374,11 +1248,7 @@ export class RaceSolverBuilder {
             runnerHPRNG,
             this._accuracyMode,
           )
-        : new GameHpPolicy(
-            this._course,
-            this._raceParams.groundCondition,
-            runnerHPRNG,
-          );
+        : new GameHpPolicy(this._course, this._raceParams.groundCondition, runnerHPRNG);
 
       const redoRun: boolean = yield new RaceSolver({
         horse,

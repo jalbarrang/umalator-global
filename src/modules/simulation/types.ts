@@ -1,8 +1,8 @@
-import { SimulationData } from '@simulation/compare.types';
-import { PosKeepMode } from './lib/RaceSolver';
-import { RunnerState } from '../runners/components/runner-card/types';
-import { CourseData } from './lib/courses/types';
-import { RaceParameters } from './lib/RaceParameters';
+import type { IPosKeepMode } from './lib/runner/definitions';
+import type { RunnerState } from '../runners/components/runner-card/types';
+import type { SimulationData } from '@simulation/compare.types';
+import type { CourseData } from './lib/course/definitions';
+import type { RaceParameters } from './lib/definitions';
 
 // Calculate theoretical max spurt based purely on stats (no RNG)
 
@@ -10,7 +10,7 @@ export type FilterReason = 'negligible-effect' | 'low-variance' | null;
 
 export type RoundResult = {
   id: string;
-  results: number[];
+  results: Array<number>;
   runData?: SimulationData;
   min: number;
   max: number;
@@ -33,7 +33,7 @@ export interface SimulationOptions {
   useEnhancedSpurt?: boolean;
   includeRunData?: boolean;
   accuracyMode?: boolean;
-  posKeepMode?: PosKeepMode;
+  posKeepMode?: IPosKeepMode;
   mode?: string;
 
   // Wit Variance
@@ -81,7 +81,7 @@ export type CompareParams = {
 
 export type Run1RoundParams = {
   nsamples: number;
-  skills: string[];
+  skills: Array<string>;
   course: CourseData;
   racedef: RaceParameters;
   uma: RunnerState;

@@ -1,8 +1,8 @@
-import { SimulationRun } from '@simulation/compare.types';
-import { useRaceTrackUI } from '@/store/settings.store';
 // @ts-expect-error d3 types are not typed
 import * as d3 from 'd3';
 import { memo, useMemo } from 'react';
+import type { SimulationRun } from '@simulation/compare.types';
+import { useRaceTrackUI } from '@/store/settings.store';
 
 const colors = ['#2a77c5', '#c52a2a'];
 const hpColors = ['#688aab', '#ab6868'];
@@ -10,8 +10,8 @@ const laneColors = ['#87ceeb', '#ff0000'];
 const pacemakerColors = ['#22c55e', '#a855f7', '#ec4899'];
 
 type DataPathProps = {
-  positions: number[];
-  values: number[];
+  positions: Array<number>;
+  values: Array<number>;
   xScale: d3.ScaleLinear<number, number>;
   yScale: d3.ScaleLinear<number, number>;
   color: string;
@@ -129,7 +129,7 @@ type VelocityLinesProps = {
   yOffset?: number;
   horseLane: number;
   showVirtualPacemaker: boolean;
-  selectedPacemakers: boolean[];
+  selectedPacemakers: Array<boolean>;
 };
 
 const BASE_WIDTH = 960;
@@ -156,7 +156,7 @@ export const VelocityLines = memo(function VelocityLines(
 
     return d3
       .scaleLinear()
-      .domain([0, d3.max(data.v, (v: number[]) => d3.max(v)) ?? 0])
+      .domain([0, d3.max(data.v, (v: Array<number>) => d3.max(v)) ?? 0])
       .range([height, 0]);
   }, [data, height]);
 
@@ -166,7 +166,7 @@ export const VelocityLines = memo(function VelocityLines(
 
     return d3
       .scaleLinear()
-      .domain([0, d3.max(data.hp, (hp: number[]) => d3.max(hp)) ?? 0])
+      .domain([0, d3.max(data.hp, (hp: Array<number>) => d3.max(hp)) ?? 0])
       .range([height, 0]);
   }, [data, height]);
 

@@ -1,12 +1,9 @@
-import { RunnerState } from '@/modules/runners/components/runner-card/types';
+import { buildAdjustedStats, buildBaseStats } from '@simulation/lib/RaceSolverBuilder';
+import type { BaseStats } from '@simulation/lib/RaceSolverBuilder';
+import type { IGroundCondition } from '@/modules/simulation/lib/course/definitions';
+import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { CourseHelpers } from '@/modules/simulation/lib/CourseData';
 import { getSkillDataById } from '@/modules/skills/utils';
-import { GroundCondition } from '@simulation/lib/RaceParameters';
-import {
-  BaseStats,
-  buildAdjustedStats,
-  buildBaseStats,
-} from '@simulation/lib/RaceSolverBuilder';
 
 // Skill effect types from race mechanics
 const SkillEffectType = {
@@ -36,9 +33,7 @@ export interface StatsWithSkillsResult {
  * Green skills have effect types 1-5 (Speed, Stamina, Power, Guts, Wisdom)
  * Both positive (buffs) and negative (debuffs) modifiers are summed
  */
-export function parseGreenSkillModifiers(
-  skillIds: string[],
-): GreenSkillModifiers {
+export function parseGreenSkillModifiers(skillIds: Array<string>): GreenSkillModifiers {
   const modifiers: GreenSkillModifiers = {
     speed: 0,
     stamina: 0,
@@ -98,7 +93,7 @@ function clampStat(value: number): number {
 export function calculateStatsWithSkills(
   runner: RunnerState,
   courseId: number,
-  groundCondition: GroundCondition,
+  groundCondition: IGroundCondition,
 ): StatsWithSkillsResult {
   // 1. Build base stats (applies motivation coefficient)
   const baseStats = buildBaseStats({
@@ -131,11 +126,7 @@ export function calculateStatsWithSkills(
   const course = CourseHelpers.getCourse(courseId);
 
   // 4. Get adjusted stats (applies ground/course modifiers, strategy proficiency, etc.)
-  const adjustedStats = buildAdjustedStats(
-    statsWithGreens,
-    course,
-    groundCondition,
-  );
+  const adjustedStats = buildAdjustedStats(statsWithGreens, course, groundCondition);
 
   return {
     baseStats,

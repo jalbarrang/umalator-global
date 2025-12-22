@@ -16,8 +16,7 @@ import { useRef } from 'react';
 import { SkillPickerContent } from '../skill-picker-content';
 
 export function SkillPickerDrawer() {
-  const { open, umaId, options, currentSkills, onSelect } =
-    useSkillModalStore();
+  const { open, umaId, options, currentSkills, onSelect } = useSkillModalStore();
 
   const { isMobile } = useBreakpoint();
 
@@ -28,15 +27,10 @@ export function SkillPickerDrawer() {
   const childRef = useRef<{ focus: () => void }>(null);
 
   return (
-    <Drawer
-      direction="right"
-      open={open}
-      onOpenChange={handleOpenChange}
-      autoFocus
-    >
+    <Drawer direction="right" open={open} onOpenChange={handleOpenChange} autoFocus>
       <DrawerContent className="px-2 w-full! md:w-1/2! max-w-none!">
         <DrawerHeader className="flex-row items-center justify-between">
-          <DrawerClose asChild>
+          <DrawerClose>
             <Button variant="ghost" size="icon" tabIndex={-1}>
               <XIcon className="w-4 h-4" />
             </Button>

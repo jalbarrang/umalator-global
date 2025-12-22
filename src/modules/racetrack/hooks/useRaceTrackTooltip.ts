@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { CourseData } from '@/modules/simulation/lib/courses/types';
-import { SimulationRun } from '@simulation/compare.types';
+import type { SimulationRun } from '@simulation/compare.types';
+import type { TooltipData } from '@/modules/racetrack/components/racetrack-tooltip';
+import type { CourseData } from '@/modules/simulation/lib/course/definitions';
 import { binSearch } from '@/utils/algorithims';
-import { TooltipData } from '@/modules/racetrack/components/racetrack-tooltip';
 
 type UseRaceTrackTooltipProps = {
   chartData: SimulationRun;

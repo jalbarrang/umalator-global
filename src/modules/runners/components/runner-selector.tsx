@@ -1,11 +1,7 @@
 import { useState, useMemo } from 'react';
 
 import { umasForSearch, getUmaImageUrl } from '@/modules/runners/utils';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Command,
   CommandEmpty,
@@ -49,7 +45,7 @@ export const UmaSelector = (props: UmaSelectorProps) => {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
+      <PopoverTrigger>
         <div className="flex flex-1 gap-2 cursor-pointer">
           <div className="w-18 h-18">
             <img src={imageUrl} alt={selectedUma?.name || 'Runner'} />
@@ -63,9 +59,7 @@ export const UmaSelector = (props: UmaSelectorProps) => {
           )}
           {!selectedUma && (
             <div className="flex flex-col items-center justify-center">
-              <div className="text-sm text-muted-foreground">
-                Click me to select a runner
-              </div>
+              <div className="text-sm text-muted-foreground">Click me to select a runner</div>
             </div>
           )}
         </div>
@@ -83,11 +77,7 @@ export const UmaSelector = (props: UmaSelectorProps) => {
                   value={`${uma.outfit} ${uma.name}`}
                   onSelect={() => handleSelectedItem(uma.id)}
                 >
-                  <img
-                    src={getUmaImageUrl(uma.id)}
-                    className="w-16 h-16"
-                    alt={uma.name}
-                  />
+                  <img src={getUmaImageUrl(uma.id)} className="w-16 h-16" alt={uma.name} />
                   <div>
                     <div className="text-xs font-bold">{uma.outfit}</div>
                     <div className="text-sm">{uma.name}</div>

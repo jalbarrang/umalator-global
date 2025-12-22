@@ -1,7 +1,5 @@
 import {
-  ActivationSamplePolicy,
   AllCornerRandomPolicy,
-  DistributionRandomPolicy,
   ErlangRandomPolicy,
   ImmediatePolicy,
   LogNormalRandomPolicy,
@@ -10,12 +8,14 @@ import {
   UniformRandomPolicy,
 } from './ActivationSamplePolicy';
 import { CourseHelpers } from './CourseData';
-import { CourseData, IPhase } from './courses/types';
-import { HorseParameters, Strategy, StrategyHelpers } from './HorseTypes';
-import { RaceParameters } from './RaceParameters';
-import { DynamicCondition, RaceState } from './RaceSolver';
+import { Strategy, StrategyHelpers } from './HorseTypes';
 import { Region, RegionList } from './Region';
 import { calculateEarlyRaceAverageSpeed } from './SpurtCalculator';
+import type { ActivationSamplePolicy, DistributionRandomPolicy } from './ActivationSamplePolicy';
+import type { CourseData, IPhase } from './course/definitions';
+import type { HorseParameters } from './HorseTypes';
+import type { RaceParameters } from './definitions';
+import type { DynamicCondition, RaceState } from './RaceSolver';
 
 // K as in SKI combinators
 function kTrue(_: RaceState) {
@@ -31,12 +31,12 @@ function withDefaultCond(r: RegionList | [RegionList, DynamicCondition]) {
 
 export interface Operator {
   samplePolicy: ActivationSamplePolicy;
-  apply(
+  apply: (
     regions: RegionList,
     course: CourseData,
     horse: HorseParameters,
     extra: RaceParameters,
-  ): [RegionList, DynamicCondition];
+  ) => [RegionList, DynamicCondition];
 }
 
 export interface CmpOperator extends Operator {
@@ -54,15 +54,8 @@ export class EqOperator {
     this.samplePolicy = condition.samplePolicy;
   }
 
-  apply(
-    regions: RegionList,
-    course: CourseData,
-    horse: HorseParameters,
-    extra: RaceParameters,
-  ) {
-    return withDefaultCond(
-      this.condition.filterEq(regions, this.argument, course, horse, extra),
-    );
+  apply(regions: RegionList, course: CourseData, horse: HorseParameters, extra: RaceParameters) {
+    return withDefaultCond(this.condition.filterEq(regions, this.argument, course, horse, extra));
   }
 }
 
@@ -76,15 +69,8 @@ export class NeqOperator {
     this.samplePolicy = condition.samplePolicy;
   }
 
-  apply(
-    regions: RegionList,
-    course: CourseData,
-    horse: HorseParameters,
-    extra: RaceParameters,
-  ) {
-    return withDefaultCond(
-      this.condition.filterNeq(regions, this.argument, course, horse, extra),
-    );
+  apply(regions: RegionList, course: CourseData, horse: HorseParameters, extra: RaceParameters) {
+    return withDefaultCond(this.condition.filterNeq(regions, this.argument, course, horse, extra));
   }
 }
 
@@ -98,15 +84,8 @@ export class LtOperator {
     this.samplePolicy = condition.samplePolicy;
   }
 
-  apply(
-    regions: RegionList,
-    course: CourseData,
-    horse: HorseParameters,
-    extra: RaceParameters,
-  ) {
-    return withDefaultCond(
-      this.condition.filterLt(regions, this.argument, course, horse, extra),
-    );
+  apply(regions: RegionList, course: CourseData, horse: HorseParameters, extra: RaceParameters) {
+    return withDefaultCond(this.condition.filterLt(regions, this.argument, course, horse, extra));
   }
 }
 
@@ -120,15 +99,8 @@ export class LteOperator {
     this.samplePolicy = condition.samplePolicy;
   }
 
-  apply(
-    regions: RegionList,
-    course: CourseData,
-    horse: HorseParameters,
-    extra: RaceParameters,
-  ) {
-    return withDefaultCond(
-      this.condition.filterLte(regions, this.argument, course, horse, extra),
-    );
+  apply(regions: RegionList, course: CourseData, horse: HorseParameters, extra: RaceParameters) {
+    return withDefaultCond(this.condition.filterLte(regions, this.argument, course, horse, extra));
   }
 }
 
@@ -142,15 +114,8 @@ export class GtOperator {
     this.samplePolicy = condition.samplePolicy;
   }
 
-  apply(
-    regions: RegionList,
-    course: CourseData,
-    horse: HorseParameters,
-    extra: RaceParameters,
-  ) {
-    return withDefaultCond(
-      this.condition.filterGt(regions, this.argument, course, horse, extra),
-    );
+  apply(regions: RegionList, course: CourseData, horse: HorseParameters, extra: RaceParameters) {
+    return withDefaultCond(this.condition.filterGt(regions, this.argument, course, horse, extra));
   }
 }
 
@@ -164,15 +129,8 @@ export class GteOperator {
     this.samplePolicy = condition.samplePolicy;
   }
 
-  apply(
-    regions: RegionList,
-    course: CourseData,
-    horse: HorseParameters,
-    extra: RaceParameters,
-  ) {
-    return withDefaultCond(
-      this.condition.filterGte(regions, this.argument, course, horse, extra),
-    );
+  apply(regions: RegionList, course: CourseData, horse: HorseParameters, extra: RaceParameters) {
+    return withDefaultCond(this.condition.filterGte(regions, this.argument, course, horse, extra));
   }
 }
 
@@ -186,27 +144,14 @@ export class AndOperator {
     this.samplePolicy = left.samplePolicy.reconcile(right.samplePolicy);
   }
 
-  apply(
-    regions: RegionList,
-    course: CourseData,
-    horse: HorseParameters,
-    extra: RaceParameters,
-  ) {
+  apply(regions: RegionList, course: CourseData, horse: HorseParameters, extra: RaceParameters) {
     const [leftval, leftcond] = this.left.apply(regions, course, horse, extra);
-    const [rightval, rightcond] = this.right.apply(
-      leftval,
-      course,
-      horse,
-      extra,
-    );
+    const [rightval, rightcond] = this.right.apply(leftval, course, horse, extra);
     if (leftcond === kTrue && rightcond === kTrue) {
       // avoid allocating an unnecessary closure object in the common case of no dynamic conditions
       return [rightval, kTrue] as [RegionList, DynamicCondition];
     }
-    return [rightval, (s) => leftcond(s) && rightcond(s)] as [
-      RegionList,
-      DynamicCondition,
-    ];
+    return [rightval, (s) => leftcond(s) && rightcond(s)] as [RegionList, DynamicCondition];
   }
 }
 
@@ -223,19 +168,9 @@ export class OrOperator {
     this.samplePolicy = left.samplePolicy.reconcile(right.samplePolicy);
   }
 
-  apply(
-    regions: RegionList,
-    course: CourseData,
-    horse: HorseParameters,
-    extra: RaceParameters,
-  ) {
+  apply(regions: RegionList, course: CourseData, horse: HorseParameters, extra: RaceParameters) {
     const [leftval, leftcond] = this.left.apply(regions, course, horse, extra);
-    const [rightval, rightcond] = this.right.apply(
-      regions,
-      course,
-      horse,
-      extra,
-    );
+    const [rightval, rightcond] = this.right.apply(regions, course, horse, extra);
 
     // FIXME this is, technically, completely broken. really the correct way to do this is to tie dynamic conditions to regions
     // and propagate them during union and intersection. however, that's really annoying, and it turns out in practice that
@@ -257,48 +192,48 @@ export class OrOperator {
 
 export interface Condition {
   samplePolicy: ActivationSamplePolicy;
-  filterEq(
+  filterEq: (
     regions: RegionList,
     arg: number,
     course: CourseData,
     horse: HorseParameters,
     extra: RaceParameters,
-  ): RegionList | [RegionList, DynamicCondition];
-  filterNeq(
+  ) => RegionList | [RegionList, DynamicCondition];
+  filterNeq: (
     regions: RegionList,
     arg: number,
     course: CourseData,
     horse: HorseParameters,
     extra: RaceParameters,
-  ): RegionList | [RegionList, DynamicCondition];
-  filterLt(
+  ) => RegionList | [RegionList, DynamicCondition];
+  filterLt: (
     regions: RegionList,
     arg: number,
     course: CourseData,
     horse: HorseParameters,
     extra: RaceParameters,
-  ): RegionList | [RegionList, DynamicCondition];
-  filterLte(
+  ) => RegionList | [RegionList, DynamicCondition];
+  filterLte: (
     regions: RegionList,
     arg: number,
     course: CourseData,
     horse: HorseParameters,
     extra: RaceParameters,
-  ): RegionList | [RegionList, DynamicCondition];
-  filterGt(
+  ) => RegionList | [RegionList, DynamicCondition];
+  filterGt: (
     regions: RegionList,
     arg: number,
     course: CourseData,
     horse: HorseParameters,
     extra: RaceParameters,
-  ): RegionList | [RegionList, DynamicCondition];
-  filterGte(
+  ) => RegionList | [RegionList, DynamicCondition];
+  filterGte: (
     regions: RegionList,
     arg: number,
     course: CourseData,
     horse: HorseParameters,
     extra: RaceParameters,
-  ): RegionList | [RegionList, DynamicCondition];
+  ) => RegionList | [RegionList, DynamicCondition];
 }
 
 function notSupported(
@@ -364,19 +299,19 @@ export const random = (other: Partial<Condition>): Condition => {
   return { ...defaultRandom, ...other };
 };
 
-type DistributionRandomPolicyConstructor<Ts extends unknown[]> = new (
-  ...args: Ts
+type DistributionRandomPolicyConstructor<TArgs extends Array<unknown>> = new (
+  ...args: TArgs
 ) => DistributionRandomPolicy;
 
 // ive tried various things to make this return a [xRandom,noopXRandom] pair but seem to run into some typescript bugs
 // or something
 // it doesnt really make sense to me
-const distributionRandomFactory = <Ts extends unknown[]>(
-  cls: DistributionRandomPolicyConstructor<Ts>,
+const distributionRandomFactory = <TArgs extends Array<unknown>>(
+  cls: DistributionRandomPolicyConstructor<TArgs>,
 ) => {
   const cache = Object.create(null);
 
-  return (...args: [...clsArgs: Ts, condition: Partial<Condition>]) => {
+  return (...args: [...clsArgs: TArgs, condition: Partial<Condition>]) => {
     const condition = args.pop() as Partial<Condition>;
     const key = args.join(',');
 
@@ -386,7 +321,7 @@ const distributionRandomFactory = <Ts extends unknown[]>(
     if (cache[key]) {
       policy = cache[key];
     } else {
-      policy = new cls(...(args as unknown as Ts));
+      policy = new cls(...(args as unknown as TArgs));
       cache[key] = policy;
     }
 
@@ -459,10 +394,7 @@ function noopSectionRandom(start: number, end: number) {
     _1: HorseParameters,
     _extra: RaceParameters,
   ) {
-    const bounds = new Region(
-      start * (course.distance / 24),
-      end * (course.distance / 24),
-    );
+    const bounds = new Region(start * (course.distance / 24), end * (course.distance / 24));
     return regions.rmap((r) => r.intersect(bounds));
   }
   return random({
@@ -475,9 +407,7 @@ function noopSectionRandom(start: number, end: number) {
   });
 }
 
-function valueFilter(
-  getValue: (c: CourseData, h: HorseParameters, e: RaceParameters) => number,
-) {
+function valueFilter(getValue: (c: CourseData, h: HorseParameters, e: RaceParameters) => number) {
   return immediate({
     filterEq(
       regions: RegionList,
@@ -486,9 +416,7 @@ function valueFilter(
       horse: HorseParameters,
       extra: RaceParameters,
     ) {
-      return getValue(course, horse, extra) == value
-        ? regions
-        : new RegionList();
+      return getValue(course, horse, extra) == value ? regions : new RegionList();
     },
     filterNeq(
       regions: RegionList,
@@ -497,9 +425,7 @@ function valueFilter(
       horse: HorseParameters,
       extra: RaceParameters,
     ) {
-      return getValue(course, horse, extra) != value
-        ? regions
-        : new RegionList();
+      return getValue(course, horse, extra) != value ? regions : new RegionList();
     },
     filterLt(
       regions: RegionList,
@@ -508,9 +434,7 @@ function valueFilter(
       horse: HorseParameters,
       extra: RaceParameters,
     ) {
-      return getValue(course, horse, extra) < value
-        ? regions
-        : new RegionList();
+      return getValue(course, horse, extra) < value ? regions : new RegionList();
     },
     filterLte(
       regions: RegionList,
@@ -519,9 +443,7 @@ function valueFilter(
       horse: HorseParameters,
       extra: RaceParameters,
     ) {
-      return getValue(course, horse, extra) <= value
-        ? regions
-        : new RegionList();
+      return getValue(course, horse, extra) <= value ? regions : new RegionList();
     },
     filterGt(
       regions: RegionList,
@@ -530,9 +452,7 @@ function valueFilter(
       horse: HorseParameters,
       extra: RaceParameters,
     ) {
-      return getValue(course, horse, extra) > value
-        ? regions
-        : new RegionList();
+      return getValue(course, horse, extra) > value ? regions : new RegionList();
     },
     filterGte(
       regions: RegionList,
@@ -541,9 +461,7 @@ function valueFilter(
       horse: HorseParameters,
       extra: RaceParameters,
     ) {
-      return getValue(course, horse, extra) >= value
-        ? regions
-        : new RegionList();
+      return getValue(course, horse, extra) >= value ? regions : new RegionList();
     },
   });
 }
@@ -576,9 +494,7 @@ function orderFilter(getPos: (arg: number, n: number) => number) {
       if (extra.orderRange && extra.numUmas) {
         const pos = getPos(arg, extra.numUmas);
 
-        return pos < extra.orderRange[0] || pos > extra.orderRange[1]
-          ? regions
-          : new RegionList();
+        return pos < extra.orderRange[0] || pos > extra.orderRange[1] ? regions : new RegionList();
       }
 
       return regions;
@@ -591,27 +507,17 @@ function orderFilter(getPos: (arg: number, n: number) => number) {
       extra: RaceParameters,
     ) {
       if (extra.orderRange && extra.numUmas) {
-        if (
-          !(
-            1 <= extra.orderRange[0] &&
-            extra.orderRange[0] <= extra.orderRange[1]
-          )
-        ) {
+        if (!(1 <= extra.orderRange[0] && extra.orderRange[0] <= extra.orderRange[1])) {
           throw new Error('Invalid order range');
         }
         // ignore forward order conditions in the last leg (important for e.g. NY Opera unique)
         // however, add some room after the start of last leg so that forward order skills that proc at the
         // beginning of last leg won't proc on backlines
-        const end = new Region(
-          CourseHelpers.phaseStart(course.distance, 2) + 100,
-          course.distance,
-        );
+        const end = new Region(CourseHelpers.phaseStart(course.distance, 2) + 100, course.distance);
 
         const pos = getPos(arg, extra.numUmas);
 
-        return extra.orderRange[0] < pos
-          ? regions
-          : regions.rmap((r) => r.intersect(end));
+        return extra.orderRange[0] < pos ? regions : regions.rmap((r) => r.intersect(end));
       }
       return regions;
     },
@@ -623,23 +529,13 @@ function orderFilter(getPos: (arg: number, n: number) => number) {
       extra: RaceParameters,
     ) {
       if (extra.orderRange && extra.numUmas) {
-        if (
-          !(
-            1 <= extra.orderRange[0] &&
-            extra.orderRange[0] <= extra.orderRange[1]
-          )
-        ) {
+        if (!(1 <= extra.orderRange[0] && extra.orderRange[0] <= extra.orderRange[1])) {
           throw new Error('Invalid order range');
         }
 
-        const end = new Region(
-          CourseHelpers.phaseStart(course.distance, 2) + 100,
-          course.distance,
-        );
+        const end = new Region(CourseHelpers.phaseStart(course.distance, 2) + 100, course.distance);
         const pos = getPos(arg, extra.numUmas);
-        return extra.orderRange[0] <= pos
-          ? regions
-          : regions.rmap((r) => r.intersect(end));
+        return extra.orderRange[0] <= pos ? regions : regions.rmap((r) => r.intersect(end));
       }
 
       return regions;
@@ -652,12 +548,7 @@ function orderFilter(getPos: (arg: number, n: number) => number) {
       extra: RaceParameters,
     ) {
       if (extra.orderRange && extra.numUmas) {
-        if (
-          !(
-            extra.orderRange[0] <= extra.orderRange[1] &&
-            extra.orderRange[1] <= extra.numUmas
-          )
-        ) {
+        if (!(extra.orderRange[0] <= extra.orderRange[1] && extra.orderRange[1] <= extra.numUmas)) {
           throw new Error('Invalid order range');
         }
 
@@ -674,12 +565,7 @@ function orderFilter(getPos: (arg: number, n: number) => number) {
       extra: RaceParameters,
     ) {
       if (extra.orderRange && extra.numUmas) {
-        if (
-          !(
-            extra.orderRange[0] <= extra.orderRange[1] &&
-            extra.orderRange[1] <= extra.numUmas
-          )
-        ) {
+        if (!(extra.orderRange[0] <= extra.orderRange[1] && extra.orderRange[1] <= extra.numUmas)) {
           throw new Error('Invalid order range');
         }
 
@@ -735,18 +621,11 @@ function orderOutFilter(rate: number) {
       }
 
       if (extra.orderRange && extra.numUmas) {
-        if (
-          !(
-            extra.orderRange[0] <= extra.orderRange[1] &&
-            extra.orderRange[1] <= extra.numUmas
-          )
-        ) {
+        if (!(extra.orderRange[0] <= extra.orderRange[1] && extra.orderRange[1] <= extra.numUmas)) {
           throw new Error('Invalid order range');
         }
 
-        return Math.round(rate * extra.numUmas) <= extra.orderRange[1]
-          ? regions
-          : new RegionList();
+        return Math.round(rate * extra.numUmas) <= extra.orderRange[1] ? regions : new RegionList();
       }
 
       return regions;
@@ -781,10 +660,7 @@ export const Conditions: { [cond: string]: Condition } = {
       _1: HorseParameters,
       _extra: RaceParameters,
     ) {
-      return [regions, (s: RaceState) => s.accumulatetime.t >= t] as [
-        RegionList,
-        DynamicCondition,
-      ];
+      return [regions, (s: RaceState) => s.accumulatetime.t >= t] as [RegionList, DynamicCondition];
     },
   }),
   activate_count_all: immediate({
@@ -795,10 +671,10 @@ export const Conditions: { [cond: string]: Condition } = {
       _1: HorseParameters,
       _extra: RaceParameters,
     ) {
-      return [
-        regions,
-        (s: RaceState) => s.activateCount.reduce((a, b) => a + b) <= n,
-      ] as [RegionList, DynamicCondition];
+      return [regions, (s: RaceState) => s.activateCount.reduce((a, b) => a + b) <= n] as [
+        RegionList,
+        DynamicCondition,
+      ];
     },
     filterGte(
       regions: RegionList,
@@ -807,10 +683,10 @@ export const Conditions: { [cond: string]: Condition } = {
       _1: HorseParameters,
       _extra: RaceParameters,
     ) {
-      return [
-        regions,
-        (s: RaceState) => s.activateCount.reduce((a, b) => a + b) >= n,
-      ] as [RegionList, DynamicCondition];
+      return [regions, (s: RaceState) => s.activateCount.reduce((a, b) => a + b) >= n] as [
+        RegionList,
+        DynamicCondition,
+      ];
     },
   }),
   activate_count_end_after: immediate({
@@ -821,10 +697,7 @@ export const Conditions: { [cond: string]: Condition } = {
       _1: HorseParameters,
       _extra: RaceParameters,
     ) {
-      return [regions, (s: RaceState) => s.activateCount[2] >= n] as [
-        RegionList,
-        DynamicCondition,
-      ];
+      return [regions, (s: RaceState) => s.activateCount[2] >= n] as [RegionList, DynamicCondition];
     },
   }),
   activate_count_heal: immediate({
@@ -849,10 +722,7 @@ export const Conditions: { [cond: string]: Condition } = {
       _1: HorseParameters,
       _extra: RaceParameters,
     ) {
-      return [regions, (s: RaceState) => s.activateCount[1] >= n] as [
-        RegionList,
-        DynamicCondition,
-      ];
+      return [regions, (s: RaceState) => s.activateCount[1] >= n] as [RegionList, DynamicCondition];
     },
   }),
   activate_count_start: immediate({
@@ -863,10 +733,7 @@ export const Conditions: { [cond: string]: Condition } = {
       _1: HorseParameters,
       _extra: RaceParameters,
     ) {
-      return [regions, (s: RaceState) => s.activateCount[0] >= n] as [
-        RegionList,
-        DynamicCondition,
-      ];
+      return [regions, (s: RaceState) => s.activateCount[0] >= n] as [RegionList, DynamicCondition];
     },
   }),
   all_corner_random: {
@@ -882,9 +749,7 @@ export const Conditions: { [cond: string]: Condition } = {
         throw new Error('must be all_corner_random==1');
       }
 
-      const corners = course.corners.map(
-        (c) => new Region(c.start, c.start + c.length),
-      );
+      const corners = course.corners.map((c) => new Region(c.start, c.start + c.length));
       return regions.rmap((r) => corners.map((c) => r.intersect(c)));
     },
     filterNeq: notSupported,
@@ -896,24 +761,19 @@ export const Conditions: { [cond: string]: Condition } = {
   always: noopImmediate,
   // NB. since skill conditions are processed before any skill activations, stats here are base stats (i.e. greens are not included)
   base_power: valueFilter(
-    (_: CourseData, horse: HorseParameters, _extra: RaceParameters) =>
-      horse.power,
+    (_: CourseData, horse: HorseParameters, _extra: RaceParameters) => horse.power,
   ),
   base_speed: valueFilter(
-    (_: CourseData, horse: HorseParameters, _extra: RaceParameters) =>
-      horse.speed,
+    (_: CourseData, horse: HorseParameters, _extra: RaceParameters) => horse.speed,
   ),
   base_stamina: valueFilter(
-    (_: CourseData, horse: HorseParameters, _extra: RaceParameters) =>
-      horse.stamina,
+    (_: CourseData, horse: HorseParameters, _extra: RaceParameters) => horse.stamina,
   ),
   base_guts: valueFilter(
-    (_: CourseData, horse: HorseParameters, _extra: RaceParameters) =>
-      horse.guts,
+    (_: CourseData, horse: HorseParameters, _extra: RaceParameters) => horse.guts,
   ),
   base_wiz: valueFilter(
-    (_: CourseData, horse: HorseParameters, _extra: RaceParameters) =>
-      horse.wisdom,
+    (_: CourseData, horse: HorseParameters, _extra: RaceParameters) => horse.wisdom,
   ),
   bashin_diff_behind: noopErlangRandom(3, 2.0),
   bashin_diff_infront: noopErlangRandom(3, 2.0),
@@ -938,10 +798,7 @@ export const Conditions: { [cond: string]: Condition } = {
       _1: HorseParameters,
       _extra: RaceParameters,
     ) {
-      const bounds = new Region(
-        CourseHelpers.phaseStart(course.distance, 2),
-        course.distance,
-      );
+      const bounds = new Region(CourseHelpers.phaseStart(course.distance, 2), course.distance);
       return regions.rmap((r) => r.intersect(bounds));
     },
   }),
@@ -1021,7 +878,7 @@ export const Conditions: { [cond: string]: Condition } = {
         }
         return regions.rmap((r) => nonCorners.map((s) => r.intersect(s)));
       } else if (course.corners.length + cornerNum >= 5) {
-        const corners: Region[] = [];
+        const corners: Array<Region> = [];
 
         for (
           let cornerIdx = course.corners.length + cornerNum - 5;
@@ -1049,15 +906,12 @@ export const Conditions: { [cond: string]: Condition } = {
       if (cornerNum !== 0) {
         throw new Error('only supports corner!=0');
       }
-      const corners = course.corners.map(
-        (c) => new Region(c.start, c.start + c.length),
-      );
+      const corners = course.corners.map((c) => new Region(c.start, c.start + c.length));
       return regions.rmap((r) => corners.map((c) => r.intersect(c)));
     },
   }),
   corner_count: valueFilter(
-    (course: CourseData, _: HorseParameters, _extra: RaceParameters) =>
-      course.corners.length,
+    (course: CourseData, _: HorseParameters, _extra: RaceParameters) => course.corners.length,
   ),
   // FIXME this shouldn't actually be random, since in cases like corner_random==1@corner_random==2 it should sample
   // only from the first corner and not from the combined regions, so it needs its own sample policy
@@ -1110,10 +964,7 @@ export const Conditions: { [cond: string]: Condition } = {
       ) {
         if (cornerNum == 1) {
           const corner = course.corners[Math.max(course.corners.length - 4, 0)];
-          const cornerBounds = new Region(
-            corner.start,
-            corner.start + corner.length,
-          );
+          const cornerBounds = new Region(corner.start, corner.start + corner.length);
           return regions.rmap((r) => r.intersect(cornerBounds));
         } else {
           return new RegionList();
@@ -1121,10 +972,7 @@ export const Conditions: { [cond: string]: Condition } = {
       }
       if (course.corners.length + cornerNum >= 5) {
         const corner = course.corners[course.corners.length + cornerNum - 5];
-        const cornerBounds = new Region(
-          corner.start,
-          corner.start + corner.length,
-        );
+        const cornerBounds = new Region(corner.start, corner.start + corner.length);
         return regions.rmap((r) => r.intersect(cornerBounds));
       } else {
         return new RegionList();
@@ -1132,8 +980,7 @@ export const Conditions: { [cond: string]: Condition } = {
     },
   }),
   course_distance: valueFilter(
-    (course: CourseData, _: HorseParameters, _extra: RaceParameters) =>
-      course.distance,
+    (course: CourseData, _: HorseParameters, _extra: RaceParameters) => course.distance,
   ),
   distance_diff_rate: noopImmediate,
   distance_diff_top: noopImmediate,
@@ -1156,10 +1003,7 @@ export const Conditions: { [cond: string]: Condition } = {
       _: HorseParameters,
       _extra: RaceParameters,
     ) {
-      const bounds = new Region(
-        (course.distance * rate) / 100,
-        course.distance,
-      );
+      const bounds = new Region((course.distance * rate) / 100, course.distance);
       return regions.rmap((r) => r.intersect(bounds));
     },
   }),
@@ -1171,10 +1015,7 @@ export const Conditions: { [cond: string]: Condition } = {
       _: HorseParameters,
       _extra: RaceParameters,
     ) {
-      const bounds = new Region(
-        (course.distance * rate) / 100,
-        course.distance,
-      );
+      const bounds = new Region((course.distance * rate) / 100, course.distance);
       return regions.rmap((r) => r.intersect(bounds));
     },
   }),
@@ -1226,16 +1067,12 @@ export const Conditions: { [cond: string]: Condition } = {
       return regions.rmap((r) => slopes.map((s) => r.intersect(s)));
     },
   }),
-  grade: valueFilter(
-    (_0: CourseData, _1: HorseParameters, extra: RaceParameters) => extra.grade,
-  ),
+  grade: valueFilter((_0: CourseData, _1: HorseParameters, extra: RaceParameters) => extra.grade),
   ground_condition: valueFilter(
-    (_0: CourseData, _1: HorseParameters, extra: RaceParameters) =>
-      extra.groundCondition,
+    (_0: CourseData, _1: HorseParameters, extra: RaceParameters) => extra.groundCondition,
   ),
   ground_type: valueFilter(
-    (course: CourseData, _: HorseParameters, _extra: RaceParameters) =>
-      course.surface,
+    (course: CourseData, _: HorseParameters, _extra: RaceParameters) => course.surface,
   ),
   hp_per: immediate({
     filterLte(
@@ -1296,9 +1133,7 @@ export const Conditions: { [cond: string]: Condition } = {
         throw new Error('must be is_basis_distance==0 or is_basis_distance==1');
       }
 
-      return Math.min(course.distance % 400, 1) != flag
-        ? regions
-        : new RegionList();
+      return Math.min(course.distance % 400, 1) != flag ? regions : new RegionList();
     },
   }),
   is_badstart: immediate({
@@ -1399,10 +1234,7 @@ export const Conditions: { [cond: string]: Condition } = {
       }
 
       const fc = course.corners[course.corners.length - 1];
-      const bounds = new Region(
-        (fc.start + fc.start + fc.length) / 2,
-        fc.start + fc.length,
-      );
+      const bounds = new Region((fc.start + fc.start + fc.length) / 2, fc.start + fc.length);
       return regions.rmap((r) => r.intersect(bounds));
     },
   }),
@@ -1442,10 +1274,7 @@ export const Conditions: { [cond: string]: Condition } = {
         throw new Error('must be is_hp_empty_onetime==1');
       }
 
-      return [regions, (s: RaceState) => !s.hp.hasRemainingHp()] as [
-        RegionList,
-        DynamicCondition,
-      ];
+      return [regions, (s: RaceState) => !s.hp.hasRemainingHp()] as [RegionList, DynamicCondition];
     },
   }),
   is_lastspurt: immediate({
@@ -1460,14 +1289,11 @@ export const Conditions: { [cond: string]: Condition } = {
         throw new Error('must be is_lastspurt==1');
       }
 
-      const bounds = new Region(
-        CourseHelpers.phaseStart(course.distance, 2),
-        course.distance,
-      );
-      return [
-        regions.rmap((r) => r.intersect(bounds)),
-        (s: RaceState) => s.isLastSpurt,
-      ] as [RegionList, DynamicCondition];
+      const bounds = new Region(CourseHelpers.phaseStart(course.distance, 2), course.distance);
+      return [regions.rmap((r) => r.intersect(bounds)), (s: RaceState) => s.isLastSpurt] as [
+        RegionList,
+        DynamicCondition,
+      ];
     },
   }),
   is_last_straight: immediate({
@@ -1504,8 +1330,7 @@ export const Conditions: { [cond: string]: Condition } = {
         throw new Error('course straights must be sorted by start');
       }
 
-      const lastStraightStart =
-        course.straights[course.straights.length - 1].start;
+      const lastStraightStart = course.straights[course.straights.length - 1].start;
 
       // TODO ask kuromi about this or something
       const trigger = new Region(lastStraightStart, lastStraightStart + 10);
@@ -1577,25 +1402,16 @@ export const Conditions: { [cond: string]: Condition } = {
         default:
           throw new Error('lastspurt case must be 1-3');
       }
-      const bounds = new Region(
-        CourseHelpers.phaseStart(course.distance, 2),
-        course.distance,
-      );
-      return [regions.rmap((r) => r.intersect(bounds)), f] as [
-        RegionList,
-        DynamicCondition,
-      ];
+      const bounds = new Region(CourseHelpers.phaseStart(course.distance, 2), course.distance);
+      return [regions.rmap((r) => r.intersect(bounds)), f] as [RegionList, DynamicCondition];
     },
   }),
   motivation: valueFilter(
-    (_0: CourseData, _1: HorseParameters, extra: RaceParameters) =>
-      extra.mood + 3,
+    (_0: CourseData, _1: HorseParameters, extra: RaceParameters) => extra.mood + 3,
   ), // go from -2 to 2 to 1-5 scale
   near_count: noopErlangRandom(3, 2.0),
   order: orderFilter((pos: number, _: number) => pos),
-  order_rate: orderFilter((rate: number, numUmas: number) =>
-    Math.round(numUmas * (rate / 100.0)),
-  ),
+  order_rate: orderFilter((rate: number, numUmas: number) => Math.round(numUmas * (rate / 100.0))),
   order_rate_in20_continue: orderInFilter(0.2),
   order_rate_in40_continue: orderInFilter(0.4),
   order_rate_in50_continue: orderInFilter(0.5),
@@ -1655,10 +1471,7 @@ export const Conditions: { [cond: string]: Condition } = {
       if (phase <= 0) {
         throw new Error('phase == 0');
       }
-      const bounds = new Region(
-        0,
-        CourseHelpers.phaseStart(course.distance, phase),
-      );
+      const bounds = new Region(0, CourseHelpers.phaseStart(course.distance, phase));
       return regions.rmap((r) => r.intersect(bounds));
     },
     filterLte(
@@ -1669,10 +1482,7 @@ export const Conditions: { [cond: string]: Condition } = {
       _extra: RaceParameters,
     ) {
       CourseHelpers.assertIsPhase(phase);
-      const bounds = new Region(
-        0,
-        CourseHelpers.phaseEnd(course.distance, phase),
-      );
+      const bounds = new Region(0, CourseHelpers.phaseEnd(course.distance, phase));
       return regions.rmap((r) => r.intersect(bounds));
     },
     filterGt(
@@ -1700,10 +1510,7 @@ export const Conditions: { [cond: string]: Condition } = {
       _extra: RaceParameters,
     ) {
       CourseHelpers.assertIsPhase(phase);
-      const bounds = new Region(
-        CourseHelpers.phaseStart(course.distance, phase),
-        course.distance,
-      );
+      const bounds = new Region(CourseHelpers.phaseStart(course.distance, phase), course.distance);
       return regions.rmap((r) => r.intersect(bounds));
     },
   },
@@ -1725,11 +1532,7 @@ export const Conditions: { [cond: string]: Condition } = {
             (c.start + c.length >= phaseStart && c.start + c.length < phaseEnd),
         )
         .map(
-          (c) =>
-            new Region(
-              Math.max(c.start, phaseStart),
-              Math.min(c.start + c.length, phaseEnd),
-            ),
+          (c) => new Region(Math.max(c.start, phaseStart), Math.min(c.start + c.length, phaseEnd)),
         );
       return regions.rmap((r) => corners.map((c) => r.intersect(c)));
     },
@@ -1837,8 +1640,8 @@ export const Conditions: { [cond: string]: Condition } = {
       CourseHelpers.assertIsPhase(phase);
 
       const phaseBounds = new Region(
-        CourseHelpers.phaseStart(course.distance, phase as IPhase),
-        CourseHelpers.phaseEnd(course.distance, phase as IPhase),
+        CourseHelpers.phaseStart(course.distance, phase),
+        CourseHelpers.phaseEnd(course.distance, phase),
       );
 
       return regions
@@ -1867,10 +1670,10 @@ export const Conditions: { [cond: string]: Condition } = {
         _1: HorseParameters,
         extra: RaceParameters,
       ) {
-        return [
-          regions,
-          (s: RaceState) => gateBlock(s, extra.numUmas || 9) == post,
-        ] as [RegionList, DynamicCondition];
+        return [regions, (s: RaceState) => gateBlock(s, extra.numUmas || 9) == post] as [
+          RegionList,
+          DynamicCondition,
+        ];
       },
       filterLte(
         regions: RegionList,
@@ -1879,10 +1682,10 @@ export const Conditions: { [cond: string]: Condition } = {
         _1: HorseParameters,
         extra: RaceParameters,
       ) {
-        return [
-          regions,
-          (s: RaceState) => gateBlock(s, extra.numUmas || 9) <= post,
-        ] as [RegionList, DynamicCondition];
+        return [regions, (s: RaceState) => gateBlock(s, extra.numUmas || 9) <= post] as [
+          RegionList,
+          DynamicCondition,
+        ];
       },
       filterGte(
         regions: RegionList,
@@ -1891,10 +1694,10 @@ export const Conditions: { [cond: string]: Condition } = {
         _1: HorseParameters,
         extra: RaceParameters,
       ) {
-        return [
-          regions,
-          (s: RaceState) => gateBlock(s, extra.numUmas || 9) >= post,
-        ] as [RegionList, DynamicCondition];
+        return [regions, (s: RaceState) => gateBlock(s, extra.numUmas || 9) >= post] as [
+          RegionList,
+          DynamicCondition,
+        ];
       },
     });
   })(),
@@ -1906,10 +1709,7 @@ export const Conditions: { [cond: string]: Condition } = {
       _1: HorseParameters,
       _extra: RaceParameters,
     ) {
-      return [regions, (s: RaceState) => s.randomLot < lot] as [
-        RegionList,
-        DynamicCondition,
-      ];
+      return [regions, (s: RaceState) => s.randomLot < lot] as [RegionList, DynamicCondition];
     },
   }),
   remain_distance: immediate({
@@ -1920,10 +1720,7 @@ export const Conditions: { [cond: string]: Condition } = {
       _: HorseParameters,
       _extra: RaceParameters,
     ) {
-      const bounds = new Region(
-        course.distance - remain,
-        course.distance - remain + 1,
-      );
+      const bounds = new Region(course.distance - remain, course.distance - remain + 1);
       return regions.rmap((r) => r.intersect(bounds));
     },
     filterLte(
@@ -1948,8 +1745,7 @@ export const Conditions: { [cond: string]: Condition } = {
     },
   }),
   rotation: valueFilter(
-    (course: CourseData, _: HorseParameters, _extra: RaceParameters) =>
-      course.turn,
+    (course: CourseData, _: HorseParameters, _extra: RaceParameters) => course.turn,
   ),
   running_style: immediate({
     filterEq(
@@ -1995,10 +1791,7 @@ export const Conditions: { [cond: string]: Condition } = {
   running_style_temptation_count_sashi: noopSectionRandom(2, 9),
   running_style_temptation_count_oikomi: noopSectionRandom(2, 9),
   same_skill_horse_count: noopImmediate,
-  season: valueFilter(
-    (_0: CourseData, _1: HorseParameters, extra: RaceParameters) =>
-      extra.season,
-  ),
+  season: valueFilter((_0: CourseData, _1: HorseParameters, extra: RaceParameters) => extra.season),
   slope: immediate({
     filterEq(
       regions: RegionList,
@@ -2019,8 +1812,7 @@ export const Conditions: { [cond: string]: Condition } = {
 
       let lastEnd = 0;
       const slopes = course.slopes.filter(
-        (s) =>
-          (slopeType != 2 && s.slope > 0) || (slopeType != 1 && s.slope < 0),
+        (s) => (slopeType != 2 && s.slope > 0) || (slopeType != 1 && s.slope < 0),
       );
       const slopeR =
         slopeType == 0
@@ -2048,9 +1840,7 @@ export const Conditions: { [cond: string]: Condition } = {
         throw new Error('frontType must be 1 or 2');
       }
 
-      const straights = course.straights.filter(
-        (s) => s.frontType == frontType,
-      );
+      const straights = course.straights.filter((s) => s.frontType == frontType);
       return regions.rmap((r) => straights.map((s) => r.intersect(s)));
     },
   }),
@@ -2077,12 +1867,9 @@ export const Conditions: { [cond: string]: Condition } = {
   temptation_count: noopImmediate,
   temptation_count_behind: noopSectionRandom(2, 9),
   temptation_count_infront: noopSectionRandom(2, 9),
-  time: valueFilter(
-    (_0: CourseData, _1: HorseParameters, extra: RaceParameters) => extra.time,
-  ),
+  time: valueFilter((_0: CourseData, _1: HorseParameters, extra: RaceParameters) => extra.time),
   track_id: valueFilter(
-    (course: CourseData, _: HorseParameters, _extra: RaceParameters) =>
-      course.raceTrackId,
+    (course: CourseData, _: HorseParameters, _extra: RaceParameters) => course.raceTrackId,
   ),
   up_slope_random: random({
     filterEq(
@@ -2103,7 +1890,6 @@ export const Conditions: { [cond: string]: Condition } = {
   }),
   visiblehorse: noopImmediate,
   weather: valueFilter(
-    (_0: CourseData, _1: HorseParameters, extra: RaceParameters) =>
-      extra.weather,
+    (_0: CourseData, _1: HorseParameters, extra: RaceParameters) => extra.weather,
   ),
 };

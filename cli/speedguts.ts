@@ -1,8 +1,8 @@
 import fs from 'node:fs';
 import { Option, program } from 'commander';
-import type { RaceRunner } from '@/modules/simulation/lib/RaceRunner';
-import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
-import { RaceRunnerBuilder } from '@/modules/simulation/lib/RaceRunnerBuilder';
+import type { RaceSolver } from '@/modules/simulation/lib/RaceSolver';
+import { CourseHelpers } from '@/modules/simulation/lib/CourseData';
+import { RaceSolverBuilder } from '@/modules/simulation/lib/RaceSolverBuilder';
 
 program
   .argument('<horsefile>', "path to a JSON file describing the horse's parameters")
@@ -45,7 +45,7 @@ const course = CourseHelpers.getCourse(opts.course);
 const desc = JSON.parse(fs.readFileSync(program.args[0], 'utf8'));
 
 function buildSolver(speed: number, guts: number) {
-  const b = new RaceRunnerBuilder(1)
+  const b = new RaceSolverBuilder(1)
     .seed(seed)
     .course(course)
     .ground(opts.ground)
@@ -55,7 +55,7 @@ function buildSolver(speed: number, guts: number) {
     .withStaminaSyoubu();
 
   desc.skills.forEach((id: string) => b.addSkill(id));
-  return b.build().next().value as RaceRunner;
+  return b.build().next().value as RaceSolver;
 }
 
 const min = buildSolver(opts.speedRange[0], opts.gutsRange[0]);
