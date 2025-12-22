@@ -3,6 +3,7 @@
     "tsBuildInfoFile": "./.cache/tsconfig.tsbuildinfo",
     // Environment setup & latest features
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "types": ["vite/client", "bun"],
     "target": "ESNext",
     "module": "Preserve",
     "moduleDetection": "force",
@@ -40,5 +41,5 @@
       "@cli/*": ["./cli/*"]
     }
   },
-  "include": ["src", "vite.config.ts", "cli", "scripts"]
+  "include": ["src", "cli", "scripts", "eslint-config", "eslint.config.ts", "vite.config.ts"]
 }
