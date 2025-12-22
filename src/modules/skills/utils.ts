@@ -3,13 +3,13 @@ import skillMetaList from '@data/skill_meta.json';
 import skillNamesList from '@data/skillnames.json';
 import GametoraSkills from '@data/gametora/skills.json';
 
-import { SkillRarity } from '@simulation/lib/race-solver/types';
-import { treeMatch } from '@simulation/lib/tools/ConditionMatcher';
+import { treeMatch } from '../simulation/lib/skills/activation/ConditionMatcher';
 import { parseSkillCondition, tokenizedConditions } from './conditions';
-import type { ISkillRarity } from '@simulation/lib/race-solver/types';
-import type { SkillAlternative } from '../simulation/lib/RaceSolverBuilder';
+import type { ISkillRarity } from '@/modules/simulation/lib/skills/types';
+import type { SkillAlternative } from '@/modules/simulation/lib/skills/utils';
 import type { ISkill } from './types';
 import type { UmaAltId } from '@/modules/runners/utils';
+import { SkillRarity } from '@/modules/simulation/lib/skills/types';
 
 // Types
 
@@ -111,14 +111,10 @@ export function SkillSet(iterable: Array<string>): Set<string> {
 }
 
 export const getBaseSkillsToTest = () => {
-  return Object.keys(skillsDataList).filter(
-    (id) => skillsDataList[id as SkillId]?.rarity < 3,
-  );
+  return Object.keys(skillsDataList).filter((id) => skillsDataList[id as SkillId]?.rarity < 3);
 };
 
-export const translateSkillNamesForLang = (
-  lang: 'en' | 'ja',
-): TranslatedSkillNames => {
+export const translateSkillNamesForLang = (lang: 'en' | 'ja'): TranslatedSkillNames => {
   return Object.entries(skillNamesList).reduce((acc, [key, value]) => {
     const translatedValue = value[lang === 'en' ? 0 : 1];
 
@@ -259,9 +255,7 @@ const generateSkillFilterLookUp = () => {
       const conditions = tokenizedConditions[skill.id];
       if (!conditions) continue;
 
-      const matches = ops.some((op) =>
-        conditions.some((alt) => treeMatch(op, alt)),
-      );
+      const matches = ops.some((op) => conditions.some((alt) => treeMatch(op, alt)));
 
       if (matches) {
         filterLookup[filterKey].add(skill.id);
@@ -315,10 +309,7 @@ export function estimateSkillActivationPhase(skillId: string): number | null {
   }
 
   // is_finalcorner or is_last_straight typically means late race
-  if (
-    condition.includes('is_finalcorner') ||
-    condition.includes('is_last_straight')
-  ) {
+  if (condition.includes('is_finalcorner') || condition.includes('is_last_straight')) {
     return 2;
   }
 
@@ -327,9 +318,7 @@ export function estimateSkillActivationPhase(skillId: string): number | null {
 
 export const getGeneVersionSkillId = (skillId: string): string => {
   const baseSkillId = getBaseSkillId(skillId);
-  const skill: ISkill = GametoraSkills.find(
-    (s) => s.id === parseInt(baseSkillId),
-  );
+  const skill: ISkill = GametoraSkills.find((s) => s.id === parseInt(baseSkillId));
   if (!skill) return skillId;
 
   const geneVersionId = skill.gene_version?.id;
@@ -341,9 +330,7 @@ export const getGeneVersionSkillId = (skillId: string): string => {
 
 export const getUmaForUniqueSkill = (skillId: string): string => {
   const baseSkillId = getBaseSkillId(skillId);
-  const skill: ISkill = GametoraSkills.find(
-    (s) => s.id === parseInt(baseSkillId),
-  );
+  const skill: ISkill = GametoraSkills.find((s) => s.id === parseInt(baseSkillId));
   if (!skill) {
     throw new Error(`Skill not found: ${skillId}`);
   }

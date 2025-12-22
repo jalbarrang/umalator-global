@@ -1,20 +1,19 @@
 import { useMemo } from 'react';
-import { buildBaseStats } from '@simulation/lib/RaceSolverBuilder';
+import { buildBaseStats } from '@simulation/lib/runner/utils';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
+import { calculateGutsModifier, calculateMaxHP } from '@/modules/simulation/lib/core/formulas';
 import {
   HpConsumptionGroundModifier,
   HpStrategyCoefficient,
-} from '@/modules/simulation/lib/HpPolicy';
-import { Speed } from '@/modules/simulation/lib/RaceSolver';
-import { CourseHelpers } from '@/modules/simulation/lib/CourseData';
+} from '@/modules/simulation/lib/physics/health/policies/EnhancedHealthPolicy';
+import { Speed } from '@/modules/simulation/lib/core/constants';
 import {
   calculateBaseMidRaceTargetSpeed,
   calculateBaseSpeed,
-  calculateGutsModifier,
-  calculateMaxHP,
   calculateMaxSpurtSpeed,
   calculateRequiredHpForLastSpurt,
-} from '@/modules/simulation/lib/SpurtCalculator';
+} from '@/modules/simulation/lib/physics/health/SpurtCalculator';
 
 export interface PhaseBreakdown {
   phase: string;
@@ -67,21 +66,15 @@ export function calculateStaminaAnalysis(
 
   const gutsModifier = calculateGutsModifier(runnerBaseStats.guts);
   const hpStrategyCoefficient = HpStrategyCoefficient[strategy];
-  const groundModifier =
-    HpConsumptionGroundModifier[course.surface]?.[groundCondition] ?? 1.0;
+  const groundModifier = HpConsumptionGroundModifier[course.surface]?.[groundCondition] ?? 1.0;
 
   const speedStrategyCoefficient = Speed.StrategyPhaseCoefficient[strategy];
-  const distanceProficiencyModifier =
-    Speed.DistanceProficiencyModifier[distanceAptitude];
+  const distanceProficiencyModifier = Speed.DistanceProficiencyModifier[distanceAptitude];
 
   const distance = course.distance;
   const baseSpeed = calculateBaseSpeed(distance);
 
-  const maxHp = calculateMaxHP({
-    coefficient: hpStrategyCoefficient,
-    stamina: runnerBaseStats.stamina,
-    distance: distance,
-  });
+  const maxHp = calculateMaxHP(runnerBaseStats.stamina, hpStrategyCoefficient, distance);
 
   // Calculate speeds for each phase
   const phase0Speed = baseSpeed * speedStrategyCoefficient[EarlyRacePhase];
@@ -116,11 +109,7 @@ export function calculateStaminaAnalysis(
   // HP consumption formula: 20 * (velocity - baseSpeed + 12)² / 144 * groundModifier * gutsModifier
   const calcHpPerSecond = (velocity: number, isLatePhase: boolean) => {
     const guts = isLatePhase ? gutsModifier : 1.0;
-    return (
-      ((20.0 * Math.pow(velocity - baseSpeed + 12.0, 2)) / 144.0) *
-      groundModifier *
-      guts
-    );
+    return ((20.0 * Math.pow(velocity - baseSpeed + 12.0, 2)) / 144.0) * groundModifier * guts;
   };
 
   // Phase 0 (Early-race)

@@ -1,9 +1,5 @@
-import {
-  SkillPerspective,
-  SkillTarget,
-  SkillType,
-} from '@simulation/lib/race-solver/types';
 import type { SkillActivation, SkillActivationMap } from '@simulation/compare.types';
+import { SkillPerspective, SkillTarget, SkillType } from '@/modules/simulation/lib/skills/types';
 
 export class EffectQuery {
   private activations: SkillActivationMap;
@@ -34,17 +30,13 @@ export class EffectQuery {
   // Filter methods become clearer
   getSelfBuffs(): Array<SkillActivation> {
     return this.flatList.filter(
-      (a) =>
-        a.perspective === SkillPerspective.Self &&
-        a.effectTarget === SkillTarget.Self,
+      (a) => a.perspective === SkillPerspective.Self && a.effectTarget === SkillTarget.Self,
     );
   }
 
   getDebuffs(): Array<SkillActivation> {
     return this.flatList.filter(
-      (a) =>
-        a.perspective !== SkillPerspective.Self &&
-        a.effectTarget !== SkillTarget.Self,
+      (a) => a.perspective !== SkillPerspective.Self && a.effectTarget !== SkillTarget.Self,
     );
   }
 
@@ -64,9 +56,7 @@ export class EffectQuery {
 
   getSelfHeals(): Array<SkillActivation> {
     return this.flatList.filter(
-      (a) =>
-        a.perspective === SkillPerspective.Self &&
-        a.effectType === SkillType.Recovery,
+      (a) => a.perspective === SkillPerspective.Self && a.effectType === SkillType.Recovery,
     );
   }
 }

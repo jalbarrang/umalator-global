@@ -1,17 +1,13 @@
 import { create } from 'zustand';
-import { PosKeepMode } from '@simulation/lib/RaceSolver';
-
 
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { useShallow } from 'zustand/shallow';
 import { toast } from 'sonner';
 import { cloneDeep } from 'es-toolkit';
 import { useSettingsStore } from './settings.store';
-import type {
-  RunnerState} from '@/modules/runners/components/runner-card/types';
-import {
-  createRunnerState
-} from '@/modules/runners/components/runner-card/types';
+import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import { PosKeepMode } from '@/modules/simulation/lib/core/constants';
+import { createRunnerState } from '@/modules/runners/components/runner-card/types';
 import {
   getGeneVersionSkillId,
   getUniqueSkillForByUmaId,
@@ -143,10 +139,7 @@ export const setSkillToRunner = (runner: RunnerType, skillId: string) => {
   });
 };
 
-export const swapWithRunner = (
-  fromRunner: RunnerType,
-  toRunner: RunnerType,
-) => {
+export const swapWithRunner = (fromRunner: RunnerType, toRunner: RunnerType) => {
   const state = useRunnersStore.getState();
 
   const fromRunnerState = state[fromRunner];

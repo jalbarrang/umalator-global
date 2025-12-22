@@ -1,13 +1,12 @@
 import { Option, program } from 'commander';
 
-import { getDefaultParser } from '../src/modules/simulation/lib/ConditionParser';
+import skills from '@data/skill_data.json';
+import skillnames from '@data/skillnames.json';
+import { getDefaultParser } from '@/modules/simulation/lib/skills/activation/ConditionParser';
 import {
   mockConditions,
   treeMatch,
-} from '../src/modules/simulation/lib/tools/ConditionMatcher';
-
-import skills from '../src/modules/data/skill_data.json';
-import skillnames from '../src/modules/data/skillnames.json';
+} from '@/modules/simulation/lib/skills/activation/ConditionMatcher';
 
 program
   .argument(
@@ -17,10 +16,7 @@ program
   .option('-P, --pre', 'search only preconditions')
   .option('-X, --exclude-pre', 'do not search preconditions')
   .option('-N, --name', 'search skill names instead of conditions')
-  .option(
-    '-l, --list',
-    'print skill names/ids only (default: also print conditions)',
-  )
+  .option('-l, --list', 'print skill names/ids only (default: also print conditions)')
   .option('-d, --id', 'show skill IDs instead of names')
   .addOption(
     new Option('--lang <language>', 'language for printing skill names')
@@ -36,9 +32,7 @@ const opts = program.opts();
 
 const { parseAny, parse, tokenize } = getDefaultParser(mockConditions);
 
-const match = opts.name
-  ? opts.condition.toUpperCase()
-  : parseAny(tokenize(opts.condition));
+const match = opts.name ? opts.condition.toUpperCase() : parseAny(tokenize(opts.condition));
 
 for (const id in skills) {
   if (id.startsWith('9')) {
@@ -61,9 +55,7 @@ for (const id in skills) {
         : (!opts.excludePre &&
             ef.precondition.length > 0 &&
             treeMatch(match, parse(tokenize(ef.precondition)))) ||
-          (!opts.pre &&
-            ef.condition.length > 0 &&
-            treeMatch(match, parse(tokenize(ef.condition))))
+          (!opts.pre && ef.condition.length > 0 && treeMatch(match, parse(tokenize(ef.condition))))
     ) {
       if (!logged) {
         if (opts.id) {

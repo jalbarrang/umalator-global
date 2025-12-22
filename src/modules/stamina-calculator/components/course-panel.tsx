@@ -1,6 +1,7 @@
-import { GroundCondition } from '@simulation/lib/RaceParameters';
 import { useEffect } from 'react';
 import { useStaminaCalculatorStore } from '../store/stamina-calculator.store';
+import type { IGroundCondition } from '@/modules/simulation/lib/core/types';
+import { GroundConditionName } from '@/modules/simulation/lib/core/types';
 import { Label } from '@/components/ui/label';
 import { TrackSelect } from '@/modules/racetrack/components/track-select';
 import {
@@ -23,13 +24,6 @@ export function CoursePanel() {
     }
   }, [courseId, input.courseId, setInput]);
 
-  const groundConditionLabels = {
-    [GroundCondition.Good]: 'Firm',
-    [GroundCondition.Yielding]: 'Good',
-    [GroundCondition.Soft]: 'Soft',
-    [GroundCondition.Heavy]: 'Heavy',
-  };
-
   return (
     <>
       <div className="text-lg font-semibold">Race Course</div>
@@ -46,7 +40,7 @@ export function CoursePanel() {
             onValueChange={(value) => {
               if (value) {
                 setInput({
-                  groundCondition: parseInt(value) as GroundCondition,
+                  groundCondition: parseInt(value) as IGroundCondition,
                 });
               }
             }}
@@ -56,7 +50,7 @@ export function CoursePanel() {
             </SelectTrigger>
 
             <SelectContent>
-              {Object.entries(groundConditionLabels).map(([value, label]) => (
+              {Object.entries(GroundConditionName).map(([value, label]) => (
                 <SelectItem key={value} value={value}>
                   {label}
                 </SelectItem>

@@ -1,13 +1,15 @@
-import { appendResultsToTable,
+import {
+  appendResultsToTable,
   resetTable,
   setIsSimulationRunning,
   setMetrics,
-  setTable } from '@simulation/stores/uma-basin.store';
-import { CourseHelpers } from '@simulation/lib/CourseData';
+  setTable,
+} from '@simulation/stores/uma-basin.store';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import UmaBasinWorker from '@workers/uma-basin.worker.ts?worker';
 import type { SkillBasinResponse } from '@simulation/types';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
 import {
   defaultSimulationOptions,
   getActivateableSkills,
@@ -17,7 +19,6 @@ import { uniqueSkillIds } from '@/modules/skills/utils';
 import { useRunner, useRunnersStore } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
 import { racedefToParams } from '@/utils/races';
-
 
 const createUmaBasinWorker = () => new UmaBasinWorker();
 
@@ -31,9 +32,7 @@ const WORKER_COUNT = 2;
 const SAMPLES_PER_STAGE = [5, 20, 50, 200];
 
 function removeUniqueSkillsFromRunner(uma: RunnerState): RunnerState {
-  const filteredSkills = uma.skills.filter(
-    (skillId) => !uniqueSkillIds.includes(skillId),
-  );
+  const filteredSkills = uma.skills.filter((skillId) => !uniqueSkillIds.includes(skillId));
 
   return { ...uma, skills: filteredSkills };
 }
@@ -72,8 +71,7 @@ export function useUmaBasinRunner() {
             // Each skill goes through at least stage 1 (5 samples)
             // Filtered skills stop early, remaining go through all stages
             const totalSamples =
-              totalSkillsRef.current *
-              SAMPLES_PER_STAGE.reduce((a, b) => a + b, 0);
+              totalSkillsRef.current * SAMPLES_PER_STAGE.reduce((a, b) => a + b, 0);
 
             setMetrics({
               timeTaken: Math.round(timeTaken),
@@ -125,12 +123,7 @@ export function useUmaBasinRunner() {
     chartWorkersCompletedRef.current = 0;
     const params = racedefToParams(racedef, runner.strategy);
 
-    const skills = getActivateableSkills(
-      uniqueSkillIds,
-      runner,
-      course,
-      params,
-    );
+    const skills = getActivateableSkills(uniqueSkillIds, runner, course, params);
 
     totalSkillsRef.current = skills.length;
 

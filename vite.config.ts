@@ -1,5 +1,3 @@
-// @ts-check
-
 import path from 'node:path';
 import netlify from '@netlify/vite-plugin-tanstack-start';
 import tailwindcss from '@tailwindcss/vite';

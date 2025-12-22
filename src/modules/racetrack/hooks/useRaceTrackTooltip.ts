@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { SimulationRun } from '@simulation/compare.types';
 import type { TooltipData } from '@/modules/racetrack/components/racetrack-tooltip';
-import type { CourseData } from '@/modules/simulation/lib/courses/types';
+import type { CourseData } from '@/modules/simulation/lib/core/types';
 import { binSearch } from '@/utils/algorithims';
 
 type UseRaceTrackTooltipProps = {

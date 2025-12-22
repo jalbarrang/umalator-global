@@ -7,7 +7,7 @@ import type {
   StaminaStats,
   Stats,
 } from '@simulation/compare.types';
-import type { SpurtCandidate } from '@simulation/lib/SpurtCalculator';
+import type { SpurtCandidate } from '@/modules/simulation/lib/physics/health/SpurtCalculator';
 
 type IRaceStore = {
   results: Array<number>;
@@ -85,8 +85,6 @@ export const setIsSimulationRunning = (isSimulationRunning: boolean) => {
   useRaceStore.setState({ isSimulationRunning });
 };
 
-export const setSimulationProgress = (
-  progress: { current: number; total: number } | null,
-) => {
+export const setSimulationProgress = (progress: { current: number; total: number } | null) => {
   useRaceStore.setState({ simulationProgress: progress });
 };

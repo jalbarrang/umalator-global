@@ -1,28 +1,23 @@
-import type { Mood } from '@/modules/simulation/lib/RaceParameters';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-} from '@/components/ui/select';
+import type { IMood } from '@/modules/simulation/lib/core/types';
+import { Mood } from '@/modules/simulation/lib/core/types';
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { asMood } from '@/modules/simulation/lib/RaceParameters';
 
 type MoodSelectProps = {
-  value: Mood;
-  onChange: (value: Mood) => void;
+  value: IMood;
+  onChange: (value: IMood) => void;
   className?: string;
 };
 
 export function MoodSelect(props: MoodSelectProps) {
   const { className = '' } = props;
 
-  const moodValues: Array<{ value: Mood; icon: string; label: string }> = [
-    { value: 2, icon: 'utx_ico_motivation_m_04', label: 'Great' },
-    { value: 1, icon: 'utx_ico_motivation_m_03', label: 'Good' },
-    { value: 0, icon: 'utx_ico_motivation_m_02', label: 'Normal' },
-    { value: -1, icon: 'utx_ico_motivation_m_01', label: 'Bad' },
-    { value: -2, icon: 'utx_ico_motivation_m_00', label: 'Awful' },
+  const moodValues: Array<{ value: IMood; icon: string; label: string }> = [
+    { value: Mood.Great, icon: 'utx_ico_motivation_m_04', label: 'Great' },
+    { value: Mood.Good, icon: 'utx_ico_motivation_m_03', label: 'Good' },
+    { value: Mood.Normal, icon: 'utx_ico_motivation_m_02', label: 'Normal' },
+    { value: Mood.Bad, icon: 'utx_ico_motivation_m_01', label: 'Bad' },
+    { value: Mood.Awful, icon: 'utx_ico_motivation_m_00', label: 'Awful' },
   ];
 
   const handleChange = (value: string | null) => {
@@ -30,18 +25,14 @@ export function MoodSelect(props: MoodSelectProps) {
       return;
     }
 
-    props.onChange(asMood(+value));
+    props.onChange(+value as IMood);
   };
 
   return (
     <Select value={props.value.toString()} onValueChange={handleChange}>
-      <SelectTrigger
-        className={cn('border-none rounded-none shadow-none', className)}
-      >
+      <SelectTrigger className={cn('border-none rounded-none shadow-none', className)}>
         <img
-          src={`/icons/global/${
-            moodValues.find((m) => m.value === props.value)?.icon
-          }.png`}
+          src={`/icons/global/${moodValues.find((m) => m.value === props.value)?.icon}.png`}
           className="w-13 h-5"
         />
       </SelectTrigger>

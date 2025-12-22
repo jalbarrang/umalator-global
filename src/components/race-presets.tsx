@@ -1,12 +1,6 @@
 import dayjs from 'dayjs';
 import { Label } from './ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from './ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { cn } from '@/lib/utils';
 import { usePresetStore } from '@/store/race/preset.store';
 import {
@@ -37,7 +31,7 @@ export const RacePresets = (props: RacePresetsProps) => {
         ground: preset.ground,
         weather: preset.weather,
         season: preset.season,
-        time: preset.time,
+        timeOfDay: preset.time,
       }),
     );
     setSelectedPresetId(value);
@@ -47,15 +41,8 @@ export const RacePresets = (props: RacePresetsProps) => {
     <div className={cn(className)} {...rest}>
       <Label htmlFor="preset-select">Preset:</Label>
 
-      <Select
-        value={selectedPresetId ?? undefined}
-        onValueChange={handleChange}
-      >
-        <SelectTrigger
-          id="preset-select"
-          className="w-full"
-          data-placeholder="Select a preset"
-        >
+      <Select value={selectedPresetId ?? undefined} onValueChange={handleChange}>
+        <SelectTrigger id="preset-select" className="w-full" data-placeholder="Select a preset">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

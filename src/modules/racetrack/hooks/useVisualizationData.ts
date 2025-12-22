@@ -1,24 +1,16 @@
-import { CourseHelpers } from '@simulation/lib/CourseData';
-import { PosKeepMode } from '@simulation/lib/RaceSolver';
 import { useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
-import type {
-  SimulationRun,
-  SkillActivation,
-} from '@/modules/simulation/compare.types';
+import type { SimulationRun, SkillActivation } from '@/modules/simulation/compare.types';
 import type { PosKeepLabel } from '@/utils/races';
+import { SkillType } from '@/modules/simulation/lib/skills/types';
+import { PosKeepMode } from '@/modules/simulation/lib/core/constants';
+import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
 import { RegionDisplayType } from '@/modules/racetrack/types';
-import { SkillType } from '@/modules/simulation/lib/race-solver/types';
 import { getSkillNameById } from '@/modules/skills/utils';
 import { useSettingsStore } from '@/store/settings.store';
 import { useSelectedPacemakerIndices } from '@/store/settings/actions';
 import { useUIStore } from '@/store/ui.store';
-import {
-  colors,
-  pacemakerColors,
-  posKeepColors,
-  rushedColors,
-} from '@/utils/colors';
+import { colors, pacemakerColors, posKeepColors, rushedColors } from '@/utils/colors';
 
 export type RegionData = {
   type: RegionDisplayType;
@@ -206,12 +198,7 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
     }
 
     return pacemakerPosKeepData;
-  }, [
-    chartData,
-    showVirtualPacemakerOnGraph,
-    posKeepMode,
-    selectedPacemakerIndices,
-  ]);
+  }, [chartData, showVirtualPacemakerOnGraph, posKeepMode, selectedPacemakerIndices]);
 
   const competeFightData = useMemo(() => {
     if (!chartData) return [];
@@ -219,10 +206,7 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
 
     const competeFightData = [];
 
-    for (const [
-      umaIndex,
-      competeFightArray,
-    ] of chartData.competeFight.entries()) {
+    for (const [umaIndex, competeFightArray] of chartData.competeFight.entries()) {
       if (competeFightArray.length === 0) continue;
 
       const start = competeFightArray[0];
@@ -247,10 +231,7 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
 
     const leadCompetitionData = [];
 
-    for (const [
-      umaIndex,
-      leadCompetitionArray,
-    ] of chartData.leadCompetition.entries()) {
+    for (const [umaIndex, leadCompetitionArray] of chartData.leadCompetition.entries()) {
       if (!leadCompetitionArray || leadCompetitionArray.length === 0) {
         continue;
       }
@@ -289,14 +270,11 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
         chartData.pacerLeadCompetition[pacemakerIndex] &&
         chartData.pacerLeadCompetition[pacemakerIndex].length > 0
       ) {
-        const leadCompetitionArray =
-          chartData.pacerLeadCompetition[pacemakerIndex];
+        const leadCompetitionArray = chartData.pacerLeadCompetition[pacemakerIndex];
 
         const start = leadCompetitionArray[0] ?? 0;
         const end = leadCompetitionArray[1] ?? 0;
-        const color = pacemakerColors[
-          pacemakerIndex as keyof typeof pacemakerColors
-        ] as {
+        const color = pacemakerColors[pacemakerIndex as keyof typeof pacemakerColors] as {
           stroke: string;
           fill: string;
         };
@@ -312,12 +290,7 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
       }
     }
     return pacemakerLeadCompetitionData;
-  }, [
-    chartData,
-    showVirtualPacemakerOnGraph,
-    posKeepMode,
-    selectedPacemakerIndices,
-  ]);
+  }, [chartData, showVirtualPacemakerOnGraph, posKeepMode, selectedPacemakerIndices]);
 
   const labels = useMemo(() => {
     return [

@@ -1,6 +1,7 @@
-import { PosKeepMode } from '@simulation/lib/RaceSolver';
 import { useMemo } from 'react';
 import { Slider } from '../ui/slider';
+import type { IPosKeepMode } from '@/modules/simulation/lib/core/constants';
+import { PosKeepMode } from '@/modules/simulation/lib/core/constants';
 import {
   setPacemakerCount,
   setSelectedPacemakerIndices,
@@ -29,8 +30,7 @@ export const PositionKeepSettings = () => {
   const selectedPacemakerIndices = useSelectedPacemakerIndices();
 
   const pacemakerNames = useMemo(
-    () =>
-      [...Array(pacemakerCount)].map((_, index) => `Pacemaker ${index + 1}`),
+    () => [...Array(pacemakerCount)].map((_, index) => `Pacemaker ${index + 1}`),
     [pacemakerCount],
   );
 
@@ -39,12 +39,10 @@ export const PositionKeepSettings = () => {
       return;
     }
 
-    setPosKeepMode(+value);
+    setPosKeepMode(+value as IPosKeepMode);
   };
 
-  const handlePacemakerCountChange = (
-    value: number | ReadonlyArray<number>,
-  ) => {
+  const handlePacemakerCountChange = (value: number | ReadonlyArray<number>) => {
     if (!Array.isArray(value)) {
       return;
     }
@@ -63,21 +61,14 @@ export const PositionKeepSettings = () => {
       <div className="flex flex-col gap-1">
         <Label className="text-sm font-semibold">Position Keep</Label>
 
-        <Select
-          value={posKeepMode.toString()}
-          onValueChange={handlePosKeepModeChange}
-        >
+        <Select value={posKeepMode.toString()} onValueChange={handlePosKeepModeChange}>
           <SelectTrigger className="w-full">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={PosKeepMode.None.toString()}>None</SelectItem>
-            <SelectItem value={PosKeepMode.Approximate.toString()}>
-              Approximate
-            </SelectItem>
-            <SelectItem value={PosKeepMode.Virtual.toString()}>
-              Virtual Pacemaker
-            </SelectItem>
+            <SelectItem value={PosKeepMode.Approximate.toString()}>Approximate</SelectItem>
+            <SelectItem value={PosKeepMode.Virtual.toString()}>Virtual Pacemaker</SelectItem>
           </SelectContent>
         </Select>
       </div>

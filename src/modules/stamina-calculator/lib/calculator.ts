@@ -3,24 +3,25 @@
  * Used by both the worker and potentially for server-side calculations
  */
 
-import { CourseHelpers } from '@simulation/lib/CourseData';
-import {
-  HpConsumptionGroundModifier,
-  HpStrategyCoefficient,
-} from '@simulation/lib/HpPolicy';
-import { Acceleration, Speed } from '@simulation/lib/RaceSolver';
-import {
-  buildBaseStats,
-  parseAptitude,
-  parseStrategy,
-} from '@simulation/lib/RaceSolverBuilder';
 import type {
   PhaseBreakdownRow,
   SkillEffect,
   StaminaCalculationResult,
   StaminaCalculatorInput,
 } from '../types';
+import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
+
 import skillData from '@/modules/data/skill_data.json';
+import { Acceleration, Speed } from '@/modules/simulation/lib/core/constants';
+import {
+  buildBaseStats,
+  parseAptitude,
+  parseStrategy,
+} from '@/modules/simulation/lib/runner/utils';
+import {
+  HpConsumptionGroundModifier,
+  HpStrategyCoefficient,
+} from '@/modules/simulation/lib/physics/health/policies/EnhancedHealthPolicy';
 
 const BaseAccel = 0.0006;
 const UphillBaseAccel = 0.0004;
@@ -69,16 +70,11 @@ function getSkillEffects(
     const skillName = skillObj.name || skillId;
 
     // Check if skill has alternatives array
-    if (!skillObj.alternatives || !Array.isArray(skillObj.alternatives))
-      continue;
+    if (!skillObj.alternatives || !Array.isArray(skillObj.alternatives)) continue;
 
     // Look for recovery effects (type 9) in the first alternative
     const firstAlternative = skillObj.alternatives[0];
-    if (
-      !firstAlternative ||
-      !firstAlternative.effects ||
-      !Array.isArray(firstAlternative.effects)
-    )
+    if (!firstAlternative || !firstAlternative.effects || !Array.isArray(firstAlternative.effects))
       continue;
 
     for (const effect of firstAlternative.effects) {
@@ -114,10 +110,7 @@ function calculateHpPerSecond(
 ): number {
   const guts = inSpurtPhase ? gutsModifier : 1.0;
   return (
-    ((20.0 * Math.pow(velocity - baseSpeed + 12.0, 2)) / 144.0) *
-    statusModifier *
-    groundCoef *
-    guts
+    ((20.0 * Math.pow(velocity - baseSpeed + 12.0, 2)) / 144.0) * statusModifier * groundCoef * guts
   );
 }
 
@@ -134,26 +127,16 @@ function calculateAcceleration(
 ): number {
   const baseAccel = isUphill ? UphillBaseAccel : BaseAccel;
   const strategyCoef = Acceleration.StrategyPhaseCoefficient[strategy][phase];
-  const groundTypeCoef =
-    Acceleration.GroundTypeProficiencyModifier[surfaceAptitude];
-  const distanceCoef =
-    Acceleration.DistanceProficiencyModifier[distanceAptitude];
+  const groundTypeCoef = Acceleration.GroundTypeProficiencyModifier[surfaceAptitude];
+  const distanceCoef = Acceleration.DistanceProficiencyModifier[distanceAptitude];
 
-  return (
-    baseAccel *
-    Math.sqrt(500.0 * power) *
-    strategyCoef *
-    groundTypeCoef *
-    distanceCoef
-  );
+  return baseAccel * Math.sqrt(500.0 * power) * strategyCoef * groundTypeCoef * distanceCoef;
 }
 
 /**
  * Main calculation function
  */
-export function calculateStaminaResult(
-  input: StaminaCalculatorInput,
-): StaminaCalculationResult {
+export function calculateStaminaResult(input: StaminaCalculatorInput): StaminaCalculationResult {
   // Parse aptitudes and strategy
   const strategy = parseStrategy(input.strategy);
   const distanceAptitude = parseAptitude(input.distanceAptitude, 'distance');
@@ -188,12 +171,10 @@ export function calculateStaminaResult(
   };
 
   // Calculate max HP
-  const maxHp =
-    0.8 * HpStrategyCoefficient[strategy] * adjustedStats.stamina + distance;
+  const maxHp = 0.8 * HpStrategyCoefficient[strategy] * adjustedStats.stamina + distance;
 
   // Get ground consumption modifier
-  const groundCoef =
-    HpConsumptionGroundModifier[course.surface]?.[input.groundCondition] ?? 1.0;
+  const groundCoef = HpConsumptionGroundModifier[course.surface]?.[input.groundCondition] ?? 1.0;
 
   // Calculate guts modifier (for late-race/spurt)
   const gutsModifier = 1.0 + 200.0 / Math.sqrt(600.0 * adjustedStats.guts);
@@ -233,13 +214,8 @@ export function calculateStaminaResult(
     hpChange: -Math.abs(effect.hpChange), // Ensure debuffs are negative
   }));
 
-  const totalRecovery = recoverySkillEffects.reduce(
-    (sum, effect) => sum + effect.hpChange,
-    0,
-  );
-  const totalDrain = Math.abs(
-    debuffSkillEffects.reduce((sum, effect) => sum + effect.hpChange, 0),
-  );
+  const totalRecovery = recoverySkillEffects.reduce((sum, effect) => sum + effect.hpChange, 0);
+  const totalDrain = Math.abs(debuffSkillEffects.reduce((sum, effect) => sum + effect.hpChange, 0));
   const netHpEffect = totalRecovery - totalDrain;
 
   // Calculate detailed phase breakdown
@@ -248,27 +224,15 @@ export function calculateStaminaResult(
   // Start Dash phase
   const startDashAccel =
     24.0 +
-    calculateAcceleration(
-      adjustedStats.power,
-      strategy,
-      0,
-      surfaceAptitude,
-      distanceAptitude,
-    );
+    calculateAcceleration(adjustedStats.power, strategy, 0, surfaceAptitude, distanceAptitude);
   const startDashEndSpeed = 0.85 * baseSpeed;
   const startDashTime = (startDashEndSpeed - 3.0) / startDashAccel;
   const startDashDistance =
     3.0 * startDashTime + 0.5 * startDashAccel * startDashTime * startDashTime;
   const startDashAvgSpeed = (3.0 + startDashEndSpeed) / 2;
   const startDashHp =
-    calculateHpPerSecond(
-      startDashAvgSpeed,
-      baseSpeed,
-      groundCoef,
-      gutsModifier,
-      1.0,
-      false,
-    ) * startDashTime;
+    calculateHpPerSecond(startDashAvgSpeed, baseSpeed, groundCoef, gutsModifier, 1.0, false) *
+    startDashTime;
 
   phases.push({
     phaseName: 'Starting Gate',
@@ -290,18 +254,11 @@ export function calculateStaminaResult(
   );
   const phase0AccelTime = (phase0Speed - startDashEndSpeed) / phase0Accel;
   const phase0AccelDistance =
-    startDashEndSpeed * phase0AccelTime +
-    0.5 * phase0Accel * phase0AccelTime * phase0AccelTime;
+    startDashEndSpeed * phase0AccelTime + 0.5 * phase0Accel * phase0AccelTime * phase0AccelTime;
   const phase0AccelAvgSpeed = (startDashEndSpeed + phase0Speed) / 2;
   const phase0AccelHp =
-    calculateHpPerSecond(
-      phase0AccelAvgSpeed,
-      baseSpeed,
-      groundCoef,
-      gutsModifier,
-      1.0,
-      false,
-    ) * phase0AccelTime;
+    calculateHpPerSecond(phase0AccelAvgSpeed, baseSpeed, groundCoef, gutsModifier, 1.0, false) *
+    phase0AccelTime;
 
   phases.push({
     phaseName: 'Early-race (Accelerating)',
@@ -315,20 +272,11 @@ export function calculateStaminaResult(
 
   // Phase 0 (Early-race) - Top Speed
   const phase0Distance = distance / 6;
-  const phase0TopDistance = Math.max(
-    0,
-    phase0Distance - startDashDistance - phase0AccelDistance,
-  );
+  const phase0TopDistance = Math.max(0, phase0Distance - startDashDistance - phase0AccelDistance);
   const phase0TopTime = phase0TopDistance / phase0Speed;
   const phase0TopHp =
-    calculateHpPerSecond(
-      phase0Speed,
-      baseSpeed,
-      groundCoef,
-      gutsModifier,
-      1.0,
-      false,
-    ) * phase0TopTime;
+    calculateHpPerSecond(phase0Speed, baseSpeed, groundCoef, gutsModifier, 1.0, false) *
+    phase0TopTime;
 
   phases.push({
     phaseName: 'Early-race (Top Speed)',
@@ -350,18 +298,11 @@ export function calculateStaminaResult(
   );
   const phase1AccelTime = (phase1Speed - phase0Speed) / phase1Accel;
   const phase1AccelDistance =
-    phase0Speed * phase1AccelTime +
-    0.5 * phase1Accel * phase1AccelTime * phase1AccelTime;
+    phase0Speed * phase1AccelTime + 0.5 * phase1Accel * phase1AccelTime * phase1AccelTime;
   const phase1AccelAvgSpeed = (phase0Speed + phase1Speed) / 2;
   const phase1AccelHp =
-    calculateHpPerSecond(
-      phase1AccelAvgSpeed,
-      baseSpeed,
-      groundCoef,
-      gutsModifier,
-      1.0,
-      false,
-    ) * phase1AccelTime;
+    calculateHpPerSecond(phase1AccelAvgSpeed, baseSpeed, groundCoef, gutsModifier, 1.0, false) *
+    phase1AccelTime;
 
   phases.push({
     phaseName: 'Mid-race (Accelerating)',
@@ -378,14 +319,8 @@ export function calculateStaminaResult(
   const phase1TopDistance = Math.max(0, phase1Distance - phase1AccelDistance);
   const phase1TopTime = phase1TopDistance / phase1Speed;
   const phase1TopHp =
-    calculateHpPerSecond(
-      phase1Speed,
-      baseSpeed,
-      groundCoef,
-      gutsModifier,
-      1.0,
-      false,
-    ) * phase1TopTime;
+    calculateHpPerSecond(phase1Speed, baseSpeed, groundCoef, gutsModifier, 1.0, false) *
+    phase1TopTime;
 
   phases.push({
     phaseName: 'Mid-race (Top Speed)',
@@ -407,18 +342,11 @@ export function calculateStaminaResult(
   );
   const phase2AccelTime = (maxSpurtSpeed - phase1Speed) / phase2Accel;
   const phase2AccelDistance =
-    phase1Speed * phase2AccelTime +
-    0.5 * phase2Accel * phase2AccelTime * phase2AccelTime;
+    phase1Speed * phase2AccelTime + 0.5 * phase2Accel * phase2AccelTime * phase2AccelTime;
   const phase2AccelAvgSpeed = (phase1Speed + maxSpurtSpeed) / 2;
   const phase2AccelHp =
-    calculateHpPerSecond(
-      phase2AccelAvgSpeed,
-      baseSpeed,
-      groundCoef,
-      gutsModifier,
-      1.0,
-      true,
-    ) * phase2AccelTime;
+    calculateHpPerSecond(phase2AccelAvgSpeed, baseSpeed, groundCoef, gutsModifier, 1.0, true) *
+    phase2AccelTime;
 
   phases.push({
     phaseName: 'Late-race (Accelerating)',
@@ -435,14 +363,8 @@ export function calculateStaminaResult(
   const phase2TopDistance = Math.max(0, phase2Distance - phase2AccelDistance);
   const phase2TopTime = phase2TopDistance / maxSpurtSpeed;
   const phase2TopHp =
-    calculateHpPerSecond(
-      maxSpurtSpeed,
-      baseSpeed,
-      groundCoef,
-      gutsModifier,
-      1.0,
-      true,
-    ) * phase2TopTime;
+    calculateHpPerSecond(maxSpurtSpeed, baseSpeed, groundCoef, gutsModifier, 1.0, true) *
+    phase2TopTime;
 
   phases.push({
     phaseName: 'Late-race (Top Speed)',
@@ -483,14 +405,8 @@ export function calculateStaminaResult(
   const phase3TopDistance = Math.max(0, phase3Distance - phase3AccelDistance);
   const phase3TopTime = phase3TopDistance / maxSpurtSpeed;
   const phase3TopHp =
-    calculateHpPerSecond(
-      maxSpurtSpeed,
-      baseSpeed,
-      groundCoef,
-      gutsModifier,
-      1.0,
-      true,
-    ) * phase3TopTime;
+    calculateHpPerSecond(maxSpurtSpeed, baseSpeed, groundCoef, gutsModifier, 1.0, true) *
+    phase3TopTime;
 
   phases.push({
     phaseName: 'Last Spurt (Top Speed)',
@@ -503,17 +419,13 @@ export function calculateStaminaResult(
   });
 
   // Calculate totals
-  const totalHpNeeded = phases.reduce(
-    (sum, phase) => sum + phase.hpConsumption,
-    0,
-  );
+  const totalHpNeeded = phases.reduce((sum, phase) => sum + phase.hpConsumption, 0);
   const hpRemaining = maxHp + netHpEffect - totalHpNeeded;
   const canMaxSpurt = hpRemaining >= 0;
 
   // Calculate required stamina
   const requiredStamina = Math.ceil(
-    (totalHpNeeded - netHpEffect - distance) /
-      (0.8 * HpStrategyCoefficient[strategy]),
+    (totalHpNeeded - netHpEffect - distance) / (0.8 * HpStrategyCoefficient[strategy]),
   );
   const staminaDeficit = Math.max(0, requiredStamina - adjustedStats.stamina);
 

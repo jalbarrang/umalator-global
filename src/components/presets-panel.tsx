@@ -3,12 +3,7 @@ import { Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  Panel,
-  PanelContent,
-  PanelHeader,
-  PanelTitle,
-} from '@/components/ui/panel';
+import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/ui/panel';
 import { deletePreset, usePresetStore } from '@/store/race/preset.store';
 import {
   setCourseId,
@@ -47,7 +42,7 @@ export const PresetsPanel = () => {
         ground: preset.ground,
         weather: preset.weather,
         season: preset.season,
-        time: preset.time,
+        timeOfDay: preset.time,
       }),
     );
     setSelectedPresetId(presetId);
@@ -86,9 +81,7 @@ export const PresetsPanel = () => {
         <PanelContent className="p-0">
           {presetList.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-8 text-center">
-              <p className="text-sm text-muted-foreground">
-                No presets saved yet.
-              </p>
+              <p className="text-sm text-muted-foreground">No presets saved yet.</p>
               <p className="text-xs text-muted-foreground mt-2">
                 Save your race settings as presets for quick access.
               </p>

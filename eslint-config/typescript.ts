@@ -5,10 +5,7 @@ import type { Linter } from 'eslint';
  */
 export const typescriptRules: Linter.RulesRecord = {
   /** Prefer Array<T> format */
-  '@typescript-eslint/array-type': [
-    'error',
-    { default: 'generic', readonly: 'generic' },
-  ],
+  '@typescript-eslint/array-type': ['error', { default: 'generic', readonly: 'generic' }],
   /** Prevent @ts-ignore, allow @ts-expect-error */
   '@typescript-eslint/ban-ts-comment': [
     'error',
@@ -18,10 +15,7 @@ export const typescriptRules: Linter.RulesRecord = {
     },
   ],
   /** Enforce import type { T } */
-  '@typescript-eslint/consistent-type-imports': [
-    'error',
-    { prefer: 'type-imports' },
-  ],
+  '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports' }],
   /** Shorthand method style is less strict */
   '@typescript-eslint/method-signature-style': ['error', 'property'],
   /** Enforces generic type convention */
@@ -45,10 +39,7 @@ export const typescriptRules: Linter.RulesRecord = {
   /** There are several potential bugs with this compared to other loops */
   '@typescript-eslint/no-for-in-array': 'error',
   /** Don't over-define types for simple things like strings */
-  '@typescript-eslint/no-inferrable-types': [
-    'error',
-    { ignoreParameters: true },
-  ],
+  '@typescript-eslint/no-inferrable-types': ['error', { ignoreParameters: true }],
   /** Enforce valid definition of new and constructor */
   '@typescript-eslint/no-misused-new': 'error',
   /** Disallow TypeScript namespaces */
@@ -66,7 +57,7 @@ export const typescriptRules: Linter.RulesRecord = {
   /** Enforce the use of as const over literal type */
   '@typescript-eslint/prefer-as-const': 'error',
   /** Prefer for-of loop over the standard for loop */
-  '@typescript-eslint/prefer-for-of': 'warn',
+  // '@typescript-eslint/prefer-for-of': 'warn',
   /** Warn about async functions which have no await expression */
   '@typescript-eslint/require-await': 'warn',
   /** Prefer of ES6-style import declarations */

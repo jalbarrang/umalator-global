@@ -2,6 +2,7 @@ import dayjs from 'dayjs';
 import { BookmarkPlus, CalendarIcon } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import type { IEventType } from '@/utils/races';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -16,11 +17,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
@@ -28,11 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  addPreset,
-  updatePreset,
-  usePresetStore,
-} from '@/store/race/preset.store';
+import { addPreset, updatePreset, usePresetStore } from '@/store/race/preset.store';
 import { setSelectedPresetId, useSettingsStore } from '@/store/settings.store';
 import { EventType } from '@/utils/races';
 
@@ -40,7 +33,7 @@ export const SavePresetModal = () => {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [date, setDate] = useState<Date | undefined>(new Date());
-  const [eventType, setEventType] = useState<EventType>(EventType.CM);
+  const [eventType, setEventType] = useState<IEventType>(EventType.CM);
   const [calendarOpen, setCalendarOpen] = useState(false);
 
   const { courseId, racedef } = useSettingsStore();
@@ -91,7 +84,7 @@ export const SavePresetModal = () => {
       ground: racedef.ground,
       weather: racedef.weather,
       season: racedef.season,
-      time: racedef.time,
+      time: racedef.timeOfDay,
     });
 
     toast.success('Preset updated successfully!');
@@ -122,7 +115,7 @@ export const SavePresetModal = () => {
       ground: racedef.ground,
       weather: racedef.weather,
       season: racedef.season,
-      time: racedef.time,
+      time: racedef.timeOfDay,
     });
 
     setSelectedPresetId(newId);
@@ -144,9 +137,7 @@ export const SavePresetModal = () => {
 
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>
-            {isUpdating ? 'Update Preset' : 'Save Race Preset'}
-          </DialogTitle>
+          <DialogTitle>{isUpdating ? 'Update Preset' : 'Save Race Preset'}</DialogTitle>
           <DialogDescription>
             {isUpdating
               ? 'Update the existing preset or save as a new one.'
@@ -198,20 +189,14 @@ export const SavePresetModal = () => {
             <Label htmlFor="event-type">Event Type</Label>
             <Select
               value={eventType.toString()}
-              onValueChange={(value) =>
-                setEventType(Number(value) as EventType)
-              }
+              onValueChange={(value) => setEventType(Number(value) as IEventType)}
             >
               <SelectTrigger id="event-type">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={EventType.CM.toString()}>
-                  Champions Meeting (CM)
-                </SelectItem>
-                <SelectItem value={EventType.LOH.toString()}>
-                  Legend of Heroes (LOH)
-                </SelectItem>
+                <SelectItem value={EventType.CM.toString()}>Champions Meeting (CM)</SelectItem>
+                <SelectItem value={EventType.LOH.toString()}>Legend of Heroes (LOH)</SelectItem>
               </SelectContent>
             </Select>
           </div>

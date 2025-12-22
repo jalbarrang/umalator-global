@@ -1,5 +1,5 @@
-import { GroundCondition } from '@simulation/lib/RaceParameters';
-import type { Mood} from '@simulation/lib/RaceParameters';
+import type { IGroundCondition, IMood } from '@/modules/simulation/lib/core/types';
+import { GroundCondition } from '@/modules/simulation/lib/core/types';
 
 /**
  * Input state for stamina calculator
@@ -17,11 +17,11 @@ export interface StaminaCalculatorInput {
   distanceAptitude: string;
   surfaceAptitude: string;
   strategyAptitude: string;
-  mood: Mood;
+  mood: IMood;
 
   // Race settings
   courseId: number;
-  groundCondition: GroundCondition;
+  groundCondition: IGroundCondition;
 
   // Skills
   recoverySkills: Array<string>; // HP recovery skill IDs

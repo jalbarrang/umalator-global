@@ -1,10 +1,5 @@
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import type { IGroundCondition } from '@/modules/simulation/lib/core/types';
 import { setRaceParams, useSettingsStore } from '@/store/settings.store';
 
 const groundConditions = {
@@ -22,14 +17,11 @@ export const GroundSelect = () => {
       return;
     }
 
-    setRaceParams({ ...racedef, ground: +value });
+    setRaceParams({ ...racedef, ground: +value as IGroundCondition });
   };
 
   return (
-    <Select
-      value={racedef.ground.toString()}
-      onValueChange={handleChangeGround}
-    >
+    <Select value={racedef.ground.toString()} onValueChange={handleChangeGround}>
       <SelectTrigger className="w-full">
         <SelectValue />
       </SelectTrigger>

@@ -1,13 +1,19 @@
+import type {
+  IGrade,
+  IGroundCondition,
+  IMood,
+  ISeason,
+  ITimeOfDay,
+  IWeather,
+  RaceParameters,
+} from '@/modules/simulation/lib/core/types';
 import {
   Grade,
   GroundCondition,
   Season,
-  Time,
+  TimeOfDay,
   Weather,
-} from '@simulation/lib/RaceParameters';
-import type {
-  Mood,
-  RaceParameters} from '@simulation/lib/RaceParameters';
+} from '@/modules/simulation/lib/core/types';
 
 export type PosKeepLabel = {
   umaIndex: number;
@@ -22,25 +28,30 @@ export type PosKeepLabel = {
 };
 
 export const ORDER_RANGE_FOR_STRATEGY = {
-  Nige: [1, 1],
-  Senkou: [2, 4],
-  Sasi: [5, 9],
-  Oikomi: [5, 9],
-  Oonige: [1, 1],
+  FrontRunner: [1, 1],
+  PaceChaser: [2, 4],
+  LateSurger: [5, 9],
+  EndCloser: [5, 9],
+  Runaway: [1, 1],
 };
 
-export enum EventType {
-  CM,
-  LOH,
-}
+export const EventType = {
+  CM: 0,
+  LOH: 1,
+} as const;
+export type IEventType = (typeof EventType)[keyof typeof EventType];
+export const EventTypeName = {
+  [EventType.CM]: 'CM',
+  [EventType.LOH]: 'LOH',
+} as const;
 
 export type RaceConditions = {
-  mood: Mood;
-  ground: GroundCondition;
-  weather: Weather;
-  season: Season;
-  time: Time;
-  grade: Grade;
+  mood: IMood;
+  ground: IGroundCondition;
+  weather: IWeather;
+  season: ISeason;
+  timeOfDay: ITimeOfDay;
+  grade: IGrade;
 };
 
 export const defaultRaceConditions: RaceConditions = {
@@ -48,13 +59,11 @@ export const defaultRaceConditions: RaceConditions = {
   ground: GroundCondition.Good,
   weather: Weather.Sunny,
   season: Season.Spring,
-  time: Time.Midday,
+  timeOfDay: TimeOfDay.Midday,
   grade: Grade.G1,
 };
 
-export const createRaceConditions = (
-  conditions: Partial<RaceConditions> = {},
-): RaceConditions => {
+export const createRaceConditions = (conditions: Partial<RaceConditions> = {}): RaceConditions => {
   return {
     ...defaultRaceConditions,
     ...conditions,
@@ -64,17 +73,17 @@ export const createRaceConditions = (
 export type RacePreset = {
   id: string;
   name: string;
-  type: EventType;
+  type: IEventType;
   date: string;
   courseId: number;
-  season: Season;
-  ground: GroundCondition;
-  weather: Weather;
-  time: Time;
+  season: ISeason;
+  ground: IGroundCondition;
+  weather: IWeather;
+  time: ITimeOfDay;
 };
 
 export function racedefToParams(
-  { mood, ground, weather, season, time, grade }: RaceConditions,
+  { mood, ground, weather, season, timeOfDay: time, grade }: RaceConditions,
   includeOrder?: string,
 ): RaceParameters {
   let orderForStrategy: [number, number] | undefined = undefined;
@@ -90,7 +99,7 @@ export function racedefToParams(
     groundCondition: ground,
     weather,
     season,
-    time,
+    timeOfDay: time,
     grade,
     popularity: 1,
     skillId: '',

@@ -1,7 +1,7 @@
 import React from 'react';
-import { CourseHelpers } from '@simulation/lib/CourseData';
 import { SectionText } from './section-text';
 import { DistanceMarker } from './distance-marker';
+import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
 
 interface PhaseBarProps {
   distance: number;
@@ -64,13 +64,7 @@ export const PhaseBar = React.memo<PhaseBarProps>(({ distance }) => {
           height="18%"
         >
           <rect x="0" y="0" height="90%" width="100%" fill={phase.mainColor} />
-          <rect
-            x="0"
-            y="90%"
-            height="10%"
-            width="100%"
-            fill={phase.accentColor}
-          />
+          <rect x="0" y="90%" height="10%" width="100%" fill={phase.accentColor} />
           <SectionText id={phase.id} w={phase.w} />
         </svg>
       ))}

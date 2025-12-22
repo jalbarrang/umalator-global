@@ -8,8 +8,7 @@ const { presets: storedPresets } = usePresetStore.getState();
 const presets = Object.values(storedPresets);
 const currentDate = dayjs();
 const currentPresetIndex =
-  presets.findIndex((p) => dayjs(p.date).endOf('month').isBefore(currentDate)) -
-  1;
+  presets.findIndex((p) => dayjs(p.date).endOf('month').isBefore(currentDate)) - 1;
 
 const DEFAULT_PRESET = presets[Math.max(currentPresetIndex, 0)];
 

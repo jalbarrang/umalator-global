@@ -8,21 +8,19 @@ import { VelocityLines } from '@/components/VelocityLines';
 import { RaceTrack } from '@/modules/racetrack/components/RaceTrack';
 import { initializeSimulationRun } from '@/modules/simulation/compare.types';
 import { useSimulationRunner } from '@/modules/simulation/hooks/compare/useSimulationRunner';
-import { CourseHelpers } from '@/modules/simulation/lib/CourseData';
+import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
 import { SimulationResultTabs } from '@/modules/simulation/tabs/simulation-result-tabs';
 import { ResultButtonGroups } from '@/modules/simulation/tabs/summary-tab';
 import { useSettingsStore } from '@/store/settings.store';
 import { useSelectedPacemakerBooleans } from '@/store/settings/actions';
 import { useUIStore } from '@/store/ui.store';
 
-
 export const Route = createFileRoute('/_simulation/')({
   component: Home,
 });
 
 function Home() {
-  const { chartData, results, isSimulationRunning, simulationProgress } =
-    useRaceStore();
+  const { chartData, results, isSimulationRunning, simulationProgress } = useRaceStore();
   const { courseId } = useSettingsStore();
   const { showVirtualPacemakerOnGraph } = useUIStore();
   const selectedPacemakers = useSelectedPacemakerBooleans();
@@ -34,18 +32,10 @@ function Home() {
     <div className="flex flex-col flex-1 gap-4">
       <div className="flex items-center gap-2">
         <ButtonGroup>
-          <Button
-            onClick={handleRunCompare}
-            disabled={isSimulationRunning}
-            variant="default"
-          >
+          <Button onClick={handleRunCompare} disabled={isSimulationRunning} variant="default">
             Run all samples
           </Button>
-          <Button
-            onClick={handleRunOnce}
-            disabled={isSimulationRunning}
-            variant="outline"
-          >
+          <Button onClick={handleRunOnce} disabled={isSimulationRunning} variant="outline">
             Run one sample
           </Button>
           <Button

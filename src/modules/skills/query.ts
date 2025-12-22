@@ -1,6 +1,6 @@
-import { SkillRarity } from '../simulation/lib/race-solver/types';
-import type {Skill} from '@/modules/skills/utils';
-import {  skillFilterLookUp } from '@/modules/skills/utils';
+import type { Skill } from '@/modules/skills/utils';
+import { SkillRarity } from '@/modules/simulation/lib/skills/types';
+import { skillFilterLookUp } from '@/modules/skills/utils';
 
 // A predicate that takes a skill and returns whether it passes
 type SkillPredicate = (skill: Skill) => boolean;
@@ -17,11 +17,7 @@ function fuzzyMatch(pattern: string, target: string): number {
   let score = 0;
   let lastMatchIdx = -1;
 
-  for (
-    let i = 0;
-    i < targetLower.length && patternIdx < patternLower.length;
-    i++
-  ) {
+  for (let i = 0; i < targetLower.length && patternIdx < patternLower.length; i++) {
     if (targetLower[i] === patternLower[patternIdx]) {
       // Bonus for consecutive matches
       if (lastMatchIdx === i - 1) score += 2;
@@ -93,15 +89,10 @@ export class SkillQuery {
    * WHERE skill matches ANY of the provided values (OR within group)
    * Skips if no values are active (no filter applied)
    */
-  whereAny<T>(
-    activeValues: Array<T>,
-    matchFn: (skill: Skill, value: T) => boolean,
-  ): this {
+  whereAny<T>(activeValues: Array<T>, matchFn: (skill: Skill, value: T) => boolean): this {
     if (activeValues.length === 0) return this;
 
-    this.predicates.push((skill) =>
-      activeValues.some((value) => matchFn(skill, value)),
-    );
+    this.predicates.push((skill) => activeValues.some((value) => matchFn(skill, value)));
 
     return this;
   }
@@ -114,9 +105,7 @@ export class SkillQuery {
     if (activeFilters.length === 0) return this;
 
     this.predicates.push((skill) =>
-      activeFilters.some((filterKey) =>
-        skillFilterLookUp[filterKey].has(skill.id),
-      ),
+      activeFilters.some((filterKey) => skillFilterLookUp[filterKey].has(skill.id)),
     );
 
     return this;
@@ -138,9 +127,7 @@ export class SkillQuery {
     // Reset text search state for each execution
     this.textSearchState.allowConditionSearch = true;
 
-    return this.skills.filter((skill) =>
-      this.predicates.every((predicate) => predicate(skill)),
-    );
+    return this.skills.filter((skill) => this.predicates.every((predicate) => predicate(skill)));
   }
 }
 
@@ -173,9 +160,6 @@ export const SkillMatchers = {
     (iconKey: string) =>
     (skill: Skill): boolean => {
       if (!skill.meta) return false;
-      return (
-        iconPrefixes[iconKey]?.some((p) => skill.meta.iconId.startsWith(p)) ??
-        false
-      );
+      return iconPrefixes[iconKey]?.some((p) => skill.meta.iconId.startsWith(p)) ?? false;
     },
 };

@@ -1,8 +1,8 @@
 import SkillsDataList from '@data/skill_data.json';
 
-import { getDefaultParser } from '@simulation/lib/ConditionParser';
-import { mockConditions } from '@simulation/lib/tools/ConditionMatcher';
-import type { Operator } from '@simulation/lib/ActivationConditions';
+import type { Operator } from '@/modules/simulation/lib/skills/activation/ConditionRegistry';
+import { mockConditions } from '@/modules/simulation/lib/skills/activation/ConditionMatcher';
+import { getDefaultParser } from '@/modules/simulation/lib/skills/activation/ConditionParser';
 
 const Parser = getDefaultParser(mockConditions);
 

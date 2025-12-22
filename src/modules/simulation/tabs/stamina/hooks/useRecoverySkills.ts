@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
-import { SkillTarget, SkillType } from '@simulation/lib/race-solver/types';
 import type { SkillActivationMap } from '@/modules/simulation/compare.types';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import { SkillTarget, SkillType } from '@/modules/simulation/lib/skills/types';
 import {
   estimateSkillActivationPhase,
   getSkillDataById,
@@ -34,9 +34,7 @@ export function applyStaminaRecovery(skillId: string): StaminaRecoveryResult {
   for (const alternative of data.alternatives) {
     const effects = alternative.effects;
     // Filter for type 9 (Recovery) effects
-    const recoveryEffects = effects.filter(
-      (e) => e.type === SkillType.Recovery,
-    );
+    const recoveryEffects = effects.filter((e) => e.type === SkillType.Recovery);
 
     for (const effect of recoveryEffects) {
       const isTargetSelf = effect.target === SkillTarget.Self;
@@ -67,9 +65,7 @@ export function applyStaminaDrain(skillId: string): StaminaDrainResult {
   for (const alternative of data.alternatives) {
     const effects = alternative.effects;
     // Filter for type 9 (Recovery/Stamina Drain) effects
-    const recoveryEffects = effects.filter(
-      (e) => e.type === SkillType.Recovery,
-    );
+    const recoveryEffects = effects.filter((e) => e.type === SkillType.Recovery);
 
     for (const effect of recoveryEffects) {
       const doesntTargetSelf = effect.target !== SkillTarget.Self;
@@ -134,9 +130,7 @@ export function useActualRecoverySkills(
     const recoverySkills = EffectQuery.from(skillActivationMap).getSelfHeals();
 
     for (const activation of recoverySkills) {
-      const { staminaRecovered, hasRecovery } = applyStaminaRecovery(
-        activation.skillId,
-      );
+      const { staminaRecovered, hasRecovery } = applyStaminaRecovery(activation.skillId);
 
       if (hasRecovery) {
         skills.push({
@@ -167,13 +161,10 @@ export function useActualDebuffsReceived(
 
     const skills: Array<RecoverySkillActivation> = [];
 
-    const staminaDebuffs =
-      EffectQuery.from(opponentsSkills).getStaminaDebuffs();
+    const staminaDebuffs = EffectQuery.from(opponentsSkills).getStaminaDebuffs();
 
     for (const activation of staminaDebuffs) {
-      const { staminaDrain, hasStaminaDrain } = applyStaminaDrain(
-        activation.skillId,
-      );
+      const { staminaDrain, hasStaminaDrain } = applyStaminaDrain(activation.skillId);
 
       if (hasStaminaDrain) {
         skills.push({

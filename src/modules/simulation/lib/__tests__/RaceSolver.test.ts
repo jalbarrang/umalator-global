@@ -1,23 +1,14 @@
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { RaceSolver  } from '../RaceSolver';
-import { Aptitude, Strategy } from '../HorseTypes';
-import { Rule30CARng } from '../Random';
-import { Region } from '../Region';
-import {
-  SkillPerspective,
-  SkillRarity,
-  SkillTarget,
-  SkillType
-} from '../race-solver/types';
-import { GameHpPolicy } from '../HpPolicy';
-import { GroundCondition } from '../RaceParameters';
-import type {
-  ISkillPerspective,
-  ISkillTarget,
-  ISkillType} from '../race-solver/types';
-import type { HorseParameters} from '../HorseTypes';
-import type {PendingSkill, RaceState} from '../RaceSolver';
-import type { CourseData, IDistanceType } from '../courses/types';
+import { RaceRunner } from '../RaceSolver';
+import { Rule30CARng } from '../utils/Random';
+import { Aptitude, Strategy } from '../runner/types';
+import { GroundCondition } from '../core/types';
+import { GameHpPolicy } from '../physics/health/policies/GameHealthPolicy';
+import { SkillPerspective, SkillRarity, SkillTarget, SkillType } from '../skills/types';
+import { Region } from '../utils/Region';
+import type { ISkillPerspective, ISkillTarget, ISkillType } from '../skills/types';
+import type { CourseData, IDistanceType, PendingSkill, RaceState } from '../core/types';
+import type { RunnerParameters } from '../runner/types';
 
 /**
  * Test suite for RaceSolver.processSkillActivations()
@@ -37,9 +28,9 @@ import type { CourseData, IDistanceType } from '../courses/types';
  * - Heal counter increments for both recovery effects
  */
 describe('RaceSolver.processSkillActivations', () => {
-  let solver: RaceSolver;
+  let solver: RaceRunner;
   let course: CourseData;
-  let horse: HorseParameters;
+  let horse: RunnerParameters;
   let rng: InstanceType<typeof Rule30CARng>;
 
   beforeEach(() => {
@@ -71,7 +62,7 @@ describe('RaceSolver.processSkillActivations', () => {
       guts: 400,
       wisdom: 400,
       rawStamina: 1200,
-      strategy: Strategy.Sasi, // Late surger (Sashi)
+      strategy: Strategy.LateSurger, // Late surger (Sashi)
       distanceAptitude: Aptitude.A,
       surfaceAptitude: Aptitude.A,
       strategyAptitude: Aptitude.A,
@@ -80,8 +71,8 @@ describe('RaceSolver.processSkillActivations', () => {
     // Create RNG with fixed seed for reproducibility
     rng = new Rule30CARng(123456);
 
-    // Create HP policy with Good ground condition
-    const hpPolicy = new GameHpPolicy(course, GroundCondition.Good, rng);
+    // Create HP policy with Firm ground condition
+    const hpPolicy = new GameHpPolicy(course, GroundCondition.Firm, rng);
     hpPolicy.init(horse);
 
     // Create the Stamina Siphon skill
@@ -117,8 +108,8 @@ describe('RaceSolver.processSkillActivations', () => {
     };
 
     // Initialize the RaceSolver with the skill
-    solver = new RaceSolver({
-      horse,
+    solver = new RaceRunner({
+      runner: horse,
       course,
       rng,
       skills: [staminaSiphonSkill],
@@ -232,7 +223,7 @@ describe('RaceSolver.processSkillActivations', () => {
 
     // Set up callback to track activation
     solver.onSkillActivate = (
-      _solver: RaceSolver,
+      _solver: RaceRunner,
       _currentPosition: number,
       _executionId: string,
       skillId: string,

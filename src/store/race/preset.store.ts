@@ -1,12 +1,7 @@
-import {
-  GroundCondition,
-  Season,
-  Time,
-  Weather,
-} from '@simulation/lib/RaceParameters';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import type { RacePreset } from '@/utils/races';
+import { GroundCondition, Season, TimeOfDay, Weather } from '@/modules/simulation/lib/core/types';
 import { EventType } from '@/utils/races';
 
 const PRESET_STORE_NAME = 'umalator-presets';
@@ -28,7 +23,7 @@ export const usePresetStore = create<IPresetStore>()(
           season: Season.Summer,
           ground: GroundCondition.Good,
           weather: Weather.Sunny,
-          time: Time.Midday,
+          time: TimeOfDay.Midday,
         },
         '550e8400-e29b-41d4-a716-446655440002': {
           id: '550e8400-e29b-41d4-a716-446655440002',
@@ -39,7 +34,7 @@ export const usePresetStore = create<IPresetStore>()(
           season: Season.Spring,
           ground: GroundCondition.Good,
           weather: Weather.Sunny,
-          time: Time.Midday,
+          time: TimeOfDay.Midday,
         },
         '550e8400-e29b-41d4-a716-446655440003': {
           id: '550e8400-e29b-41d4-a716-446655440003',
@@ -50,7 +45,7 @@ export const usePresetStore = create<IPresetStore>()(
           season: Season.Spring,
           ground: GroundCondition.Good,
           weather: Weather.Sunny,
-          time: Time.Midday,
+          time: TimeOfDay.Midday,
         },
         '550e8400-e29b-41d4-a716-446655440004': {
           id: '550e8400-e29b-41d4-a716-446655440004',
@@ -61,7 +56,7 @@ export const usePresetStore = create<IPresetStore>()(
           season: Season.Autumn,
           ground: GroundCondition.Good,
           weather: Weather.Sunny,
-          time: Time.Midday,
+          time: TimeOfDay.Midday,
         },
         '550e8400-e29b-41d4-a716-446655440005': {
           id: '550e8400-e29b-41d4-a716-446655440005',
@@ -72,7 +67,7 @@ export const usePresetStore = create<IPresetStore>()(
           season: Season.Autumn,
           ground: GroundCondition.Soft,
           weather: Weather.Rainy,
-          time: Time.Midday,
+          time: TimeOfDay.Midday,
         },
         '550e8400-e29b-41d4-a716-446655440006': {
           id: '550e8400-e29b-41d4-a716-446655440006',
@@ -83,7 +78,7 @@ export const usePresetStore = create<IPresetStore>()(
           season: Season.Winter,
           ground: GroundCondition.Good,
           weather: Weather.Sunny,
-          time: Time.Midday,
+          time: TimeOfDay.Midday,
         },
         '550e8400-e29b-41d4-a716-446655440007': {
           id: '550e8400-e29b-41d4-a716-446655440007',
@@ -94,7 +89,7 @@ export const usePresetStore = create<IPresetStore>()(
           season: Season.Winter,
           ground: GroundCondition.Soft,
           weather: Weather.Snowy,
-          time: Time.Midday,
+          time: TimeOfDay.Midday,
         },
         '550e8400-e29b-41d4-a716-446655440008': {
           id: '550e8400-e29b-41d4-a716-446655440008',
@@ -105,7 +100,7 @@ export const usePresetStore = create<IPresetStore>()(
           season: Season.Winter,
           ground: GroundCondition.Good,
           weather: Weather.Sunny,
-          time: Time.Midday,
+          time: TimeOfDay.Midday,
         },
         '550e8400-e29b-41d4-a716-446655440009': {
           id: '550e8400-e29b-41d4-a716-446655440009',
@@ -116,7 +111,7 @@ export const usePresetStore = create<IPresetStore>()(
           season: Season.Spring,
           ground: GroundCondition.Heavy,
           weather: Weather.Rainy,
-          time: Time.Midday,
+          time: TimeOfDay.Midday,
         },
       },
     }),

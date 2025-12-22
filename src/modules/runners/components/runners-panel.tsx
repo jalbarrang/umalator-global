@@ -1,7 +1,8 @@
-import { CourseHelpers } from '@simulation/lib/CourseData';
 import { useMemo } from 'react';
 import { Link2, Link2Off, Save } from 'lucide-react';
 import { RunnerCard } from './runner-card/runner-card';
+import { PosKeepMode } from '@/modules/simulation/lib/core/constants';
+import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
 import {
   copyToRunner,
   resetAllRunners,
@@ -15,19 +16,9 @@ import { useSettingsStore } from '@/store/settings.store';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  Panel,
-  PanelContent,
-  PanelHeader,
-  PanelTitle,
-} from '@/components/ui/panel';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/ui/panel';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { PosKeepMode } from '@/modules/simulation/lib/RaceSolver';
 import { useRunnerLibraryStore } from '@/store/runner-library.store';
 import './style.css';
 
@@ -41,9 +32,7 @@ export const RunnersPanel = () => {
 
   const showPacerTab = posKeepMode === PosKeepMode.Virtual;
   const isLinked = !!runner.linkedRunnerId;
-  const linkedRunner = isLinked
-    ? getLibraryRunner(runner.linkedRunnerId!)
-    : null;
+  const linkedRunner = isLinked ? getLibraryRunner(runner.linkedRunnerId!) : null;
 
   const handleCopyRunner = () => {
     if (runnerId === 'uma1') {
@@ -140,11 +129,7 @@ export const RunnersPanel = () => {
             <div className="flex gap-1">
               <Tooltip>
                 <TooltipTrigger>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={handleSyncToLibrary}
-                  >
+                  <Button size="sm" variant="ghost" onClick={handleSyncToLibrary}>
                     <Save className="w-4 h-4" />
                   </Button>
                 </TooltipTrigger>

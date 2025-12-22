@@ -1,8 +1,8 @@
-import type { RaceSolver } from './RaceSolver';
-import type { PRNG } from './Random';
+import type { RaceRunner } from './RaceRunner';
+import type { PRNG } from './utils/Random';
 
 export interface ConditionState {
-  simulation: RaceSolver;
+  simulation: RaceRunner;
 }
 
 export interface ApproximateCondition {

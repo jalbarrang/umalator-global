@@ -1,8 +1,7 @@
+import type { IPosKeepMode } from './lib/core/constants';
 import type { RunnerState } from '../runners/components/runner-card/types';
-import type { PosKeepMode } from './lib/RaceSolver';
 import type { SimulationData } from '@simulation/compare.types';
-import type { CourseData } from './lib/courses/types';
-import type { RaceParameters } from './lib/RaceParameters';
+import type { CourseData, RaceParameters } from './lib/core/types';
 
 // Calculate theoretical max spurt based purely on stats (no RNG)
 
@@ -33,7 +32,7 @@ export interface SimulationOptions {
   useEnhancedSpurt?: boolean;
   includeRunData?: boolean;
   accuracyMode?: boolean;
-  posKeepMode?: PosKeepMode;
+  posKeepMode?: IPosKeepMode;
   mode?: string;
 
   // Wit Variance

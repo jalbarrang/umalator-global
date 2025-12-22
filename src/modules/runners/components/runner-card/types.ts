@@ -1,4 +1,4 @@
-import type { Mood } from '@simulation/lib/RaceParameters';
+import type { IMood } from '@/modules/simulation/lib/core/types';
 
 export const defaultRunnerState: RunnerState = {
   outfitId: '',
@@ -11,16 +11,14 @@ export const defaultRunnerState: RunnerState = {
   distanceAptitude: 'S',
   surfaceAptitude: 'A',
   strategyAptitude: 'A',
-  mood: 2 as Mood,
+  mood: 2,
   skills: [],
   // Map of skillId -> forced position (in meters). If a skill is in this map, it will be forced to activate at that position.
   forcedSkillPositions: {},
   randomMobId: Math.floor(Math.random() * 624) + 8000,
 };
 
-export const createRunnerState = (
-  props: Partial<RunnerState> = {},
-): RunnerState => ({
+export const createRunnerState = (props: Partial<RunnerState> = {}): RunnerState => ({
   ...defaultRunnerState,
   randomMobId: Math.floor(Math.random() * 624) + 8000,
   ...props,
@@ -37,9 +35,9 @@ export type RunnerState = {
   distanceAptitude: string;
   surfaceAptitude: string;
   strategyAptitude: string;
-  mood: Mood;
+  mood: IMood;
   skills: Array<string>;
-  forcedSkillPositions: Record<string, number>; // TODO: Change to Map for easier serialization
+  forcedSkillPositions: Record<string, number>;
   randomMobId?: number; // For placeholder image when no uma selected
   linkedRunnerId?: string; // Link to saved runner in library
 };

@@ -4,7 +4,7 @@ import { ArrowLeftRight, Copy, TrashIcon, Upload } from 'lucide-react';
 import { ClientOnly } from '@tanstack/react-router';
 import type { RunnerState } from './types';
 import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
-import type { Mood } from '@simulation/lib/RaceParameters';
+import type { IMood } from '@/modules/simulation/lib/core/types';
 import { SkillItem } from '@/modules/skills/components/skill-list/SkillItem';
 
 import {
@@ -44,14 +44,7 @@ type RunnerCardProps = {
 };
 
 export const RunnerCard = (props: RunnerCardProps) => {
-  const {
-    value: state,
-    onChange,
-    onReset,
-    onCopy,
-    onSwap,
-    hideSkillButton = false,
-  } = props;
+  const { value: state, onChange, onReset, onCopy, onSwap, hideSkillButton = false } = props;
 
   const isMobile = useIsMobile();
 
@@ -155,14 +148,12 @@ export const RunnerCard = (props: RunnerCardProps) => {
   };
 
   const handleUpdateStat =
-    (prop: 'speed' | 'stamina' | 'power' | 'guts' | 'wisdom') =>
-    (value: number) => {
+    (prop: 'speed' | 'stamina' | 'power' | 'guts' | 'wisdom') => (value: number) => {
       onChange({ ...state, [prop]: value });
     };
 
   const handleUpdateAptitude =
-    (prop: 'surfaceAptitude' | 'distanceAptitude' | 'strategyAptitude') =>
-    (value: string) => {
+    (prop: 'surfaceAptitude' | 'distanceAptitude' | 'strategyAptitude') => (value: string) => {
       onChange({ ...state, [prop]: value });
     };
 
@@ -184,14 +175,11 @@ export const RunnerCard = (props: RunnerCardProps) => {
     onChange({ ...state, strategy: value });
   };
 
-  const handleUpdateMood = (value: Mood) => {
+  const handleUpdateMood = (value: IMood) => {
     onChange({ ...state, mood: value });
   };
 
-  const umaUniqueSkillId = useMemo(
-    () => getUniqueSkillForByUmaId(umaId),
-    [umaId],
-  );
+  const umaUniqueSkillId = useMemo(() => getUniqueSkillForByUmaId(umaId), [umaId]);
 
   const handleRemoveSkill = (skillId: string) => {
     handleSetSkills(state.skills.filter((id) => id !== skillId));
@@ -257,24 +245,14 @@ export const RunnerCard = (props: RunnerCardProps) => {
           )}
 
           {props.runnerId !== 'pacer' && (
-            <Button
-              onClick={onCopy}
-              size="sm"
-              variant="outline"
-              title="Copy to other runner"
-            >
+            <Button onClick={onCopy} size="sm" variant="outline" title="Copy to other runner">
               <Copy className="w-4 h-4" />
               <span className="hidden md:inline!">Copy</span>
             </Button>
           )}
 
           {props.runnerId !== 'pacer' && (
-            <Button
-              onClick={onSwap}
-              size="sm"
-              variant="outline"
-              title="Swap runners"
-            >
+            <Button onClick={onSwap} size="sm" variant="outline" title="Swap runners">
               <ArrowLeftRight className="w-4 h-4" />
               <span className="hidden md:inline!">Swap</span>
             </Button>
@@ -316,10 +294,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
         </div>
 
         <StatInput value={state.speed} onChange={handleUpdateStat('speed')} />
-        <StatInput
-          value={state.stamina}
-          onChange={handleUpdateStat('stamina')}
-        />
+        <StatInput value={state.stamina} onChange={handleUpdateStat('stamina')} />
         <StatInput value={state.power} onChange={handleUpdateStat('power')} />
         <StatInput value={state.guts} onChange={handleUpdateStat('guts')} />
         <StatInput value={state.wisdom} onChange={handleUpdateStat('wisdom')} />
@@ -381,10 +356,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
 
       {hideSkillButton && <div className="text-sm font-semibold">Skills</div>}
 
-      <div
-        className="grid grid-cols-1 md:grid-cols-2 gap-2"
-        onClick={handleSkillClick}
-      >
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2" onClick={handleSkillClick}>
         {state.skills.map((id: string) => {
           return (
             <SkillItem

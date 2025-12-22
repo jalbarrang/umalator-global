@@ -1,14 +1,11 @@
-export enum Mode {
-  Compare,
-  Chart,
-  UniquesChart,
-}
-export enum UiStateMsg {
-  SetModeCompare,
-  SetModeChart,
-  SetModeUniquesChart,
-  SetCurrentIdx0,
-  SetCurrentIdx1,
-  SetCurrentIdx2,
-  ToggleExpand,
-}
+export const SimulationMode = {
+  Compare: 0,
+  Chart: 1,
+  UniquesChart: 2,
+} as const;
+export type ISimulationMode = (typeof SimulationMode)[keyof typeof SimulationMode];
+export const ModeName = {
+  [SimulationMode.Compare]: 'Compare',
+  [SimulationMode.Chart]: 'Skill Chart',
+  [SimulationMode.UniquesChart]: 'Uma Chart',
+} as const;

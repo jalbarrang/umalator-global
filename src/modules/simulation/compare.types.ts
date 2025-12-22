@@ -3,7 +3,7 @@ import type {
   ISkillPerspective,
   ISkillTarget,
   ISkillType,
-} from './lib/race-solver/types';
+} from '@/modules/simulation/lib/skills/types';
 
 export interface CompareResult {
   results: Array<number>;

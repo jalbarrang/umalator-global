@@ -1,5 +1,5 @@
 import courses from '@data/course_data.json';
-import type { Courses } from '../simulation/lib/courses/types';
+import type { Courses } from '../simulation/lib/core/types';
 
 export type CourseByTrack = Record<number, Array<number>>;
 
@@ -29,10 +29,7 @@ export const getCourseByTrackId = (trackId: number) => {
   return coursesByTrack[trackId];
 };
 
-export const getCourseIdByTrackIdAndIndex = (
-  trackId: number,
-  index: number,
-) => {
+export const getCourseIdByTrackIdAndIndex = (trackId: number, index: number) => {
   return coursesByTrack[trackId][index];
 };
 
