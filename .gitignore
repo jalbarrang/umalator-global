@@ -1,10 +1,16 @@
-node_modules/
+# Vscode
 .vscode/
+
+# Node
+node_modules/
 dist/
 .cache/
 results/
 .env
 db/
 
-# Local Netlify folder
+# Netlify
 .netlify
+
+# macOS
+.DS_Store
