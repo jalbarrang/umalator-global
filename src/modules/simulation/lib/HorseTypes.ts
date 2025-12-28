@@ -1,25 +1,5 @@
-export const strategies: ReadonlyArray<number> = [1, 2, 3, 4, 5];
-export const Strategy = {
-  Nige: 1,
-  Senkou: 2,
-  Sasi: 3,
-  Oikomi: 4,
-  Oonige: 5,
-} as const;
-export type IStrategy = (typeof Strategy)[keyof typeof Strategy];
-
-export const aptitudes: ReadonlyArray<number> = [0, 1, 2, 3, 4, 5, 6, 7];
-export const Aptitude = {
-  S: 0,
-  A: 1,
-  B: 2,
-  C: 3,
-  D: 4,
-  E: 5,
-  F: 6,
-  G: 7,
-} as const;
-export type IAptitude = (typeof Aptitude)[keyof typeof Aptitude];
+import { Strategy, strategies } from './runner/definitions';
+import type { IAptitude, IStrategy } from './runner/definitions';
 
 export interface HorseParameters {
   readonly speed: number;
@@ -36,15 +16,15 @@ export interface HorseParameters {
 
 export class StrategyHelpers {
   static assertIsStrategy(strategy: number): asserts strategy is IStrategy {
-    if (!strategies.includes(strategy)) {
+    if (!strategies.includes(strategy as IStrategy)) {
       throw new Error(`Strategy ${strategy} is not a valid Strategy`);
     }
   }
 
   static strategyMatches(strategyA: IStrategy, strategyB: IStrategy) {
     const areSame = strategyA === strategyB;
-    const aIsRunaway = strategyA == Strategy.Nige && strategyB == Strategy.Oonige;
-    const bIsRunaway = strategyB == Strategy.Nige && strategyA == Strategy.Oonige;
+    const aIsRunaway = strategyA == Strategy.FrontRunner && strategyB == Strategy.Runaway;
+    const bIsRunaway = strategyB == Strategy.FrontRunner && strategyA == Strategy.Runaway;
 
     return areSame || aIsRunaway || bIsRunaway;
   }

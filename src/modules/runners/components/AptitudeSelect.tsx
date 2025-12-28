@@ -1,5 +1,11 @@
-import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
-import { Aptitude } from '@/modules/simulation/lib/HorseTypes';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Aptitude, AptitudeName } from '@/modules/simulation/lib/runner/definitions';
 
 type AptitudeSelectProps = {
   value: string;
@@ -20,13 +26,15 @@ export const AptitudeSelect = (props: AptitudeSelectProps) => {
   return (
     <Select value={value.toString()} onValueChange={handleChange}>
       <SelectTrigger className="border-none rounded-none shadow-none">
-        <AptitudeIcon aptitude={value} className="w-4 h-4" />
+        <SelectValue>
+          {(value) => <AptitudeIcon aptitude={value} className="w-4 h-4" />}
+        </SelectValue>
       </SelectTrigger>
 
       <SelectContent>
-        {Object.keys(Aptitude).map((key) => (
+        {Object.entries(AptitudeName).map(([key, name]) => (
           <SelectItem key={key} value={key}>
-            <AptitudeIcon aptitude={key} className="w-4 h-4" />
+            {name}
           </SelectItem>
         ))}
       </SelectContent>

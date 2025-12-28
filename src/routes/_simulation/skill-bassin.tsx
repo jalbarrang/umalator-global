@@ -1,4 +1,3 @@
-import { createFileRoute } from '@tanstack/react-router';
 import { useSkillBasinPoolRunner } from '@simulation/hooks/pool/useSkillBasinPoolRunner';
 import { resetTable, useChartData, useSkillBasinStore } from '@simulation/stores/skill-basin.store';
 import { Activity, useMemo } from 'react';
@@ -13,11 +12,7 @@ import { CourseHelpers } from '@/modules/simulation/lib/CourseData';
 import { setSkillToRunner, useRunner } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
 
-export const Route = createFileRoute('/_simulation/skill-bassin')({
-  component: RouteComponent,
-});
-
-function RouteComponent() {
+export function SkillBassin() {
   const { chartData, selectedSkills, setSelectedSkills } = useChartData();
   const { results: skillBasinResults, metrics, isSimulationRunning } = useSkillBasinStore();
   const courseId = useSettingsStore(useShallow((state) => state.courseId));

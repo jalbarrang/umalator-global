@@ -1,4 +1,3 @@
-import dayjs from 'dayjs';
 import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { cn } from '@/lib/utils';
@@ -41,14 +40,23 @@ export const RacePresets = (props: RacePresetsProps) => {
     <div className={cn(className)} {...rest}>
       <Label htmlFor="preset-select">Preset:</Label>
 
-      <Select value={selectedPresetId ?? undefined} onValueChange={handleChange}>
-        <SelectTrigger id="preset-select" className="w-full" data-placeholder="Select a preset">
-          <SelectValue />
+      <Select value={selectedPresetId} onValueChange={handleChange}>
+        <SelectTrigger id="preset-select" className="w-full">
+          <SelectValue
+            render={(_, value) => {
+              if (value.value) {
+                return <span>{presets[value.value].name}</span>;
+              }
+
+              return <span className="text-muted-foreground">Select a preset</span>;
+            }}
+          />
         </SelectTrigger>
+
         <SelectContent>
           {Object.values(presets).map((p) => (
             <SelectItem key={p.id} value={p.id}>
-              {p.name} - {dayjs(p.date).format('YYYY-MM-DD')}
+              {p.name}
             </SelectItem>
           ))}
         </SelectContent>

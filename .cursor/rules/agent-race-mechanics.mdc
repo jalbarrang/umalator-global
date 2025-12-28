@@ -1214,12 +1214,12 @@ DesirableLead = StrategyCoef + 0.0003 * (CourseDistance + 1000); // [m]
 
 **Desirable Lead Strategy Coefficients**:
 
-| Row \ Col    | Nige | Senkou | Sashi | Oikomi |
-| ------------ | ---- | ------ | ----- | ------ |
-| Runaway      | 2.0  | 7.0    | 8.0   | 8.0    |
-| Front Runner | -    | 4.0    | 8.0   | 8.0    |
-| Pace Chaser  | -    | -      | 5.0   | 6.0    |
-| Late Surger  | -    | -      | -     | 3.0    |
+| Row \ Col    | Front Runner | Pace Chaser | Late Surger | End Closer |
+| ------------ | ------------ | ----------- | ----------- | ---------- |
+| Runaway      | 2.0          | 7.0         | 8.0         | 8.0        |
+| Front Runner | -            | 4.0         | 8.0         | 8.0        |
+| Pace Chaser  | -            | -           | 5.0         | 6.0        |
+| Late Surger  | -            | -           | -           | 3.0        |
 
 **Effects** (2s active, 1s cooldown):
 
@@ -1478,11 +1478,11 @@ From this.
 
 ```typescript
 export const enum Strategy {
-  Nige = 1,
-  Senkou,
-  Sasi,
-  Oikomi,
-  Oonige,
+  FrontRunner = 1,
+  PaceChaser,
+  LateSurger,
+  EndCloser,
+  Runaway,
 }
 ```
 

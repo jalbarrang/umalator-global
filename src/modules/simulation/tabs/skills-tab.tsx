@@ -2,12 +2,12 @@ import { useRaceStore } from '@simulation/stores/compare.store';
 import { useMemo } from 'react';
 
 import { ChevronsUpDown, Zap } from 'lucide-react';
+import type { ISkillTarget, ISkillType } from '@/modules/simulation/lib/skills/definitions';
 import {
   SkillType,
   translateSkillEffectTarget,
   translateSkillEffectType,
-} from '../lib/race-solver/types';
-import type { ISkillTarget, ISkillType } from '../lib/race-solver/types';
+} from '@/modules/simulation/lib/skills/definitions';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   Empty,

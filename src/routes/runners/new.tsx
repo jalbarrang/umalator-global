@@ -1,15 +1,11 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useNavigate } from 'react-router';
 
 import { useState } from 'react';
 import { RunnerEditorLayout } from '@/layout/runner-editor-layout';
 import { createRunnerState } from '@/modules/runners/components/runner-card/types';
 import { useRunnerLibraryStore } from '@/store/runner-library.store';
 
-export const Route = createFileRoute('/runners/new')({
-  component: RouteComponent,
-});
-
-function RouteComponent() {
+export function RunnersNew() {
   const navigate = useNavigate();
   const { addRunner } = useRunnerLibraryStore();
 
@@ -26,11 +22,11 @@ function RouteComponent() {
       notes: runnerName.trim(),
     });
 
-    navigate({ to: '/runners' });
+    navigate('/runners');
   };
 
   const handleCancel = () => {
-    navigate({ to: '/runners' });
+    navigate('/runners');
   };
 
   return (

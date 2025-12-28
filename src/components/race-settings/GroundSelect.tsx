@@ -23,8 +23,17 @@ export const GroundSelect = () => {
   return (
     <Select value={racedef.ground.toString()} onValueChange={handleChangeGround}>
       <SelectTrigger className="w-full">
-        <SelectValue />
+        <SelectValue
+          render={(_, value) => {
+            if (value.value) {
+              return <span>{groundConditions[value.value as keyof typeof groundConditions]}</span>;
+            }
+
+            return <span className="text-muted-foreground">Ground condition</span>;
+          }}
+        />
       </SelectTrigger>
+
       <SelectContent>
         {Object.entries(groundConditions).map(([value, label]) => (
           <SelectItem key={value} value={value}>

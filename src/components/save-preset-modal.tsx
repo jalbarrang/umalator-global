@@ -27,7 +27,7 @@ import {
 } from '@/components/ui/select';
 import { addPreset, updatePreset, usePresetStore } from '@/store/race/preset.store';
 import { setSelectedPresetId, useSettingsStore } from '@/store/settings.store';
-import { EventType } from '@/modules/simulation/lib/course/definitions';
+import { EventType, EventTypeNames } from '@/modules/simulation/lib/course/definitions';
 
 export const SavePresetModal = () => {
   const [open, setOpen] = useState(false);
@@ -128,12 +128,14 @@ export const SavePresetModal = () => {
 
   return (
     <Dialog open={open} onOpenChange={handleOpen}>
-      <DialogTrigger>
-        <Button variant="outline">
-          <BookmarkPlus className="h-4 w-4" />
-          Save
-        </Button>
-      </DialogTrigger>
+      <DialogTrigger
+        render={
+          <Button variant="outline">
+            <BookmarkPlus className="h-4 w-4" />
+            Save
+          </Button>
+        }
+      />
 
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
@@ -187,16 +189,24 @@ export const SavePresetModal = () => {
 
           <div className="grid gap-2">
             <Label htmlFor="event-type">Event Type</Label>
-            <Select
-              value={eventType.toString()}
-              onValueChange={(value) => setEventType(Number(value) as IEventType)}
-            >
+            <Select value={eventType} onValueChange={(value) => setEventType(value as IEventType)}>
               <SelectTrigger id="event-type">
-                <SelectValue />
+                <SelectValue>
+                  {(value) => {
+                    if (value.value) {
+                      return (
+                        <span>{EventTypeNames[value.value as keyof typeof EventTypeNames]}</span>
+                      );
+                    }
+
+                    return <span className="text-muted-foreground">Select an event type</span>;
+                  }}
+                </SelectValue>
               </SelectTrigger>
+
               <SelectContent>
-                <SelectItem value={EventType.CM.toString()}>Champions Meeting (CM)</SelectItem>
-                <SelectItem value={EventType.LOH.toString()}>Legend of Heroes (LOH)</SelectItem>
+                <SelectItem value={EventType.CM}>Champions Meeting (CM)</SelectItem>
+                <SelectItem value={EventType.LOH}>Legend of Heroes (LOH)</SelectItem>
               </SelectContent>
             </Select>
           </div>

@@ -31,7 +31,7 @@ export const useRunnersStore = create<IRunnersStore>()(
       uma1: createRunnerState(),
       uma2: createRunnerState(),
       pacer: createRunnerState({
-        strategy: 'Nige',
+        strategy: 'Front Runner',
       }),
       runnerId: 'uma1',
     }),
@@ -102,7 +102,7 @@ export const resetRunners = () => {
 
   if (posKeepMode === PosKeepMode.Virtual) {
     useRunnersStore.setState({
-      pacer: createRunnerState({ strategy: 'Nige' }),
+      pacer: createRunnerState({ strategy: 'Front Runner' }),
     });
   }
 };
@@ -111,7 +111,7 @@ export const resetAllRunners = () => {
   useRunnersStore.setState({
     uma1: createRunnerState(),
     uma2: createRunnerState(),
-    pacer: createRunnerState({ strategy: 'Nige' }),
+    pacer: createRunnerState({ strategy: 'Front Runner' }),
   });
 
   toast.success('All runners reset');

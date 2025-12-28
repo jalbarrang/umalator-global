@@ -1,7 +1,8 @@
 import { PositionKeepState } from './skills/definitions';
-import { Strategy } from './HorseTypes';
+import { Strategy } from './runner/definitions';
 import { CourseHelpers } from './CourseData';
-import type { HorseParameters, IStrategy } from './HorseTypes';
+import type { IStrategy } from './runner/definitions';
+import type { HorseParameters } from './HorseTypes';
 import type { IPositionKeepState } from './skills/definitions';
 import type { CourseData, IGroundCondition, IPhase } from './course/definitions';
 import type { PRNG } from './Random';
@@ -92,7 +93,7 @@ export class GameHpPolicy {
     }
 
     if (state.leadCompetition) {
-      const isOonige = state.posKeepStrategy === Strategy.Oonige;
+      const isOonige = state.posKeepStrategy === Strategy.Runaway;
       if (state.isRushed) {
         modifier *= isOonige ? 7.7 : 3.6;
       } else {

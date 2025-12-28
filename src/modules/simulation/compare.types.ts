@@ -1,5 +1,5 @@
 import { cloneDeep } from 'es-toolkit';
-import type { ISkillPerspective, ISkillTarget, ISkillType } from './lib/race-solver/types';
+import type { ISkillPerspective, ISkillTarget, ISkillType } from './lib/skills/definitions';
 
 export interface CompareResult {
   results: Array<number>;

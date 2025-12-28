@@ -1,4 +1,4 @@
-import type { IMood } from '@/modules/simulation/lib/runner/definitions';
+import type { IMood, IStrategyName } from '@/modules/simulation/lib/runner/definitions';
 import { Mood } from '@/modules/simulation/lib/runner/definitions';
 
 export const defaultRunnerState: RunnerState = {
@@ -8,7 +8,7 @@ export const defaultRunnerState: RunnerState = {
   power: 800,
   guts: 400,
   wisdom: 400,
-  strategy: 'Senkou',
+  strategy: 'Front Runner',
   distanceAptitude: 'S',
   surfaceAptitude: 'A',
   strategyAptitude: 'A',
@@ -32,7 +32,7 @@ export type RunnerState = {
   power: number;
   guts: number;
   wisdom: number;
-  strategy: string;
+  strategy: IStrategyName;
   distanceAptitude: string;
   surfaceAptitude: string;
   strategyAptitude: string;

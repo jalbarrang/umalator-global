@@ -1,4 +1,4 @@
-import { SkillRarity } from '../simulation/lib/race-solver/types';
+import { SkillRarity } from '../simulation/lib/skills/definitions';
 import type { Skill } from '@/modules/skills/utils';
 import { skillFilterLookUp } from '@/modules/skills/utils';
 

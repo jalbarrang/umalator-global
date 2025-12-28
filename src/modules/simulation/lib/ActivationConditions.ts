@@ -8,12 +8,13 @@ import {
   UniformRandomPolicy,
 } from './ActivationSamplePolicy';
 import { CourseHelpers } from './CourseData';
-import { Strategy, StrategyHelpers } from './HorseTypes';
 import { Region, RegionList } from './Region';
 import { calculateEarlyRaceAverageSpeed } from './SpurtCalculator';
+import { StrategyHelpers } from './HorseTypes';
+import { Strategy } from './runner/definitions';
+import type { HorseParameters } from './HorseTypes';
 import type { ActivationSamplePolicy, DistributionRandomPolicy } from './ActivationSamplePolicy';
 import type { CourseData, IPhase } from './course/definitions';
-import type { HorseParameters } from './HorseTypes';
 import type { RaceParameters } from './definitions';
 import type { DynamicCondition, RaceState } from './RaceSolver';
 
@@ -1771,19 +1772,19 @@ export const Conditions: { [cond: string]: Condition } = {
   // also, abusing valueFilter like this only works because these conditions are used like running_style_count_nige_otherself>=1
   running_style_count_nige_otherself: valueFilter(
     (_: CourseData, horse: HorseParameters, _extra: RaceParameters) =>
-      +StrategyHelpers.strategyMatches(horse.strategy, Strategy.Nige),
+      +StrategyHelpers.strategyMatches(horse.strategy, Strategy.FrontRunner),
   ),
   running_style_count_senko_otherself: valueFilter(
     (_: CourseData, horse: HorseParameters, _extra: RaceParameters) =>
-      +StrategyHelpers.strategyMatches(horse.strategy, Strategy.Senkou),
+      +StrategyHelpers.strategyMatches(horse.strategy, Strategy.PaceChaser),
   ),
   running_style_count_sashi_otherself: valueFilter(
     (_: CourseData, horse: HorseParameters, _extra: RaceParameters) =>
-      +StrategyHelpers.strategyMatches(horse.strategy, Strategy.Sasi),
+      +StrategyHelpers.strategyMatches(horse.strategy, Strategy.LateSurger),
   ),
   running_style_count_oikomi_otherself: valueFilter(
     (_: CourseData, horse: HorseParameters, _extra: RaceParameters) =>
-      +StrategyHelpers.strategyMatches(horse.strategy, Strategy.Oikomi),
+      +StrategyHelpers.strategyMatches(horse.strategy, Strategy.EndCloser),
   ),
   running_style_equal_popularity_one: noopImmediate,
   running_style_temptation_count_nige: noopSectionRandom(2, 9),

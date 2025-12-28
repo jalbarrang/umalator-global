@@ -31,9 +31,7 @@ export function SkillPickerDrawer() {
       <DrawerContent className="px-2 w-full! md:w-1/2! max-w-none!">
         <DrawerHeader className="flex-row items-center justify-between">
           <DrawerClose>
-            <Button variant="ghost" size="icon" tabIndex={-1}>
-              <XIcon className="w-4 h-4" />
-            </Button>
+            <XIcon className="w-4 h-4" />
           </DrawerClose>
           <DrawerTitle>Add Skill to Runner</DrawerTitle>
         </DrawerHeader>

@@ -1,4 +1,4 @@
-import { SkillPerspective, SkillTarget, SkillType } from '@simulation/lib/race-solver/types';
+import { SkillPerspective, SkillTarget, SkillType } from '../simulation/lib/skills/definitions';
 import type { SkillActivation, SkillActivationMap } from '@simulation/compare.types';
 
 export class EffectQuery {

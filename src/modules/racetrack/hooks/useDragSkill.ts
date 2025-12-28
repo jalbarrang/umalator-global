@@ -51,7 +51,7 @@ export function useDragSkill({
       e.stopPropagation();
 
       // Get the main SVG element
-      const mainSvg = (e.currentTarget as Element).closest('.racetrackView');
+      const mainSvg = e.currentTarget.closest<SVGSVGElement>('.racetrackView');
       if (!mainSvg) return;
 
       const svgCoords = clientToSvgCoords(mainSvg, e.clientX, e.clientY);

@@ -54,7 +54,7 @@ export const useSettingsStore = create<ISettingsStore>()(
       racedef: createRaceConditions(),
       uma1: createRunnerState(),
       uma2: createRunnerState(),
-      pacer: createRunnerState({ strategy: 'Nige' }),
+      pacer: createRunnerState({ strategy: 'Front Runner' }),
       witVarianceSettings: {
         allowRushedUma1: true,
         allowRushedUma2: true,

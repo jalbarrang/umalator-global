@@ -1,9 +1,9 @@
 import { Copy, Edit, MoreVertical, PlayCircle, Trash2 } from 'lucide-react';
 import { useMemo } from 'react';
 import { getUmaDisplayInfo, getUmaImageUrl } from '../utils';
-import { STRATEGY_LABELS } from '../constants';
 import { StatImage } from './StatInput';
 import type { SavedRunner } from '@/store/runner-library.store';
+import { strategyNames } from '@/modules/simulation/lib/runner/definitions';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -60,11 +60,14 @@ export const SavedRunnerCard = (props: SavedRunnerCardProps) => {
 
             {/* Actions Menu */}
             <DropdownMenu>
-              <DropdownMenuTrigger>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
+              <DropdownMenuTrigger
+                render={
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                }
+              />
+
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => onLoadToSimulation(runner)}>
                   <PlayCircle className="h-4 w-4 mr-2" />
@@ -161,7 +164,7 @@ export const SavedRunnerCard = (props: SavedRunnerCardProps) => {
               <div className="flex items-center gap-2">
                 <span className="text-muted-foreground">Strategy: </span>
                 <span className="font-medium">
-                  {STRATEGY_LABELS[runner.strategy] ?? runner.strategy}
+                  {strategyNames.find((name) => name === runner.strategy) ?? 'Unknown'}
                 </span>
               </div>
 

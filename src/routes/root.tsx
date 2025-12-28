@@ -1,19 +1,14 @@
-// src/routes/__root.tsx
-/// <reference types="vite/client" />
-
-import {
-  HeadContent,
-  Outlet,
-  Scripts,
-  createRootRoute,
-  useLocation,
-  useNavigate,
-} from '@tanstack/react-router';
+import { Route, Routes, useLocation, useNavigate } from 'react-router';
 import { HeartIcon, ScrollTextIcon } from 'lucide-react';
-import stylesCss from '../styles.css?url';
-import appCss from '../app.css?url';
 
-import type { ReactNode } from 'react';
+import { SimulationLayout } from './_simulation';
+import { SimulationHome } from './_simulation/home';
+import { SkillBassin } from './_simulation/skill-bassin';
+import { UmaBassin } from './_simulation/uma-bassin';
+import { RunnersLayout } from './runners';
+import { RunnersHome } from './runners/home';
+import { RunnersNew } from './runners/new';
+import { RunnersEdit } from './runners/$runnerId.edit';
 import { Toaster } from '@/components/ui/sonner';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -21,39 +16,15 @@ import { setShowChangelogModal, setShowCreditsModal } from '@/store/ui.store';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { ChangelogModal } from '@/components/changelog-modal';
 import { CreditsModal } from '@/components/credits-modal';
-import { ThemeStoreProvider } from '@/providers/theme/provider';
 
-export const Route = createRootRoute({
-  head: () => ({
-    meta: [
-      {
-        charSet: 'utf-8',
-      },
-      {
-        name: 'viewport',
-        content: 'width=device-width, initial-scale=1',
-      },
-      {
-        title: 'Umalator - Global',
-      },
-    ],
-    links: [
-      { rel: 'stylesheet', href: stylesCss },
-      { rel: 'stylesheet', href: appCss },
-    ],
-  }),
-  component: RootComponent,
-  notFoundComponent: NotFoundComponent,
-});
-
-function RootComponent() {
+export function RootComponent() {
   const location = useLocation();
   const navigate = useNavigate();
 
   const currentTab = location.pathname.startsWith('/runners') ? 'runners' : 'simulation';
 
   return (
-    <RootDocument>
+    <>
       <div className="flex flex-col min-h-screen">
         <div className="flex py-2 justify-between items-center border-b px-4 shrink-0">
           <div className="flex items-center gap-2">
@@ -61,9 +32,9 @@ function RootComponent() {
               value={currentTab}
               onValueChange={(value) => {
                 if (value === 'simulation') {
-                  navigate({ to: '/' });
+                  navigate('/');
                 } else if (value === 'runners') {
-                  navigate({ to: '/runners' });
+                  navigate('/runners');
                 }
               }}
             >
@@ -97,28 +68,25 @@ function RootComponent() {
         </div>
 
         <main className="flex flex-1 overflow-hidden min-h-0">
-          <Outlet />
+          <Routes>
+            <Route path="/" element={<SimulationLayout />}>
+              <Route index element={<SimulationHome />} />
+              <Route path="/skill-bassin" element={<SkillBassin />} />
+              <Route path="/uma-bassin" element={<UmaBassin />} />
+            </Route>
+            <Route path="/runners" element={<RunnersLayout />}>
+              <Route index element={<RunnersHome />} />
+              <Route path="/runners/new" element={<RunnersNew />} />
+              <Route path="/runners/:runnerId/edit" element={<RunnersEdit />} />
+            </Route>
+          </Routes>
         </main>
 
         <CreditsModal />
         <ChangelogModal />
       </div>
       <Toaster />
-    </RootDocument>
-  );
-}
-
-function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
-  return (
-    <html>
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        <ThemeStoreProvider>{children}</ThemeStoreProvider>
-        <Scripts />
-      </body>
-    </html>
+    </>
   );
 }
 
@@ -133,7 +101,7 @@ const GithubIcon = (props: GithubIconProps) => {
   );
 };
 
-function NotFoundComponent() {
+export function NotFoundComponent() {
   const navigate = useNavigate();
 
   return (
@@ -143,8 +111,8 @@ function NotFoundComponent() {
         <h2 className="text-2xl font-semibold">Page Not Found</h2>
         <p className="text-muted-foreground">The page you're looking for doesn't exist.</p>
         <div className="flex gap-2 justify-center pt-4">
-          <Button onClick={() => navigate({ to: '/' })}>Go to Umalator</Button>
-          <Button variant="outline" onClick={() => navigate({ to: '/runners' })}>
+          <Button onClick={() => navigate('/')}>Go to Umalator</Button>
+          <Button variant="outline" onClick={() => navigate('/runners')}>
             Go to Veterans
           </Button>
         </div>

@@ -30,11 +30,11 @@ export type PosKeepLabel = {
 };
 
 export const ORDER_RANGE_FOR_STRATEGY = {
-  Nige: [1, 1],
-  Senkou: [2, 4],
-  Sasi: [5, 9],
-  Oikomi: [5, 9],
-  Oonige: [1, 1],
+  ['Front Runner']: [1, 1],
+  ['Pace Chaser']: [2, 4],
+  'Late Surger': [5, 9],
+  'End Closer': [5, 9],
+  Runaway: [1, 1],
 };
 
 export type RaceConditions = {

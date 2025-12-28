@@ -1,14 +1,10 @@
-import { Outlet, createFileRoute } from '@tanstack/react-router';
+import { Outlet } from 'react-router';
 
 import { LeftSidebar } from '@/layout/left-sidebar';
 import { SimulationModeToggle } from '@/components/simulation-mode-toggle';
 import { SkillPickerDrawer } from '@/modules/skills/components/skill-list/SkillPickerDrawer';
 
-export const Route = createFileRoute('/_simulation')({
-  component: RouteComponent,
-});
-
-function RouteComponent() {
+export function SimulationLayout() {
   return (
     <>
       <SkillPickerDrawer />

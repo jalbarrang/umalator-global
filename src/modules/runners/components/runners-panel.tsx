@@ -128,19 +128,24 @@ export const RunnersPanel = () => {
             </div>
             <div className="flex gap-1">
               <Tooltip>
-                <TooltipTrigger>
-                  <Button size="sm" variant="ghost" onClick={handleSyncToLibrary}>
-                    <Save className="w-4 h-4" />
-                  </Button>
-                </TooltipTrigger>
+                <TooltipTrigger
+                  render={
+                    <Button size="sm" variant="ghost" onClick={handleSyncToLibrary}>
+                      <Save className="w-4 h-4" />
+                    </Button>
+                  }
+                />
                 <TooltipContent>Save changes to library</TooltipContent>
               </Tooltip>
+
               <Tooltip>
-                <TooltipTrigger>
-                  <Button size="sm" variant="ghost" onClick={handleUnlink}>
-                    <Link2Off className="w-4 h-4" />
-                  </Button>
-                </TooltipTrigger>
+                <TooltipTrigger
+                  render={
+                    <Button size="sm" variant="ghost" onClick={handleUnlink}>
+                      <Link2Off className="w-4 h-4" />
+                    </Button>
+                  }
+                />
                 <TooltipContent>Unlink from library</TooltipContent>
               </Tooltip>
             </div>

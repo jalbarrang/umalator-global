@@ -186,11 +186,13 @@ export const BasinnChart = (props: BasinnChartProps) => {
 
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger>
-              <Button variant="outline" size="sm" className="h-8 w-8 p-0">
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
+            <DropdownMenuTrigger
+              render={
+                <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+              }
+            />
             <DropdownMenuContent align="start">
               <DropdownMenuItem onClick={handleClick}>Add Skill to Runner</DropdownMenuItem>
               <DropdownMenuItem onClick={handleReplaceOutfit}>

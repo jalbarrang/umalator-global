@@ -1,6 +1,5 @@
 import { resetResults, useRaceStore } from '@simulation/stores/compare.store';
 import { Activity, useMemo } from 'react';
-import { createFileRoute } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button-group';
 import { LoadingOverlay } from '@/components/loading-overlay';
@@ -15,11 +14,7 @@ import { useSettingsStore } from '@/store/settings.store';
 import { useSelectedPacemakerBooleans } from '@/store/settings/actions';
 import { useUIStore } from '@/store/ui.store';
 
-export const Route = createFileRoute('/_simulation/')({
-  component: Home,
-});
-
-function Home() {
+export function SimulationHome() {
   const { chartData, results, isSimulationRunning, simulationProgress } = useRaceStore();
   const { courseId } = useSettingsStore();
   const { showVirtualPacemakerOnGraph } = useUIStore();

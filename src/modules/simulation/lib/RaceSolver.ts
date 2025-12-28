@@ -1,11 +1,11 @@
 import { cloneDeep } from 'es-toolkit';
 import { ApproximateMultiCondition, ApproximateStartContinue } from './ApproximateStartContinue';
 import { CourseHelpers } from './CourseData';
-import { Strategy, StrategyHelpers } from './HorseTypes';
+import { StrategyHelpers } from './HorseTypes';
 import { PositionKeepState, SkillPerspective, SkillRarity, SkillType } from './skills/definitions';
 import { Rule30CARng } from './Random';
-import { PosKeepMode } from './runner/definitions';
-import type { IPosKeepMode } from './runner/definitions';
+import { PosKeepMode, Strategy } from './runner/definitions';
+import type { IPosKeepMode, IStrategy } from './runner/definitions';
 import type {
   IPositionKeepState,
   ISkillPerspective,
@@ -15,7 +15,7 @@ import type {
 } from './skills/definitions';
 import type { PRNG } from './Random';
 import type { Region } from './Region';
-import type { HorseParameters, IStrategy } from './HorseTypes';
+import type { HorseParameters } from './HorseTypes';
 import type { CourseData, IPhase } from './course/definitions';
 import type {
   ApproximateCondition,
@@ -106,7 +106,7 @@ export const PositionKeep = {
     // senkou minimum threshold is a constant 3.0 independent of the course factor for some reason
     return (
       this.BaseMinimumThreshold[strategy] *
-      (strategy == Strategy.Senkou ? 1.0 : this.courseFactor(distance))
+      (strategy == Strategy.PaceChaser ? 1.0 : this.courseFactor(distance))
     );
   },
 
@@ -598,13 +598,13 @@ export class RaceSolver {
       {
         condition: new ApproximateStartContinue('逃げ', 0.05, 0.5),
         predicate: (state: ConditionState) => {
-          return state.simulation.horse.strategy === Strategy.Nige;
+          return state.simulation.horse.strategy === Strategy.FrontRunner;
         },
       },
       {
         condition: new ApproximateStartContinue('先行', 0.15, 0.55),
         predicate: (state: ConditionState) => {
-          return state.simulation.horse.strategy === Strategy.Senkou;
+          return state.simulation.horse.strategy === Strategy.PaceChaser;
         },
       },
       {
@@ -868,7 +868,7 @@ export class RaceSolver {
 
   getPacer(): RaceSolver | null {
     // Select furthest-forward front runner
-    for (const strategy of [Strategy.Oonige, Strategy.Nige]) {
+    for (const strategy of [Strategy.Runaway, Strategy.FrontRunner]) {
       const umas = this.umas.filter((uma) => uma.posKeepStrategy === strategy);
 
       if (umas.length > 0) {
@@ -888,7 +888,7 @@ export class RaceSolver {
     }
 
     // Otherwise, lucky pace (set pacerOverride)
-    for (const strategy of [Strategy.Senkou, Strategy.Sasi, Strategy.Oikomi]) {
+    for (const strategy of [Strategy.PaceChaser, Strategy.LateSurger, Strategy.EndCloser]) {
       const umas = this.umas.filter((uma) =>
         StrategyHelpers.strategyMatches(uma.posKeepStrategy, strategy),
       );
@@ -899,7 +899,7 @@ export class RaceSolver {
         }, umas[0]);
 
         uma.pacerOverride = true;
-        uma.posKeepStrategy = Strategy.Nige;
+        uma.posKeepStrategy = Strategy.FrontRunner;
 
         return uma;
       }
@@ -910,7 +910,7 @@ export class RaceSolver {
     const pacer = this.umas.find((uma) => uma.isPacer);
 
     if (pacer) {
-      pacer.posKeepStrategy = Strategy.Nige;
+      pacer.posKeepStrategy = Strategy.FrontRunner;
       return pacer;
     }
 
@@ -923,7 +923,7 @@ export class RaceSolver {
 
   isOnlyFrontRunner(): boolean {
     const frontRunners = this.umas.filter((uma) =>
-      StrategyHelpers.strategyMatches(uma.posKeepStrategy, Strategy.Nige),
+      StrategyHelpers.strategyMatches(uma.posKeepStrategy, Strategy.FrontRunner),
     );
     return frontRunners.length === 1 && frontRunners[0] === this;
   }
@@ -970,13 +970,13 @@ export class RaceSolver {
           return;
         }
 
-        if (StrategyHelpers.strategyMatches(myStrategy, Strategy.Nige)) {
+        if (StrategyHelpers.strategyMatches(myStrategy, Strategy.FrontRunner)) {
           // Speed Up
           if (pacer === this) {
             const umas = this.getUmaByDistanceDescending();
             const secondPlaceUma = umas[1];
             const distanceAhead = pacer.pos - secondPlaceUma.pos;
-            const threshold = myStrategy === Strategy.Oonige ? 17.5 : 4.5;
+            const threshold = myStrategy === Strategy.Runaway ? 17.5 : 4.5;
 
             if (this.posKeepNextTimer.t < 0) {
               return;
@@ -1037,7 +1037,7 @@ export class RaceSolver {
           const umas = this.getUmaByDistanceDescending();
           const secondPlaceUma = umas[1];
           const distanceAhead = pacer.pos - secondPlaceUma.pos;
-          const threshold = myStrategy === Strategy.Oonige ? 17.5 : 4.5;
+          const threshold = myStrategy === Strategy.Runaway ? 17.5 : 4.5;
 
           if (distanceAhead >= threshold) {
             this.positionKeepState = PositionKeepState.None;
@@ -1056,7 +1056,7 @@ export class RaceSolver {
           const umas = this.getUmaByDistanceDescending();
           const secondPlaceUma = umas[1];
           const distanceAhead = this.pos - secondPlaceUma.pos;
-          const threshold = myStrategy === Strategy.Oonige ? 27.5 : 10;
+          const threshold = myStrategy === Strategy.Runaway ? 27.5 : 10;
 
           if (distanceAhead >= threshold) {
             this.positionKeepState = PositionKeepState.None;
@@ -1226,12 +1226,12 @@ export class RaceSolver {
     if (
       this.pos >= 150 &&
       this.pos <= Math.floor(this.sectionLength * 5) &&
-      StrategyHelpers.strategyMatches(this.posKeepStrategy, Strategy.Nige)
+      StrategyHelpers.strategyMatches(this.posKeepStrategy, Strategy.FrontRunner)
     ) {
       const otherUmas = this.umas.filter((u) => u.posKeepStrategy === this.posKeepStrategy);
-      const distanceGap = this.posKeepStrategy === Strategy.Nige ? 3.75 : 5;
+      const distanceGap = this.posKeepStrategy === Strategy.FrontRunner ? 3.75 : 5;
       // Lane gap per spec: Front Runner 0.165, Oonige 0.416 (in course width units)
-      const laneGap = this.posKeepStrategy === Strategy.Nige ? 0.165 : 0.416;
+      const laneGap = this.posKeepStrategy === Strategy.FrontRunner ? 0.165 : 0.416;
 
       const umasWithinGap = otherUmas.filter(
         (u) =>

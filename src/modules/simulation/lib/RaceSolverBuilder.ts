@@ -4,15 +4,14 @@ import { ImmediatePolicy, createFixedPositionPolicy } from './ActivationSamplePo
 import { getParser } from './ConditionParser';
 import { CourseHelpers } from './CourseData';
 import { EnhancedHpPolicy } from './EnhancedHpPolicy';
-import { Aptitude, Strategy } from './HorseTypes';
 import { GameHpPolicy, NoopHpPolicy } from './HpPolicy';
 import { Grade, GroundCondition, Season, TimeOfDay, Weather } from './course/definitions';
 import { RaceSolver } from './RaceSolver';
 import { Rule30CARng } from './Random';
 import { Region, RegionList } from './Region';
 import { SkillPerspective, SkillRarity, SkillTarget, SkillType } from './skills/definitions';
-import { Mood, PosKeepMode } from './runner/definitions';
-import type { IMood, IPosKeepMode } from './runner/definitions';
+import { Aptitude, Mood, PosKeepMode, Strategy } from './runner/definitions';
+import type { IAptitude, IMood, IPosKeepMode, IStrategy } from './runner/definitions';
 import type {
   ISkillPerspective,
   ISkillRarity,
@@ -32,7 +31,7 @@ import type {
 import type { RaceParameters } from './definitions';
 import type { SeededRng } from './Random';
 import type { DynamicCondition, PendingSkill, RaceState, SkillEffect } from './RaceSolver';
-import type { HorseParameters, IAptitude, IStrategy } from './HorseTypes';
+import type { HorseParameters } from './HorseTypes';
 import type { ActivationSamplePolicy } from './ActivationSamplePolicy';
 import type { Operator } from './ActivationConditions';
 import type { Skill } from '@/modules/skills/utils';
@@ -135,16 +134,16 @@ export function parseStrategy(s: string | IStrategy) {
   }
   switch (s.toUpperCase()) {
     case 'NIGE':
-      return Strategy.Nige;
+      return Strategy.FrontRunner;
     case 'SENKOU':
-      return Strategy.Senkou;
+      return Strategy.PaceChaser;
     case 'SASI':
     case 'SASHI':
-      return Strategy.Sasi;
+      return Strategy.LateSurger;
     case 'OIKOMI':
-      return Strategy.Oikomi;
+      return Strategy.EndCloser;
     case 'OONIGE':
-      return Strategy.Oonige;
+      return Strategy.Runaway;
     default:
       throw new Error('Invalid running strategy.');
   }
@@ -805,7 +804,9 @@ export class RaceSolverBuilder {
         this._horse.strategy.toUpperCase() == 'OONIGE'
       );
     } else {
-      return this._horse.strategy == Strategy.Nige || this._horse.strategy == Strategy.Oonige;
+      return (
+        this._horse.strategy == Strategy.FrontRunner || this._horse.strategy == Strategy.Runaway
+      );
     }
   }
 
@@ -909,7 +910,7 @@ export class RaceSolverBuilder {
   }
 
   useDefaultPacer(openingLegAccel: boolean = false) {
-    const pacer = Object.assign({}, this._horse, { strategy: 'Nige' });
+    const pacer = Object.assign({}, this._horse, { strategy: 'Front Runner' });
 
     if (openingLegAccel) {
       // top is jiga and bottom is white sente

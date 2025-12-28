@@ -5,6 +5,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { strategyNames } from '@/modules/simulation/lib/runner/definitions';
 
 type StrategySelectProps = {
   value: string;
@@ -21,11 +22,11 @@ export function StrategySelect(props: StrategySelectProps) {
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="Oonige">Runaway</SelectItem>
-        <SelectItem value="Nige">Front Runner</SelectItem>
-        <SelectItem value="Senkou">Pace Chaser</SelectItem>
-        <SelectItem value="Sasi">Late Surger</SelectItem>
-        <SelectItem value="Oikomi">End Closer</SelectItem>
+        {strategyNames.map((name) => (
+          <SelectItem key={name} value={name}>
+            {name}
+          </SelectItem>
+        ))}
       </SelectContent>
     </Select>
   );

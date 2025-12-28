@@ -1,4 +1,4 @@
-import { Link, useLocation } from '@tanstack/react-router';
+import { Link, useLocation } from 'react-router';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 import { ButtonGroup } from '@/components/ui/button-group';

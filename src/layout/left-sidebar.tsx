@@ -43,22 +43,24 @@ export const LeftSidebar = () => {
         <div className="flex flex-col gap-1 p-1">
           {panels.map((panel) => (
             <Tooltip key={panel.id}>
-              <TooltipTrigger>
-                <Button
-                  variant={activePanel === panel.id ? 'secondary' : 'ghost'}
-                  size="icon"
-                  className={cn('h-9 w-9', activePanel === panel.id && 'bg-accent')}
-                  onClick={() => {
-                    if (activePanel === panel.id && !hidden) {
-                      setLeftSidebar({ hidden: true });
-                    } else {
-                      setLeftSidebar({ activePanel: panel.id, hidden: false });
-                    }
-                  }}
-                >
-                  <panel.icon className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
+              <TooltipTrigger
+                render={
+                  <Button
+                    variant={activePanel === panel.id ? 'secondary' : 'ghost'}
+                    size="icon"
+                    className={cn('h-9 w-9', activePanel === panel.id && 'bg-accent')}
+                    onClick={() => {
+                      if (activePanel === panel.id && !hidden) {
+                        setLeftSidebar({ hidden: true });
+                      } else {
+                        setLeftSidebar({ activePanel: panel.id, hidden: false });
+                      }
+                    }}
+                  >
+                    <panel.icon className="h-4 w-4" />
+                  </Button>
+                }
+              />
               <TooltipContent side="right">
                 <p>{panel.label}</p>
               </TooltipContent>

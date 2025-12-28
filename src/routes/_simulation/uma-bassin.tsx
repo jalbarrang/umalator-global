@@ -1,5 +1,3 @@
-import { createFileRoute } from '@tanstack/react-router';
-
 import { resetTable, useUniqueSkillBasinStore } from '@simulation/stores/uma-basin.store';
 import { Activity, useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
@@ -16,11 +14,7 @@ import { ButtonGroup } from '@/components/ui/button-group';
 import { getUmaForUniqueSkill } from '@/modules/skills/utils';
 import { LoadingOverlay } from '@/components/loading-overlay';
 
-export const Route = createFileRoute('/_simulation/uma-bassin')({
-  component: RouteComponent,
-});
-
-function RouteComponent() {
+export function UmaBassin() {
   const { chartData, selectedSkills, setSelectedSkills } = useChartData();
   const { results: umaBasinResults, metrics, isSimulationRunning } = useUniqueSkillBasinStore();
   const courseId = useSettingsStore(useShallow((state) => state.courseId));

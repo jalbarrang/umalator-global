@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, useParams } from '@tanstack/react-router';
+import { useNavigate, useParams } from 'react-router';
 
 import { useMemo, useState } from 'react';
 import { AlertCircle } from 'lucide-react';
@@ -15,13 +15,9 @@ import {
 } from '@/components/ui/empty';
 import { Button } from '@/components/ui/button';
 
-export const Route = createFileRoute('/runners/$runnerId/edit')({
-  component: RouteComponent,
-});
-
-function RouteComponent() {
+export function RunnersEdit() {
   const navigate = useNavigate();
-  const { runnerId: id } = useParams({ from: '/runners/$runnerId/edit' });
+  const { runnerId: id } = useParams();
   const { getRunner, updateRunner } = useRunnerLibraryStore();
 
   // Get the runner from the store
@@ -45,11 +41,11 @@ function RouteComponent() {
       notes: runnerName.trim(),
     });
 
-    navigate({ to: '/runners' });
+    navigate('/runners');
   };
 
   const handleCancel = () => {
-    navigate({ to: '/runners' });
+    navigate('/runners');
   };
 
   if (notFound) {
@@ -66,7 +62,7 @@ function RouteComponent() {
             </EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
-            <Button onClick={() => navigate({ to: '/runners' })}>Back to Runners</Button>
+            <Button onClick={() => navigate('/runners')}>Back to Runners</Button>
           </EmptyContent>
         </Empty>
       </div>

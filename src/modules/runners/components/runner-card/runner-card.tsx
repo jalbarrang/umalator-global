@@ -1,10 +1,9 @@
 import { useMemo, useState } from 'react';
 
 import { ArrowLeftRight, Copy, TrashIcon, Upload } from 'lucide-react';
-import { ClientOnly } from '@tanstack/react-router';
 import type { RunnerState } from './types';
 import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
-import type { IMood } from '@/modules/simulation/lib/runner/definitions';
+import type { IMood, IStrategyName } from '@/modules/simulation/lib/runner/definitions';
 import { SkillItem } from '@/modules/skills/components/skill-list/SkillItem';
 
 import {
@@ -57,8 +56,8 @@ export const RunnerCard = (props: RunnerCardProps) => {
     onChange({ ...state, skills: skills });
     updateCurrentSkills(skills);
 
-    if (skills.includes(runawaySkillId) && state.strategy !== 'Oonige') {
-      onChange({ ...state, strategy: 'Oonige' });
+    if (skills.includes(runawaySkillId) && state.strategy !== 'Runaway') {
+      onChange({ ...state, strategy: 'Runaway' });
     }
   };
 
@@ -165,14 +164,14 @@ export const RunnerCard = (props: RunnerCardProps) => {
     }
 
     const hasRunawaySkill = state.skills.includes(runawaySkillId);
-    const shouldForceRunaway = hasRunawaySkill && value !== 'Oonige';
+    const shouldForceRunaway = hasRunawaySkill && value !== 'Runaway';
 
     if (shouldForceRunaway) {
-      onChange({ ...state, strategy: 'Oonige' });
+      onChange({ ...state, strategy: 'Runaway' });
       return;
     }
 
-    onChange({ ...state, strategy: value });
+    onChange({ ...state, strategy: value as IStrategyName });
   };
 
   const handleUpdateMood = (value: IMood | null) => {
@@ -225,15 +224,13 @@ export const RunnerCard = (props: RunnerCardProps) => {
   return (
     <div className="runner-card flex flex-col gap-4 p-2">
       <div className="flex gap-2">
-        <ClientOnly>
-          <UmaSelector
-            value={umaId}
-            select={handleChangeRunner}
-            onReset={onReset}
-            onImport={() => setImportDialogOpen(true)}
-            randomMobId={state.randomMobId}
-          />
-        </ClientOnly>
+        <UmaSelector
+          value={umaId}
+          select={handleChangeRunner}
+          onReset={onReset}
+          onImport={() => setImportDialogOpen(true)}
+          randomMobId={state.randomMobId}
+        />
 
         <div className="grid grid-cols-2 gap-2">
           {!isMobile && (

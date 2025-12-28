@@ -148,7 +148,7 @@ export async function deserialize(hash: string) {
           racedef: createRaceConditions(),
           uma1: createRunnerState(),
           uma2: createRunnerState(),
-          pacer: createRunnerState({ strategy: 'Nige' }),
+          pacer: createRunnerState({ strategy: 'Front Runner' }),
           witVarianceSettings: {
             allowRushedUma1: true,
             allowRushedUma2: true,

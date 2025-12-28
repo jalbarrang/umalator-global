@@ -1,9 +1,5 @@
-import { Outlet, createFileRoute } from '@tanstack/react-router';
+import { Outlet } from 'react-router';
 
-export const Route = createFileRoute('/runners')({
-  component: RouteComponent,
-});
-
-function RouteComponent() {
+export function RunnersLayout() {
   return <Outlet />;
 }

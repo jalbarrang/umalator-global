@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useNavigate } from 'react-router';
 
 import { Activity, useState } from 'react';
 import { Plus, Users } from 'lucide-react';
@@ -24,11 +24,7 @@ import {
 } from '@/components/ui/dialog';
 import { loadRunnerFromLibrary, showRunner } from '@/store/runners.store';
 
-export const Route = createFileRoute('/runners/')({
-  component: RouteComponent,
-});
-
-function RouteComponent() {
+export function RunnersHome() {
   const navigate = useNavigate();
   const { runners, deleteRunner, duplicateRunner } = useRunnerLibraryStore();
 
@@ -38,11 +34,11 @@ function RouteComponent() {
   const [runnerToLoad, setRunnerToLoad] = useState<SavedRunner | null>(null);
 
   const handleAddNew = () => {
-    navigate({ to: '/runners/new' });
+    navigate('/runners/new');
   };
 
   const handleEdit = (runner: SavedRunner) => {
-    navigate({ to: `/runners/${runner.id}/edit` });
+    navigate(`/runners/${runner.id}/edit`);
   };
 
   const handleDeleteClick = (id: string) => {
@@ -69,7 +65,7 @@ function RouteComponent() {
       showRunner(slot);
       setLoadDialogOpen(false);
       setRunnerToLoad(null);
-      navigate({ to: '/' });
+      navigate('/');
     }
   };
 

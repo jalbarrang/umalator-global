@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
-import { SkillTarget, SkillType } from '@simulation/lib/race-solver/types';
 import type { SkillActivationMap } from '@/modules/simulation/compare.types';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import { SkillTarget, SkillType } from '@/modules/simulation/lib/skills/definitions';
 import {
   estimateSkillActivationPhase,
   getSkillDataById,

@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Slider } from '../ui/slider';
 import type { IPosKeepMode } from '@/modules/simulation/lib/runner/definitions';
-import { PosKeepMode } from '@/modules/simulation/lib/runner/definitions';
+import { PosKeepMode, PosKeepModeName } from '@/modules/simulation/lib/runner/definitions';
 import {
   setPacemakerCount,
   setSelectedPacemakerIndices,
@@ -16,13 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  MultiSelect,
-  MultiSelectContent,
-  MultiSelectGroup,
-  MultiSelectItem,
-  MultiSelectTrigger,
-} from '@/components/ui/multi-select';
+
 import { Label } from '@/components/ui/label';
 
 export const PositionKeepSettings = () => {
@@ -51,9 +45,9 @@ export const PositionKeepSettings = () => {
     setPacemakerCount(value[0] ?? 1);
   };
 
-  const handleSelectedPacemakerIndicesChange = (values: Array<string>) => {
-    togglePaceMakers(values.map(Number));
-    setSelectedPacemakerIndices(values.map(Number));
+  const handleSelectedPacemakerIndicesChange = (values: Array<number>) => {
+    togglePaceMakers(values);
+    setSelectedPacemakerIndices(values);
   };
 
   return (
@@ -63,8 +57,19 @@ export const PositionKeepSettings = () => {
 
         <Select value={posKeepMode.toString()} onValueChange={handlePosKeepModeChange}>
           <SelectTrigger className="w-full">
-            <SelectValue />
+            <SelectValue
+              render={(_, value) => {
+                if (value.value) {
+                  return (
+                    <span>{PosKeepModeName[value.value as keyof typeof PosKeepModeName]}</span>
+                  );
+                }
+
+                return <span className="text-muted-foreground">Position Keep</span>;
+              }}
+            />
           </SelectTrigger>
+
           <SelectContent>
             <SelectItem value={PosKeepMode.None.toString()}>None</SelectItem>
             <SelectItem value={PosKeepMode.Approximate.toString()}>Approximate</SelectItem>
@@ -81,29 +86,38 @@ export const PositionKeepSettings = () => {
         <>
           <div className="flex flex-col gap-1">
             <Label className="text-xs">Show Pacemakers:</Label>
-            <MultiSelect
-              value={selectedPacemakerIndices.map(String)}
+            <Select
+              value={selectedPacemakerIndices}
               onValueChange={handleSelectedPacemakerIndicesChange}
+              multiple
             >
-              <MultiSelectTrigger className="w-full">
-                {selectedPacemakerIndices.length === 0
-                  ? 'None'
-                  : selectedPacemakerIndices.length === 1
-                    ? `Pacemaker ${selectedPacemakerIndices[0] + 1}`
-                    : selectedPacemakerIndices.length === pacemakerCount
-                      ? 'All Pacemakers'
-                      : `${selectedPacemakerIndices.length} Pacemakers`}
-              </MultiSelectTrigger>
-              <MultiSelectContent>
-                <MultiSelectGroup>
-                  {pacemakerNames.map((name, index) => (
-                    <MultiSelectItem key={index} value={index.toString()}>
-                      {name}
-                    </MultiSelectItem>
-                  ))}
-                </MultiSelectGroup>
-              </MultiSelectContent>
-            </MultiSelect>
+              <SelectTrigger className="w-full">
+                <SelectValue>
+                  {(value) => {
+                    if (value.length === 0) {
+                      return 'None';
+                    }
+
+                    if (value.length === 1) {
+                      return `Pacemaker ${value[0] + 1}`;
+                    }
+
+                    if (value.length === pacemakerCount) {
+                      return 'All Pacemakers';
+                    }
+
+                    return `${value.length} Pacemakers`;
+                  }}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {pacemakerNames.map((name, index) => (
+                  <SelectItem key={index} value={index}>
+                    {name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex flex-col gap-1">
