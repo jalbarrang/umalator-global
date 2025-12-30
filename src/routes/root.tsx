@@ -5,6 +5,7 @@ import { SimulationLayout } from './_simulation';
 import { SimulationHome } from './_simulation/home';
 import { SkillBassin } from './_simulation/skill-bassin';
 import { UmaBassin } from './_simulation/uma-bassin';
+import { SkillPlanner } from './_simulation/skill-planner';
 import { RunnersLayout } from './runners';
 import { RunnersHome } from './runners/home';
 import { RunnersNew } from './runners/new';
@@ -73,6 +74,7 @@ export function RootComponent() {
               <Route index element={<SimulationHome />} />
               <Route path="/skill-bassin" element={<SkillBassin />} />
               <Route path="/uma-bassin" element={<UmaBassin />} />
+              <Route path="/skill-planner" element={<SkillPlanner />} />
             </Route>
             <Route path="/runners" element={<RunnersLayout />}>
               <Route index element={<RunnersHome />} />
