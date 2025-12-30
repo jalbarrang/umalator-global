@@ -1,21 +1,21 @@
-import SkillsDataList from '@data/skill_data.json';
+import { createParser } from '../simulation/lib/skills/parser/ConditionParser';
+import type { Operator } from '../simulation/lib/skills/parser/definitions';
+import SkillsDataList from '@/modules/data/skill_data.json';
 
-import { getParser } from '@simulation/lib/ConditionParser';
-import { mockConditions } from '@simulation/lib/tools/ConditionMatcher';
-import type { Operator } from '@simulation/lib/ActivationConditions';
+import { mockConditions } from '@/modules/simulation/lib/skills/parser/ConditionMatcher';
 
-const Parser = getParser(mockConditions);
+const Parser = createParser({
+  conditions: mockConditions,
+});
 
 export const parseSkillCondition = (skillCondition: string) => {
-  return Parser.parseAny(Parser.tokenize(skillCondition));
+  return Parser.parseAny(skillCondition);
 };
 
 const tokenizeSkillsConditions = () => {
   return Object.entries(SkillsDataList).reduce(
     (acc, [id, skillData]) => {
-      acc[id] = skillData.alternatives.map((alternative) =>
-        Parser.parse(Parser.tokenize(alternative.condition)),
-      );
+      acc[id] = skillData.alternatives.map((alternative) => Parser.parse(alternative.condition));
       return acc;
     },
     {} as Record<string, Array<Operator>>,

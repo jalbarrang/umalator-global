@@ -1,8 +1,11 @@
-import { buildAdjustedStats, buildBaseStats } from '@simulation/lib/RaceSolverBuilder';
-import type { BaseStats } from '@simulation/lib/RaceSolverBuilder';
+import type { BaseStats } from '@/modules/simulation/lib/core/RaceSolverBuilder';
 import type { IGroundCondition } from '@/modules/simulation/lib/course/definitions';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
-import { CourseHelpers } from '@/modules/simulation/lib/CourseData';
+import {
+  buildAdjustedStats,
+  buildBaseStats,
+} from '@/modules/simulation/lib/core/RaceSolverBuilder';
+import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
 import { getSkillDataById } from '@/modules/skills/utils';
 
 // Skill effect types from race mechanics

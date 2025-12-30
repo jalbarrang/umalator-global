@@ -1,7 +1,7 @@
-import { CourseHelpers } from '@simulation/lib/CourseData';
 import { useMemo } from 'react';
 import { Link2, Link2Off, Save } from 'lucide-react';
 import { RunnerCard } from './runner-card/runner-card';
+import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
 import {
   copyToRunner,
   resetAllRunners,

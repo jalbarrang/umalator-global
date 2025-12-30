@@ -1,7 +1,7 @@
 // @ts-expect-error d3 types are not typed
 import * as d3 from 'd3';
 import { memo, useMemo } from 'react';
-import type { SimulationRun } from '@simulation/compare.types';
+import type { SimulationRun } from '@/modules/simulation/compare.types';
 import { useRaceTrackUI } from '@/store/settings.store';
 
 const colors = ['#2a77c5', '#c52a2a'];

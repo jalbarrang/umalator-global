@@ -1,11 +1,16 @@
-import { distances, orientations, phases, surfaces } from './course/definitions';
 import type {
   CourseData,
   IDistanceType,
   IOrientation,
   IPhase,
   ISurface,
-} from './course/definitions';
+} from '@/modules/simulation/lib/course/definitions';
+import {
+  distances,
+  orientations,
+  phases,
+  surfaces,
+} from '@/modules/simulation/lib/course/definitions';
 import { getCourseById } from '@/modules/racetrack/courses';
 
 export class CourseHelpers {
@@ -56,6 +61,8 @@ export class CourseHelpers {
         return (distance * 2) / 3;
       case 3:
         return (distance * 5) / 6;
+      default:
+        throw new Error(`Invalid phase: ${phase}`);
     }
   }
 
@@ -69,6 +76,8 @@ export class CourseHelpers {
         return (distance * 5) / 6;
       case 3:
         return distance;
+      default:
+        throw new Error(`Invalid phase: ${phase}`);
     }
   }
 

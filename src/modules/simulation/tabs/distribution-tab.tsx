@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import { useRaceStore } from '@simulation/stores/compare.store';
 import { BarChart3 } from 'lucide-react';
+import { useRaceStore } from '@/modules/simulation/stores/compare.store';
 import { Histogram } from '@/components/Histogram';
 import {
   Empty,

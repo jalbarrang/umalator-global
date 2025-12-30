@@ -1,12 +1,12 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
+import CompareWorker from '@workers/simulator.worker.ts?worker';
+import type { CompareResult } from '@/modules/simulation/compare.types';
+import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
 import {
   setIsSimulationRunning,
   setResults,
   setSimulationProgress,
-} from '@simulation/stores/compare.store';
-import { CourseHelpers } from '@simulation/lib/CourseData';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import CompareWorker from '@workers/simulator.worker.ts?worker';
-import type { CompareResult } from '@simulation/compare.types';
+} from '@/modules/simulation/stores/compare.store';
 import { PosKeepMode } from '@/modules/simulation/lib/runner/definitions';
 import { racedefToParams } from '@/utils/races';
 import { useSettingsStore, useWitVariance } from '@/store/settings.store';

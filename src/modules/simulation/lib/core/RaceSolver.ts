@@ -1,28 +1,33 @@
 import { cloneDeep } from 'es-toolkit';
 import { ApproximateMultiCondition, ApproximateStartContinue } from './ApproximateStartContinue';
-import { CourseHelpers } from './CourseData';
-import { StrategyHelpers } from './HorseTypes';
-import { PositionKeepState, SkillPerspective, SkillRarity, SkillType } from './skills/definitions';
-import { Rule30CARng } from './Random';
-import { PosKeepMode, Strategy } from './runner/definitions';
-import type { IPosKeepMode, IStrategy } from './runner/definitions';
+import type { IPosKeepMode, IStrategy } from '@/modules/simulation/lib/runner/definitions';
 import type {
   IPositionKeepState,
   ISkillPerspective,
   ISkillRarity,
   ISkillTarget,
   ISkillType,
-} from './skills/definitions';
-import type { PRNG } from './Random';
-import type { Region } from './Region';
-import type { HorseParameters } from './HorseTypes';
-import type { CourseData, IPhase } from './course/definitions';
+} from '@/modules/simulation/lib/skills/definitions';
+import type { PRNG } from '@/modules/simulation/lib/utils/Random';
+import type { Region } from '@/modules/simulation/lib/utils/Region';
+import type { HorseParameters } from '@/modules/simulation/lib/runner/HorseTypes';
+import type { CourseData, IPhase } from '@/modules/simulation/lib/course/definitions';
 import type {
   ApproximateCondition,
   ConditionEntry,
   ConditionState,
-} from './ApproximateStartContinue';
-import type { HpPolicy } from './HpPolicy';
+} from '@/modules/simulation/lib/core/ApproximateStartContinue';
+import type { HpPolicy } from '@/modules/simulation/lib/runner/health/HpPolicy';
+import { PosKeepMode, Strategy } from '@/modules/simulation/lib/runner/definitions';
+import {
+  PositionKeepState,
+  SkillPerspective,
+  SkillRarity,
+  SkillType,
+} from '@/modules/simulation/lib/skills/definitions';
+import { Rule30CARng } from '@/modules/simulation/lib/utils/Random';
+import { StrategyHelpers } from '@/modules/simulation/lib/runner/HorseTypes';
+import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
 
 export const Speed = {
   StrategyPhaseCoefficient: [

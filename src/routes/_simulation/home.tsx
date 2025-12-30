@@ -1,5 +1,5 @@
-import { resetResults, useRaceStore } from '@simulation/stores/compare.store';
 import { Activity, useMemo } from 'react';
+import { resetResults, useRaceStore } from '@/modules/simulation/stores/compare.store';
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button-group';
 import { LoadingOverlay } from '@/components/loading-overlay';
@@ -7,7 +7,7 @@ import { VelocityLines } from '@/components/VelocityLines';
 import { RaceTrack } from '@/modules/racetrack/components/RaceTrack';
 import { initializeSimulationRun } from '@/modules/simulation/compare.types';
 import { useSimulationRunner } from '@/modules/simulation/hooks/compare/useSimulationRunner';
-import { CourseHelpers } from '@/modules/simulation/lib/CourseData';
+import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
 import { SimulationResultTabs } from '@/modules/simulation/tabs/simulation-result-tabs';
 import { ResultButtonGroups } from '@/modules/simulation/tabs/summary-tab';
 import { useSettingsStore } from '@/store/settings.store';

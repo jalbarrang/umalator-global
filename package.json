@@ -10,6 +10,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "format": "prettier --write .",
+    "test": "bun test",
+    "test:watch": "bun test --watch",
     "sync-skills": "bun cli/data/skill-sync.tsx",
     "extract:skill-meta": "bun scripts/extract-skill-meta.ts",
     "extract:skillnames": "bun scripts/extract-skillnames.ts",

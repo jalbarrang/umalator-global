@@ -7,10 +7,10 @@
 import { useRef, useState } from 'react';
 import { AlertCircle, CheckCircle, ImageIcon, Loader2, Upload, X } from 'lucide-react';
 
-import icons from '@data/icons.json';
 import { toast } from 'sonner';
 import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
 import type { UploadedFile } from '@/modules/runners/hooks/useOcrImport';
+import icons from '@/modules/data/icons.json';
 import {
   Dialog,
   DialogContent,

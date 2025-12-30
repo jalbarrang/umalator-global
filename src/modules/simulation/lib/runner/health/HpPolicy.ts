@@ -1,12 +1,16 @@
-import { PositionKeepState } from './skills/definitions';
-import { Strategy } from './runner/definitions';
-import { CourseHelpers } from './CourseData';
-import type { IStrategy } from './runner/definitions';
-import type { HorseParameters } from './HorseTypes';
-import type { IPositionKeepState } from './skills/definitions';
-import type { CourseData, IGroundCondition, IPhase } from './course/definitions';
-import type { PRNG } from './Random';
-import type { RaceState } from './RaceSolver';
+import type { IStrategy } from '@/modules/simulation/lib/runner/definitions';
+import type { HorseParameters } from '@/modules/simulation/lib/runner/HorseTypes';
+import type { IPositionKeepState } from '@/modules/simulation/lib/skills/definitions';
+import type {
+  CourseData,
+  IGroundCondition,
+  IPhase,
+} from '@/modules/simulation/lib/course/definitions';
+import type { PRNG } from '@/modules/simulation/lib/utils/Random';
+import type { RaceState } from '@/modules/simulation/lib/core/RaceSolver';
+import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
+import { Strategy } from '@/modules/simulation/lib/runner/definitions';
+import { PositionKeepState } from '@/modules/simulation/lib/skills/definitions';
 
 export interface HpPolicy {
   init: (horse: HorseParameters) => void;

@@ -1,8 +1,8 @@
-import { useRaceStore } from '@simulation/stores/compare.store';
 import { useMemo } from 'react';
 
 import { ChevronsUpDown, Zap } from 'lucide-react';
 import type { ISkillTarget, ISkillType } from '@/modules/simulation/lib/skills/definitions';
+import { useRaceStore } from '@/modules/simulation/stores/compare.store';
 import {
   SkillType,
   translateSkillEffectTarget,

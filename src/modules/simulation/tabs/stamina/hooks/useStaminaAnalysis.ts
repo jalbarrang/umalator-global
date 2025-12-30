@@ -1,12 +1,12 @@
 import { useMemo } from 'react';
-import { parseAptitude, parseStrategy } from '@simulation/lib/RaceSolverBuilder';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import { parseAptitude, parseStrategy } from '@/modules/simulation/lib/core/RaceSolverBuilder';
 import {
   HpConsumptionGroundModifier,
   HpStrategyCoefficient,
-} from '@/modules/simulation/lib/HpPolicy';
-import { Speed } from '@/modules/simulation/lib/RaceSolver';
-import { CourseHelpers } from '@/modules/simulation/lib/CourseData';
+} from '@/modules/simulation/lib/runner/health/HpPolicy';
+import { Speed } from '@/modules/simulation/lib/core/RaceSolver';
+import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
 
 export interface PhaseBreakdown {
   phase: string;

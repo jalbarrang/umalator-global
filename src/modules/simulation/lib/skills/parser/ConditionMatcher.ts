@@ -1,8 +1,9 @@
-import { AndOperator, OrOperator } from '@simulation/lib/ActivationConditions';
-import { NodeType } from '@simulation/lib/ConditionParser';
-import type { CmpOperator, Condition, Operator } from '@simulation/lib/ActivationConditions';
-import type { Node } from '@simulation/lib/ConditionParser';
-import type { ActivationSamplePolicy } from '../ActivationSamplePolicy';
+import type { CmpOperator, ICondition, Operator, ParseNode } from './definitions';
+import type { ActivationSamplePolicy } from '@/modules/simulation/lib/skills/policies/ActivationSamplePolicy';
+import {
+  AndOperator,
+  OrOperator,
+} from '@/modules/simulation/lib/skills/parser/conditions/operators';
 
 function isCmpOperator(tree: Operator): tree is CmpOperator {
   return 'condition' in tree;
@@ -38,7 +39,7 @@ function flatten(node: AndOperator, conds: Array<CmpOperator>) {
   return conds;
 }
 
-function condMatcher(cond: Condition | CmpOperator, node: Operator): boolean {
+function condMatcher(cond: ICondition | CmpOperator, node: Operator): boolean {
   if (isCmpOperator(node)) {
     if ('argument' in cond) {
       return (
@@ -77,9 +78,9 @@ function andMatcher(conds: Array<CmpOperator>, node: Operator): boolean {
   }
 }
 
-export function treeMatch(match: Node, tree: Operator) {
+export function treeMatch(match: ParseNode, tree: Operator) {
   switch (match.type) {
-    case NodeType.Op:
+    case 'op':
       if (match.op instanceof AndOperator) {
         return andMatcher(flatten(match.op, []), tree);
       } else if (isCmpOperator(match.op)) {
@@ -87,9 +88,9 @@ export function treeMatch(match: Node, tree: Operator) {
       }
 
       throw new Error("doesn't support @ in search conditions");
-    case NodeType.Cond:
+    case 'cond':
       return condMatcher(match.cond, tree);
-    case NodeType.Int:
+    case 'int':
       throw new Error("doesn't support sole integer as search condition");
   }
 }

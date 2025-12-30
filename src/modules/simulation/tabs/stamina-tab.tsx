@@ -1,6 +1,4 @@
 import { useMemo, useState } from 'react';
-import { useRaceStore } from '@simulation/stores/compare.store';
-import { CourseHelpers } from '../lib/CourseData';
 import { StaminaCard } from './stamina/components';
 
 import { useStaminaAnalysis } from './stamina/hooks/useStaminaAnalysis';
@@ -11,6 +9,8 @@ import {
   useTheoreticalRecoverySkills,
 } from './stamina/hooks/useRecoverySkills';
 import { useActualPhaseHp, useTheoreticalPhaseHp } from './stamina/hooks/usePhaseHp';
+import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
+import { useRaceStore } from '@/modules/simulation/stores/compare.store';
 import { useSettingsStore } from '@/store/settings.store';
 import { useRunnersStore } from '@/store/runners.store';
 

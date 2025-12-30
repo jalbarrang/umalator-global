@@ -5,7 +5,7 @@ import { useMemo, useState } from 'react';
 import { initializeSimulationRun } from '../compare.types';
 import { useRaceStore } from './compare.store';
 import type { SimulationData, SimulationRun, SkillActivation } from '../compare.types';
-import type { PoolMetrics, RoundResult, SkillBasinResponse } from '@simulation/types';
+import type { PoolMetrics, RoundResult, SkillBasinResponse } from '@/modules/simulation/types';
 
 type ISkillBasinStore = {
   results: SkillBasinResponse;

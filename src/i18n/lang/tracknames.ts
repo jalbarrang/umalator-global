@@ -1,12 +1,10 @@
-import trackNameList from '@data/tracknames.json';
+import trackNameList from '@/modules/data/tracknames.json';
 
 type TrackIds = keyof typeof trackNameList;
 
 type TrackNameList = {
   [key in TrackIds]: [string, string];
 };
-
-type TrackId = TrackIds[number];
 
 const extractTrackNamesForLanguage = (language: 'ja' | 'en') => {
   return Object.fromEntries(

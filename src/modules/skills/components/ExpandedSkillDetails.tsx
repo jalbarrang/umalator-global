@@ -48,16 +48,14 @@ export function ExpandedSkillDetails(props: ExpandedSkillDetailsProps) {
               {precondition.length > 0 && (
                 <>
                   {i18n.t('skilldetails.preconditions')}
-                  <div className="skillConditions">
-                    {FormatParser.parse(FormatParser.tokenize(precondition)).format()}
-                  </div>
+                  <div className="skillConditions">{FormatParser.parse(precondition).format()}</div>
                 </>
               )}
 
               {i18n.t('skilldetails.conditions')}
 
               <div className="skillConditions">
-                {FormatParser.parse(FormatParser.tokenize(alternative.condition)).format()}
+                {FormatParser.parse(alternative.condition).format()}
               </div>
 
               {i18n.t('skilldetails.effects')}

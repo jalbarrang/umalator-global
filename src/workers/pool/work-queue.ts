@@ -1,4 +1,4 @@
-import type { SkillBasinResponse } from '@simulation/types';
+import type { SkillBasinResponse } from '@/modules/simulation/types';
 import type { WorkBatch } from './types';
 
 export type StageConfig = {

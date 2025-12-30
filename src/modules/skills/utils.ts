@@ -1,15 +1,15 @@
-import skillsDataList from '@data/skill_data.json';
-import skillMetaList from '@data/skill_meta.json';
-import skillNamesList from '@data/skillnames.json';
-import GametoraSkills from '@data/gametora/skills.json';
-
-import { treeMatch } from '@simulation/lib/tools/ConditionMatcher';
-import { SkillRarity } from '../simulation/lib/skills/definitions';
 import { parseSkillCondition, tokenizedConditions } from './conditions';
-import type { ISkillRarity } from '../simulation/lib/skills/definitions';
-import type { SkillAlternative } from '../simulation/lib/RaceSolverBuilder';
+import type { ISkillRarity } from '@/modules/simulation/lib/skills/definitions';
+import type { SkillAlternative } from '@/modules/simulation/lib/core/RaceSolverBuilder';
 import type { ISkill } from './types';
 import type { UmaAltId } from '@/modules/runners/utils';
+import skillsDataList from '@/modules/data/skill_data.json';
+import skillMetaList from '@/modules/data/skill_meta.json';
+import skillNamesList from '@/modules/data/skillnames.json';
+import GametoraSkills from '@/modules/data/gametora/skills.json';
+
+import { treeMatch } from '@/modules/simulation/lib/skills/parser/ConditionMatcher';
+import { SkillRarity } from '@/modules/simulation/lib/skills/definitions';
 
 // Types
 

@@ -9,12 +9,16 @@
  * - Includes proper HP consumption modeling for different race phases
  */
 
-import { PositionKeepState } from './skills/definitions';
-import type { HorseParameters } from './HorseTypes';
-import type { CourseData, IGroundCondition, IPhase } from './course/definitions';
-import type { PRNG } from './Random';
-import type { IPositionKeepState } from './skills/definitions';
-import type { RaceState } from './RaceSolver';
+import type { HorseParameters } from '@/modules/simulation/lib/runner/HorseTypes';
+import type {
+  CourseData,
+  IGroundCondition,
+  IPhase,
+} from '@/modules/simulation/lib/course/definitions';
+import type { PRNG } from '@/modules/simulation/lib/utils/Random';
+import type { IPositionKeepState } from '@/modules/simulation/lib/skills/definitions';
+import type { RaceState } from '@/modules/simulation/lib/core/RaceSolver';
+import { PositionKeepState } from '@/modules/simulation/lib/skills/definitions';
 
 export const HpStrategyCoefficient = [0, 0.95, 0.89, 1.0, 0.995, 0.86] as const;
 export const HpConsumptionGroundModifier = [
@@ -111,12 +115,12 @@ export class EnhancedHpPolicy {
   private calculateMaxSpurtSpeed(horse: HorseParameters): number {
     const DistanceProficiencyModifier = [1.05, 1.0, 0.9, 0.8, 0.6, 0.4, 0.2, 0.1];
 
-    const v =
+    let v =
       (this.baseTargetSpeed2 + 0.01 * this.baseSpeed) * 1.05 +
       Math.sqrt(500.0 * horse.speed) * DistanceProficiencyModifier[horse.distanceAptitude] * 0.002;
 
-    // Add guts contribution (commented out for CC_GLOBAL compatibility, but leaving the logic)
-    // v += Math.pow(450.0 * horse.guts, 0.597) * 0.0001;
+    // Add guts contribution (available in Global server)
+    v += Math.pow(450.0 * horse.guts, 0.597) * 0.0001;
 
     return v;
   }

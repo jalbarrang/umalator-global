@@ -3,7 +3,7 @@
  * Processes batches of skills and reports results back to pool manager
  */
 
-import type { SkillBasinResponse } from '@simulation/types';
+import type { SkillBasinResponse } from '@/modules/simulation/types';
 import type { SimulationParams, WorkBatch, WorkerInMessage, WorkerOutMessage } from '../types';
 import { run1Round } from '@/utils/compare';
 

@@ -2,11 +2,11 @@ import type { RoundResult } from '@/modules/simulation/types';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import type { CourseData } from '@/modules/simulation/lib/course/definitions';
 import type { RaceParameters } from '@/modules/simulation/lib/definitions';
-import { buildBaseStats, buildSkillData } from '@/modules/simulation/lib/RaceSolverBuilder';
-import { getParser } from '@/modules/simulation/lib/ConditionParser';
-import { Region, RegionList } from '@/modules/simulation/lib/Region';
+import { buildBaseStats, buildSkillData } from '@/modules/simulation/lib/core/RaceSolverBuilder';
+import { Region, RegionList } from '@/modules/simulation/lib/utils/Region';
 import { SkillPerspective } from '@/modules/simulation/lib/skills/definitions';
 import { PosKeepMode } from '@/modules/simulation/lib/runner/definitions';
+import { createParser } from '@/modules/simulation/lib/skills/parser/ConditionParser';
 
 export function getActivateableSkills(
   skills: Array<string>,
@@ -14,7 +14,7 @@ export function getActivateableSkills(
   course: CourseData,
   racedef: RaceParameters,
 ) {
-  const parser = getParser();
+  const parser = createParser();
   const runnerB = buildBaseStats(horse);
 
   const wholeCourse = new RegionList();

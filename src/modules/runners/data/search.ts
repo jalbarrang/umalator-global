@@ -2,10 +2,10 @@
  * Search and lookup utilities for uma and skill data
  */
 
-import umas from '@data/umas.json';
-import GametoraSkills from '@data/gametora/skills.json';
 import type { ISkill } from '@/modules/skills/types';
 import type { SkillLookupEntry, SkillMatch, UmaData, UmaLookupEntry, UmaMatch } from './types';
+import umas from '@/modules/data/umas.json';
+import GametoraSkills from '@/modules/data/gametora/skills.json';
 
 // =============================================================================
 // Text Normalization & Similarity

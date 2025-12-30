@@ -1,8 +1,8 @@
-import { CourseHelpers } from '@simulation/lib/CourseData';
 import { useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
 import type { SimulationRun, SkillActivation } from '@/modules/simulation/compare.types';
 import type { PosKeepLabel } from '@/utils/races';
+import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
 import { PosKeepMode } from '@/modules/simulation/lib/runner/definitions';
 import { SkillType } from '@/modules/simulation/lib/skills/definitions';
 import { RegionDisplayType } from '@/modules/racetrack/types';

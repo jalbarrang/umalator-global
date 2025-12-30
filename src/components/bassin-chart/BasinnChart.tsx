@@ -9,10 +9,6 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 
-import icons from '@data/icons.json';
-import skillnames from '@data/skillnames.json';
-import umas from '@data/umas.json';
-
 import {
   ArrowDown,
   ArrowLeft,
@@ -32,6 +28,9 @@ import {
 } from '../ui/dropdown-menu';
 import type { CellContext, Column, ColumnDef, SortingState } from '@tanstack/react-table';
 import type { PoolMetrics, RoundResult } from '@/modules/simulation/types';
+import icons from '@/modules/data/icons.json';
+import umas from '@/modules/data/umas.json';
+import skillnames from '@/modules/data/skillnames.json';
 import {
   Table,
   TableBody,

@@ -1,15 +1,15 @@
+import { useEffect, useMemo, useRef } from 'react';
+import UmaBasinPoolWorker from '@workers/pool/uma-basin/uma-basin.pool.worker.ts?worker';
+import type { SkillBasinResponse } from '@/modules/simulation/types';
+import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
 import {
   appendResultsToTable,
   resetTable,
   setIsSimulationRunning,
   setMetrics,
   setTable,
-} from '@simulation/stores/uma-basin.store';
-import { CourseHelpers } from '@simulation/lib/CourseData';
-import { useEffect, useMemo, useRef } from 'react';
-import UmaBasinPoolWorker from '@workers/pool/uma-basin/uma-basin.pool.worker.ts?worker';
-import type { SkillBasinResponse } from '@simulation/types';
-import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+} from '@/modules/simulation/stores/uma-basin.store';
 import {
   defaultSimulationOptions,
   getActivateableSkills,

@@ -6,13 +6,17 @@
  */
 
 import { RaceSolver } from './RaceSolver';
-import { EnhancedHpPolicy } from './EnhancedHpPolicy';
-import { GameHpPolicy } from './HpPolicy';
 import type { PendingSkill } from './RaceSolver';
-import type { HorseParameters } from './HorseTypes';
-import type { CourseData, IGroundCondition } from './course/definitions';
-import type { PRNG } from './Random';
-import type { ISkillPerspective, ISkillTarget, ISkillType } from './skills/definitions';
+import type { HorseParameters } from '@/modules/simulation/lib/runner/HorseTypes';
+import type { CourseData, IGroundCondition } from '@/modules/simulation/lib/course/definitions';
+import type { PRNG } from '@/modules/simulation/lib/utils/Random';
+import type {
+  ISkillPerspective,
+  ISkillTarget,
+  ISkillType,
+} from '@/modules/simulation/lib/skills/definitions';
+import { GameHpPolicy } from '@/modules/simulation/lib/runner/health/HpPolicy';
+import { EnhancedHpPolicy } from '@/modules/simulation/lib/runner/health/EnhancedHpPolicy';
 
 export type OnSkillActivateCallback = (
   raceSolver: RaceSolver,
@@ -139,13 +143,3 @@ export function compareSpurtCalculations(
     timeDiff: enhancedTime - standardTime,
   };
 }
-
-/**
- * Export enhanced HP policy for direct use
- */
-export { EnhancedHpPolicy } from './EnhancedHpPolicy';
-
-/**
- * Export spurt calculation utilities
- */
-export * from './SpurtCalculator';

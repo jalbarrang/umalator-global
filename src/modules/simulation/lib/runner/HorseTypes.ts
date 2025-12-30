@@ -1,5 +1,5 @@
-import { Strategy, strategies } from './runner/definitions';
-import type { IAptitude, IStrategy } from './runner/definitions';
+import type { IAptitude, IStrategy } from '@/modules/simulation/lib/runner/definitions';
+import { Strategy, strategies } from '@/modules/simulation/lib/runner/definitions';
 
 export interface HorseParameters {
   readonly speed: number;

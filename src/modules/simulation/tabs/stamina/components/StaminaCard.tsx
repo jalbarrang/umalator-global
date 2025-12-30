@@ -1,4 +1,3 @@
-import { parseStrategy } from '@simulation/lib/RaceSolverBuilder';
 import { Activity, Calculator } from 'lucide-react';
 import { useMemo } from 'react';
 import { calculateStatsWithSkills } from '../utils/calculateStatsWithSkills';
@@ -8,13 +7,14 @@ import type { StaminaAnalysis } from '../hooks/useStaminaAnalysis';
 import type { RecoverySkillActivation } from '../hooks/useRecoverySkills';
 import type { ActualPhaseHp } from '../hooks/usePhaseHp';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import { parseStrategy } from '@/modules/simulation/lib/core/RaceSolverBuilder';
 import { GroundCondition } from '@/modules/simulation/lib/course/definitions';
 import { cn } from '@/lib/utils';
 import { getCourseById } from '@/modules/racetrack/courses';
 import { useSettingsStore } from '@/store/settings.store';
 
 import { Switch } from '@/components/ui/switch';
-import { HpStrategyCoefficient } from '@/modules/simulation/lib/HpPolicy';
+import { HpStrategyCoefficient } from '@/modules/simulation/lib/runner/health/HpPolicy';
 
 interface StaminaCardProps {
   runner: RunnerState;

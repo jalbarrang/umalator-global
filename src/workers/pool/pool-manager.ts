@@ -1,5 +1,5 @@
 import { STAGE_CONFIGS, WorkQueue } from './work-queue';
-import type { PoolMetrics, SkillBasinResponse } from '@simulation/types';
+import type { PoolMetrics, SkillBasinResponse } from '@/modules/simulation/types';
 import type { SimulationParams, WorkerInMessage, WorkerOutMessage, WorkerState } from './types';
 
 export type PoolManagerCallbacks = {

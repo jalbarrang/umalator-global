@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { sortByNumericKey, writeJsonFile } from '../../scripts/lib/shared';
-import type { ISkill } from '@skills/types';
+import type { ISkill } from '@/modules/skills/types';
 
 // Target file structures
 interface SkillDataEntry {

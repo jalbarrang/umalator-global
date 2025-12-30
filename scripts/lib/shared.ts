@@ -3,7 +3,7 @@
  */
 
 import path from 'node:path';
-import { getUniqueSkillForByUmaId as getUniqueSkillForByUmaIdFromUtils } from '@skills/utils';
+import { getUniqueSkillForByUmaId as getUniqueSkillForByUmaIdFromUtils } from '@/modules/skills/utils';
 
 /**
  * Sort an object by numeric keys

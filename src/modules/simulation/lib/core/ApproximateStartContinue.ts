@@ -1,5 +1,5 @@
 import type { RaceSolver } from './RaceSolver';
-import type { PRNG } from './Random';
+import type { PRNG } from '../utils/Random';
 
 export interface ConditionState {
   simulation: RaceSolver;

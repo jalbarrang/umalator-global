@@ -1,7 +1,7 @@
-import { getParser } from '@simulation/lib/ConditionParser';
 import type { ReactNode } from 'react';
 import { Tooltip } from '@/components/Tooltip';
 import i18n from '@/i18n';
+import { createTypedParser } from '@/modules/simulation/lib/skills/parser/ConditionParser';
 
 export interface ConditionFormatter {
   name: string;
@@ -182,7 +182,7 @@ function CmpFormatter(op: string) {
   };
 }
 
-export const FormatParser = getParser<ConditionFormatter, OpFormatter>(
+export const FormatParser = createTypedParser(
   conditionFormatters as Record<string, ConditionFormatter>,
   {
     and: AndFormatter,

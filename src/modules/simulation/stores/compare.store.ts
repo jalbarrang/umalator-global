@@ -6,8 +6,8 @@ import type {
   SimulationRun,
   StaminaStats,
   Stats,
-} from '@simulation/compare.types';
-import type { SpurtCandidate } from '@simulation/lib/SpurtCalculator';
+} from '@/modules/simulation/compare.types';
+import type { SpurtCandidate } from '@/modules/simulation/lib/utils/SpurtCalculator';
 
 type IRaceStore = {
   results: Array<number>;

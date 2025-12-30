@@ -1,14 +1,14 @@
+import { useCallback, useEffect, useMemo, useRef } from 'react';
+import SkillBasinWorker from '@workers/skill-basin.worker.ts?worker';
+import type { SkillBasinResponse } from '@/modules/simulation/types';
+import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
 import {
   appendResultsToTable,
   resetTable,
   setIsSimulationRunning,
   setMetrics,
   setTable,
-} from '@simulation/stores/skill-basin.store';
-import { CourseHelpers } from '@simulation/lib/CourseData';
-import { useCallback, useEffect, useMemo, useRef } from 'react';
-import SkillBasinWorker from '@workers/skill-basin.worker.ts?worker';
-import type { SkillBasinResponse } from '@simulation/types';
+} from '@/modules/simulation/stores/skill-basin.store';
 import {
   defaultSimulationOptions,
   getActivateableSkills,

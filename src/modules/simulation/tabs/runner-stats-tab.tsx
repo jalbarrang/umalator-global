@@ -1,6 +1,6 @@
-import { useRaceStore } from '@simulation/stores/compare.store';
 import { Activity, useMemo } from 'react';
 import { Timer } from 'lucide-react';
+import { useRaceStore } from '@/modules/simulation/stores/compare.store';
 import { useWitVariance } from '@/store/settings.store';
 import { formatTime } from '@/utils/time';
 import { Table, TableBody, TableCell, TableHead, TableRow } from '@/components/ui/table';

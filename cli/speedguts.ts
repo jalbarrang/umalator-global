@@ -1,8 +1,8 @@
 import fs from 'node:fs';
 import { Option, program } from 'commander';
-import type { RaceSolver } from '@/modules/simulation/lib/RaceSolver';
-import { CourseHelpers } from '@/modules/simulation/lib/CourseData';
-import { RaceSolverBuilder } from '@/modules/simulation/lib/RaceSolverBuilder';
+import type { RaceSolver } from '@/modules/simulation/lib/core/RaceSolver';
+import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
+import { RaceSolverBuilder } from '@/modules/simulation/lib/core/RaceSolverBuilder';
 
 program
   .argument('<horsefile>', "path to a JSON file describing the horse's parameters")

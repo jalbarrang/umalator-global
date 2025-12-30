@@ -1,6 +1,6 @@
 import type { IPosKeepMode } from './lib/runner/definitions';
-import type { RunnerState } from '../runners/components/runner-card/types';
-import type { SimulationData } from '@simulation/compare.types';
+import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import type { SimulationData } from '@/modules/simulation/compare.types';
 import type { CourseData } from './lib/course/definitions';
 import type { RaceParameters } from './lib/definitions';
 

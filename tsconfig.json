@@ -33,9 +33,6 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@data/*": ["./src/modules/data/*"],
-      "@simulation/*": ["./src/modules/simulation/*"],
-      "@skills/*": ["./src/modules/skills/*"],
       "@scripts/*": ["./scripts/*"],
       "@workers/*": ["./src/workers/*"],
       "@cli/*": ["./cli/*"]

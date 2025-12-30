@@ -1,5 +1,5 @@
-import courses from '@data/course_data.json';
 import type { Courses } from '@/modules/simulation/lib/course/definitions';
+import courses from '@/modules/data/course_data.json';
 
 export type CourseByTrack = Record<number, Array<number>>;
 

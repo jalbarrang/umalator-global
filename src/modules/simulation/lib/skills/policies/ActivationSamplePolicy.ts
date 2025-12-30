@@ -1,6 +1,6 @@
-import { Region } from './Region';
-import type { RegionList } from './Region';
-import type { PRNG } from './Random';
+import type { RegionList } from '@/modules/simulation/lib/utils/Region';
+import type { PRNG } from '@/modules/simulation/lib/utils/Random';
+import { Region } from '@/modules/simulation/lib/utils/Region';
 
 export interface ActivationSamplePolicy {
   sample: (regions: RegionList, nsamples: number, rng: PRNG) => Array<Region>;

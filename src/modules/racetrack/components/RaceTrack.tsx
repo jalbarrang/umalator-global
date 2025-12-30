@@ -1,4 +1,3 @@
-import { CourseHelpers } from '@simulation/lib/CourseData';
 import { Activity, Fragment, useMemo, useRef } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { useDragSkill } from '../hooks/useDragSkill';
@@ -18,6 +17,7 @@ import { TrackSelect } from './track-select';
 import type { RegionData } from '../hooks/useVisualizationData';
 import type { CourseData } from '@/modules/simulation/lib/course/definitions';
 import type { SimulationRun } from '@/modules/simulation/compare.types';
+import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
 import { initializeSimulationRun } from '@/modules/simulation/compare.types';
 import { updateForcedSkillPosition, useRunnersStore } from '@/store/runners.store';
 import {

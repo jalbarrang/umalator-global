@@ -1,13 +1,3 @@
-import {
-  RaceSolverBuilder,
-  buildAdjustedStats,
-  buildBaseStats,
-  parseAptitude,
-  parseStrategy,
-} from '@simulation/lib/RaceSolverBuilder';
-
-import { initializeSimulationRun } from '@simulation/compare.types';
-import { Rule30CARng } from '@simulation/lib/Random';
 import { cloneDeep } from 'es-toolkit';
 import type {
   Run1RoundParams,
@@ -15,9 +5,13 @@ import type {
   SkillBasinResponse,
   TheoreticalMaxSpurtResult,
 } from '@/modules/simulation/types';
-import type { CompareResult, SimulationRun, SkillActivation } from '@simulation/compare.types';
+import type {
+  CompareResult,
+  SimulationRun,
+  SkillActivation,
+} from '@/modules/simulation/compare.types';
 
-import type { ActiveSkill, RaceSolver } from '@simulation/lib/RaceSolver';
+import type { ActiveSkill, RaceSolver } from '@/modules/simulation/lib/core/RaceSolver';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import type { CourseData, IGroundCondition } from '@/modules/simulation/lib/course/definitions';
 import type {
@@ -25,6 +19,15 @@ import type {
   ISkillTarget,
   ISkillType,
 } from '@/modules/simulation/lib/skills/definitions';
+import { initializeSimulationRun } from '@/modules/simulation/compare.types';
+import { Rule30CARng } from '@/modules/simulation/lib/utils/Random';
+import {
+  RaceSolverBuilder,
+  buildAdjustedStats,
+  buildBaseStats,
+  parseAptitude,
+  parseStrategy,
+} from '@/modules/simulation/lib/core/RaceSolverBuilder';
 import { PosKeepMode } from '@/modules/simulation/lib/runner/definitions';
 import {
   SkillPerspective,

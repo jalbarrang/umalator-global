@@ -1,7 +1,7 @@
 import type { CourseData } from '@/modules/simulation/lib/course/definitions';
 import type { RaceParameters } from '@/modules/simulation/lib/definitions';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
-import type { SimulationOptions, SkillBasinResponse } from '@simulation/types';
+import type { SimulationOptions, SkillBasinResponse } from '@/modules/simulation/types';
 
 export type WorkerState = 'idle' | 'busy' | 'terminated';
 

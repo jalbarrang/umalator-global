@@ -1,5 +1,9 @@
-import { SkillPerspective, SkillTarget, SkillType } from '../simulation/lib/skills/definitions';
-import type { SkillActivation, SkillActivationMap } from '@simulation/compare.types';
+import type { SkillActivation, SkillActivationMap } from '@/modules/simulation/compare.types';
+import {
+  SkillPerspective,
+  SkillTarget,
+  SkillType,
+} from '@/modules/simulation/lib/skills/definitions';
 
 export class EffectQuery {
   private activations: SkillActivationMap;

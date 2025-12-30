@@ -1,9 +1,9 @@
 import { Option, program } from 'commander';
 
-import skills from '@data/skill_data.json';
-import skillnames from '@data/skillnames.json';
-import { mockConditions, treeMatch } from '@/modules/simulation/lib/tools/ConditionMatcher';
-import { getParser } from '@/modules/simulation/lib/ConditionParser';
+import skills from '@/modules/data/skill_data.json';
+import skillnames from '@/modules/data/skillnames.json';
+import { mockConditions, treeMatch } from '@/modules/simulation/lib/skills/parser/ConditionMatcher';
+import { createParser } from '@/modules/simulation/lib/skills/parser/ConditionParser';
 
 program
   .argument(
@@ -27,9 +27,11 @@ program
 program.parse();
 const opts = program.opts();
 
-const { parseAny, parse, tokenize } = getParser(mockConditions);
+const { parseAny, parse } = createParser({
+  conditions: mockConditions,
+});
 
-const match = opts.name ? opts.condition.toUpperCase() : parseAny(tokenize(opts.condition));
+const match = opts.name ? opts.condition.toUpperCase() : parseAny(opts.condition);
 
 for (const id in skills) {
   if (id.startsWith('9')) {
@@ -51,8 +53,8 @@ for (const id in skills) {
         ? name.find((s) => s.toUpperCase().indexOf(match) > -1)
         : (!opts.excludePre &&
             ef.precondition.length > 0 &&
-            treeMatch(match, parse(tokenize(ef.precondition)))) ||
-          (!opts.pre && ef.condition.length > 0 && treeMatch(match, parse(tokenize(ef.condition))))
+            treeMatch(match, parse(ef.precondition))) ||
+          (!opts.pre && ef.condition.length > 0 && treeMatch(match, parse(ef.condition)))
     ) {
       if (!logged) {
         if (opts.id) {

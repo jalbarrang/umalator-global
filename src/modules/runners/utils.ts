@@ -1,5 +1,5 @@
-import umas from '@data/umas.json';
-import icons from '@data/icons.json';
+import umas from '@/modules/data/umas.json';
+import icons from '@/modules/data/icons.json';
 
 export type UmaData = typeof umas;
 export type UmaDataKey = keyof UmaData;

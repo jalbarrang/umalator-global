@@ -1,23 +1,13 @@
 import { cloneDeep } from 'es-toolkit';
-import { Conditions, immediate, noopRandom, random } from './ActivationConditions';
-import { ImmediatePolicy, createFixedPositionPolicy } from './ActivationSamplePolicy';
-import { getParser } from './ConditionParser';
-import { CourseHelpers } from './CourseData';
-import { EnhancedHpPolicy } from './EnhancedHpPolicy';
-import { GameHpPolicy, NoopHpPolicy } from './HpPolicy';
-import { Grade, GroundCondition, Season, TimeOfDay, Weather } from './course/definitions';
+
+import { immediate, noopRandom, random } from '../skills/parser/conditions/utils';
+import { defaultConditions } from '../skills/parser/conditions/conditions';
+import { createParser } from '../skills/parser/ConditionParser';
 import { RaceSolver } from './RaceSolver';
-import { Rule30CARng } from './Random';
-import { Region, RegionList } from './Region';
-import { SkillPerspective, SkillRarity, SkillTarget, SkillType } from './skills/definitions';
-import { Aptitude, Mood, PosKeepMode, Strategy } from './runner/definitions';
-import type { IAptitude, IMood, IPosKeepMode, IStrategy } from './runner/definitions';
-import type {
-  ISkillPerspective,
-  ISkillRarity,
-  ISkillTarget,
-  ISkillType,
-} from './skills/definitions';
+import type { DefaultParser } from '../skills/parser/definitions';
+import type { SeededRng } from '@/modules/simulation/lib/utils/Random';
+import type { ActivationSamplePolicy } from '@/modules/simulation/lib/skills/policies/ActivationSamplePolicy';
+import type { DynamicCondition, PendingSkill, RaceState, SkillEffect } from './RaceSolver';
 import type {
   CourseData,
   IDistanceType,
@@ -26,21 +16,42 @@ import type {
   ISeason,
   ITimeOfDay,
   IWeather,
-} from './course/definitions';
+} from '@/modules/simulation/lib/course/definitions';
+import type { IAptitude, IMood, IPosKeepMode, IStrategy } from '../runner/definitions';
+import type { RaceParameters } from '@/modules/simulation/lib/definitions';
+import type {
+  ISkillPerspective,
+  ISkillRarity,
+  ISkillTarget,
+  ISkillType,
+} from '@/modules/simulation/lib/skills/definitions';
 
-import type { RaceParameters } from './definitions';
-import type { SeededRng } from './Random';
-import type { DynamicCondition, PendingSkill, RaceState, SkillEffect } from './RaceSolver';
-import type { HorseParameters } from './HorseTypes';
-import type { ActivationSamplePolicy } from './ActivationSamplePolicy';
-import type { Operator } from './ActivationConditions';
 import type { Skill } from '@/modules/skills/utils';
+import type { HorseParameters } from '@/modules/simulation/lib/runner/HorseTypes';
+import {
+  ImmediatePolicy,
+  createFixedPositionPolicy,
+} from '@/modules/simulation/lib/skills/policies/ActivationSamplePolicy';
+import { Region, RegionList } from '@/modules/simulation/lib/utils/Region';
+import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
+import {
+  SkillPerspective,
+  SkillRarity,
+  SkillTarget,
+  SkillType,
+} from '@/modules/simulation/lib/skills/definitions';
+import {
+  Grade,
+  GroundCondition,
+  Season,
+  TimeOfDay,
+  Weather,
+} from '@/modules/simulation/lib/course/definitions';
+import { Aptitude, Mood, PosKeepMode, Strategy } from '@/modules/simulation/lib/runner/definitions';
+import { EnhancedHpPolicy } from '@/modules/simulation/lib/runner/health/EnhancedHpPolicy';
+import { GameHpPolicy, NoopHpPolicy } from '@/modules/simulation/lib/runner/health/HpPolicy';
+import { Rule30CARng } from '@/modules/simulation/lib/utils/Random';
 import { skillsById } from '@/modules/skills/utils';
-
-interface ConditionParser {
-  tokenize: (s: string) => Generator<unknown, unknown, unknown>;
-  parse: (tokens: Iterator<unknown, unknown>) => Operator;
-}
 
 export type RawSkillEffect = {
   modifier: number;
@@ -133,16 +144,15 @@ export function parseStrategy(s: string | IStrategy) {
     return s;
   }
   switch (s.toUpperCase()) {
-    case 'NIGE':
+    case 'FRONT RUNNER':
       return Strategy.FrontRunner;
-    case 'SENKOU':
+    case 'PACE CHASER':
       return Strategy.PaceChaser;
-    case 'SASI':
-    case 'SASHI':
+    case 'LATE SURGER':
       return Strategy.LateSurger;
-    case 'OIKOMI':
+    case 'END CLOSER':
       return Strategy.EndCloser;
-    case 'OONIGE':
+    case 'RUNAWAY':
       return Strategy.Runaway;
     default:
       throw new Error('Invalid running strategy.');
@@ -413,7 +423,7 @@ export function buildSkillData(
   raceParams: PartialRaceParameters,
   course: CourseData,
   wholeCourse: RegionList,
-  parser: ConditionParser,
+  parser: DefaultParser,
   skillId: string,
   perspective: ISkillPerspective,
   ignoreNullEffects: boolean = false,
@@ -436,7 +446,7 @@ export function buildSkillData(
     wholeCourse.forEach((r) => full.push(r));
 
     if (skillAlternative.precondition) {
-      const parsedPrecondition = parser.parse(parser.tokenize(skillAlternative.precondition));
+      const parsedPrecondition = parser.parse(skillAlternative.precondition);
 
       const preRegions = parsedPrecondition.apply(wholeCourse, course, horse, extra)[0];
 
@@ -449,8 +459,7 @@ export function buildSkillData(
       full = full.rmap((r) => r.intersect(bounds));
     }
 
-    const conditionTokens = parser.tokenize(skillAlternative.condition);
-    const parsedOperator = parser.parse(conditionTokens);
+    const parsedOperator = parser.parse(skillAlternative.condition);
 
     const [regions, extraCondition] = parsedOperator.apply(full, course, horse, extra);
 
@@ -522,7 +531,7 @@ export function buildSkillData(
   ];
 }
 
-export const conditionsWithActivateCountsAsRandom = Object.assign({}, Conditions, {
+export const conditionsWithActivateCountsAsRandom = Object.assign({}, defaultConditions, {
   activate_count_all: random({
     filterGte(
       regions: RegionList,
@@ -622,8 +631,10 @@ export const conditionsWithActivateCountsAsRandom = Object.assign({}, Conditions
   }),
 });
 
-const defaultParser = getParser();
-const acrParser = getParser(conditionsWithActivateCountsAsRandom);
+const defaultParser = createParser();
+const acrParser = createParser({
+  conditions: conditionsWithActivateCountsAsRandom,
+});
 
 export class RaceSolverBuilder {
   _course: CourseData | null;
@@ -636,7 +647,7 @@ export class RaceSolverBuilder {
   _pacerTriggers: Array<Array<Region>>;
   _rng: SeededRng;
   _seed: number;
-  _parser: ConditionParser;
+  _parser: DefaultParser;
   _skills: Array<{
     skillId: string;
     perspective: ISkillPerspective;
