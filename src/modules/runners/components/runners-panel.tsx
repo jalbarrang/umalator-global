@@ -1,9 +1,11 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link2, Link2Off, Save } from 'lucide-react';
 import { RunnerCard } from './runner-card/runner-card';
+import { SaveRunnerModal } from './save-runner-modal';
 import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
 import {
   copyToRunner,
+  linkRunner,
   resetAllRunners,
   showRunner,
   swapWithRunner,
@@ -25,7 +27,7 @@ import './style.css';
 export const RunnersPanel = () => {
   const { runnerId, runner, updateRunner, resetRunner } = useRunner();
   const { posKeepMode, courseId } = useSettingsStore();
-  const { updateRunner: updateLibraryRunner, getRunner: getLibraryRunner } =
+  const { updateRunner: updateLibraryRunner, getRunner: getLibraryRunner, addRunner } =
     useRunnerLibraryStore();
 
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
@@ -33,6 +35,8 @@ export const RunnersPanel = () => {
   const showPacerTab = posKeepMode === PosKeepMode.Virtual;
   const isLinked = !!runner.linkedRunnerId;
   const linkedRunner = isLinked ? getLibraryRunner(runner.linkedRunnerId!) : null;
+
+  const [saveModalOpen, setSaveModalOpen] = useState(false);
 
   const handleCopyRunner = () => {
     if (runnerId === 'uma1') {
@@ -59,6 +63,17 @@ export const RunnersPanel = () => {
 
   const handleUnlink = () => {
     unlinkRunner(runnerId);
+  };
+
+  const handleSaveToVeterans = (name: string, shouldLink: boolean) => {
+    const newRunnerId = addRunner({
+      ...runner,
+      notes: name,
+    });
+
+    if (shouldLink) {
+      linkRunner(runnerId, newRunnerId);
+    }
   };
 
   return (
@@ -152,6 +167,16 @@ export const RunnersPanel = () => {
           </div>
         )}
 
+        {/* Save to Veterans Button */}
+        {!isLinked && runnerId !== 'pacer' && (
+          <div className="flex items-center justify-end gap-2 p-2 bg-muted/50 border-b">
+            <Button size="sm" variant="secondary" onClick={() => setSaveModalOpen(true)}>
+              <Save className="w-4 h-4 mr-2" />
+              Save to Veterans
+            </Button>
+          </div>
+        )}
+
         <div className="flex flex-col gap-2">
           <RunnerCard
             value={runner}
@@ -164,6 +189,12 @@ export const RunnersPanel = () => {
           />
         </div>
       </PanelContent>
+
+      <SaveRunnerModal
+        open={saveModalOpen}
+        onOpenChange={setSaveModalOpen}
+        onSave={handleSaveToVeterans}
+      />
     </Panel>
   );
 };

@@ -6,36 +6,36 @@ This document provides an overview of the testing plans for the simulation libra
 
 ## Current State
 
-| Area | Test Coverage | Status |
-|------|---------------|--------|
-| Condition Parser | ✅ Excellent | 34 tests |
-| Condition Operators | ✅ Excellent | 27 tests |
-| Condition Utils | ✅ Excellent | 56 tests |
-| Default Conditions | ✅ Excellent | 83 tests |
-| tiny-engine | ✅ Excellent | 145 tests |
-| **HP/Stamina System** | ❌ None | **Plan: 01** |
-| **RaceSolver Core** | ❌ None | **Plan: 02** |
-| RaceSolverBuilder | ❌ None | Future |
-| Integration/E2E | ❌ None | Future |
+| Area                  | Test Coverage | Status       |
+| --------------------- | ------------- | ------------ |
+| Condition Parser      | ✅ Excellent  | 34 tests     |
+| Condition Operators   | ✅ Excellent  | 27 tests     |
+| Condition Utils       | ✅ Excellent  | 56 tests     |
+| Default Conditions    | ✅ Excellent  | 83 tests     |
+| tiny-engine           | ✅ Excellent  | 145 tests    |
+| **HP/Stamina System** | ❌ None       | **Plan: 01** |
+| **RaceSolver Core**   | ✅ Excellent  | 93 tests     |
+| RaceSolverBuilder     | ❌ None       | Future       |
+| Integration/E2E       | ❌ None       | Future       |
 
 ## Test Plans
 
-| Plan | Document | Priority | Est. Time |
-|------|----------|----------|-----------|
-| 01 | [HP/Stamina Tests](./01-hp-stamina-tests.md) | High | ~10 hours |
-| 02 | [RaceSolver Core Tests](./02-race-solver-core-tests.md) | High | ~19 hours |
+| Plan | Document                                                | Priority | Status      |
+| ---- | ------------------------------------------------------- | -------- | ----------- |
+| 01   | [HP/Stamina Tests](./01-hp-stamina-tests.md)            | High     | Not Started |
+| 02   | [RaceSolver Core Tests](./02-race-solver-core-tests.md) | High     | ✅ Complete |
 
 ## Recommended Implementation Order
 
-1. **HP/Stamina System (Plan 01)** - Start here because:
+1. **HP/Stamina System (Plan 01)** - Next priority because:
    - Smaller, more contained scope
    - Critical for understanding spurt mechanics
-   - Required for testing RaceSolver properly (dependency)
+   - Would enable full integration testing of RaceSolver with real HP mechanics
 
-2. **RaceSolver Core (Plan 02)** - After HP tests because:
-   - Can use real HpPolicy with confidence once tested
+2. **RaceSolver Core (Plan 02)** - ✅ **COMPLETE**
    - Largest and most complex component
    - Foundation for all other simulation logic
+   - 93 comprehensive tests covering all core features
 
 ## Test Framework
 
@@ -87,6 +87,7 @@ describe('ClassName', () => {
 Use this section to track implementation progress:
 
 ### Plan 01: HP/Stamina
+
 - [ ] Create test file structure
 - [ ] Implement fixtures
 - [ ] GameHpPolicy initialization tests
@@ -101,21 +102,22 @@ Use this section to track implementation progress:
 - [ ] EnhancedHpPolicy accuracy mode tests
 
 ### Plan 02: RaceSolver Core
-- [ ] Create test file structure
-- [ ] Implement fixtures
-- [ ] Constructor tests
-- [ ] Hill initialization tests
-- [ ] RNG initialization tests
-- [ ] Speed calculation tests
-- [ ] Acceleration tests
-- [ ] Step function tests
-- [ ] Phase transition tests
-- [ ] Rushed state tests
-- [ ] Downhill mode tests
-- [ ] Position keep tests
-- [ ] Skill activation tests
-- [ ] Effect application tests
-- [ ] Lane movement tests
+
+- [x] Create test file structure
+- [x] Implement fixtures
+- [x] Constructor tests
+- [x] Hill initialization tests
+- [x] RNG initialization tests
+- [x] Speed calculation tests
+- [x] Acceleration tests
+- [x] Step function tests
+- [x] Phase transition tests
+- [x] Rushed state tests
+- [x] Downhill mode tests
+- [x] Position keep tests
+- [x] Skill activation tests
+- [x] Effect application tests
+- [x] Lane movement tests
 
 ## Notes
 
@@ -123,4 +125,3 @@ Use this section to track implementation progress:
 - Keep test runtime fast (< 100ms per file ideally)
 - Document any assumptions or simplifications in test comments
 - If a test requires complex setup, consider if the code is too coupled
-

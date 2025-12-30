@@ -163,16 +163,18 @@ export const SavePresetModal = () => {
           <div className="grid gap-2">
             <Label htmlFor="preset-date">Date *</Label>
             <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-              <PopoverTrigger>
-                <Button
-                  id="preset-date"
-                  variant="outline"
-                  className="w-full justify-start text-left font-normal"
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date ? dayjs(date).format('YYYY-MM-DD') : 'Select date'}
-                </Button>
-              </PopoverTrigger>
+              <PopoverTrigger
+                render={
+                  <Button
+                    id="preset-date"
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {date ? dayjs(date).format('YYYY-MM-DD') : 'Select date'}
+                  </Button>
+                }
+              />
               <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
                   mode="single"

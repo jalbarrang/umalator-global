@@ -24,7 +24,7 @@ export const AptitudeSelect = (props: AptitudeSelectProps) => {
   };
 
   return (
-    <Select value={value.toString()} onValueChange={handleChange}>
+    <Select value={value} onValueChange={handleChange}>
       <SelectTrigger className="border-none rounded-none shadow-none">
         <SelectValue>
           {(value) => <AptitudeIcon aptitude={value} className="w-4 h-4" />}
@@ -32,8 +32,8 @@ export const AptitudeSelect = (props: AptitudeSelectProps) => {
       </SelectTrigger>
 
       <SelectContent>
-        {Object.entries(AptitudeName).map(([key, name]) => (
-          <SelectItem key={key} value={key}>
+        {Object.values(AptitudeName).map((name) => (
+          <SelectItem key={name} value={name}>
             {name}
           </SelectItem>
         ))}

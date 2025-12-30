@@ -257,19 +257,21 @@ export function OcrImportDialog({ open, onOpenChange, onApply }: OcrImportDialog
                   <h4 className="text-sm font-medium text-muted-foreground">Uma Detected</h4>
                   {results?.outfitId ? (
                     <Popover open={umaSelectOpen} onOpenChange={setUmaSelectOpen}>
-                      <PopoverTrigger>
-                        <div className="flex items-center gap-3 p-2 border rounded-md cursor-pointer hover:bg-muted/50 transition-colors">
-                          <img
-                            src={icons[results.outfitId as keyof typeof icons]}
-                            alt={results.umaName}
-                            className="w-12 h-12 rounded"
-                          />
-                          <div>
-                            <p className="font-medium">{results.outfitName}</p>
-                            <p className="text-sm text-muted-foreground">{results.umaName}</p>
+                      <PopoverTrigger
+                        render={
+                          <div className="flex items-center gap-3 p-2 border rounded-md cursor-pointer hover:bg-muted/50 transition-colors">
+                            <img
+                              src={icons[results.outfitId as keyof typeof icons]}
+                              alt={results.umaName}
+                              className="w-12 h-12 rounded"
+                            />
+                            <div>
+                              <p className="font-medium">{results.outfitName}</p>
+                              <p className="text-sm text-muted-foreground">{results.umaName}</p>
+                            </div>
                           </div>
-                        </div>
-                      </PopoverTrigger>
+                        }
+                      />
                       <PopoverContent className="p-0 w-80">
                         <Command>
                           <CommandInput placeholder="Search uma..." />
@@ -299,11 +301,13 @@ export function OcrImportDialog({ open, onOpenChange, onApply }: OcrImportDialog
                     </Popover>
                   ) : (
                     <Popover open={umaSelectOpen} onOpenChange={setUmaSelectOpen}>
-                      <PopoverTrigger>
-                        <div className="p-2 border rounded-md text-muted-foreground text-sm cursor-pointer hover:bg-muted/50 transition-colors">
-                          {isProcessing ? 'Detecting...' : 'Click to select uma'}
-                        </div>
-                      </PopoverTrigger>
+                      <PopoverTrigger
+                        render={
+                          <div className="p-2 border rounded-md text-muted-foreground text-sm cursor-pointer hover:bg-muted/50 transition-colors">
+                            {isProcessing ? 'Detecting...' : 'Click to select uma'}
+                          </div>
+                        }
+                      />
                       <PopoverContent className="p-0 w-80">
                         <Command>
                           <CommandInput placeholder="Search uma..." />

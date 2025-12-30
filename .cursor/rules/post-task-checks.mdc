@@ -8,23 +8,23 @@ After completing any implementation tasks, you MUST run the following commands t
 
 ## Required Commands
 
-1. **Type Check**: Run `bun typecheck` to verify TypeScript type correctness
+1. **Type Check**: Run `bun run typecheck` to verify TypeScript type correctness
    - This catches type errors, missing types, and type mismatches
    - Fix any type errors before considering the task complete
 
-2. **Linting**: Run `bun lint` to check code quality and style
+2. **Linting**: Run `bun run lint` to check code quality and style
    - This catches code style issues, potential bugs, and best practice violations
    - Fix any linting errors before considering the task complete
 
 ## Important
 
-**NEVER** run `bun dev` or `bun build` - the user will handle these commands themselves.
+**NEVER** run `bun run dev` or `bun run build` - the user will handle these commands themselves.
 
 ## Workflow
 
 1. Complete the implementation
-2. Run `bun typecheck` and address any type errors
-3. Run `bun lint` and fix any linting issues
+2. Run `bun run typecheck` and address any type errors
+3. Run `bun run lint` and fix any linting issues
 4. Verify both commands pass successfully
 5. Only then consider the task complete
 

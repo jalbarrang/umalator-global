@@ -11,7 +11,6 @@ import {
   DrawerTitle,
 } from '@/components/ui/drawer';
 
-import { Button } from '@/components/ui/button';
 import { useBreakpoint } from '@/hooks/useBreakpoint';
 import { useSkillModalStore } from '@/modules/skills/store';
 
@@ -30,7 +29,7 @@ export function SkillPickerDrawer() {
     <Drawer direction="right" open={open} onOpenChange={handleOpenChange} autoFocus>
       <DrawerContent className="px-2 w-full! md:w-1/2! max-w-none!">
         <DrawerHeader className="flex-row items-center justify-between">
-          <DrawerClose>
+          <DrawerClose tabIndex={-1}>
             <XIcon className="w-4 h-4" />
           </DrawerClose>
           <DrawerTitle>Add Skill to Runner</DrawerTitle>

@@ -45,24 +45,22 @@ export const UmaSelector = (props: UmaSelectorProps) => {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger>
-        <div className="flex flex-1 gap-2 cursor-pointer">
-          <div className="w-18 h-18">
-            <img src={imageUrl} alt={selectedUma?.name || 'Runner'} />
-          </div>
-
-          {selectedUma && (
-            <div className="flex flex-col items-center justify-center">
-              <div className="text-xs font-bold">{selectedUma.outfit}</div>
-              <div className="text-sm">{selectedUma.name}</div>
-            </div>
-          )}
-          {!selectedUma && (
-            <div className="flex flex-col items-center justify-center">
-              <div className="text-sm text-muted-foreground">Click me to select a runner</div>
-            </div>
-          )}
+      <PopoverTrigger className="flex flex-1 gap-2 cursor-pointer">
+        <div className="w-18 h-18">
+          <img src={imageUrl} alt={selectedUma?.name || 'Runner'} />
         </div>
+
+        {selectedUma && (
+          <div className="flex flex-col items-center justify-center">
+            <div className="text-xs font-bold">{selectedUma.outfit}</div>
+            <div className="text-sm">{selectedUma.name}</div>
+          </div>
+        )}
+        {!selectedUma && (
+          <div className="flex flex-col items-center justify-center">
+            <div className="text-sm text-muted-foreground">Click me to select a runner</div>
+          </div>
+        )}
       </PopoverTrigger>
 
       <PopoverContent className="p-0">

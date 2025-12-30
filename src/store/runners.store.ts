@@ -255,3 +255,14 @@ export const unlinkRunner = (runner: RunnerType) => {
 
   toast.success('Runner unlinked from library');
 };
+
+export const linkRunner = (runner: RunnerType, libraryRunnerId: string) => {
+  useRunnersStore.setState((prev) => {
+    const newRunnerState = cloneDeep(prev[runner]);
+    newRunnerState.linkedRunnerId = libraryRunnerId;
+
+    return { ...prev, [runner]: newRunnerState };
+  });
+
+  toast.success('Runner linked to library');
+};
