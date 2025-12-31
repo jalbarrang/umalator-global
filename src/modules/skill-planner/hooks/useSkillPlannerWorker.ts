@@ -1,18 +1,16 @@
 import { useCallback, useEffect, useRef } from 'react';
 import SkillPlannerWorker from '@workers/skill-planner.worker.ts?worker';
-import { setIsOptimizing, setProgress, setResult } from '../store';
+import { setIsOptimizing, setProgress, setResult, useSkillPlannerStore } from '../store';
 import type { CandidateSkill } from '../types';
 import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
-import { useRunner, useRunnersStore } from '@/store/runners.store';
-import { useSettingsStore } from '@/store/settings.store';
+import { useRunnersStore } from '@/store/runners.store';
 import { racedefToParams } from '@/utils/races';
 import { defaultSimulationOptions } from '@/components/bassin-chart/utils';
 
 export function useSkillPlannerWorker() {
   const workerRef = useRef<Worker | null>(null);
   const { pacer } = useRunnersStore();
-  const { runner } = useRunner();
-  const { racedef, seed, courseId } = useSettingsStore();
+  const { runner, course, seed } = useSkillPlannerStore();
 
   // Initialize worker
   useEffect(() => {
@@ -64,15 +62,15 @@ export function useSkillPlannerWorker() {
       setResult(null);
       setProgress(null);
 
-      const course = CourseHelpers.getCourse(courseId);
-      const params = racedefToParams(racedef, runner.strategy);
+      const courseData = CourseHelpers.getCourse(course.id);
+      const params = racedefToParams(course.params, runner.strategy);
 
       workerRef.current.postMessage({
         msg: 'optimize',
         data: {
           candidates: Array.from(candidates),
           budget,
-          course,
+          course: courseData,
           racedef: params,
           runner,
           pacer,
@@ -83,7 +81,7 @@ export function useSkillPlannerWorker() {
         },
       });
     },
-    [courseId, pacer, racedef, runner, seed],
+    [course.id, course.params, pacer, runner, seed],
   );
 
   const cancelOptimization = useCallback(() => {
@@ -97,4 +95,3 @@ export function useSkillPlannerWorker() {
 
   return { startOptimization, cancelOptimization };
 }
-

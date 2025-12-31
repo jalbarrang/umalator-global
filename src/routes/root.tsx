@@ -5,7 +5,7 @@ import { SimulationLayout } from './_simulation';
 import { SimulationHome } from './_simulation/home';
 import { SkillBassin } from './_simulation/skill-bassin';
 import { UmaBassin } from './_simulation/uma-bassin';
-import { SkillPlanner } from './_simulation/skill-planner';
+import { SkillPlanner } from './skill-planner';
 import { RunnersLayout } from './runners';
 import { RunnersHome } from './runners/home';
 import { RunnersNew } from './runners/new';
@@ -22,7 +22,13 @@ export function RootComponent() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const currentTab = location.pathname.startsWith('/runners') ? 'runners' : 'simulation';
+  const getCurrentTab = () => {
+    if (location.pathname.startsWith('/runners')) return 'runners';
+    if (location.pathname === '/skill-planner') return 'skill-planner';
+    return 'simulation';
+  };
+
+  const currentTab = getCurrentTab();
 
   return (
     <>
@@ -36,12 +42,15 @@ export function RootComponent() {
                   navigate('/');
                 } else if (value === 'runners') {
                   navigate('/runners');
+                } else if (value === 'skill-planner') {
+                  navigate('/skill-planner');
                 }
               }}
             >
               <TabsList>
                 <TabsTrigger value="simulation">Umalator</TabsTrigger>
                 <TabsTrigger value="runners">Veterans</TabsTrigger>
+                <TabsTrigger value="skill-planner">Skill Planner</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -74,13 +83,15 @@ export function RootComponent() {
               <Route index element={<SimulationHome />} />
               <Route path="/skill-bassin" element={<SkillBassin />} />
               <Route path="/uma-bassin" element={<UmaBassin />} />
-              <Route path="/skill-planner" element={<SkillPlanner />} />
             </Route>
+
             <Route path="/runners" element={<RunnersLayout />}>
               <Route index element={<RunnersHome />} />
               <Route path="/runners/new" element={<RunnersNew />} />
               <Route path="/runners/:runnerId/edit" element={<RunnersEdit />} />
             </Route>
+
+            <Route path="/skill-planner" element={<SkillPlanner />} />
           </Routes>
         </main>
 

@@ -158,7 +158,7 @@ type IconIdPrefix = keyof typeof iconIdPrefixes;
 
 export type SkillPickerContentProps = {
   ref: React.RefObject<{ focus: () => void } | null>;
-  umaId: string;
+  umaId: string | undefined;
   options: Array<string>;
   currentSkills: Array<string>;
   onSelect: (skills: Array<string>) => void;
@@ -179,7 +179,7 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
     isMobile = false,
   } = props;
 
-  const umaUniqueSkillId = getUniqueSkillForByUmaId(umaId);
+  const umaUniqueSkillId = umaId ? getUniqueSkillForByUmaId(umaId) : undefined;
 
   const searchRef = useRef<HTMLInputElement>(null);
   const [searchText, setSearchText] = useState('');

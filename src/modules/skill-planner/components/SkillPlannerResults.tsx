@@ -1,22 +1,26 @@
-import { CheckIcon, PlayIcon, XIcon } from 'lucide-react';
-import { clearResult, useSkillPlannerStore } from '../store';
-import { useSkillPlannerWorker } from '../hooks/useSkillPlannerWorker';
+import { CheckIcon, PlayIcon } from 'lucide-react';
+import { useMemo } from 'react';
+import { clearResult, setIsOptimizing, useSkillPlannerStore } from '../store';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { getSkillNameById } from '@/modules/skills/utils';
 import { setSkillToRunner, useRunner } from '@/store/runners.store';
+import { cn } from '@/lib/utils';
 
-export function SkillPlannerResults() {
+type SkillPlannerResultsProps = React.HTMLAttributes<HTMLDivElement>;
+
+export function SkillPlannerResults(props: SkillPlannerResultsProps) {
+  const { className, ...rest } = props;
+
   const { candidates, budget, isOptimizing, progress, result } = useSkillPlannerStore();
-  const { startOptimization, cancelOptimization } = useSkillPlannerWorker();
+
   const { runnerId } = useRunner();
 
-  const candidateList = Array.from(candidates.values());
-  const canOptimize = candidateList.length > 0 && budget > 0;
-
-  const handleOptimize = () => {
-    startOptimization(candidateList, budget);
-  };
+  const candidateList = useMemo(() => Array.from(candidates.values()), [candidates]);
+  const canOptimize = useMemo(
+    () => candidateList.length > 0 && budget > 0,
+    [candidateList, budget],
+  );
 
   const handleApplyToRunner = () => {
     if (!result) return;
@@ -30,34 +34,12 @@ export function SkillPlannerResults() {
     clearResult();
   };
 
-  const progressPercent = progress ? (progress.completed / progress.total) * 100 : 0;
+  const progressPercentage = useMemo(() => {
+    return progress ? (progress.completed / progress.total) * 100 : 0;
+  }, [progress]);
 
   return (
-    <div className="space-y-4">
-      {/* Optimize Button */}
-      <div className="flex gap-2">
-        {!isOptimizing && (
-          <Button
-            onClick={handleOptimize}
-            disabled={!canOptimize}
-            className="flex-1"
-          >
-            <PlayIcon className="w-4 h-4 mr-2" />
-            Optimize
-          </Button>
-        )}
-        {isOptimizing && (
-          <Button
-            onClick={cancelOptimization}
-            variant="destructive"
-            className="flex-1"
-          >
-            <XIcon className="w-4 h-4 mr-2" />
-            Cancel
-          </Button>
-        )}
-      </div>
-
+    <div className={cn('space-y-4', className)} {...rest}>
       {/* Progress Indicator */}
       {isOptimizing && progress && (
         <div className="space-y-2 border rounded-lg p-4 bg-card">
@@ -67,7 +49,7 @@ export function SkillPlannerResults() {
               {progress.completed} / {progress.total}
             </span>
           </div>
-          <Progress value={progressPercent} />
+          <Progress value={progressPercentage} />
           {progress.currentBest && (
             <div className="text-xs text-muted-foreground mt-2">
               <p>Current best: +{progress.currentBest.bashin.toFixed(2)} Bashin</p>
@@ -97,7 +79,9 @@ export function SkillPlannerResults() {
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Total Cost:</span>
-                <span className="font-medium">{result.totalCost} / {budget} pts</span>
+                <span className="font-medium">
+                  {result.totalCost} / {budget} pts
+                </span>
               </div>
               <div className="flex justify-between text-xs">
                 <span className="text-muted-foreground">Combinations Tested:</span>
@@ -130,7 +114,9 @@ export function SkillPlannerResults() {
                       >
                         <span>{skillName}</span>
                         <span className="text-muted-foreground text-xs">
-                          {candidate && !candidate.isObtained ? `${candidate.effectiveCost} pts` : 'Free'}
+                          {candidate && !candidate.isObtained
+                            ? `${candidate.effectiveCost} pts`
+                            : 'Free'}
                         </span>
                       </div>
                     );
@@ -163,4 +149,3 @@ export function SkillPlannerResults() {
     </div>
   );
 }
-

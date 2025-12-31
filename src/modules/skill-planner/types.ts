@@ -11,11 +11,6 @@ export interface CandidateSkill {
   effectiveCost: number; // Calculated with all discounts applied
 }
 
-// Global modifiers that affect all skill costs
-export interface CostModifiers {
-  hasFastLearner: boolean; // "Fast Learner" condition - reduces costs by 10%
-}
-
 // Optimization result
 export interface OptimizationResult {
   skillsToBuy: Array<string>;
@@ -40,4 +35,3 @@ export interface OptimizationProgress {
   total: number;
   currentBest: CombinationResult | null;
 }
-

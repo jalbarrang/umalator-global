@@ -1,9 +1,12 @@
 import { useMemo, useState } from 'react';
 
 import { ArrowLeftRight, Copy, TrashIcon, Upload } from 'lucide-react';
+import { StatsTable } from './stats-table';
+import { AptitudesTable } from './aptitudes-table';
+import { runawaySkillId } from './types';
 import type { RunnerState } from './types';
+import type { StatsKey } from './stats-table';
 import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
-import type { IMood, IStrategyName } from '@/modules/simulation/lib/runner/definitions';
 import { SkillItem } from '@/modules/skills/components/skill-list/SkillItem';
 
 import {
@@ -12,20 +15,13 @@ import {
   skillsById,
 } from '@/modules/skills/utils';
 
-import { AptitudeSelect } from '@/modules/runners/components/AptitudeSelect';
-import { MoodSelect } from '@/modules/runners/components/MoodSelect';
-import { StatInput } from '@/modules/runners/components/StatInput';
-import { StrategySelect } from '@/modules/runners/components/StrategySelect';
 import { OcrImportDialog } from '@/modules/runners/components/ocr-import-dialog';
 import { UmaSelector } from '@/modules/runners/components/runner-selector';
 
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { useIsMobile } from '@/hooks/useBreakpoint';
 import { openSkillPicker, updateCurrentSkills } from '@/modules/skills/store';
 import './styles.css';
-
-const runawaySkillId = '202051' as const;
 
 type RunnerCardProps = {
   value: RunnerState;
@@ -146,40 +142,13 @@ export const RunnerCard = (props: RunnerCardProps) => {
     });
   };
 
-  const handleUpdateStat =
-    (prop: 'speed' | 'stamina' | 'power' | 'guts' | 'wisdom') => (value: number) => {
-      onChange({ ...state, [prop]: value });
-    };
-
-  const handleUpdateAptitude =
-    (prop: 'surfaceAptitude' | 'distanceAptitude' | 'strategyAptitude') => (value: string) => {
-      onChange({ ...state, [prop]: value });
-    };
-
-  const hasRunawaySkill = state.skills.includes(runawaySkillId);
-
-  const handleUpdateStrategy = (value: string | null) => {
-    if (!value) {
-      return;
-    }
-
-    const hasRunawaySkill = state.skills.includes(runawaySkillId);
-    const shouldForceRunaway = hasRunawaySkill && value !== 'Runaway';
-
-    if (shouldForceRunaway) {
-      onChange({ ...state, strategy: 'Runaway' });
-      return;
-    }
-
-    onChange({ ...state, strategy: value as IStrategyName });
+  const handleUpdateStat = (prop: StatsKey) => (value: number) => {
+    onChange({ ...state, [prop]: value });
   };
 
-  const handleUpdateMood = (value: IMood | null) => {
-    if (!value) {
-      return;
-    }
-
-    onChange({ ...state, mood: value });
+  const hasRunawaySkill = state.skills.includes(runawaySkillId);
+  const handleRunawayStrategy = () => {
+    onChange({ ...state, strategy: 'Runaway' });
   };
 
   const umaUniqueSkillId = useMemo(() => getUniqueSkillForByUmaId(umaId), [umaId]);
@@ -272,74 +241,14 @@ export const RunnerCard = (props: RunnerCardProps) => {
         onApply={handleOcrImportApply}
       />
 
-      <div className="grid grid-cols-5 rounded-sm border-2">
-        <div className="flex items-center justify-center gap-2 bg-primary rounded-tl-sm">
-          <img src="/icons/status_00.png" className="w-4 h-4" />
-          <span className="text-white text-xs md:text-sm">Speed</span>
-        </div>
-        <div className="flex items-center justify-center gap-2 bg-primary">
-          <img src="/icons/status_01.png" className="w-4 h-4" />
-          <span className="text-white text-xs md:text-sm">Stamina</span>
-        </div>
-        <div className="flex items-center justify-center gap-2 bg-primary">
-          <img src="/icons/status_02.png" className="w-4 h-4" />
-          <span className="text-white text-xs md:text-sm">Power</span>
-        </div>
-        <div className="flex items-center justify-center gap-2 bg-primary">
-          <img src="/icons/status_03.png" className="w-4 h-4" />
-          <span className="text-white text-xs md:text-sm">Guts</span>
-        </div>
-        <div className="flex items-center justify-center gap-2 bg-primary rounded-tr-sm">
-          <img src="/icons/status_04.png" className="w-4 h-4" />
-          <span className="text-white text-xs md:text-sm">Wit</span>
-        </div>
+      <StatsTable value={state} onChange={handleUpdateStat} />
 
-        <StatInput value={state.speed} onChange={handleUpdateStat('speed')} />
-        <StatInput value={state.stamina} onChange={handleUpdateStat('stamina')} />
-        <StatInput value={state.power} onChange={handleUpdateStat('power')} />
-        <StatInput value={state.guts} onChange={handleUpdateStat('guts')} />
-        <StatInput value={state.wisdom} onChange={handleUpdateStat('wisdom')} />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-        <div className="flex items-center gap-2 justify-between border rounded-xl">
-          <Label className="pl-2">Surface aptitude:</Label>
-          <AptitudeSelect
-            value={state.surfaceAptitude}
-            onChange={handleUpdateAptitude('surfaceAptitude')}
-          />
-        </div>
-
-        <div className="flex items-center gap-2 justify-between border rounded-xl">
-          <Label className="pl-2">Distance aptitude:</Label>
-          <AptitudeSelect
-            value={state.distanceAptitude}
-            onChange={handleUpdateAptitude('distanceAptitude')}
-          />
-        </div>
-
-        <div className="flex items-center gap-2 justify-between border rounded-xl">
-          <Label className="pl-2">Style:</Label>
-          <StrategySelect
-            value={state.strategy}
-            onChange={handleUpdateStrategy}
-            disabled={hasRunawaySkill}
-          />
-        </div>
-
-        <div className="flex items-center gap-2 justify-between border rounded-xl">
-          <Label className="pl-2">Style aptitude:</Label>
-          <AptitudeSelect
-            value={state.strategyAptitude}
-            onChange={handleUpdateAptitude('strategyAptitude')}
-          />
-        </div>
-
-        <div className="flex items-center gap-2 justify-between border rounded-xl">
-          <Label className="pl-2">Mood:</Label>
-          <MoodSelect value={state.mood} onChange={handleUpdateMood} />
-        </div>
-      </div>
+      <AptitudesTable
+        value={state}
+        onChange={onChange}
+        hasRunawaySkill={hasRunawaySkill}
+        onRunawayStrategy={handleRunawayStrategy}
+      />
 
       {!hideSkillButton && (
         <div className="bg-primary text-white font-bold rounded-sm flex items-center h-8">

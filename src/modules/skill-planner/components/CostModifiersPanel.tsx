@@ -1,12 +1,27 @@
-import { InfoIcon } from 'lucide-react';
-import { setBudget, setModifiers, useSkillPlannerStore } from '../store';
+import { useMemo } from 'react';
+import { PlayIcon, XIcon } from 'lucide-react';
+import { setBudget, setHasFastLearner, useSkillPlannerStore } from '../store';
+import { useSkillPlannerWorker } from '../hooks/useSkillPlannerWorker';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
-export function CostModifiersPanel() {
-  const { budget, modifiers } = useSkillPlannerStore();
+type CostModifiersPanelProps = React.HTMLAttributes<HTMLDivElement>;
+
+export function CostModifiersPanel(props: CostModifiersPanelProps) {
+  const { className, ...rest } = props;
+
+  const { budget, hasFastLearner, candidates, isOptimizing } = useSkillPlannerStore();
+  const { startOptimization, cancelOptimization } = useSkillPlannerWorker();
+
+  const candidateList = useMemo(() => Array.from(candidates.values()), [candidates]);
+  const canOptimize = useMemo(
+    () => candidateList.length > 0 && budget > 0,
+    [candidateList, budget],
+  );
 
   const handleBudgetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value) || 0;
@@ -14,16 +29,28 @@ export function CostModifiersPanel() {
   };
 
   const handleFastLearnerChange = (checked: boolean) => {
-    setModifiers({ hasFastLearner: checked });
+    setHasFastLearner(checked);
+  };
+
+  const handleOptimize = () => {
+    startOptimization(candidateList, budget);
   };
 
   return (
-    <div className="space-y-4 border rounded-lg p-4 bg-card">
-      <h3 className="font-semibold text-sm">Budget & Modifiers</h3>
-
+    <div
+      className={cn(
+        'flex flex-col gap-4 ',
+        'border rounded-lg p-4 bg-card',
+        'md:flex-row',
+        className,
+      )}
+      {...rest}
+    >
       {/* Budget Input */}
-      <div className="space-y-2">
-        <Label htmlFor="budget">Skill Points Available</Label>
+      <div className="flex gap-2 items-center">
+        <Label htmlFor="budget" className="whitespace-nowrap">
+          Skill Points
+        </Label>
         <Input
           id="budget"
           type="number"
@@ -31,54 +58,50 @@ export function CostModifiersPanel() {
           value={budget}
           onChange={handleBudgetChange}
           placeholder="e.g., 1000"
+          className="w-full md:w-auto"
         />
-        <p className="text-xs text-muted-foreground">
-          Total skill points you have available to spend
-        </p>
       </div>
 
       {/* Fast Learner Toggle */}
-      <div className="space-y-2">
+      <div className="flex gap-2 items-center">
         <div className="flex items-center gap-2">
           <Checkbox
             id="fast-learner"
-            checked={modifiers.hasFastLearner}
+            checked={hasFastLearner}
             onCheckedChange={handleFastLearnerChange}
           />
-          <Label htmlFor="fast-learner" className="cursor-pointer font-normal flex items-center gap-1">
+          <Label htmlFor="fast-learner" className="cursor-pointer font-normal gap-1">
             Fast Learner
-            <Tooltip>
-              <TooltipTrigger render={
-                <InfoIcon className="w-3 h-3 text-muted-foreground" />
-              } />
-              <TooltipContent className="max-w-xs">
-                <p className="text-xs">
-                  A rare condition in career mode that reduces all skill costs by 10%.
-                  Enable this if your runner has this condition.
-                </p>
-              </TooltipContent>
-            </Tooltip>
           </Label>
         </div>
-        <p className="text-xs text-muted-foreground pl-6">
-          Reduces all skill costs by 10%
-        </p>
       </div>
 
+      <Separator orientation="vertical" className="hidden md:block" />
+      <Separator className="md:hidden" />
+
       {/* Summary */}
-      <div className="border-t pt-3 space-y-1 text-sm">
-        <div className="flex justify-between text-muted-foreground">
-          <span>Budget:</span>
-          <span className="font-medium text-foreground">{budget} pts</span>
-        </div>
-        {modifiers.hasFastLearner && (
-          <div className="flex justify-between text-muted-foreground text-xs">
-            <span>Fast Learner:</span>
-            <span className="text-green-600 font-medium">-10% on all skills</span>
-          </div>
+      <div className="flex items-center gap-2">
+        <Label className="text-muted-foreground">Budget:</Label>
+        <span className="font-medium">{budget} pts</span>
+      </div>
+
+      <Separator orientation="vertical" className="hidden md:block" />
+      <Separator className="md:hidden" />
+
+      <div className="flex gap-2 flex-1 items-center">
+        {!isOptimizing && (
+          <Button onClick={handleOptimize} size="lg" disabled={!canOptimize} className="flex-1">
+            <PlayIcon className="w-4 h-4 mr-2" />
+            Optimize
+          </Button>
+        )}
+        {isOptimizing && (
+          <Button onClick={cancelOptimization} variant="destructive" size="lg" className="flex-1">
+            <XIcon className="w-4 h-4 mr-2" />
+            Cancel
+          </Button>
         )}
       </div>
     </div>
   );
 }
-

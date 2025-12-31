@@ -12,21 +12,25 @@ import {
 } from '@/components/ui/drawer';
 
 import { useBreakpoint } from '@/hooks/useBreakpoint';
-import { useSkillModalStore } from '@/modules/skills/store';
 
-export function SkillPickerDrawer() {
-  const { open, umaId, options, currentSkills, onSelect } = useSkillModalStore();
+type SkillPickerDrawerProps = {
+  open: boolean;
+  umaId: string;
+  options: Array<string>;
+  currentSkills: Array<string>;
+  onSelect: (skills: Array<string>) => void;
+  onOpenChange: (open: boolean) => void;
+};
+
+export function SkillPickerDrawer(props: SkillPickerDrawerProps) {
+  const { open, umaId, options, currentSkills, onSelect, onOpenChange } = props;
 
   const { isMobile } = useBreakpoint();
-
-  const handleOpenChange = (open: boolean) => {
-    useSkillModalStore.setState({ open });
-  };
 
   const childRef = useRef<{ focus: () => void }>(null);
 
   return (
-    <Drawer direction="right" open={open} onOpenChange={handleOpenChange} autoFocus>
+    <Drawer direction="right" open={open} onOpenChange={onOpenChange} autoFocus>
       <DrawerContent className="px-2 w-full! md:w-1/2! max-w-none!">
         <DrawerHeader className="flex-row items-center justify-between">
           <DrawerClose tabIndex={-1}>

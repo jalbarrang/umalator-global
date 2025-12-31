@@ -1,45 +1,79 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import { enableMapSet } from 'immer';
+import { createRunnerState } from '../runners/components/runner-card/types';
 import { calculateSkillCost } from './cost-calculator';
-import type {
-  CandidateSkill,
-  CostModifiers,
-  OptimizationProgress,
-  OptimizationResult,
-} from './types';
-
-// Enable Immer's MapSet plugin for Map support
-enableMapSet();
+import type { RunnerState } from '../runners/components/runner-card/types';
+import type { CandidateSkill, OptimizationProgress, OptimizationResult } from './types';
+import type { RaceConditions } from '@/utils/races';
+import { createRaceConditions } from '@/utils/races';
+import { DEFAULT_COURSE_ID, DEFAULT_SEED } from '@/utils/constants';
 
 interface SkillPlannerState {
+  runner: RunnerState;
   // Candidate skills
   candidates: Map<string, CandidateSkill>;
 
   // Budget and modifiers
   budget: number;
-  modifiers: CostModifiers;
+  hasFastLearner: boolean;
 
   // Optimization state
   isOptimizing: boolean;
   progress: OptimizationProgress | null;
   result: OptimizationResult | null;
+
+  skills: {
+    open: boolean;
+    selected: Array<string>;
+  };
+
+  course: {
+    id: number;
+    params: RaceConditions;
+  };
+  seed: number;
 }
 
 export const useSkillPlannerStore = create<SkillPlannerState>()(
   immer((_set, _get) => ({
+    runner: createRunnerState(),
     candidates: new Map(),
     budget: 1000,
-    modifiers: {
-      hasFastLearner: false,
-    },
+    hasFastLearner: false,
     isOptimizing: false,
     progress: null,
     result: null,
+    skills: {
+      open: false,
+      selected: [],
+    },
+    course: {
+      id: DEFAULT_COURSE_ID,
+      params: createRaceConditions(),
+    },
+    seed: DEFAULT_SEED,
   })),
 );
 
 // Actions
+
+export const setSkillsOpen = (open: boolean) => {
+  useSkillPlannerStore.setState((draft) => {
+    draft.skills.open = open;
+  });
+};
+
+export const setSkillsSelected = (selected: Array<string>) => {
+  useSkillPlannerStore.setState((draft) => {
+    draft.skills.selected = selected;
+  });
+};
+
+export const setRunner = (runner: RunnerState) => {
+  useSkillPlannerStore.setState((draft) => {
+    draft.runner = runner;
+  });
+};
 
 export const addCandidate = (skillId: string, hintLevel: number = 0) => {
   useSkillPlannerStore.setState((draft) => {
@@ -49,7 +83,11 @@ export const addCandidate = (skillId: string, hintLevel: number = 0) => {
         hintLevel: hintLevel as CandidateSkill['hintLevel'],
         isObtained: false,
         isStackable: false,
-        effectiveCost: calculateSkillCost(skillId, hintLevel as CandidateSkill['hintLevel'], draft.modifiers),
+        effectiveCost: calculateSkillCost(
+          skillId,
+          hintLevel as CandidateSkill['hintLevel'],
+          draft.hasFastLearner,
+        ),
       };
       draft.candidates.set(skillId, candidate);
     }
@@ -72,7 +110,7 @@ export const updateCandidate = (skillId: string, updates: Partial<CandidateSkill
         candidate.effectiveCost = calculateSkillCost(
           candidate.skillId,
           candidate.hintLevel,
-          draft.modifiers,
+          draft.hasFastLearner,
         );
       }
     }
@@ -85,16 +123,16 @@ export const setBudget = (budget: number) => {
   });
 };
 
-export const setModifiers = (modifiers: Partial<CostModifiers>) => {
+export const setHasFastLearner = (hasFastLearner: boolean) => {
   useSkillPlannerStore.setState((draft) => {
-    Object.assign(draft.modifiers, modifiers);
+    draft.hasFastLearner = hasFastLearner;
 
     // Recalculate all candidate costs when modifiers change
     draft.candidates.forEach((candidate) => {
       candidate.effectiveCost = calculateSkillCost(
         candidate.skillId,
         candidate.hintLevel,
-        draft.modifiers,
+        draft.hasFastLearner,
       );
     });
   });
@@ -130,9 +168,15 @@ export const clearAll = () => {
   });
 };
 
+export const clearCandidates = () => {
+  useSkillPlannerStore.setState((draft) => {
+    draft.candidates.clear();
+    draft.skills.selected = [];
+  });
+};
+
 export const clearResult = () => {
   useSkillPlannerStore.setState((draft) => {
     draft.result = null;
   });
 };
-

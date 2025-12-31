@@ -42,3 +42,5 @@ export type RunnerState = {
   randomMobId?: number; // For placeholder image when no uma selected
   linkedRunnerId?: string; // Link to saved runner in library
 };
+
+export const runawaySkillId = '202051' as const;

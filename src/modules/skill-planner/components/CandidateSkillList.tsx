@@ -1,4 +1,5 @@
-import { PlusIcon, TrashIcon } from 'lucide-react';
+import { TrashIcon } from 'lucide-react';
+import { useMemo } from 'react';
 import { removeCandidate, updateCandidate, useSkillPlannerStore } from '../store';
 import type { CandidateSkill, HintLevel } from '../types';
 import { Button } from '@/components/ui/button';
@@ -12,74 +13,48 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { getSkillNameById } from '@/modules/skills/utils';
-import { useSkillModalStore } from '@/modules/skills/store';
-import { useRunner } from '@/store/runners.store';
+import { Separator } from '@/components/ui/separator';
 
-interface CandidateSkillListProps {
-  onImportClick?: () => void;
-}
-
-export function CandidateSkillList({ onImportClick: _onImportClick }: CandidateSkillListProps) {
+export function CandidateSkillList() {
   const { candidates } = useSkillPlannerStore();
-  const { runner } = useRunner();
 
-  const handleAddSkill = () => {
-    useSkillModalStore.setState({
-      open: true,
-      umaId: runner.outfitId || undefined,
-      currentSkills: runner.skills,
-      onSelect: () => {
-        // This will be handled by the SkillPlanner component's useEffect
-      },
-    });
-  };
-
-  const candidateList = Array.from(candidates.values());
+  const candidateList = useMemo(() => Array.from(candidates.values()), [candidates]);
 
   return (
     <div className="flex flex-col gap-4 h-full">
-      {/* Action Buttons */}
-      <div className="flex gap-2">
-        <Button onClick={handleAddSkill} size="sm" className="w-full">
-          <PlusIcon className="w-4 h-4 mr-2" />
-          Add Skill
-        </Button>
-      </div>
-      <p className="text-xs text-muted-foreground">
-        Select skills you want to consider purchasing, then set their hint levels below.
-      </p>
-
       {/* Candidate List */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 flex flex-col gap-4 overflow-y-auto">
         {candidateList.length === 0 ? (
           <div className="text-center text-muted-foreground py-8">
             <p className="text-sm">No candidate skills added yet.</p>
-            <p className="text-xs mt-2">Click "Add Skill" to get started.</p>
           </div>
         ) : (
-          <div className="space-y-2 pr-4">
+          <div className="space-y-2">
             {candidateList.map((candidate) => (
               <CandidateSkillItem key={candidate.skillId} candidate={candidate} />
             ))}
           </div>
         )}
-      </div>
 
-      {/* Summary */}
-      {candidateList.length > 0 && (
-        <div className="border-t pt-2 text-sm text-muted-foreground">
-          <div className="flex justify-between">
-            <span>Total candidates:</span>
-            <span className="font-medium">{candidateList.length}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>To purchase:</span>
-            <span className="font-medium">
-              {candidateList.filter((c) => !c.isObtained).length}
-            </span>
-          </div>
-        </div>
-      )}
+        {/* Summary */}
+        {candidateList.length > 0 && (
+          <>
+            <Separator />
+            <div className="text-sm text-muted-foreground">
+              <div className="flex justify-between">
+                <span>Total candidates:</span>
+                <span className="font-medium">{candidateList.length}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>To purchase:</span>
+                <span className="font-medium">
+                  {candidateList.filter((c) => !c.isObtained).length}
+                </span>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -105,45 +80,55 @@ function CandidateSkillItem({ candidate }: { candidate: CandidateSkill }) {
     removeCandidate(candidate.skillId);
   };
 
+  const selectedHintLevel = useMemo(() => {
+    if (candidate.hintLevel === 1) {
+      return 'Lvl 1 (10% off)';
+    } else if (candidate.hintLevel === 2) {
+      return 'Lvl 2 (20% off)';
+    } else if (candidate.hintLevel === 3) {
+      return 'Lvl 3 (30% off)';
+    } else if (candidate.hintLevel === 4) {
+      return 'Lvl 4 (35% off)';
+    } else if (candidate.hintLevel === 5) {
+      return 'Lvl Max (40% off)';
+    }
+
+    return 'No hint';
+  }, [candidate.hintLevel]);
+
   return (
-    <div className="border rounded-lg p-3 space-y-2 bg-card">
+    <div className="border rounded-lg p-3 bg-card flex flex-col gap-3">
       {/* Skill Name and Remove Button */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1">
           <p className="font-medium text-sm">{skillName}</p>
-          <p className="text-xs text-muted-foreground">ID: {candidate.skillId}</p>
         </div>
-        <Button variant="ghost" size="sm" onClick={handleRemove} className="h-8 w-8 p-0">
-          <TrashIcon className="w-4 h-4" />
-        </Button>
-      </div>
 
-      {/* Hint Level Selector */}
-      <div className="grid grid-cols-2 gap-2 items-center">
-        <Label htmlFor={`hint-${candidate.skillId}`} className="text-xs">
-          Hint Level
-        </Label>
-        <Select
-          value={candidate.hintLevel.toString()}
-          onValueChange={handleHintLevelChange}
-        >
-          <SelectTrigger id={`hint-${candidate.skillId}`} className="h-8 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="0">0 (No hint)</SelectItem>
-            <SelectItem value="1">1 (10% off)</SelectItem>
-            <SelectItem value="2">2 (20% off)</SelectItem>
-            <SelectItem value="3">3 (30% off)</SelectItem>
-            <SelectItem value="4">4 (35% off)</SelectItem>
-            <SelectItem value="5">5 (40% off)</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          <Select value={candidate.hintLevel.toString()} onValueChange={handleHintLevelChange}>
+            <SelectTrigger id={`hint-${candidate.skillId}`} className="text-xs">
+              <SelectValue>{selectedHintLevel}</SelectValue>
+            </SelectTrigger>
+
+            <SelectContent>
+              <SelectItem value="0">No hint</SelectItem>
+              <SelectItem value="1">Lvl 1 (10% off)</SelectItem>
+              <SelectItem value="2">Lvl 2 (20% off)</SelectItem>
+              <SelectItem value="3">Lvl 3 (30% off)</SelectItem>
+              <SelectItem value="4">Lvl 4 (35% off)</SelectItem>
+              <SelectItem value="5">Lvl Max (40% off)</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Button variant="destructive" size="icon" onClick={handleRemove}>
+            <TrashIcon className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
 
       {/* Checkboxes */}
       <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-2">
+        <div className="flex justify-end gap-2">
           <Checkbox
             id={`obtained-${candidate.skillId}`}
             checked={candidate.isObtained}
@@ -153,10 +138,10 @@ function CandidateSkillItem({ candidate }: { candidate: CandidateSkill }) {
             htmlFor={`obtained-${candidate.skillId}`}
             className="text-xs cursor-pointer font-normal"
           >
-            Already Obtained (free)
+            Obtained
           </Label>
         </div>
-        <div className="flex items-center gap-2">
+        {/* <div className="flex items-center gap-2">
           <Checkbox
             id={`stackable-${candidate.skillId}`}
             checked={candidate.isStackable}
@@ -168,7 +153,7 @@ function CandidateSkillItem({ candidate }: { candidate: CandidateSkill }) {
           >
             Can buy twice
           </Label>
-        </div>
+        </div> */}
       </div>
 
       {/* Cost Display */}
@@ -183,4 +168,3 @@ function CandidateSkillItem({ candidate }: { candidate: CandidateSkill }) {
     </div>
   );
 }
-
