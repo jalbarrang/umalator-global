@@ -16,47 +16,53 @@ Perfect for situations like:
 - "I have 1000 skill points and 15 skills with various hint levels - which should I buy?"
 - "Some skills are already obtained (free) - how should I spend my remaining budget?"
 - "I have the rare 'Fast Learner' condition - what's the best purchase strategy?"
-- "Two skills can be bought twice - should I stack them or buy different skills?"
+- "Should I stack the same skill twice or buy different skills?"
 
 ## 🚀 How to Use
 
 ### 1. Navigate to Skill Planner
 
-Click the **"Skill Planner"** tab in the Umalator section (alongside Compare Runners, Skill Chart, Uma Chart).
+Click the **"Skill Planner"** tab in the main navigation (top-level tab alongside Umalator and Veterans).
 
-### 2. Add Candidate Skills
+### 2. Configure Your Runner
 
-**Left Panel: Candidate Skills**
+**Left Panel - Top Section: Runner Configuration**
 
-Click **"Add Skill"** to open the skill picker and select skills you want to consider purchasing. For each skill:
+Set up your runner's stats and aptitudes:
+- Select your Uma character
+- Configure Speed, Stamina, Power, Guts, Wisdom stats
+- Set Distance, Surface, and Strategy aptitudes
+- Choose running strategy and mood
 
-- **Hint Level** (0-5): Select the discount level from the game
-  - `0` = No hint (0% off)
-  - `1` = Hint Lvl 1 (10% off)
-  - `2` = Hint Lvl 2 (20% off)
-  - `3` = Hint Lvl 3 (30% off)
-  - `4` = Hint Lvl 4 (35% off)
-  - `5` = Hint Lvl 5 (40% off)
+This ensures the optimizer tests skills with your actual runner configuration.
 
-- **Already Obtained**: Check if you already have this skill (it's free but will be included in simulations)
-- **Can buy twice**: Check if this skill can be purchased multiple times (stackable)
+### 3. Add Candidate Skills
 
-### 3. Set Budget & Modifiers
+**Left Panel - Bottom Section: Candidate Skills**
 
-**Right Panel: Budget & Modifiers**
+Click **"Add Skills"** to open the skill picker and select skills you want to consider purchasing. For each skill:
 
-- **Skill Points Available**: Enter your total available skill points
+- **Hint Level** (dropdown): Select the discount level from the game
+  - `No hint` = 0% off
+  - `Lvl 1` = 10% off
+  - `Lvl 2` = 20% off
+  - `Lvl 3` = 30% off
+  - `Lvl 4` = 35% off
+  - `Lvl Max` = 40% off (maximum discount)
+
+- **Obtained** (checkbox): Check if you already have this skill (it's free but will be included in simulations)
+
+### 4. Set Budget & Modifiers
+
+**Right Panel - Top Section: Budget & Modifiers**
+
+- **Skill Points**: Enter your total available skill points
 - **Fast Learner**: Check if your runner has the rare "Fast Learner" condition (reduces all costs by 10%)
-
-### 4. Run Optimization
-
-Click **"Optimize"** to start the exhaustive search:
-
-- Progress bar shows testing status
-- Current best combination is displayed during optimization
-- Typically takes 30 seconds to 2 minutes depending on candidates
+- **Optimize Button**: Click to start the exhaustive search
 
 ### 5. Review & Apply Results
+
+**Right Panel - Bottom Section: Results**
 
 Once complete, you'll see:
 - **Expected Gain**: How many Bashin you'll improve by
@@ -64,13 +70,20 @@ Once complete, you'll see:
 - **Recommended Skills**: The optimal skills to purchase
 - **Stats**: Number of combinations tested and time taken
 
-Click **"Apply to Runner"** to add the recommended skills to your current runner in Umalator.
+Click **"Apply to Runner"** to add the recommended skills to your Umalator runner for testing.
 
 ## 💡 Key Features
 
+### Integrated Runner Configuration
+
+Unlike other simulation modes, Skill Planner has its own runner configuration:
+- **Self-contained**: Doesn't affect your Umalator runners
+- **Career-focused**: Configure the runner you're planning skills for
+- **Independent settings**: Has its own course and seed settings
+
 ### Synergy-Aware Optimization
 
-Unlike simple calculators, the Skill Planner runs **full race simulations** for each combination, meaning:
+The Skill Planner runs **full race simulations** for each combination:
 - Skills that work together (e.g., multiple acceleration skills) are properly evaluated
 - Activation conditions and race phases are considered
 - Real-world performance, not just theoretical values
@@ -105,24 +118,29 @@ Some skills can be purchased twice in the game. The optimizer:
 ### Architecture
 
 ```
-┌─────────────────┐
-│  UI Components  │ ← User adds candidates & sets budget
-└────────┬────────┘
-         │
-         v
-┌─────────────────┐
-│  Web Worker     │ ← Runs optimization in background
-└────────┬────────┘
-         │
-         v
-┌─────────────────┐
-│ Race Simulation │ ← Tests each combination (25-200 samples)
-└────────┬────────┘
-         │
-         v
-┌─────────────────┐
-│  Best Result    │ ← Returns optimal skill set
-└─────────────────┘
+┌─────────────────────┐
+│  Runner Config      │ ← Configure runner stats/aptitudes
+└──────────┬──────────┘
+           │
+┌──────────▼──────────┐
+│  Candidate Skills   │ ← Add skills with hint levels
+└──────────┬──────────┘
+           │
+┌──────────▼──────────┐
+│  Budget & Modifiers │ ← Set budget, Fast Learner
+└──────────┬──────────┘
+           │
+┌──────────▼──────────┐
+│  Web Worker         │ ← Runs optimization in background
+└──────────┬──────────┘
+           │
+┌──────────▼──────────┐
+│  Race Simulation    │ ← Tests each combination (25-200 samples)
+└──────────┬──────────┘
+           │
+┌──────────▼──────────┐
+│  Best Result        │ ← Returns optimal skill set
+└─────────────────────┘
 ```
 
 ### Optimization Algorithm
@@ -142,13 +160,13 @@ Some skills can be purchased twice in the game. The optimizer:
 
 ```typescript
 // Input
-CandidateSkill[] + Budget + Modifiers
+Runner + CandidateSkill[] + Budget + FastLearner
   ↓
 // Generate combinations
 string[][] (filtered by budget)
   ↓
 // Simulate each combination
-RunnerState + Combination → runComparison() → Bashin gain
+BaselineRunner + Combination → runComparison() → Bashin gain
   ↓
 // Find optimal
 max(bashin) → OptimizationResult
@@ -157,7 +175,7 @@ max(bashin) → OptimizationResult
 ### Simulation Method
 
 Each combination is tested by:
-1. Creating a baseline runner (current skills + obtained skills)
+1. Creating a baseline runner (configured runner + runner.skills + obtained skills)
 2. Creating a test runner (baseline + combination)
 3. Running `runComparison()` with 25 samples
 4. Calculating median Bashin difference
@@ -168,15 +186,18 @@ Each combination is tested by:
 ```
 src/modules/skill-planner/
 ├── types.ts                          # Type definitions
-├── store.ts                          # Zustand state management
+├── store.ts                          # Zustand state management (with runner state)
 ├── cost-calculator.ts                # Cost calculation utilities
 ├── optimizer.ts                      # Combination generation algorithm
 ├── hooks/
 │   └── useSkillPlannerWorker.ts     # Worker communication hook
 ├── components/
+│   ├── SkillPlannerLayout.tsx       # Main layout component
+│   ├── runner-card.tsx              # Integrated runner configuration
 │   ├── CandidateSkillList.tsx       # Skill management UI
 │   ├── CostModifiersPanel.tsx       # Budget & modifiers UI
-│   └── SkillPlannerResults.tsx      # Results display UI
+│   ├── SkillPlannerResults.tsx      # Results display UI
+│   └── HelpDialog.tsx               # First-time help dialog
 └── __tests__/
     ├── cost-calculator.test.ts      # Cost calculation tests (20 tests)
     ├── optimizer.test.ts            # Optimizer tests (23 tests)
@@ -185,8 +206,8 @@ src/modules/skill-planner/
 src/workers/
 └── skill-planner.worker.ts          # Optimization worker
 
-src/routes/_simulation/
-└── skill-planner.tsx                # Main page component
+src/routes/
+└── skill-planner.tsx                # Main page route (top-level)
 ```
 
 ## 🧪 Testing
@@ -209,17 +230,18 @@ All tests pass ✅
 
 **Scenario**: Player finishes career with 1000 skill points
 
-1. **Add 10 candidate skills** from the career skill shop
-2. **Set hint levels** based on in-game hints:
+1. **Configure runner** with final career stats (e.g., 1200 Speed, 1000 Stamina)
+2. **Add 10 candidate skills** from the career skill shop
+3. **Set hint levels** based on in-game hints:
    - 3 skills with Hint Lvl 4 (35% off)
    - 4 skills with Hint Lvl 2 (20% off)
    - 2 skills with Hint Lvl 1 (10% off)
    - 1 skill already obtained (free)
-3. **Enable Fast Learner** if applicable (rare condition)
-4. **Set budget to 1000** skill points
-5. **Click Optimize**
-6. **Review results**: "Expected gain: +15.3 Bashin for 950 points"
-7. **Apply to Runner** to test in Umalator
+4. **Enable Fast Learner** if applicable (rare condition)
+5. **Set budget to 1000** skill points
+6. **Click Optimize**
+7. **Review results**: "Expected gain: +15.3 Bashin for 950 points"
+8. **Apply to Runner** to test in Umalator
 
 ## 🔍 Algorithm Details
 
@@ -281,19 +303,58 @@ const finalCost = Math.floor(
 
 ## 🎨 UI Design
 
-The interface is split into two panels:
+The interface uses a responsive two-column layout:
 
-**Left Panel** (Candidate Management)
-- Add/remove skills
-- Configure hint levels
-- Mark obtained/stackable flags
-- View effective costs
+### Left Column (500px fixed width)
+1. **Runner Card** - Configure your runner's stats and aptitudes
+2. **Candidate Skills Panel** - Add/manage skills with hint levels
+   - Action buttons: Add Skills, Clear All, Help
+   - Skill cards with inline hint level selector
+   - Obtained checkbox
+   - Cost display
 
-**Right Panel** (Optimization)
-- Set budget and modifiers
-- Run optimization
-- View progress and results
-- Apply recommendations
+### Right Column (Flexible)
+1. **Budget & Modifiers** - Horizontal bar with:
+   - Skill Points input
+   - Fast Learner checkbox
+   - Budget summary
+   - Optimize/Cancel button
+2. **Results Display** - Shows optimization results and progress
+
+## 🆕 What's Different from Original Design
+
+### Major Improvements
+
+1. **Top-Level Navigation**: Now a separate tab (not under Umalator simulation modes)
+2. **Integrated Runner**: Configure runner directly in the planner
+3. **Self-Contained State**: Has its own runner, course, and seed (doesn't affect Umalator)
+4. **Cleaner API**: `hasFastLearner` is now a direct boolean, not nested in `modifiers`
+5. **Better UX**: Left-to-right workflow (Runner → Skills → Budget → Results)
+6. **Help Dialog**: Auto-shows on first visit with "don't show again" option
+7. **Simplified UI**: Removed "Can buy twice" toggle (backend still supports it)
+
+### Store Structure
+
+```typescript
+interface SkillPlannerState {
+  runner: RunnerState;           // Integrated runner config
+  candidates: Map<string, CandidateSkill>;
+  budget: number;
+  hasFastLearner: boolean;       // Direct boolean (not nested)
+  isOptimizing: boolean;
+  progress: OptimizationProgress | null;
+  result: OptimizationResult | null;
+  skills: {                      // Skill picker state
+    open: boolean;
+    selected: Array<string>;
+  };
+  course: {                      // Independent course settings
+    id: number;
+    params: RaceConditions;
+  };
+  seed: number;                  // Independent seed
+}
+```
 
 ## 🛠️ Developer Notes
 
@@ -301,10 +362,11 @@ The interface is split into two panels:
 
 To add new cost modifiers (similar to Fast Learner):
 
-1. Update `CostModifiers` interface in `types.ts`
-2. Add calculation logic to `calculateSkillCost()` in `cost-calculator.ts`
-3. Update `CostModifiersPanel.tsx` UI
-4. Add tests in `cost-calculator.test.ts`
+1. Add new boolean field to store state (e.g., `hasSpecialBonus`)
+2. Add setter action (e.g., `setHasSpecialBonus()`)
+3. Update `calculateSkillCost()` in `cost-calculator.ts`
+4. Update `CostModifiersPanel.tsx` UI
+5. Add tests in `cost-calculator.test.ts`
 
 ### Modifying Optimization Algorithm
 
@@ -321,6 +383,32 @@ The worker (`skill-planner.worker.ts`) sends these message types:
 - `complete`: Final optimization result
 - `error`: Error message
 
+### Store Actions
+
+**Runner Management**:
+- `setRunner(runner)` - Update runner configuration
+
+**Candidate Management**:
+- `addCandidate(skillId, hintLevel)` - Add skill to candidates
+- `removeCandidate(skillId)` - Remove skill from candidates
+- `updateCandidate(skillId, updates)` - Update candidate properties
+- `clearCandidates()` - Remove all candidates
+
+**Budget & Modifiers**:
+- `setBudget(amount)` - Set skill point budget
+- `setHasFastLearner(enabled)` - Toggle Fast Learner (recalculates all costs)
+
+**Optimization State**:
+- `setIsOptimizing(boolean)` - Control optimization state
+- `setProgress(progress)` - Update progress during optimization
+- `setResult(result)` - Set final optimization result
+- `clearResult()` - Clear result only
+- `clearAll()` - Reset candidates, progress, and result
+
+**Skill Picker**:
+- `setSkillsOpen(boolean)` - Control skill picker visibility
+- `setSkillsSelected(skills)` - Track selected skills
+
 ## 📊 Comparison with Other Tools
 
 | Feature | Skill Chart | Skill Planner |
@@ -330,24 +418,84 @@ The worker (`skill-planner.worker.ts`) sends these message types:
 | **Output** | Bashin per skill | Optimal purchase set |
 | **Budget** | N/A | Considers skill point budget |
 | **Synergies** | Individual only | Combination synergies |
+| **Runner Config** | Uses Umalator runner | Independent runner |
 | **Use Case** | "Which skill is best?" | "Which skills should I buy?" |
+| **Navigation** | Under Umalator | Top-level tab |
+
+## 🎨 UI Components
+
+### SkillPlannerLayout
+
+Main layout component that orchestrates:
+- Runner card for stats/aptitudes
+- Candidate skill list with management
+- Budget and modifiers panel
+- Results display
+- Help dialog integration
+- Skill picker drawer
+
+### RunnerCard (Simplified)
+
+Lightweight version of the main runner card:
+- Uma selector
+- Stats table (Speed, Stamina, Power, Guts, Wisdom)
+- Aptitudes table (Distance, Surface, Strategy)
+- No skill management (handled separately)
+
+### CandidateSkillList
+
+Displays candidate skills with:
+- Inline hint level selector (dropdown)
+- Obtained checkbox
+- Remove button
+- Effective cost display
+- Summary statistics
+
+### CostModifiersPanel
+
+Horizontal control bar with:
+- Skill points input
+- Fast Learner checkbox
+- Budget summary
+- Optimize/Cancel button
+
+### SkillPlannerResults
+
+Shows optimization results:
+- Progress bar during optimization
+- Current best result preview
+- Final results with expected Bashin gain
+- List of recommended skills
+- Apply to Runner button
+
+### HelpDialog
+
+First-time user guide:
+- Auto-shows on first visit
+- Explains workflow and features
+- Hint level reference table
+- Tips for best results
+- Stores dismissal in localStorage
+- Reopenable via Help button
 
 ## 🐛 Known Limitations
 
 1. **Computation Time**: Large candidate sets (20+) may take 2-3 minutes
 2. **Combination Limit**: Caps at 1000 combinations to prevent excessive wait times
 3. **Simulation Samples**: Uses 25 samples for speed (vs 200+ for Skill Chart)
-4. **No OCR Import**: Screenshot import planned but not yet implemented
+4. **Stackable UI Hidden**: Backend supports it, but UI simplified for most users
 
 ## 🔮 Future Enhancements
 
 Potential improvements:
-- [ ] Screenshot import for candidate skills (OCR integration)
+- [ ] Course/race condition selector (currently uses defaults)
+- [ ] Seed control for reproducible results
 - [ ] Heuristic pre-filtering (eliminate clearly weak skills automatically)
 - [ ] Multiple result recommendations (show top 5 combinations)
 - [ ] Save/load candidate sets as presets
 - [ ] Export results to share with other players
 - [ ] Parallel worker processing for faster optimization
+- [ ] Screenshot import for candidate skills (OCR integration)
 
 ## 🤝 Contributing
 
@@ -358,7 +506,26 @@ When adding features to the Skill Planner:
 4. Write comprehensive unit tests
 5. Update this README
 
+### Running Tests
+
+```bash
+# Run all skill planner tests
+bun test src/modules/skill-planner/__tests__/
+
+# Run specific test file
+bun test src/modules/skill-planner/__tests__/cost-calculator.test.ts
+
+# Run with coverage
+bun test --coverage src/modules/skill-planner/__tests__/
+```
+
+### Code Style
+
+- Follow existing ESLint rules
+- Use `Array<T>` instead of `T[]` for arrays
+- Sort imports alphabetically
+- Use Immer for state updates (MapSet enabled)
+
 ## 📝 License
 
 Part of the Umalator Global project. See main LICENSE file.
-

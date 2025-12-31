@@ -15,10 +15,17 @@ export interface CandidateSkill {
 export interface OptimizationResult {
   skillsToBuy: Array<string>;
   totalCost: number;
-  expectedBashin: number;
+  // Expanded statistics
+  bashinStats: {
+    min: number;
+    max: number;
+    mean: number;
+    median: number;
+  };
   simulationCount: number;
   timeTaken: number;
   allResults: Array<CombinationResult>; // For showing alternative combinations
+  runData?: SimulationData; // Full simulation data for RaceTrack visualization
 }
 
 // Individual combination result during optimization

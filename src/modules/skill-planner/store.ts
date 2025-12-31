@@ -4,9 +4,6 @@ import { createRunnerState } from '../runners/components/runner-card/types';
 import { calculateSkillCost } from './cost-calculator';
 import type { RunnerState } from '../runners/components/runner-card/types';
 import type { CandidateSkill, OptimizationProgress, OptimizationResult } from './types';
-import type { RaceConditions } from '@/utils/races';
-import { createRaceConditions } from '@/utils/races';
-import { DEFAULT_COURSE_ID, DEFAULT_SEED } from '@/utils/constants';
 
 interface SkillPlannerState {
   runner: RunnerState;
@@ -26,12 +23,6 @@ interface SkillPlannerState {
     open: boolean;
     selected: Array<string>;
   };
-
-  course: {
-    id: number;
-    params: RaceConditions;
-  };
-  seed: number;
 }
 
 export const useSkillPlannerStore = create<SkillPlannerState>()(
@@ -47,11 +38,6 @@ export const useSkillPlannerStore = create<SkillPlannerState>()(
       open: false,
       selected: [],
     },
-    course: {
-      id: DEFAULT_COURSE_ID,
-      params: createRaceConditions(),
-    },
-    seed: DEFAULT_SEED,
   })),
 );
 

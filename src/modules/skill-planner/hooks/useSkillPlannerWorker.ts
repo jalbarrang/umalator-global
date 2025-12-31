@@ -3,14 +3,16 @@ import SkillPlannerWorker from '@workers/skill-planner.worker.ts?worker';
 import { setIsOptimizing, setProgress, setResult, useSkillPlannerStore } from '../store';
 import type { CandidateSkill } from '../types';
 import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
-import { useRunnersStore } from '@/store/runners.store';
 import { racedefToParams } from '@/utils/races';
 import { defaultSimulationOptions } from '@/components/bassin-chart/utils';
+import { createRunnerState } from '@/modules/runners/components/runner-card/types';
+import { useSettingsStore } from '@/store/settings.store';
 
 export function useSkillPlannerWorker() {
   const workerRef = useRef<Worker | null>(null);
-  const { pacer } = useRunnersStore();
-  const { runner, course, seed } = useSkillPlannerStore();
+
+  const { runner } = useSkillPlannerStore();
+  const { courseId, racedef, seed } = useSettingsStore();
 
   // Initialize worker
   useEffect(() => {
@@ -62,8 +64,8 @@ export function useSkillPlannerWorker() {
       setResult(null);
       setProgress(null);
 
-      const courseData = CourseHelpers.getCourse(course.id);
-      const params = racedefToParams(course.params, runner.strategy);
+      const courseData = CourseHelpers.getCourse(courseId);
+      const params = racedefToParams(racedef, runner.strategy);
 
       workerRef.current.postMessage({
         msg: 'optimize',
@@ -73,7 +75,9 @@ export function useSkillPlannerWorker() {
           course: courseData,
           racedef: params,
           runner,
-          pacer,
+          pacer: createRunnerState({
+            strategy: 'Front Runner',
+          }),
           options: {
             ...defaultSimulationOptions,
             seed,
@@ -81,7 +85,7 @@ export function useSkillPlannerWorker() {
         },
       });
     },
-    [course.id, course.params, pacer, runner, seed],
+    [courseId, racedef, runner, seed],
   );
 
   const cancelOptimization = useCallback(() => {

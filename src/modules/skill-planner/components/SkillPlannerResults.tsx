@@ -72,10 +72,21 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
             </h3>
             <div className="mt-2 space-y-1 text-sm">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Expected Gain:</span>
+                <span className="text-muted-foreground">Expected Gain (Median):</span>
                 <span className="font-bold text-lg text-green-600">
-                  +{result.expectedBashin.toFixed(2)} Bashin
+                  +{result.bashinStats.median.toFixed(2)} Bashin
                 </span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">Range:</span>
+                <span>
+                  {result.bashinStats.min.toFixed(2)} to {result.bashinStats.max.toFixed(2)}{' '}
+                  Bashin
+                </span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">Mean Gain:</span>
+                <span>{result.bashinStats.mean.toFixed(2)} Bashin</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Total Cost:</span>

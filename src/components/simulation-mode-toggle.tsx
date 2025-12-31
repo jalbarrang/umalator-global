@@ -39,15 +39,6 @@ export const SimulationModeToggle = () => {
         >
           <Link to="/uma-bassin">Uma Chart</Link>
         </Button>
-
-        <Button
-          variant="outline"
-          className={cn({
-            'bg-primary!': isActive('/skill-planner'),
-          })}
-        >
-          <Link to="/skill-planner">Skill Planner</Link>
-        </Button>
       </ButtonGroup>
     </div>
   );

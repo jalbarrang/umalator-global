@@ -120,6 +120,9 @@ function runOptimization(params: OptimizeParams) {
   }
 
   // If we found a best result, run a final high-quality simulation on it
+  let finalStats = null;
+  let finalRunData = null;
+
   if (bestResult) {
     const finalRunner: RunnerState = {
       ...baselineRunner,
@@ -146,8 +149,19 @@ function runOptimization(params: OptimizeParams) {
         ? (sortedDiff[mid - 1] + sortedDiff[mid]) / 2
         : sortedDiff[mid];
 
+    // Calculate all statistics
+    const meanBashin = sortedDiff.reduce((a, b) => a + b, 0) / sortedDiff.length;
+
+    finalStats = {
+      min: sortedDiff[0],
+      max: sortedDiff[sortedDiff.length - 1],
+      mean: meanBashin,
+      median: medianBashin,
+    };
+
     bestResult.bashin = medianBashin;
     bestResult.runData = finalSim.runData;
+    finalRunData = finalSim.runData;
   }
 
   // Sort all results by bashin (descending)
@@ -158,10 +172,16 @@ function runOptimization(params: OptimizeParams) {
   const optimizationResult: OptimizationResult = {
     skillsToBuy: bestResult?.skills || [],
     totalCost: bestResult?.cost || 0,
-    expectedBashin: bestResult?.bashin || 0,
+    bashinStats: finalStats || {
+      min: 0,
+      max: 0,
+      mean: 0,
+      median: 0,
+    },
     simulationCount: combinations.length,
     timeTaken,
     allResults: results.slice(0, 20), // Keep top 20 results
+    runData: finalRunData || undefined,
   };
 
   postMessage({

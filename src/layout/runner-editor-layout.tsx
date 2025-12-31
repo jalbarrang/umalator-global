@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,6 +30,7 @@ export const RunnerEditorLayout = ({
   isEditMode,
 }: RunnerEditorLayoutProps) => {
   const isMobile = useIsMobile();
+  const [skillPickerOpen, setSkillPickerOpen] = useState(false);
 
   const selectableSkills = useMemo(
     () => getSelectableSkillsForUma(runnerState.outfitId),
@@ -94,7 +95,14 @@ export const RunnerEditorLayout = ({
             </div>
 
             {/* Skill picker modal for mobile */}
-            <SkillPickerDrawer />
+            <SkillPickerDrawer
+              open={skillPickerOpen}
+              umaId={runnerState.outfitId}
+              options={selectableSkills}
+              currentSkills={runnerState.skills}
+              onSelect={handleSetSkills}
+              onOpenChange={setSkillPickerOpen}
+            />
           </div>
         ) : (
           /* Desktop layout: Two columns */

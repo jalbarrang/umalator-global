@@ -3,14 +3,15 @@
  */
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { enableMapSet } from 'immer';
 import {
   addCandidate,
   clearAll,
   clearResult,
   removeCandidate,
   setBudget,
+  setHasFastLearner,
   setIsOptimizing,
-  setModifiers,
   setProgress,
   setResult,
   updateCandidate,
@@ -18,9 +19,12 @@ import {
 } from '../store';
 import type { OptimizationProgress, OptimizationResult } from '../types';
 
+// Enable MapSet support for Immer
+enableMapSet();
+
 // Mock the cost calculator
 mock.module('../cost-calculator', () => ({
-  calculateSkillCost: (skillId: string, hintLevel: number, modifiers: any) => {
+  calculateSkillCost: (skillId: string, hintLevel: number, hasFastLearner: boolean) => {
     const baseCosts: Record<string, number> = {
       '1': 100,
       '2': 200,
@@ -28,22 +32,74 @@ mock.module('../cost-calculator', () => ({
     };
     const baseCost = baseCosts[skillId] ?? 100;
     const hintDiscount = [0, 0.1, 0.2, 0.3, 0.35, 0.4][hintLevel] ?? 0;
-    const flMultiplier = modifiers.hasFastLearner ? 0.9 : 1.0;
+    const flMultiplier = hasFastLearner ? 0.9 : 1.0;
     return Math.floor(baseCost * (1 - hintDiscount) * flMultiplier);
   },
 }));
 
+// Mock createRunnerState to avoid complex dependencies
+mock.module('@/modules/runners/components/runner-card/types', () => ({
+  createRunnerState: () => ({
+    outfitId: '',
+    speed: 1200,
+    stamina: 1200,
+    power: 800,
+    guts: 400,
+    wisdom: 400,
+    strategy: 'Front Runner',
+    distanceAptitude: 'S',
+    surfaceAptitude: 'A',
+    strategyAptitude: 'A',
+    mood: 3,
+    skills: [],
+    forcedSkillPositions: {},
+  }),
+}));
+
+mock.module('@/utils/races', () => ({
+  createRaceConditions: () => ({}),
+}));
+
+mock.module('@/utils/constants', () => ({
+  DEFAULT_COURSE_ID: 10101,
+  DEFAULT_SEED: 0,
+}));
+
 describe('Skill Planner Store', () => {
   beforeEach(() => {
-    // Reset store to initial state
+    // Reset store to initial state - match new structure
     useSkillPlannerStore.setState({
+      runner: {
+        outfitId: '',
+        speed: 1200,
+        stamina: 1200,
+        power: 800,
+        guts: 400,
+        wisdom: 400,
+        strategy: 'Front Runner',
+        distanceAptitude: 'S',
+        surfaceAptitude: 'A',
+        strategyAptitude: 'A',
+        mood: 3,
+        skills: [],
+        forcedSkillPositions: {},
+      },
       candidates: new Map(),
       budget: 1000,
-      modifiers: { hasFastLearner: false },
+      hasFastLearner: false,
       isOptimizing: false,
       progress: null,
       result: null,
-    });
+      skills: {
+        open: false,
+        selected: [],
+      },
+      course: {
+        id: 10101,
+        params: {},
+      },
+      seed: 0,
+    } as any);
   });
 
   describe('initial state', () => {
@@ -59,7 +115,7 @@ describe('Skill Planner Store', () => {
 
     it('should have Fast Learner disabled by default', () => {
       const state = useSkillPlannerStore.getState();
-      expect(state.modifiers.hasFastLearner).toBe(false);
+      expect(state.hasFastLearner).toBe(false);
     });
 
     it('should not be optimizing', () => {
@@ -240,17 +296,17 @@ describe('Skill Planner Store', () => {
     });
   });
 
-  describe('setModifiers', () => {
+  describe('setHasFastLearner', () => {
     beforeEach(() => {
       addCandidate('1', 0);
       addCandidate('2', 1);
     });
 
-    it('should update Fast Learner modifier', () => {
-      setModifiers({ hasFastLearner: true });
+    it('should update Fast Learner flag', () => {
+      setHasFastLearner(true);
       const state = useSkillPlannerStore.getState();
 
-      expect(state.modifiers.hasFastLearner).toBe(true);
+      expect(state.hasFastLearner).toBe(true);
     });
 
     it('should recalculate all candidate costs when Fast Learner changes', () => {
@@ -260,7 +316,7 @@ describe('Skill Planner Store', () => {
       expect(state.candidates.get('2')?.effectiveCost).toBe(180); // 200 * 0.9 (hint 1)
 
       // Enable Fast Learner
-      setModifiers({ hasFastLearner: true });
+      setHasFastLearner(true);
       state = useSkillPlannerStore.getState();
 
       // 100 * 0.9 (FL) = 90
@@ -270,11 +326,11 @@ describe('Skill Planner Store', () => {
     });
 
     it('should handle toggling Fast Learner off', () => {
-      setModifiers({ hasFastLearner: true });
-      setModifiers({ hasFastLearner: false });
+      setHasFastLearner(true);
+      setHasFastLearner(false);
       const state = useSkillPlannerStore.getState();
 
-      expect(state.modifiers.hasFastLearner).toBe(false);
+      expect(state.hasFastLearner).toBe(false);
       expect(state.candidates.get('1')?.effectiveCost).toBe(100);
     });
   });
@@ -345,7 +401,12 @@ describe('Skill Planner Store', () => {
       const result: OptimizationResult = {
         skillsToBuy: ['1', '2', '3'],
         totalCost: 250,
-        expectedBashin: 15.7,
+        bashinStats: {
+          min: 12.5,
+          max: 18.9,
+          mean: 15.5,
+          median: 15.7,
+        },
         simulationCount: 100,
         timeTaken: 5000,
         allResults: [],
@@ -360,7 +421,12 @@ describe('Skill Planner Store', () => {
       const result: OptimizationResult = {
         skillsToBuy: ['1'],
         totalCost: 100,
-        expectedBashin: 5.0,
+        bashinStats: {
+          min: 3.2,
+          max: 6.8,
+          mean: 5.1,
+          median: 5.0,
+        },
         simulationCount: 50,
         timeTaken: 2000,
         allResults: [],
@@ -379,7 +445,12 @@ describe('Skill Planner Store', () => {
       const result: OptimizationResult = {
         skillsToBuy: ['1'],
         totalCost: 100,
-        expectedBashin: 5.0,
+        bashinStats: {
+          min: 3.2,
+          max: 6.8,
+          mean: 5.1,
+          median: 5.0,
+        },
         simulationCount: 50,
         timeTaken: 2000,
         allResults: [],
@@ -433,13 +504,13 @@ describe('Skill Planner Store', () => {
 
       // Set budget and modifiers
       setBudget(500);
-      setModifiers({ hasFastLearner: true });
+      setHasFastLearner(true);
 
       // Verify final state
       const state = useSkillPlannerStore.getState();
       expect(state.candidates.size).toBe(3);
       expect(state.budget).toBe(500);
-      expect(state.modifiers.hasFastLearner).toBe(true);
+      expect(state.hasFastLearner).toBe(true);
 
       // Check that costs were recalculated
       const candidate2 = state.candidates.get('2');
@@ -466,7 +537,12 @@ describe('Skill Planner Store', () => {
       setResult({
         skillsToBuy: ['1'],
         totalCost: 100,
-        expectedBashin: 5.2,
+        bashinStats: {
+          min: 3.5,
+          max: 7.0,
+          mean: 5.3,
+          median: 5.2,
+        },
         simulationCount: 100,
         timeTaken: 3000,
         allResults: [],
@@ -475,7 +551,7 @@ describe('Skill Planner Store', () => {
 
       const state = useSkillPlannerStore.getState();
       expect(state.isOptimizing).toBe(false);
-      expect(state.result?.expectedBashin).toBe(5.2);
+      expect(state.result?.bashinStats.median).toBe(5.2);
       expect(state.progress).toBeNull(); // Cleared when optimization ends
     });
   });

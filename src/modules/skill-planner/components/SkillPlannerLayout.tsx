@@ -13,16 +13,20 @@ import { SkillPlannerResults } from './SkillPlannerResults';
 import { HelpDialog, useHelpDialog } from './HelpDialog';
 import { RunnerCard } from './runner-card';
 import { CostModifiersPanel } from './CostModifiersPanel';
+import { SkillPlannerRaceTrack } from './SkillPlannerRaceTrack';
+import { RaceSettingsPanel } from './RaceSettingsPanel';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { Button } from '@/components/ui/button';
 import { getSelectableSkillsForUma, nonUniqueSkillIds } from '@/modules/skills/utils';
 import { SkillPickerDrawer } from '@/modules/skills/components/skill-list/SkillPickerDrawer';
+import { initializeSimulationRun } from '@/modules/simulation/compare.types';
 
 export function SkillPlannerLayout() {
   const { open: helpOpen, setOpen: setHelpOpen } = useHelpDialog();
   const {
     skills: { open: skillsOpen, selected: selectedSkills },
     runner,
+    result,
   } = useSkillPlannerStore();
 
   const umaId = useMemo(() => {
@@ -105,8 +109,18 @@ export function SkillPlannerLayout() {
           </div>
         </div>
 
-        {/* Right Panel - Optimization Controls & Results */}
+        {/* Right Panel - Race Settings, RaceTrack, Optimization Controls & Results */}
         <div className="flex flex-col gap-2 flex-1">
+          {/* Always visible race settings */}
+          <RaceSettingsPanel />
+
+          {/* RaceTrack visualization - only after optimization */}
+          {result && result.runData && (
+            <SkillPlannerRaceTrack
+              chartData={result.runData.medianrun ?? initializeSimulationRun()}
+            />
+          )}
+
           <CostModifiersPanel />
           <SkillPlannerResults />
         </div>

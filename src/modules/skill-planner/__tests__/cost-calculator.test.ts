@@ -4,7 +4,6 @@
 
 import { describe, expect, it, mock } from 'bun:test';
 import { HINT_DISCOUNTS, calculateSkillCost, getBaseCost } from '../cost-calculator';
-import type { CostModifiers } from '../types';
 import * as skillUtils from '@/modules/skills/utils';
 
 // Mock getSkillMetaById
@@ -54,108 +53,108 @@ describe('Cost Calculator', () => {
 
   describe('calculateSkillCost', () => {
     describe('no discounts', () => {
-      const modifiers: CostModifiers = { hasFastLearner: false };
+      const hasFastLearner = false;
 
       it('should return base cost with hint level 0', () => {
-        expect(calculateSkillCost('200011', 0, modifiers)).toBe(110);
-        expect(calculateSkillCost('200012', 0, modifiers)).toBe(90);
-        expect(calculateSkillCost('200013', 0, modifiers)).toBe(50);
+        expect(calculateSkillCost('200011', 0, hasFastLearner)).toBe(110);
+        expect(calculateSkillCost('200012', 0, hasFastLearner)).toBe(90);
+        expect(calculateSkillCost('200013', 0, hasFastLearner)).toBe(50);
       });
 
       it('should return 0 for free skills', () => {
-        expect(calculateSkillCost('10071', 0, modifiers)).toBe(0);
+        expect(calculateSkillCost('10071', 0, hasFastLearner)).toBe(0);
       });
     });
 
     describe('hint level discounts', () => {
-      const modifiers: CostModifiers = { hasFastLearner: false };
+      const hasFastLearner = false;
 
       it('should apply 10% discount for hint level 1', () => {
         // 110 * 0.9 = 99
-        expect(calculateSkillCost('200011', 1, modifiers)).toBe(99);
+        expect(calculateSkillCost('200011', 1, hasFastLearner)).toBe(99);
       });
 
       it('should apply 20% discount for hint level 2', () => {
         // 110 * 0.8 = 88
-        expect(calculateSkillCost('200011', 2, modifiers)).toBe(88);
+        expect(calculateSkillCost('200011', 2, hasFastLearner)).toBe(88);
       });
 
       it('should apply 30% discount for hint level 3', () => {
         // 110 * 0.7 = 77
-        expect(calculateSkillCost('200011', 3, modifiers)).toBe(77);
+        expect(calculateSkillCost('200011', 3, hasFastLearner)).toBe(77);
       });
 
       it('should apply 35% discount for hint level 4', () => {
         // 110 * 0.65 = 71.5 -> floor = 71
-        expect(calculateSkillCost('200011', 4, modifiers)).toBe(71);
+        expect(calculateSkillCost('200011', 4, hasFastLearner)).toBe(71);
       });
 
       it('should apply 40% discount for hint level 5 (max)', () => {
         // 110 * 0.6 = 66
-        expect(calculateSkillCost('200011', 5, modifiers)).toBe(66);
+        expect(calculateSkillCost('200011', 5, hasFastLearner)).toBe(66);
       });
     });
 
     describe('Fast Learner discount', () => {
-      const modifiers: CostModifiers = { hasFastLearner: true };
+      const hasFastLearner = true;
 
       it('should apply 10% Fast Learner discount with no hint', () => {
         // 110 * 0.9 = 99
-        expect(calculateSkillCost('200011', 0, modifiers)).toBe(99);
+        expect(calculateSkillCost('200011', 0, hasFastLearner)).toBe(99);
       });
 
       it('should not affect free skills', () => {
-        expect(calculateSkillCost('10071', 0, modifiers)).toBe(0);
+        expect(calculateSkillCost('10071', 0, hasFastLearner)).toBe(0);
       });
     });
 
     describe('combined discounts', () => {
-      const modifiers: CostModifiers = { hasFastLearner: true };
+      const hasFastLearner = true;
 
       it('should apply both hint level 1 and Fast Learner', () => {
         // 110 * 0.9 (hint) * 0.9 (FL) = 89.1 -> floor = 89
-        expect(calculateSkillCost('200011', 1, modifiers)).toBe(89);
+        expect(calculateSkillCost('200011', 1, hasFastLearner)).toBe(89);
       });
 
       it('should apply both hint level 3 and Fast Learner', () => {
         // 110 * 0.7 (hint) * 0.9 (FL) = 69.3 -> floor = 69
-        expect(calculateSkillCost('200011', 3, modifiers)).toBe(69);
+        expect(calculateSkillCost('200011', 3, hasFastLearner)).toBe(69);
       });
 
       it('should apply maximum discount (hint 5 + FL)', () => {
         // 110 * 0.6 (hint) * 0.9 (FL) = 59.4 -> floor = 59
-        expect(calculateSkillCost('200011', 5, modifiers)).toBe(59);
+        expect(calculateSkillCost('200011', 5, hasFastLearner)).toBe(59);
       });
 
       it('should handle high base cost with max discounts', () => {
         // 180 * 0.6 * 0.9 = 97.2 -> floor = 97
-        expect(calculateSkillCost('200331', 5, modifiers)).toBe(97);
+        expect(calculateSkillCost('200331', 5, hasFastLearner)).toBe(97);
       });
     });
 
     describe('floor rounding behavior', () => {
-      const modifiers: CostModifiers = { hasFastLearner: true };
+      const hasFastLearner = true;
 
       it('should floor fractional costs', () => {
         // 90 * 0.65 (hint 4) * 0.9 (FL) = 52.65 -> floor = 52
-        expect(calculateSkillCost('200012', 4, modifiers)).toBe(52);
+        expect(calculateSkillCost('200012', 4, hasFastLearner)).toBe(52);
       });
 
       it('should handle costs that result in .9', () => {
         // 50 * 0.9 (hint 1) * 0.9 (FL) = 40.5 -> floor = 40
-        expect(calculateSkillCost('200013', 1, modifiers)).toBe(40);
+        expect(calculateSkillCost('200013', 1, hasFastLearner)).toBe(40);
       });
     });
 
     describe('edge cases', () => {
       it('should handle 0 cost with discounts', () => {
-        const modifiers: CostModifiers = { hasFastLearner: true };
-        expect(calculateSkillCost('10071', 5, modifiers)).toBe(0);
+        const hasFastLearner = true;
+        expect(calculateSkillCost('10071', 5, hasFastLearner)).toBe(0);
       });
 
       it('should never return negative cost', () => {
-        const modifiers: CostModifiers = { hasFastLearner: true };
-        const cost = calculateSkillCost('200011', 5, modifiers);
+        const hasFastLearner = true;
+        const cost = calculateSkillCost('200011', 5, hasFastLearner);
         expect(cost).toBeGreaterThanOrEqual(0);
       });
     });
