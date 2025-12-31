@@ -4,7 +4,6 @@
 
 import { describe, expect, it, mock } from 'bun:test';
 import { HINT_DISCOUNTS, calculateSkillCost, getBaseCost } from '../cost-calculator';
-import * as skillUtils from '@/modules/skills/utils';
 
 // Mock getSkillMetaById
 const mockGetSkillMetaById = mock((skillId: string) => {
@@ -160,4 +159,3 @@ describe('Cost Calculator', () => {
     });
   });
 });
-

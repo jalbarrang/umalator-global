@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import { PlayIcon, XIcon } from 'lucide-react';
 import { setBudget, setHasFastLearner, useSkillPlannerStore } from '../store';
-import { useSkillPlannerWorker } from '../hooks/useSkillPlannerWorker';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -15,7 +14,6 @@ export function CostModifiersPanel(props: CostModifiersPanelProps) {
   const { className, ...rest } = props;
 
   const { budget, hasFastLearner, candidates, isOptimizing } = useSkillPlannerStore();
-  const { startOptimization, cancelOptimization } = useSkillPlannerWorker();
 
   const candidateList = useMemo(() => Array.from(candidates.values()), [candidates]);
   const canOptimize = useMemo(
@@ -33,7 +31,11 @@ export function CostModifiersPanel(props: CostModifiersPanelProps) {
   };
 
   const handleOptimize = () => {
-    startOptimization(candidateList, budget);
+    console.log('Optimize');
+  };
+
+  const handleCancel = () => {
+    console.log('Cancel');
   };
 
   return (
@@ -87,7 +89,7 @@ export function CostModifiersPanel(props: CostModifiersPanelProps) {
           </Button>
         )}
         {isOptimizing && (
-          <Button onClick={cancelOptimization} variant="destructive" size="lg" className="flex-1">
+          <Button onClick={handleCancel} variant="destructive" size="lg" className="flex-1">
             <XIcon className="w-4 h-4 mr-2" />
             Cancel
           </Button>
