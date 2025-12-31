@@ -13,10 +13,10 @@ import { SectionNumbers } from './section-numbers';
 import { SkillMarker } from './skill-marker';
 import { SlopeLabelBar } from './slope-label-bar';
 import { SlopeVisualization } from './slope-visualization';
-import { TrackSelect } from './track-select';
 import type { RegionData } from '../hooks/useVisualizationData';
 import type { CourseData } from '@/modules/simulation/lib/course/definitions';
 import type { SimulationRun } from '@/modules/simulation/compare.types';
+import type { RaceConditions } from '@/utils/races';
 import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
 import { initializeSimulationRun } from '@/modules/simulation/compare.types';
 import { updateForcedSkillPosition, useRunnersStore } from '@/store/runners.store';
@@ -32,12 +32,8 @@ import i18n from '@/i18n';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { SavePresetModal } from '@/components/save-preset-modal';
-import { TimeOfDaySelect } from '@/components/race-settings/TimeOfDaySelect';
-import { WeatherIcon, WeatherSelect } from '@/components/race-settings/WeatherSelect';
-import { SeasonIcon, SeasonSelect } from '@/components/race-settings/SeasonSelect';
-import { RacePresets } from '@/components/race-presets';
-import { GroundSelect } from '@/components/race-settings/GroundSelect';
+import { WeatherIcon } from '@/components/race-settings/WeatherSelect';
+import { SeasonIcon } from '@/components/race-settings/SeasonSelect';
 
 // Helper function for efficient rung collision detection
 const findAvailableRung = (
@@ -337,19 +333,8 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (pro
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-4">
-        <div className="flex items-center gap-2">
-          <div className="text-xl text-foreground font-bold">
-            {i18n.t(`tracknames.${course.raceTrackId}`)} {courseLabel}
-          </div>
-        </div>
-
-        <div className="flex">
-          <div className="flex items-center gap-2">
-            <SeasonIcon season={racedef.season} className="w-6 h-6" />
-            <WeatherIcon weather={racedef.weather} className="w-6 h-6" />
-            <div className="font-bold">{i18n.t(`racetrack.ground.${racedef.ground}`)}</div>
-          </div>
-        </div>
+        <TrackName course={course} courseLabel={courseLabel} />
+        <TrackConditions racedef={racedef} />
       </div>
 
       <div className="flex justify-center">
@@ -538,7 +523,7 @@ type ThresholdMarkerProps = {
   strokeColor?: string;
 };
 
-const ThresholdMarker = (props: ThresholdMarkerProps) => {
+export const ThresholdMarker = (props: ThresholdMarkerProps) => {
   const {
     threshold,
     text,
@@ -575,5 +560,40 @@ const ThresholdMarker = (props: ThresholdMarkerProps) => {
         {text ?? `${threshold}m left`}
       </text>
     </g>
+  );
+};
+
+type TrackNameProps = {
+  course: CourseData;
+  courseLabel: string;
+};
+
+export const TrackName = (props: TrackNameProps) => {
+  const { course, courseLabel } = props;
+
+  return (
+    <div className="flex items-center gap-2">
+      <div className="text-xl text-foreground font-bold">
+        {i18n.t(`tracknames.${course.raceTrackId}`)} {courseLabel}
+      </div>
+    </div>
+  );
+};
+
+type TrackConditionsProps = {
+  racedef: RaceConditions;
+};
+
+export const TrackConditions = (props: TrackConditionsProps) => {
+  const { racedef } = props;
+
+  return (
+    <div className="flex">
+      <div className="flex items-center gap-2">
+        <SeasonIcon season={racedef.season} className="w-6 h-6" />
+        <WeatherIcon weather={racedef.weather} className="w-6 h-6" />
+        <div className="font-bold">{i18n.t(`racetrack.ground.${racedef.ground}`)}</div>
+      </div>
+    </div>
   );
 };

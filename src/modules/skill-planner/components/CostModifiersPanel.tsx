@@ -79,15 +79,6 @@ export function CostModifiersPanel(props: CostModifiersPanelProps) {
       <Separator orientation="vertical" className="hidden md:block" />
       <Separator className="md:hidden" />
 
-      {/* Summary */}
-      <div className="flex items-center gap-2">
-        <Label className="text-muted-foreground">Budget:</Label>
-        <span className="font-medium">{budget} pts</span>
-      </div>
-
-      <Separator orientation="vertical" className="hidden md:block" />
-      <Separator className="md:hidden" />
-
       <div className="flex gap-2 flex-1 items-center">
         {!isOptimizing && (
           <Button onClick={handleOptimize} size="lg" disabled={!canOptimize} className="flex-1">

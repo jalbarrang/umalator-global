@@ -1,6 +1,5 @@
 import { Activity, Fragment, useMemo, useRef } from 'react';
 import { useShallow } from 'zustand/shallow';
-import { RaceSettingsPanel } from './RaceSettingsPanel';
 import type { CourseData } from '@/modules/simulation/lib/course/definitions';
 import type { SimulationRun } from '@/modules/simulation/compare.types';
 import type { RegionData } from '@/modules/racetrack/hooks/useVisualizationData';
@@ -13,11 +12,8 @@ import {
   toggleShowThresholds,
   useSettingsStore,
 } from '@/store/settings.store';
-import i18n from '@/i18n';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { WeatherIcon } from '@/components/race-settings/WeatherSelect';
-import { SeasonIcon } from '@/components/race-settings/SeasonSelect';
 import { RegionDisplayType } from '@/modules/racetrack/types';
 import { SkillMarker } from '@/modules/racetrack/components/skill-marker';
 import { useRaceTrackTooltip } from '@/modules/racetrack/hooks/useRaceTrackTooltip';
@@ -28,6 +24,11 @@ import { SectionBar } from '@/modules/racetrack/components/section-bar';
 import { PhaseBar } from '@/modules/racetrack/components/phase-bar';
 import { SectionNumbers } from '@/modules/racetrack/components/section-numbers';
 import { RaceTrackTooltip } from '@/modules/racetrack/components/racetrack-tooltip';
+import {
+  ThresholdMarker,
+  TrackConditions,
+  TrackName,
+} from '@/modules/racetrack/components/RaceTrack';
 
 // Helper function for efficient rung collision detection
 const findAvailableRung = (
@@ -238,19 +239,8 @@ export const SkillPlannerRaceTrack: React.FC<SkillPlannerRaceTrackProps> = (prop
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-4">
-        <div className="flex items-center gap-2">
-          <div className="text-xl text-foreground font-bold">
-            {i18n.t(`tracknames.${course.raceTrackId}`)} {courseLabel}
-          </div>
-        </div>
-
-        <div className="flex">
-          <div className="flex items-center gap-2">
-            <SeasonIcon season={racedef.season} className="w-6 h-6" />
-            <WeatherIcon weather={racedef.weather} className="w-6 h-6" />
-            <div className="font-bold">{i18n.t(`racetrack.ground.${racedef.ground}`)}</div>
-          </div>
-        </div>
+        <TrackName course={course} courseLabel={courseLabel} />
+        <TrackConditions racedef={racedef} />
       </div>
 
       <div className="flex justify-center">
@@ -378,8 +368,6 @@ export const SkillPlannerRaceTrack: React.FC<SkillPlannerRaceTrackProps> = (prop
         </svg>
       </div>
 
-      <RaceSettingsPanel />
-
       <div className="flex flex-col md:flex-row gap-4 bg-secondary px-4 py-2 rounded-md">
         <div className="flex items-center gap-2">
           <Checkbox id="showhp" checked={showHp} onCheckedChange={toggleShowHp} />
@@ -407,57 +395,5 @@ export const SkillPlannerRaceTrack: React.FC<SkillPlannerRaceTrackProps> = (prop
         </div>
       </div>
     </div>
-  );
-};
-
-type ThresholdMarkerProps = {
-  threshold: number;
-  text?: string;
-  distance: number;
-  xOffset: number;
-  yOffset: number;
-  yExtra?: number;
-  width: number;
-  height: number;
-  strokeColor?: string;
-};
-
-const ThresholdMarker = (props: ThresholdMarkerProps) => {
-  const {
-    threshold,
-    text,
-    distance,
-    xOffset,
-    yOffset,
-    yExtra = 0,
-    width,
-    height,
-    strokeColor = 'rgb(239, 68, 68)',
-  } = props;
-  return (
-    <g className="threshold-marker">
-      {/* Dashed vertical line */}
-      <line
-        x1={xOffset + ((distance - threshold) / distance) * width}
-        y1={yOffset - 20 - yExtra}
-        x2={xOffset + ((distance - threshold) / distance) * width}
-        y2={yOffset + height}
-        stroke={strokeColor}
-        strokeWidth="1"
-        strokeDasharray="5,5"
-      />
-
-      {/* Label text */}
-      <text
-        x={xOffset + ((distance - threshold) / distance) * width}
-        y={yOffset - 25 - yExtra}
-        fontSize="10px"
-        textAnchor="middle"
-        fill="white"
-        fontWeight="bold"
-      >
-        {text ?? `${threshold}m left`}
-      </text>
-    </g>
   );
 };

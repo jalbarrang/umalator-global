@@ -1,7 +1,9 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
+import { persist } from 'zustand/middleware';
 import { createRunnerState } from '../runners/components/runner-card/types';
 import { calculateSkillCost } from './cost-calculator';
+import type { StorageValue } from 'zustand/middleware';
 import type { RunnerState } from '../runners/components/runner-card/types';
 import type { CandidateSkill, OptimizationProgress, OptimizationResult } from './types';
 
@@ -25,20 +27,70 @@ interface SkillPlannerState {
   };
 }
 
+type PartialSkillPlannerState = {
+  runner: RunnerState;
+  candidates: Record<string, CandidateSkill>;
+  budget: number;
+  hasFastLearner: boolean;
+  skills: {
+    selected: Array<string>;
+  };
+};
+
 export const useSkillPlannerStore = create<SkillPlannerState>()(
-  immer((_set, _get) => ({
-    runner: createRunnerState(),
-    candidates: new Map(),
-    budget: 1000,
-    hasFastLearner: false,
-    isOptimizing: false,
-    progress: null,
-    result: null,
-    skills: {
-      open: false,
-      selected: [],
+  persist(
+    immer((_set, _get) => ({
+      runner: createRunnerState(),
+      candidates: new Map(),
+      budget: 1000,
+      hasFastLearner: false,
+      isOptimizing: false,
+      progress: null,
+      result: null,
+      skills: {
+        open: false,
+        selected: [],
+      },
+    })),
+    {
+      name: 'umalator-skill-planner',
+      storage: {
+        getItem: (name) => {
+          const str = localStorage.getItem(name);
+          if (!str) return null;
+          const existingValue = JSON.parse(str);
+          return {
+            ...existingValue,
+            state: {
+              ...existingValue.state,
+              candidates: new Map(existingValue.state.candidates),
+            },
+          };
+        },
+        setItem: (name, newValue: StorageValue<PartialSkillPlannerState>) => {
+          // functions cannot be JSON encoded
+          const str = JSON.stringify({
+            ...newValue,
+            state: {
+              ...newValue.state,
+              candidates: newValue.state.candidates,
+            },
+          });
+          localStorage.setItem(name, str);
+        },
+        removeItem: (name) => localStorage.removeItem(name),
+      },
+      partialize: (state: SkillPlannerState): PartialSkillPlannerState => ({
+        runner: state.runner,
+        candidates: Object.fromEntries(state.candidates.entries()),
+        budget: state.budget,
+        hasFastLearner: state.hasFastLearner,
+        skills: {
+          selected: state.skills.selected,
+        },
+      }),
     },
-  })),
+  ),
 );
 
 // Actions

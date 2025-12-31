@@ -13,6 +13,7 @@ import { ResultButtonGroups } from '@/modules/simulation/tabs/summary-tab';
 import { useSettingsStore } from '@/store/settings.store';
 import { useSelectedPacemakerBooleans } from '@/store/settings/actions';
 import { useUIStore } from '@/store/ui.store';
+import { RaceSettingsPanel } from '@/modules/skill-planner/components/RaceSettingsPanel';
 
 export function SimulationHome() {
   const { chartData, results, isSimulationRunning, simulationProgress } = useRaceStore();
@@ -61,6 +62,8 @@ export function SimulationHome() {
             selectedPacemakers={selectedPacemakers}
           />
         </RaceTrack>
+
+        <RaceSettingsPanel />
 
         {results.length > 0 && <ResultButtonGroups />}
 
