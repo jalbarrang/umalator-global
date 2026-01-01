@@ -1,6 +1,6 @@
-import { CheckIcon, PlayIcon } from 'lucide-react';
+import { CheckIcon } from 'lucide-react';
 import { useMemo } from 'react';
-import { clearResult, setIsOptimizing, useSkillPlannerStore } from '../store';
+import { clearResult, getCandidate, useSkillPlannerStore } from '../store';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { getSkillNameById } from '@/modules/skills/utils';
@@ -16,7 +16,7 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
 
   const { runnerId } = useRunner();
 
-  const candidateList = useMemo(() => Array.from(candidates.values()), [candidates]);
+  const candidateList = useMemo(() => Object.values(candidates), [candidates]);
   const canOptimize = useMemo(
     () => candidateList.length > 0 && budget > 0,
     [candidateList, budget],
@@ -80,8 +80,7 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
               <div className="flex justify-between text-xs">
                 <span className="text-muted-foreground">Range:</span>
                 <span>
-                  {result.bashinStats.min.toFixed(2)} to {result.bashinStats.max.toFixed(2)}{' '}
-                  Bashin
+                  {result.bashinStats.min.toFixed(2)} to {result.bashinStats.max.toFixed(2)} Bashin
                 </span>
               </div>
               <div className="flex justify-between text-xs">
@@ -116,8 +115,9 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
               <div className="max-h-[200px] overflow-y-auto">
                 <div className="space-y-1 pr-2">
                   {result.skillsToBuy.map((skillId, index) => {
-                    const candidate = candidates.get(skillId);
+                    const candidate = getCandidate(skillId);
                     const skillName = getSkillNameById(skillId);
+
                     return (
                       <div
                         key={`${skillId}-${index}`}

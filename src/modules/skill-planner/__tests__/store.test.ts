@@ -8,6 +8,7 @@ import {
   addCandidate,
   clearAll,
   clearResult,
+  getCandidate,
   removeCandidate,
   setBudget,
   setHasFastLearner,
@@ -105,7 +106,7 @@ describe('Skill Planner Store', () => {
   describe('initial state', () => {
     it('should have empty candidates map', () => {
       const state = useSkillPlannerStore.getState();
-      expect(state.candidates.size).toBe(0);
+      expect(Object.keys(state.candidates).length).toBe(0);
     });
 
     it('should have default budget of 1000', () => {
@@ -135,22 +136,20 @@ describe('Skill Planner Store', () => {
       addCandidate('1', 0);
       const state = useSkillPlannerStore.getState();
 
-      expect(state.candidates.size).toBe(1);
-      expect(state.candidates.has('1')).toBe(true);
+      expect(Object.keys(state.candidates).length).toBe(1);
+      expect(getCandidate('1')).toBeDefined();
     });
 
     it('should calculate effective cost on add', () => {
       addCandidate('1', 0);
-      const state = useSkillPlannerStore.getState();
-      const candidate = state.candidates.get('1');
+      const candidate = getCandidate('1');
 
       expect(candidate?.effectiveCost).toBe(100); // baseCost for '1' is 100
     });
 
     it('should set default properties for new candidate', () => {
       addCandidate('1', 2);
-      const state = useSkillPlannerStore.getState();
-      const candidate = state.candidates.get('1');
+      const candidate = getCandidate('1');
 
       expect(candidate?.skillId).toBe('1');
       expect(candidate?.hintLevel).toBe(2);
@@ -163,9 +162,9 @@ describe('Skill Planner Store', () => {
       addCandidate('1', 1); // Try to add again
       const state = useSkillPlannerStore.getState();
 
-      expect(state.candidates.size).toBe(1);
+      expect(Object.keys(state.candidates).length).toBe(1);
       // Original hint level should be preserved
-      expect(state.candidates.get('1')?.hintLevel).toBe(0);
+      expect(getCandidate('1')?.hintLevel).toBe(0);
     });
 
     it('should allow adding multiple different candidates', () => {
@@ -174,10 +173,10 @@ describe('Skill Planner Store', () => {
       addCandidate('3', 2);
       const state = useSkillPlannerStore.getState();
 
-      expect(state.candidates.size).toBe(3);
-      expect(state.candidates.has('1')).toBe(true);
-      expect(state.candidates.has('2')).toBe(true);
-      expect(state.candidates.has('3')).toBe(true);
+      expect(Object.keys(state.candidates).length).toBe(3);
+      expect(getCandidate('1')).toBeDefined();
+      expect(getCandidate('2')).toBeDefined();
+      expect(getCandidate('3')).toBeDefined();
     });
   });
 
@@ -191,24 +190,24 @@ describe('Skill Planner Store', () => {
       removeCandidate('1');
       const state = useSkillPlannerStore.getState();
 
-      expect(state.candidates.size).toBe(1);
-      expect(state.candidates.has('1')).toBe(false);
-      expect(state.candidates.has('2')).toBe(true);
+      expect(Object.keys(state.candidates).length).toBe(1);
+      expect(getCandidate('1')).toBeUndefined();
+      expect(getCandidate('2')).toBeDefined();
     });
 
     it('should handle removing non-existent candidate', () => {
       removeCandidate('999');
       const state = useSkillPlannerStore.getState();
 
-      expect(state.candidates.size).toBe(2);
+      expect(Object.keys(state.candidates).length).toBe(2);
     });
 
     it('should allow removing all candidates', () => {
       removeCandidate('1');
       removeCandidate('2');
-      const state = useSkillPlannerStore.getState();
 
-      expect(state.candidates.size).toBe(0);
+      const state = useSkillPlannerStore.getState();
+      expect(Object.keys(state.candidates).length).toBe(0);
     });
   });
 
@@ -219,8 +218,7 @@ describe('Skill Planner Store', () => {
 
     it('should update hint level and recalculate cost', () => {
       updateCandidate('1', { hintLevel: 3 });
-      const state = useSkillPlannerStore.getState();
-      const candidate = state.candidates.get('1');
+      const candidate = getCandidate('1');
 
       expect(candidate?.hintLevel).toBe(3);
       // 100 * 0.7 = 70
@@ -229,8 +227,7 @@ describe('Skill Planner Store', () => {
 
     it('should update isObtained flag', () => {
       updateCandidate('1', { isObtained: true });
-      const state = useSkillPlannerStore.getState();
-      const candidate = state.candidates.get('1');
+      const candidate = getCandidate('1');
 
       expect(candidate?.isObtained).toBe(true);
       // effectiveCost shows discounted cost, but isObtained=true means it's actually free
@@ -239,24 +236,21 @@ describe('Skill Planner Store', () => {
 
     it('should update isStackable flag', () => {
       updateCandidate('1', { isStackable: true });
-      const state = useSkillPlannerStore.getState();
-      const candidate = state.candidates.get('1');
+      const candidate = getCandidate('1');
 
       expect(candidate?.isStackable).toBe(true);
     });
 
     it('should handle updating non-existent candidate', () => {
       updateCandidate('999', { hintLevel: 5 });
-      const state = useSkillPlannerStore.getState();
 
       // Should not crash, candidate simply doesn't exist
-      expect(state.candidates.has('999')).toBe(false);
+      expect(getCandidate('999')).toBeUndefined();
     });
 
     it('should allow partial updates', () => {
       updateCandidate('1', { isStackable: true });
-      const state = useSkillPlannerStore.getState();
-      const candidate = state.candidates.get('1');
+      const candidate = getCandidate('1');
 
       // Other properties should remain unchanged
       expect(candidate?.skillId).toBe('1');
@@ -311,18 +305,16 @@ describe('Skill Planner Store', () => {
 
     it('should recalculate all candidate costs when Fast Learner changes', () => {
       // Initial costs
-      let state = useSkillPlannerStore.getState();
-      expect(state.candidates.get('1')?.effectiveCost).toBe(100); // no FL
-      expect(state.candidates.get('2')?.effectiveCost).toBe(180); // 200 * 0.9 (hint 1)
+      expect(getCandidate('1')?.effectiveCost).toBe(100); // no FL
+      expect(getCandidate('2')?.effectiveCost).toBe(180); // 200 * 0.9 (hint 1)
 
       // Enable Fast Learner
       setHasFastLearner(true);
-      state = useSkillPlannerStore.getState();
 
       // 100 * 0.9 (FL) = 90
-      expect(state.candidates.get('1')?.effectiveCost).toBe(90);
+      expect(getCandidate('1')?.effectiveCost).toBe(90);
       // 200 * 0.9 (hint) * 0.9 (FL) = 162
-      expect(state.candidates.get('2')?.effectiveCost).toBe(162);
+      expect(getCandidate('2')?.effectiveCost).toBe(162);
     });
 
     it('should handle toggling Fast Learner off', () => {
@@ -331,7 +323,7 @@ describe('Skill Planner Store', () => {
       const state = useSkillPlannerStore.getState();
 
       expect(state.hasFastLearner).toBe(false);
-      expect(state.candidates.get('1')?.effectiveCost).toBe(100);
+      expect(getCandidate('1')?.effectiveCost).toBe(100);
     });
   });
 
@@ -460,7 +452,7 @@ describe('Skill Planner Store', () => {
       const state = useSkillPlannerStore.getState();
 
       expect(state.result).toBeNull();
-      expect(state.candidates.size).toBe(1); // Candidates should remain
+      expect(Object.keys(state.candidates).length).toBe(1); // Candidates should remain
       expect(state.budget).toBe(1000);
     });
   });
@@ -483,7 +475,7 @@ describe('Skill Planner Store', () => {
       clearAll();
       const state = useSkillPlannerStore.getState();
 
-      expect(state.candidates.size).toBe(0);
+      expect(Object.keys(state.candidates).length).toBe(0);
       expect(state.result).toBeNull();
       expect(state.progress).toBeNull();
       expect(state.isOptimizing).toBe(false);
@@ -508,12 +500,12 @@ describe('Skill Planner Store', () => {
 
       // Verify final state
       const state = useSkillPlannerStore.getState();
-      expect(state.candidates.size).toBe(3);
+      expect(Object.keys(state.candidates).length).toBe(3);
       expect(state.budget).toBe(500);
       expect(state.hasFastLearner).toBe(true);
 
       // Check that costs were recalculated
-      const candidate2 = state.candidates.get('2');
+      const candidate2 = getCandidate('2');
       expect(candidate2?.isStackable).toBe(true);
       expect(candidate2?.effectiveCost).toBeLessThan(200); // Has discounts
     });
@@ -556,4 +548,3 @@ describe('Skill Planner Store', () => {
     });
   });
 });
-

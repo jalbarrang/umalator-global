@@ -4,10 +4,11 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import { useShallow } from 'zustand/shallow';
 import { toast } from 'sonner';
 import { cloneDeep } from 'es-toolkit';
+import { useMemo } from 'react';
 import { useSettingsStore } from './settings.store';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { PosKeepMode } from '@/modules/simulation/lib/runner/definitions';
-import { createRunnerState } from '@/modules/runners/components/runner-card/types';
+import { createRunnerState, runawaySkillId } from '@/modules/runners/components/runner-card/types';
 import {
   getGeneVersionSkillId,
   getUniqueSkillForByUmaId,
@@ -46,7 +47,8 @@ export const useRunner = () => {
   const runnerId = useRunnersStore(useShallow((state) => state.runnerId));
   const runner = useRunnerByName(runnerId);
 
-  const hasOutfit = runner.outfitId !== '';
+  const hasOutfit = useMemo(() => runner.outfitId !== '', [runner.outfitId]);
+  const hasRunawaySkill = useMemo(() => runner.skills.includes(runawaySkillId), [runner.skills]);
 
   const handleUpdateRunner = (runnerState: RunnerState) => {
     setRunner(runnerId, runnerState);
@@ -77,6 +79,7 @@ export const useRunner = () => {
     updateRunner: handleUpdateRunner,
     resetRunner: handleResetRunner,
     addSkill: handleAddSkill,
+    hasRunawaySkill,
   };
 };
 

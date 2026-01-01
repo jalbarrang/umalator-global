@@ -3,9 +3,11 @@ import { HelpCircleIcon, PlusIcon, TrashIcon } from 'lucide-react';
 import {
   addCandidate,
   clearCandidates,
-  setRunner,
+  createCandidate,
+  resetRunner,
+  setCandidates,
   setSkillsOpen,
-  setSkillsSelected,
+  updateRunner,
   useSkillPlannerStore,
 } from '../store';
 import { CandidateSkillList } from './CandidateSkillList';
@@ -15,19 +17,21 @@ import { RunnerCard } from './runner-card';
 import { CostModifiersPanel } from './CostModifiersPanel';
 import { SkillPlannerRaceTrack } from './SkillPlannerRaceTrack';
 import { RaceSettingsPanel } from './RaceSettingsPanel';
+import type { CandidateSkill } from '../types';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { Button } from '@/components/ui/button';
-import { getSelectableSkillsForUma, nonUniqueSkillIds } from '@/modules/skills/utils';
+import {
+  getSelectableSkillsForUma,
+  getUniqueSkillForByUmaId,
+  nonUniqueSkillIds,
+  skillsById,
+} from '@/modules/skills/utils';
 import { SkillPickerDrawer } from '@/modules/skills/components/skill-list/SkillPickerDrawer';
 import { initializeSimulationRun } from '@/modules/simulation/compare.types';
 
 export function SkillPlannerLayout() {
   const { open: helpOpen, setOpen: setHelpOpen } = useHelpDialog();
-  const {
-    skills: { open: skillsOpen, selected: selectedSkills },
-    runner,
-    result,
-  } = useSkillPlannerStore();
+  const { skillDrawerOpen, runner, result, hasFastLearner } = useSkillPlannerStore();
 
   const umaId = useMemo(() => {
     if (runner.outfitId) {
@@ -38,16 +42,11 @@ export function SkillPlannerLayout() {
   }, [runner.outfitId]);
 
   const handleSkillSelect = (skills: Array<string>) => {
-    setSkillsSelected(skills);
+    updateRunner({ skills });
 
-    // Add newly selected skills as candidates
-    skills.forEach((skillId) => {
-      // Extract base skill ID (remove debuff suffix if present)
-      const baseSkillId = skillId.split('-')[0];
-      if (baseSkillId) {
-        addCandidate(baseSkillId, 0);
-      }
-    });
+    for (const skillId of skills) {
+      addCandidate(skillId, 0);
+    }
   };
 
   const handleOpenChange = (open: boolean) => {
@@ -63,17 +62,50 @@ export function SkillPlannerLayout() {
     return nonUniqueSkillIds;
   }, [umaId]);
 
-  const handleRunnerChange = (newRunner: Partial<RunnerState>) => {
-    setRunner({ ...runner, ...newRunner });
+  const handleUpdateRunner = (updates: Partial<RunnerState>) => {
+    const newSkills: Array<string> = [];
+    const newCandidates: Record<string, CandidateSkill> = {};
+
+    for (const skillId of runner.skills) {
+      const skillData = skillsById.get(skillId);
+
+      if (skillData?.data?.rarity && skillData.data.rarity < 3) {
+        newSkills.push(skillId);
+        const candidate = createCandidate({
+          skillId: skillId,
+          hasFastLearner: hasFastLearner,
+        });
+
+        newCandidates[skillId] = candidate;
+      }
+    }
+
+    if (updates.outfitId) {
+      const uniqueSkill = getUniqueSkillForByUmaId(updates.outfitId);
+      newSkills.push(uniqueSkill);
+      const uniqueCandidate = createCandidate({
+        skillId: uniqueSkill,
+        hasFastLearner: hasFastLearner,
+        isObtained: true,
+      });
+      newCandidates[uniqueSkill] = uniqueCandidate;
+    }
+
+    updateRunner(updates);
+    setCandidates(newCandidates);
+  };
+
+  const handleResetRunner = () => {
+    resetRunner();
   };
 
   return (
     <>
       <SkillPickerDrawer
-        open={skillsOpen}
+        open={skillDrawerOpen}
         umaId={umaId}
         options={availableSkills}
-        currentSkills={selectedSkills}
+        currentSkills={runner.skills}
         onSelect={handleSkillSelect}
         onOpenChange={handleOpenChange}
       />
@@ -83,7 +115,8 @@ export function SkillPlannerLayout() {
         <div className="flex flex-col gap-2 w-[500px]">
           <RunnerCard
             value={runner}
-            onChange={handleRunnerChange}
+            onChange={handleUpdateRunner}
+            onReset={handleResetRunner}
             className="bg-card p-2 rounded border"
           />
 

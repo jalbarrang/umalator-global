@@ -15,7 +15,7 @@ export function CostModifiersPanel(props: CostModifiersPanelProps) {
 
   const { budget, hasFastLearner, candidates, isOptimizing } = useSkillPlannerStore();
 
-  const candidateList = useMemo(() => Array.from(candidates.values()), [candidates]);
+  const candidateList = useMemo(() => Object.values(candidates), [candidates]);
   const canOptimize = useMemo(
     () => candidateList.length > 0 && budget > 0,
     [candidateList, budget],
