@@ -2,14 +2,14 @@ import type { HintLevel } from './types';
 import { getSkillMetaById } from '@/modules/skills/utils';
 
 // Hint level discount mapping (as shown in game screenshots)
-export const HINT_DISCOUNTS: Record<HintLevel, number> = {
+export const HINT_DISCOUNTS: Readonly<Record<HintLevel, number>> = {
   0: 0, // No discount
   1: 0.1, // 10% off (Hint Lvl 1)
   2: 0.2, // 20% off (Hint Lvl 2)
   3: 0.3, // 30% off (Hint Lvl 3)
   4: 0.35, // 35% off (Hint Lvl 4)
   5: 0.4, // 40% off (Hint Lvl 5 - max)
-};
+} as const;
 
 /**
  * Calculate the effective cost of a skill with all discounts applied
@@ -21,7 +21,7 @@ export function calculateSkillCost(
   hasFastLearner: boolean,
 ): number {
   const skillMeta = getSkillMetaById(skillId);
-  const baseCost = skillMeta.baseCost;
+  const baseCost = skillMeta?.baseCost ?? 0;
 
   const hintDiscount = HINT_DISCOUNTS[hintLevel] ?? 0;
   const fastLearnerMultiplier = hasFastLearner ? 0.9 : 1.0;

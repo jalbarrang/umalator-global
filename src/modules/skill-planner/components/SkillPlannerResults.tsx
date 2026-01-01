@@ -1,6 +1,6 @@
 import { CheckIcon } from 'lucide-react';
 import { useMemo } from 'react';
-import { clearResult, getCandidate, useSkillPlannerStore } from '../store';
+import { clearResult, getCandidate, useSkillPlannerStore } from '../skill-planner.store';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { getSkillNameById } from '@/modules/skills/utils';

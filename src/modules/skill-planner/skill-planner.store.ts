@@ -136,7 +136,12 @@ export const getCandidate = (skillId: string) => {
 export const setCandidateObtained = (skillId: string, isObtained: boolean) => {
   const { candidates, hasFastLearner } = useSkillPlannerStore.getState();
 
-  const candidate = { ...candidates[skillId], isObtained };
+  const existingCandidate = candidates[skillId];
+  if (!existingCandidate) {
+    return;
+  }
+
+  const candidate = { ...existingCandidate, isObtained };
   candidate.effectiveCost = calculateSkillCost(
     candidate.skillId,
     candidate.hintLevel,

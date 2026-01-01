@@ -9,11 +9,11 @@ import {
   setSkillsOpen,
   updateRunner,
   useSkillPlannerStore,
-} from '../store';
+} from '../skill-planner.store';
 import { CandidateSkillList } from './CandidateSkillList';
 import { SkillPlannerResults } from './SkillPlannerResults';
 import { HelpDialog, useHelpDialog } from './HelpDialog';
-import { RunnerCard } from './runner-card';
+import { RunnerCard } from './RunnerCard';
 import { CostModifiersPanel } from './CostModifiersPanel';
 import { SkillPlannerRaceTrack } from './SkillPlannerRaceTrack';
 import { RaceSettingsPanel } from './RaceSettingsPanel';

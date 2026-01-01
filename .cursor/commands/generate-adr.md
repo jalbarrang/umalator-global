@@ -1,119 +1,35 @@
 # Generate Architecture Decision Record (ADR)
 
-You are a technical writer helping create an Architecture Decision Record (ADR).
+Create a structured ADR to document an architectural decision and its rationale.
 
-## Instructions
+## Steps
 
-1. **Ask clarifying questions first.** Before generating anything, ask the user:
-   - What is the **title/topic** of this ADR?
-   - Which **folder** should this ADR be placed in? (e.g., `docs/adr/simulation/`, `docs/adr/stamina-calculation/`)
-   - What **problem or context** are we trying to address?
-   - What are the **key constraints** or requirements?
-   - Are there any **alternatives** that were considered?
-   - Who is the **author** (or leave blank)?
+1. **Gather context**
+   - Ask for title/topic, target folder, problem context
+   - Clarify constraints, requirements, and alternatives considered
+   - Identify the author (optional)
+2. **Determine ADR number**
+   - Check target folder for existing ADRs (e.g., `001-*.md`, `002-*.md`)
+   - Use next sequential number
+3. **Write the ADR**
+   - Follow standard sections: Context, Goals/Non-Goals, Decision, Consequences, Alternatives
+   - Use prose, Mermaid diagrams, and tables (not implementation code)
+   - Include trade-offs and open questions
+   - Reference existing ADRs in `docs/adr/` for structure examples
 
-2. **Determine the ADR number.** Check the target folder for existing ADRs and use the next sequential number (e.g., if `003-*.md` exists, use `004`).
+## ADR Writing Guidelines
 
-3. **Write a Technical Design Document.** This is NOT a code file. Focus on:
-   - Clear prose explaining the problem and solution
-   - Mermaid diagrams for architecture visualization
-   - Tables for quick reference (comparisons, coefficients, message types, etc.)
-   - High-level pseudocode or interface sketches (not implementation code)
-   - Trade-offs and consequences
-   - Open questions for future consideration
+- **Present tense** for decisions, past tense for context
+- **Mermaid diagrams** for architecture visualization
+- **Tables** for comparisons and reference data
+- **Pseudocode** for interfaces only (under 20 lines)
+- **Trade-offs** matter more than perfection
 
-## ADR Template Structure
+## ADR Checklist
 
-```
-# {NUMBER}-ADR: {TITLE}
-
-**Date:** {YYYY-MM-DD}
-**Status:** Proposed | Accepted | Deprecated | Superseded
-**Author:** {Name or leave blank}
-
----
-
-## Context
-
-{Explain the problem, current situation, and why a decision is needed.}
-
----
-
-## Goals
-
-{What we're trying to achieve.}
-
-## Non-Goals
-
-{What's explicitly out of scope.}
-
----
-
-## Decision
-
-{The chosen approach. Use subsections for complex designs.}
-
-### {Subsection}
-
-{Details, diagrams, tables as needed.}
-
----
-
-## Consequences
-
-### Positive
-
-- {Benefit 1}
-- {Benefit 2}
-
-### Negative
-
-- {Drawback 1}
-- {Drawback 2}
-
-### Mitigations
-
-- {How we address the negatives}
-
----
-
-## Alternatives Considered
-
-### 1. {Alternative Name}
-
-{Description}
-
-**Pros**: {advantages}
-**Cons**: {disadvantages}
-**Decision**: Rejected; {reason}
-
----
-
-## Open Questions
-
-1. {Unresolved question 1}
-2. {Unresolved question 2}
-
----
-
-## References
-
-- {Related ADR or document}
-- {External resource}
-```
-
-## Style Guidelines
-
-- Use **Mermaid diagrams** for architecture (box diagrams, flow diagrams)
-- Use **tables** for comparisons, message types, configuration options
-- Write in **present tense** for decisions, past tense for context
-- Keep sections **scannable** with clear headings
-- Include **code sketches** only as interface definitions or pseudocode, not full implementations
-- Reference **other ADRs** by number when building on prior decisions
-
-## Do NOT
-
-- Generate implementation code
-- Skip the follow-up questions
-- Create the file without confirming the folder and number
-- Include inline code examples longer than ~20 lines
+- [ ] Clarifying questions answered
+- [ ] Sequential number determined
+- [ ] Context and decision clearly explained
+- [ ] Consequences (positive and negative) documented
+- [ ] Alternatives considered and rejected with reasons
+- [ ] Open questions captured for future work

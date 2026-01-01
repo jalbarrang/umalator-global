@@ -17,7 +17,7 @@ import {
   setResult,
   updateCandidate,
   useSkillPlannerStore,
-} from '../store';
+} from '../skill-planner.store';
 import type { OptimizationProgress, OptimizationResult } from '../types';
 
 // Enable MapSet support for Immer

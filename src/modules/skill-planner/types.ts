@@ -12,21 +12,21 @@ export interface CandidateSkill {
 }
 
 // Optimization result
-export interface OptimizationResult {
-  skillsToBuy: Array<string>;
-  totalCost: number;
+export type OptimizationResult = {
+  skillsToBuy: ReadonlyArray<string>;
+  totalCost: Readonly<number>;
   // Expanded statistics
-  bashinStats: {
+  bashinStats: Readonly<{
     min: number;
     max: number;
     mean: number;
     median: number;
-  };
-  simulationCount: number;
-  timeTaken: number;
-  allResults: Array<CombinationResult>; // For showing alternative combinations
-  runData?: SimulationData; // Full simulation data for RaceTrack visualization
-}
+  }>;
+  simulationCount: Readonly<number>;
+  timeTaken: Readonly<number>;
+  allResults: ReadonlyArray<CombinationResult>; // For showing alternative combinations
+  runData?: Readonly<SimulationData>; // Full simulation data for RaceTrack visualization
+};
 
 // Individual combination result during optimization
 export interface CombinationResult {

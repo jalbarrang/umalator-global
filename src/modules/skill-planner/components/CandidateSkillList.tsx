@@ -6,7 +6,7 @@ import {
   setCandidateObtained,
   updateCandidate,
   useSkillPlannerStore,
-} from '../store';
+} from '../skill-planner.store';
 import type { CandidateSkill, HintLevel } from '../types';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -187,12 +187,8 @@ function CandidateSkillItem(props: CandidateSkillItemProps) {
       {/* Cost Display */}
       {!candidate.isObtained && (
         <div className="flex justify-between items-center pt-2 border-t text-xs">
-          <span className="text-muted-foreground">
-            {candidate.isObtained ? 'Cost (free):' : 'Cost:'}
-          </span>
-          <span className={`font-medium ${candidate.isObtained ? 'text-green-600' : ''}`}>
-            {candidate.isObtained ? '0' : candidate.effectiveCost} pts
-          </span>
+          <span className="text-muted-foreground">Cost:</span>
+          <span className="font-medium">{candidate.effectiveCost} pts</span>
         </div>
       )}
     </div>

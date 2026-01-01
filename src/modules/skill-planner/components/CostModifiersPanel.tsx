@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { PlayIcon, XIcon } from 'lucide-react';
-import { setBudget, setHasFastLearner, useSkillPlannerStore } from '../store';
+import { setBudget, setHasFastLearner, useSkillPlannerStore } from '../skill-planner.store';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
