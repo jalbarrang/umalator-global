@@ -4,7 +4,9 @@ import { useMemo } from 'react';
  * Feature Flag Keys
  * Add new feature flags here to maintain type safety across the application
  */
-export const FeatureFlags: Record<string, string> = {};
+export const FeatureFlags: Record<string, string> = {
+  SKILL_PLANNER_ENABLED: 'VITE_FEATURE_SKILL_PLANNER',
+};
 
 export type FeatureFlagKey = keyof typeof FeatureFlags;
 

@@ -25,6 +25,16 @@ export type ChangelogEntry = {
  */
 export const changelog: Array<ChangelogEntry> = [
   {
+    version: '0.2.2',
+    date: '2026-01-02',
+    changes: [
+      {
+        type: 'added',
+        items: ['[Skill Planner] work-in-progress'],
+      },
+    ],
+  },
+  {
     version: '0.2.1',
     date: '2025-12-09',
     changes: [
