@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "task-guardian": {
+      "command": "bun",
+      "args": ["run", "/Users/jalbarran/fun/task-guardian-mcp/src/index.ts"]
+    }
+  }
+}
