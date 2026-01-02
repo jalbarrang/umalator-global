@@ -17,6 +17,7 @@ import { setShowChangelogModal, setShowCreditsModal } from '@/store/ui.store';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { ChangelogModal } from '@/components/changelog-modal';
 import { CreditsModal } from '@/components/credits-modal';
+import { FeatureFlagDebugPanel } from '@/components/feature-flag-debug-panel';
 
 export function RootComponent() {
   const location = useLocation();
@@ -97,6 +98,7 @@ export function RootComponent() {
 
         <CreditsModal />
         <ChangelogModal />
+        <FeatureFlagDebugPanel />
       </div>
       <Toaster />
     </>

@@ -16,13 +16,13 @@ Players can accurately plan their skill point budget by understanding the true c
 
 ### Affected Components/Files
 
-| File                                             | Changes                                                                        |
-| ------------------------------------------------ | ------------------------------------------------------------------------------ |
-| `src/modules/skill-planner/types.ts`             | Extend `CandidateSkill` type with stackable and gold/white relationship fields |
-| `src/modules/skill-planner/cost-calculator.ts`   | Add bundled cost calculation logic                                             |
-| `src/modules/skill-planner/skill-planner.store.ts` | Update actions for tier management and replacement logic                     |
-| `src/modules/skills/`                            | New skill relationship parser utility                                          |
-| `src/modules/skill-planner/components/`          | UI updates for tier progression and bundled skills                             |
+| File                                               | Changes                                                                        |
+| -------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `src/modules/skill-planner/types.ts`               | Extend `CandidateSkill` type with stackable and gold/white relationship fields |
+| `src/modules/skill-planner/cost-calculator.ts`     | Add bundled cost calculation logic                                             |
+| `src/modules/skill-planner/skill-planner.store.ts` | Update actions for tier management and replacement logic                       |
+| `src/modules/skills/`                              | New skill relationship parser utility                                          |
+| `src/modules/skill-planner/components/`            | UI updates for tier progression and bundled skills                             |
 
 ---
 
@@ -51,7 +51,6 @@ Players can accurately plan their skill point budget by understanding the true c
 #### Task 1.1: Create Skill Relationship Parser
 
 **Priority**: Critical
-**Effort**: 1 day
 
 **Description**: Create a utility to parse the `versions` field from GameTora skills data and build skill family maps.
 
@@ -80,7 +79,6 @@ Players can accurately plan their skill point budget by understanding the true c
 #### Task 1.2: Add Unit Tests for Skill Relationship Parser
 
 **Priority**: Critical
-**Effort**: 0.5 day
 **Blocks**: Task 1.1
 
 **Description**: Write comprehensive tests for the relationship parser using known skill families.
@@ -104,7 +102,6 @@ Players can accurately plan their skill point budget by understanding the true c
 #### Task 2.1: Extend CandidateSkill Type
 
 **Priority**: High
-**Effort**: 0.5 day
 **Related to**: Task 1.1
 
 **Description**: Add new fields to `CandidateSkill` for stackable and gold/white relationship support.
@@ -144,7 +141,6 @@ displayCost?: number; // May differ from effectiveCost for bundled skills
 #### Task 3.1: Add Bundled Cost Calculation
 
 **Priority**: High
-**Effort**: 1 day
 **Blocks**: Task 1.1, Task 2.1
 
 **Description**: Extend cost calculator to handle gold skill bundled costs based on white skill obtained status.
@@ -167,7 +163,6 @@ displayCost?: number; // May differ from effectiveCost for bundled skills
 #### Task 3.2: Add Bundled Cost Tests
 
 **Priority**: High
-**Effort**: 0.5 day
 **Blocks**: Task 3.1
 
 **Description**: Write tests for bundled cost calculation scenarios.
@@ -191,7 +186,6 @@ displayCost?: number; // May differ from effectiveCost for bundled skills
 #### Task 4.1: Add Tier Unlock Logic
 
 **Priority**: Medium
-**Effort**: 1 day
 **Blocks**: Task 2.1
 
 **Description**: Update store to track which tiers are unlocked and visible.
@@ -212,7 +206,6 @@ displayCost?: number; // May differ from effectiveCost for bundled skills
 #### Task 4.2: Add Gold/White Replacement Logic
 
 **Priority**: Medium
-**Effort**: 1 day
 **Blocks**: Task 4.1
 
 **Description**: Implement replacement behavior when buying gold skills.
@@ -235,7 +228,6 @@ displayCost?: number; // May differ from effectiveCost for bundled skills
 #### Task 4.3: Add Store Tests for New Logic
 
 **Priority**: Medium
-**Effort**: 0.5 day
 **Blocks**: Task 4.1, Task 4.2
 
 **Description**: Write tests for tier unlock and replacement logic.
@@ -259,7 +251,6 @@ displayCost?: number; // May differ from effectiveCost for bundled skills
 #### Task 5.1: Display Tier Progression in Skill List
 
 **Priority**: Low
-**Effort**: 1 day
 **Blocks**: Task 4.1
 
 **Description**: Update skill candidate list to show tier progression visually.
@@ -280,7 +271,6 @@ displayCost?: number; // May differ from effectiveCost for bundled skills
 #### Task 5.2: Display Bundled Cost for Gold Skills
 
 **Priority**: Low
-**Effort**: 0.5 day
 **Blocks**: Task 3.1
 
 **Description**: Show bundled cost breakdown for gold skills in the UI.
@@ -340,15 +330,13 @@ flowchart TD
 
 ## Summary
 
-| Epic               | Tasks        | Total Effort | Priority |
-| ------------------ | ------------ | ------------ | -------- |
-| 1. Data Layer      | 1.1, 1.2     | 1.5 days     | Critical |
-| 2. Type System     | 2.1          | 0.5 days     | High     |
-| 3. Cost Calculator | 3.1, 3.2     | 1.5 days     | High     |
-| 4. Store Updates   | 4.1, 4.2, 4.3 | 2.5 days    | Medium   |
-| 5. UI Components   | 5.1, 5.2     | 1.5 days     | Low      |
-
-**Total Estimated Effort**: ~7.5 days
+| Epic               | Tasks         | Priority |
+| ------------------ | ------------- | -------- |
+| 1. Data Layer      | 1.1, 1.2      | Critical |
+| 2. Type System     | 2.1           | High     |
+| 3. Cost Calculator | 3.1, 3.2      | High     |
+| 4. Store Updates   | 4.1, 4.2, 4.3 | Medium   |
+| 5. UI Components   | 5.1, 5.2      | Low      |
 
 ---
 
@@ -367,4 +355,3 @@ The following items are documented but not included in this feature breakdown:
 ## Reference Documentation
 
 - [Skill Planner Module README](../../src/modules/skill-planner/README.md) - Full specification of skill acquisition mechanics
-

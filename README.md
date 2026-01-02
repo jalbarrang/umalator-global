@@ -240,6 +240,13 @@ Duels have not yet been implemented in the current version.
 
 7. **Pay attention to stamina**: Ensure your uma musume has enough stamina to complete the spurt phase - check the survival rate
 
+## Development
+
+For developers working on Umalator-Global:
+
+- **Contributing**: See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines
+- **Documentation**: Additional docs available in the [`docs/`](docs/) directory
+
 ## Credits
 
 **Enhanced Features By:**
