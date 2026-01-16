@@ -49,7 +49,7 @@ import {
 } from '@/modules/simulation/lib/course/definitions';
 import { Aptitude, Mood, PosKeepMode, Strategy } from '@/modules/simulation/lib/runner/definitions';
 import { EnhancedHpPolicy } from '@/modules/simulation/lib/runner/health/EnhancedHpPolicy';
-import { GameHpPolicy, NoopHpPolicy } from '@/modules/simulation/lib/runner/health/HpPolicy';
+import { NoopHpPolicy } from '@/modules/simulation/lib/runner/health/HpPolicy';
 import { Rule30CARng } from '@/modules/simulation/lib/utils/Random';
 import { skillsById } from '@/modules/skills/utils';
 
@@ -682,7 +682,6 @@ export class RaceSolverBuilder {
   _disableRushed: boolean;
   _disableDownhill: boolean;
   _disableSectionModifier: boolean;
-  _useEnhancedSpurt: boolean;
   _accuracyMode: boolean;
   _skillCheckChance: boolean;
   _posKeepMode: IPosKeepMode;
@@ -716,7 +715,6 @@ export class RaceSolverBuilder {
     this._disableRushed = false;
     this._disableDownhill = false;
     this._disableSectionModifier = false;
-    this._useEnhancedSpurt = false;
     this._accuracyMode = false;
     this._skillCheckChance = true;
     this._posKeepMode = PosKeepMode.None;
@@ -1117,11 +1115,6 @@ export class RaceSolverBuilder {
     return this;
   }
 
-  useEnhancedSpurt(enabled: boolean = true) {
-    this._useEnhancedSpurt = enabled;
-    return this;
-  }
-
   accuracyMode(enabled: boolean = true) {
     this._accuracyMode = enabled;
     return this;
@@ -1189,7 +1182,6 @@ export class RaceSolverBuilder {
     clone._disableRushed = this._disableRushed;
     clone._disableDownhill = this._disableDownhill;
     clone._disableSectionModifier = this._disableSectionModifier;
-    clone._useEnhancedSpurt = this._useEnhancedSpurt;
     clone._accuracyMode = this._accuracyMode;
     clone._skillCheckChance = this._skillCheckChance;
     clone._posKeepMode = this._posKeepMode;
@@ -1253,14 +1245,12 @@ export class RaceSolverBuilder {
 
       const runnerHPRNG = new Rule30CARng(this._rng.int32());
 
-      const runnerHPManager = this._useEnhancedSpurt
-        ? new EnhancedHpPolicy(
-            this._course,
-            this._raceParams.groundCondition,
-            runnerHPRNG,
-            this._accuracyMode,
-          )
-        : new GameHpPolicy(this._course, this._raceParams.groundCondition, runnerHPRNG);
+      const runnerHPManager = new EnhancedHpPolicy(
+        this._course,
+        this._raceParams.groundCondition,
+        runnerHPRNG,
+        this._accuracyMode,
+      );
 
       const redoRun: boolean = yield new RaceSolver({
         horse,

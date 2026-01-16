@@ -134,13 +134,16 @@ export class EnhancedHpPolicy {
     if (state.positionKeepState === PositionKeepState.PaceDown) {
       modifier *= 0.6;
     }
+
     if (state.isRushed) {
       modifier *= 1.6;
     }
+
     if (state.isDownhillMode) {
       // Downhill accel mode reduces HP consumption by 60%
       modifier *= 0.4;
     }
+
     return modifier;
   }
 

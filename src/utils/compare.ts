@@ -164,7 +164,6 @@ export function runComparison(params: RunComparisonParams): CompareResult {
     .weather(racedef.weather)
     .season(racedef.season)
     .time(racedef.time)
-    .useEnhancedSpurt(options.useEnhancedSpurt ?? false)
     .accuracyMode(options.accuracyMode ?? false)
     .posKeepMode(posKeepMode)
     .mode(mode);
