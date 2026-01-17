@@ -6,43 +6,37 @@ import type { RunnerState } from '@/modules/runners/components/runner-card/types
 import type { CompareParams } from '@/modules/simulation/types';
 import { runComparison } from '@/utils/compare';
 
-// Throttle interval for progress updates (100ms = 10 FPS max)
-const UPDATE_INTERVAL_MS = 100;
+const copyRunner = (runner: RunnerState) => {
+  return {
+    ...runner,
+    skills: [...runner.skills],
+    forcedSkillPositions: { ...runner.forcedSkillPositions },
+  };
+};
+
+function* progressiveSampleSizes(targetSamples: number) {
+  let n = Math.min(20, targetSamples);
+  let mul = 6;
+
+  while (n < targetSamples) {
+    yield n;
+    n = Math.min(n * mul, targetSamples);
+    mul = Math.max(mul - 1, 2);
+  }
+
+  yield targetSamples;
+}
 
 const runRunnersComparison = (params: CompareParams) => {
   const { nsamples, course, racedef, uma1, uma2, pacer, options } = params;
 
-  const uma1_ = {
-    ...uma1,
-    skills: [...uma1.skills],
-    forcedSkillPositions: { ...uma1.forcedSkillPositions },
-  };
-
-  const uma2_ = {
-    ...uma2,
-    skills: [...uma2.skills],
-    forcedSkillPositions: { ...uma2.forcedSkillPositions },
-  };
-
-  let pacer_: RunnerState | null = null;
-  if (pacer) {
-    pacer_ = {
-      ...pacer,
-      skills: [...pacer.skills],
-      forcedSkillPositions: { ...pacer.forcedSkillPositions },
-    };
-  }
+  const uma1_ = copyRunner(uma1);
+  const uma2_ = copyRunner(uma2);
+  const pacer_ = pacer ? copyRunner(pacer) : null;
 
   const compareOptions = { ...options, mode: 'compare' };
 
-  // Track last update time to throttle progress messages
-  let lastUpdateTime = 0;
-
-  for (
-    let n = Math.min(20, nsamples), mul = 6;
-    n < nsamples;
-    n = Math.min(n * mul, nsamples), mul = Math.max(mul - 1, 2)
-  ) {
+  for (const n of progressiveSampleSizes(nsamples)) {
     runComparison({
       nsamples: n,
       course,
@@ -53,16 +47,11 @@ const runRunnersComparison = (params: CompareParams) => {
       options: compareOptions,
     });
 
-    // Only post progress update if enough time has elapsed
-    const now = Date.now();
-    if (now - lastUpdateTime >= UPDATE_INTERVAL_MS) {
-      postMessage({
-        type: 'compare-progress',
-        currentSamples: n,
-        totalSamples: nsamples,
-      });
-      lastUpdateTime = now;
-    }
+    postMessage({
+      type: 'compare-progress',
+      currentSamples: n,
+      totalSamples: nsamples,
+    });
   }
 
   const results = runComparison({

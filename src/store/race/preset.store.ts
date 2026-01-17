@@ -81,7 +81,7 @@ export const usePresetStore = create<IPresetStore>()(
           date: '2026-01-17',
           courseId: 10506,
           season: Season.Winter,
-          ground: GroundCondition.Good,
+          ground: GroundCondition.Firm,
           weather: Weather.Sunny,
           time: TimeOfDay.Midday,
         },
