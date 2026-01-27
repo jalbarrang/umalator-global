@@ -15,6 +15,7 @@ import { RaceTrack } from '@/modules/racetrack/components/RaceTrack';
 import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
 import { setSkillToRunner, useRunner } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
+import { RaceSettingsPanel } from '@/modules/skill-planner/components/RaceSettingsPanel';
 
 export function SkillBassin() {
   const { chartData, selectedSkills, setSelectedSkills } = useChartData();
@@ -79,6 +80,8 @@ export function SkillBassin() {
             selectedPacemakers={[]}
           />
         </RaceTrack>
+
+        <RaceSettingsPanel />
 
         <div>
           <BasinnChart

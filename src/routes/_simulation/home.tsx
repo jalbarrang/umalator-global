@@ -14,6 +14,7 @@ import { useSettingsStore } from '@/store/settings.store';
 import { useSelectedPacemakerBooleans } from '@/store/settings/actions';
 import { useUIStore } from '@/store/ui.store';
 import { RaceSettingsPanel } from '@/modules/skill-planner/components/RaceSettingsPanel';
+import { Separator } from '@/components/ui/separator';
 
 export function SimulationHome() {
   const { chartData, results, isSimulationRunning, simulationProgress } = useRaceStore();
@@ -66,6 +67,8 @@ export function SimulationHome() {
         <RaceSettingsPanel />
 
         {results.length > 0 && <ResultButtonGroups />}
+
+        <Separator />
 
         <SimulationResultTabs />
       </Activity>

@@ -1,6 +1,8 @@
 import { Activity, useMemo } from 'react';
 import { setDisplaying, useRaceStore } from '@/modules/simulation/stores/compare.store';
 import { cn } from '@/lib/utils';
+import { formatTime } from '@/utils/time';
+import { formatBashinWithRaw } from '@/utils/bashin';
 import {
   Table,
   TableBody,
@@ -11,7 +13,7 @@ import {
 } from '@/components/ui/table';
 
 export const ResultButtonGroups = () => {
-  const { displaying, results } = useRaceStore();
+  const { displaying, results, chartData } = useRaceStore();
 
   const mid = useMemo(() => {
     return Math.floor(results.length / 2);
@@ -70,13 +72,63 @@ export const ResultButtonGroups = () => {
         ))}
       </div>
 
-      {/* Results Explanation */}
-      <div className="text-sm text-center text-foreground px-4">
-        Negative numbers mean{' '}
-        <strong className="text-[#2a77c5] dark:text-blue-500 font-bold">Umamusume 1</strong> is
-        faster, positive numbers mean{' '}
-        <strong className="text-[#c52a2a] dark:text-red-500 font-bold">Umamusume 2</strong> is
-        faster.
+      {/* Standings Table */}
+      <div className="bg-card p-4 rounded-lg">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-20">Place</TableHead>
+              <TableHead>Runner</TableHead>
+              <TableHead className="text-right">Finish</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {displaying &&
+              displaying in resultsSummary &&
+              chartData &&
+              resultsSummary[displaying as keyof typeof resultsSummary] &&
+              (() => {
+                const currentResult = resultsSummary[displaying as keyof typeof resultsSummary];
+                const bashinDiff = parseFloat(currentResult.value);
+                const uma1Faster = bashinDiff < 0;
+
+                return (
+                  <>
+                    <TableRow>
+                      <TableCell className="font-bold">1st</TableCell>
+                      <TableCell
+                        className={cn('font-bold font-mono', {
+                          'text-[#2a77c5] dark:text-blue-500': uma1Faster,
+                          'text-[#c52a2a] dark:text-red-500': !uma1Faster,
+                        })}
+                      >
+                        {uma1Faster ? 'Umamusume 1' : 'Umamusume 2'}
+                      </TableCell>
+                      <TableCell className="text-right font-mono">
+                        {uma1Faster
+                          ? formatTime(chartData.t[0][chartData.t[0].length - 1] * 1.18)
+                          : formatTime(chartData.t[1][chartData.t[1].length - 1] * 1.18)}
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-bold">2nd</TableCell>
+                      <TableCell
+                        className={cn('font-mono', {
+                          'text-[#c52a2a] dark:text-red-500': uma1Faster,
+                          'text-[#2a77c5] dark:text-blue-500': !uma1Faster,
+                        })}
+                      >
+                        {uma1Faster ? 'Umamusume 2' : 'Umamusume 1'}
+                      </TableCell>
+                      <TableCell className="text-right font-mono">
+                        {formatBashinWithRaw(bashinDiff)}
+                      </TableCell>
+                    </TableRow>
+                  </>
+                );
+              })()}
+          </TableBody>
+        </Table>
       </div>
     </>
   );

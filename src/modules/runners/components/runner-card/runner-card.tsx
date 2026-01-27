@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 
-import { ArrowLeftRight, Copy, TrashIcon, Upload } from 'lucide-react';
+import { ArrowLeftRight, Copy, PlusIcon, TrashIcon, Upload } from 'lucide-react';
 import { StatsTable } from './stats-table';
 import { AptitudesTable } from './aptitudes-table';
 import { runawaySkillId } from './types';
@@ -251,15 +251,14 @@ export const RunnerCard = (props: RunnerCardProps) => {
       />
 
       {!hideSkillButton && (
-        <div className="bg-primary text-white font-bold rounded-sm flex items-center h-8">
-          <div className="flex-1 text-center">Skills</div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleOpenSkillPicker}
-            className="w-24 rounded-none rounded-r-sm"
-          >
-            Open
+        <div className="flex items-center gap-2">
+          <div className="bg-card py-1 border font-bold rounded-lg text-white flex-1 text-center h-auto">
+            Skills
+          </div>
+
+          <Button variant="default" onClick={handleOpenSkillPicker} className="cursor-pointer">
+            Add Skills
+            <PlusIcon className="w-4 h-4" />
           </Button>
         </div>
       )}

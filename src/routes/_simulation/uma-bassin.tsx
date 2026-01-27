@@ -16,6 +16,7 @@ import { useUmaBasinPoolRunner } from '@/modules/simulation/hooks/pool/useUmaBas
 import { ButtonGroup } from '@/components/ui/button-group';
 import { getUmaForUniqueSkill } from '@/modules/skills/utils';
 import { LoadingOverlay } from '@/components/loading-overlay';
+import { RaceSettingsPanel } from '@/modules/skill-planner/components/RaceSettingsPanel';
 
 export function UmaBassin() {
   const { chartData, selectedSkills, setSelectedSkills } = useChartData();
@@ -87,6 +88,8 @@ export function UmaBassin() {
             selectedPacemakers={[]}
           />
         </RaceTrack>
+
+        <RaceSettingsPanel />
 
         <div className="grid grid-cols-1 gap-4">
           <BasinnChart
