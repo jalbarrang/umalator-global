@@ -479,10 +479,15 @@ export function runComparison(params: RunComparisonParams): CompareResult {
   // Track which generator corresponds to which uma (flips when we swap generators)
   const aIsUma1 = true; // 'a' starts as standard builder (uma1)
 
-  const basePacerRng = new Rule30CARng(options.seed ?? 0 + 1);
+  // offset the seed by 500 to avoid conflicts with the umas
+  const basePacersSeed = 500 + seed;
 
   for (let i = 0; i < nsamples; ++i) {
     const pacers: Array<RaceSolver> = [];
+
+    // Create fresh pacer RNG for each race to avoid state accumulation
+    // This ensures each race gets independent, reproducible pacer behavior
+    const basePacerRng = new Rule30CARng(basePacersSeed + i);
 
     for (let j = 0; j < options.pacemakerCount; ++j) {
       const pacerRng = new Rule30CARng(basePacerRng.int32());
