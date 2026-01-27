@@ -34,6 +34,7 @@ import {
   SkillTarget,
   SkillType,
 } from '@/modules/simulation/lib/skills/definitions';
+import { getSkillMetaById } from '@/modules/skills/utils';
 
 export function calculateTheoreticalMaxSpurt(
   horse: RunnerState,
@@ -138,15 +139,6 @@ interface StaminaStats {
   uma2: { hpDiedCount: number; fullSpurtCount: number; total: number };
 }
 
-const getCommonIndex = (skills: Array<string>, id: string) => {
-  const index = skills.indexOf(id);
-
-  return index > -1 ? index : skills.length;
-};
-
-const skillSorter = (commonSkills: Array<string>) => (a: string, b: string) =>
-  getCommonIndex(commonSkills, a) - getCommonIndex(commonSkills, b) || +a - +b;
-
 export function runComparison(params: RunComparisonParams): CompareResult {
   const { nsamples, course, racedef, runnerA, runnerB, pacer, options } = params;
 
@@ -220,9 +212,37 @@ export function runComparison(params: RunComparisonParams): CompareResult {
 
   // ensure skills common to the two umas are added in the same order regardless of what additional skills they have
   // this is important to make sure the rng for their activations is synced
+  // sort first by groupId so that white and gold versions of a skill get added in the same order
 
   const commonSkillsArray = [...runnerA.skills, ...runnerB.skills].toSorted((a, b) => +a - +b);
   const commonSkills = Array.from(new Set(commonSkillsArray));
+
+  // Get groupIds for common skills
+  const getCommonGroupIndex = (id: string) => {
+    try {
+      const baseId = id.split('-')[0];
+      const groupId = getSkillMetaById(baseId).groupId;
+      const index = commonSkills.findIndex((skillId) => {
+        const commonBaseId = skillId.split('-')[0];
+        return getSkillMetaById(commonBaseId).groupId === groupId;
+      });
+      return index > -1 ? index : commonSkills.length;
+    } catch {
+      // If skill meta not found, sort to end
+      return commonSkills.length;
+    }
+  };
+
+  // Sort by groupId first (for white/gold versions), then by skill ID
+  const skillSorterByGroup = (a: string, b: string) => {
+    const groupIndexA = getCommonGroupIndex(a);
+    const groupIndexB = getCommonGroupIndex(b);
+    if (groupIndexA !== groupIndexB) {
+      return groupIndexA - groupIndexB;
+    }
+    // If same group, sort by skill ID
+    return +a.split('-')[0] - +b.split('-')[0];
+  };
 
   const runnerABaseStats = buildBaseStats({ ...runnerA });
   const runnerAAdjustedStats = buildAdjustedStats(
@@ -241,7 +261,7 @@ export function runComparison(params: RunComparisonParams): CompareResult {
 
   const runnerBWit = runnerBAdjustedStats.wisdom;
 
-  const runnerASortedSkills = runnerA.skills.toSorted(skillSorter(commonSkills));
+  const runnerASortedSkills = runnerA.skills.toSorted(skillSorterByGroup);
 
   for (const id of runnerASortedSkills) {
     const skillId = id.split('-')[0];
@@ -256,7 +276,7 @@ export function runComparison(params: RunComparisonParams): CompareResult {
     }
   }
 
-  const runnerBSortedSkills = runnerB.skills.toSorted(skillSorter(commonSkills));
+  const runnerBSortedSkills = runnerB.skills.toSorted(skillSorterByGroup);
 
   for (const id of runnerBSortedSkills) {
     const skillId = id.split('-')[0];
