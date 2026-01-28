@@ -39,6 +39,13 @@ export interface SimulationData {
   medianrun: SimulationRun;
 }
 
+export type SkillSimulationData = {
+  minrun: SkillSimulationRun;
+  maxrun: SkillSimulationRun;
+  meanrun: SkillSimulationRun;
+  medianrun: SkillSimulationRun;
+};
+
 export interface SimulationRun {
   t: Array<Array<number>>;
   p: Array<Array<number>>;
@@ -59,6 +66,10 @@ export interface SimulationRun {
   pacerLeadCompetition: Array<RegionActivation | []>;
 }
 
+export interface SkillSimulationRun {
+  sk: [SkillActivationMap, SkillActivationMap];
+}
+
 // [RegionStart, RegionEnd]
 export type RegionActivation = [number, number];
 
@@ -72,7 +83,7 @@ export type SkillActivation = {
   effectTarget: ISkillTarget;
 };
 
-export type SkillActivationMap = Map<string, Array<SkillActivation>>;
+export type SkillActivationMap = Record<string, Array<SkillActivation>>;
 
 export interface StaminaStats {
   uma1: StaminaStatsUma1;
@@ -91,7 +102,7 @@ const defaultSimulationRun: SimulationRun = {
   hp: [[], []],
   currentLane: [[], []],
   pacerGap: [[], []],
-  sk: [new Map(), new Map()],
+  sk: [{}, {}],
   sdly: [0, 0],
   rushed: [[], []],
   posKeep: [[], []],
@@ -109,4 +120,11 @@ export const initializeSimulationRun = (
 ): SimulationRun => ({
   ...cloneDeep(defaultSimulationRun),
   ...simulationRun,
+});
+
+export const initializeSkillSimulationRun = (
+  skillSimulationRun: Partial<SkillSimulationRun> = {},
+): SkillSimulationRun => ({
+  sk: [{}, {}],
+  ...skillSimulationRun,
 });

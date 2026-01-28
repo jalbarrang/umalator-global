@@ -1,3 +1,21 @@
+/**
+ * # Runner Comparison for Sunday's Shadow
+ *
+ * ## Overview
+ *
+ * This module is used to compare the performance of two runners in a race by running
+ * multiple samples of simulation using seeded runs for different aspects of the race.
+ *
+ * The goal of this Module is to provide a way a to compare how many Bashins is a Runner
+ * able to achieve in a race compared to another.
+ *
+ * The Comparison works best when you have two runner of the same outfit but with different Skills or Statlines.
+ *
+ * ### Notes
+ *
+ * As this only compares two runners, it is not possible to simulate races with 9 runners as it would defeat the purpose of this compare tool.
+ */
+
 import { cloneDeep } from 'es-toolkit';
 import type {
   Run1RoundParams,
@@ -157,6 +175,7 @@ export function runComparison(params: RunComparisonParams): CompareResult {
     .season(racedef.season)
     .time(racedef.time)
     .accuracyMode(options.accuracyMode ?? false)
+    .useEnhancedSpurt(options.useEnhancedSpurt ?? false)
     .posKeepMode(posKeepMode)
     .mode(mode);
 
@@ -726,9 +745,10 @@ export function runComparison(params: RunComparisonParams): CompareResult {
     cleanupActiveSkills(solverA, runnerASkillActivations, runnerBSkillActivations);
     cleanupActiveSkills(solverB, runnerBSkillActivations, runnerASkillActivations);
 
-    data.sk[0] = new Map(runnerASkillActivations);
-    data.sk[1] = new Map(runnerBSkillActivations);
+    data.sk[0] = Object.fromEntries(runnerASkillActivations);
+    data.sk[1] = Object.fromEntries(runnerBSkillActivations);
 
+    // Clear the maps instead of reassigning to preserve closure references
     runnerASkillActivations.clear();
     runnerBSkillActivations.clear();
 
@@ -958,7 +978,7 @@ export function runComparison(params: RunComparisonParams): CompareResult {
 export const run1Round = (params: Run1RoundParams) => {
   const { nsamples, skills, course, racedef, uma, pacer, options } = params;
 
-  const data: SkillBasinResponse = new Map();
+  const data: SkillBasinResponse = {};
 
   skills.forEach((id) => {
     const withSkill = cloneDeep(uma);
@@ -979,7 +999,7 @@ export const run1Round = (params: Run1RoundParams) => {
 
     const mean = results.reduce((a, b) => a + b, 0) / results.length;
 
-    data.set(id, {
+    data[id] = {
       id,
       results,
       runData,
@@ -987,7 +1007,7 @@ export const run1Round = (params: Run1RoundParams) => {
       max: results[results.length - 1],
       mean,
       median,
-    });
+    };
   });
 
   return data;

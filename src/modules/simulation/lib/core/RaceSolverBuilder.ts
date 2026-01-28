@@ -28,6 +28,7 @@ import type {
 
 import type { Skill } from '@/modules/skills/utils';
 import type { HorseParameters } from '@/modules/simulation/lib/runner/HorseTypes';
+import type { HpPolicy } from '@/modules/simulation/lib/runner/health/HpPolicy';
 import {
   ImmediatePolicy,
   createFixedPositionPolicy,
@@ -49,7 +50,7 @@ import {
 } from '@/modules/simulation/lib/course/definitions';
 import { Aptitude, Mood, PosKeepMode, Strategy } from '@/modules/simulation/lib/runner/definitions';
 import { EnhancedHpPolicy } from '@/modules/simulation/lib/runner/health/EnhancedHpPolicy';
-import { NoopHpPolicy } from '@/modules/simulation/lib/runner/health/HpPolicy';
+import { GameHpPolicy, NoopHpPolicy } from '@/modules/simulation/lib/runner/health/HpPolicy';
 import { Rule30CARng } from '@/modules/simulation/lib/utils/Random';
 import { skillsById } from '@/modules/skills/utils';
 
@@ -682,6 +683,17 @@ export class RaceSolverBuilder {
   _disableRushed: boolean;
   _disableDownhill: boolean;
   _disableSectionModifier: boolean;
+
+  /**
+   * Marks if the RaceSolver should use an HP Policy for Stamina calculation
+   */
+  private _useHpPolicy: boolean;
+  /**
+   * Use EnhancedHpPolicy instead of GameHpPolicy
+   * Default false to use GameHpPolicy
+   */
+  private _useEnhancedSpurt: boolean;
+
   _accuracyMode: boolean;
   _skillCheckChance: boolean;
   _posKeepMode: IPosKeepMode;
@@ -715,6 +727,14 @@ export class RaceSolverBuilder {
     this._disableRushed = false;
     this._disableDownhill = false;
     this._disableSectionModifier = false;
+
+    // ===== Stamina
+    // Default true to enable using the HP Policy
+    this._useHpPolicy = true;
+    // Use GamePolicy by default, set to true to use EnhancedHpPolicy
+    this._useEnhancedSpurt = false;
+    // ===== End: Stamina
+
     this._accuracyMode = false;
     this._skillCheckChance = true;
     this._posKeepMode = PosKeepMode.None;
@@ -1110,6 +1130,16 @@ export class RaceSolverBuilder {
     return this;
   }
 
+  useEnhancedSpurt(enabled: boolean = true) {
+    this._useEnhancedSpurt = enabled;
+    return this;
+  }
+
+  useHpPolicy(enabled: boolean = true) {
+    this._useHpPolicy = enabled;
+    return this;
+  }
+
   skillCheckChance(enabled: boolean = true) {
     this._skillCheckChance = enabled;
     return this;
@@ -1160,6 +1190,10 @@ export class RaceSolverBuilder {
     return this;
   }
 
+  /**
+   * Resets the RNG seed to a new random value.
+   * This is useful for when you want to run the same simulation with different RNG seeds.
+   */
   desync() {
     this.seed(this._rng.int32());
   }
@@ -1245,12 +1279,20 @@ export class RaceSolverBuilder {
 
       const runnerHPRNG = new Rule30CARng(this._rng.int32());
 
-      const runnerHPManager = new EnhancedHpPolicy(
-        this._course,
-        this._raceParams.groundCondition,
-        runnerHPRNG,
-        this._accuracyMode,
-      );
+      let runnerHPManager: HpPolicy;
+
+      if (this._useHpPolicy) {
+        runnerHPManager = NoopHpPolicy;
+      } else {
+        runnerHPManager = this._useEnhancedSpurt
+          ? new EnhancedHpPolicy(
+              this._course,
+              this._raceParams.groundCondition,
+              runnerHPRNG,
+              this._accuracyMode,
+            )
+          : new GameHpPolicy(this._course, this._raceParams.groundCondition, runnerHPRNG);
+      }
 
       const redoRun: boolean = yield new RaceSolver({
         horse,

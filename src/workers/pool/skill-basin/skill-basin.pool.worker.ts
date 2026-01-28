@@ -3,9 +3,9 @@
  * Processes batches of skills and reports results back to pool manager
  */
 
-import type { SkillBasinResponse } from '@/modules/simulation/types';
+import type { SkillComparisonResponse } from '@/modules/simulation/types';
 import type { SimulationParams, WorkBatch, WorkerInMessage, WorkerOutMessage } from '../types';
-import { run1Round } from '@/utils/compare';
+import { run1Round } from '@/modules/simulation/simulators/skill-compare';
 
 let workerId = -1;
 let simulationParams: SimulationParams | null = null;
@@ -43,7 +43,7 @@ function processBatch(batch: WorkBatch): void {
   }
 
   // Run simulation for this batch
-  const results: SkillBasinResponse = run1Round({
+  const results: SkillComparisonResponse = run1Round({
     nsamples: batch.nsamples,
     skills: batch.skills,
     course,
@@ -52,7 +52,6 @@ function processBatch(batch: WorkBatch): void {
     pacer: pacer_,
     options: {
       ...options,
-      includeRunData: batch.includeRunData,
     },
   });
 

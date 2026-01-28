@@ -11,7 +11,7 @@ export class EffectQuery {
 
   private constructor(activations: SkillActivationMap) {
     this.activations = activations;
-    this.flatList = Array.from(activations.values()).flat();
+    this.flatList = Object.values(activations).flat();
   }
 
   static from(activations: SkillActivationMap): EffectQuery {
@@ -23,7 +23,7 @@ export class EffectQuery {
   }
 
   toIds(): Array<string> {
-    return Array.from(this.activations.keys());
+    return Object.keys(this.activations);
   }
 
   // Count actual activations (not effects)

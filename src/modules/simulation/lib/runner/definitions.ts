@@ -14,6 +14,7 @@ export const MoodName = {
   [Mood.Good]: 'Good',
   [Mood.Great]: 'Great',
 } as const;
+export const moodNames = Object.values(MoodName);
 
 // Position Keep Mode
 export const PosKeepMode = {
@@ -50,6 +51,7 @@ export const AptitudeName = {
   [Aptitude.F]: 'F',
   [Aptitude.G]: 'G',
 } as const;
+export const aptitudeNames = Object.values(AptitudeName);
 
 export const Strategy = {
   FrontRunner: 1,

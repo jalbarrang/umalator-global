@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import UmaBasinWorker from '@workers/uma-basin.worker.ts?worker';
-import type { SkillBasinResponse } from '@/modules/simulation/types';
+import type { SkillComparisonResponse } from '@/modules/simulation/types';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
 import {
@@ -13,7 +13,7 @@ import {
 import {
   defaultSimulationOptions,
   getActivateableSkills,
-  getNullRow,
+  getNullSkillComparisonRow,
 } from '@/components/bassin-chart/utils';
 import { uniqueSkillIds } from '@/modules/skills/utils';
 import { useRunner, useRunnersStore } from '@/store/runners.store';
@@ -49,7 +49,7 @@ export function useUmaBasinRunner() {
   const totalSkillsRef = useRef<number>(0);
 
   const handleWorkerMessage = useCallback(
-    (event: MessageEvent<WorkerMessage<SkillBasinResponse>>) => {
+    (event: MessageEvent<WorkerMessage<SkillComparisonResponse>>) => {
       const { type, results } = event.data;
 
       console.log('uma-bassin:handleWorkerMessage', {
@@ -130,9 +130,9 @@ export function useUmaBasinRunner() {
     const umaWithoutUniques = removeUniqueSkillsFromRunner(runner);
     const uma = umaWithoutUniques;
 
-    const filler: SkillBasinResponse = new Map();
+    const filler: SkillComparisonResponse = {};
 
-    skills.forEach((id) => filler.set(id, getNullRow(id)));
+    skills.forEach((id) => (filler[id] = getNullSkillComparisonRow(id)));
 
     const skills1 = skills.slice(0, Math.floor(skills.length / 2));
     const skills2 = skills.slice(Math.floor(skills.length / 2));

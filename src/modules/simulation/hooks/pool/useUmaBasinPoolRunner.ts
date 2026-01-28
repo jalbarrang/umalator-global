@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import UmaBasinPoolWorker from '@workers/pool/uma-basin/uma-basin.pool.worker.ts?worker';
-import type { SkillBasinResponse } from '@/modules/simulation/types';
+import type { SkillComparisonResponse } from '@/modules/simulation/types';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
 import {
@@ -13,7 +13,7 @@ import {
 import {
   defaultSimulationOptions,
   getActivateableSkills,
-  getNullRow,
+  getNullSkillComparisonRow,
 } from '@/components/bassin-chart/utils';
 import { uniqueSkillIds } from '@/modules/skills/utils';
 import { useRunner, useRunnersStore } from '@/store/runners.store';
@@ -65,8 +65,8 @@ export function useUmaBasinPoolRunner() {
     const uma = umaWithoutUniques;
 
     // Create placeholder results
-    const filler: SkillBasinResponse = new Map();
-    skills.forEach((id) => filler.set(id, getNullRow(id)));
+    const filler: SkillComparisonResponse = {};
+    skills.forEach((id) => (filler[id] = getNullSkillComparisonRow(id)));
 
     resetTable();
     setTable(filler);
@@ -89,9 +89,9 @@ export function useUmaBasinPoolRunner() {
           appendResultsToTable(results);
         },
         onStageComplete: (stage, results) => {
-          const activeSkills = Array.from(results.values()).filter((r) => !r.filterReason);
+          const activeSkills = Object.values(results).filter((r) => !r.filterReason);
           console.log(
-            `Stage ${stage} complete with ${results.size} total skills (${activeSkills.length} active, ${results.size - activeSkills.length} filtered)`,
+            `Stage ${stage} complete with ${Object.keys(results).length} total skills (${activeSkills.length} active, ${Object.keys(results).length - activeSkills.length} filtered)`,
           );
 
           appendResultsToTable(results);

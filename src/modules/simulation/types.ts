@@ -1,6 +1,6 @@
 import type { IPosKeepMode } from './lib/runner/definitions';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
-import type { SimulationData } from '@/modules/simulation/compare.types';
+import type { SimulationData, SkillSimulationData } from '@/modules/simulation/compare.types';
 import type { CourseData } from './lib/course/definitions';
 import type { RaceParameters } from './lib/definitions';
 
@@ -19,7 +19,20 @@ export type RoundResult = {
   filterReason?: FilterReason;
 };
 
-export type SkillBasinResponse = Map<string, RoundResult>;
+export type SkillBasinResponse = Record<string, RoundResult>;
+
+export type SkillComparisonRoundResult = {
+  id: string;
+  results: Array<number>;
+  runData: SkillSimulationData;
+  min: number;
+  max: number;
+  mean: number;
+  median: number;
+  filterReason: FilterReason | undefined;
+};
+
+export type SkillComparisonResponse = Record<string, SkillComparisonRoundResult>;
 
 export type PoolMetrics = {
   timeTaken: number;

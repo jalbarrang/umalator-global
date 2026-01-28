@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import SkillBasinWorker from '@workers/skill-basin.worker.ts?worker';
-import type { SkillBasinResponse } from '@/modules/simulation/types';
+import type { SkillComparisonResponse } from '@/modules/simulation/types';
 import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
 import {
   appendResultsToTable,
@@ -12,7 +12,7 @@ import {
 import {
   defaultSimulationOptions,
   getActivateableSkills,
-  getNullRow,
+  getNullSkillComparisonRow,
 } from '@/components/bassin-chart/utils';
 
 import { racedefToParams } from '@/utils/races';
@@ -45,7 +45,7 @@ export function useSkillBasinRunner() {
   const totalSkillsRef = useRef<number>(0);
 
   const handleWorkerMessage = useCallback(
-    (event: MessageEvent<WorkerMessage<SkillBasinResponse>>) => {
+    (event: MessageEvent<WorkerMessage<SkillComparisonResponse>>) => {
       const { type, results } = event.data;
 
       console.log('skill-bassin:handleWorkerMessage', {
@@ -135,8 +135,8 @@ export function useSkillBasinRunner() {
 
     const uma = runner;
 
-    const filler: SkillBasinResponse = new Map();
-    skills.forEach((id) => filler.set(id, getNullRow(id)));
+    const filler: SkillComparisonResponse = {};
+    skills.forEach((id) => (filler[id] = getNullSkillComparisonRow(id)));
 
     const skills1 = skills.slice(0, Math.floor(skills.length / 2));
     const skills2 = skills.slice(Math.floor(skills.length / 2));

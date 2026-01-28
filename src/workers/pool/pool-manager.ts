@@ -1,11 +1,11 @@
 import { STAGE_CONFIGS, WorkQueue } from './work-queue';
-import type { PoolMetrics, SkillBasinResponse } from '@/modules/simulation/types';
+import type { PoolMetrics, SkillComparisonResponse } from '@/modules/simulation/types';
 import type { SimulationParams, WorkerInMessage, WorkerOutMessage, WorkerState } from './types';
 
 export type PoolManagerCallbacks = {
-  onProgress?: (results: SkillBasinResponse) => void;
-  onStageComplete?: (stage: number, results: SkillBasinResponse) => void;
-  onComplete?: (results: SkillBasinResponse, metrics: PoolMetrics) => void;
+  onProgress?: (results: SkillComparisonResponse) => void;
+  onStageComplete?: (stage: number, results: SkillComparisonResponse) => void;
+  onComplete?: (results: SkillComparisonResponse, metrics: PoolMetrics) => void;
   onError?: (error: Error) => void;
 };
 
