@@ -1,13 +1,12 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import {
   flexRender,
   getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
+import { useVirtualizer } from '@tanstack/react-virtual';
 
 import {
   ArrowDown,
@@ -479,11 +478,21 @@ export const BasinnChart = (props: BasinnChartProps) => {
     data: props.data,
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     onRowSelectionChange: setRowSelection,
     state: { sorting, rowSelection },
+  });
+
+  const { rows } = table.getRowModel();
+
+  const parentRef = useRef<HTMLDivElement>(null);
+
+  const virtualizer = useVirtualizer({
+    count: rows.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 50,
+    overscan: 20,
+    getItemKey: (index) => rows[index].id,
   });
 
   return (
@@ -520,40 +529,53 @@ export const BasinnChart = (props: BasinnChartProps) => {
         </div>
       )}
 
-      <div className="overflow-hidden border rounded-md">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id} colSpan={header.colSpan}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
+      <div
+        ref={parentRef}
+        style={{
+          height: `400px`,
+          overflow: 'auto',
+        }}
+      >
+        <div
+          style={{ height: `${virtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}
+        >
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={header.id} colSpan={header.colSpan}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              ))}
+            </TableHeader>
 
-          <TableBody>
-            {table.getRowModel().rows.map((row) => {
-              const id: string = row.getValue('id');
-              const isSelected = selectedSkills.includes(id);
-              const isExpanded = expandedRows.has(id);
-              const rowData = props.data.find((d) => d.id === id);
-              const hasRunData = rowData?.runData != null;
+            <TableBody>
+              {virtualizer.getVirtualItems().map((virtualRow, index) => {
+                const row = rows[virtualRow.index];
 
-              return (
-                <>
+                const id: string = row.getValue('id');
+                const isSelected = selectedSkills.includes(id);
+                const isExpanded = expandedRows.has(id);
+                const rowData = props.data.find((d) => d.id === id);
+                const hasRunData = rowData?.runData != null;
+
+                return (
                   <TableRow
                     key={row.id}
-                    data-skillid={id}
                     className={cn({
                       hidden: props.hiddenSkills.includes(id),
                       'bg-primary/5': isSelected,
                       'border-b-0': isExpanded && hasRunData,
                     })}
+                    style={{
+                      height: `${virtualRow.size}px`,
+                      transform: `translateY(${virtualRow.start - index * virtualRow.size}px)`,
+                    }}
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id}>
@@ -561,50 +583,59 @@ export const BasinnChart = (props: BasinnChartProps) => {
                       </TableCell>
                     ))}
                   </TableRow>
+                );
+              })}
 
-                  {isExpanded && hasRunData && rowData?.runData && (
+              {/* {table.getRowModel().rows.map((row) => {
+                const id: string = row.getValue('id');
+                const isSelected = selectedSkills.includes(id);
+                const isExpanded = expandedRows.has(id);
+                const rowData = props.data.find((d) => d.id === id);
+                const hasRunData = rowData?.runData != null;
+
+                return (
+                  <>
                     <TableRow
-                      key={`${row.id}-expanded`}
+                      key={row.id}
+                      data-skillid={id}
                       className={cn({
                         hidden: props.hiddenSkills.includes(id),
+                        'bg-primary/5': isSelected,
+                        'border-b-0': isExpanded && hasRunData,
                       })}
                     >
-                      <TableCell colSpan={table.getAllColumns().length} className="p-4 bg-muted/30">
-                        <ActivationDetails
-                          skillId={id}
-                          runData={rowData.runData}
-                          courseDistance={courseDistance}
-                        />
-                      </TableCell>
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                      ))}
                     </TableRow>
-                  )}
-                </>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </div>
 
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage() || isSimulationRunning}
-        >
-          Previous
-        </Button>
-        <span className="text-sm text-muted-foreground">
-          {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
-        </span>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage() || isSimulationRunning}
-        >
-          Next
-        </Button>
+                    {isExpanded && hasRunData && rowData?.runData && (
+                      <TableRow
+                        key={`${row.id}-expanded`}
+                        className={cn({
+                          hidden: props.hiddenSkills.includes(id),
+                        })}
+                      >
+                        <TableCell
+                          colSpan={table.getAllColumns().length}
+                          className="p-4 bg-muted/30"
+                        >
+                          <ActivationDetails
+                            skillId={id}
+                            runData={rowData.runData}
+                            courseDistance={courseDistance}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </>
+                );
+              })} */}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </div>
   );
