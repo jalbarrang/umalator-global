@@ -3,6 +3,10 @@
     "task-guardian": {
       "command": "bun",
       "args": ["run", "/Users/jalbarran/fun/task-guardian-mcp/src/index.ts"]
+    },
+    "skills-mcp": {
+      "command": "bun",
+      "args": ["run", "/Users/jalbarran/fun/skills-mcp/src/index.ts"]
     }
   }
 }

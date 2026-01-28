@@ -17,3 +17,8 @@ db/
 
 # MCP Tools
 .task/
+
+
+# debug scripts
+scripts/runners/*.json
+scripts/skill-lists/*.json

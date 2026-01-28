@@ -1,0 +1,22 @@
+---
+alwaysApply: true
+---
+
+# Bun instead of npm
+
+This project uses **Bun** as the JavaScript runtime and toolkit. When working with Bun-specific features, APIs, or tooling, refer to the official Bun documentation.
+
+## Commands
+
+- `bun run` instead of `npm run`
+- `bun install` or `bun add` instead of `npm install`
+- `bun remove` instead of `npm remove`
+
+## Preferred Commands
+
+In essence, always try to use the scripts available in the `package.json` file first before trying to use `bunx` or `npx` to run commands for external tools.
+
+# References
+
+- [Bun Reference rules file](./bun-reference.mdc)
+- [Bun's LLMs.txt](https://bun.sh/llms.txt)
