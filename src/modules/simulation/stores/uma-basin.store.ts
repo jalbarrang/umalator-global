@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { useMemo, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
+import { toMerged } from 'es-toolkit';
 import { initializeSimulationRun } from '../compare.types';
 import { useRaceStore } from './compare.store';
 import type {
@@ -37,7 +38,7 @@ export const resetTable = () => {
 
 export const appendResultsToTable = (results: SkillComparisonResponse) => {
   useUniqueSkillBasinStore.setState((state) => ({
-    results: { ...state.results, ...results },
+    results: toMerged(state.results, results),
   }));
 };
 

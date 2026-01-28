@@ -10,7 +10,6 @@ export type WorkBatch = {
   skills: Array<string>;
   stage: 1 | 2 | 3 | 4;
   nsamples: number;
-  includeRunData: boolean;
 };
 
 export type SimulationParams = {

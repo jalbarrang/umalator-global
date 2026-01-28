@@ -2,6 +2,7 @@
  * Web Worker for running simulations
  */
 
+import { clone, cloneDeepWith } from 'es-toolkit';
 import { mergeResultSets } from './utils';
 import type { CourseData } from '@/modules/simulation/lib/course/definitions';
 import type { RaceParameters } from '@/modules/simulation/lib/definitions';
@@ -9,6 +10,31 @@ import type { RaceParameters } from '@/modules/simulation/lib/definitions';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import type { Run1RoundParams, SimulationOptions } from '@/modules/simulation/types';
 import { run1Round } from '@/modules/simulation/simulators/skill-compare';
+
+type PrepareRoundParams = {
+  courseData: CourseData;
+  raceParams: RaceParameters;
+  runner: RunnerState;
+  pacer: RunnerState | null;
+  options: SimulationOptions;
+};
+
+/**
+ * Utility function to prepare round parameters for the skill basin simulation.
+ */
+function prepareRounds(params: PrepareRoundParams) {
+  return (nsamples: number, newSkills: Array<string>): Run1RoundParams => {
+    return {
+      course: params.courseData,
+      racedef: params.raceParams,
+      uma: params.runner,
+      pacer: params.pacer,
+      options: params.options,
+      nsamples: nsamples,
+      skills: newSkills,
+    };
+  };
+}
 
 type RunChartParams = {
   skills: Array<string>;
@@ -22,64 +48,53 @@ type RunChartParams = {
 function runChart(params: RunChartParams) {
   const { skills, course, racedef, uma, pacer, options } = params;
 
-  let newSkills = [...skills];
+  // Copy over the skills to avoid mutating the original list
+  let newSkills = clone(skills);
 
-  const uma_ = {
-    ...uma,
-    skills: [...uma.skills],
-    forcedSkillPositions: { ...uma.forcedSkillPositions },
-  };
+  // Copy over the base runner to avoid mutating the original
+  const baseRunner = cloneDeepWith(uma, (value, key) => {
+    if (key === 'skills') return clone(value);
+  });
 
-  let pacer_: RunnerState | null = null;
+  let basePacer: RunnerState | null = null;
 
   if (pacer) {
-    pacer_ = {
-      ...pacer,
-      skills: [...pacer.skills],
-      forcedSkillPositions: { ...pacer.forcedSkillPositions },
-    };
+    basePacer = cloneDeepWith(pacer, (value, key) => {
+      if (key === 'skills') return clone(value);
+    });
   }
 
-  const roundParams: Run1RoundParams = {
-    nsamples: 5,
-    skills: newSkills,
-    course,
-    racedef,
-    uma: uma_,
-    pacer: pacer_,
-    options,
-  };
+  const roundParamGenerator = prepareRounds({
+    courseData: course,
+    raceParams: racedef,
+    runner: baseRunner,
+    pacer: basePacer,
+    options: options,
+  });
 
-  const results = run1Round(roundParams);
-
-  postMessage({ type: 'skill-bassin', results });
+  const results = run1Round(roundParamGenerator(5, newSkills));
+  postMessage({ type: 'skill-bassin', results: results });
 
   // Stage 1 filter: mark skills with negligible effect
-  newSkills = newSkills.filter((id) => {
-    const result = results[id];
+  newSkills = newSkills.filter((skillId) => {
+    const result = results[skillId];
+
     if (result && result.max <= 0.1) {
       result.filterReason = 'negligible-effect';
       return false;
     }
+
     return true;
   });
 
-  let update = run1Round({
-    nsamples: 20,
-    skills: newSkills,
-    course,
-    racedef,
-    uma: uma_,
-    pacer: pacer_,
-    options: options,
-  });
-
-  mergeResultSets(results, update);
-  postMessage({ type: 'skill-bassin', results });
+  const firstUpdate = run1Round(roundParamGenerator(20, newSkills));
+  mergeResultSets(results, firstUpdate);
+  postMessage({ type: 'skill-bassin', results: results });
 
   // Stage 2 filter: mark skills with low variance
-  newSkills = newSkills.filter((id) => {
-    const result = results[id];
+  newSkills = newSkills.filter((skillId) => {
+    const result = results[skillId];
+
     if (result && Math.abs(result.max - result.min) <= 0.1) {
       result.filterReason = 'low-variance';
       return false;
@@ -87,31 +102,16 @@ function runChart(params: RunChartParams) {
     return true;
   });
 
-  update = run1Round({
-    nsamples: 50,
-    skills: newSkills,
-    course,
-    racedef,
-    uma: uma_,
-    pacer: pacer_,
-    options: options,
-  });
-  mergeResultSets(results, update);
-  postMessage({ type: 'skill-bassin', results });
+  const secondUpdate = run1Round(roundParamGenerator(50, newSkills));
+  mergeResultSets(results, secondUpdate);
+  postMessage({ type: 'skill-bassin', results: results });
 
-  update = run1Round({
-    nsamples: 200,
-    skills: newSkills,
-    course,
-    racedef,
-    uma: uma_,
-    pacer: pacer_,
-    options,
-  });
+  // Final update
+  const finalUpdate = run1Round(roundParamGenerator(200, newSkills));
+  mergeResultSets(results, finalUpdate);
+  postMessage({ type: 'skill-bassin', results: results });
 
-  mergeResultSets(results, update);
-
-  postMessage({ type: 'skill-bassin', results });
+  // Done
   postMessage({ type: 'skill-bassin-done' });
 }
 

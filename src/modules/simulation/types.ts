@@ -44,7 +44,6 @@ export type PoolMetrics = {
 export interface SimulationOptions {
   seed?: number;
   useEnhancedSpurt?: boolean;
-  includeRunData?: boolean;
   accuracyMode?: boolean;
   posKeepMode?: IPosKeepMode;
   mode?: string;

@@ -3,6 +3,7 @@
  * Processes batches of skills and reports results back to pool manager
  */
 
+import { clone, cloneDeepWith } from 'es-toolkit';
 import type { SkillComparisonResponse } from '@/modules/simulation/types';
 import type { SimulationParams, WorkBatch, WorkerInMessage, WorkerOutMessage } from '../types';
 import { run1Round } from '@/modules/simulation/simulators/skill-compare';
@@ -27,33 +28,29 @@ function processBatch(batch: WorkBatch): void {
   const { course, racedef, uma, pacer, options } = simulationParams;
 
   // Prepare uma and pacer with proper skill arrays
-  const uma_ = {
-    ...uma,
-    skills: [...uma.skills],
-    forcedSkillPositions: { ...uma.forcedSkillPositions },
-  };
+  const baseRunner = cloneDeepWith(uma, (value, key) => {
+    if (key === 'skills') return clone(value);
+  });
 
-  let pacer_ = null;
+  let basePacer = null;
   if (pacer) {
-    pacer_ = {
-      ...pacer,
-      skills: [...pacer.skills],
-      forcedSkillPositions: { ...pacer.forcedSkillPositions },
-    };
+    basePacer = cloneDeepWith(pacer, (value, key) => {
+      if (key === 'skills') return clone(value);
+    });
   }
 
   // Run simulation for this batch
-  const results: SkillComparisonResponse = run1Round({
+  const roundParams = {
     nsamples: batch.nsamples,
     skills: batch.skills,
     course,
     racedef,
-    uma: uma_,
-    pacer: pacer_,
-    options: {
-      ...options,
-    },
-  });
+    uma: baseRunner,
+    pacer: basePacer,
+    options: options,
+  };
+
+  const results: SkillComparisonResponse = run1Round(roundParams);
 
   // Send results back to pool manager
   sendMessage({

@@ -192,7 +192,12 @@ export class PoolManager {
     this.totalSkills = skills.length;
 
     // Calculate batch size based on skill count and worker count
-    const batchSize = Math.max(5, Math.ceil(skills.length / (this.poolSize * 4)));
+    const approximateSkillsBatchSize = Math.ceil(skills.length / (this.poolSize * 4));
+    console.log('Approximate skills batch size', approximateSkillsBatchSize);
+    // Minimum batch size is 5
+    const batchSize = Math.max(5, approximateSkillsBatchSize);
+    console.log('Batch size used', batchSize);
+
     this.workQueue = new WorkQueue(skills, batchSize);
 
     // Initialize workers

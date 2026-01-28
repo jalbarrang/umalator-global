@@ -1,3 +1,4 @@
+import { clone } from 'es-toolkit';
 import { mergeSkillResults } from '../utils';
 import type { SkillComparisonResponse } from '@/modules/simulation/types';
 import type { WorkBatch } from './types';
@@ -5,14 +6,13 @@ import type { WorkBatch } from './types';
 export type StageConfig = {
   stage: 1 | 2 | 3 | 4;
   nsamples: number;
-  includeRunData: boolean;
 };
 
 export const STAGE_CONFIGS: Array<StageConfig> = [
-  { stage: 1, nsamples: 5, includeRunData: true },
-  { stage: 2, nsamples: 20, includeRunData: true },
-  { stage: 3, nsamples: 50, includeRunData: true },
-  { stage: 4, nsamples: 200, includeRunData: true },
+  { stage: 1, nsamples: 5 },
+  { stage: 2, nsamples: 20 },
+  { stage: 3, nsamples: 50 },
+  { stage: 4, nsamples: 200 },
 ];
 
 export class WorkQueue {
@@ -25,7 +25,7 @@ export class WorkQueue {
   private stageResults: SkillComparisonResponse = {};
 
   constructor(skills: Array<string>, batchSize = 10) {
-    this.skills = [...skills];
+    this.skills = clone(skills);
     this.batchSize = batchSize;
   }
 
@@ -50,7 +50,6 @@ export class WorkQueue {
       skills: batchSkills,
       stage: stageConfig.stage,
       nsamples: stageConfig.nsamples,
-      includeRunData: stageConfig.includeRunData,
     };
   }
 
@@ -62,14 +61,17 @@ export class WorkQueue {
     this.completedBatches.set(batchId, results);
 
     // Merge results into stage results
-    Object.entries(results).forEach(([key, value]) => {
+    const entries = Object.entries(results);
+
+    for (const [key, value] of entries) {
       const existing = this.stageResults[key];
       if (existing) {
         this.stageResults[key] = mergeSkillResults(existing, value);
-      } else {
-        this.stageResults[key] = value;
+        continue;
       }
-    });
+
+      this.stageResults[key] = value;
+    }
   }
 
   /**
@@ -91,34 +93,39 @@ export class WorkQueue {
     const nextSkills: Array<string> = [];
 
     // Apply filter based on current stage
-    Object.entries(this.stageResults).forEach(([skillId, result]) => {
+    const entries = Object.entries(this.stageResults);
+
+    for (const [skillId, result] of entries) {
       if (currentStage === 1) {
         // Stage 1 filter: max > 0.1
+        // Explanation: We don't want to show skills with negligible effect in the chart
+        // TODO: Make this threshold configurable
         if (result.max > 0.1) {
           nextSkills.push(skillId);
-        } else {
-          // Create new object with filterReason since result might be frozen
-          this.stageResults[skillId] = {
-            ...result,
-            filterReason: 'negligible-effect',
-          };
+          continue;
         }
-      } else if (currentStage === 2) {
+
+        this.stageResults[skillId].filterReason = 'negligible-effect';
+        continue;
+      }
+
+      if (currentStage === 2) {
         // Stage 2 filter: spread > 0.1
+        // Explanation: We don't want to show skills with low variance in the chart
+        // TODO: Make this threshold configurable
         if (Math.abs(result.max - result.min) > 0.1) {
           nextSkills.push(skillId);
-        } else {
-          // Create new object with filterReason since result might be frozen
-          this.stageResults[skillId] = {
-            ...result,
-            filterReason: 'low-variance',
-          };
+          continue;
         }
-      } else {
-        // Stages 3 and 4: no filtering
-        nextSkills.push(skillId);
+
+        this.stageResults[skillId].filterReason = 'low-variance';
+
+        continue;
       }
-    });
+
+      // Stages 3 and 4: no filtering
+      nextSkills.push(skillId);
+    }
 
     this.skills = nextSkills;
     this.currentStageIndex++;

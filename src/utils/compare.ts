@@ -160,8 +160,6 @@ interface StaminaStats {
 export function runComparison(params: RunComparisonParams): CompareResult {
   const { nsamples, course, racedef, runnerA, runnerB, pacer, options } = params;
 
-  const { includeRunData = true } = options;
-
   const seed = options.seed ?? 0;
   const posKeepMode = options.posKeepMode ?? PosKeepMode.None;
   const mode = options.mode ?? 'compare';
@@ -949,25 +947,12 @@ export function runComparison(params: RunComparisonParams): CompareResult {
   // We don't need to overwrite it - just ensure the rushed field is properly formatted
   // The rushed data comes from the RaceSolver.rushedActivations collected during each specific run
 
-  if (!includeRunData) {
-    return {
-      results: diff,
-      // @ts-expect-error - runData is not included in the compare result
-      runData: null,
-      rushedStats: rushedStatsSummary,
-      leadCompetitionStats: leadCompetitionStatsSummary,
-      // spurtInfo: options.useEnhancedSpurt ? { uma1: {}, uma2: {} } : null,
-      spurtInfo: null,
-      staminaStats: staminaStatsSummary,
-      firstUmaStats: firstUmaStatsSummary,
-    };
-  }
-
   return {
     results: diff,
     runData: { minrun, maxrun, meanrun, medianrun },
     rushedStats: rushedStatsSummary,
     leadCompetitionStats: leadCompetitionStatsSummary,
+    // TODO: Add spurt info IF useEnhancedSpurt is true
     // spurtInfo: options.useEnhancedSpurt ? { uma1: {}, uma2: {} } : null,
     spurtInfo: null,
     staminaStats: staminaStatsSummary,
