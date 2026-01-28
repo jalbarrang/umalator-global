@@ -30,7 +30,7 @@ const useRunnerSkillsActivated = (runnerIndex: number) => {
     const runnerSkills = chartData.sk[runnerIndex];
 
     const skillPositions: Array<SkillPosition> = [];
-    for (const [skillId, activations] of runnerSkills) {
+    for (const [skillId, activations] of Object.entries(runnerSkills)) {
       const firstActivation = activations[0];
 
       skillPositions.push({
@@ -79,7 +79,7 @@ export const SkillsTab = () => {
     const runnerSkills = chartData.sk[0];
     let totalSkillDistance = 0;
 
-    for (const [_, activations] of runnerSkills) {
+    for (const [_, activations] of Object.entries(runnerSkills)) {
       let validActivation;
       for (const activation of activations) {
         if (activation.effectType !== SkillType.Recovery) {
@@ -102,7 +102,7 @@ export const SkillsTab = () => {
     const runnerSkills = chartData.sk[1];
     let totalSkillDistance = 0;
 
-    for (const [_, activations] of runnerSkills) {
+    for (const [_, activations] of Object.entries(runnerSkills)) {
       let validActivation;
       for (const activation of activations) {
         if (activation.effectType !== SkillType.Recovery) {

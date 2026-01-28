@@ -27,7 +27,7 @@ export function SkillBassin() {
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
 
   const basinnChartSelection = (skillId: string) => {
-    const results = skillBasinResults.get(skillId);
+    const results = skillBasinResults[skillId];
 
     if (results?.runData) {
       setSelectedSkills((prev) => {
@@ -62,7 +62,11 @@ export function SkillBassin() {
             </Button>
           )}
 
-          <Button variant="outline" onClick={resetTable} disabled={skillBasinResults.size === 0}>
+          <Button
+            variant="outline"
+            onClick={resetTable}
+            disabled={Object.keys(skillBasinResults).length === 0}
+          >
             Clear
           </Button>
         </ButtonGroup>
@@ -85,13 +89,14 @@ export function SkillBassin() {
 
         <div>
           <BasinnChart
-            data={Array.from(skillBasinResults.values())}
+            data={Object.values(skillBasinResults)}
             hiddenSkills={runner.skills}
             metrics={metrics}
             onSelectionChange={basinnChartSelection}
             onAddSkill={addSkillFromTable}
             selectedSkills={selectedSkills}
             isSimulationRunning={isSimulationRunning}
+            courseDistance={course.distance}
           />
         </div>
       </Activity>

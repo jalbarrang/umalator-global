@@ -28,7 +28,7 @@ export function UmaBassin() {
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
 
   const handleSkillSelected = (skillId: string) => {
-    const results = umaBasinResults.get(skillId);
+    const results = umaBasinResults[skillId];
 
     if (results?.runData) {
       setSelectedSkills((prev) => {
@@ -70,7 +70,11 @@ export function UmaBassin() {
             </Button>
           )}
 
-          <Button variant="outline" onClick={resetTable} disabled={umaBasinResults.size === 0}>
+          <Button
+            variant="outline"
+            onClick={resetTable}
+            disabled={Object.keys(umaBasinResults).length === 0}
+          >
             Clear
           </Button>
         </ButtonGroup>
@@ -93,7 +97,7 @@ export function UmaBassin() {
 
         <div className="grid grid-cols-1 gap-4">
           <BasinnChart
-            data={Array.from(umaBasinResults.values())}
+            data={Object.values(umaBasinResults)}
             hiddenSkills={[]}
             selectedSkills={selectedSkills}
             metrics={metrics}
@@ -102,6 +106,7 @@ export function UmaBassin() {
             onReplaceOutfit={handleReplaceRunnerOutfit}
             showUmaIcons
             isSimulationRunning={isSimulationRunning}
+            courseDistance={course.distance}
           />
         </div>
       </Activity>

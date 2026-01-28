@@ -98,7 +98,7 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
 
     const skills = [];
 
-    for (const [skillId, activations] of runnerASkills.entries()) {
+    for (const [skillId, activations] of Object.entries(runnerASkills)) {
       const skillActivation = getSkillActivation(skillId, activations, 0);
 
       if (skillActivation) {
@@ -106,7 +106,7 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
       }
     }
 
-    for (const [skillId, activations] of runnerBSkills.entries()) {
+    for (const [skillId, activations] of Object.entries(runnerBSkills)) {
       const skillActivation = getSkillActivation(skillId, activations, 1);
 
       if (skillActivation) {

@@ -1,0 +1,149 @@
+/**
+ * CLI Debug Script for Skill Comparison
+ * Usage: bun run debug:skill-compare [options]
+ */
+
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { Command } from 'commander';
+
+import { DebugConfigSchema } from './runner-config.schema';
+import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
+import { runComparison } from '@/modules/simulation/simulators/skill-compare';
+import { racedefToParams } from '@/utils/races';
+import { defaultSimulationOptions } from '@/components/bassin-chart/utils';
+
+const program = new Command();
+
+program
+  .name('debug-skill-compare')
+  .description('Debug skill comparison simulation')
+  .argument('<skillId>', 'Skill ID to test')
+  .option('-n, --samples <samples>', 'Number of samples to run', '100')
+  .option('-s, --seed <seed>', 'Random seed', '0')
+  .option('-c, --config <path>', 'Path to runner config JSON file')
+  .option('-v, --verbose', 'Show detailed activation info', false)
+  .action((skillId, options) => {
+    // Load and validate config
+
+    const samples = parseInt(options.samples);
+    let seed = parseInt(options.seed);
+    if (seed === 0) {
+      seed = Math.floor(Math.random() * 1000000);
+    }
+
+    let config;
+    try {
+      const configPath = resolve(options.config);
+      const configContent = readFileSync(configPath, 'utf-8');
+      const rawConfig = JSON.parse(configContent);
+      config = DebugConfigSchema.parse(rawConfig);
+      console.log(`✅ Loaded config from: ${options.config}\n`);
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error('❌ Failed to load config:', error.message);
+        if ('issues' in error) {
+          console.error('\nValidation errors:');
+          (error as any).issues.forEach((issue: any) => {
+            console.error(`  - ${issue.path.join('.')}: ${issue.message}`);
+          });
+        }
+      }
+      process.exit(1);
+    }
+
+    const { runner, raceConditions, courseId } = config;
+
+    console.log(`🏇 Debugging Skill Comparison for skill: ${skillId}`);
+    console.log(`   Samples: ${samples}, Course: ${courseId}, Seed: ${seed}`);
+    console.log(`   Runner: ${runner.outfitId} (${runner.strategy})`);
+    console.log(`   Base skills: ${runner.skills.join(', ') || 'none'}\n`);
+
+    const course = CourseHelpers.getCourse(courseId);
+    const raceParams = racedefToParams(raceConditions, runner.strategy);
+
+    const simOptions = {
+      ...defaultSimulationOptions,
+      seed,
+    };
+
+    const testRunner: RunnerState = runner;
+
+    // Create runner with skill
+    const runnerWithSkill: RunnerState = {
+      ...testRunner,
+      skills: [...testRunner.skills, skillId],
+    };
+
+    console.log('Running comparison...\n');
+
+    // Run comparison
+    const result = runComparison({
+      nsamples: samples,
+      course,
+      racedef: raceParams,
+      runnerA: testRunner,
+      runnerB: runnerWithSkill,
+      pacer: null,
+      options: simOptions,
+    });
+
+    console.log('📊 Results:');
+    console.log(`  Results array length: ${result.results.length}`);
+    console.log(`  Min: ${result.min.toFixed(3)}`);
+    console.log(`  Max: ${result.max.toFixed(3)}`);
+    console.log(`  Mean: ${result.mean.toFixed(3)}`);
+    console.log(`  Median: ${result.median.toFixed(3)}`);
+    console.log(`  Raw results: ${result.results.map((r) => r.toFixed(3)).join(', ')}`);
+
+    console.log('\n🎯 Skill Activation Summary:');
+    console.log(
+      `\nℹ️  Note: Activation data is captured for specific representative runs (min/max/mean/median),`,
+    );
+    console.log(
+      `   not all ${samples} samples. Use DEBUG_SKILL_ACTIVATIONS=1 to see all activations in real-time.\n`,
+    );
+
+    console.log('Runner A (base skills) - from minrun:');
+    console.log(`  Unique skills activated: ${Object.keys(result.runData.minrun.sk[0]).length}`);
+    if (options.verbose) {
+      console.log(`  sk[0] data:`, JSON.stringify(result.runData.minrun.sk[0], null, 2));
+    }
+
+    console.log('\nRunner B (base skills + test skill) - from minrun:');
+    console.log(`  Unique skills activated: ${Object.keys(result.runData.minrun.sk[1]).length}`);
+    if (options.verbose) {
+      console.log(`  sk[1] data:`, JSON.stringify(result.runData.minrun.sk[1], null, 2));
+    }
+
+    console.log('\n📈 All Run Types:');
+    ['minrun', 'maxrun', 'meanrun', 'medianrun'].forEach((runType) => {
+      const run = result.runData[runType as keyof typeof result.runData];
+      const totalActivations =
+        Object.values(run.sk[0]).flat().length + Object.values(run.sk[1]).flat().length;
+
+      console.log(`  ${runType}: ${totalActivations} total activations`);
+
+      // Show detailed breakdown for this run if verbose
+      if (options.verbose && totalActivations > 0) {
+        [0, 1].forEach((umaIndex) => {
+          const skillMap = run.sk[umaIndex];
+          Object.entries(skillMap).forEach(([executionId, activations]) => {
+            console.log(
+              `    Uma ${umaIndex}, execution ${executionId}: ${activations.length} activations`,
+            );
+            activations.forEach((act, i) => {
+              console.log(
+                `      [${i}] ${act.skillId} @ ${Math.round(act.start)}m-${Math.round(act.end)}m (${act.effectType})`,
+              );
+            });
+          });
+        });
+      }
+    });
+
+    console.log('\n✅ Debug complete!\n');
+  });
+
+program.parse();
