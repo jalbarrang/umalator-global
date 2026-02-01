@@ -12,7 +12,6 @@ export function useStateUrl() {
     const {
       racedef,
       nsamples,
-      seed,
       posKeepMode,
       pacemakerCount,
       showLanes,
@@ -34,7 +33,6 @@ export function useStateUrl() {
     const hash = await serialize(
       courseId,
       nsamples,
-      seed,
       posKeepMode,
       racedef,
       uma1,

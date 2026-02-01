@@ -32,7 +32,7 @@ function removeUniqueSkillsFromRunner(uma: RunnerState): RunnerState {
 export function useUmaBasinPoolRunner() {
   const { pacer } = useRunnersStore();
   const { runner } = useRunner();
-  const { racedef, seed, courseId } = useSettingsStore();
+  const { racedef, courseId } = useSettingsStore();
 
   const poolManagerRef = useRef<PoolManager | null>(null);
 
@@ -49,7 +49,7 @@ export function useUmaBasinPoolRunner() {
     };
   }, []);
 
-  const doBasinnChart = () => {
+  const doBasinnChart = (seed?: number) => {
     if (!poolManagerRef.current) {
       console.error('Pool manager not initialized');
       return;
@@ -71,6 +71,9 @@ export function useUmaBasinPoolRunner() {
     resetTable();
     setTable(filler);
 
+    // Generate random seed if not provided
+    const simulationSeed = seed ?? Math.floor(Math.random() * 1000000);
+
     // Run simulation using pool manager
     poolManagerRef.current.run(
       skills,
@@ -81,7 +84,7 @@ export function useUmaBasinPoolRunner() {
         pacer: pacer,
         options: {
           ...defaultSimulationOptions,
-          seed,
+          seed: simulationSeed,
         },
       },
       {
@@ -89,11 +92,6 @@ export function useUmaBasinPoolRunner() {
           appendResultsToTable(results);
         },
         onStageComplete: (stage, results) => {
-          const activeSkills = Object.values(results).filter((r) => !r.filterReason);
-          console.log(
-            `Stage ${stage} complete with ${Object.keys(results).length} total skills (${activeSkills.length} active, ${Object.keys(results).length - activeSkills.length} filtered)`,
-          );
-
           appendResultsToTable(results);
         },
         onComplete: (results, metrics) => {

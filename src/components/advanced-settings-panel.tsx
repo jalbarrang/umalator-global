@@ -1,14 +1,11 @@
-import { DicesIcon } from 'lucide-react';
 import { PositionKeepSettings } from './position-keeps/position-keep-settings';
 import type { WitVarianceSettings } from '@/store/settings.store';
 import {
   setSamples,
-  setSeed,
   setWitVariance,
   useSettingsStore,
   useWitVariance,
 } from '@/store/settings.store';
-import { setRunOnceCounter } from '@/store/ui.store';
 
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -68,7 +65,7 @@ const WitVarianceSettingRow = ({
 );
 
 export const AdvancedSettingsPanel = () => {
-  const { nsamples, seed } = useSettingsStore();
+  const { nsamples } = useSettingsStore();
   const witVarianceSettings = useWitVariance();
 
   const handleSimWitVarianceToggle = () => {
@@ -79,16 +76,6 @@ export const AdvancedSettingsPanel = () => {
     setWitVariance({ [setting]: !witVarianceSettings[setting] });
   };
 
-  const handleSeedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSeed(parseInt(e.target.value));
-    setRunOnceCounter(0);
-  };
-
-  const handleRandomizeSeed = () => {
-    setSeed(Math.floor(Math.random() * (-1 >>> 0)) >>> 0);
-    setRunOnceCounter(0);
-  };
-
   return (
     <Panel>
       <PanelHeader>
@@ -96,45 +83,20 @@ export const AdvancedSettingsPanel = () => {
       </PanelHeader>
 
       <PanelContent className="flex flex-col gap-4">
-        {/* Samples & Seed */}
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-3">
-            <Label htmlFor="nsamples" className="w-20">
-              Samples:
-            </Label>
-            <Input
-              type="number"
-              id="nsamples"
-              min="1"
-              max="10000"
-              value={nsamples}
-              onInput={(e) => setSamples(+e.currentTarget.value)}
-              className="flex-1"
-            />
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Label htmlFor="seed" className="w-20">
-              Seed:
-            </Label>
-            <div className="flex items-center gap-2 flex-1">
-              <Input
-                type="number"
-                id="seed"
-                value={seed}
-                onChange={handleSeedChange}
-                className="flex-1"
-              />
-              <Button
-                variant="outline"
-                size="icon"
-                title="Randomize seed"
-                onClick={handleRandomizeSeed}
-              >
-                <DicesIcon className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
+        {/* Samples */}
+        <div className="flex items-center gap-3">
+          <Label htmlFor="nsamples" className="w-20">
+            Samples:
+          </Label>
+          <Input
+            type="number"
+            id="nsamples"
+            min="1"
+            max="10000"
+            value={nsamples}
+            onInput={(e) => setSamples(+e.currentTarget.value)}
+            className="flex-1"
+          />
         </div>
 
         <Separator />

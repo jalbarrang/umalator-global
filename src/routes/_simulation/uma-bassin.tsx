@@ -17,6 +17,9 @@ import { ButtonGroup } from '@/components/ui/button-group';
 import { getUmaForUniqueSkill } from '@/modules/skills/utils';
 import { LoadingOverlay } from '@/components/loading-overlay';
 import { RaceSettingsPanel } from '@/modules/skill-planner/components/RaceSettingsPanel';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useSeedManager } from '@/hooks/useSeedManager';
 
 export function UmaBassin() {
   const { chartData, selectedSkills, setSelectedSkills } = useChartData();
@@ -24,6 +27,8 @@ export function UmaBassin() {
   const courseId = useSettingsStore(useShallow((state) => state.courseId));
 
   const { runner, updateRunner, addSkill } = useRunner();
+  
+  const { seedInput, setSeedInput, generateNewSeed, getReplaySeed } = useSeedManager();
 
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
 
@@ -54,12 +59,24 @@ export function UmaBassin() {
 
   const { doBasinnChart, cancelSimulation } = useUmaBasinPoolRunner();
 
+  const handleRunSimulation = () => {
+    const seed = generateNewSeed();
+    doBasinnChart(seed);
+  };
+
+  const handleReplay = () => {
+    const seed = getReplaySeed();
+    if (seed !== null) {
+      doBasinnChart(seed);
+    }
+  };
+
   return (
     <div className="flex flex-col flex-1 gap-4">
       <div className="flex items-center gap-2">
         <ButtonGroup>
           {!isSimulationRunning && (
-            <Button variant="default" onClick={doBasinnChart}>
+            <Button variant="default" onClick={handleRunSimulation}>
               Run Skill Simulations
             </Button>
           )}
@@ -78,6 +95,31 @@ export function UmaBassin() {
             Clear
           </Button>
         </ButtonGroup>
+      </div>
+
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <Label htmlFor="seed-input" className="text-sm text-muted-foreground">
+            Seed:
+          </Label>
+          <Input
+            id="seed-input"
+            type="number"
+            value={seedInput}
+            onChange={(e) => setSeedInput(e.target.value)}
+            placeholder="Run to generate"
+            className="w-40"
+            disabled={isSimulationRunning}
+          />
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleReplay}
+            disabled={isSimulationRunning || seedInput.trim() === ''}
+          >
+            Replay
+          </Button>
+        </div>
       </div>
 
       <Activity mode={!isSimulationRunning ? 'visible' : 'hidden'}>

@@ -27,7 +27,7 @@ const baseSkillsToTest = getBaseSkillsToTest();
 export function useSkillBasinPoolRunner() {
   const { pacer } = useRunnersStore();
   const { runner } = useRunner();
-  const { racedef, seed, courseId } = useSettingsStore();
+  const { racedef, courseId } = useSettingsStore();
 
   const poolManagerRef = useRef<PoolManager | null>(null);
 
@@ -44,7 +44,7 @@ export function useSkillBasinPoolRunner() {
     };
   }, []);
 
-  const doBasinnChart = () => {
+  const doBasinnChart = (seed?: number) => {
     if (!poolManagerRef.current) {
       console.error('Pool manager not initialized');
       return;
@@ -74,6 +74,9 @@ export function useSkillBasinPoolRunner() {
     resetTable();
     setTable(filler);
 
+    // Generate random seed if not provided
+    const simulationSeed = seed ?? Math.floor(Math.random() * 1000000);
+
     // Run simulation using pool manager
     poolManagerRef.current.run(
       skills,
@@ -84,7 +87,7 @@ export function useSkillBasinPoolRunner() {
         pacer: pacer,
         options: {
           ...defaultSimulationOptions,
-          seed,
+          seed: simulationSeed,
         },
       },
       {
@@ -92,18 +95,12 @@ export function useSkillBasinPoolRunner() {
           appendResultsToTable(results);
         },
         onStageComplete: (stage, results) => {
-          const activeSkills = Object.values(results).filter((r) => !r.filterReason);
-          console.log(
-            `Stage ${stage} complete with ${Object.keys(results).length} total skills (${activeSkills.length} active, ${Object.keys(results).length - activeSkills.length} filtered)`,
-          );
           appendResultsToTable(results);
         },
         onComplete: (results, metrics) => {
           appendResultsToTable(results);
           setMetrics(metrics);
           setIsSimulationRunning(false);
-
-          console.log('Skill basin pool simulation complete', results, metrics);
         },
         onError: (error) => {
           console.error('Pool simulation error:', error);

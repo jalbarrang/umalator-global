@@ -15,20 +15,20 @@ import {
   ArrowUpDown,
   ChevronDown,
   ChevronRight,
-  EyeIcon,
-  EyeOffIcon,
+  Eye,
+  EyeClosed,
   Loader2,
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import './BasinnChart.css';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { ActivationFrequencyChart } from './ActivationFrequencyChart';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 import { ActivationEffectChart } from './ActivationEffectChart';
 import type { CellContext, Column, ColumnDef, SortingState } from '@tanstack/react-table';
 import type { PoolMetrics, SkillComparisonRoundResult } from '@/modules/simulation/types';
@@ -36,19 +36,11 @@ import type { SkillSimulationData } from '@/modules/simulation/compare.types';
 import icons from '@/modules/data/icons.json';
 import umas from '@/modules/data/umas.json';
 import skillnames from '@/modules/data/skillnames.json';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 
 import { allSkills } from '@/modules/skills/utils';
 import { formatMs } from '@/utils/time';
-import { cn } from '@/lib/utils';
 import i18n from '@/i18n';
+import { cn } from '@/lib/utils';
 
 function umaForUniqueSkill(skillId: string): string | null {
   const sid = parseInt(skillId);
@@ -92,27 +84,30 @@ const skillNameCell =
         const icon = icons[umaId as keyof typeof icons];
 
         return (
-          <div className="flex items-center gap-2" data-itemtype="uma" data-itemid={umaId}>
+          <>
+            {/* className="flex items-center gap-2" data-itemtype="uma" data-itemid={umaId} */}
             <img src={icon} className="w-8 h-8" />
             <span>{i18n.t(`skillnames.${id}`)}</span>
-          </div>
+          </>
         );
       }
     }
 
     if (!skill) {
       return (
-        <div className="flex items-center gap-2" data-itemtype="skill" data-itemid={id}>
-          <span>{i18n.t(`skillnames.${id}`)}</span>
-        </div>
+        // <div className="flex items-center gap-2" data-itemtype="skill" data-itemid={id}>
+        <span>{i18n.t(`skillnames.${id}`)}</span>
+        // </div>
       );
     }
 
     return (
-      <div className="flex items-center gap-2" data-itemtype="skill" data-itemid={id}>
+      // <div className="flex items-center gap-2" data-itemtype="skill" data-itemid={id}>
+      <>
         <img src={`/icons/${skill.meta.iconId}.png`} className="w-4 h-4" />
         <span>{i18n.t(`skillnames.${id}`)}</span>
-      </div>
+      </>
+      // </div>
     );
   };
 
@@ -132,7 +127,7 @@ const sortableHeader =
     };
 
     return (
-      <Button variant="ghost" onClick={handleClick}>
+      <Button variant="ghost" onClick={handleClick} className="cursor-pointer p-0">
         {name}
 
         {isSorted === 'asc' && <ArrowUp />}
@@ -170,22 +165,20 @@ function ActivationDetails({
 
   // Collect all activation positions
   const runTypes = ['minrun', 'maxrun', 'meanrun', 'medianrun'] as const;
+
   runTypes.forEach((runType) => {
     const run = runData[runType];
-    if (run?.sk) {
-      // Check both uma indices since skill could be on either runner
-      [0, 1].forEach((umaIndex) => {
-        const skillMap = run.sk[umaIndex];
-        if (skillMap) {
-          const activations = skillMap[skillId];
-          if (activations) {
-            activations.forEach((activation) => {
-              activationPositions.push(activation.start);
-            });
-          }
-        }
-      });
-    }
+
+    // Only use the second uma index since the skill is always on uma2
+    const skillMap = run?.sk[1];
+    if (!skillMap) return;
+
+    const activations = skillMap[skillId];
+    if (!activations) return;
+
+    activations.forEach((activation) => {
+      activationPositions.push(activation.start);
+    });
   });
 
   // Calculate position statistics
@@ -237,6 +230,7 @@ function ActivationDetails({
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm">Skill Activation Analysis</CardTitle>
+
           <div className="flex items-center gap-4 text-xs">
             <div className="flex flex-col items-end">
               <span className="text-muted-foreground">Average Position</span>
@@ -259,14 +253,9 @@ function ActivationDetails({
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <ActivationFrequencyChart
-            skillId={skillId}
-            runData={runData}
-            courseDistance={courseDistance}
-            umaIndex={0}
-          />
+
+      <CardContent className="flex flex-col gap-2">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
           <ActivationEffectChart
             skillId={skillId}
             runData={runData}
@@ -275,7 +264,24 @@ function ActivationDetails({
           />
         </div>
 
-        <div className="pt-2 border-t">
+        <div className="border-t flex flex-col gap-2 pt-2">
+          <div className="flex items-center gap-3 text-xs">
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded bg-chart-1" />
+              <span className="text-muted-foreground">Early Race</span>
+            </div>
+
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded bg-chart-3" />
+              <span className="text-muted-foreground">Mid Race</span>
+            </div>
+
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded bg-chart-4" />
+              <span className="text-muted-foreground">Late Race</span>
+            </div>
+          </div>
+
           <div className="text-xs text-muted-foreground">
             This visualization shows where along the race course this skill typically activates. Use
             this information to understand if the skill's activation conditions match your race
@@ -287,6 +293,8 @@ function ActivationDetails({
   );
 }
 
+const gridClass = 'grid grid-cols-[50px_50px_50px_1fr_150px_150px_150px_150px] w-full';
+
 export const BasinnChart = (props: BasinnChartProps) => {
   const {
     selectedSkills,
@@ -296,7 +304,6 @@ export const BasinnChart = (props: BasinnChartProps) => {
     showUmaIcons = false,
     onReplaceOutfit,
     isSimulationRunning,
-    courseDistance = 2000,
   } = props;
 
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
@@ -314,39 +321,6 @@ export const BasinnChart = (props: BasinnChartProps) => {
   };
 
   const columns: Array<ColumnDef<SkillComparisonRoundResult>> = [
-    {
-      id: 'expand',
-      header: '',
-      cell: (info: CellContext<SkillComparisonRoundResult, unknown>) => {
-        const row = info.row.original;
-        const skillId = row.id;
-        const hasRunData = row.runData != null;
-        const isExpanded = expandedRows.has(skillId);
-
-        if (!hasRunData) {
-          return <div className="w-8" />;
-        }
-
-        return (
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              toggleRow(skillId);
-            }}
-            title={isExpanded ? 'Collapse details' : 'Show activation details'}
-          >
-            {isExpanded ? (
-              <ChevronDown className="h-4 w-4" />
-            ) : (
-              <ChevronRight className="h-4 w-4" />
-            )}
-          </Button>
-        );
-      },
-      enableSorting: false,
-    },
     {
       id: 'actions',
       header: '',
@@ -411,22 +385,62 @@ export const BasinnChart = (props: BasinnChartProps) => {
 
         return (
           <div className="flex items-center justify-center">
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={() => {
-                onSelectionChange(skillId);
-              }}
-              disabled={!hasRunData}
-              title={tooltipText}
-            >
-              {selectedSkills.includes(skillId) ? (
-                <EyeOffIcon className="h-4 w-4 text-primary" />
-              ) : (
-                <EyeIcon className="h-4 w-4 text-muted-foreground" />
-              )}
-            </Button>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => {
+                      onSelectionChange(skillId);
+                    }}
+                    disabled={!hasRunData}
+                    title={tooltipText}
+                  >
+                    {selectedSkills.includes(skillId) ? (
+                      <Eye className="h-4 w-4 text-primary" />
+                    ) : (
+                      <EyeClosed className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                }
+              />
+              <TooltipContent>{tooltipText}</TooltipContent>
+            </Tooltip>
           </div>
+        );
+      },
+      enableSorting: false,
+    },
+    {
+      id: 'expand',
+      header: '',
+      cell: (info: CellContext<SkillComparisonRoundResult, unknown>) => {
+        const row = info.row.original;
+        const skillId = row.id;
+        const hasRunData = row.runData != null;
+        const isExpanded = expandedRows.has(skillId);
+
+        if (!hasRunData) {
+          return <div className="w-8" />;
+        }
+
+        return (
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleRow(skillId);
+            }}
+            title={isExpanded ? 'Collapse details' : 'Show activation details'}
+          >
+            {isExpanded ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )}
+          </Button>
         );
       },
       enableSorting: false,
@@ -491,8 +505,12 @@ export const BasinnChart = (props: BasinnChartProps) => {
     count: rows.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => 50,
-    overscan: 20,
+    overscan: 30,
     getItemKey: (index) => rows[index].id,
+    measureElement:
+      typeof window !== 'undefined' && navigator.userAgent.indexOf('Firefox') === -1
+        ? (element) => element?.getBoundingClientRect().height
+        : undefined,
   });
 
   return (
@@ -529,112 +547,95 @@ export const BasinnChart = (props: BasinnChartProps) => {
         </div>
       )}
 
-      <div
-        ref={parentRef}
-        style={{
-          height: `400px`,
-          overflow: 'auto',
-        }}
-      >
-        <div
-          style={{ height: `${virtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}
-        >
-          <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id} colSpan={header.colSpan}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(header.column.columnDef.header, header.getContext())}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              ))}
-            </TableHeader>
+      {/* Table Container */}
+      <div ref={parentRef} className="overflow-auto relative h-[600px]">
+        {/* Table */}
+        <div className="w-full text-sm">
+          {/* Table Header */}
+          <div className="sticky top-0 z-30">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <div key={headerGroup.id} className={cn('bg-card hover:bg-muted p-2', gridClass)}>
+                {headerGroup.headers.map((header) => (
+                  <div
+                    key={header.id}
+                    className={cn('flex items-center gap-2', {
+                      'cursor-pointer': ['min', 'max', 'mean', 'median'].includes(header.id),
+                    })}
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(header.column.columnDef.header, header.getContext())}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
 
-            <TableBody>
-              {virtualizer.getVirtualItems().map((virtualRow, index) => {
-                const row = rows[virtualRow.index];
+          {/* Table Body */}
+          <div
+            className="relative"
+            style={{
+              height: `${virtualizer.getTotalSize()}px`,
+            }}
+          >
+            {virtualizer.getVirtualItems().map((virtualRow, _index) => {
+              const row = rows[virtualRow.index];
 
-                const id: string = row.getValue('id');
-                const isSelected = selectedSkills.includes(id);
-                const isExpanded = expandedRows.has(id);
-                const rowData = props.data.find((d) => d.id === id);
-                const hasRunData = rowData?.runData != null;
+              const id: string = row.getValue('id');
+              const isSelected = selectedSkills.includes(id);
+              const isExpanded = expandedRows.has(id);
+              const rowData = props.data.find((d) => d.id === id);
+              const hasRunData = rowData?.runData != null;
 
-                return (
-                  <TableRow
-                    key={row.id}
-                    className={cn({
+              return (
+                <div
+                  key={row.id}
+                  data-index={virtualRow.index}
+                  ref={(node) => virtualizer.measureElement(node)}
+                  className={cn(
+                    'w-full bg-background hover:bg-muted p-2 border-b last-of-type:border-b-0',
+                    'flex flex-col gap-2',
+                    {
                       hidden: props.hiddenSkills.includes(id),
                       'bg-primary/5': isSelected,
-                      'border-b-0': isExpanded && hasRunData,
-                    })}
-                    style={{
-                      height: `${virtualRow.size}px`,
-                      transform: `translateY(${virtualRow.start - index * virtualRow.size}px)`,
-                    }}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                );
-              })}
+                    },
+                  )}
+                  style={{
+                    position: 'absolute',
+                    transform: `translateY(${virtualRow.start}px)`, //this should always be a `style` as it changes on scroll
+                  }}
+                >
+                  <div className={gridClass}>
+                    {row.getVisibleCells().map((cell) => {
+                      const column = cell.column;
+                      const columnId = column.id;
+                      const cellValue = cell.getValue();
+                      const extraProps: Record<string, unknown> = {};
 
-              {/* {table.getRowModel().rows.map((row) => {
-                const id: string = row.getValue('id');
-                const isSelected = selectedSkills.includes(id);
-                const isExpanded = expandedRows.has(id);
-                const rowData = props.data.find((d) => d.id === id);
-                const hasRunData = rowData?.runData != null;
+                      if (columnId === 'id') {
+                        extraProps['data-itemtype'] = 'skill';
+                        extraProps['data-itemid'] = cellValue;
+                      }
 
-                return (
-                  <>
-                    <TableRow
-                      key={row.id}
-                      data-skillid={id}
-                      className={cn({
-                        hidden: props.hiddenSkills.includes(id),
-                        'bg-primary/5': isSelected,
-                        'border-b-0': isExpanded && hasRunData,
-                      })}
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
+                      return (
+                        <div key={cell.id} className="flex items-center gap-2" {...extraProps}>
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </TableCell>
-                      ))}
-                    </TableRow>
+                        </div>
+                      );
+                    })}
+                  </div>
 
-                    {isExpanded && hasRunData && rowData?.runData && (
-                      <TableRow
-                        key={`${row.id}-expanded`}
-                        className={cn({
-                          hidden: props.hiddenSkills.includes(id),
-                        })}
-                      >
-                        <TableCell
-                          colSpan={table.getAllColumns().length}
-                          className="p-4 bg-muted/30"
-                        >
-                          <ActivationDetails
-                            skillId={id}
-                            runData={rowData.runData}
-                            courseDistance={courseDistance}
-                          />
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </>
-                );
-              })} */}
-            </TableBody>
-          </Table>
+                  {isExpanded && hasRunData && rowData?.runData && (
+                    <ActivationDetails
+                      skillId={id}
+                      runData={rowData.runData}
+                      courseDistance={props.courseDistance ?? 1400}
+                    />
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>

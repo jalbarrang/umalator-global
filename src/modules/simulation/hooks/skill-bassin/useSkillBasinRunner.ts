@@ -36,7 +36,7 @@ const SAMPLES_PER_STAGE = [5, 20, 50, 200];
 export function useSkillBasinRunner() {
   const { pacer } = useRunnersStore();
   const { runner } = useRunner();
-  const { racedef, seed, courseId } = useSettingsStore();
+  const { racedef, courseId } = useSettingsStore();
 
   const worker1Ref = useRef<Worker | null>(null);
   const worker2Ref = useRef<Worker | null>(null);
@@ -143,6 +143,9 @@ export function useSkillBasinRunner() {
 
     resetTable();
     setTable(filler);
+
+    // Generate random seed
+    const seed = Math.floor(Math.random() * 1000000);
 
     worker1Ref.current?.postMessage({
       msg: 'chart',

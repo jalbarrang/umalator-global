@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import CompareWorker from '@workers/simulator.worker.ts?worker';
 import type { CompareResult } from '@/modules/simulation/compare.types';
 import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
@@ -31,7 +31,7 @@ type WorkerMessage<T> =
 export function useSimulationRunner() {
   const { uma1, uma2, pacer } = useRunnersStore();
 
-  const { racedef, nsamples, seed, posKeepMode, pacemakerCount, courseId } = useSettingsStore();
+  const { racedef, nsamples, posKeepMode, pacemakerCount, courseId } = useSettingsStore();
 
   const {
     simWitVariance,
@@ -44,8 +44,6 @@ export function useSimulationRunner() {
     allowSkillCheckChanceUma1,
     allowSkillCheckChanceUma2,
   } = useWitVariance();
-
-  const [runOnceCounter, setRunOnceCounter] = useState(0);
 
   const webWorkerRef = useRef<Worker | null>(null);
 
@@ -89,9 +87,12 @@ export function useSimulationRunner() {
 
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
 
-  const handleRunCompare = () => {
+  const handleRunCompare = (seed?: number) => {
     setIsSimulationRunning(true);
     setSimulationProgress(null);
+
+    // Generate random seed if not provided
+    const simulationSeed = seed ?? Math.floor(Math.random() * 1000000);
 
     webWorkerRef.current?.postMessage({
       msg: 'compare',
@@ -103,7 +104,7 @@ export function useSimulationRunner() {
         uma2: uma2,
         pacer: pacer,
         options: {
-          seed,
+          seed: simulationSeed,
           posKeepMode,
           allowRushedUma1: simWitVariance ? allowRushedUma1 : false,
           allowRushedUma2: simWitVariance ? allowRushedUma2 : false,
@@ -121,11 +122,12 @@ export function useSimulationRunner() {
     });
   };
 
-  function handleRunOnce() {
+  function handleRunOnce(seed?: number) {
     setIsSimulationRunning(true);
     setSimulationProgress(null);
-    const effectiveSeed = seed + runOnceCounter;
-    setRunOnceCounter((prev) => prev + 1);
+    
+    // Generate random seed if not provided
+    const simulationSeed = seed ?? Math.floor(Math.random() * 1000000);
 
     webWorkerRef.current?.postMessage({
       msg: 'compare',
@@ -137,7 +139,7 @@ export function useSimulationRunner() {
         uma2: uma2,
         pacer: pacer,
         options: {
-          seed: effectiveSeed,
+          seed: simulationSeed,
           posKeepMode,
           allowRushedUma1: simWitVariance ? allowRushedUma1 : false,
           allowRushedUma2: simWitVariance ? allowRushedUma2 : false,

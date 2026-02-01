@@ -28,7 +28,7 @@ interface BinData {
 }
 
 // Color for beneficial effects
-const BENEFICIAL_COLOR = 'hsl(var(--chart-4))';
+const BENEFICIAL_COLOR = 'var(--chart-4)';
 
 export function ActivationEffectChart({
   skillId,
@@ -112,18 +112,18 @@ export function ActivationEffectChart({
         <span className="text-xs text-muted-foreground">Peak: {maxValue} activations/bin</span>
       </div>
 
-      <ResponsiveContainer width="100%" height={150}>
+      <ResponsiveContainer width="100%" height={200}>
         <BarChart data={chartData.bins} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
           <XAxis
             dataKey="start"
             type="number"
             domain={[0, courseDistance]}
             tickFormatter={(value) => `${value}m`}
-            stroke="hsl(var(--muted-foreground))"
+            stroke="var(--muted-foreground)"
             fontSize={11}
           />
-          <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} width={30} />
+          <YAxis stroke="var(--muted-foreground)" fontSize={11} width={30} />
           <Tooltip
             content={({ active, payload }) => {
               if (!active || !payload || !payload.length) return null;
@@ -142,7 +142,7 @@ export function ActivationEffectChart({
             <ReferenceLine
               key={phase.position}
               x={phase.position}
-              stroke="hsl(var(--muted-foreground))"
+              stroke="var(--muted-foreground)"
               strokeDasharray="3 3"
               opacity={0.5}
             />
@@ -151,7 +151,7 @@ export function ActivationEffectChart({
             {chartData.bins.map((entry, index) => (
               <Cell
                 key={`cell-${index}`}
-                fill={entry.maxEffect > 0 ? BENEFICIAL_COLOR : 'hsl(var(--muted))'}
+                fill={entry.maxEffect > 0 ? BENEFICIAL_COLOR : 'var(--muted)'}
               />
             ))}
           </Bar>

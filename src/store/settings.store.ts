@@ -6,7 +6,7 @@ import type { RaceConditions } from '@/utils/races';
 import type { IPosKeepMode } from '@/modules/simulation/lib/runner/definitions';
 import { PosKeepMode } from '@/modules/simulation/lib/runner/definitions';
 import { createRunnerState } from '@/modules/runners/components/runner-card/types';
-import { DEFAULT_COURSE_ID, DEFAULT_SAMPLES, DEFAULT_SEED } from '@/utils/constants';
+import { DEFAULT_COURSE_ID, DEFAULT_SAMPLES } from '@/utils/constants';
 import { createRaceConditions } from '@/utils/races';
 
 export type WitVarianceSettings = {
@@ -24,7 +24,6 @@ export type WitVarianceSettings = {
 type ISettingsStore = {
   courseId: number;
   nsamples: number;
-  seed: number;
   posKeepMode: IPosKeepMode;
   racedef: RaceConditions;
   uma1: RunnerState;
@@ -49,7 +48,6 @@ export const useSettingsStore = create<ISettingsStore>()(
     (_) => ({
       courseId: DEFAULT_COURSE_ID,
       nsamples: DEFAULT_SAMPLES,
-      seed: DEFAULT_SEED,
       posKeepMode: PosKeepMode.Approximate,
       racedef: createRaceConditions(),
       uma1: createRunnerState(),
@@ -101,10 +99,6 @@ export const setWitVariance = (witVarianceSettings: Partial<WitVarianceSettings>
 
 export const setSamples = (samples: number) => {
   useSettingsStore.setState({ nsamples: samples });
-};
-
-export const setSeed = (seed: number) => {
-  useSettingsStore.setState({ seed });
 };
 
 export const setPosKeepMode = (posKeepMode: IPosKeepMode) => {

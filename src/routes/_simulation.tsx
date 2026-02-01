@@ -24,7 +24,7 @@ export function SimulationLayout() {
       />
       <LeftSidebar />
 
-      <div className="flex flex-col flex-1 p-4 gap-4 overflow-y-auto min-h-0">
+      <div className="flex flex-col flex-1 p-4 gap-4">
         <SimulationModeToggle />
         <Outlet />
       </div>

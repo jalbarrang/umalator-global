@@ -144,7 +144,7 @@ export interface SkillComparisonResult {
 }
 
 export function runComparison(params: RunComparisonParams): SkillComparisonResult {
-  const { nsamples, course, racedef, runnerA, runnerB, pacer, options } = params;
+  const { nsamples, course, racedef, runnerA, runnerB, options } = params;
 
   const seed = options.seed ?? 0;
   const posKeepMode = options.posKeepMode ?? PosKeepMode.None;
@@ -291,7 +291,7 @@ export function runComparison(params: RunComparisonParams): SkillComparisonResul
       }
 
       if (effectTarget === SkillTarget.Self) {
-        const skillSetValue = skillsSet.get(executionId) ?? [];
+        const skillSetValue = skillsSet.get(skillId) ?? [];
 
         skillSetValue.push({
           executionId,
@@ -303,7 +303,7 @@ export function runComparison(params: RunComparisonParams): SkillComparisonResul
           effectTarget,
         });
 
-        skillsSet.set(executionId, skillSetValue);
+        skillsSet.set(skillId, skillSetValue);
       }
     };
   };
@@ -312,7 +312,7 @@ export function runComparison(params: RunComparisonParams): SkillComparisonResul
     return (
       _raceSolver: RaceSolver,
       currentPosition: number,
-      executionId: string,
+      _executionId: string,
       skillId: string,
       _perspective: ISkillPerspective,
       _effectType: ISkillType,
@@ -322,7 +322,7 @@ export function runComparison(params: RunComparisonParams): SkillComparisonResul
         return;
       }
 
-      const skillActivations = skillsSet.get(executionId) ?? [];
+      const skillActivations = skillsSet.get(skillId) ?? [];
 
       if (skillActivations && skillActivations.length > 0) {
         const firstActivation = skillActivations?.[0];
@@ -335,7 +335,7 @@ export function runComparison(params: RunComparisonParams): SkillComparisonResul
           }
         }
 
-        skillsSet.set(executionId, skillActivations);
+        skillsSet.set(skillId, skillActivations);
       }
     };
   };

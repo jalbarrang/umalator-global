@@ -1,4 +1,4 @@
-import { DEFAULT_COURSE_ID, DEFAULT_SAMPLES, DEFAULT_SEED } from './constants';
+import { DEFAULT_COURSE_ID, DEFAULT_SAMPLES } from './constants';
 import { createRaceConditions } from './races';
 import type { RaceConditions } from './races';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
@@ -9,7 +9,6 @@ import { createRunnerState } from '@/modules/runners/components/runner-card/type
 export async function serialize(
   courseId: number,
   nsamples: number,
-  seed: number,
   posKeepMode: IPosKeepMode,
   racedef: RaceConditions,
   uma1: RunnerState,
@@ -34,7 +33,6 @@ export async function serialize(
   const json = JSON.stringify({
     courseId,
     nsamples,
-    seed,
     posKeepMode,
     racedef: racedef,
     uma1: uma1,
@@ -110,7 +108,6 @@ export async function deserialize(hash: string) {
         return {
           courseId: o.courseId,
           nsamples: o.nsamples,
-          seed: o.seed ?? DEFAULT_SEED, // field added later, could be undefined when loading state from existing links
           posKeepMode:
             o.posKeepMode != null
               ? o.posKeepMode
@@ -143,7 +140,6 @@ export async function deserialize(hash: string) {
         return {
           courseId: DEFAULT_COURSE_ID,
           nsamples: DEFAULT_SAMPLES,
-          seed: DEFAULT_SEED,
           posKeepMode: PosKeepMode.Approximate,
           racedef: createRaceConditions(),
           uma1: createRunnerState(),
@@ -175,7 +171,6 @@ export async function deserialize(hash: string) {
 export async function saveToLocalStorage(
   courseId: number,
   nsamples: number,
-  seed: number,
   posKeepMode: IPosKeepMode,
   racedef: RaceConditions,
   uma1: RunnerState,
@@ -201,7 +196,6 @@ export async function saveToLocalStorage(
     const hash = await serialize(
       courseId,
       nsamples,
-      seed,
       posKeepMode,
       racedef,
       uma1,
