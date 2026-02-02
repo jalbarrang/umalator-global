@@ -30,6 +30,8 @@ import {
 } from '../ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 import { ActivationEffectChart } from './ActivationEffectChart';
+import { TableSearchBar } from './TableSearchBar';
+import { useTableSearch } from './hooks/useTableSearch';
 import type { CellContext, Column, ColumnDef, SortingState } from '@tanstack/react-table';
 import type { PoolMetrics, SkillComparisonRoundResult } from '@/modules/simulation/types';
 import type { SkillSimulationData } from '@/modules/simulation/compare.types';
@@ -293,7 +295,7 @@ function ActivationDetails({
   );
 }
 
-const gridClass = 'grid grid-cols-[50px_50px_50px_1fr_150px_150px_150px_150px] w-full';
+const gridClass = 'grid grid-cols-[50px_50px_50px_1fr_100px_100px_100px_100px] w-full';
 
 export const BasinnChart = (props: BasinnChartProps) => {
   const {
@@ -513,6 +515,18 @@ export const BasinnChart = (props: BasinnChartProps) => {
         : undefined,
   });
 
+  // Search functionality
+  const search = useTableSearch({
+    rows,
+    getSearchableText: (row) => {
+      const skillId: string = row.getValue('id');
+      return i18n.t(`skillnames.${skillId}`);
+    },
+    onScrollToRow: (index) => {
+      virtualizer.scrollToIndex(index, { align: 'center' });
+    },
+  });
+
   return (
     <div className="relative">
       {/* Loading Overlay */}
@@ -546,6 +560,20 @@ export const BasinnChart = (props: BasinnChartProps) => {
           </div>
         </div>
       )}
+
+      {/* Search Bar */}
+      <TableSearchBar
+        isOpen={search.isSearchOpen}
+        searchQuery={search.searchQuery}
+        onSearchChange={search.setSearchQuery}
+        onClose={search.closeSearch}
+        onNext={search.goToNextMatch}
+        onPrevious={search.goToPreviousMatch}
+        currentMatchIndex={search.currentMatchIndex}
+        totalMatches={search.matches.length}
+        hasMatches={search.hasMatches}
+        searchInputRef={search.searchInputRef}
+      />
 
       {/* Table Container */}
       <div ref={parentRef} className="overflow-auto relative h-[600px]">
@@ -586,6 +614,8 @@ export const BasinnChart = (props: BasinnChartProps) => {
               const isExpanded = expandedRows.has(id);
               const rowData = props.data.find((d) => d.id === id);
               const hasRunData = rowData?.runData != null;
+              const isSearchMatch = search.matches.includes(virtualRow.index);
+              const isCurrentMatch = search.matches[search.currentMatchIndex] === virtualRow.index;
 
               return (
                 <div
@@ -597,7 +627,9 @@ export const BasinnChart = (props: BasinnChartProps) => {
                     'flex flex-col gap-2',
                     {
                       hidden: props.hiddenSkills.includes(id),
-                      'bg-primary/5': isSelected,
+                      'bg-primary/5': isSelected && !isSearchMatch,
+                      'bg-yellow-100/50 dark:bg-yellow-900/20': isSearchMatch && !isCurrentMatch,
+                      'bg-yellow-200/70 dark:bg-yellow-800/40': isCurrentMatch,
                     },
                   )}
                   style={{
