@@ -15,8 +15,6 @@ import {
   ArrowUpDown,
   ChevronDown,
   ChevronRight,
-  Eye,
-  EyeClosed,
   Loader2,
 } from 'lucide-react';
 import { Button } from '../ui/button';
@@ -27,7 +25,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
-import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 import { TableSearchBar } from './TableSearchBar';
 import { useTableSearch } from './hooks/useTableSearch';
 import { ActivationDetails } from './activation-details';
@@ -150,13 +147,12 @@ type BasinnChartProps = {
   onReplaceOutfit?: (id: string) => void;
 };
 
-const gridClass = 'grid grid-cols-[50px_50px_50px_1fr_100px_100px_100px_100px] w-full';
+const gridClass = 'grid grid-cols-[50px_50px_1fr_100px_100px_100px_100px] w-full';
 
 export const BasinnChart = (props: BasinnChartProps) => {
   const {
     selectedSkills,
     onAddSkill,
-    onSelectionChange,
     metrics,
     showUmaIcons = false,
     onReplaceOutfit,
@@ -217,55 +213,6 @@ export const BasinnChart = (props: BasinnChartProps) => {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          );
-        },
-        enableSorting: false,
-      },
-      {
-        id: 'visualize',
-        header: '',
-        cell: (info: CellContext<SkillComparisonRoundResult, unknown>) => {
-          const row = info.row.original;
-          const skillId = row.id;
-          const hasRunData = row.runData != null;
-          const filterReason = row.filterReason;
-
-          let tooltipText = 'Show on race track';
-          if (!hasRunData) {
-            if (filterReason === 'negligible-effect') {
-              tooltipText = 'Skill effect too small to measure (< 0.1 bashin)';
-            } else if (filterReason === 'low-variance') {
-              tooltipText = 'Skill effect too consistent to need detailed analysis';
-            } else {
-              tooltipText = 'No detailed data available (filtered during simulation)';
-            }
-          }
-
-          return (
-            <div className="flex items-center justify-center">
-              <Tooltip>
-                <TooltipTrigger
-                  render={
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={() => {
-                        onSelectionChange(skillId);
-                      }}
-                      disabled={!hasRunData}
-                      title={tooltipText}
-                    >
-                      {selectedSkills.includes(skillId) ? (
-                        <Eye className="h-4 w-4 text-primary" />
-                      ) : (
-                        <EyeClosed className="h-4 w-4 text-muted-foreground" />
-                      )}
-                    </Button>
-                  }
-                />
-                <TooltipContent>{tooltipText}</TooltipContent>
-              </Tooltip>
-            </div>
           );
         },
         enableSorting: false,

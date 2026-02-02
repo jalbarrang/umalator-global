@@ -8,8 +8,10 @@ import type {
   Stats,
 } from '@/modules/simulation/compare.types';
 import type { SpurtCandidate } from '@/modules/simulation/lib/utils/SpurtCalculator';
+import { generateSeed } from '@/utils/crypto';
 
 type IRaceStore = {
+  seed: number | null;
   results: Array<number>;
   runData: SimulationData | null;
   chartData: SimulationRun | null;
@@ -24,6 +26,7 @@ type IRaceStore = {
 };
 
 export const useRaceStore = create<IRaceStore>()((_) => ({
+  seed: null,
   results: [],
   runData: null,
   chartData: null,
@@ -36,6 +39,17 @@ export const useRaceStore = create<IRaceStore>()((_) => ({
   isSimulationRunning: false,
   simulationProgress: null,
 }));
+
+export const setSeed = (seed: number | null) => {
+  useRaceStore.setState({ seed });
+};
+
+export const createNewSeed = () => {
+  const seed = generateSeed();
+  useRaceStore.setState({ seed });
+
+  return seed;
+};
 
 export const setResults = (results: CompareResult) => {
   const { displaying = 'meanrun' } = useRaceStore.getState();

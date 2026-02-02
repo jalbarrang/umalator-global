@@ -77,24 +77,24 @@ export function ActivationDetails(props: ActivationDetailsProps) {
   }
 
   return (
-    <Card className="mt-2">
-      <CardHeader className="pb-3">
+    <Card className="mt-2 rounded-none">
+      <CardHeader className="border-b">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm">Skill Activation Analysis</CardTitle>
 
           <div className="flex items-center gap-4 text-xs">
-            <div className="flex flex-col items-end">
-              <span className="text-muted-foreground">Avg. Proc Position</span>
+            <div className="flex items-end gap-1">
+              <span className="text-muted-foreground">Avg. Proc Position:</span>
               <span className="font-semibold">{Math.round(stats.averagePosition)}m</span>
             </div>
-            <div className="flex flex-col items-end">
-              <span className="text-muted-foreground">Proc Range</span>
+            <div className="flex items-end gap-1">
+              <span className="text-muted-foreground">Proc Range: </span>
               <span className="font-semibold">
                 {Math.round(stats.earliestPosition)}-{Math.round(stats.latestPosition)}m
               </span>
             </div>
-            <div className="flex flex-col items-end">
-              <span className="text-muted-foreground">Primary Phase</span>
+            <div className="flex items-end gap-1">
+              <span className="text-muted-foreground">Primary Phase: </span>
               <span className="font-semibold">{stats.primaryPhase}</span>
             </div>
             {/* Hidden for now */}
@@ -107,6 +107,8 @@ export function ActivationDetails(props: ActivationDetailsProps) {
       </CardHeader>
 
       <CardContent className="flex flex-col gap-2">
+        {/* TODO: Add button that lets run additional samples for this specific skill */}
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
           <ActivationEffectChart
             skillId={skillId}

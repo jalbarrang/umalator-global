@@ -1,5 +1,10 @@
-import { Activity, useMemo } from 'react';
-import { resetResults, useRaceStore } from '@/modules/simulation/stores/compare.store';
+import { Activity, useCallback, useMemo, useState } from 'react';
+import {
+  createNewSeed,
+  resetResults,
+  setSeed,
+  useRaceStore,
+} from '@/modules/simulation/stores/compare.store';
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button-group';
 import { LoadingOverlay } from '@/components/loading-overlay';
@@ -17,41 +22,43 @@ import { RaceSettingsPanel } from '@/modules/skill-planner/components/RaceSettin
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useSeedManager } from '@/hooks/useSeedManager';
+import { parseSeed } from '@/utils/crypto';
 
 export function SimulationHome() {
-  const { chartData, results, isSimulationRunning, simulationProgress } = useRaceStore();
+  const { chartData, results, isSimulationRunning, simulationProgress, seed } = useRaceStore();
   const { courseId } = useSettingsStore();
   const { showVirtualPacemakerOnGraph } = useUIStore();
   const selectedPacemakers = useSelectedPacemakerBooleans();
   const { handleRunCompare, handleRunOnce } = useSimulationRunner();
-  
-  const { seedInput, setSeedInput, generateNewSeed, getReplaySeed } = useSeedManager();
 
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
 
+  const [seedInput, setSeedInput] = useState<string>('');
+
+  const handleSeedInputBlur = useCallback(() => {
+    const parsedSeed = parseSeed(seedInput);
+    if (parsedSeed === null) return;
+    setSeed(parsedSeed);
+  }, [seedInput]);
+
   const handleRunAllSamples = () => {
-    const seed = generateNewSeed();
-    handleRunCompare(seed);
+    const newSeed = createNewSeed();
+    handleRunCompare(newSeed);
   };
 
   const handleRunOneSample = () => {
-    const seed = generateNewSeed();
-    handleRunOnce(seed);
+    const newSeed = createNewSeed();
+    handleRunOnce(newSeed);
   };
 
   const handleReplayAllSamples = () => {
-    const seed = getReplaySeed();
-    if (seed !== null) {
-      handleRunCompare(seed);
-    }
+    if (seed === null) return;
+    handleRunCompare(seed);
   };
 
   const handleReplayOneSample = () => {
-    const seed = getReplaySeed();
-    if (seed !== null) {
-      handleRunOnce(seed);
-    }
+    if (seed === null) return;
+    handleRunOnce(seed);
   };
 
   return (
@@ -84,6 +91,7 @@ export function SimulationHome() {
             type="number"
             value={seedInput}
             onChange={(e) => setSeedInput(e.target.value)}
+            onBlur={handleSeedInputBlur}
             placeholder="Run to generate"
             className="w-40"
             disabled={isSimulationRunning}

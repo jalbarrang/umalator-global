@@ -15,18 +15,32 @@ import type {
   SkillComparisonResponse,
   SkillComparisonRoundResult,
 } from '@/modules/simulation/types';
+import { generateSeed } from '@/utils/crypto';
 
 type IUmaBasinStore = {
+  seed: number | null;
   results: SkillComparisonResponse;
   metrics: PoolMetrics | null;
   isSimulationRunning: boolean;
 };
 
 export const useUniqueSkillBasinStore = create<IUmaBasinStore>()((_) => ({
+  seed: null,
   results: {},
   metrics: null,
   isSimulationRunning: false,
 }));
+
+export const setSeed = (seed: number | null) => {
+  useUniqueSkillBasinStore.setState({ seed });
+};
+
+export const createNewSeed = () => {
+  const seed = generateSeed();
+  useUniqueSkillBasinStore.setState({ seed });
+
+  return seed;
+};
 
 export const setTable = (results: SkillComparisonResponse) => {
   useUniqueSkillBasinStore.setState({ results });

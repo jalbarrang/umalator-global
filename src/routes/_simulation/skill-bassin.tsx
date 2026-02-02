@@ -1,35 +1,39 @@
-import { Activity, useMemo } from 'react';
+import { Activity, useCallback, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { useSkillBasinPoolRunner } from '@/modules/simulation/hooks/pool/useSkillBasinPoolRunner';
 import {
+  createNewSeed,
   resetTable,
+  setSeed,
   useChartData,
   useSkillBasinStore,
 } from '@/modules/simulation/stores/skill-basin.store';
 import { BasinnChart } from '@/components/bassin-chart/BasinnChart';
 import { LoadingOverlay } from '@/components/loading-overlay';
 import { Button } from '@/components/ui/button';
-import { ButtonGroup } from '@/components/ui/button-group';
-import { VelocityLines } from '@/components/VelocityLines';
-import { RaceTrack } from '@/modules/racetrack/components/RaceTrack';
 import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
 import { setSkillToRunner, useRunner } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
 import { RaceSettingsPanel } from '@/modules/skill-planner/components/RaceSettingsPanel';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useSeedManager } from '@/hooks/useSeedManager';
+import { parseSeed } from '@/utils/crypto';
 
 export function SkillBassin() {
-  const { chartData, selectedSkills, setSelectedSkills } = useChartData();
-  const { results: skillBasinResults, metrics, isSimulationRunning } = useSkillBasinStore();
+  const { selectedSkills, setSelectedSkills } = useChartData();
+  const { results: skillBasinResults, metrics, isSimulationRunning, seed } = useSkillBasinStore();
   const courseId = useSettingsStore(useShallow((state) => state.courseId));
 
   const { runnerId, runner } = useRunner();
-
-  const { seedInput, setSeedInput, generateNewSeed, getReplaySeed } = useSeedManager();
+  const [seedInput, setSeedInput] = useState<string>('');
 
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
+
+  const handleSeedInputBlur = useCallback(() => {
+    const parsedSeed = parseSeed(seedInput);
+    if (parsedSeed === null) return;
+    setSeed(parsedSeed);
+  }, [seedInput]);
 
   const basinnChartSelection = (skillId: string) => {
     const results = skillBasinResults[skillId];
@@ -52,44 +56,31 @@ export function SkillBassin() {
   const { doBasinnChart, cancelSimulation } = useSkillBasinPoolRunner();
 
   const handleRunSimulation = () => {
-    const seed = generateNewSeed();
-    doBasinnChart(seed);
+    const newSeed = createNewSeed();
+    doBasinnChart(newSeed);
   };
 
   const handleReplay = () => {
-    const seed = getReplaySeed();
-    if (seed !== null) {
-      doBasinnChart(seed);
-    }
+    if (seed === null) return;
+
+    doBasinnChart(seed);
   };
 
   return (
     <div className="flex flex-col gap-4 flex-1">
       <div className="flex items-center gap-2">
-        <ButtonGroup>
-          {!isSimulationRunning && (
-            <Button variant="default" onClick={handleRunSimulation}>
-              Run Skill Simulations
-            </Button>
-          )}
-
-          {isSimulationRunning && (
-            <Button variant="destructive" onClick={cancelSimulation}>
-              Cancel Simulation
-            </Button>
-          )}
-
-          <Button
-            variant="outline"
-            onClick={resetTable}
-            disabled={Object.keys(skillBasinResults).length === 0}
-          >
-            Clear
+        {!isSimulationRunning && (
+          <Button variant="default" onClick={handleRunSimulation}>
+            Run Skill Simulations
           </Button>
-        </ButtonGroup>
-      </div>
+        )}
 
-      <div className="flex items-center gap-4">
+        {isSimulationRunning && (
+          <Button variant="destructive" onClick={cancelSimulation}>
+            Cancel Simulation
+          </Button>
+        )}
+
         <div className="flex items-center gap-2">
           <Label htmlFor="seed-input" className="text-sm text-muted-foreground">
             Seed:
@@ -99,23 +90,31 @@ export function SkillBassin() {
             type="number"
             value={seedInput}
             onChange={(e) => setSeedInput(e.target.value)}
+            onBlur={handleSeedInputBlur}
             placeholder="Run to generate"
             className="w-40"
             disabled={isSimulationRunning}
           />
           <Button
-            variant="secondary"
-            size="sm"
+            variant="outline"
             onClick={handleReplay}
             disabled={isSimulationRunning || seedInput.trim() === ''}
           >
             Replay
           </Button>
         </div>
+
+        <Button
+          variant="outline"
+          onClick={resetTable}
+          disabled={Object.keys(skillBasinResults).length === 0}
+        >
+          Clear
+        </Button>
       </div>
 
       <Activity mode={!isSimulationRunning ? 'visible' : 'hidden'}>
-        <RaceTrack courseid={courseId} chartData={chartData} xOffset={35} yOffset={35} yExtra={20}>
+        {/* <RaceTrack courseid={courseId} chartData={chartData} xOffset={35} yOffset={35} yExtra={20}>
           <VelocityLines
             data={chartData}
             courseDistance={course.distance}
@@ -125,7 +124,7 @@ export function SkillBassin() {
             showVirtualPacemaker={false}
             selectedPacemakers={[]}
           />
-        </RaceTrack>
+        </RaceTrack> */}
 
         <RaceSettingsPanel />
 
