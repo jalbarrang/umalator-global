@@ -6,7 +6,7 @@
 import { clone, cloneDeepWith } from 'es-toolkit';
 import type { SkillComparisonResponse } from '@/modules/simulation/types';
 import type { SimulationParams, WorkBatch, WorkerInMessage, WorkerOutMessage } from '../types';
-import { run1Round } from '@/modules/simulation/simulators/skill-compare';
+import { runSampling } from '@/modules/simulation/simulators/skill-compare';
 
 let workerId = -1;
 let simulationParams: SimulationParams | null = null;
@@ -50,7 +50,7 @@ function processBatch(batch: WorkBatch): void {
     options: options,
   };
 
-  const results: SkillComparisonResponse = run1Round(roundParams);
+  const results: SkillComparisonResponse = runSampling(roundParams);
 
   // Send results back to pool manager
   sendMessage({

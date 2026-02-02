@@ -220,8 +220,8 @@ export function runComparisonWithAnalytics(
     };
   };
 
-  runnerBRaceSolver.onSkillActivate(getActivator(runnerBSkillActivations));
-  runnerBRaceSolver.onSkillDeactivate(getDeactivator(runnerBSkillActivations));
+  runnerBRaceSolver.onEffectActivated(getActivator(runnerBSkillActivations));
+  runnerBRaceSolver.onEffectExpired(getDeactivator(runnerBSkillActivations));
 
   const a = runnerARaceSolver.build();
   const b = runnerBRaceSolver.build();

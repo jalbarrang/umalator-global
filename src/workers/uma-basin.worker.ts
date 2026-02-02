@@ -9,7 +9,7 @@ import type { RaceParameters } from '@/modules/simulation/lib/definitions';
 
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import type { Run1RoundParams, SimulationOptions } from '@/modules/simulation/types';
-import { run1Round } from '@/modules/simulation/simulators/skill-compare';
+import { runSampling } from '@/modules/simulation/simulators/skill-compare';
 
 type PrepareRoundParams = {
   courseData: CourseData;
@@ -72,7 +72,7 @@ function runChart(params: RunChartParams) {
     options: options,
   });
 
-  const results = run1Round(roundParamGenerator(5, newSkills));
+  const results = runSampling(roundParamGenerator(5, newSkills));
   postMessage({ type: 'uma-bassin', results: results });
 
   // Stage 1 filter: mark skills with negligible effect
@@ -87,7 +87,7 @@ function runChart(params: RunChartParams) {
     return true;
   });
 
-  const firstUpdate = run1Round(roundParamGenerator(20, newSkills));
+  const firstUpdate = runSampling(roundParamGenerator(20, newSkills));
   mergeResultSets(results, firstUpdate);
   postMessage({ type: 'uma-bassin', results: results });
 
@@ -102,12 +102,12 @@ function runChart(params: RunChartParams) {
     return true;
   });
 
-  const secondUpdate = run1Round(roundParamGenerator(50, newSkills));
+  const secondUpdate = runSampling(roundParamGenerator(50, newSkills));
   mergeResultSets(results, secondUpdate);
   postMessage({ type: 'uma-bassin', results: results });
 
   // Final update
-  const finalUpdate = run1Round(roundParamGenerator(200, newSkills));
+  const finalUpdate = runSampling(roundParamGenerator(200, newSkills));
   mergeResultSets(results, finalUpdate);
   postMessage({ type: 'uma-bassin', results: results });
 

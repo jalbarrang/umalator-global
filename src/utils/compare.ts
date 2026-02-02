@@ -338,7 +338,7 @@ export function runComparison(params: RunComparisonParams): CompareResult {
   const runnerASkillActivations: Map<string, Array<SkillActivation>> = new Map();
   const runnerBSkillActivations: Map<string, Array<SkillActivation>> = new Map();
 
-  const getActivator = (
+  const handleEffectActivation = (
     skillsSet: Map<string, Array<SkillActivation>>,
     othersSet: Map<string, Array<SkillActivation>>,
   ) => {
@@ -389,7 +389,7 @@ export function runComparison(params: RunComparisonParams): CompareResult {
     };
   };
 
-  const getDeactivator = (
+  const handleEffectExpiration = (
     skillsSet: Map<string, Array<SkillActivation>>,
     _othersSet: Map<string, Array<SkillActivation>>,
   ) => {
@@ -427,17 +427,21 @@ export function runComparison(params: RunComparisonParams): CompareResult {
   // Runner A Solver:
   // Self → skillPos1
   // Other -> skillPos2
-  runnerARaceSolver.onSkillActivate(getActivator(runnerASkillActivations, runnerBSkillActivations));
-  runnerARaceSolver.onSkillDeactivate(
-    getDeactivator(runnerASkillActivations, runnerBSkillActivations),
+  runnerARaceSolver.onEffectActivated(
+    handleEffectActivation(runnerASkillActivations, runnerBSkillActivations),
+  );
+  runnerARaceSolver.onEffectExpired(
+    handleEffectExpiration(runnerASkillActivations, runnerBSkillActivations),
   );
 
   // Runner B Solver:
   // Self → skillPos2
   // Other -> skillPos1
-  runnerBRaceSolver.onSkillActivate(getActivator(runnerBSkillActivations, runnerASkillActivations));
-  runnerBRaceSolver.onSkillDeactivate(
-    getDeactivator(runnerBSkillActivations, runnerASkillActivations),
+  runnerBRaceSolver.onEffectActivated(
+    handleEffectActivation(runnerBSkillActivations, runnerASkillActivations),
+  );
+  runnerBRaceSolver.onEffectExpired(
+    handleEffectExpiration(runnerBSkillActivations, runnerASkillActivations),
   );
 
   const a = runnerARaceSolver.build();
@@ -720,7 +724,7 @@ export function runComparison(params: RunComparisonParams): CompareResult {
         // This handles both race-end cleanup and very short duration skills
         // Use the correct skill position maps for this solver
         const currentPosition = solver.pos;
-        getDeactivator(selfSkillSet, othersSkillSet)(
+        handleEffectExpiration(selfSkillSet, othersSkillSet)(
           solver,
           currentPosition,
           skill.executionId,

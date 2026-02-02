@@ -24,6 +24,7 @@ export type SkillBasinResponse = Record<string, RoundResult>;
 export type SkillComparisonRoundResult = {
   id: string;
   results: Array<number>;
+  skillActivations: Record<string, Array<{ position: number }>>;
   runData: SkillSimulationData;
   min: number;
   max: number;

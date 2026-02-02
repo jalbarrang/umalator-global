@@ -1,3 +1,4 @@
+import { merge } from 'es-toolkit';
 import type { SkillSimulationData } from '@/modules/simulation/compare.types';
 import type {
   SkillComparisonResponse,
@@ -12,6 +13,7 @@ export const mergeSkillResults = (
   const countB = resultB.results.length;
 
   const combinedResults = resultA.results.concat(resultB.results).toSorted((a, b) => a - b);
+
   const combinedMean = (resultA.mean * countA + resultB.mean * countB) / (countA + countB);
   const mid = Math.floor(combinedResults.length / 2);
   const newMedian =
@@ -19,48 +21,29 @@ export const mergeSkillResults = (
       ? (combinedResults[mid - 1] + combinedResults[mid]) / 2
       : combinedResults[mid];
 
-  // const allruns1 = resultA.runData?.allruns ?? {};
-  // const allruns2 = resultB.runData?.allruns ?? {};
-  // const { skBasinn: skBasinn1, sk: sk1, totalRuns: totalRuns1, ...rest1 } = allruns1;
-  // const { skBasinn: skBasinn2, sk: sk2, totalRuns: totalRuns2, ...rest2 } = allruns2;
+  const selectedRunData = countB > countA ? resultB.runData : resultA.runData;
+  const minrun = resultA.min < resultB.min ? resultA.runData.minrun : resultB.runData.minrun;
+  const maxrun = resultA.max > resultB.max ? resultA.runData.maxrun : resultB.runData.maxrun;
 
-  // const mergedAllRuns: any = {
-  //   ...rest1,
-  //   ...rest2,
-  //   totalRuns: (totalRuns1 || 0) + (totalRuns2 || 0),
-  // };
+  const mergedRunData: SkillSimulationData = merge(selectedRunData, {
+    minrun,
+    maxrun,
+  });
 
-  // if (skBasinn1 && skBasinn2) {
-  //   mergedAllRuns.skBasinn = [
-  //     mergeSkillMaps(skBasinn1[0] || {}, skBasinn2[0] || {}),
-  //     mergeSkillMaps(skBasinn1[1] || {}, skBasinn2[1] || {}),
-  //   ];
-  // } else if (skBasinn1 || skBasinn2) {
-  //   mergedAllRuns.skBasinn = skBasinn1 || skBasinn2;
-  // }
-
-  // if (sk1 && sk2) {
-  //   mergedAllRuns.sk = [
-  //     mergeSkillMaps(sk1[0] || {}, sk2[0] || {}),
-  //     mergeSkillMaps(sk1[1] || {}, sk2[1] || {}),
-  //   ];
-  // } else if (sk1 || sk2) {
-  //   mergedAllRuns.sk = sk1 || sk2;
-  // }
+  const activations = merge(resultA.skillActivations, resultB.skillActivations);
 
   return {
     id: resultA.id,
+
     results: combinedResults,
+    runData: mergedRunData,
+    skillActivations: activations,
+
     min: Math.min(resultA.min, resultB.min),
     max: Math.max(resultA.max, resultB.max),
     mean: combinedMean,
     median: newMedian,
-    runData: {
-      ...(countB > countA ? resultB.runData : resultA.runData),
-      // allruns: mergedAllRuns,
-      minrun: resultA.min < resultB.min ? resultA.runData.minrun : resultB.runData.minrun,
-      maxrun: resultA.max > resultB.max ? resultA.runData.maxrun : resultB.runData.maxrun,
-    },
+
     filterReason: resultB.filterReason ?? resultA.filterReason,
   };
 };
@@ -76,7 +59,7 @@ export const mergeResults = (
   const resultSizeA = resultA.results.length;
   const resultSizeB = resultB.results.length;
 
-  const combinedResults = [...resultA.results, ...resultB.results].toSorted((a, b) => a - b);
+  const combinedResults = resultA.results.concat(resultB.results).toSorted((a, b) => a - b);
 
   const combinedMean =
     (resultA.mean * resultSizeA + resultB.mean * resultSizeB) / (resultSizeA + resultSizeB);
@@ -88,20 +71,29 @@ export const mergeResults = (
       ? (combinedResults[mid - 1] + combinedResults[mid]) / 2
       : combinedResults[mid];
 
-  const mergedRunData: SkillSimulationData = {
-    ...(resultSizeB > resultSizeA ? resultB.runData : resultA.runData),
-    minrun: resultA.min < resultB.min ? resultA.runData.minrun : resultB.runData.minrun,
-    maxrun: resultA.max > resultB.max ? resultA.runData.maxrun : resultB.runData.maxrun,
-  };
+  const selectedRunData = resultSizeB > resultSizeA ? resultB.runData : resultA.runData;
+  const minrun = resultA.min < resultB.min ? resultA.runData.minrun : resultB.runData.minrun;
+  const maxrun = resultA.max > resultB.max ? resultA.runData.maxrun : resultB.runData.maxrun;
+
+  const mergedRunData: SkillSimulationData = merge(selectedRunData, {
+    minrun,
+    maxrun,
+  });
+
+  const activations = merge(resultA.skillActivations, resultB.skillActivations);
 
   return {
     id: resultA.id,
+
     results: combinedResults,
+    skillActivations: activations,
+    runData: mergedRunData,
+
     min: Math.min(resultA.min, resultB.min),
     max: Math.max(resultA.max, resultB.max),
     mean: combinedMean,
     median: newMedian,
-    runData: mergedRunData,
+
     // Preserve filterReason from either result (newer result takes precedence)
     filterReason: resultB.filterReason ?? resultA.filterReason,
   };

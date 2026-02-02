@@ -170,6 +170,10 @@ export function createRaceSolver(
     disableSectionModifier: overrides?.disableSectionModifier ?? true,
     speedUpProbability: overrides?.speedUpProbability ?? 0,
     skillCheckChance: overrides?.skillCheckChance ?? false,
+
+    onSkillActivated: undefined,
+    onEffectActivated: undefined,
+    onEffectExpired: undefined,
   });
 }
 
@@ -222,4 +226,3 @@ export function advanceByTime(solver: RaceSolver, seconds: number): void {
     solver.step(dt);
   }
 }
-

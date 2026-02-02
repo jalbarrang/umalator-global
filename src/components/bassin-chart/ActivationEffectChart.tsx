@@ -10,14 +10,12 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import type { SkillSimulationData } from '@/modules/simulation/compare.types';
 import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
 
 interface ActivationEffectChartProps {
   skillId: string;
-  runData: SkillSimulationData;
+  skillActivations: Record<string, Array<{ position: number }>>;
   courseDistance: number;
-  umaIndex?: number;
 }
 
 interface BinData {
@@ -25,44 +23,39 @@ interface BinData {
   end: number;
   maxEffect: number;
   activationCount: number;
+  phase: number;
 }
 
-// Color for beneficial effects
-const BENEFICIAL_COLOR = 'var(--chart-4)';
+// Phase colors matching the RaceTrack visualization
+const PHASE_COLORS = [
+  'rgb(0,154,111)', // Early race (green)
+  'rgb(242,233,103)', // Mid race (yellow)
+  'rgb(209,134,175)', // Late race (light pink)
+  'rgb(255,130,130)', // Last spurt (light red)
+];
+
+// Helper function to determine which phase a position belongs to
+const getPhaseForPosition = (position: number, courseDistance: number): number => {
+  const phase1Start = CourseHelpers.phaseStart(courseDistance, 1);
+  const phase2Start = CourseHelpers.phaseStart(courseDistance, 2);
+  const phase3Start = CourseHelpers.phaseStart(courseDistance, 3);
+
+  if (position < phase1Start) return 0;
+  if (position < phase2Start) return 1;
+  if (position < phase3Start) return 2;
+  return 3;
+};
 
 export function ActivationEffectChart({
   skillId,
-  runData,
+  skillActivations,
   courseDistance,
-  umaIndex = 0,
 }: ActivationEffectChartProps) {
   const chartData = useMemo(() => {
-    // This chart is currently simplified - in the original it tracks basinn difference at activation
-    // For now, we'll show activation positions colored by phase
+    // Get all activations for this skill across all simulation runs
+    const activations = skillActivations[skillId];
 
-    const activationData: Array<{ position: number; basinn?: number }> = [];
-
-    // Process all run types
-    const runTypes = ['minrun', 'maxrun', 'meanrun', 'medianrun'] as const;
-
-    runTypes.forEach((runType) => {
-      const run = runData[runType];
-      if (!run || !run.sk) return;
-
-      // From the results data, only use the second value from the sk array (uma2) as the skill is always on uma2
-      const skillMap = run.sk[1];
-
-      // Find the activations for the skill
-      const activations = skillMap[skillId];
-
-      activations.forEach((activation) => {
-        activationData.push({
-          position: activation.start,
-        });
-      });
-    });
-
-    if (activationData.length === 0) {
+    if (!activations || activations.length === 0) {
       return { bins: [], hasData: false, phaseStarts: [] };
     }
 
@@ -77,11 +70,12 @@ export function ActivationEffectChart({
         end: i + binSize,
         maxEffect: 0,
         activationCount: 0,
+        phase: getPhaseForPosition(i, courseDistance),
       });
     }
 
-    // Count activations per bin
-    activationData.forEach(({ position }) => {
+    // Count activations per bin from all accumulated activations
+    activations.forEach(({ position }) => {
       const binIndex = Math.floor(position / binSize);
       if (binIndex >= 0 && binIndex < bins.length) {
         bins[binIndex].activationCount++;
@@ -97,7 +91,7 @@ export function ActivationEffectChart({
     ];
 
     return { bins, hasData: true, phaseStarts };
-  }, [skillId, runData, courseDistance, umaIndex]);
+  }, [skillId, skillActivations, courseDistance]);
 
   if (!chartData.hasData) {
     return null;
@@ -151,7 +145,7 @@ export function ActivationEffectChart({
             {chartData.bins.map((entry, index) => (
               <Cell
                 key={`cell-${index}`}
-                fill={entry.maxEffect > 0 ? BENEFICIAL_COLOR : 'var(--muted)'}
+                fill={entry.maxEffect > 0 ? PHASE_COLORS[entry.phase] : 'var(--muted)'}
               />
             ))}
           </Bar>

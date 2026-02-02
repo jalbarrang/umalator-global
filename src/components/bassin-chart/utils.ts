@@ -72,6 +72,7 @@ export function getNullRow(skillid: string): RoundResult {
 export function getNullSkillComparisonRow(skillid: string): SkillComparisonRoundResult {
   return {
     id: skillid,
+    skillActivations: {},
     min: 0,
     max: 0,
     mean: 0,

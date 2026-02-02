@@ -6,37 +6,12 @@
  */
 
 import { RaceSolver } from './RaceSolver';
-import type { PendingSkill } from './RaceSolver';
+import type { OnSkillCallback, OnSkillEffectCallback, PendingSkill } from './RaceSolver';
 import type { HorseParameters } from '@/modules/simulation/lib/runner/HorseTypes';
 import type { CourseData, IGroundCondition } from '@/modules/simulation/lib/course/definitions';
 import type { PRNG } from '@/modules/simulation/lib/utils/Random';
-import type {
-  ISkillPerspective,
-  ISkillTarget,
-  ISkillType,
-} from '@/modules/simulation/lib/skills/definitions';
 import { GameHpPolicy } from '@/modules/simulation/lib/runner/health/HpPolicy';
 import { EnhancedHpPolicy } from '@/modules/simulation/lib/runner/health/EnhancedHpPolicy';
-
-export type OnSkillActivateCallback = (
-  raceSolver: RaceSolver,
-  currentPosition: number,
-  executionId: string,
-  skillId: string,
-  perspective: ISkillPerspective,
-  type: ISkillType,
-  target: ISkillTarget,
-) => void;
-
-export type OnSkillDeactivateCallback = (
-  raceSolver: RaceSolver,
-  currentPosition: number,
-  executionId: string,
-  skillId: string,
-  perspective: ISkillPerspective,
-  type: ISkillType,
-  target: ISkillTarget,
-) => void;
 
 export type RaceSolverConfig = {
   horse: HorseParameters;
@@ -46,8 +21,9 @@ export type RaceSolverConfig = {
   skills: Array<PendingSkill>;
   pacer?: RaceSolver;
   useEnhancedSpurt?: boolean; // Whether to use enhanced spurt calculations
-  onSkillActivate?: OnSkillActivateCallback;
-  onSkillDeactivate?: OnSkillDeactivateCallback;
+  onSkillActivated: OnSkillCallback | undefined;
+  onEffectActivated: OnSkillEffectCallback | undefined;
+  onEffectExpired: OnSkillEffectCallback | undefined;
   disableRushed?: boolean;
   disableDownhill?: boolean;
 };
@@ -69,10 +45,12 @@ export function createRaceSolver(config: RaceSolverConfig): RaceSolver {
     rng: config.rng,
     skills: config.skills,
     hp: hp,
-    onSkillActivate: config.onSkillActivate,
-    onSkillDeactivate: config.onSkillDeactivate,
     disableRushed: config.disableRushed,
     disableDownhill: config.disableDownhill,
+
+    onSkillActivated: config.onSkillActivated,
+    onEffectActivated: config.onEffectActivated,
+    onEffectExpired: config.onEffectExpired,
   });
 }
 
@@ -111,6 +89,9 @@ export function compareSpurtCalculations(
     rng: rng1,
     skills,
     useEnhancedSpurt: false,
+    onSkillActivated: undefined,
+    onEffectActivated: undefined,
+    onEffectExpired: undefined,
   });
 
   const enhanced = createRaceSolver({
@@ -120,6 +101,9 @@ export function compareSpurtCalculations(
     rng: rng2,
     skills,
     useEnhancedSpurt: true,
+    onSkillActivated: undefined,
+    onEffectActivated: undefined,
+    onEffectExpired: undefined,
   });
 
   // Run simulations

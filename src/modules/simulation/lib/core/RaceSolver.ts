@@ -227,6 +227,41 @@ export interface ActiveSkill {
 
 function noop(..._args: Array<unknown>) {}
 
+export type OnSkillCallback = (event: {
+  raceSolver: RaceSolver;
+  currentPosition: number;
+  skillId: string;
+}) => void;
+
+export type OnSkillEffectCallback = (
+  raceSolver: RaceSolver,
+  currentPosition: number,
+  executionId: string,
+  skillId: string,
+  perspective: ISkillPerspective,
+  type: ISkillType,
+  target: ISkillTarget,
+) => void;
+
+type RaceSolverParams = {
+  horse: HorseParameters;
+  course: CourseData;
+  rng: PRNG;
+  skills: Array<PendingSkill>;
+  hp: HpPolicy;
+  onSkillActivated: OnSkillCallback | undefined;
+  onEffectActivated: OnSkillEffectCallback | undefined;
+  onEffectExpired: OnSkillEffectCallback | undefined;
+  disableRushed?: boolean;
+  disableDownhill?: boolean;
+  disableSectionModifier?: boolean;
+  speedUpProbability?: number;
+  skillCheckChance?: boolean;
+  posKeepMode?: IPosKeepMode;
+  mode?: string;
+  isPacer?: boolean;
+};
+
 export class RaceSolver {
   accumulatetime: Timer;
   pos: number;
@@ -274,9 +309,35 @@ export class RaceSolver {
   declare hillIdx: number;
   declare hillStart: Array<number>;
   declare hillEnd: Array<number>;
+
+  //=== Skill Tracking ===
+
+  /**
+   * Tracks the number of times a skill has been activated.
+   */
   activateCount: Array<number>;
+
+  /**
+   * Tracks the number of times a skill has been activated for healing specifically.
+   */
   activateCountHeal: number;
-  onSkillActivate: (
+
+  /**
+   * Callback when a skill is being activated by a runner.
+   *
+   * Normally this will also call the `onEffectActivated` callback for each effect in the skill.
+   */
+  onSkillActivated: OnSkillCallback;
+
+  /**
+   * Callback for when a skill effect is being activated.
+   */
+  onEffectActivated: OnSkillEffectCallback;
+
+  /**
+   * Callback for when a skill effect is being expired.
+   */
+  onEffectExpired: (
     raceSolver: RaceSolver,
     currentPosition: number,
     executionId: string,
@@ -285,15 +346,7 @@ export class RaceSolver {
     type: ISkillType,
     target: ISkillTarget,
   ) => void;
-  onSkillDeactivate: (
-    raceSolver: RaceSolver,
-    currentPosition: number,
-    executionId: string,
-    skillId: string,
-    perspective: ISkillPerspective,
-    type: ISkillType,
-    target: ISkillTarget,
-  ) => void;
+
   sectionLength: number;
   umas: Array<RaceSolver>;
   isPacer: boolean;
@@ -370,43 +423,7 @@ export class RaceSolver {
   private conditionValues: Map<string, number> = new Map();
   private conditions: Map<string, ApproximateCondition> = new Map();
 
-  constructor(params: {
-    horse: HorseParameters;
-    course: CourseData;
-    rng: PRNG;
-    skills: Array<PendingSkill>;
-    hp: HpPolicy;
-    onSkillActivate?:
-      | ((
-          raceSolver: RaceSolver,
-          currentPosition: number,
-          executionId: string,
-          skillId: string,
-          perspective: ISkillPerspective,
-          type: ISkillType,
-          target: ISkillTarget,
-        ) => void)
-      | null;
-    onSkillDeactivate?:
-      | ((
-          raceSolver: RaceSolver,
-          currentPosition: number,
-          executionId: string,
-          skillId: string,
-          perspective: ISkillPerspective,
-          type: ISkillType,
-          target: ISkillTarget,
-        ) => void)
-      | null;
-    disableRushed?: boolean;
-    disableDownhill?: boolean;
-    disableSectionModifier?: boolean;
-    speedUpProbability?: number;
-    skillCheckChance?: boolean;
-    posKeepMode?: IPosKeepMode;
-    mode?: string;
-    isPacer?: boolean;
-  }) {
+  constructor(params: RaceSolverParams) {
     // clone since green skills may modify the stat values
     this.horse = Object.assign({}, params.horse);
     this.course = params.course;
@@ -437,6 +454,10 @@ export class RaceSolver {
     this.randomLot = this.rng.uniform(100);
     this.phase = 0;
     this.nextPhaseTransition = CourseHelpers.phaseStart(this.course.distance, 1);
+
+    // ## Skill Tracking
+
+    // ### Skill activations
     this.activeTargetSpeedSkills = [];
     this.activeCurrentSpeedSkills = [];
     this.activeAccelSkills = [];
@@ -444,8 +465,13 @@ export class RaceSolver {
     this.activeChangeLaneSkills = [];
     this.activateCount = [0, 0, 0];
     this.activateCountHeal = 0;
-    this.onSkillActivate = params.onSkillActivate ?? noop;
-    this.onSkillDeactivate = params.onSkillDeactivate ?? noop;
+
+    // ### Skill callback
+    this.onSkillActivated = params.onSkillActivated ?? noop;
+    // ### Effect callbacks
+    this.onEffectActivated = params.onEffectActivated ?? noop;
+    this.onEffectExpired = params.onEffectExpired ?? noop;
+
     this.sectionLength = this.course.distance / 24.0;
     this.posKeepMinThreshold = PositionKeep.minThreshold(this.horse.strategy, this.course.distance);
     this.posKeepMaxThreshold = PositionKeep.maxThreshold(this.horse.strategy, this.course.distance);
@@ -454,10 +480,12 @@ export class RaceSolver {
     this.posKeepMode = params.posKeepMode ?? PosKeepMode.None;
     this.posKeepStrategy = this.horse.strategy;
     this.mode = params.mode;
+
     // For skill chart we want to minimize poskeep skewing results
     // (i.e. in rare situations, an uma can proc a velocity skill, and gain initial positioning
     // but then lose that positioning because they are too far forward to proc Pace Up)
     // this then results in -L in the charts
+
     this.posKeepEnd = this.sectionLength * (this.mode === 'compare' ? 10.0 : 3.0);
     this.posKeepSpeedCoef = 1.0;
     this.isPacer = params.isPacer ?? false;
@@ -465,7 +493,7 @@ export class RaceSolver {
     this.umas = [];
     this.pacer = null;
 
-    //init timer
+    // init timer
     this.speedUpProbability = params.speedUpProbability != null ? params.speedUpProbability : 100;
 
     // Initialize rushed state
@@ -1456,7 +1484,7 @@ export class RaceSolver {
 
       this.modifiers.targetSpeed.add(-skill.modifier);
 
-      this.onSkillDeactivate(
+      this.onEffectExpired(
         this,
         currentPosition,
         skill.executionId,
@@ -1483,7 +1511,7 @@ export class RaceSolver {
         this.modifiers.oneFrameAccel += skill.modifier;
       }
 
-      this.onSkillDeactivate(
+      this.onEffectExpired(
         this,
         currentPosition,
         skill.executionId,
@@ -1505,7 +1533,7 @@ export class RaceSolver {
       }
 
       this.modifiers.accel.add(-skill.modifier);
-      this.onSkillDeactivate(
+      this.onEffectExpired(
         this,
         currentPosition,
         skill.executionId,
@@ -1526,7 +1554,7 @@ export class RaceSolver {
         continue;
       }
 
-      this.onSkillDeactivate(
+      this.onEffectExpired(
         this,
         currentPosition,
         skill.executionId,
@@ -1547,7 +1575,7 @@ export class RaceSolver {
         continue;
       }
 
-      this.onSkillDeactivate(
+      this.onEffectExpired(
         this,
         currentPosition,
         skill.executionId,
@@ -1576,7 +1604,7 @@ export class RaceSolver {
         if (
           this.skillCheckChance &&
           !this.shouldSkipWisdomCheck(skill) &&
-          !this.checkWisdomForSkill(skill)
+          !this.doWitCheck(skill)
         ) {
           // Wisdom check failed - don't keep
           continue;
@@ -1594,17 +1622,23 @@ export class RaceSolver {
     this.pendingSkills.length = writeIdx;
   }
 
-  checkWisdomForSkill(skill: PendingSkill): boolean {
+  /**
+   * Does a Wit Check for a skill a Runner is trying to activate.
+   *
+   * NOTE: This method right now for some cases is trying to check the Wit stat for another runner, as in check when another runner has hit them with a debuff or buff.
+   *       but if think that each runner should only check their own Wit.
+   */
+  doWitCheck(skill: PendingSkill): boolean {
+    if (skill.perspective !== SkillPerspective.Self) {
+      throw new Error('Wit check can only be done for self perspective skills');
+    }
+
     const rngRoll = this.wisdomRollRng.random();
 
-    const wisdom =
-      skill.perspective === SkillPerspective.Other && skill.originWisdom !== undefined
-        ? skill.originWisdom
-        : this.horse.wisdom;
+    const witStat = this.horse.wisdom;
+    const witCheckThreshold = Math.max(100 - 9000 / witStat, 20) * 0.01;
 
-    const wisdomCheck = Math.max(100 - 9000 / wisdom, 20) * 0.01;
-
-    return rngRoll <= wisdomCheck;
+    return rngRoll <= witCheckThreshold;
   }
 
   shouldSkipWisdomCheck(skill: PendingSkill): boolean {
@@ -1635,6 +1669,12 @@ export class RaceSolver {
     const executionId = `${skill.skillId}-${crypto.randomUUID()}`;
     const currentPosition = this.pos;
 
+    this.onSkillActivated({
+      raceSolver: this,
+      currentPosition,
+      skillId: skill.skillId,
+    });
+
     for (const skillEffect of sortedEffects) {
       const skillDurationScaling =
         skill.rarity == SkillRarity.Evolution ? this.modifiers.specialSkillDurationScaling : 1; // TODO should probably be awakened skills
@@ -1642,9 +1682,20 @@ export class RaceSolver {
       const scaledDuration =
         skillEffect.baseDuration * (this.course.distance / 1000) * skillDurationScaling;
 
-      // Track first
+      // Apply First
+
+      this.applyEffect({
+        skillEffect,
+        executionId,
+        skillId: skill.skillId,
+        perspective: skill.perspective,
+        scaledDuration,
+      });
+
+      // Track later
+
       if (shouldTrackEffect(skillEffect)) {
-        this.onSkillActivate(
+        this.onEffectActivated(
           this,
           currentPosition,
           executionId,
@@ -1654,16 +1705,6 @@ export class RaceSolver {
           skillEffect.target,
         );
       }
-
-      // Then apply the effect
-
-      this.applyEffect({
-        skillEffect,
-        executionId,
-        skillId: skill.skillId,
-        perspective: skill.perspective,
-        scaledDuration,
-      });
     }
 
     ++this.activateCount[this.phase];
@@ -1823,7 +1864,7 @@ export class RaceSolver {
     const callDeactivateHook = (activeSkill: ActiveSkill) => {
       const currentPosition = this.pos;
 
-      this.onSkillDeactivate(
+      this.onEffectExpired(
         this,
         currentPosition,
         activeSkill.executionId,

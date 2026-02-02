@@ -10,7 +10,7 @@ import { Command } from 'commander';
 import { DebugConfigSchema } from './runner-config.schema';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
-import { runComparison } from '@/modules/simulation/simulators/skill-compare';
+import { runSkillComparison } from '@/modules/simulation/simulators/skill-compare';
 import { racedefToParams } from '@/utils/races';
 import { defaultSimulationOptions } from '@/components/bassin-chart/utils';
 
@@ -79,7 +79,8 @@ program
     console.log('Running comparison...\n');
 
     // Run comparison
-    const result = runComparison({
+    const result = runSkillComparison({
+      trackedSkillId: skillId,
       nsamples: samples,
       course,
       racedef: raceParams,

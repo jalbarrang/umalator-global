@@ -21,7 +21,11 @@ import type {
   SkillSimulationRun,
 } from '@/modules/simulation/compare.types';
 
-import type { ActiveSkill, RaceSolver } from '@/modules/simulation/lib/core/RaceSolver';
+import type {
+  ActiveSkill,
+  OnSkillCallback,
+  RaceSolver,
+} from '@/modules/simulation/lib/core/RaceSolver';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import type { CourseData, IGroundCondition } from '@/modules/simulation/lib/course/definitions';
 import type {
@@ -135,6 +139,7 @@ export function calculateTheoreticalMaxSpurt(
 
 export interface SkillComparisonResult {
   results: Array<number>;
+  skillActivations: Record<string, Array<{ position: number }>>;
   runData: SkillSimulationData;
 
   min: number;
@@ -143,8 +148,12 @@ export interface SkillComparisonResult {
   median: number;
 }
 
-export function runComparison(params: RunComparisonParams): SkillComparisonResult {
-  const { nsamples, course, racedef, runnerA, runnerB, options } = params;
+type SkillCompareParams = RunComparisonParams & {
+  trackedSkillId: string;
+};
+
+export function runSkillComparison(params: SkillCompareParams): SkillComparisonResult {
+  const { nsamples, course, racedef, runnerA, runnerB, trackedSkillId, options } = params;
 
   const seed = options.seed ?? 0;
   const posKeepMode = options.posKeepMode ?? PosKeepMode.None;
@@ -274,9 +283,28 @@ export function runComparison(params: RunComparisonParams): SkillComparisonResul
     }
   }
 
-  const runnerBSkillActivations: Map<string, Array<SkillActivation>> = new Map();
+  // ===== Skill Activation Tracking =====
 
-  const getActivator = (skillsSet: Map<string, Array<SkillActivation>>) => {
+  const runnerBSkillActivations: Map<string, Array<{ position: number }>> = new Map();
+  const runnerBEffectLogs: Map<string, Array<SkillActivation>> = new Map();
+
+  const handleSkillActivation = (
+    skillsSet: Map<string, Array<{ position: number }>>,
+  ): OnSkillCallback => {
+    return (context) => {
+      const { currentPosition, skillId } = context;
+
+      if (skillId !== trackedSkillId) {
+        return;
+      }
+
+      const skillActivations = skillsSet.get(skillId) ?? [];
+      skillActivations.push({ position: currentPosition });
+      skillsSet.set(skillId, skillActivations);
+    };
+  };
+
+  const handleEffectActivated = (skillsSet: Map<string, Array<SkillActivation>>) => {
     return (
       _raceSolver: RaceSolver,
       currentPosition: number,
@@ -308,7 +336,7 @@ export function runComparison(params: RunComparisonParams): SkillComparisonResul
     };
   };
 
-  const getDeactivator = (skillsSet: Map<string, Array<SkillActivation>>) => {
+  const handleEffectExpiration = (skillsSet: Map<string, Array<SkillActivation>>) => {
     return (
       _raceSolver: RaceSolver,
       currentPosition: number,
@@ -340,8 +368,9 @@ export function runComparison(params: RunComparisonParams): SkillComparisonResul
     };
   };
 
-  runnerBRaceSolver.onSkillActivate(getActivator(runnerBSkillActivations));
-  runnerBRaceSolver.onSkillDeactivate(getDeactivator(runnerBSkillActivations));
+  runnerBRaceSolver.onSkillActivated(handleSkillActivation(runnerBSkillActivations));
+  runnerBRaceSolver.onEffectActivated(handleEffectActivated(runnerBEffectLogs));
+  runnerBRaceSolver.onEffectExpired(handleEffectExpiration(runnerBEffectLogs));
 
   const a = runnerARaceSolver.build();
   const b = runnerBRaceSolver.build();
@@ -364,6 +393,10 @@ export function runComparison(params: RunComparisonParams): SkillComparisonResul
   const sampleCutoff = Math.max(Math.floor(nsamples * 0.8), nsamples - 200);
 
   let retry = false;
+
+  // ===============================================
+  // Sample Loop
+  // ===============================================
 
   for (let i = 0; i < nsamples; ++i) {
     const solverA = a.next(retry).value as RaceSolver;
@@ -421,7 +454,7 @@ export function runComparison(params: RunComparisonParams): SkillComparisonResul
         // This handles both race-end cleanup and very short duration skills
         // Use the correct skill position maps for this solver
         const currentPosition = solver.pos;
-        getDeactivator(selfSkillSet)(
+        handleEffectExpiration(selfSkillSet)(
           solver,
           currentPosition,
           skill.executionId,
@@ -441,12 +474,12 @@ export function runComparison(params: RunComparisonParams): SkillComparisonResul
     // s1 comes from generator 'a' (standard), s2 comes from generator 'b' (compare)
     // standard uses skillPos1 for self, skillPos2 for other, debuffsReceived1 for debuffs received
     // compare uses skillPos2 for self, skillPos1 for other, debuffsReceived2 for debuffs received
-    cleanupActiveSkills(solverB, runnerBSkillActivations);
+    cleanupActiveSkills(solverB, runnerBEffectLogs);
 
-    data.sk[1] = Object.fromEntries(runnerBSkillActivations);
+    data.sk[1] = Object.fromEntries(runnerBEffectLogs);
 
     // Clear the maps instead of reassigning to preserve closure references
-    runnerBSkillActivations.clear();
+    runnerBEffectLogs.clear();
 
     retry = false;
 
@@ -492,6 +525,10 @@ export function runComparison(params: RunComparisonParams): SkillComparisonResul
     }
   }
 
+  // ===============================================
+  // Calculate Statistics
+  // ===============================================
+
   diff.sort((a, b) => a - b);
 
   const mid = Math.floor(diff.length / 2);
@@ -500,6 +537,7 @@ export function runComparison(params: RunComparisonParams): SkillComparisonResul
 
   return {
     results: diff,
+    skillActivations: Object.fromEntries(runnerBSkillActivations),
     runData: { minrun, maxrun, meanrun, medianrun },
 
     min: diff[0],
@@ -509,21 +547,22 @@ export function runComparison(params: RunComparisonParams): SkillComparisonResul
   };
 }
 
-export const run1Round = (params: Run1RoundParams) => {
+export const runSampling = (params: Run1RoundParams) => {
   const { nsamples, skills, course, racedef, uma, pacer, options } = params;
 
   const data: SkillComparisonResponse = {};
 
-  skills.forEach((id) => {
-    const withSkill = cloneDeep(uma);
-    withSkill.skills.push(id);
+  for (const id of skills) {
+    const runnerWithTrackedSkill = cloneDeep(uma);
+    runnerWithTrackedSkill.skills.push(id);
 
-    const { results, runData, min, max, mean, median } = runComparison({
+    const { results, runData, min, max, mean, median, skillActivations } = runSkillComparison({
+      trackedSkillId: id,
       nsamples,
       course,
       racedef,
       runnerA: uma,
-      runnerB: withSkill,
+      runnerB: runnerWithTrackedSkill,
       pacer,
       options,
     });
@@ -531,6 +570,7 @@ export const run1Round = (params: Run1RoundParams) => {
     data[id] = {
       id,
       results,
+      skillActivations,
       runData,
       min,
       max,
@@ -538,7 +578,7 @@ export const run1Round = (params: Run1RoundParams) => {
       median,
       filterReason: undefined,
     };
-  });
+  }
 
   return data;
 };

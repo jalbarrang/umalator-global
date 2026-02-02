@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 import {
   flexRender,
@@ -21,7 +21,6 @@ import {
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import './BasinnChart.css';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,12 +28,11 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
-import { ActivationEffectChart } from './ActivationEffectChart';
 import { TableSearchBar } from './TableSearchBar';
 import { useTableSearch } from './hooks/useTableSearch';
-import type { CellContext, Column, ColumnDef, SortingState } from '@tanstack/react-table';
+import { ActivationDetails } from './activation-details';
+import type { CellContext, Column, ColumnDef, Row, SortingState } from '@tanstack/react-table';
 import type { PoolMetrics, SkillComparisonRoundResult } from '@/modules/simulation/types';
-import type { SkillSimulationData } from '@/modules/simulation/compare.types';
 import icons from '@/modules/data/icons.json';
 import umas from '@/modules/data/umas.json';
 import skillnames from '@/modules/data/skillnames.json';
@@ -152,149 +150,6 @@ type BasinnChartProps = {
   onReplaceOutfit?: (id: string) => void;
 };
 
-// Component to show detailed activation info in expanded row
-function ActivationDetails({
-  skillId,
-  runData,
-  courseDistance,
-}: {
-  skillId: string;
-  runData: SkillSimulationData;
-  courseDistance: number;
-}) {
-  // Calculate position-based metrics (WHEN skills activate)
-  const activationPositions: Array<number> = [];
-
-  // Collect all activation positions
-  const runTypes = ['minrun', 'maxrun', 'meanrun', 'medianrun'] as const;
-
-  runTypes.forEach((runType) => {
-    const run = runData[runType];
-
-    // Only use the second uma index since the skill is always on uma2
-    const skillMap = run?.sk[1];
-    if (!skillMap) return;
-
-    const activations = skillMap[skillId];
-    if (!activations) return;
-
-    activations.forEach((activation) => {
-      activationPositions.push(activation.start);
-    });
-  });
-
-  // Calculate position statistics
-  const totalActivations = activationPositions.length;
-  const hasActivations = totalActivations > 0;
-
-  let earliestPosition = 0;
-  let latestPosition = 0;
-  let averagePosition = 0;
-  let primaryPhase = '';
-
-  if (hasActivations) {
-    const sorted = activationPositions.sort((a, b) => a - b);
-    earliestPosition = sorted[0];
-    latestPosition = sorted[sorted.length - 1];
-    averagePosition = activationPositions.reduce((sum, pos) => sum + pos, 0) / totalActivations;
-
-    // Determine primary activation phase
-    const phase1Start = (courseDistance * 1) / 6;
-    const phase2Start = (courseDistance * 2) / 3;
-
-    if (averagePosition < phase1Start) {
-      primaryPhase = 'Start Phase';
-    } else if (averagePosition < phase2Start) {
-      primaryPhase = 'Middle Phase';
-    } else {
-      primaryPhase = 'Final Phase';
-    }
-  }
-
-  if (!hasActivations) {
-    return (
-      <Card className="mt-2">
-        <CardContent className="py-8 text-center">
-          <div className="text-sm text-muted-foreground">
-            No activation data available - this skill did not activate in any simulation runs.
-          </div>
-          <div className="text-xs text-muted-foreground mt-2">
-            This may indicate that the skill's activation conditions are not met for this race
-            configuration.
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <Card className="mt-2">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-sm">Skill Activation Analysis</CardTitle>
-
-          <div className="flex items-center gap-4 text-xs">
-            <div className="flex flex-col items-end">
-              <span className="text-muted-foreground">Average Position</span>
-              <span className="font-semibold">{Math.round(averagePosition)}m</span>
-            </div>
-            <div className="flex flex-col items-end">
-              <span className="text-muted-foreground">Range</span>
-              <span className="font-semibold">
-                {Math.round(earliestPosition)}-{Math.round(latestPosition)}m
-              </span>
-            </div>
-            <div className="flex flex-col items-end">
-              <span className="text-muted-foreground">Primary Phase</span>
-              <span className="font-semibold">{primaryPhase}</span>
-            </div>
-            <div className="flex flex-col items-end">
-              <span className="text-muted-foreground">Activations</span>
-              <span className="font-semibold">{totalActivations}</span>
-            </div>
-          </div>
-        </div>
-      </CardHeader>
-
-      <CardContent className="flex flex-col gap-2">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
-          <ActivationEffectChart
-            skillId={skillId}
-            runData={runData}
-            courseDistance={courseDistance}
-            umaIndex={0}
-          />
-        </div>
-
-        <div className="border-t flex flex-col gap-2 pt-2">
-          <div className="flex items-center gap-3 text-xs">
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded bg-chart-1" />
-              <span className="text-muted-foreground">Early Race</span>
-            </div>
-
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded bg-chart-3" />
-              <span className="text-muted-foreground">Mid Race</span>
-            </div>
-
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded bg-chart-4" />
-              <span className="text-muted-foreground">Late Race</span>
-            </div>
-          </div>
-
-          <div className="text-xs text-muted-foreground">
-            This visualization shows where along the race course this skill typically activates. Use
-            this information to understand if the skill's activation conditions match your race
-            strategy.
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
 const gridClass = 'grid grid-cols-[50px_50px_50px_1fr_100px_100px_100px_100px] w-full';
 
 export const BasinnChart = (props: BasinnChartProps) => {
@@ -310,7 +165,7 @@ export const BasinnChart = (props: BasinnChartProps) => {
 
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
-  const toggleRow = (skillId: string) => {
+  const handleToggleRow = useCallback((skillId: string) => {
     setExpandedRows((prev) => {
       const next = new Set(prev);
       if (next.has(skillId)) {
@@ -320,171 +175,174 @@ export const BasinnChart = (props: BasinnChartProps) => {
       }
       return next;
     });
-  };
+  }, []);
 
-  const columns: Array<ColumnDef<SkillComparisonRoundResult>> = [
-    {
-      id: 'actions',
-      header: '',
-      cell: (info: CellContext<SkillComparisonRoundResult, unknown>) => {
-        const skillId: string = info.row.getValue('id');
+  const columns: Array<ColumnDef<SkillComparisonRoundResult>> = useMemo(() => {
+    return [
+      {
+        id: 'actions',
+        header: '',
+        cell: (info: CellContext<SkillComparisonRoundResult, unknown>) => {
+          const skillId: string = info.row.getValue('id');
 
-        const handleClick = () => {
-          onAddSkill(skillId);
-        };
+          const handleClick = () => {
+            onAddSkill(skillId);
+          };
 
-        const handleReplaceOutfit = () => {
-          onReplaceOutfit?.(skillId);
-        };
+          const handleReplaceOutfit = () => {
+            onReplaceOutfit?.(skillId);
+          };
 
-        if (!onReplaceOutfit) {
-          return (
-            <Button variant="outline" size="sm" onClick={handleClick} className="h-8 w-8 p-0">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          );
-        }
-
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <Button variant="outline" size="sm" className="h-8 w-8 p-0">
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-              }
-            />
-            <DropdownMenuContent align="start">
-              <DropdownMenuItem onClick={handleClick}>Add Skill to Runner</DropdownMenuItem>
-              <DropdownMenuItem onClick={handleReplaceOutfit}>
-                Replace Runner Outfit
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
-      },
-      enableSorting: false,
-    },
-    {
-      id: 'visualize',
-      header: '',
-      cell: (info: CellContext<SkillComparisonRoundResult, unknown>) => {
-        const row = info.row.original;
-        const skillId = row.id;
-        const hasRunData = row.runData != null;
-        const filterReason = row.filterReason;
-
-        let tooltipText = 'Show on race track';
-        if (!hasRunData) {
-          if (filterReason === 'negligible-effect') {
-            tooltipText = 'Skill effect too small to measure (< 0.1 bashin)';
-          } else if (filterReason === 'low-variance') {
-            tooltipText = 'Skill effect too consistent to need detailed analysis';
-          } else {
-            tooltipText = 'No detailed data available (filtered during simulation)';
+          if (!onReplaceOutfit) {
+            return (
+              <Button variant="outline" size="sm" onClick={handleClick} className="h-8 w-8 p-0">
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+            );
           }
-        }
 
-        return (
-          <div className="flex items-center justify-center">
-            <Tooltip>
-              <TooltipTrigger
+          return (
+            <DropdownMenu>
+              <DropdownMenuTrigger
                 render={
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={() => {
-                      onSelectionChange(skillId);
-                    }}
-                    disabled={!hasRunData}
-                    title={tooltipText}
-                  >
-                    {selectedSkills.includes(skillId) ? (
-                      <Eye className="h-4 w-4 text-primary" />
-                    ) : (
-                      <EyeClosed className="h-4 w-4 text-muted-foreground" />
-                    )}
+                  <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+                    <ArrowLeft className="h-4 w-4" />
                   </Button>
                 }
               />
-              <TooltipContent>{tooltipText}</TooltipContent>
-            </Tooltip>
-          </div>
-        );
+              <DropdownMenuContent align="start">
+                <DropdownMenuItem onClick={handleClick}>Add Skill to Runner</DropdownMenuItem>
+                <DropdownMenuItem onClick={handleReplaceOutfit}>
+                  Replace Runner Outfit
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          );
+        },
+        enableSorting: false,
       },
-      enableSorting: false,
-    },
-    {
-      id: 'expand',
-      header: '',
-      cell: (info: CellContext<SkillComparisonRoundResult, unknown>) => {
-        const row = info.row.original;
-        const skillId = row.id;
-        const hasRunData = row.runData != null;
-        const isExpanded = expandedRows.has(skillId);
+      {
+        id: 'visualize',
+        header: '',
+        cell: (info: CellContext<SkillComparisonRoundResult, unknown>) => {
+          const row = info.row.original;
+          const skillId = row.id;
+          const hasRunData = row.runData != null;
+          const filterReason = row.filterReason;
 
-        if (!hasRunData) {
-          return <div className="w-8" />;
-        }
+          let tooltipText = 'Show on race track';
+          if (!hasRunData) {
+            if (filterReason === 'negligible-effect') {
+              tooltipText = 'Skill effect too small to measure (< 0.1 bashin)';
+            } else if (filterReason === 'low-variance') {
+              tooltipText = 'Skill effect too consistent to need detailed analysis';
+            } else {
+              tooltipText = 'No detailed data available (filtered during simulation)';
+            }
+          }
 
-        return (
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              toggleRow(skillId);
-            }}
-            title={isExpanded ? 'Collapse details' : 'Show activation details'}
-          >
-            {isExpanded ? (
-              <ChevronDown className="h-4 w-4" />
-            ) : (
-              <ChevronRight className="h-4 w-4" />
-            )}
-          </Button>
-        );
+          return (
+            <div className="flex items-center justify-center">
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => {
+                        onSelectionChange(skillId);
+                      }}
+                      disabled={!hasRunData}
+                      title={tooltipText}
+                    >
+                      {selectedSkills.includes(skillId) ? (
+                        <Eye className="h-4 w-4 text-primary" />
+                      ) : (
+                        <EyeClosed className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </Button>
+                  }
+                />
+                <TooltipContent>{tooltipText}</TooltipContent>
+              </Tooltip>
+            </div>
+          );
+        },
+        enableSorting: false,
       },
-      enableSorting: false,
-    },
-    {
-      header: () => <span>Skill name</span>,
-      accessorKey: 'id',
-      cell: skillNameCell(showUmaIcons),
-      sortingFn: (a, b, _) => {
-        const skillIdA = a.getValue('id');
-        const skillIdB = b.getValue('id');
+      {
+        id: 'expand',
+        header: '',
+        cell: (info: CellContext<SkillComparisonRoundResult, unknown>) => {
+          const row = info.row.original;
+          const skillId = row.id;
+          const hasRunData = row.runData != null;
+          const isExpanded = expandedRows.has(skillId);
 
-        const skillNameA = skillnames[skillIdA as keyof typeof skillnames];
-        const skillNameB = skillnames[skillIdB as keyof typeof skillnames];
+          if (!hasRunData) {
+            return <div className="w-8" />;
+          }
 
-        return skillNameA < skillNameB ? -1 : 1;
+          return (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleToggleRow(skillId);
+              }}
+              title={isExpanded ? 'Collapse details' : 'Show activation details'}
+            >
+              {isExpanded ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </Button>
+          );
+        },
+        enableSorting: false,
       },
-    },
-    {
-      header: sortableHeader('Minimum', 'min'),
-      accessorKey: 'min',
-      cell: formatBasinn,
-    },
-    {
-      header: sortableHeader('Maximum', 'max'),
-      accessorKey: 'max',
-      cell: formatBasinn,
-      sortDescFirst: true,
-    },
-    {
-      header: sortableHeader('Mean', 'mean'),
-      accessorKey: 'mean',
-      cell: formatBasinn,
-      sortDescFirst: true,
-    },
-    {
-      header: sortableHeader('Median', 'median'),
-      accessorKey: 'median',
-      cell: formatBasinn,
-      sortDescFirst: true,
-    },
-  ];
+      {
+        header: () => <span>Skill name</span>,
+        accessorKey: 'id',
+        cell: skillNameCell(showUmaIcons),
+        sortingFn: (a, b, _) => {
+          const skillIdA = a.getValue('id');
+          const skillIdB = b.getValue('id');
+
+          const skillNameA = skillnames[skillIdA as keyof typeof skillnames];
+          const skillNameB = skillnames[skillIdB as keyof typeof skillnames];
+
+          return skillNameA < skillNameB ? -1 : 1;
+        },
+      },
+      {
+        header: sortableHeader('Minimum', 'min'),
+        accessorKey: 'min',
+        cell: formatBasinn,
+      },
+      {
+        header: sortableHeader('Maximum', 'max'),
+        accessorKey: 'max',
+        cell: formatBasinn,
+        sortDescFirst: true,
+      },
+      {
+        header: sortableHeader('Mean', 'mean'),
+        accessorKey: 'mean',
+        cell: formatBasinn,
+        sortDescFirst: true,
+      },
+      {
+        header: sortableHeader('Median', 'median'),
+        accessorKey: 'median',
+        cell: formatBasinn,
+        sortDescFirst: true,
+      },
+    ];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showUmaIcons, expandedRows, selectedSkills]);
 
   const [sorting, setSorting] = useState<SortingState>([{ id: 'mean', desc: true }]);
   const [rowSelection, setRowSelection] = useState({});
@@ -503,29 +361,38 @@ export const BasinnChart = (props: BasinnChartProps) => {
 
   const parentRef = useRef<HTMLDivElement>(null);
 
-  const virtualizer = useVirtualizer({
-    count: rows.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 50,
-    overscan: 30,
-    getItemKey: (index) => rows[index].id,
-    measureElement:
-      typeof window !== 'undefined' && navigator.userAgent.indexOf('Firefox') === -1
-        ? (element) => element?.getBoundingClientRect().height
-        : undefined,
-  });
+  const virtualizerOptions = useMemo(
+    () => ({
+      count: rows.length,
+      getScrollElement: () => parentRef.current,
+      estimateSize: () => 50,
+      overscan: 30,
+      getItemKey: (index: number) => rows[index].id,
+      measureElement:
+        typeof window !== 'undefined' && navigator.userAgent.indexOf('Firefox') === -1
+          ? (element: Element) => element?.getBoundingClientRect().height
+          : undefined,
+    }),
+    [rows],
+  );
+
+  const virtualizer = useVirtualizer(virtualizerOptions);
 
   // Search functionality
-  const search = useTableSearch({
-    rows,
-    getSearchableText: (row) => {
-      const skillId: string = row.getValue('id');
-      return i18n.t(`skillnames.${skillId}`);
-    },
-    onScrollToRow: (index) => {
-      virtualizer.scrollToIndex(index, { align: 'center' });
-    },
-  });
+  const searchOptions = useMemo(
+    () => ({
+      rows,
+      getSearchableText: (row: Row<SkillComparisonRoundResult>) => {
+        const skillId: string = row.getValue('id');
+        return i18n.t(`skillnames.${skillId}`);
+      },
+      onScrollToRow: (index: number) => {
+        virtualizer.scrollToIndex(index, { align: 'center' });
+      },
+    }),
+    [rows, virtualizer],
+  );
+  const search = useTableSearch(searchOptions);
 
   return (
     <div className="relative">
@@ -549,13 +416,7 @@ export const BasinnChart = (props: BasinnChartProps) => {
               <strong>Time:</strong> {formatMs(metrics.timeTaken)}s
             </span>
             <span>
-              <strong>Skills:</strong> {metrics.skillsProcessed}
-            </span>
-            <span>
-              <strong>Samples:</strong> {metrics.totalSamples.toLocaleString()}
-            </span>
-            <span>
-              <strong>Workers:</strong> {metrics.workerCount}
+              <strong>Skills Processed:</strong> {metrics.skillsProcessed}
             </span>
           </div>
         </div>
@@ -661,6 +522,7 @@ export const BasinnChart = (props: BasinnChartProps) => {
                     <ActivationDetails
                       skillId={id}
                       runData={rowData.runData}
+                      skillActivations={rowData.skillActivations}
                       courseDistance={props.courseDistance ?? 1400}
                     />
                   )}

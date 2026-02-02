@@ -101,6 +101,8 @@ export function useSkillBasinPoolRunner() {
           appendResultsToTable(results);
           setMetrics(metrics);
           setIsSimulationRunning(false);
+
+          console.log('🎯 Skill Activations:', results);
         },
         onError: (error) => {
           console.error('Pool simulation error:', error);

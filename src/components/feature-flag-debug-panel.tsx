@@ -48,7 +48,7 @@ export function FeatureFlagDebugPanel() {
           </div>
         </Card>
       ) : (
-        <Button variant="outline" size="sm" onClick={() => setIsOpen(true)} className="shadow-lg">
+        <Button variant="secondary" size="sm" onClick={() => setIsOpen(true)} className="shadow-lg">
           <FlagIcon className="h-4 w-4 mr-2" />
           Feature Flags
         </Button>

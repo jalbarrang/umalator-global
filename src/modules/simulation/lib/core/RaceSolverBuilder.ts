@@ -7,7 +7,14 @@ import { RaceSolver } from './RaceSolver';
 import type { DefaultParser } from '../skills/parser/definitions';
 import type { SeededRng } from '@/modules/simulation/lib/utils/Random';
 import type { ActivationSamplePolicy } from '@/modules/simulation/lib/skills/policies/ActivationSamplePolicy';
-import type { DynamicCondition, PendingSkill, RaceState, SkillEffect } from './RaceSolver';
+import type {
+  DynamicCondition,
+  OnSkillCallback,
+  OnSkillEffectCallback,
+  PendingSkill,
+  RaceState,
+  SkillEffect,
+} from './RaceSolver';
 import type {
   CourseData,
   IDistanceType,
@@ -640,7 +647,7 @@ const acrParser = createParser({
 export class RaceSolverBuilder {
   _course: CourseData | null;
   _raceParams: PartialRaceParameters;
-  _horse: HorseDesc | null;
+  _runner: HorseDesc | null;
   _pacerSkills: Array<PendingSkill>;
   _pacerSkillIds: Array<string>;
   _pacerSpeedUpRate: number;
@@ -658,28 +665,9 @@ export class RaceSolverBuilder {
   _extraSkillHooks: Array<
     (skilldata: Array<SkillData>, horse: HorseParameters, course: CourseData) => void
   >;
-  _onSkillActivate:
-    | ((
-        state: RaceSolver,
-        currentPosition: number,
-        executionId: string,
-        skillId: string,
-        perspective: ISkillPerspective,
-        type: ISkillType,
-        target: ISkillTarget,
-      ) => void)
-    | null;
-  _onSkillDeactivate:
-    | ((
-        state: RaceSolver,
-        currentPosition: number,
-        executionId: string,
-        skillId: string,
-        perspective: ISkillPerspective,
-        type: ISkillType,
-        target: ISkillTarget,
-      ) => void)
-    | null;
+  _onSkillActivated: OnSkillCallback | undefined;
+  _onEffectActivated: OnSkillEffectCallback | undefined;
+  _onEffectExpired: OnSkillEffectCallback | undefined;
   _disableRushed: boolean;
   _disableDownhill: boolean;
   _disableSectionModifier: boolean;
@@ -710,7 +698,7 @@ export class RaceSolverBuilder {
       grade: Grade.G1,
       popularity: 1,
     };
-    this._horse = null;
+    this._runner = null;
     this._pacerSkillData = [];
     this._pacerTriggers = [];
     this._pacerSkills = [];
@@ -722,8 +710,11 @@ export class RaceSolverBuilder {
     this._skills = [];
     this._samplePolicyOverride = new Map();
     this._extraSkillHooks = [];
-    this._onSkillActivate = null;
-    this._onSkillDeactivate = null;
+
+    this._onSkillActivated = undefined;
+    this._onEffectActivated = undefined;
+    this._onEffectExpired = undefined;
+
     this._disableRushed = false;
     this._disableDownhill = false;
     this._disableSectionModifier = false;
@@ -802,7 +793,7 @@ export class RaceSolverBuilder {
   }
 
   horse(horse: HorseDesc) {
-    this._horse = horse;
+    this._runner = horse;
     return this;
   }
 
@@ -823,18 +814,18 @@ export class RaceSolverBuilder {
   }
 
   _isNige() {
-    if (!this._horse) {
+    if (!this._runner) {
       throw new Error('Horse not set');
     }
 
-    if (typeof this._horse.strategy == 'string') {
+    if (typeof this._runner.strategy == 'string') {
       return (
-        this._horse.strategy.toUpperCase() == 'NIGE' ||
-        this._horse.strategy.toUpperCase() == 'OONIGE'
+        this._runner.strategy.toUpperCase() == 'NIGE' ||
+        this._runner.strategy.toUpperCase() == 'OONIGE'
       );
     } else {
       return (
-        this._horse.strategy == Strategy.FrontRunner || this._horse.strategy == Strategy.Runaway
+        this._runner.strategy == Strategy.FrontRunner || this._runner.strategy == Strategy.Runaway
       );
     }
   }
@@ -930,6 +921,11 @@ export class RaceSolverBuilder {
           posKeepMode: this._posKeepMode,
           mode: this._mode,
           isPacer: true,
+
+          // Never track skill activations or effects for the pacer
+          onSkillActivated: undefined,
+          onEffectActivated: undefined,
+          onEffectExpired: undefined,
         })
       : null;
   }
@@ -939,7 +935,7 @@ export class RaceSolverBuilder {
   }
 
   useDefaultPacer(openingLegAccel: boolean = false) {
-    const pacer = Object.assign({}, this._horse, { strategy: 'Front Runner' });
+    const pacer = Object.assign({}, this._runner, { strategy: 'Front Runner' });
 
     if (openingLegAccel) {
       // top is jiga and bottom is white sente
@@ -989,12 +985,12 @@ export class RaceSolverBuilder {
 
   // NB. must be called after horse and mood are set
   withAsiwotameru() {
-    if (!this._horse) {
+    if (!this._runner) {
       throw new Error('Horse not set');
     }
 
     // for some reason, asitame (probably??) uses *displayed* power adjusted for motivation + greens
-    const baseDisplayedPower = this._horse.power * (1 + 0.02 * this._raceParams.mood);
+    const baseDisplayedPower = this._runner.power * (1 + 0.02 * this._raceParams.mood);
     this._extraSkillHooks.push((skilldata, horse, course) => {
       const power = skilldata.reduce((acc, sd) => {
         const powerUp = sd.effects.find((ef) => ef.type == SkillType.PowerUp);
@@ -1160,33 +1156,18 @@ export class RaceSolverBuilder {
     return this;
   }
 
-  onSkillActivate(
-    cb: (
-      state: RaceSolver,
-      currentPosition: number,
-      executionId: string,
-      skillId: string,
-      perspective: ISkillPerspective,
-      type: ISkillType,
-      target: ISkillTarget,
-    ) => void,
-  ) {
-    this._onSkillActivate = cb;
+  onSkillActivated(cb: OnSkillCallback) {
+    this._onSkillActivated = cb;
     return this;
   }
 
-  onSkillDeactivate(
-    cb: (
-      state: RaceSolver,
-      currentPosition: number,
-      executionId: string,
-      skillId: string,
-      perspective: ISkillPerspective,
-      type: ISkillType,
-      target: ISkillTarget,
-    ) => void,
-  ) {
-    this._onSkillDeactivate = cb;
+  onEffectActivated(cb: OnSkillEffectCallback) {
+    this._onEffectActivated = cb;
+    return this;
+  }
+
+  onEffectExpired(cb: OnSkillEffectCallback) {
+    this._onEffectExpired = cb;
     return this;
   }
 
@@ -1200,22 +1181,30 @@ export class RaceSolverBuilder {
 
   fork() {
     const clone = new RaceSolverBuilder(this.nsamples);
+
     clone._course = this._course;
     clone._raceParams = cloneDeep(this._raceParams);
-    clone._horse = this._horse;
+    clone._runner = this._runner;
     clone._pacerSkills = this._pacerSkills.slice(); // sharing the skill objects is fine but see the note below
     clone._pacerSkillIds = this._pacerSkillIds.slice();
     clone._pacerSpeedUpRate = this._pacerSpeedUpRate;
     clone._pacerSkillData = this._pacerSkillData.slice();
     clone._pacerTriggers = this._pacerTriggers.slice();
+
     clone.seed(this._seed);
+
     clone._parser = this._parser;
     clone._skills = this._skills.slice();
-    clone._onSkillActivate = this._onSkillActivate;
-    clone._onSkillDeactivate = this._onSkillDeactivate;
+
+    clone._onSkillActivated = this._onSkillActivated;
+    clone._onEffectActivated = this._onEffectActivated;
+    clone._onEffectExpired = this._onEffectExpired;
+
     clone._disableRushed = this._disableRushed;
     clone._disableDownhill = this._disableDownhill;
     clone._disableSectionModifier = this._disableSectionModifier;
+    clone._useHpPolicy = this._useHpPolicy;
+    clone._useEnhancedSpurt = this._useEnhancedSpurt;
     clone._accuracyMode = this._accuracyMode;
     clone._skillCheckChance = this._skillCheckChance;
     clone._posKeepMode = this._posKeepMode;
@@ -1226,11 +1215,12 @@ export class RaceSolverBuilder {
     // but it does mean that if you want to compare different power stats or moods, you must call withAsiwotameru()
     // after fork() on each instance separately, which is a potential gotcha
     clone._extraSkillHooks = this._extraSkillHooks.slice();
+
     return clone;
   }
 
   *build() {
-    if (!this._horse) {
+    if (!this._runner) {
       throw new Error('Horse not set');
     }
 
@@ -1239,20 +1229,29 @@ export class RaceSolverBuilder {
     }
 
     const course = this._course;
-    let horse = buildBaseStats(this._horse);
+    const runnerWithBaseStats = buildBaseStats(this._runner);
     const skillRng = new Rule30CARng(this._rng.int32());
 
     const wholeCourse = new RegionList();
     wholeCourse.push(new Region(0, course.distance));
 
     const makeSkill: (skillId: string, perspective: ISkillPerspective) => Array<SkillTrigger> =
-      buildSkillData.bind(null, horse, this._raceParams, course, wholeCourse, this._parser);
+      buildSkillData.bind(
+        null,
+        runnerWithBaseStats,
+        this._raceParams,
+        course,
+        wholeCourse,
+        this._parser,
+      );
 
     const skillDataList = this._skills.flatMap(({ skillId, perspective }) =>
       makeSkill(skillId, perspective),
     );
 
-    this._extraSkillHooks.forEach((skillHook) => skillHook(skillDataList, horse, course));
+    this._extraSkillHooks.forEach((skillHook) =>
+      skillHook(skillDataList, runnerWithBaseStats, course),
+    );
 
     const triggers = skillDataList.map((skillData) => {
       const samplePolicy =
@@ -1262,7 +1261,11 @@ export class RaceSolverBuilder {
     });
 
     // must come after skill activations are decided because conditions like base_power depend on base stats
-    horse = buildAdjustedStats(horse, this._course, this._raceParams.groundCondition);
+    const runnerWithAdjustedStats = buildAdjustedStats(
+      runnerWithBaseStats,
+      this._course,
+      this._raceParams.groundCondition,
+    );
 
     for (let i = 0; i < this.nsamples; ++i) {
       const raceSolverRNG = new Rule30CARng(this._rng.int32());
@@ -1295,13 +1298,14 @@ export class RaceSolverBuilder {
       }
 
       const redoRun: boolean = yield new RaceSolver({
-        horse,
+        horse: runnerWithAdjustedStats,
         course: this._course,
         skills,
         hp: runnerHPManager,
         rng: raceSolverRNG,
-        onSkillActivate: this._onSkillActivate,
-        onSkillDeactivate: this._onSkillDeactivate,
+        onSkillActivated: this._onSkillActivated,
+        onEffectActivated: this._onEffectActivated,
+        onEffectExpired: this._onEffectExpired,
         disableRushed: this._disableRushed,
         disableDownhill: this._disableDownhill,
         disableSectionModifier: this._disableSectionModifier,
