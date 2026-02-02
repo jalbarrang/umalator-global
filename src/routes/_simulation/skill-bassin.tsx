@@ -18,14 +18,24 @@ import { RaceSettingsPanel } from '@/modules/skill-planner/components/RaceSettin
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { parseSeed } from '@/utils/crypto';
+import { useSkillSingleRunner } from '@/modules/simulation/hooks/skill-bassin/useSkillSingleRunner';
 
 export function SkillBassin() {
   const { selectedSkills, setSelectedSkills } = useChartData();
-  const { results: skillBasinResults, metrics, isSimulationRunning, seed } = useSkillBasinStore();
+  const {
+    results: skillBasinResults,
+    metrics,
+    isSimulationRunning,
+    seed,
+    skillLoadingStates,
+  } = useSkillBasinStore();
   const courseId = useSettingsStore(useShallow((state) => state.courseId));
 
   const { runnerId, runner } = useRunner();
-  const [seedInput, setSeedInput] = useState<string>('');
+  const [seedInput, setSeedInput] = useState<string>(() => {
+    if (seed === null) return '';
+    return seed.toString();
+  });
 
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
 
@@ -54,9 +64,11 @@ export function SkillBassin() {
   };
 
   const { doBasinnChart, cancelSimulation } = useSkillBasinPoolRunner();
+  const { runAdditionalSamples } = useSkillSingleRunner();
 
   const handleRunSimulation = () => {
     const newSeed = createNewSeed();
+    setSeedInput(newSeed.toString());
     doBasinnChart(newSeed);
   };
 
@@ -138,6 +150,9 @@ export function SkillBassin() {
             selectedSkills={selectedSkills}
             isSimulationRunning={isSimulationRunning}
             courseDistance={course.distance}
+            currentSeed={seed}
+            skillLoadingStates={skillLoadingStates}
+            onRunAdditionalSamples={runAdditionalSamples}
           />
         </div>
       </Activity>

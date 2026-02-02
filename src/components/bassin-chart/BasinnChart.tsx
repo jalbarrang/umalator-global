@@ -84,7 +84,9 @@ const skillNameCell =
           <>
             {/* className="flex items-center gap-2" data-itemtype="uma" data-itemid={umaId} */}
             <img src={icon} className="w-8 h-8" />
-            <span>{i18n.t(`skillnames.${id}`)}</span>
+            <span>
+              {i18n.t(`skillnames.${id}`)} ({id})
+            </span>
           </>
         );
       }
@@ -93,7 +95,9 @@ const skillNameCell =
     if (!skill) {
       return (
         // <div className="flex items-center gap-2" data-itemtype="skill" data-itemid={id}>
-        <span>{i18n.t(`skillnames.${id}`)}</span>
+        <span>
+          {i18n.t(`skillnames.${id}`)} ({id})
+        </span>
         // </div>
       );
     }
@@ -102,7 +106,9 @@ const skillNameCell =
       // <div className="flex items-center gap-2" data-itemtype="skill" data-itemid={id}>
       <>
         <img src={`/icons/${skill.meta.iconId}.png`} className="w-4 h-4" />
-        <span>{i18n.t(`skillnames.${id}`)}</span>
+        <span>
+          {i18n.t(`skillnames.${id}`)} ({id})
+        </span>
       </>
       // </div>
     );
@@ -142,9 +148,12 @@ type BasinnChartProps = {
   selectedSkills: Array<string>;
   isSimulationRunning: boolean;
   courseDistance?: number;
+  currentSeed?: number | null;
+  skillLoadingStates?: Record<string, boolean>;
   onAddSkill: (id: string) => void;
   onSelectionChange: (id: string) => void;
   onReplaceOutfit?: (id: string) => void;
+  onRunAdditionalSamples?: (skillId: string, additionalSamples: number) => void;
 };
 
 const gridClass = 'grid grid-cols-[50px_50px_1fr_100px_100px_100px_100px] w-full';
@@ -157,6 +166,9 @@ export const BasinnChart = (props: BasinnChartProps) => {
     showUmaIcons = false,
     onReplaceOutfit,
     isSimulationRunning,
+    currentSeed = null,
+    skillLoadingStates = {},
+    onRunAdditionalSamples,
   } = props;
 
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
@@ -471,6 +483,10 @@ export const BasinnChart = (props: BasinnChartProps) => {
                       runData={rowData.runData}
                       skillActivations={rowData.skillActivations}
                       courseDistance={props.courseDistance ?? 1400}
+                      currentSeed={currentSeed}
+                      isGlobalSimulationRunning={isSimulationRunning}
+                      isSkillLoading={skillLoadingStates[id] ?? false}
+                      onRunAdditionalSamples={onRunAdditionalSamples}
                     />
                   )}
                 </div>

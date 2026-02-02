@@ -30,7 +30,17 @@ export const mergeSkillResults = (
     maxrun,
   });
 
-  const activations = merge(resultA.skillActivations, resultB.skillActivations);
+  // Properly merge skillActivations by concatenating arrays instead of replacing by index
+  const activations: Record<string, Array<{ position: number }>> = { ...resultA.skillActivations };
+  for (const [skillId, newActivations] of Object.entries(resultB.skillActivations)) {
+    if (activations[skillId]) {
+      // Concatenate activation arrays for the same skill
+      activations[skillId] = activations[skillId].concat(newActivations);
+    } else {
+      // Add new skill activations
+      activations[skillId] = newActivations;
+    }
+  }
 
   return {
     id: resultA.id,

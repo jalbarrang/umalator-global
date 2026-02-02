@@ -1,5 +1,8 @@
 import { useMemo } from 'react';
+import { Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Button } from '../ui/button';
+import { Badge } from '../ui/badge';
 import { ActivationEffectChart } from './ActivationEffectChart';
 import type { SkillSimulationData } from '@/modules/simulation/compare.types';
 import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
@@ -9,15 +12,32 @@ type ActivationDetailsProps = {
   runData: SkillSimulationData;
   skillActivations: Record<string, Array<{ position: number }>>;
   courseDistance: number;
+  currentSeed: number | null;
+  isGlobalSimulationRunning: boolean;
+  isSkillLoading?: boolean;
+  onRunAdditionalSamples?: (skillId: string, additionalSamples: number) => void;
 };
 
 // Component to show detailed activation info in expanded row
 export function ActivationDetails(props: ActivationDetailsProps) {
-  const { skillId, skillActivations, courseDistance } = props;
+  const {
+    skillId,
+    skillActivations,
+    courseDistance,
+    currentSeed,
+    isGlobalSimulationRunning,
+    isSkillLoading = false,
+    onRunAdditionalSamples,
+  } = props;
+
+  const currentSkillActivations = useMemo(
+    () => skillActivations[skillId],
+    [skillId, skillActivations],
+  );
 
   const activationPositions = useMemo(
-    () => skillActivations[skillId].map((activation) => activation.position),
-    [skillId, skillActivations],
+    () => currentSkillActivations.map((activation) => activation.position),
+    [currentSkillActivations],
   );
 
   const totalActivations = useMemo(() => activationPositions.length, [activationPositions]);
@@ -62,7 +82,7 @@ export function ActivationDetails(props: ActivationDetailsProps) {
 
   if (!hasActivations) {
     return (
-      <Card className="mt-2">
+      <Card>
         <CardContent className="py-8 text-center">
           <div className="text-sm text-muted-foreground">
             No activation data available - this skill did not activate in any simulation runs.
@@ -76,43 +96,83 @@ export function ActivationDetails(props: ActivationDetailsProps) {
     );
   }
 
+  const canRunAdditionalSamples =
+    currentSeed !== null && !isGlobalSimulationRunning && !isSkillLoading && onRunAdditionalSamples;
+
+  const handleRunAdditionalSamples = () => {
+    if (onRunAdditionalSamples) {
+      onRunAdditionalSamples(skillId, 1000);
+    }
+  };
+
   return (
-    <Card className="mt-2 rounded-none">
+    <Card className="rounded-none">
       <CardHeader className="border-b">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm">Skill Activation Analysis</CardTitle>
 
           <div className="flex items-center gap-4 text-xs">
-            <div className="flex items-end gap-1">
+            {/* <div className="flex items-end gap-1">
               <span className="text-muted-foreground">Avg. Proc Position:</span>
               <span className="font-semibold">{Math.round(stats.averagePosition)}m</span>
-            </div>
+            </div> */}
             <div className="flex items-end gap-1">
               <span className="text-muted-foreground">Proc Range: </span>
               <span className="font-semibold">
                 {Math.round(stats.earliestPosition)}-{Math.round(stats.latestPosition)}m
               </span>
             </div>
-            <div className="flex items-end gap-1">
+            {/* <div className="flex items-end gap-1">
               <span className="text-muted-foreground">Primary Phase: </span>
               <span className="font-semibold">{stats.primaryPhase}</span>
-            </div>
-            {/* Hidden for now */}
-            {/* <div className="flex flex-col items-end">
-              <span className="text-muted-foreground">Activations</span>
-              <span className="font-semibold">{totalActivations}</span>
             </div> */}
+            <div className="flex items-end gap-1">
+              <span className="text-muted-foreground">Samples: </span>
+              <span className="font-semibold">{totalActivations}</span>
+            </div>
+
+            {isSkillLoading && (
+              <Badge variant="secondary" className="gap-1">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Running...
+              </Badge>
+            )}
           </div>
         </div>
       </CardHeader>
 
       <CardContent className="flex flex-col gap-2">
-        {/* TODO: Add button that lets run additional samples for this specific skill */}
+        {onRunAdditionalSamples && (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRunAdditionalSamples}
+              disabled={!canRunAdditionalSamples}
+              className="gap-1"
+            >
+              {isSkillLoading ? (
+                <>
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  Running...
+                </>
+              ) : (
+                <>Run +1000 Samples</>
+              )}
+            </Button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+            {!currentSeed && (
+              <span className="text-xs text-muted-foreground">
+                Run a simulation first to enable additional samples
+              </span>
+            )}
+          </div>
+        )}
+
+        <div className="grid gap-2">
           <ActivationEffectChart
             skillId={skillId}
-            skillActivations={skillActivations}
+            skillActivations={currentSkillActivations}
             courseDistance={courseDistance}
           />
         </div>

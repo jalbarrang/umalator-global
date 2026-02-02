@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { useMemo, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
-import { toMerged } from 'es-toolkit';
+import { cloneDeep, toMerged } from 'es-toolkit';
 import { initializeSimulationRun } from '../compare.types';
 import { useRaceStore } from './compare.store';
 import type {
@@ -16,12 +16,14 @@ import type {
   SkillComparisonRoundResult,
 } from '@/modules/simulation/types';
 import { generateSeed } from '@/utils/crypto';
+import { mergeSkillResults } from '@/workers/utils';
 
 type IUmaBasinStore = {
   seed: number | null;
   results: SkillComparisonResponse;
   metrics: PoolMetrics | null;
   isSimulationRunning: boolean;
+  skillLoadingStates: Record<string, boolean>;
 };
 
 export const useUniqueSkillBasinStore = create<IUmaBasinStore>()((_) => ({
@@ -29,6 +31,7 @@ export const useUniqueSkillBasinStore = create<IUmaBasinStore>()((_) => ({
   results: {},
   metrics: null,
   isSimulationRunning: false,
+  skillLoadingStates: {},
 }));
 
 export const setSeed = (seed: number | null) => {
@@ -50,10 +53,29 @@ export const resetTable = () => {
   useUniqueSkillBasinStore.setState({ results: {}, metrics: null });
 };
 
+export const appendSingleSkillResult = (skillId: string, result: SkillComparisonRoundResult) => {
+  useUniqueSkillBasinStore.setState((state) => {
+    const currentResults = cloneDeep(state.results);
+    const skillResult = currentResults[skillId];
+    if (!skillResult) {
+      return {
+        results: state.results,
+      };
+    }
+    currentResults[skillId] = mergeSkillResults(skillResult, result);
+
+    return {
+      results: currentResults,
+    };
+  });
+};
+
 export const appendResultsToTable = (results: SkillComparisonResponse) => {
-  useUniqueSkillBasinStore.setState((state) => ({
-    results: toMerged(state.results, results),
-  }));
+  useUniqueSkillBasinStore.setState((state) => {
+    return {
+      results: toMerged(state.results, results),
+    };
+  });
 };
 
 export const setMetrics = (metrics: PoolMetrics) => {
@@ -62,6 +84,23 @@ export const setMetrics = (metrics: PoolMetrics) => {
 
 export const setIsSimulationRunning = (isSimulationRunning: boolean) => {
   useUniqueSkillBasinStore.setState({ isSimulationRunning });
+};
+
+export const setSkillLoading = (skillId: string, isLoading: boolean) => {
+  useUniqueSkillBasinStore.setState((state) => ({
+    skillLoadingStates: {
+      ...state.skillLoadingStates,
+      [skillId]: isLoading,
+    },
+  }));
+};
+
+export const getSkillLoadingState = (skillId: string): boolean => {
+  return useUniqueSkillBasinStore.getState().skillLoadingStates[skillId] ?? false;
+};
+
+export const useSkillLoadingState = (skillId: string) => {
+  return useUniqueSkillBasinStore((state) => state.skillLoadingStates[skillId] ?? false);
 };
 
 export const useUmaBasinResults = () => {

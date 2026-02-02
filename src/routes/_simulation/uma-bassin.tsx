@@ -19,6 +19,7 @@ import { RaceSettingsPanel } from '@/modules/skill-planner/components/RaceSettin
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { parseSeed } from '@/utils/crypto';
+import { useUmaSingleRunner } from '@/modules/simulation/hooks/uma-bassin/useUmaSingleRunner';
 
 export function UmaBassin() {
   const { selectedSkills, setSelectedSkills } = useChartData();
@@ -27,11 +28,15 @@ export function UmaBassin() {
     metrics,
     isSimulationRunning,
     seed,
+    skillLoadingStates,
   } = useUniqueSkillBasinStore();
   const courseId = useSettingsStore(useShallow((state) => state.courseId));
 
   const { runner, updateRunner, addSkill } = useRunner();
-  const [seedInput, setSeedInput] = useState<string>('');
+  const [seedInput, setSeedInput] = useState<string>(() => {
+    if (seed === null) return '';
+    return seed.toString();
+  });
 
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
 
@@ -67,9 +72,11 @@ export function UmaBassin() {
   };
 
   const { doBasinnChart, cancelSimulation } = useUmaBasinPoolRunner();
+  const { runAdditionalSamples } = useUmaSingleRunner();
 
   const handleRunSimulation = () => {
     const newSeed = createNewSeed();
+    setSeedInput(newSeed.toString());
     doBasinnChart(newSeed);
   };
 
@@ -154,6 +161,9 @@ export function UmaBassin() {
             showUmaIcons
             isSimulationRunning={isSimulationRunning}
             courseDistance={course.distance}
+            currentSeed={seed}
+            skillLoadingStates={skillLoadingStates}
+            onRunAdditionalSamples={runAdditionalSamples}
           />
         </div>
       </Activity>

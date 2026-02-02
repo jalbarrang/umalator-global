@@ -14,7 +14,7 @@ import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
 
 interface ActivationEffectChartProps {
   skillId: string;
-  skillActivations: Record<string, Array<{ position: number }>>;
+  skillActivations: Array<{ position: number }>;
   courseDistance: number;
 }
 
@@ -46,17 +46,44 @@ const getPhaseForPosition = (position: number, courseDistance: number): number =
   return 3;
 };
 
+const gridClasses =
+  'grid grid-cols-4 border-b [&>span]:border-r [&>span]:p-1 [&>span:last-child]:border-r-0';
+
 export function ActivationEffectChart({
   skillId,
-  skillActivations,
+  skillActivations: activations,
   courseDistance,
 }: ActivationEffectChartProps) {
   const chartData = useMemo(() => {
-    // Get all activations for this skill across all simulation runs
-    const activations = skillActivations[skillId];
+    const data = {
+      'early-race': {
+        name: 'Early Race',
+        activations: 0,
+        avgProcPosition: 0,
+        avgLengthEffect: 0,
+      },
+      'mid-race': {
+        name: 'Mid Race',
+        activations: 0,
+        avgProcPosition: 0,
+        avgLengthEffect: 0,
+      },
+      'late-race': {
+        name: 'Late Race',
+        activations: 0,
+        avgProcPosition: 0,
+        avgLengthEffect: 0,
+      },
+      'last-spurt': {
+        name: 'Last Spurt',
+        activations: 0,
+        avgProcPosition: 0,
+        avgLengthEffect: 0,
+      },
+    };
 
     if (!activations || activations.length === 0) {
-      return { bins: [], hasData: false, phaseStarts: [] };
+      return { bins: [], hasData: false, phaseStarts: [], perPhase: data };
     }
 
     // Create bins (10m segments)
@@ -75,13 +102,17 @@ export function ActivationEffectChart({
     }
 
     // Count activations per bin from all accumulated activations
-    activations.forEach(({ position }) => {
+
+    for (const activation of activations) {
+      const { position } = activation;
+
       const binIndex = Math.floor(position / binSize);
+
       if (binIndex >= 0 && binIndex < bins.length) {
         bins[binIndex].activationCount++;
         bins[binIndex].maxEffect = bins[binIndex].activationCount;
       }
-    });
+    }
 
     // Get phase boundaries
     const phaseStarts = [
@@ -90,67 +121,75 @@ export function ActivationEffectChart({
       { position: CourseHelpers.phaseStart(courseDistance, 3), label: 'Last' },
     ];
 
-    return { bins, hasData: true, phaseStarts };
-  }, [skillId, skillActivations, courseDistance]);
+    return {
+      bins,
+      hasData: true,
+      phaseStarts,
+      perPhase: data,
+    };
+  }, [activations, courseDistance]);
 
   if (!chartData.hasData) {
     return null;
   }
 
-  const maxValue = Math.max(...chartData.bins.map((b) => b.maxEffect), 1);
-
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <h4 className="text-sm font-semibold">Activation Distribution</h4>
-        <span className="text-xs text-muted-foreground">Peak: {maxValue} activations/bin</span>
       </div>
 
-      <ResponsiveContainer width="100%" height={200}>
-        <BarChart data={chartData.bins} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
-          <XAxis
-            dataKey="start"
-            type="number"
-            domain={[0, courseDistance]}
-            tickFormatter={(value) => `${value}m`}
-            stroke="var(--muted-foreground)"
-            fontSize={11}
-          />
-          <YAxis stroke="var(--muted-foreground)" fontSize={11} width={30} />
-          <Tooltip
-            content={({ active, payload }) => {
-              if (!active || !payload || !payload.length) return null;
-              const data = payload[0].payload as BinData;
-              return (
-                <div className="bg-popover border rounded-md shadow-md p-2 text-xs">
-                  <div className="font-semibold">
-                    {data.start}m - {data.end}m
-                  </div>
-                  <div className="text-muted-foreground">{data.activationCount} activations</div>
-                </div>
-              );
-            }}
-          />
-          {chartData.phaseStarts.map((phase) => (
-            <ReferenceLine
-              key={phase.position}
-              x={phase.position}
-              stroke="var(--muted-foreground)"
-              strokeDasharray="3 3"
-              opacity={0.5}
-            />
-          ))}
-          <Bar dataKey="maxEffect" radius={[2, 2, 0, 0]}>
-            {chartData.bins.map((entry, index) => (
-              <Cell
-                key={`cell-${index}`}
-                fill={entry.maxEffect > 0 ? PHASE_COLORS[entry.phase] : 'var(--muted)'}
+      <div className="grid grid-cols-2 gap-2">
+        <div>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={chartData.bins} margin={{ top: 10, right: 5, left: 10, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
+              <XAxis
+                dataKey="start"
+                type="number"
+                domain={[0, courseDistance]}
+                tickFormatter={(value) => `${value}m`}
+                stroke="var(--muted-foreground)"
+                fontSize={11}
               />
-            ))}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
+              <YAxis stroke="var(--muted-foreground)" fontSize={11} width={30} />
+              <Tooltip
+                content={({ active, payload }) => {
+                  if (!active || !payload || !payload.length) return null;
+                  const data = payload[0].payload as BinData;
+                  return (
+                    <div className="bg-popover border rounded-md shadow-md p-2 text-xs">
+                      <div className="font-semibold">
+                        {data.start}m - {data.end}m
+                      </div>
+                      <div className="text-muted-foreground">
+                        {data.activationCount} activations
+                      </div>
+                    </div>
+                  );
+                }}
+              />
+              {chartData.phaseStarts.map((phase) => (
+                <ReferenceLine
+                  key={phase.position}
+                  x={phase.position}
+                  stroke="var(--muted-foreground)"
+                  strokeDasharray="3 3"
+                  opacity={0.5}
+                />
+              ))}
+              <Bar dataKey="maxEffect" radius={[2, 2, 0, 0]}>
+                {chartData.bins.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={entry.maxEffect > 0 ? PHASE_COLORS[entry.phase] : 'var(--muted)'}
+                  />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
     </div>
   );
 }

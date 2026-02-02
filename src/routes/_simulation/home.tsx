@@ -33,7 +33,10 @@ export function SimulationHome() {
 
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
 
-  const [seedInput, setSeedInput] = useState<string>('');
+  const [seedInput, setSeedInput] = useState<string>(() => {
+    if (seed === null) return '';
+    return seed.toString();
+  });
 
   const handleSeedInputBlur = useCallback(() => {
     const parsedSeed = parseSeed(seedInput);
@@ -43,11 +46,13 @@ export function SimulationHome() {
 
   const handleRunAllSamples = () => {
     const newSeed = createNewSeed();
+    setSeedInput(newSeed.toString());
     handleRunCompare(newSeed);
   };
 
   const handleRunOneSample = () => {
     const newSeed = createNewSeed();
+    setSeedInput(newSeed.toString());
     handleRunOnce(newSeed);
   };
 
