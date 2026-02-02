@@ -4,11 +4,13 @@ import { globalIgnores } from 'eslint/config';
 import importPlugin from 'eslint-plugin-import-x';
 import nodePlugin from 'eslint-plugin-n';
 import globals from 'globals';
+import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import { javascriptRules } from './javascript';
 import { importRules } from './import';
 import { typescriptRules } from './typescript';
 import { nodeRules } from './node';
 // import { stylisticRules } from './stylistic';
+import { reactRules } from './react';
 import type { Linter } from 'eslint';
 
 const GLOB_EXCLUDE = [
@@ -28,6 +30,7 @@ const jsRules = {
   ...typescriptRules,
   ...importRules,
   ...nodeRules,
+  ...reactRules,
   // ...stylisticRules,
 };
 
@@ -36,11 +39,14 @@ const jsPlugins = {
   '@typescript-eslint': tseslint.plugin,
   import: importPlugin,
   node: nodePlugin,
+  'react-hooks': reactHooksPlugin,
 };
 
 export const umalatorConfig: Array<Linter.Config> = [
   {
     name: 'umalator/javascript',
+    // @ts-expect-error
+    plugins: jsPlugins,
     files: ['**/*.{js,ts,tsx}'],
     languageOptions: {
       sourceType: 'module',
@@ -48,13 +54,14 @@ export const umalatorConfig: Array<Linter.Config> = [
       parser: tseslint.parser,
       parserOptions: {
         project: true,
+        ecmaFeatures: {
+          jsx: true,
+        },
       },
       globals: {
         ...globals.browser,
       },
     },
-    // @ts-expect-error
-    plugins: jsPlugins,
     rules: jsRules,
   },
   globalIgnores(GLOB_EXCLUDE),
