@@ -1126,7 +1126,7 @@ export class RaceSolverBuilder {
     return this;
   }
 
-  useEnhancedSpurt(enabled: boolean = true) {
+  useEnhancedSpurt(enabled: boolean = false) {
     this._useEnhancedSpurt = enabled;
     return this;
   }
@@ -1285,8 +1285,6 @@ export class RaceSolverBuilder {
       let runnerHPManager: HpPolicy;
 
       if (this._useHpPolicy) {
-        runnerHPManager = NoopHpPolicy;
-      } else {
         runnerHPManager = this._useEnhancedSpurt
           ? new EnhancedHpPolicy(
               this._course,
@@ -1295,6 +1293,8 @@ export class RaceSolverBuilder {
               this._accuracyMode,
             )
           : new GameHpPolicy(this._course, this._raceParams.groundCondition, runnerHPRNG);
+      } else {
+        runnerHPManager = NoopHpPolicy;
       }
 
       const redoRun: boolean = yield new RaceSolver({

@@ -16,13 +16,7 @@
  * As this only compares two runners, it is not possible to simulate races with 9 runners as it would defeat the purpose of this compare tool.
  */
 
-import { cloneDeep } from 'es-toolkit';
-import type {
-  Run1RoundParams,
-  RunComparisonParams,
-  SkillBasinResponse,
-  TheoreticalMaxSpurtResult,
-} from '@/modules/simulation/types';
+import type { RunComparisonParams, TheoreticalMaxSpurtResult } from '@/modules/simulation/types';
 import type {
   CompareResult,
   SimulationRun,
@@ -162,7 +156,6 @@ export function runComparison(params: RunComparisonParams): CompareResult {
 
   const seed = options.seed ?? 0;
   const posKeepMode = options.posKeepMode ?? PosKeepMode.None;
-  const mode = options.mode ?? 'compare';
   const numUmas = racedef.numUmas ?? 1;
 
   const runnerARaceSolver = new RaceSolverBuilder(nsamples)
@@ -173,9 +166,10 @@ export function runComparison(params: RunComparisonParams): CompareResult {
     .season(racedef.season)
     .time(racedef.time)
     .accuracyMode(options.accuracyMode ?? false)
-    .useEnhancedSpurt(options.useEnhancedSpurt ?? false)
+    .useHpPolicy()
+    .useEnhancedSpurt(options.useEnhancedSpurt)
     .posKeepMode(posKeepMode)
-    .mode(mode);
+    .mode('compare');
 
   if (racedef.orderRange) {
     const [start, end] = racedef.orderRange;
@@ -963,41 +957,3 @@ export function runComparison(params: RunComparisonParams): CompareResult {
     firstUmaStats: firstUmaStatsSummary,
   };
 }
-
-export const run1Round = (params: Run1RoundParams) => {
-  const { nsamples, skills, course, racedef, uma, pacer, options } = params;
-
-  const data: SkillBasinResponse = {};
-
-  skills.forEach((id) => {
-    const withSkill = cloneDeep(uma);
-    withSkill.skills.push(id);
-
-    const { results, runData } = runComparison({
-      nsamples,
-      course,
-      racedef,
-      runnerA: uma,
-      runnerB: withSkill,
-      pacer,
-      options,
-    });
-
-    const mid = Math.floor(results.length / 2);
-    const median = results.length % 2 == 0 ? (results[mid - 1] + results[mid]) / 2 : results[mid];
-
-    const mean = results.reduce((a, b) => a + b, 0) / results.length;
-
-    data[id] = {
-      id,
-      results,
-      runData,
-      min: results[0],
-      max: results[results.length - 1],
-      mean,
-      median,
-    };
-  });
-
-  return data;
-};

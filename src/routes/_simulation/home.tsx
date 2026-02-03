@@ -6,7 +6,6 @@ import {
   useRaceStore,
 } from '@/modules/simulation/stores/compare.store';
 import { Button } from '@/components/ui/button';
-import { ButtonGroup } from '@/components/ui/button-group';
 import { LoadingOverlay } from '@/components/loading-overlay';
 import { VelocityLines } from '@/components/VelocityLines';
 import { RaceTrack } from '@/modules/racetrack/components/RaceTrack';
@@ -69,24 +68,13 @@ export function SimulationHome() {
   return (
     <div className="flex flex-col flex-1 gap-4">
       <div className="flex items-center gap-2">
-        <ButtonGroup>
-          <Button onClick={handleRunAllSamples} disabled={isSimulationRunning} variant="default">
-            Run all samples
-          </Button>
-          <Button onClick={handleRunOneSample} disabled={isSimulationRunning} variant="outline">
-            Run one sample
-          </Button>
-          <Button
-            onClick={resetResults}
-            disabled={isSimulationRunning || results.length === 0}
-            variant="outline"
-          >
-            Clear
-          </Button>
-        </ButtonGroup>
-      </div>
+        <Button onClick={handleRunAllSamples} disabled={isSimulationRunning} variant="default">
+          Run all samples
+        </Button>
+        <Button onClick={handleRunOneSample} disabled={isSimulationRunning} variant="outline">
+          Run one sample
+        </Button>
 
-      <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">
           <Label htmlFor="seed-input" className="text-sm text-muted-foreground">
             Seed:
@@ -118,6 +106,14 @@ export function SimulationHome() {
             Replay One
           </Button>
         </div>
+
+        <Button
+          onClick={resetResults}
+          disabled={isSimulationRunning || results.length === 0}
+          variant="outline"
+        >
+          Clear
+        </Button>
       </div>
 
       <Activity mode={!isSimulationRunning ? 'visible' : 'hidden'}>

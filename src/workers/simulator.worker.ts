@@ -2,17 +2,9 @@
  * Web Worker for running simulations
  */
 
-import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import { cloneDeep } from 'es-toolkit';
 import type { CompareParams } from '@/modules/simulation/types';
 import { runComparison } from '@/utils/compare';
-
-const copyRunner = (runner: RunnerState) => {
-  return {
-    ...runner,
-    skills: [...runner.skills],
-    forcedSkillPositions: { ...runner.forcedSkillPositions },
-  };
-};
 
 function* progressiveSampleSizes(targetSamples: number) {
   let n = Math.min(20, targetSamples);
@@ -30,9 +22,9 @@ function* progressiveSampleSizes(targetSamples: number) {
 const runRunnersComparison = (params: CompareParams) => {
   const { nsamples, course, racedef, uma1, uma2, pacer, options } = params;
 
-  const uma1_ = copyRunner(uma1);
-  const uma2_ = copyRunner(uma2);
-  const pacer_ = pacer ? copyRunner(pacer) : null;
+  const uma1_ = cloneDeep(uma1);
+  const uma2_ = cloneDeep(uma2);
+  const pacer_ = pacer ? cloneDeep(pacer) : null;
 
   const compareOptions = { ...options, mode: 'compare' };
 

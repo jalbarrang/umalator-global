@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import CompareWorker from '@workers/simulator.worker.ts?worker';
+import type { CompareParams } from '../../types';
 import type { CompareResult } from '@/modules/simulation/compare.types';
 import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
 import {
@@ -94,66 +95,70 @@ export function useSimulationRunner() {
     // Generate random seed if not provided
     const simulationSeed = seed ?? Math.floor(Math.random() * 1000000);
 
+    const params: CompareParams = {
+      nsamples,
+      course,
+      racedef: racedefToParams(racedef),
+      uma1: uma1,
+      uma2: uma2,
+      pacer: pacer,
+      options: {
+        seed: simulationSeed,
+        posKeepMode,
+        allowRushedUma1: simWitVariance ? allowRushedUma1 : false,
+        allowRushedUma2: simWitVariance ? allowRushedUma2 : false,
+        allowDownhillUma1: simWitVariance ? allowDownhillUma1 : false,
+        allowDownhillUma2: simWitVariance ? allowDownhillUma2 : false,
+        allowSectionModifierUma1: simWitVariance ? allowSectionModifierUma1 : false,
+        allowSectionModifierUma2: simWitVariance ? allowSectionModifierUma2 : false,
+        useEnhancedSpurt: false,
+        accuracyMode: false,
+        skillCheckChanceUma1: simWitVariance ? allowSkillCheckChanceUma1 : false,
+        skillCheckChanceUma2: simWitVariance ? allowSkillCheckChanceUma2 : false,
+        pacemakerCount: posKeepMode === PosKeepMode.Virtual ? pacemakerCount : 1,
+      },
+    };
+
     webWorkerRef.current?.postMessage({
       msg: 'compare',
-      data: {
-        nsamples,
-        course,
-        racedef: racedefToParams(racedef),
-        uma1: uma1,
-        uma2: uma2,
-        pacer: pacer,
-        options: {
-          seed: simulationSeed,
-          posKeepMode,
-          allowRushedUma1: simWitVariance ? allowRushedUma1 : false,
-          allowRushedUma2: simWitVariance ? allowRushedUma2 : false,
-          allowDownhillUma1: simWitVariance ? allowDownhillUma1 : false,
-          allowDownhillUma2: simWitVariance ? allowDownhillUma2 : false,
-          allowSectionModifierUma1: simWitVariance ? allowSectionModifierUma1 : false,
-          allowSectionModifierUma2: simWitVariance ? allowSectionModifierUma2 : false,
-          useEnhancedSpurt: false,
-          accuracyMode: false,
-          skillCheckChanceUma1: simWitVariance ? allowSkillCheckChanceUma1 : false,
-          skillCheckChanceUma2: simWitVariance ? allowSkillCheckChanceUma2 : false,
-          pacemakerCount: posKeepMode === PosKeepMode.Virtual ? pacemakerCount : 1,
-        },
-      },
+      data: params,
     });
   };
 
   function handleRunOnce(seed?: number) {
     setIsSimulationRunning(true);
     setSimulationProgress(null);
-    
+
     // Generate random seed if not provided
     const simulationSeed = seed ?? Math.floor(Math.random() * 1000000);
 
+    const params: CompareParams = {
+      nsamples: 1,
+      course,
+      racedef: racedefToParams(racedef),
+      uma1: uma1,
+      uma2: uma2,
+      pacer: pacer,
+      options: {
+        seed: simulationSeed,
+        posKeepMode,
+        allowRushedUma1: simWitVariance ? allowRushedUma1 : false,
+        allowRushedUma2: simWitVariance ? allowRushedUma2 : false,
+        allowDownhillUma1: simWitVariance ? allowDownhillUma1 : false,
+        allowDownhillUma2: simWitVariance ? allowDownhillUma2 : false,
+        allowSectionModifierUma1: simWitVariance ? allowSectionModifierUma1 : false,
+        allowSectionModifierUma2: simWitVariance ? allowSectionModifierUma2 : false,
+        useEnhancedSpurt: false,
+        accuracyMode: false,
+        skillCheckChanceUma1: simWitVariance ? allowSkillCheckChanceUma1 : false,
+        skillCheckChanceUma2: simWitVariance ? allowSkillCheckChanceUma2 : false,
+        pacemakerCount: posKeepMode === PosKeepMode.Virtual ? pacemakerCount : 1,
+      },
+    };
+
     webWorkerRef.current?.postMessage({
       msg: 'compare',
-      data: {
-        nsamples: 1,
-        course,
-        racedef: racedefToParams(racedef),
-        uma1: uma1,
-        uma2: uma2,
-        pacer: pacer,
-        options: {
-          seed: simulationSeed,
-          posKeepMode,
-          allowRushedUma1: simWitVariance ? allowRushedUma1 : false,
-          allowRushedUma2: simWitVariance ? allowRushedUma2 : false,
-          allowDownhillUma1: simWitVariance ? allowDownhillUma1 : false,
-          allowDownhillUma2: simWitVariance ? allowDownhillUma2 : false,
-          allowSectionModifierUma1: simWitVariance ? allowSectionModifierUma1 : false,
-          allowSectionModifierUma2: simWitVariance ? allowSectionModifierUma2 : false,
-          useEnhancedSpurt: false,
-          accuracyMode: false,
-          skillCheckChanceUma1: simWitVariance ? allowSkillCheckChanceUma1 : false,
-          skillCheckChanceUma2: simWitVariance ? allowSkillCheckChanceUma2 : false,
-          pacemakerCount: posKeepMode === PosKeepMode.Virtual ? pacemakerCount : 1,
-        },
-      },
+      data: params,
     });
   }
 

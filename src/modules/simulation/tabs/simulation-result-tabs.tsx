@@ -15,7 +15,7 @@ export const SimulationResultTabs = () => {
         <TabsTrigger
           value="stats"
           className={cn('cursor-pointer', {
-            'bg-primary! text-primary-foreground': activeTab === 'stats',
+            'bg-primary! text-primary-foreground!': activeTab === 'stats',
           })}
         >
           <span className="hidden md:inline!">Runner Stats</span>
@@ -25,7 +25,7 @@ export const SimulationResultTabs = () => {
         <TabsTrigger
           value="distribution"
           className={cn('cursor-pointer', {
-            'bg-primary! text-primary-foreground': activeTab === 'distribution',
+            'bg-primary! text-primary-foreground!': activeTab === 'distribution',
           })}
         >
           <span className="hidden md:inline!">Distribution</span>
@@ -35,7 +35,7 @@ export const SimulationResultTabs = () => {
         <TabsTrigger
           value="skills"
           className={cn('cursor-pointer', {
-            'bg-primary! text-primary-foreground': activeTab === 'skills',
+            'bg-primary! text-primary-foreground!': activeTab === 'skills',
           })}
         >
           <span className="hidden md:inline!">Skills</span>

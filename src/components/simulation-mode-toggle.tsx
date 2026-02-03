@@ -17,6 +17,7 @@ export const SimulationModeToggle = () => {
           variant="outline"
           className={cn({
             'bg-primary!': isActive('/'),
+            'text-primary-foreground!': isActive('/'),
           })}
         >
           <Link to="/">Compare Runners</Link>
@@ -26,6 +27,7 @@ export const SimulationModeToggle = () => {
           variant="outline"
           className={cn({
             'bg-primary!': isActive('/skill-bassin'),
+            'text-primary-foreground!': isActive('/skill-bassin'),
           })}
         >
           <Link to="/skill-bassin">Skill Chart</Link>
@@ -35,6 +37,7 @@ export const SimulationModeToggle = () => {
           variant="outline"
           className={cn({
             'bg-primary!': isActive('/uma-bassin'),
+            'text-primary-foreground!': isActive('/uma-bassin'),
           })}
         >
           <Link to="/uma-bassin">Uma Chart</Link>

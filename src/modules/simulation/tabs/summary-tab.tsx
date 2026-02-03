@@ -65,9 +65,27 @@ export const ResultButtonGroups = () => {
             )}
             type="button"
           >
-            <span className="text-xs text-foreground font-medium">{value.label}</span>
-            <span className="text-2xl font-bold text-foreground">{value.value}</span>
-            <span className="text-xs text-foreground">lengths</span>
+            <span
+              className={cn('text-xs text-foreground font-medium', {
+                'text-primary-foreground!': displaying === key,
+              })}
+            >
+              {value.label}
+            </span>
+            <span
+              className={cn('text-2xl font-bold text-foreground', {
+                'text-primary-foreground!': displaying === key,
+              })}
+            >
+              {value.value}
+            </span>
+            <span
+              className={cn('text-xs text-foreground', {
+                'text-primary-foreground!': displaying === key,
+              })}
+            >
+              lengths
+            </span>
           </button>
         ))}
       </div>

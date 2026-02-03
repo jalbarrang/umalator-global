@@ -252,7 +252,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
 
       {!hideSkillButton && (
         <div className="flex items-center gap-2">
-          <div className="bg-card py-1 border font-bold rounded-lg text-white flex-1 text-center h-auto">
+          <div className="bg-card py-1 border font-bold rounded-lg flex-1 text-center h-auto">
             Skills
           </div>
 

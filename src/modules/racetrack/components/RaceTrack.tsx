@@ -554,7 +554,7 @@ export const ThresholdMarker = (props: ThresholdMarkerProps) => {
         y={yOffset - 25 - yExtra}
         fontSize="10px"
         textAnchor="middle"
-        fill="white"
+        fill="var(--foreground)"
         fontWeight="bold"
       >
         {text ?? `${threshold}m left`}
