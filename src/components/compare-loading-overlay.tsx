@@ -5,6 +5,7 @@
  * Displays sample-based progress tracking.
  */
 
+import { useMemo } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useMemo } from 'react';
 import { Card } from '@/components/ui/card';
