@@ -241,17 +241,19 @@ export const RunnerCard = (props: RunnerCardProps) => {
         onApply={handleOcrImportApply}
       />
 
-      <StatsTable value={state} onChange={handleUpdateStat} />
+      <div data-tutorial="runner-stats">
+        <StatsTable value={state} onChange={handleUpdateStat} />
 
-      <AptitudesTable
-        value={state}
-        onChange={onChange}
-        hasRunawaySkill={hasRunawaySkill}
-        onRunawayStrategy={handleRunawayStrategy}
-      />
+        <AptitudesTable
+          value={state}
+          onChange={onChange}
+          hasRunawaySkill={hasRunawaySkill}
+          onRunawayStrategy={handleRunawayStrategy}
+        />
+      </div>
 
       {!hideSkillButton && (
-        <div className="flex items-center gap-2">
+        <div data-tutorial="skills-section" className="flex items-center gap-2">
           <div className="bg-card py-1 border font-bold rounded-lg flex-1 text-center h-auto">
             Skills
           </div>
