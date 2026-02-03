@@ -1,4 +1,4 @@
-import { Activity, useCallback, useEffect, useMemo, useState } from 'react';
+import { Activity, useCallback, useMemo, useState } from 'react';
 import {
   createNewSeed,
   resetResults,
@@ -24,8 +24,6 @@ import { Label } from '@/components/ui/label';
 import { parseSeed } from '@/utils/crypto';
 import { HelpButton } from '@/components/ui/help-button';
 import { umalatorSteps } from '@/modules/tutorial/steps/umalator-steps';
-import { isFirstVisit, markVisited } from '@/store/tutorial.store';
-import { useTutorial } from '@/components/tutorial';
 
 export function SimulationHome() {
   const { chartData, results, isSimulationRunning, simulationProgress, seed } = useRaceStore();
@@ -33,20 +31,8 @@ export function SimulationHome() {
   const { showVirtualPacemakerOnGraph } = useUIStore();
   const selectedPacemakers = useSelectedPacemakerBooleans();
   const { handleRunCompare, handleRunOnce } = useSimulationRunner();
-  const { start: startTutorial } = useTutorial();
 
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
-
-  // Auto-trigger tutorial on first visit
-  useEffect(() => {
-    if (isFirstVisit('umalator')) {
-      const timer = setTimeout(() => {
-        markVisited('umalator');
-        startTutorial('umalator', umalatorSteps);
-      }, 800);
-      return () => clearTimeout(timer);
-    }
-  }, [startTutorial]);
 
   const [seedInput, setSeedInput] = useState<string>(() => {
     if (seed === null) return '';
@@ -96,12 +82,7 @@ export function SimulationHome() {
           Run one sample
         </Button>
 
-        <HelpButton
-          tutorialId="umalator"
-          steps={umalatorSteps}
-          tooltipText="Show tutorial"
-          className="ml-auto"
-        />
+        <HelpButton tutorialId="umalator" steps={umalatorSteps} tooltipText="Show tutorial" />
 
         <div className="flex items-center gap-2">
           <Label htmlFor="seed-input" className="text-sm text-muted-foreground">

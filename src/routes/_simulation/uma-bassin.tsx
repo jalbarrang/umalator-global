@@ -1,4 +1,4 @@
-import { Activity, useCallback, useEffect, useMemo, useState } from 'react';
+import { Activity, useCallback, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
 import {
   createNewSeed,
@@ -22,8 +22,6 @@ import { parseSeed } from '@/utils/crypto';
 import { useUmaSingleRunner } from '@/modules/simulation/hooks/uma-bassin/useUmaSingleRunner';
 import { HelpButton } from '@/components/ui/help-button';
 import { umaBassinSteps } from '@/modules/tutorial/steps/uma-bassin-steps';
-import { isFirstVisit, markVisited } from '@/store/tutorial.store';
-import { useTutorial } from '@/components/tutorial';
 
 export function UmaBassin() {
   const { selectedSkills, setSelectedSkills } = useChartData();
@@ -38,18 +36,6 @@ export function UmaBassin() {
   const courseId = useSettingsStore(useShallow((state) => state.courseId));
 
   const { runner, updateRunner, addSkill } = useRunner();
-  const { start: startTutorial } = useTutorial();
-
-  // Auto-trigger tutorial on first visit
-  useEffect(() => {
-    if (isFirstVisit('uma-bassin')) {
-      const timer = setTimeout(() => {
-        markVisited('uma-bassin');
-        startTutorial('uma-bassin', umaBassinSteps);
-      }, 800);
-      return () => clearTimeout(timer);
-    }
-  }, [startTutorial]);
 
   const [seedInput, setSeedInput] = useState<string>(() => {
     if (seed === null) return '';
@@ -123,7 +109,6 @@ export function UmaBassin() {
           tutorialId="uma-bassin"
           steps={umaBassinSteps}
           tooltipText="How to use Uma Chart"
-          className="ml-auto"
         />
 
         <div className="flex items-center gap-2">
