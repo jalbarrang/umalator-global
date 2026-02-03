@@ -177,11 +177,7 @@ export class PoolManager {
   /**
    * Run simulation with given skills and parameters
    */
-  async run(
-    skills: Array<string>,
-    params: SimulationParams,
-    callbacks: PoolManagerCallbacks,
-  ): Promise<void> {
+  run(skills: Array<string>, params: SimulationParams, callbacks: PoolManagerCallbacks): void {
     if (this.isRunning) {
       throw new Error('Simulation already running');
     }

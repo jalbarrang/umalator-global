@@ -264,7 +264,7 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
     if (eventType !== 'select-skill') return;
 
     let id = eventElement.dataset.skillid;
-    const skill = skills.find((skill) => skill.id === id);
+    const skill = skills.find((skillItem) => skillItem.id === id);
     if (!skill) return;
 
     const groupId = skill.meta.groupId;
@@ -278,8 +278,8 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
       // For debuffs, find the next available suffix
       let count = 0;
 
-      for (const selectedId of newSelected) {
-        if (selectedId.split('-')[0] === id) {
+      for (const newSelectedId of newSelected) {
+        if (newSelectedId.split('-')[0] === id) {
           count++;
         }
       }

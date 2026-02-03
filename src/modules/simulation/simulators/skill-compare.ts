@@ -377,8 +377,8 @@ export function runSkillComparison(params: SkillCompareParams): SkillComparisonR
   runnerBRaceSolver.onEffectActivated(handleEffectActivated(runnerBEffectLogs));
   runnerBRaceSolver.onEffectExpired(handleEffectExpiration(runnerBEffectLogs));
 
-  const a = runnerARaceSolver.build();
-  const b = runnerBRaceSolver.build();
+  const builderA = runnerARaceSolver.build();
+  const builderB = runnerBRaceSolver.build();
 
   const sign = 1;
   const diff = [];
@@ -404,8 +404,8 @@ export function runSkillComparison(params: SkillCompareParams): SkillComparisonR
   // ===============================================
 
   for (let i = 0; i < nsamples; ++i) {
-    const solverA = a.next(retry).value as RaceSolver;
-    const solverB = b.next(retry).value as RaceSolver;
+    const solverA = builderA.next(retry).value as RaceSolver;
+    const solverB = builderB.next(retry).value as RaceSolver;
 
     const data: SkillSimulationRun = initializeSkillSimulationRun();
 

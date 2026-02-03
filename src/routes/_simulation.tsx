@@ -8,8 +8,8 @@ import { useSkillModalStore } from '@/modules/skills/store';
 export function SimulationLayout() {
   const { open, umaId, options, currentSkills, onSelect } = useSkillModalStore();
 
-  const handleOpenChange = (open: boolean) => {
-    useSkillModalStore.setState({ open });
+  const handleOpenChange = (value: boolean) => {
+    useSkillModalStore.setState({ open: value });
   };
 
   return (

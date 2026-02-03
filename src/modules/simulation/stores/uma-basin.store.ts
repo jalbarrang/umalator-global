@@ -7,8 +7,8 @@ import { useRaceStore } from './compare.store';
 import type {
   SimulationData,
   SimulationRun,
-  SkillEffectLog,
   SkillActivationMap,
+  SkillEffectLog,
 } from '../compare.types';
 import type {
   PoolMetrics,

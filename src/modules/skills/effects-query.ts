@@ -1,4 +1,4 @@
-import type { SkillEffectLog, SkillActivationMap } from '@/modules/simulation/compare.types';
+import type { SkillActivationMap, SkillEffectLog } from '@/modules/simulation/compare.types';
 import {
   SkillPerspective,
   SkillTarget,

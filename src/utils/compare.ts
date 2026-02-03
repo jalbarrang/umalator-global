@@ -444,8 +444,8 @@ export function runComparison(params: RunComparisonParams): CompareResult {
     handleEffectExpiration(runnerBSkillActivations, runnerASkillActivations),
   );
 
-  const a = runnerARaceSolver.build();
-  const b = runnerBRaceSolver.build();
+  const builderA = runnerARaceSolver.build();
+  const builderB = runnerBRaceSolver.build();
 
   const runnerAIndex = 0;
   const runnerBIndex = 1;
@@ -512,19 +512,19 @@ export function runComparison(params: RunComparisonParams): CompareResult {
 
     for (let j = 0; j < options.pacemakerCount; ++j) {
       const pacerRng = new Rule30CARng(basePacerRng.int32());
-      const pacer: RaceSolver | null = pacerHorse
+      const auxPacer: RaceSolver | null = pacerHorse
         ? runnerARaceSolver.buildPacer(pacerHorse, i, pacerRng)
         : null;
 
-      if (pacer) {
-        pacers.push(pacer);
+      if (auxPacer) {
+        pacers.push(auxPacer);
       }
     }
 
-    const pacer: RaceSolver | null = pacers.length > 0 ? pacers[0] : null;
+    const firstPacer: RaceSolver | null = pacers.length > 0 ? pacers[0] : null;
 
-    const solverA = a.next(retry).value as RaceSolver;
-    const solverB = b.next(retry).value as RaceSolver;
+    const solverA = builderA.next(retry).value as RaceSolver;
+    const solverB = builderB.next(retry).value as RaceSolver;
 
     const data: SimulationRun = initializeSimulationRun();
 
@@ -547,10 +547,10 @@ export function runComparison(params: RunComparisonParams): CompareResult {
     while (!solverAFinished || !solverBFinished) {
       let currentPacer: RaceSolver | null = null;
 
-      if (pacer) {
-        currentPacer = pacer.getPacer();
+      if (firstPacer) {
+        currentPacer = firstPacer.getPacer();
 
-        pacer.umas.forEach((runner) => {
+        firstPacer.umas.forEach((runner) => {
           if (currentPacer) {
             runner.updatePacer(currentPacer);
           }
@@ -573,18 +573,18 @@ export function runComparison(params: RunComparisonParams): CompareResult {
 
       // Update pacer data for each pacer
       for (let j = 0; j < options.pacemakerCount; j++) {
-        const currentPacer = j < pacers.length ? pacers[j] : null;
+        const auxPacer = j < pacers.length ? pacers[j] : null;
 
-        if (!currentPacer || currentPacer.pos >= course.distance) continue;
+        if (!auxPacer || auxPacer.pos >= course.distance) continue;
 
-        currentPacer.step(1 / 15);
+        auxPacer.step(1 / 15);
         data.pacerV[j].push(
-          currentPacer.currentSpeed +
-            (currentPacer.modifiers.currentSpeed.acc + currentPacer.modifiers.currentSpeed.err),
+          auxPacer.currentSpeed +
+            (auxPacer.modifiers.currentSpeed.acc + auxPacer.modifiers.currentSpeed.err),
         );
 
-        data.pacerP[j].push(currentPacer.pos);
-        data.pacerT[j].push(currentPacer.accumulatetime.t);
+        data.pacerP[j].push(auxPacer.pos);
+        data.pacerT[j].push(auxPacer.accumulatetime.t);
       }
 
       // Update solver B
@@ -858,9 +858,9 @@ export function runComparison(params: RunComparisonParams): CompareResult {
       maxrun = data;
     }
     if (i == sampleCutoff) {
-      diff.sort((a, b) => a - b);
+      diff.sort((dataA, dataB) => dataA - dataB);
 
-      estMean = diff.reduce((a, b) => a + b) / diff.length;
+      estMean = diff.reduce((dataA, b) => dataA + b) / diff.length;
 
       const mid = Math.floor(diff.length / 2);
 
@@ -887,13 +887,13 @@ export function runComparison(params: RunComparisonParams): CompareResult {
       return { min: 0, max: 0, mean: 0, frequency: 0 };
     }
 
-    const min = Math.min(...stats.lengths);
-    const max = Math.max(...stats.lengths);
+    const minBashin = Math.min(...stats.lengths);
+    const maxBashin = Math.max(...stats.lengths);
     const mean = stats.lengths.reduce((a, b) => a + b, 0) / stats.lengths.length;
 
     const frequency = (stats.count / nsamples) * 100; // percentage
 
-    return { min, max, mean, frequency };
+    return { min: minBashin, max: maxBashin, mean, frequency };
   };
 
   const rushedStatsSummary = {
