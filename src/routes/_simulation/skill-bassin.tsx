@@ -25,6 +25,7 @@ export function SkillBassin() {
   const {
     results: skillBasinResults,
     metrics,
+    progress,
     isSimulationRunning,
     seed,
     skillLoadingStates,
@@ -126,18 +127,6 @@ export function SkillBassin() {
       </div>
 
       <Activity mode={!isSimulationRunning ? 'visible' : 'hidden'}>
-        {/* <RaceTrack courseid={courseId} chartData={chartData} xOffset={35} yOffset={35} yExtra={20}>
-          <VelocityLines
-            data={chartData}
-            courseDistance={course.distance}
-            xOffset={35}
-            yOffset={25}
-            horseLane={course.horseLane}
-            showVirtualPacemaker={false}
-            selectedPacemakers={[]}
-          />
-        </RaceTrack> */}
-
         <RaceSettingsPanel />
 
         <div>
@@ -158,10 +147,7 @@ export function SkillBassin() {
       </Activity>
 
       <Activity mode={isSimulationRunning ? 'visible' : 'hidden'}>
-        <LoadingOverlay
-          currentSamples={metrics?.skillsProcessed}
-          totalSamples={metrics?.totalSamples}
-        />
+        <LoadingOverlay progress={progress} />
       </Activity>
     </div>
   );

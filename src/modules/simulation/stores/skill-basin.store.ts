@@ -15,6 +15,7 @@ import type {
   SkillComparisonResponse,
   SkillComparisonRoundResult,
 } from '@/modules/simulation/types';
+import type { SimulationProgress } from '@/workers/pool/types';
 import { generateSeed } from '@/utils/crypto';
 import { mergeSkillResults } from '@/workers/utils';
 
@@ -22,6 +23,7 @@ type ISkillBasinStore = {
   seed: number | null;
   results: SkillComparisonResponse;
   metrics: PoolMetrics | null;
+  progress: SimulationProgress | null;
   isSimulationRunning: boolean;
   skillLoadingStates: Record<string, boolean>;
 };
@@ -30,6 +32,7 @@ export const useSkillBasinStore = create<ISkillBasinStore>()((_) => ({
   seed: null,
   results: {},
   metrics: null,
+  progress: null,
   isSimulationRunning: false,
   skillLoadingStates: {},
 }));
@@ -50,7 +53,7 @@ export const setTable = (results: SkillComparisonResponse) => {
 };
 
 export const resetTable = () => {
-  useSkillBasinStore.setState({ results: {}, metrics: null });
+  useSkillBasinStore.setState({ results: {}, metrics: null, progress: null });
 };
 
 export const appendSingleSkillResult = (skillId: string, result: SkillComparisonRoundResult) => {
@@ -80,6 +83,10 @@ export const appendResultsToTable = (results: SkillComparisonResponse) => {
 
 export const setMetrics = (metrics: PoolMetrics) => {
   useSkillBasinStore.setState({ metrics });
+};
+
+export const setProgress = (progress: SimulationProgress | null) => {
+  useSkillBasinStore.setState({ progress });
 };
 
 export const setIsSimulationRunning = (isSimulationRunning: boolean) => {

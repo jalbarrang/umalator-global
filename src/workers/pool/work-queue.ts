@@ -1,7 +1,7 @@
 import { clone } from 'es-toolkit';
 import { mergeSkillResults } from '../utils';
 import type { SkillComparisonResponse } from '@/modules/simulation/types';
-import type { WorkBatch } from './types';
+import type { SimulationProgress, WorkBatch } from './types';
 
 export type StageConfig = {
   stage: 1 | 2 | 3 | 4;
@@ -23,10 +23,13 @@ export class WorkQueue {
   private pendingBatches = new Map<number, Array<string>>(); // batchId -> skills
   private completedBatches = new Map<number, SkillComparisonResponse>();
   private stageResults: SkillComparisonResponse = {};
+  private totalSkillsInCurrentStage = 0;
+  private completedSkillsInCurrentStage = 0;
 
   constructor(skills: Array<string>, batchSize = 10) {
     this.skills = clone(skills);
     this.batchSize = batchSize;
+    this.totalSkillsInCurrentStage = skills.length;
   }
 
   /**
@@ -57,6 +60,11 @@ export class WorkQueue {
    * Handle a completed batch from a worker
    */
   completeBatch(batchId: number, results: SkillComparisonResponse): void {
+    const batchSkills = this.pendingBatches.get(batchId);
+    if (batchSkills) {
+      this.completedSkillsInCurrentStage += batchSkills.length;
+    }
+
     this.pendingBatches.delete(batchId);
     this.completedBatches.set(batchId, results);
 
@@ -131,6 +139,8 @@ export class WorkQueue {
     this.currentStageIndex++;
     this.pendingBatches.clear();
     this.completedBatches.clear();
+    this.totalSkillsInCurrentStage = nextSkills.length;
+    this.completedSkillsInCurrentStage = 0;
 
     return true;
   }
@@ -168,5 +178,31 @@ export class WorkQueue {
    */
   getPendingBatchesCount(): number {
     return this.pendingBatches.size;
+  }
+
+  /**
+   * Get the number of skills completed in the current stage
+   */
+  getCompletedSkillsCount(): number {
+    return this.completedSkillsInCurrentStage;
+  }
+
+  /**
+   * Get the total number of skills in the current stage
+   */
+  getTotalSkillsInStage(): number {
+    return this.totalSkillsInCurrentStage;
+  }
+
+  /**
+   * Get current simulation progress
+   */
+  getProgress(): SimulationProgress {
+    return {
+      currentStage: STAGE_CONFIGS[this.currentStageIndex].stage,
+      totalStages: 4,
+      skillsCompletedInStage: this.completedSkillsInCurrentStage,
+      totalSkillsInStage: this.totalSkillsInCurrentStage,
+    };
   }
 }

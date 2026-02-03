@@ -8,6 +8,7 @@ import {
   resetTable,
   setIsSimulationRunning,
   setMetrics,
+  setProgress,
   setTable,
 } from '@/modules/simulation/stores/uma-basin.store';
 import {
@@ -88,19 +89,23 @@ export function useUmaBasinPoolRunner() {
         },
       },
       {
-        onProgress: (results) => {
+        onProgress: (results, progress) => {
           appendResultsToTable(results);
+          setProgress(progress);
         },
-        onStageComplete: (stage, results) => {
+        onStageComplete: (stage, results, progress) => {
           appendResultsToTable(results);
+          setProgress(progress);
         },
         onComplete: (results, metrics) => {
           appendResultsToTable(results);
           setMetrics(metrics);
+          setProgress(null);
           setIsSimulationRunning(false);
         },
         onError: (error) => {
           console.error('Pool simulation error:', error);
+          setProgress(null);
           setIsSimulationRunning(false);
         },
       },

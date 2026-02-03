@@ -1,10 +1,20 @@
 import { STAGE_CONFIGS, WorkQueue } from './work-queue';
 import type { PoolMetrics, SkillComparisonResponse } from '@/modules/simulation/types';
-import type { SimulationParams, WorkerInMessage, WorkerOutMessage, WorkerState } from './types';
+import type {
+  SimulationParams,
+  SimulationProgress,
+  WorkerInMessage,
+  WorkerOutMessage,
+  WorkerState,
+} from './types';
 
 export type PoolManagerCallbacks = {
-  onProgress?: (results: SkillComparisonResponse) => void;
-  onStageComplete?: (stage: number, results: SkillComparisonResponse) => void;
+  onProgress?: (results: SkillComparisonResponse, progress: SimulationProgress) => void;
+  onStageComplete?: (
+    stage: number,
+    results: SkillComparisonResponse,
+    progress: SimulationProgress,
+  ) => void;
   onComplete?: (results: SkillComparisonResponse, metrics: PoolMetrics) => void;
   onError?: (error: Error) => void;
 };
@@ -70,14 +80,16 @@ export class PoolManager {
 
         // Send progress update
         if (this.workQueue) {
-          this.callbacks.onProgress?.(this.workQueue.getResults());
+          const progress = this.workQueue.getProgress();
+          this.callbacks.onProgress?.(this.workQueue.getResults(), progress);
         }
 
         // Check if stage is complete
         if (this.workQueue?.isStageComplete()) {
           const currentStage = this.workQueue.getCurrentStage();
+          const progress = this.workQueue.getProgress();
 
-          this.callbacks.onStageComplete?.(currentStage, this.workQueue.getResults());
+          this.callbacks.onStageComplete?.(currentStage, this.workQueue.getResults(), progress);
 
           // Try to advance to next stage
           if (!this.workQueue.advanceToNextStage()) {

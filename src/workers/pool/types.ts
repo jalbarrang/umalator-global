@@ -5,6 +5,13 @@ import type { SimulationOptions, SkillComparisonResponse } from '@/modules/simul
 
 export type WorkerState = 'idle' | 'busy' | 'terminated';
 
+export type SimulationProgress = {
+  currentStage: 1 | 2 | 3 | 4;
+  totalStages: 4;
+  skillsCompletedInStage: number;
+  totalSkillsInStage: number;
+};
+
 export type WorkBatch = {
   batchId: number;
   skills: Array<string>;

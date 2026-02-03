@@ -26,6 +26,7 @@ export function UmaBassin() {
   const {
     results: umaBasinResults,
     metrics,
+    progress,
     isSimulationRunning,
     seed,
     skillLoadingStates,
@@ -169,10 +170,7 @@ export function UmaBassin() {
       </Activity>
 
       <Activity mode={isSimulationRunning ? 'visible' : 'hidden'}>
-        <LoadingOverlay
-          currentSamples={metrics?.skillsProcessed}
-          totalSamples={metrics?.totalSamples}
-        />
+        <LoadingOverlay progress={progress} />
       </Activity>
     </div>
   );
