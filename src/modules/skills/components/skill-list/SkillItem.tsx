@@ -19,6 +19,8 @@ type SkillItemProps = React.HTMLAttributes<HTMLDivElement> & {
   distanceFactor?: number;
   forcedPosition?: number;
   onPositionChange?: (position: string | undefined) => void;
+  isHovered?: boolean;
+  isFocused?: boolean;
 };
 
 export const SkillItem = memo((props: SkillItemProps) => {
@@ -30,6 +32,8 @@ export const SkillItem = memo((props: SkillItemProps) => {
     distanceFactor = 0,
     forcedPosition = 0,
     onPositionChange = () => {},
+    isHovered = false,
+    isFocused = false,
   } = props;
 
   const [expanded, setExpanded] = useState(false);
@@ -53,12 +57,15 @@ export const SkillItem = memo((props: SkillItemProps) => {
           'rounded-md bg-background border-2 flex h-[44px]',
           {
             selected: selected,
+            'bg-yellow-200/70 dark:bg-yellow-800/40': isHovered || isFocused,
           },
           props.className,
         )}
         style={props.style}
         data-event="select-skill"
         data-skillid={skillId}
+        onMouseEnter={props.onMouseEnter}
+        onMouseLeave={props.onMouseLeave}
       >
         <div
           className={cn('flex w-6 border rounded-l', {
@@ -105,11 +112,14 @@ export const SkillItem = memo((props: SkillItemProps) => {
     >
       <div
         onClick={() => setExpanded(!expanded)}
+        onMouseEnter={props.onMouseEnter}
+        onMouseLeave={props.onMouseLeave}
         className={cn(
           'rounded-md bg-background border-2 flex h-[44px]',
           {
             selected: selected,
             'rounded-b-none': expanded,
+            'bg-yellow-200/70 dark:bg-yellow-800/40': isHovered || isFocused,
           },
           props.className,
         )}

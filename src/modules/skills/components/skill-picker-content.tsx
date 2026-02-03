@@ -184,6 +184,7 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
   const searchRef = useRef<HTMLInputElement>(null);
   const [searchText, setSearchText] = useState('');
   const deferredSearchText = useDeferredValue(searchText);
+  const [focusedSkillIndex, setFocusedSkillIndex] = useState<number>(-1);
 
   const [filterState, dispatch] = useReducer(filterReducer, null, createInitialFilterState);
 
@@ -336,6 +337,75 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
     searchRef.current?.focus();
     searchRef.current?.select();
   });
+
+  // Keyboard navigation for filtered skills
+  useHotkeys(
+    'down',
+    (event) => {
+      event.preventDefault();
+      if (filteredSkills.length === 0) return;
+
+      setFocusedSkillIndex((prev) => {
+        const nextIndex = prev + 1;
+        return nextIndex >= filteredSkills.length ? 0 : nextIndex;
+      });
+    },
+    { enableOnFormTags: true },
+  );
+
+  useHotkeys(
+    'up',
+    (event) => {
+      event.preventDefault();
+      if (filteredSkills.length === 0) return;
+
+      setFocusedSkillIndex((prev) => {
+        const nextIndex = prev - 1;
+        return nextIndex < 0 ? filteredSkills.length - 1 : nextIndex;
+      });
+    },
+    { enableOnFormTags: true },
+  );
+
+  useHotkeys(
+    'enter',
+    (event) => {
+      if (focusedSkillIndex < 0 || focusedSkillIndex >= filteredSkills.length) return;
+
+      event.preventDefault();
+      const focusedSkill = filteredSkills[focusedSkillIndex];
+      if (!focusedSkill) return;
+
+      // Simulate the click event to select the skill
+      const groupId = focusedSkill.meta.groupId;
+      const newSelected = new Set(currentSkills);
+
+      // Remove skill from same group if exists (for non-debuffs)
+      const selectedId = selectedMap.get(groupId);
+      if (selectedId) {
+        newSelected.delete(selectedId);
+      } else if (focusedSkill.meta.iconId.startsWith('3')) {
+        // For debuffs, find the next available suffix
+        let count = 0;
+        for (const newSelectedId of newSelected) {
+          if (newSelectedId.split('-')[0] === focusedSkill.id) {
+            count++;
+          }
+        }
+        const skillIdWithSuffix = count > 0 ? `${focusedSkill.id}-${count}` : focusedSkill.id;
+        newSelected.add(skillIdWithSuffix);
+      } else {
+        newSelected.add(focusedSkill.id);
+      }
+
+      onSelect(Array.from(newSelected));
+
+      // Reset focus index and return focus to search input
+      setFocusedSkillIndex(-1);
+      searchRef.current?.focus();
+    },
+    { enableOnFormTags: true },
+  );
 
   useImperativeHandle(
     ref,
@@ -592,6 +662,11 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
               items={filteredSkills}
               selectedMap={selectedMap}
               onClick={toggleSelected}
+              focusedSkillId={
+                focusedSkillIndex >= 0 && focusedSkillIndex < filteredSkills.length
+                  ? filteredSkills[focusedSkillIndex].id
+                  : null
+              }
             />
           </div>
         </div>

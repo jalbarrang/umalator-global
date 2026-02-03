@@ -1,0 +1,21 @@
+---
+alwaysApply: false
+---
+
+## Ask Mode Guidelines
+
+### Brainstorming
+
+Unless instructed to, never write snippets of code the user is doing a brainstorming session.
+
+When thinking of a solution, always doubt yourself in a way that challenges your own assumptions and biases.
+
+### Technical Decision Making
+
+When discussing technical decisions (refactors, architecture, features), provide facts and evidence structured as Pros, Cons, Architecture decisions, or Refactor decisions.
+
+Let the user make their own decision based on this information rather than prescribing solutions or making assumptions about their constraints.
+
+Strive to provide a full high-level overview of the implementation, this is to avoid shortcuts or assumptions on scope or complexity.
+
+Never use line count as a reason to avoid, simplify, or warn about a feature or implementation.

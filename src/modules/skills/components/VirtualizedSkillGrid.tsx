@@ -8,6 +8,7 @@ type VirtualizedSkillGridProps = {
   selectedMap: Map<string, string>;
   onClick: React.MouseEventHandler<HTMLDivElement>;
   className?: string;
+  focusedSkillId?: string | null;
 };
 
 const ITEM_HEIGHT = 44; // Height of SkillItem
@@ -20,11 +21,13 @@ export function VirtualizedSkillGrid({
   selectedMap,
   onClick,
   className = '',
+  focusedSkillId = null,
 }: VirtualizedSkillGridProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollTop, setScrollTop] = useState(0);
   const [containerHeight, setContainerHeight] = useState(0);
   const [columnCount, setColumnCount] = useState(1);
+  const [hoveredSkillId, setHoveredSkillId] = useState<string | null>(null);
 
   // Detect column count based on container width using ResizeObserver
   useEffect(() => {
@@ -96,6 +99,31 @@ export function VirtualizedSkillGrid({
     [columnCount],
   );
 
+  // Auto-scroll to focused skill
+  useEffect(() => {
+    if (!focusedSkillId || !containerRef.current) return;
+
+    const focusedIndex = items.findIndex((skill) => skill.id === focusedSkillId);
+    if (focusedIndex === -1) return;
+
+    const row = Math.floor(focusedIndex / columnCount);
+    const itemTop = row * ROW_HEIGHT;
+    const itemBottom = itemTop + ITEM_HEIGHT;
+
+    const container = containerRef.current;
+    const viewportTop = container.scrollTop;
+    const viewportBottom = viewportTop + container.clientHeight;
+
+    // Scroll if item is not fully visible
+    if (itemTop < viewportTop) {
+      // Scroll up to show item at top
+      container.scrollTop = itemTop - GAP;
+    } else if (itemBottom > viewportBottom) {
+      // Scroll down to show item at bottom
+      container.scrollTop = itemBottom - container.clientHeight + GAP;
+    }
+  }, [focusedSkillId, items, columnCount]);
+
   return (
     <div
       ref={containerRef}
@@ -112,12 +140,18 @@ export function VirtualizedSkillGrid({
       >
         {items.slice(startIndex, endIndex).map((skill, i) => {
           const actualIndex = startIndex + i;
+          const isHovered = hoveredSkillId === skill.id;
+          const isFocused = focusedSkillId === skill.id;
 
           return (
             <SkillItem
               key={skill.id}
               skillId={skill.id}
               selected={selectedMap.get(skill.meta.groupId) === skill.id}
+              isHovered={isHovered}
+              isFocused={isFocused}
+              onMouseEnter={() => setHoveredSkillId(skill.id)}
+              onMouseLeave={() => setHoveredSkillId(null)}
               className="cursor-pointer"
               style={getItemStyle(actualIndex)}
             />
