@@ -1,11 +1,6 @@
-import type { DriveStep } from 'driver.js';
+/**
+ * Tutorial module types
+ * Re-exports from the main tutorial system
+ */
 
-export type { DriveStep };
-
-export type TutorialId = 'umalator' | 'skill-bassin' | 'uma-bassin';
-
-export interface TutorialConfig {
-  id: TutorialId;
-  name: string;
-  steps: DriveStep[];
-}
+export type { TutorialStep, TutorialConfig, TutorialId } from '@/components/tutorial';
