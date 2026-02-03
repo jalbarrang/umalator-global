@@ -26,7 +26,7 @@ import type {
 import type {
   CompareResult,
   SimulationRun,
-  SkillActivation,
+  SkillEffectLog,
 } from '@/modules/simulation/compare.types';
 
 import type { ActiveSkill, RaceSolver } from '@/modules/simulation/lib/core/RaceSolver';
@@ -335,12 +335,12 @@ export function runComparison(params: RunComparisonParams): CompareResult {
     }
   }
 
-  const runnerASkillActivations: Map<string, Array<SkillActivation>> = new Map();
-  const runnerBSkillActivations: Map<string, Array<SkillActivation>> = new Map();
+  const runnerASkillActivations: Map<string, Array<SkillEffectLog>> = new Map();
+  const runnerBSkillActivations: Map<string, Array<SkillEffectLog>> = new Map();
 
   const handleEffectActivation = (
-    skillsSet: Map<string, Array<SkillActivation>>,
-    othersSet: Map<string, Array<SkillActivation>>,
+    skillsSet: Map<string, Array<SkillEffectLog>>,
+    othersSet: Map<string, Array<SkillEffectLog>>,
   ) => {
     return (
       raceSolver: RaceSolver,
@@ -390,8 +390,8 @@ export function runComparison(params: RunComparisonParams): CompareResult {
   };
 
   const handleEffectExpiration = (
-    skillsSet: Map<string, Array<SkillActivation>>,
-    _othersSet: Map<string, Array<SkillActivation>>,
+    skillsSet: Map<string, Array<SkillEffectLog>>,
+    _othersSet: Map<string, Array<SkillEffectLog>>,
   ) => {
     return (
       _raceSolver: RaceSolver,
@@ -716,8 +716,8 @@ export function runComparison(params: RunComparisonParams): CompareResult {
     // Also handles skills with very short durations that might deactivate in the same frame
     const cleanupActiveSkills = (
       solver: RaceSolver,
-      selfSkillSet: Map<string, Array<SkillActivation>>,
-      othersSkillSet: Map<string, Array<SkillActivation>>,
+      selfSkillSet: Map<string, Array<SkillEffectLog>>,
+      othersSkillSet: Map<string, Array<SkillEffectLog>>,
     ) => {
       const callDeactivator = (skill: ActiveSkill) => {
         // Call the deactivator to set the end position to course.distance

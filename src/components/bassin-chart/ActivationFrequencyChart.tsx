@@ -10,7 +10,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import type { SkillActivation, SkillSimulationData } from '@/modules/simulation/compare.types';
+import type { SkillEffectLog, SkillSimulationData } from '@/modules/simulation/compare.types';
 import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
 
 interface ActivationFrequencyChartProps {
@@ -61,7 +61,7 @@ export function ActivationFrequencyChart({
       const activations = skillMap[skillId];
       if (!activations) return;
 
-      activations.forEach((activation: SkillActivation) => {
+      activations.forEach((activation: SkillEffectLog) => {
         activationPositions.push(activation.start);
       });
     });

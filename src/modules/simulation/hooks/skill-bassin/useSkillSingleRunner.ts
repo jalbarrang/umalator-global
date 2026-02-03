@@ -86,8 +86,6 @@ export function useSkillSingleRunner() {
             worker.terminate();
             workerRef.current = null;
 
-            console.log(`Completed ${additionalSamples} additional samples for skill ${skillId}`);
-            console.log('🎯 Skill Activations:', result);
             break;
           }
 

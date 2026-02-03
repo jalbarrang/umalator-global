@@ -4,13 +4,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { ActivationEffectChart } from './ActivationEffectChart';
-import type { SkillSimulationData } from '@/modules/simulation/compare.types';
+import { LengthDifferenceChart } from './LengthDifferenceChart';
+import type {
+  SkillSimulationData,
+  SkillTrackedMetaCollection,
+} from '@/modules/simulation/compare.types';
 import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
 
 type ActivationDetailsProps = {
   skillId: string;
   runData: SkillSimulationData;
-  skillActivations: Record<string, Array<{ position: number }>>;
+  skillActivations: Record<string, SkillTrackedMetaCollection>;
   courseDistance: number;
   currentSeed: number | null;
   isGlobalSimulationRunning: boolean;
@@ -36,7 +40,7 @@ export function ActivationDetails(props: ActivationDetailsProps) {
   );
 
   const activationPositions = useMemo(
-    () => currentSkillActivations.map((activation) => activation.position),
+    () => currentSkillActivations.map((activation) => activation.positions).flat(),
     [currentSkillActivations],
   );
 
@@ -169,10 +173,15 @@ export function ActivationDetails(props: ActivationDetailsProps) {
           </div>
         )}
 
-        <div className="grid gap-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           <ActivationEffectChart
             skillId={skillId}
-            skillActivations={currentSkillActivations}
+            skillActivations={activationPositions}
+            courseDistance={courseDistance}
+          />
+          <LengthDifferenceChart
+            skillId={skillId}
+            skillActivations={skillActivations}
             courseDistance={courseDistance}
           />
         </div>
@@ -198,12 +207,6 @@ export function ActivationDetails(props: ActivationDetailsProps) {
               <div className="w-3 h-3 rounded" style={{ backgroundColor: 'rgb(255,130,130)' }} />
               <span className="text-muted-foreground">Last Spurt</span>
             </div>
-          </div>
-
-          <div className="text-xs text-muted-foreground">
-            This visualization shows where along the race course this skill typically activates. Use
-            this information to understand if the skill's activation conditions match your race
-            strategy.
           </div>
         </div>
       </CardContent>

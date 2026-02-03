@@ -73,7 +73,25 @@ export interface SkillSimulationRun {
 // [RegionStart, RegionEnd]
 export type RegionActivation = [number, number];
 
-export type SkillActivation = {
+/**
+ * Metadata for tracking skill activations
+ *
+ * this type takes care to store data used for skill comparison simulation purposes
+ */
+export type SkillTrackedMeta = {
+  /**
+   * The length of the horse gained from the skill, recorded at the end of the race.
+   */
+  horseLength: number;
+  /**
+   * The positions this skill was activated at
+   */
+  positions: Array<number>;
+};
+
+export type SkillTrackedMetaCollection = Array<SkillTrackedMeta>;
+
+export type SkillEffectLog = {
   executionId: string;
   skillId: string;
   start: number;
@@ -83,7 +101,7 @@ export type SkillActivation = {
   effectTarget: ISkillTarget;
 };
 
-export type SkillActivationMap = Record<string, Array<SkillActivation>>;
+export type SkillActivationMap = Record<string, Array<SkillEffectLog>>;
 
 export interface StaminaStats {
   uma1: StaminaStatsUma1;

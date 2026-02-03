@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
-import type { SimulationRun, SkillActivation } from '@/modules/simulation/compare.types';
+import type { SimulationRun, SkillEffectLog } from '@/modules/simulation/compare.types';
 import type { PosKeepLabel } from '@/utils/races';
 import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
 import { PosKeepMode } from '@/modules/simulation/lib/runner/definitions';
@@ -47,7 +47,7 @@ const getStateName = (state: number) => {
 
 const getSkillActivation = (
   skillId: string,
-  activations: Array<SkillActivation>,
+  activations: Array<SkillEffectLog>,
   umaIndex: number,
 ) => {
   const validActivation = activations.find(

@@ -1,4 +1,4 @@
-import type { SkillActivation, SkillActivationMap } from '@/modules/simulation/compare.types';
+import type { SkillEffectLog, SkillActivationMap } from '@/modules/simulation/compare.types';
 import {
   SkillPerspective,
   SkillTarget,
@@ -7,7 +7,7 @@ import {
 
 export class EffectQuery {
   private activations: SkillActivationMap;
-  private flatList: Array<SkillActivation>;
+  private flatList: Array<SkillEffectLog>;
 
   private constructor(activations: SkillActivationMap) {
     this.activations = activations;
@@ -18,7 +18,7 @@ export class EffectQuery {
     return new EffectQuery(activations);
   }
 
-  toList(): Array<SkillActivation> {
+  toList(): Array<SkillEffectLog> {
     return this.flatList;
   }
 
@@ -32,19 +32,19 @@ export class EffectQuery {
   }
 
   // Filter methods become clearer
-  getSelfBuffs(): Array<SkillActivation> {
+  getSelfBuffs(): Array<SkillEffectLog> {
     return this.flatList.filter(
       (a) => a.perspective === SkillPerspective.Self && a.effectTarget === SkillTarget.Self,
     );
   }
 
-  getDebuffs(): Array<SkillActivation> {
+  getDebuffs(): Array<SkillEffectLog> {
     return this.flatList.filter(
       (a) => a.perspective !== SkillPerspective.Self && a.effectTarget !== SkillTarget.Self,
     );
   }
 
-  getStaminaDebuffs(): Array<SkillActivation> {
+  getStaminaDebuffs(): Array<SkillEffectLog> {
     return this.flatList.filter(
       (a) =>
         a.perspective === SkillPerspective.Other &&
@@ -54,11 +54,11 @@ export class EffectQuery {
   }
 
   // Get all effects from a specific activation
-  getEffectsForExecution(executionId: string): Array<SkillActivation> {
+  getEffectsForExecution(executionId: string): Array<SkillEffectLog> {
     return this.flatList.filter((a) => a.executionId === executionId);
   }
 
-  getSelfHeals(): Array<SkillActivation> {
+  getSelfHeals(): Array<SkillEffectLog> {
     return this.flatList.filter(
       (a) => a.perspective === SkillPerspective.Self && a.effectType === SkillType.Recovery,
     );

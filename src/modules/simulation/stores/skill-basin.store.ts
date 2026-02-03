@@ -7,7 +7,7 @@ import { useRaceStore } from './compare.store';
 import type {
   SimulationData,
   SimulationRun,
-  SkillActivation,
+  SkillEffectLog,
   SkillActivationMap,
 } from '../compare.types';
 import type {
@@ -139,7 +139,7 @@ export const useChartData = () => {
       // Index 1 is uma that used the new skill for sim
       const skillActivations = selectedData.sk[1];
       if (!skillActivations) continue;
-      const activations: Array<SkillActivation> = skillActivations[skill] ?? [];
+      const activations: Array<SkillEffectLog> = skillActivations[skill] ?? [];
       mergedMap[skill] = activations;
     }
 

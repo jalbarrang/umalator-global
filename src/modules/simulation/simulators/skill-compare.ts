@@ -16,9 +16,11 @@ import type {
   TheoreticalMaxSpurtResult,
 } from '@/modules/simulation/types';
 import type {
-  SkillActivation,
+  SkillEffectLog,
   SkillSimulationData,
   SkillSimulationRun,
+  SkillTrackedMeta,
+  SkillTrackedMetaCollection,
 } from '@/modules/simulation/compare.types';
 
 import type {
@@ -139,7 +141,7 @@ export function calculateTheoreticalMaxSpurt(
 
 export interface SkillComparisonResult {
   results: Array<number>;
-  skillActivations: Record<string, Array<{ position: number }>>;
+  skillActivations: Record<string, SkillTrackedMetaCollection>;
   runData: SkillSimulationData;
 
   min: number;
@@ -285,12 +287,11 @@ export function runSkillComparison(params: SkillCompareParams): SkillComparisonR
 
   // ===== Skill Activation Tracking =====
 
-  const runnerBSkillActivations: Map<string, Array<{ position: number }>> = new Map();
-  const runnerBEffectLogs: Map<string, Array<SkillActivation>> = new Map();
+  const runnerBSkillActivations: Map<string, SkillTrackedMetaCollection> = new Map();
+  const currentSampleMeta: Map<string, SkillTrackedMeta> = new Map();
+  const runnerBEffectLogs: Map<string, Array<SkillEffectLog>> = new Map();
 
-  const handleSkillActivation = (
-    skillsSet: Map<string, Array<{ position: number }>>,
-  ): OnSkillCallback => {
+  const handleSkillActivation = (skillsSet: Map<string, SkillTrackedMeta>): OnSkillCallback => {
     return (context) => {
       const { currentPosition, skillId } = context;
 
@@ -298,13 +299,17 @@ export function runSkillComparison(params: SkillCompareParams): SkillComparisonR
         return;
       }
 
-      const skillActivations = skillsSet.get(skillId) ?? [];
-      skillActivations.push({ position: currentPosition });
+      const skillActivations = skillsSet.get(skillId) ?? {
+        horseLength: 0,
+        positions: [],
+      };
+
+      skillActivations.positions.push(currentPosition);
       skillsSet.set(skillId, skillActivations);
     };
   };
 
-  const handleEffectActivated = (skillsSet: Map<string, Array<SkillActivation>>) => {
+  const handleEffectActivated = (skillsSet: Map<string, Array<SkillEffectLog>>) => {
     return (
       _raceSolver: RaceSolver,
       currentPosition: number,
@@ -336,7 +341,7 @@ export function runSkillComparison(params: SkillCompareParams): SkillComparisonR
     };
   };
 
-  const handleEffectExpiration = (skillsSet: Map<string, Array<SkillActivation>>) => {
+  const handleEffectExpiration = (skillsSet: Map<string, Array<SkillEffectLog>>) => {
     return (
       _raceSolver: RaceSolver,
       currentPosition: number,
@@ -368,7 +373,7 @@ export function runSkillComparison(params: SkillCompareParams): SkillComparisonR
     };
   };
 
-  runnerBRaceSolver.onSkillActivated(handleSkillActivation(runnerBSkillActivations));
+  runnerBRaceSolver.onSkillActivated(handleSkillActivation(currentSampleMeta));
   runnerBRaceSolver.onEffectActivated(handleEffectActivated(runnerBEffectLogs));
   runnerBRaceSolver.onEffectExpired(handleEffectExpiration(runnerBEffectLogs));
 
@@ -447,7 +452,7 @@ export function runSkillComparison(params: SkillCompareParams): SkillComparisonR
     // Also handles skills with very short durations that might deactivate in the same frame
     const cleanupActiveSkills = (
       solver: RaceSolver,
-      selfSkillSet: Map<string, Array<SkillActivation>>,
+      selfSkillSet: Map<string, Array<SkillEffectLog>>,
     ) => {
       const callDeactivator = (skill: ActiveSkill) => {
         // Call the deactivator to set the end position to course.distance
@@ -488,6 +493,20 @@ export function runSkillComparison(params: SkillCompareParams): SkillComparisonR
     solverA.cleanup();
 
     const basinn = (sign * positionDiff) / 2.5;
+
+    currentSampleMeta.forEach((activation) => {
+      activation.horseLength = basinn;
+    });
+
+    currentSampleMeta.forEach((meta, skillId) => {
+      const collection = runnerBSkillActivations.get(skillId) ?? [];
+
+      collection.push(meta); // Add this sample's data
+      runnerBSkillActivations.set(skillId, collection);
+    });
+
+    currentSampleMeta.clear();
+
     diff.push(basinn);
 
     if (basinn < min) {
@@ -547,7 +566,7 @@ export function runSkillComparison(params: SkillCompareParams): SkillComparisonR
   };
 }
 
-export const runSampling = (params: Run1RoundParams) => {
+export const runSampling = (params: Run1RoundParams): SkillComparisonResponse => {
   const { nsamples, skills, course, racedef, uma, pacer, options } = params;
 
   const data: SkillComparisonResponse = {};

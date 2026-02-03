@@ -1,6 +1,10 @@
 import type { IPosKeepMode } from './lib/runner/definitions';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
-import type { SimulationData, SkillSimulationData } from '@/modules/simulation/compare.types';
+import type {
+  SimulationData,
+  SkillSimulationData,
+  SkillTrackedMetaCollection,
+} from '@/modules/simulation/compare.types';
 import type { CourseData } from './lib/course/definitions';
 import type { RaceParameters } from './lib/definitions';
 
@@ -24,7 +28,7 @@ export type SkillBasinResponse = Record<string, RoundResult>;
 export type SkillComparisonRoundResult = {
   id: string;
   results: Array<number>;
-  skillActivations: Record<string, Array<{ position: number }>>;
+  skillActivations: Record<string, SkillTrackedMetaCollection>;
   runData: SkillSimulationData;
   min: number;
   max: number;

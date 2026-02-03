@@ -7,7 +7,7 @@
 
 import { ActivationCollector } from './collector';
 import type { RunComparisonParams } from '@/modules/simulation/types';
-import type { SkillActivation } from '@/modules/simulation/compare.types';
+import type { SkillEffectLog } from '@/modules/simulation/compare.types';
 import type { RaceSolver } from '@/modules/simulation/lib/core/RaceSolver';
 import type { ActivationRecord, AnalyticsOptions, SkillAnalyticsResult } from './types';
 import type {
@@ -167,9 +167,9 @@ export function runComparisonWithAnalytics(
   }
 
   // Activation tracking
-  const runnerBSkillActivations: Map<string, Array<SkillActivation>> = new Map();
+  const runnerBSkillActivations: Map<string, Array<SkillEffectLog>> = new Map();
 
-  const getActivator = (skillsSet: Map<string, Array<SkillActivation>>) => {
+  const getActivator = (skillsSet: Map<string, Array<SkillEffectLog>>) => {
     return (
       _raceSolver: RaceSolver,
       currentPosition: number,
@@ -196,7 +196,7 @@ export function runComparisonWithAnalytics(
     };
   };
 
-  const getDeactivator = (skillsSet: Map<string, Array<SkillActivation>>) => {
+  const getDeactivator = (skillsSet: Map<string, Array<SkillEffectLog>>) => {
     return (
       _raceSolver: RaceSolver,
       currentPosition: number,

@@ -1,5 +1,8 @@
-import { merge } from 'es-toolkit';
-import type { SkillSimulationData } from '@/modules/simulation/compare.types';
+import { cloneDeep, merge } from 'es-toolkit';
+import type {
+  SkillSimulationData,
+  SkillTrackedMetaCollection,
+} from '@/modules/simulation/compare.types';
 import type {
   SkillComparisonResponse,
   SkillComparisonRoundResult,
@@ -31,13 +34,17 @@ export const mergeSkillResults = (
   });
 
   // Properly merge skillActivations by concatenating arrays instead of replacing by index
-  const activations: Record<string, Array<{ position: number }>> = { ...resultA.skillActivations };
+  const activations: Record<string, SkillTrackedMetaCollection> = cloneDeep(
+    resultA.skillActivations,
+  );
+
   for (const [skillId, newActivations] of Object.entries(resultB.skillActivations)) {
-    if (activations[skillId]) {
-      // Concatenate activation arrays for the same skill
-      activations[skillId] = activations[skillId].concat(newActivations);
+    const existingActivations = activations[skillId];
+    if (existingActivations) {
+      activations[skillId] = existingActivations.concat(newActivations);
     } else {
       // Add new skill activations
+
       activations[skillId] = newActivations;
     }
   }
@@ -54,57 +61,6 @@ export const mergeSkillResults = (
     mean: combinedMean,
     median: newMedian,
 
-    filterReason: resultB.filterReason ?? resultA.filterReason,
-  };
-};
-
-export const mergeResults = (
-  resultA: SkillComparisonRoundResult,
-  resultB: SkillComparisonRoundResult,
-) => {
-  if (resultA.id !== resultB.id) {
-    throw new Error(`mergeResults: ${resultA.id} != ${resultB.id}`);
-  }
-
-  const resultSizeA = resultA.results.length;
-  const resultSizeB = resultB.results.length;
-
-  const combinedResults = resultA.results.concat(resultB.results).toSorted((a, b) => a - b);
-
-  const combinedMean =
-    (resultA.mean * resultSizeA + resultB.mean * resultSizeB) / (resultSizeA + resultSizeB);
-
-  const mid = Math.floor(combinedResults.length / 2);
-
-  const newMedian =
-    combinedResults.length % 2 == 0
-      ? (combinedResults[mid - 1] + combinedResults[mid]) / 2
-      : combinedResults[mid];
-
-  const selectedRunData = resultSizeB > resultSizeA ? resultB.runData : resultA.runData;
-  const minrun = resultA.min < resultB.min ? resultA.runData.minrun : resultB.runData.minrun;
-  const maxrun = resultA.max > resultB.max ? resultA.runData.maxrun : resultB.runData.maxrun;
-
-  const mergedRunData: SkillSimulationData = merge(selectedRunData, {
-    minrun,
-    maxrun,
-  });
-
-  const activations = merge(resultA.skillActivations, resultB.skillActivations);
-
-  return {
-    id: resultA.id,
-
-    results: combinedResults,
-    skillActivations: activations,
-    runData: mergedRunData,
-
-    min: Math.min(resultA.min, resultB.min),
-    max: Math.max(resultA.max, resultB.max),
-    mean: combinedMean,
-    median: newMedian,
-
-    // Preserve filterReason from either result (newer result takes precedence)
     filterReason: resultB.filterReason ?? resultA.filterReason,
   };
 };
