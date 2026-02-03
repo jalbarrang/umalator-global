@@ -16,6 +16,7 @@ import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { ChangelogModal } from '@/components/changelog-modal';
 import { CreditsModal } from '@/components/credits-modal';
 import { FeatureFlagDebugPanel } from '@/components/feature-flag-debug-panel';
+import { TutorialProvider, TutorialRoot } from '@/components/tutorial';
 
 export function RootComponent() {
   const location = useLocation();
@@ -30,7 +31,7 @@ export function RootComponent() {
   const currentTab = getCurrentTab();
 
   return (
-    <>
+    <TutorialProvider>
       <div className="flex flex-col min-h-screen">
         <div className="flex py-2 justify-between items-center border-b px-4 shrink-0">
           <div className="flex items-center gap-2">
@@ -82,7 +83,8 @@ export function RootComponent() {
         <FeatureFlagDebugPanel />
       </div>
       <Toaster />
-    </>
+      <TutorialRoot />
+    </TutorialProvider>
   );
 }
 

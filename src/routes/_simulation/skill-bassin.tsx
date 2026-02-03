@@ -19,6 +19,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { parseSeed } from '@/utils/crypto';
 import { useSkillSingleRunner } from '@/modules/simulation/hooks/skill-bassin/useSkillSingleRunner';
+import { HelpButton } from '@/components/ui/help-button';
+import { skillBassinSteps } from '@/modules/tutorial/steps/skill-bassin-steps';
 
 export function SkillBassin() {
   const { selectedSkills, setSelectedSkills } = useChartData();
@@ -33,6 +35,7 @@ export function SkillBassin() {
   const courseId = useSettingsStore(useShallow((state) => state.courseId));
 
   const { runnerId, runner } = useRunner();
+
   const [seedInput, setSeedInput] = useState<string>(() => {
     if (seed === null) return '';
     return seed.toString();
@@ -81,7 +84,7 @@ export function SkillBassin() {
 
   return (
     <div className="flex flex-col gap-4 flex-1">
-      <div className="flex items-center gap-2">
+      <div data-tutorial="skill-bassin-controls" className="flex items-center gap-2">
         {!isSimulationRunning && (
           <Button variant="default" onClick={handleRunSimulation}>
             Run Skill Simulations
@@ -93,6 +96,12 @@ export function SkillBassin() {
             Cancel Simulation
           </Button>
         )}
+
+        <HelpButton
+          tutorialId="skill-bassin"
+          steps={skillBassinSteps}
+          tooltipText="How to use Skill Chart"
+        />
 
         <div className="flex items-center gap-2">
           <Label htmlFor="seed-input" className="text-sm text-muted-foreground">
@@ -129,7 +138,7 @@ export function SkillBassin() {
       <Activity mode={!isSimulationRunning ? 'visible' : 'hidden'}>
         <RaceSettingsPanel />
 
-        <div>
+        <div data-tutorial="skill-bassin-table">
           <BasinnChart
             data={Object.values(skillBasinResults)}
             hiddenSkills={runner.skills}

@@ -6,7 +6,7 @@ import {
   useRaceStore,
 } from '@/modules/simulation/stores/compare.store';
 import { Button } from '@/components/ui/button';
-import { LoadingOverlay } from '@/components/loading-overlay';
+import { CompareLoadingOverlay } from '@/components/compare-loading-overlay';
 import { VelocityLines } from '@/components/VelocityLines';
 import { RaceTrack } from '@/modules/racetrack/components/RaceTrack';
 import { initializeSimulationRun } from '@/modules/simulation/compare.types';
@@ -22,6 +22,8 @@ import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { parseSeed } from '@/utils/crypto';
+import { HelpButton } from '@/components/ui/help-button';
+import { umalatorSteps } from '@/modules/tutorial/steps/umalator-steps';
 
 export function SimulationHome() {
   const { chartData, results, isSimulationRunning, simulationProgress, seed } = useRaceStore();
@@ -67,13 +69,20 @@ export function SimulationHome() {
 
   return (
     <div className="flex flex-col flex-1 gap-4">
-      <div className="flex items-center gap-2">
-        <Button onClick={handleRunAllSamples} disabled={isSimulationRunning} variant="default">
+      <div data-tutorial="simulation-controls" className="flex items-center gap-2">
+        <Button
+          data-tutorial="run-all-samples"
+          onClick={handleRunAllSamples}
+          disabled={isSimulationRunning}
+          variant="default"
+        >
           Run all samples
         </Button>
         <Button onClick={handleRunOneSample} disabled={isSimulationRunning} variant="outline">
           Run one sample
         </Button>
+
+        <HelpButton tutorialId="umalator" steps={umalatorSteps} tooltipText="Show tutorial" />
 
         <div className="flex items-center gap-2">
           <Label htmlFor="seed-input" className="text-sm text-muted-foreground">
@@ -117,35 +126,41 @@ export function SimulationHome() {
       </div>
 
       <Activity mode={!isSimulationRunning ? 'visible' : 'hidden'}>
-        <RaceTrack
-          courseid={courseId}
-          chartData={chartData ?? initializeSimulationRun()}
-          xOffset={35}
-          yOffset={35}
-          yExtra={20}
-        >
-          <VelocityLines
-            data={chartData}
-            courseDistance={course.distance}
+        <div data-tutorial="race-visualization">
+          <RaceTrack
+            courseid={courseId}
+            chartData={chartData ?? initializeSimulationRun()}
             xOffset={35}
-            yOffset={25}
-            horseLane={course.horseLane}
-            showVirtualPacemaker={showVirtualPacemakerOnGraph}
-            selectedPacemakers={selectedPacemakers}
-          />
-        </RaceTrack>
+            yOffset={35}
+            yExtra={20}
+          >
+            <VelocityLines
+              data={chartData}
+              courseDistance={course.distance}
+              xOffset={35}
+              yOffset={25}
+              horseLane={course.horseLane}
+              showVirtualPacemaker={showVirtualPacemakerOnGraph}
+              selectedPacemakers={selectedPacemakers}
+            />
+          </RaceTrack>
+        </div>
 
-        <RaceSettingsPanel />
+        <div data-tutorial="race-settings">
+          <RaceSettingsPanel />
+        </div>
 
         {results.length > 0 && <ResultButtonGroups />}
 
         <Separator />
 
-        <SimulationResultTabs />
+        <div data-tutorial="results-tabs">
+          <SimulationResultTabs />
+        </div>
       </Activity>
 
       <Activity mode={isSimulationRunning ? 'visible' : 'hidden'}>
-        <LoadingOverlay
+        <CompareLoadingOverlay
           currentSamples={simulationProgress?.current}
           totalSamples={simulationProgress?.total}
         />

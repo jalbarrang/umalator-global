@@ -20,6 +20,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { parseSeed } from '@/utils/crypto';
 import { useUmaSingleRunner } from '@/modules/simulation/hooks/uma-bassin/useUmaSingleRunner';
+import { HelpButton } from '@/components/ui/help-button';
+import { umaBassinSteps } from '@/modules/tutorial/steps/uma-bassin-steps';
 
 export function UmaBassin() {
   const { selectedSkills, setSelectedSkills } = useChartData();
@@ -34,6 +36,7 @@ export function UmaBassin() {
   const courseId = useSettingsStore(useShallow((state) => state.courseId));
 
   const { runner, updateRunner, addSkill } = useRunner();
+
   const [seedInput, setSeedInput] = useState<string>(() => {
     if (seed === null) return '';
     return seed.toString();
@@ -89,7 +92,7 @@ export function UmaBassin() {
 
   return (
     <div className="flex flex-col flex-1 gap-4">
-      <div className="flex items-center gap-2">
+      <div data-tutorial="uma-bassin-controls" className="flex items-center gap-2">
         {!isSimulationRunning && (
           <Button variant="default" onClick={handleRunSimulation}>
             Run Skill Simulations
@@ -101,6 +104,12 @@ export function UmaBassin() {
             Cancel Simulation
           </Button>
         )}
+
+        <HelpButton
+          tutorialId="uma-bassin"
+          steps={umaBassinSteps}
+          tooltipText="How to use Uma Chart"
+        />
 
         <div className="flex items-center gap-2">
           <Label htmlFor="seed-input" className="text-sm text-muted-foreground">
@@ -150,7 +159,7 @@ export function UmaBassin() {
 
         <RaceSettingsPanel />
 
-        <div className="grid grid-cols-1 gap-4">
+        <div data-tutorial="uma-bassin-chart" className="grid grid-cols-1 gap-4">
           <BasinnChart
             data={Object.values(umaBasinResults)}
             hiddenSkills={[]}
