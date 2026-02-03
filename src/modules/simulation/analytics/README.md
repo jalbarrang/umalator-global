@@ -16,18 +16,21 @@ bun run test:batch-analytics \
 ## 📊 **What This System Provides**
 
 ### WHEN Analysis (Race Phase Timing)
+
 - Dominant phase (start/middle/final/spurt)
 - Phase distribution breakdown
 - Classification (early-race, mid-race, late-race, spurt-focused)
 - Condition satisfaction rate (how often conditions are met)
 
 ### WHERE Analysis (Position on Track)
+
 - Typical activation position (mean ± std dev)
 - Peak activation zones
 - Position consistency classification
 - Distance distribution histogram (10m bins)
 
 ### IMPACT Analysis (Performance Correlation)
+
 - Performance when conditions met vs not met
 - Per-sample correlation data
 - Activation position vs bashin improvement
@@ -66,19 +69,24 @@ Adored by All                 1.90 L    start (0%)     ← Never activates
 ## 🔑 **Key Findings**
 
 ### 1. More Efficient Than Old System
+
 - **1.8-2.0x faster** execution
 - **2.9-7.2x less memory** usage
 - **50x more data** (100% vs 4% coverage)
 
 ### 2. Filtering is Unnecessary
+
 With the new system, you can run all 500 skills without filtering:
+
 - Faster than filtered approach
 - Less memory than filtered approach
 - Users see complete table
 - Incompatible skills are visible (valuable info!)
 
 ### 3. Phase Column is Powerful
+
 Format: `"<phase> (<satisfaction%>)"`
+
 - `final (99%)` = Always activates in final phase
 - `start (0%)` = Never activates (incompatible)
 
@@ -87,12 +95,14 @@ Format: `"<phase> (<satisfaction%>)"`
 ## 📁 **Files**
 
 ### Core
+
 - **`types.ts`** - Analytics type definitions
 - **`collector.ts`** - `ActivationCollector` class
 - **`skill-compare-analytics.ts`** - Enhanced comparison function
 - **`index.ts`** - Public exports
 
 ### Documentation
+
 - **`README.md`** - This file
 
 ---
@@ -100,6 +110,7 @@ Format: `"<phase> (<satisfaction%>)"`
 ## 🧪 **Testing**
 
 ### Test Scripts
+
 ```bash
 # Single skill test
 bun run test:analytics -c ./scripts/runners/runner-1.json 200491
@@ -111,11 +122,14 @@ bun run test:batch-analytics \
 ```
 
 ### Skill Lists
+
 Located in `scripts/skill-lists/`:
+
 - `test-skills.json` - 15 skills for quick tests
 - `gold-skills.json` - 25 skills for comprehensive tests
 
 Format:
+
 ```json
 {
   "description": "Description",
@@ -145,7 +159,7 @@ const result = runComparisonWithAnalytics(
     includeRepresentativeRuns: false,
     binSize: 10,
     trackCorrelation: true,
-  }
+  },
 );
 
 const analytics = result.skillAnalytics.activationAnalytics;
@@ -173,10 +187,10 @@ console.log(`Impact: ${analytics.impact.impactDifference.toFixed(2)}s when condi
 ```typescript
 function processBatch(batch: WorkBatch): void {
   const results = {};
-  
-  batch.skills.forEach(skillId => {
+
+  batch.skills.forEach((skillId) => {
     const runnerWithSkill = { ...uma, skills: [...uma.skills, skillId] };
-    
+
     const result = runComparisonWithAnalytics(
       {
         nsamples: 200,
@@ -192,9 +206,9 @@ function processBatch(batch: WorkBatch): void {
         includeRepresentativeRuns: false,
         binSize: 10,
         trackCorrelation: true,
-      }
+      },
     );
-    
+
     results[skillId] = {
       id: skillId,
       results: result.results,
@@ -206,7 +220,7 @@ function processBatch(batch: WorkBatch): void {
       filterReason: undefined,
     };
   });
-  
+
   sendMessage({ type: 'batch-complete', workerId, batchId, results });
 }
 ```
@@ -214,6 +228,7 @@ function processBatch(batch: WorkBatch): void {
 ### For UI Table
 
 Add Phase column:
+
 ```typescript
 <TableCell>{analytics.phase.dominantPhase} ({analytics.conditionSatisfactionRate}%)</TableCell>
 ```
@@ -248,6 +263,7 @@ All data is pre-computed and ready to render!
 ## 📚 **Additional Resources**
 
 Created during development (now removed):
+
 - Test comparisons showing old vs new
 - Detailed findings documentation
 - Integration examples
@@ -259,6 +275,7 @@ If you need to compare with the old system, check the git history or run the old
 ## 💡 **Key Takeaway**
 
 The new analytics system:
+
 - ✅ Captures 100% of activation data (not just 4 runs)
 - ✅ Provides WHEN/WHERE insights for skill planning
 - ✅ More efficient than old system (faster + less memory)

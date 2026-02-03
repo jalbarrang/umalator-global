@@ -124,7 +124,9 @@ program
 
     console.log('📍 WHERE Analysis (Position):');
     console.log(`  Typical Position: ${analytics.position.avgPosition.toFixed(1)}m`);
-    console.log(`  Position Range: ${analytics.position.minPosition.toFixed(0)}m - ${analytics.position.maxPosition.toFixed(0)}m`);
+    console.log(
+      `  Position Range: ${analytics.position.minPosition.toFixed(0)}m - ${analytics.position.maxPosition.toFixed(0)}m`,
+    );
     console.log(`  Std Dev: ${analytics.position.stdDevPosition.toFixed(1)}m`);
     console.log(`  Consistency: ${analytics.position.consistency}`);
     console.log(
@@ -132,7 +134,9 @@ program
     );
 
     console.log('🏁 WHEN Analysis (Race Phase):');
-    console.log(`  Dominant Phase: ${analytics.phase.dominantPhase} (${analytics.phase.concentration.toFixed(1)}%)`);
+    console.log(
+      `  Dominant Phase: ${analytics.phase.dominantPhase} (${analytics.phase.concentration.toFixed(1)}%)`,
+    );
     console.log(`  Classification: ${analytics.phase.classification}`);
     console.log(`  Breakdown:`);
     const totalPhase =

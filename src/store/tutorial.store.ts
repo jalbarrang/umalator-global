@@ -1,6 +1,6 @@
 /**
  * Tutorial Store
- * 
+ *
  * Manages tutorial completion state and first-visit tracking.
  * Works in conjunction with the TutorialProvider for runtime state.
  */
@@ -88,7 +88,6 @@ export const markVisited = (section: string) => {
     },
   }));
 };
-
 
 /**
  * Selectors

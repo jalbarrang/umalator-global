@@ -13,13 +13,29 @@ export const parseSkillCondition = (skillCondition: string) => {
 };
 
 const tokenizeSkillsConditions = () => {
-  return Object.entries(SkillsDataList).reduce(
-    (acc, [id, skillData]) => {
-      acc[id] = skillData.alternatives.map((alternative) => Parser.parse(alternative.condition));
-      return acc;
-    },
-    {} as Record<string, Array<Operator>>,
-  );
+  const conditionEntries = Object.entries(SkillsDataList);
+
+  const acc: Record<string, Array<Operator>> = {};
+
+  for (const [id, skillData] of conditionEntries) {
+    const alternatives = skillData.alternatives;
+
+    const operators: Array<Operator> = [];
+    for (const alternative of alternatives) {
+      const condition = alternative.condition;
+
+      if (condition === '' || condition === undefined) {
+        continue;
+      }
+
+      const operator = Parser.parse(condition);
+      operators.push(operator);
+    }
+
+    acc[id] = operators;
+  }
+
+  return acc;
 };
 
 export const tokenizedConditions = tokenizeSkillsConditions();

@@ -1,8 +1,5 @@
 *.png
 *.jpg
-src/modules/data/*.json
-src/modules/skills/*.json
-src/modules/simulation/*.json
 *.mdb
 
 package-lock.json

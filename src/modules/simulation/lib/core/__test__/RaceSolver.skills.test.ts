@@ -543,4 +543,3 @@ describe('RaceSolver - Skill Processing', () => {
     });
   });
 });
-

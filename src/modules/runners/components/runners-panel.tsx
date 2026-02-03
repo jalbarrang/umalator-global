@@ -27,8 +27,11 @@ import './style.css';
 export const RunnersPanel = () => {
   const { runnerId, runner, updateRunner, resetRunner } = useRunner();
   const { posKeepMode, courseId } = useSettingsStore();
-  const { updateRunner: updateLibraryRunner, getRunner: getLibraryRunner, addRunner } =
-    useRunnerLibraryStore();
+  const {
+    updateRunner: updateLibraryRunner,
+    getRunner: getLibraryRunner,
+    addRunner,
+  } = useRunnerLibraryStore();
 
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
 
