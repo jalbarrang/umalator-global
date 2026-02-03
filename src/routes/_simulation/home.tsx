@@ -6,7 +6,7 @@ import {
   useRaceStore,
 } from '@/modules/simulation/stores/compare.store';
 import { Button } from '@/components/ui/button';
-import { LoadingOverlay } from '@/components/loading-overlay';
+import { CompareLoadingOverlay } from '@/components/compare-loading-overlay';
 import { VelocityLines } from '@/components/VelocityLines';
 import { RaceTrack } from '@/modules/racetrack/components/RaceTrack';
 import { initializeSimulationRun } from '@/modules/simulation/compare.types';
@@ -24,7 +24,8 @@ import { Label } from '@/components/ui/label';
 import { parseSeed } from '@/utils/crypto';
 import { HelpButton } from '@/components/ui/help-button';
 import { umalatorSteps } from '@/modules/tutorial/steps/umalator-steps';
-import { isFirstVisit, startTutorial } from '@/store/tutorial.store';
+import { isFirstVisit, markVisited } from '@/store/tutorial.store';
+import { useTutorial } from '@/components/tutorial';
 
 export function SimulationHome() {
   const { chartData, results, isSimulationRunning, simulationProgress, seed } = useRaceStore();
@@ -32,6 +33,7 @@ export function SimulationHome() {
   const { showVirtualPacemakerOnGraph } = useUIStore();
   const selectedPacemakers = useSelectedPacemakerBooleans();
   const { handleRunCompare, handleRunOnce } = useSimulationRunner();
+  const { start: startTutorial } = useTutorial();
 
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
 
@@ -39,11 +41,12 @@ export function SimulationHome() {
   useEffect(() => {
     if (isFirstVisit('umalator')) {
       const timer = setTimeout(() => {
+        markVisited('umalator');
         startTutorial('umalator', umalatorSteps);
       }, 800);
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [startTutorial]);
 
   const [seedInput, setSeedInput] = useState<string>(() => {
     if (seed === null) return '';
@@ -176,7 +179,7 @@ export function SimulationHome() {
       </Activity>
 
       <Activity mode={isSimulationRunning ? 'visible' : 'hidden'}>
-        <LoadingOverlay
+        <CompareLoadingOverlay
           currentSamples={simulationProgress?.current}
           totalSamples={simulationProgress?.total}
         />

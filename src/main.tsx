@@ -1,5 +1,3 @@
-import 'driver.js/dist/driver.css';
-
 import { createRoot } from 'react-dom/client';
 import { HashRouter } from 'react-router';
 import './i18n';

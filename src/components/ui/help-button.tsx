@@ -1,13 +1,20 @@
+/**
+ * Help Button Component
+ *
+ * Button that triggers a tutorial when clicked.
+ * Displays a help icon and tooltip.
+ */
+
 import { HelpCircle } from 'lucide-react';
 import { Button, type ButtonProps } from './button';
 import { Tooltip, TooltipContent, TooltipTrigger } from './tooltip';
-import { startTutorial } from '@/store/tutorial.store';
-import type { DriveStep } from 'driver.js';
+import { useTutorial, type TutorialId, type TutorialStep } from '@/components/tutorial';
+import { markVisited } from '@/store/tutorial.store';
 import type { FC } from 'react';
 
 interface HelpButtonProps extends Omit<ButtonProps, 'onClick'> {
-  tutorialId: 'umalator' | 'skill-bassin' | 'uma-bassin';
-  steps: DriveStep[];
+  tutorialId: TutorialId;
+  steps: TutorialStep[];
   tooltipText?: string;
 }
 
@@ -19,8 +26,11 @@ export const HelpButton: FC<HelpButtonProps> = ({
   size = 'sm',
   ...props
 }) => {
+  const { start } = useTutorial();
+
   const handleClick = () => {
-    startTutorial(tutorialId, steps);
+    markVisited(tutorialId);
+    start(tutorialId, steps);
   };
 
   return (

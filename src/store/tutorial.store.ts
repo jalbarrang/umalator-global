@@ -1,22 +1,22 @@
+/**
+ * Tutorial Store
+ * 
+ * Manages tutorial completion state and first-visit tracking.
+ * Works in conjunction with the TutorialProvider for runtime state.
+ */
+
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { driver } from 'driver.js';
 import { useShallow } from 'zustand/shallow';
-import type { Config, DriveStep, Driver } from 'driver.js';
+import type { TutorialId } from '@/components/tutorial';
 
 const TUTORIAL_STORE_NAME = 'umalator-tutorials';
 
-type TutorialId = 'umalator' | 'skill-bassin' | 'uma-bassin';
-
 interface TutorialState {
-  // Persisted state
+  // Persisted state only
   completedTutorials: Array<TutorialId>;
   dismissedTutorials: Array<TutorialId>;
   firstVisits: Record<string, boolean>;
-
-  // Ephemeral state (not persisted)
-  activeDriver: Driver | null;
-  activeTutorial: TutorialId | null;
 }
 
 type ITutorialStore = TutorialState;
@@ -24,101 +24,20 @@ type ITutorialStore = TutorialState;
 export const useTutorialStore = create<ITutorialStore>()(
   persist(
     (_) => ({
-      // Initial state
       completedTutorials: [],
       dismissedTutorials: [],
       firstVisits: {},
-      activeDriver: null,
-      activeTutorial: null,
     }),
     {
       name: TUTORIAL_STORE_NAME,
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({
-        completedTutorials: state.completedTutorials,
-        dismissedTutorials: state.dismissedTutorials,
-        firstVisits: state.firstVisits,
-      }),
     },
   ),
 );
 
-// Actions
-export const startTutorial = (
-  tutorialId: TutorialId,
-  steps: Array<DriveStep>,
-  config: Partial<Config> = {},
-) => {
-  const state = useTutorialStore.getState();
-
-  // Destroy existing driver if any
-  if (state.activeDriver) {
-    state.activeDriver.destroy();
-  }
-
-  // Mark as visited
-  markVisited(tutorialId);
-
-  // Create driver instance with default config
-  const driverObj = driver({
-    showProgress: true,
-    showButtons: ['next', 'previous', 'close'],
-    stagePadding: 10,
-    stageRadius: 8,
-    allowClose: true,
-    overlayClickBehavior: 'close',
-    smoothScroll: true,
-    animate: true,
-    popoverClass: 'driver-popover-tutorial',
-    ...config,
-    steps,
-    onDestroyStarted: (element, step, options) => {
-      // Only show confirmation if not on last step
-      if (driverObj.getActiveIndex() !== undefined && !driverObj.isLastStep()) {
-        if (!confirm('Are you sure you want to exit the tutorial?')) {
-          return;
-        }
-      }
-
-      // Call custom handler if provided
-      config.onDestroyStarted?.(element, step, options);
-
-      // Proceed with destruction
-      driverObj.destroy();
-    },
-    onDestroyed: (element, step, options) => {
-      const currentState = useTutorialStore.getState();
-
-      // Check if tutorial was completed (on last step)
-      if (driverObj.isLastStep() && currentState.activeTutorial) {
-        completeTutorial(currentState.activeTutorial);
-      } else if (
-        currentState.activeTutorial &&
-        !currentState.completedTutorials.includes(currentState.activeTutorial)
-      ) {
-        // Tutorial was dismissed before completion
-        dismissTutorial(currentState.activeTutorial);
-      }
-
-      // Call custom handler if provided
-      config.onDestroyed?.(element, step, options);
-
-      // Clear active state
-      useTutorialStore.setState({
-        activeDriver: null,
-        activeTutorial: null,
-      });
-    },
-  });
-
-  // Set active state and start
-  useTutorialStore.setState({
-    activeDriver: driverObj,
-    activeTutorial: tutorialId,
-  });
-
-  driverObj.drive();
-};
+/**
+ * Actions for managing tutorial completion state
+ */
 
 export const completeTutorial = (tutorialId: TutorialId) => {
   useTutorialStore.setState((state) => ({
@@ -170,24 +89,15 @@ export const markVisited = (section: string) => {
   }));
 };
 
-export const destroyActiveDriver = () => {
-  const state = useTutorialStore.getState();
-  if (state.activeDriver) {
-    state.activeDriver.destroy();
-    useTutorialStore.setState({
-      activeDriver: null,
-      activeTutorial: null,
-    });
-  }
-};
 
-// Selectors
+/**
+ * Selectors
+ */
 export const useTutorialStatus = (tutorialId: TutorialId) => {
   return useTutorialStore(
     useShallow((state) => ({
       isCompleted: state.completedTutorials.includes(tutorialId),
       isDismissed: state.dismissedTutorials.includes(tutorialId),
-      isActive: state.activeTutorial === tutorialId,
     })),
   );
 };

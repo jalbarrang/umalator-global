@@ -1,19 +1,30 @@
+/**
+ * Compare Loading Overlay
+ *
+ * Loading overlay specific to compare simulations (home.tsx).
+ * Displays sample-based progress tracking.
+ */
+
 import { Loader2 } from 'lucide-react';
-import { useMemo } from 'react';
-import type { SimulationProgress } from '@/workers/pool/types';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { useMemo } from 'react';
 
-interface LoadingOverlayProps {
-  progress: SimulationProgress | null;
+interface CompareLoadingOverlayProps {
+  currentSamples: number | null | undefined;
+  totalSamples: number | null | undefined;
 }
 
-export const LoadingOverlay = ({ progress }: LoadingOverlayProps) => {
+export const CompareLoadingOverlay = ({
+  currentSamples,
+  totalSamples,
+}: CompareLoadingOverlayProps) => {
   const percentage = useMemo(() => {
-    return progress
-      ? Math.round((progress.skillsCompletedInStage / progress.totalSkillsInStage) * 100)
-      : 0;
-  }, [progress]);
+    if (!currentSamples || !totalSamples || totalSamples === 0) return 0;
+    return Math.round((currentSamples / totalSamples) * 100);
+  }, [currentSamples, totalSamples]);
+
+  const hasProgress = currentSamples != null && totalSamples != null;
 
   return (
     <div className="flex flex-1 items-center justify-center bg-background">
@@ -23,14 +34,11 @@ export const LoadingOverlay = ({ progress }: LoadingOverlayProps) => {
         <div className="text-center space-y-3 w-full">
           <p className="text-lg font-semibold">Running Simulation...</p>
 
-          {progress && (
+          {hasProgress && (
             <div className="text-sm text-muted-foreground space-y-2">
               <p>
-                Stage {progress.currentStage} of {progress.totalStages}
-              </p>
-              <p>
-                Processing skills: {progress.skillsCompletedInStage.toLocaleString()} /{' '}
-                {progress.totalSkillsInStage.toLocaleString()}
+                Processing samples: {currentSamples.toLocaleString()} /{' '}
+                {totalSamples.toLocaleString()}
               </p>
               <Progress value={percentage} className="w-full" />
               <p className="font-mono text-lg">{percentage}%</p>

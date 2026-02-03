@@ -21,7 +21,8 @@ import { parseSeed } from '@/utils/crypto';
 import { useSkillSingleRunner } from '@/modules/simulation/hooks/skill-bassin/useSkillSingleRunner';
 import { HelpButton } from '@/components/ui/help-button';
 import { skillBassinSteps } from '@/modules/tutorial/steps/skill-bassin-steps';
-import { isFirstVisit, startTutorial } from '@/store/tutorial.store';
+import { isFirstVisit, markVisited } from '@/store/tutorial.store';
+import { useTutorial } from '@/components/tutorial';
 
 export function SkillBassin() {
   const { selectedSkills, setSelectedSkills } = useChartData();
@@ -36,16 +37,18 @@ export function SkillBassin() {
   const courseId = useSettingsStore(useShallow((state) => state.courseId));
 
   const { runnerId, runner } = useRunner();
+  const { start: startTutorial } = useTutorial();
 
   // Auto-trigger tutorial on first visit
   useEffect(() => {
     if (isFirstVisit('skill-bassin')) {
       const timer = setTimeout(() => {
+        markVisited('skill-bassin');
         startTutorial('skill-bassin', skillBassinSteps);
       }, 800);
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [startTutorial]);
   const [seedInput, setSeedInput] = useState<string>(() => {
     if (seed === null) return '';
     return seed.toString();
