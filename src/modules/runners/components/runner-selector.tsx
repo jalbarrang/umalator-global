@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 
 import { getUmaImageUrl, umasForSearch } from '@/modules/runners/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -21,6 +21,7 @@ type UmaSelectorProps = {
 
 export const UmaSelector = (props: UmaSelectorProps) => {
   const [open, setOpen] = useState(false);
+  const listRef = useRef<HTMLDivElement>(null);
 
   const imageUrl = useMemo(
     () => getUmaImageUrl(props.value, props.randomMobId),
@@ -41,6 +42,13 @@ export const UmaSelector = (props: UmaSelectorProps) => {
   const handleSelectedItem = (outfitId: string) => {
     props.select(outfitId);
     setOpen(false);
+  };
+
+  // Reset scroll position when search value changes
+  const handleSearchChange = () => {
+    if (listRef.current) {
+      listRef.current.scrollTop = 0;
+    }
   };
 
   return (
@@ -65,8 +73,8 @@ export const UmaSelector = (props: UmaSelectorProps) => {
 
       <PopoverContent className="p-0">
         <Command>
-          <CommandInput placeholder="Search" />
-          <CommandList>
+          <CommandInput placeholder="Search" onValueChange={handleSearchChange} />
+          <CommandList ref={listRef}>
             <CommandEmpty>No results found.</CommandEmpty>
             <CommandGroup>
               {umasForSearch.map((uma) => (

@@ -80,18 +80,23 @@ function CommandInput({
   );
 }
 
-function CommandList({ className, ...props }: React.ComponentProps<typeof CommandPrimitive.List>) {
+const CommandList = React.forwardRef<
+  HTMLDivElement,
+  React.ComponentProps<typeof CommandPrimitive.List>
+>(({ className, ...props }, ref) => {
   return (
     <CommandPrimitive.List
+      ref={ref}
       data-slot="command-list"
       className={cn(
-        'no-scrollbar max-h-72 scroll-py-1 outline-none overflow-x-hidden overflow-y-auto',
+        'max-h-72 scroll-py-1 outline-none overflow-x-hidden overflow-y-auto',
         className,
       )}
       {...props}
     />
   );
-}
+});
+CommandList.displayName = 'CommandList';
 
 function CommandEmpty({
   className,
@@ -144,7 +149,7 @@ function CommandItem({
     <CommandPrimitive.Item
       data-slot="command-item"
       className={cn(
-        "data-selected:bg-muted data-selected:text-foreground data-selected:*:[svg]:text-foreground relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none [&_svg:not([class*='size-'])]:size-4 [[data-slot=dialog-content]_&]:rounded-lg! group/command-item data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+        "data-selected:bg-accent data-selected:text-accent-foreground hover:bg-accent/50 data-selected:*:[svg]:text-foreground relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none [&_svg:not([class*='size-'])]:size-4 [[data-slot=dialog-content]_&]:rounded-lg! group/command-item data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
         className,
       )}
       {...props}
