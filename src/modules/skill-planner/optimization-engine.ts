@@ -5,6 +5,8 @@
  * Uses adaptive sampling strategy to find optimal skill combinations.
  */
 
+import { runSkillCombinationComparison } from './simulator';
+import { calculateCombinationCost, generateCombinations } from './optimizer';
 import type {
   CandidateSkill,
   CombinationResult,
@@ -15,8 +17,6 @@ import type { RunnerState } from '@/modules/runners/components/runner-card/types
 import type { CourseData } from '@/modules/simulation/lib/course/definitions';
 import type { RaceParameters } from '@/modules/simulation/lib/definitions';
 import type { SimulationOptions } from '@/modules/simulation/types';
-import { runSkillCombinationComparison } from './simulator';
-import { calculateCombinationCost, generateCombinations } from './optimizer';
 
 export interface OptimizationParams {
   /** Candidate skills available to purchase */

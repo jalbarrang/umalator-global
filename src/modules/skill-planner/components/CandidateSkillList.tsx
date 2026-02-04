@@ -5,9 +5,9 @@ import {
   removeCandidate,
   removeObtainedSkill,
   setCandidateHintLevel,
-  updateCandidate,
   useSkillPlannerStore,
 } from '../skill-planner.store';
+import { calculateSkillCost } from '../cost-calculator';
 import type { CandidateSkill, HintLevel } from '../types';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -89,7 +89,7 @@ type CandidateSkillItemProps = {
 
 function CandidateSkillItem(props: CandidateSkillItemProps) {
   const { candidate, isUnique, isObtained } = props;
-  const { obtainedSkills } = useSkillPlannerStore();
+  const { hasFastLearner } = useSkillPlannerStore();
 
   const skillName = useMemo(() => getSkillNameById(candidate.skillId), [candidate.skillId]);
 
@@ -105,10 +105,6 @@ function CandidateSkillItem(props: CandidateSkillItemProps) {
     } else {
       removeObtainedSkill(candidate.skillId);
     }
-  };
-
-  const handleStackableChange = (checked: boolean) => {
-    updateCandidate(candidate.skillId, { isStackable: checked });
   };
 
   const handleRemove = () => {
@@ -136,20 +132,19 @@ function CandidateSkillItem(props: CandidateSkillItemProps) {
     return skillMeta.iconId;
   }, [candidate.skillId]);
 
+  const effectiveCost = useMemo(() => {
+    return calculateSkillCost(candidate.skillId, candidate.hintLevel, hasFastLearner);
+  }, [candidate.skillId, candidate.hintLevel, hasFastLearner]);
+
   return (
     <div className="border rounded-lg p-3 bg-card flex flex-col gap-3">
       {/* Skill Name and Remove Button */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2 flex-1">
-          <div className="">
+          <div>
             <SkillIcon iconId={skillIconId} />
           </div>
-          <p className="font-medium text-sm">
-            {candidate.tierLevel === 1 && <span className="text-muted-foreground mr-1">○</span>}
-            {candidate.tierLevel === 2 && <span className="text-muted-foreground mr-1">◎</span>}
-            {candidate.isGold && <span className="text-amber-500 mr-1">★</span>}
-            {skillName}
-          </p>
+          <p className="font-medium text-sm">{skillName}</p>
         </div>
 
         <div className="flex flex-col gap-4">
@@ -200,24 +195,10 @@ function CandidateSkillItem(props: CandidateSkillItemProps) {
       {/* Cost Display */}
       {!isObtained && (
         <div className="flex flex-col gap-1 pt-2 border-t text-xs">
-          {candidate.isGold &&
-          candidate.whiteSkillId &&
-          !obtainedSkills.includes(candidate.whiteSkillId) ? (
-            // Bundled cost display for gold skills
-            <>
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Cost (bundled):</span>
-                <span className="font-medium">{candidate.displayCost ?? candidate.effectiveCost} pts</span>
-              </div>
-              <div className="text-xs text-muted-foreground italic">Includes all white tiers</div>
-            </>
-          ) : (
-            // Normal cost display
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">Cost:</span>
-              <span className="font-medium">{candidate.displayCost ?? candidate.effectiveCost} pts</span>
-            </div>
-          )}
+          <div className="flex justify-between items-center">
+            <span className="text-muted-foreground">Cost:</span>
+            <span className="font-medium">{effectiveCost} pts</span>
+          </div>
         </div>
       )}
     </div>

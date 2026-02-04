@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import { cloneDeep } from 'es-toolkit';
 import { createRunnerState } from '../runners/components/runner-card/types';
-import { calculateDisplayCost, calculateSkillCost } from './cost-calculator';
 import type { RunnerState } from '../runners/components/runner-card/types';
 import type { CandidateSkill, OptimizationProgress, OptimizationResult } from './types';
 import type { ISkill } from '@/modules/skills/types';
@@ -12,7 +12,7 @@ import {
   getWhiteVersion,
   isStackableSkill,
 } from '@/modules/skills/skill-relationships';
-import { getUniqueSkillForByUmaId } from '@/modules/skills/utils';
+import { getSkillMetaById, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import GametoraSkills from '@/modules/data/gametora/skills.json';
 
 interface SkillPlannerState {
@@ -84,12 +84,13 @@ export const hasCandidate = (skillId: string) => {
 
 type CreateCandidateParams = {
   skillId: string;
-  hasFastLearner?: boolean;
   hintLevel?: number;
 };
 
-export const createCandidate = (params: CreateCandidateParams) => {
-  const { skillId, hintLevel = 0, hasFastLearner = false } = params;
+export const createCandidate = (params: CreateCandidateParams): CandidateSkill => {
+  const { skillId, hintLevel = 0 } = params;
+
+  const skillMeta = getSkillMetaById(skillId);
 
   // Get skill data for rarity check
   const skills = GametoraSkills as Array<ISkill>;
@@ -124,14 +125,9 @@ export const createCandidate = (params: CreateCandidateParams) => {
   const whiteSkillId = isGold ? getWhiteVersion(skillId) : undefined;
   const baseTierIdForGold = isGold ? getBaseTier(whiteSkillId ?? skillId) : undefined;
 
-  const effectiveCost = calculateSkillCost(
-    skillId,
-    hintLevel as CandidateSkill['hintLevel'],
-    hasFastLearner,
-  );
-
   return {
     skillId,
+    cost: skillMeta.baseCost,
     hintLevel: hintLevel as CandidateSkill['hintLevel'],
 
     // Stackable support
@@ -145,10 +141,6 @@ export const createCandidate = (params: CreateCandidateParams) => {
     whiteSkillId,
     goldSkillId,
     baseTierIdForGold,
-
-    // Cost calculation
-    effectiveCost,
-    displayCost: effectiveCost, // Default to effectiveCost, can be overridden for bundled skills
   };
 };
 
@@ -215,13 +207,11 @@ export const getAddableUpgrades = (): Array<string> => {
  * - This mirrors the game requirement: must own both white tiers before buying gold
  */
 export const addCandidate = (skillId: string, hintLevel: number = 0) => {
-  const { hasFastLearner, obtainedSkills, candidates } = useSkillPlannerStore.getState();
-
   if (hasCandidate(skillId)) {
     return;
   }
 
-  const candidate: CandidateSkill = createCandidate({ skillId, hintLevel, hasFastLearner });
+  const candidate: CandidateSkill = createCandidate({ skillId, hintLevel });
 
   // Gold skill auto-add logic: add BOTH white tiers (○ and ◎)
   if (candidate.isGold && candidate.whiteSkillId) {
@@ -244,20 +234,9 @@ export const addCandidate = (skillId: string, hintLevel: number = 0) => {
       const newCandidates: Record<string, CandidateSkill> = {};
 
       for (const tierId of whiteTiersToAdd) {
-        newCandidates[tierId] = createCandidate({ skillId: tierId, hintLevel, hasFastLearner });
+        newCandidates[tierId] = createCandidate({ skillId: tierId, hintLevel });
       }
       newCandidates[skillId] = candidate;
-
-      // Calculate display costs for all new candidates
-      const allNewCandidates = { ...candidates, ...newCandidates };
-      for (const [id, cand] of Object.entries(newCandidates)) {
-        cand.displayCost = calculateDisplayCost(
-          id,
-          allNewCandidates,
-          obtainedSkills,
-          hasFastLearner,
-        );
-      }
 
       useSkillPlannerStore.setState((state) => ({
         candidates: {
@@ -268,15 +247,6 @@ export const addCandidate = (skillId: string, hintLevel: number = 0) => {
       return;
     }
   }
-
-  // Calculate display cost for this candidate
-  const allCandidates = { ...candidates, [skillId]: candidate };
-  candidate.displayCost = calculateDisplayCost(
-    skillId,
-    allCandidates,
-    obtainedSkills,
-    hasFastLearner,
-  );
 
   // Standard add (no gold auto-add needed)
   useSkillPlannerStore.setState((state) => {
@@ -346,9 +316,6 @@ export const addObtainedSkill = (skillId: string) => {
       obtainedSkills: [...state.obtainedSkills, skillId],
     };
   });
-
-  // Recalculate display costs since obtained skills changed
-  recalculateDisplayCosts();
 };
 
 export const removeObtainedSkill = (skillId: string) => {
@@ -357,16 +324,10 @@ export const removeObtainedSkill = (skillId: string) => {
       obtainedSkills: state.obtainedSkills.filter((id) => id !== skillId),
     };
   });
-
-  // Recalculate display costs since obtained skills changed
-  recalculateDisplayCosts();
 };
 
 export const setObtainedSkills = (skillIds: Array<string>) => {
   useSkillPlannerStore.setState({ obtainedSkills: skillIds });
-
-  // Recalculate display costs since obtained skills changed
-  recalculateDisplayCosts();
 };
 
 export const hasObtainedSkill = (skillId: string) => {
@@ -374,38 +335,11 @@ export const hasObtainedSkill = (skillId: string) => {
   return obtainedSkills.includes(skillId);
 };
 
-/**
- * Recalculate display costs for all candidates based on current obtained skills
- * This should be called whenever obtained skills or hint levels change
- */
-export const recalculateDisplayCosts = () => {
-  useSkillPlannerStore.setState((state) => {
-    const { candidates, obtainedSkills, hasFastLearner } = state;
-    const updatedCandidates: Record<string, CandidateSkill> = {};
-
-    for (const [skillId, candidate] of Object.entries(candidates)) {
-      updatedCandidates[skillId] = {
-        ...candidate,
-        displayCost: calculateDisplayCost(skillId, candidates, obtainedSkills, hasFastLearner),
-      };
-    }
-
-    return { candidates: updatedCandidates };
-  });
-};
-
 export const setCandidateHintLevel = (skillId: string, hintLevel: number) => {
-  const { candidates, hasFastLearner } = useSkillPlannerStore.getState();
-
-  const candidate = { ...candidates[skillId], hintLevel: hintLevel as CandidateSkill['hintLevel'] };
-
-  candidate.effectiveCost = calculateSkillCost(
-    candidate.skillId,
-    candidate.hintLevel,
-    hasFastLearner,
-  );
-
   useSkillPlannerStore.setState((state) => {
+    const candidate = cloneDeep(state.candidates[skillId]);
+    candidate.hintLevel = hintLevel as CandidateSkill['hintLevel'];
+
     return {
       candidates: {
         ...state.candidates,
@@ -413,9 +347,6 @@ export const setCandidateHintLevel = (skillId: string, hintLevel: number) => {
       },
     };
   });
-
-  // Recalculate display costs since hint levels changed
-  recalculateDisplayCosts();
 };
 
 export const updateCandidate = (skillId: string, updates: Partial<CandidateSkill>) => {
@@ -436,31 +367,8 @@ export const setBudget = (budget: number) => {
 };
 
 export const setHasFastLearner = (hasFastLearner: boolean) => {
-  useSkillPlannerStore.setState(({ candidates, obtainedSkills }) => {
-    const updatedCandidates = Object.fromEntries(
-      Object.entries(candidates).map(([skillId, candidate]) => [
-        skillId,
-        {
-          ...candidate,
-          effectiveCost: calculateSkillCost(candidate.skillId, candidate.hintLevel, hasFastLearner),
-        },
-      ]),
-    );
-
-    // Calculate display costs with new fast learner setting
-    for (const [skillId, candidate] of Object.entries(updatedCandidates)) {
-      candidate.displayCost = calculateDisplayCost(
-        skillId,
-        updatedCandidates,
-        obtainedSkills,
-        hasFastLearner,
-      );
-    }
-
-    return {
-      hasFastLearner,
-      candidates: updatedCandidates,
-    };
+  useSkillPlannerStore.setState({
+    hasFastLearner,
   });
 };
 
@@ -482,12 +390,17 @@ export const setResult = (result: OptimizationResult | null) => {
 };
 
 export const resetRunner = () => {
-  useSkillPlannerStore.setState({ runner: createRunnerState() });
+  useSkillPlannerStore.setState({
+    runner: createRunnerState(),
+    candidates: {},
+    obtainedSkills: [],
+  });
 };
 
 export const clearAll = () => {
   useSkillPlannerStore.setState({
     candidates: {},
+    obtainedSkills: [],
     result: null,
     progress: null,
     isOptimizing: false,
@@ -518,6 +431,7 @@ export const clearCandidates = () => {
   // No outfit or unique skill not found, clear everything
   useSkillPlannerStore.setState({
     candidates: {},
+    obtainedSkills: [],
     skillDrawerOpen: false,
   });
 };

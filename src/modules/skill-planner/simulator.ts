@@ -13,11 +13,6 @@ import { cloneDeep } from 'es-toolkit';
 import type { RaceSolver } from '@/modules/simulation/lib/core/RaceSolver';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import type { CourseData } from '@/modules/simulation/lib/course/definitions';
-import type {
-  BatchSimulationResult,
-  CombinationSimulationResult,
-  SkillPlannerSimulationParams,
-} from './types';
 import type { SimulationOptions } from '@/modules/simulation/types';
 import type { RaceParameters } from '@/modules/simulation/lib/definitions';
 import {
@@ -56,7 +51,6 @@ export function runSkillCombinationComparison(
 
   const seed = options.seed ?? 0;
   const posKeepMode = options.posKeepMode ?? PosKeepMode.None;
-  const mode = options.mode ?? 'compare';
   const numUmas = racedef.numUmas ?? 1;
 
   // Create test runner with candidate skills added
@@ -74,7 +68,7 @@ export function runSkillCombinationComparison(
     .useHpPolicy(false)
     .accuracyMode(options.accuracyMode ?? false)
     .posKeepMode(posKeepMode)
-    .mode(mode);
+    .mode('skill-compare');
 
   if (racedef.orderRange) {
     const [start, end] = racedef.orderRange;
@@ -83,10 +77,6 @@ export function runSkillCombinationComparison(
 
   // Fork to share RNG - both runners face the same random events for fair comparison
   const testRaceSolver = baseRaceSolver.fork();
-
-  if (options.mode === 'compare') {
-    baseRaceSolver.desync();
-  }
 
   baseRaceSolver.horse(baseRunner);
   testRaceSolver.horse(testRunner);
@@ -280,6 +270,28 @@ export function runSkillCombinationComparison(
     median,
   };
 }
+
+type SkillPlannerSimulationParams = {
+  nsamples: number;
+  course: CourseData;
+  racedef: RaceParameters;
+  baseRunner: RunnerState;
+  options: SimulationOptions;
+  skillCombinations: Array<Array<string>>;
+};
+
+type CombinationSimulationResult = {
+  skills: Array<string>;
+  bashin: number;
+  min: number;
+  max: number;
+  median: number;
+};
+
+type BatchSimulationResult = {
+  totalSimulations: number;
+  results: Array<CombinationSimulationResult>;
+};
 
 /**
  * Evaluate multiple skill combinations in batch

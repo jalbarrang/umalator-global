@@ -28,7 +28,7 @@ import { initializeSimulationRun } from '@/modules/simulation/compare.types';
 
 export function SkillPlannerLayout() {
   const { open: helpOpen, setOpen: setHelpOpen } = useHelpDialog();
-  const { skillDrawerOpen, runner, result, hasFastLearner } = useSkillPlannerStore();
+  const { skillDrawerOpen, runner, result } = useSkillPlannerStore();
 
   const umaId = useMemo(() => {
     if (runner.outfitId) {
@@ -39,8 +39,6 @@ export function SkillPlannerLayout() {
   }, [runner.outfitId]);
 
   const handleSkillSelect = (skills: Array<string>) => {
-    updateRunner({ skills });
-
     for (const skillId of skills) {
       addCandidate(skillId, 0);
     }
@@ -86,7 +84,7 @@ export function SkillPlannerLayout() {
         open={skillDrawerOpen}
         umaId={umaId}
         options={availableSkills}
-        currentSkills={runner.skills}
+        currentSkills={[]}
         onSelect={handleSkillSelect}
         onOpenChange={handleOpenChange}
       />

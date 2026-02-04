@@ -164,6 +164,8 @@ export function createRaceSolver(
     course,
     rng,
     skills,
+    mode: 'compare',
+
     hp: NoopHpPolicy,
     disableRushed: overrides?.disableRushed ?? true,
     disableDownhill: overrides?.disableDownhill ?? true,

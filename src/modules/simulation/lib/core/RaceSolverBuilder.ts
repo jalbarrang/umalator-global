@@ -14,6 +14,7 @@ import type {
   OnSkillCallback,
   OnSkillEffectCallback,
   PendingSkill,
+  RaceSolverMode,
   SkillEffect,
 } from './RaceSolver';
 import type {
@@ -681,12 +682,17 @@ export class RaceSolverBuilder {
    * Use EnhancedHpPolicy instead of GameHpPolicy
    * Default false to use GameHpPolicy
    */
-  private _useEnhancedSpurt: boolean;
-
-  _accuracyMode: boolean;
-  _skillCheckChance: boolean;
-  _posKeepMode: IPosKeepMode;
-  _mode: string | undefined;
+  declare private _useEnhancedSpurt: boolean;
+  declare private _accuracyMode: boolean;
+  /**
+   * Declares if the Wit checks for the runner are enabled or disabled
+   */
+  declare private _skillCheckChance: boolean;
+  declare private _posKeepMode: IPosKeepMode;
+  /**
+   * @see RaceSolver.mode
+   */
+  declare private _mode: RaceSolverMode;
 
   constructor(readonly nsamples: number) {
     this._course = null;
@@ -730,7 +736,6 @@ export class RaceSolverBuilder {
     this._accuracyMode = false;
     this._skillCheckChance = true;
     this._posKeepMode = PosKeepMode.None;
-    this._mode = undefined;
   }
 
   seed(seed: number) {
@@ -1152,7 +1157,7 @@ export class RaceSolverBuilder {
     return this;
   }
 
-  mode(mode: string) {
+  mode(mode: RaceSolverMode) {
     this._mode = mode;
     return this;
   }

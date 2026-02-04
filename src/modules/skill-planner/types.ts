@@ -4,7 +4,17 @@ export type HintLevel = 0 | 1 | 2 | 3 | 4 | 5;
 
 // Candidate skill with purchase metadata
 export interface CandidateSkill {
+  /**
+   * ID of the skill
+   */
   skillId: string;
+  /**
+   * Cost of the skill
+   */
+  cost: number;
+  /**
+   * Hint level of the skill
+   */
   hintLevel: HintLevel;
 
   // Stackable support
@@ -14,14 +24,12 @@ export interface CandidateSkill {
   previousTierId?: string; // ID of previous tier (base tier)
 
   // Gold/White relationship
+  // Note: I think these values should be calculated on the fly, not stored in the candidate or handle this in a different way.
+  //       The only alternative that comes to mind is to record the skill group only and calculate it that way.
   isGold: boolean; // rarity=2 (gold) or rarity=1 (white)
   whiteSkillId?: string; // White version of this gold skill
   goldSkillId?: string; // Gold version of this white skill
   baseTierIdForGold?: string; // For gold skills, the base tier white skill ID
-
-  // Cost calculation
-  effectiveCost: number; // Calculated with all discounts applied
-  displayCost?: number; // May differ from effectiveCost for bundled skills
 }
 
 // Optimization result

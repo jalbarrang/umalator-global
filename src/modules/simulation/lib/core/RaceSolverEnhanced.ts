@@ -6,7 +6,12 @@
  */
 
 import { RaceSolver } from './RaceSolver';
-import type { OnSkillCallback, OnSkillEffectCallback, PendingSkill } from './RaceSolver';
+import type {
+  OnSkillCallback,
+  OnSkillEffectCallback,
+  PendingSkill,
+  RaceSolverMode,
+} from './RaceSolver';
 import type { HorseParameters } from '@/modules/simulation/lib/runner/HorseTypes';
 import type { CourseData, IGroundCondition } from '@/modules/simulation/lib/course/definitions';
 import type { PRNG } from '@/modules/simulation/lib/utils/Random';
@@ -26,6 +31,7 @@ export type RaceSolverConfig = {
   onEffectExpired: OnSkillEffectCallback | undefined;
   disableRushed?: boolean;
   disableDownhill?: boolean;
+  mode: RaceSolverMode;
 };
 
 /**
@@ -47,6 +53,7 @@ export function createRaceSolver(config: RaceSolverConfig): RaceSolver {
     hp: hp,
     disableRushed: config.disableRushed,
     disableDownhill: config.disableDownhill,
+    mode: config.mode,
 
     onSkillActivated: config.onSkillActivated,
     onEffectActivated: config.onEffectActivated,
@@ -88,6 +95,8 @@ export function compareSpurtCalculations(
     ground,
     rng: rng1,
     skills,
+    mode: 'compare',
+
     useEnhancedSpurt: false,
     onSkillActivated: undefined,
     onEffectActivated: undefined,
@@ -100,6 +109,8 @@ export function compareSpurtCalculations(
     ground,
     rng: rng2,
     skills,
+    mode: 'compare',
+
     useEnhancedSpurt: true,
     onSkillActivated: undefined,
     onEffectActivated: undefined,

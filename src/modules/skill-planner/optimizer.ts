@@ -83,8 +83,6 @@ export function resolveActiveSkills(skillIds: Array<string>): Array<string> {
  * 2. Test pairs of high-impact skills
  * 3. Test larger combinations prioritizing high performers
  *
- * Uses displayCost which includes bundled costs for gold skills
- *
  * @param candidates Available candidate skills
  * @param budget Maximum cost allowed
  * @returns List of skill ID combinations to test
@@ -99,13 +97,11 @@ export function generateCombinations(
   combinations.push([]);
 
   // Sort candidates by display cost (cheapest first for better coverage)
-  const sortedCandidates = candidates.toSorted(
-    (a, b) => (a.displayCost ?? a.effectiveCost) - (b.displayCost ?? b.effectiveCost),
-  );
+  const sortedCandidates = candidates.toSorted((a, b) => a.cost - b.cost);
 
   // Test individual skills
   for (const candidate of sortedCandidates) {
-    const cost = candidate.displayCost ?? candidate.effectiveCost;
+    const cost = candidate.cost;
     if (cost <= budget) {
       combinations.push([candidate.skillId]);
     }
@@ -114,8 +110,8 @@ export function generateCombinations(
   // Test pairs (limited to avoid combinatorial explosion)
   for (let i = 0; i < Math.min(sortedCandidates.length, 10); i++) {
     for (let j = i + 1; j < Math.min(sortedCandidates.length, 10); j++) {
-      const costI = sortedCandidates[i].displayCost ?? sortedCandidates[i].effectiveCost;
-      const costJ = sortedCandidates[j].displayCost ?? sortedCandidates[j].effectiveCost;
+      const costI = sortedCandidates[i].cost;
+      const costJ = sortedCandidates[j].cost;
       const cost = costI + costJ;
 
       if (cost <= budget) {
@@ -128,9 +124,9 @@ export function generateCombinations(
   for (let i = 0; i < Math.min(sortedCandidates.length, 5); i++) {
     for (let j = i + 1; j < Math.min(sortedCandidates.length, 5); j++) {
       for (let k = j + 1; k < Math.min(sortedCandidates.length, 5); k++) {
-        const costI = sortedCandidates[i].displayCost ?? sortedCandidates[i].effectiveCost;
-        const costJ = sortedCandidates[j].displayCost ?? sortedCandidates[j].effectiveCost;
-        const costK = sortedCandidates[k].displayCost ?? sortedCandidates[k].effectiveCost;
+        const costI = sortedCandidates[i].cost;
+        const costJ = sortedCandidates[j].cost;
+        const costK = sortedCandidates[k].cost;
         const cost = costI + costJ + costK;
 
         if (cost <= budget) {
@@ -149,7 +145,6 @@ export function generateCombinations(
 
 /**
  * Calculate total cost of a skill combination
- * Uses displayCost which includes bundled costs for gold skills
  */
 export function calculateCombinationCost(
   skillIds: Array<string>,
@@ -162,8 +157,7 @@ export function calculateCombinationCost(
     const candidate = candidateMap.get(skillId);
 
     if (candidate) {
-      // Use displayCost which includes bundled white tier costs for gold skills
-      total += candidate.displayCost ?? candidate.effectiveCost;
+      total += candidate.cost;
     }
   }
 

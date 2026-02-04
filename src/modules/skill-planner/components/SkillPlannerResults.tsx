@@ -24,7 +24,8 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
   // Sort combinations by bashin gain (highest to lowest)
   const rankedCombinations = useMemo(() => {
     if (!result?.allResults) return [];
-    return [...result.allResults].sort((a, b) => b.bashin - a.bashin);
+
+    return result.allResults.toSorted((a, b) => b.bashin - a.bashin);
   }, [result]);
 
   return (
@@ -121,7 +122,7 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
 
                                 {candidate && (
                                   <span className="text-xs text-muted-foreground">
-                                    {`${candidate.displayCost ?? candidate.effectiveCost} pts`}
+                                    {`${candidate.cost} pts`}
                                   </span>
                                 )}
                               </div>

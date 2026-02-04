@@ -159,7 +159,6 @@ export function runSkillComparison(params: SkillCompareParams): SkillComparisonR
 
   const seed = options.seed ?? 0;
   const posKeepMode = options.posKeepMode ?? PosKeepMode.None;
-  const mode = options.mode ?? 'compare';
   const numUmas = racedef.numUmas ?? 1;
 
   const runnerARaceSolver = new RaceSolverBuilder(nsamples)
@@ -172,7 +171,7 @@ export function runSkillComparison(params: SkillCompareParams): SkillComparisonR
     .useHpPolicy(false)
     .accuracyMode(options.accuracyMode ?? false)
     .posKeepMode(posKeepMode)
-    .mode(mode);
+    .mode('skill-compare');
 
   if (racedef.orderRange) {
     const [start, end] = racedef.orderRange;
@@ -181,10 +180,6 @@ export function runSkillComparison(params: SkillCompareParams): SkillComparisonR
 
   // Fork to share RNG - both horses face the same random events for fair comparison
   const runnerBRaceSolver = runnerARaceSolver.fork();
-
-  if (options.mode === 'compare') {
-    runnerARaceSolver.desync();
-  }
 
   runnerARaceSolver.horse(runnerA);
   runnerBRaceSolver.horse(runnerB);

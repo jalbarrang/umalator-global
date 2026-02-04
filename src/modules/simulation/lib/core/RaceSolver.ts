@@ -258,9 +258,11 @@ type RaceSolverParams = {
   speedUpProbability?: number;
   skillCheckChance?: boolean;
   posKeepMode?: IPosKeepMode;
-  mode?: string;
+  mode: RaceSolverMode;
   isPacer?: boolean;
 };
+
+export type RaceSolverMode = 'compare' | 'skill-compare';
 
 export class RaceSolver implements IRaceState {
   // ======= Race State =======
@@ -359,7 +361,13 @@ export class RaceSolver implements IRaceState {
   posKeepEnd: number;
   posKeepMode: IPosKeepMode;
   posKeepSpeedCoef: number;
-  mode: string | undefined;
+
+  /**
+   * Mode of the race.
+   * - 'compare': Compare two umas against each other (Only used in Compare page)
+   * - 'skill-compare': Compare a single skill against the baseline (used in Skill Chart, Uma Chart and Skill Planner)
+   */
+  mode: RaceSolverMode;
   pacer: RaceSolver | null;
 
   // Rushed state

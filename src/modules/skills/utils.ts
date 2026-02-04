@@ -343,6 +343,10 @@ export const getUmaForUniqueSkill = (skillId: string): string => {
   return outfitId.toString();
 };
 
+export const getSkillsByGroupId = (groupId: string): Array<Skill> => {
+  return allSkills.filter((skill) => getSkillMetaById(skill.id).groupId === groupId);
+};
+
 export const uniqueSkillIds: Array<string> = [];
 
 // Setup every value for module variables

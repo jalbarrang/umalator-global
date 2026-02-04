@@ -63,25 +63,28 @@ export function calculateDisplayCost(
 ): number {
   const candidate = candidates[skillId];
 
-  // If candidate doesn't exist or is not a gold skill, return effective cost
-  if (!candidate || !candidate.isGold) {
-    return candidate?.effectiveCost ?? 0;
+  if (!candidate) {
+    throw new Error(`Candidate not found for skill ID: ${skillId}`);
+  }
+
+  // If candidate is not a gold skill, return effective cost
+  if (!candidate.isGold) {
+    return candidate.cost;
   }
 
   // For gold skills, check if white skill is already obtained
   const whiteSkillId = candidate.whiteSkillId;
 
   if (!whiteSkillId) {
-    // No white version exists, just return gold cost
-    return candidate.effectiveCost;
+    throw new Error(`White skill not found for gold skill ID: ${skillId}`);
   }
-
-  const whiteCandidate = candidates[whiteSkillId];
 
   // If white skill is in obtainedSkills, return only gold cost
   if (obtainedSkills.includes(whiteSkillId)) {
-    return candidate.effectiveCost;
+    return candidate.cost;
   }
+
+  const whiteCandidate = candidates[whiteSkillId];
 
   // White skill not obtained - calculate bundled cost (includes ALL white tiers)
   const goldBaseCost = getBaseCost(skillId);
