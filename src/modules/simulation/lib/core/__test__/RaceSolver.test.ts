@@ -39,7 +39,7 @@ describe('RaceSolver - Initialization', () => {
       const solver = createRaceSolver({ horse, course });
 
       const expectedMinSpeed = 0.85 * 20.0 + Math.sqrt(200 * 900) * 0.001;
-      expect(solver.minSpeed).toBeCloseTo(expectedMinSpeed, 5);
+      expect(solver.miSpeed).toBeCloseTo(expectedMinSpeed, 5);
     });
 
     test('initializes phase to 0', () => {
@@ -445,4 +445,3 @@ describe('RaceSolver - Downhill Mode', () => {
     expect(solver.isDownhillMode).toBe(false);
   });
 });
-

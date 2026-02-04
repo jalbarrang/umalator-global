@@ -14,7 +14,7 @@ import { getCourseById } from '@/modules/racetrack/courses';
 import { useSettingsStore } from '@/store/settings.store';
 
 import { Switch } from '@/components/ui/switch';
-import { HpStrategyCoefficient } from '@/modules/simulation/lib/runner/health/HpPolicy';
+import { HpStrategyCoefficient } from '@/modules/simulation/lib/runner/health/game.policy';
 
 interface StaminaCardProps {
   runner: RunnerState;

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { EnhancedHpPolicy, HpStrategyCoefficient } from '../EnhancedHpPolicy';
+import { EnhancedHpPolicy, HpStrategyCoefficient } from '../enhanced.policy';
 import {
   createMockCourseForHp,
   createMockHorseForHp,
@@ -490,4 +490,3 @@ describe('EnhancedHpPolicy', () => {
     });
   });
 });
-

@@ -1,8 +1,8 @@
 import type { PRNG } from '@/modules/simulation/lib/utils/Random';
 import type { CourseData, IGroundCondition } from '@/modules/simulation/lib/course/definitions';
 import type { HorseParameters } from '@/modules/simulation/lib/runner/HorseTypes';
-import type { RaceState } from '@/modules/simulation/lib/core/RaceSolver';
-import type { HpPolicy } from '@/modules/simulation/lib/runner/health/HpPolicy';
+import type { IRaceState } from '@/modules/simulation/lib/core/RaceSolver';
+import type { HpPolicy } from '@/modules/simulation/lib/runner/health/health-policy';
 import { Surface } from '@/modules/simulation/lib/course/definitions';
 import { Aptitude, Strategy } from '@/modules/simulation/lib/runner/definitions';
 import { PositionKeepState } from '@/modules/simulation/lib/skills/definitions';
@@ -91,7 +91,7 @@ export function createMockHorseForHp(overrides?: Partial<HorseParameters>): Hors
 /**
  * Creates a mock RaceState for HP policy testing
  */
-export function createMockRaceStateForHp(overrides?: Partial<RaceState>): RaceState {
+export function createMockRaceStateForHp(overrides?: Partial<IRaceState>): IRaceState {
   const mockHpPolicy: HpPolicy = {
     hp: 1000,
     init: () => {},
@@ -123,7 +123,7 @@ export function createMockRaceStateForHp(overrides?: Partial<RaceState>): RaceSt
     leadCompetition: false,
     posKeepStrategy: Strategy.PaceChaser,
     ...overrides,
-  } as RaceState;
+  } as IRaceState;
 }
 
 /**
@@ -145,4 +145,3 @@ export function getStrategyCoefficient(strategy: number): number {
   const HpStrategyCoefficient = [0, 0.95, 0.89, 1.0, 0.995, 0.86] as const;
   return HpStrategyCoefficient[strategy];
 }
-

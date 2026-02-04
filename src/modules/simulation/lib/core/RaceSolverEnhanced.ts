@@ -10,8 +10,8 @@ import type { OnSkillCallback, OnSkillEffectCallback, PendingSkill } from './Rac
 import type { HorseParameters } from '@/modules/simulation/lib/runner/HorseTypes';
 import type { CourseData, IGroundCondition } from '@/modules/simulation/lib/course/definitions';
 import type { PRNG } from '@/modules/simulation/lib/utils/Random';
-import { GameHpPolicy } from '@/modules/simulation/lib/runner/health/HpPolicy';
-import { EnhancedHpPolicy } from '@/modules/simulation/lib/runner/health/EnhancedHpPolicy';
+import { GameHpPolicy } from '@/modules/simulation/lib/runner/health/game.policy';
+import { EnhancedHpPolicy } from '@/modules/simulation/lib/runner/health/enhanced.policy';
 
 export type RaceSolverConfig = {
   horse: HorseParameters;

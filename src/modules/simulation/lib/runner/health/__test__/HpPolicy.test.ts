@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { GameHpPolicy, HpConsumptionGroundModifier, HpStrategyCoefficient } from '../HpPolicy';
+import { GameHpPolicy, HpConsumptionGroundModifier, HpStrategyCoefficient } from '../game.policy';
 import {
   createMockCourseForHp,
   createMockHorseForHp,
@@ -564,4 +564,3 @@ describe('GameHpPolicy', () => {
     });
   });
 });
-

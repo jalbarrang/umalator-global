@@ -6,9 +6,9 @@
  */
 
 import { Loader2 } from 'lucide-react';
+import { useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { useMemo } from 'react';
 
 interface CompareLoadingOverlayProps {
   currentSamples: number | null | undefined;

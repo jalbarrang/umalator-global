@@ -41,7 +41,7 @@ import {
   valueFilter,
 } from './utils';
 import type { HorseParameters } from '../../../runner/HorseTypes';
-import type { DynamicCondition, RaceState } from '../../../core/RaceSolver';
+import type { DynamicCondition, IRaceState } from '../../../core/RaceSolver';
 import type { RaceParameters } from '../../../definitions';
 import type { CourseData, IPhase } from '../../../course/definitions';
 import type { ConditionsMap, ICondition } from '../definitions';
@@ -55,7 +55,10 @@ export const defaultConditions: ConditionsMap<ICondition> = {
       _1: HorseParameters,
       _extra: RaceParameters,
     ) {
-      return [regions, (s: RaceState) => s.accumulatetime.t >= t] as [RegionList, DynamicCondition];
+      return [regions, (s: IRaceState) => s.accumulatetime.t >= t] as [
+        RegionList,
+        DynamicCondition,
+      ];
     },
   }),
   activate_count_all: immediate({
@@ -66,7 +69,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
       _1: HorseParameters,
       _extra: RaceParameters,
     ) {
-      return [regions, (s: RaceState) => s.activateCount.reduce((a, b) => a + b) <= n] as [
+      return [regions, (s: IRaceState) => s.activateCount.reduce((a, b) => a + b) <= n] as [
         RegionList,
         DynamicCondition,
       ];
@@ -78,7 +81,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
       _1: HorseParameters,
       _extra: RaceParameters,
     ) {
-      return [regions, (s: RaceState) => s.activateCount.reduce((a, b) => a + b) >= n] as [
+      return [regions, (s: IRaceState) => s.activateCount.reduce((a, b) => a + b) >= n] as [
         RegionList,
         DynamicCondition,
       ];
@@ -92,7 +95,10 @@ export const defaultConditions: ConditionsMap<ICondition> = {
       _1: HorseParameters,
       _extra: RaceParameters,
     ) {
-      return [regions, (s: RaceState) => s.activateCount[2] >= n] as [RegionList, DynamicCondition];
+      return [regions, (s: IRaceState) => s.activateCount[2] >= n] as [
+        RegionList,
+        DynamicCondition,
+      ];
     },
   }),
   activate_count_heal: immediate({
@@ -103,7 +109,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
       _1: HorseParameters,
       _extra: RaceParameters,
     ) {
-      return [regions, (s: RaceState) => s.activateCountHeal >= n] as [
+      return [regions, (s: IRaceState) => s.activateCountHeal >= n] as [
         RegionList,
         DynamicCondition,
       ];
@@ -117,7 +123,10 @@ export const defaultConditions: ConditionsMap<ICondition> = {
       _1: HorseParameters,
       _extra: RaceParameters,
     ) {
-      return [regions, (s: RaceState) => s.activateCount[1] >= n] as [RegionList, DynamicCondition];
+      return [regions, (s: IRaceState) => s.activateCount[1] >= n] as [
+        RegionList,
+        DynamicCondition,
+      ];
     },
   }),
   activate_count_start: immediate({
@@ -128,7 +137,10 @@ export const defaultConditions: ConditionsMap<ICondition> = {
       _1: HorseParameters,
       _extra: RaceParameters,
     ) {
-      return [regions, (s: RaceState) => s.activateCount[0] >= n] as [RegionList, DynamicCondition];
+      return [regions, (s: IRaceState) => s.activateCount[0] >= n] as [
+        RegionList,
+        DynamicCondition,
+      ];
     },
   }),
   all_corner_random: {
@@ -478,7 +490,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
       _extra: RaceParameters,
     ) {
       hpPer /= 100;
-      return [regions, (s: RaceState) => s.hp.hpRatioRemaining() <= hpPer] as [
+      return [regions, (s: IRaceState) => s.hp.hpRatioRemaining() <= hpPer] as [
         RegionList,
         DynamicCondition,
       ];
@@ -491,7 +503,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
       _extra: RaceParameters,
     ) {
       hpPer /= 100;
-      return [regions, (s: RaceState) => s.hp.hpRatioRemaining() >= hpPer] as [
+      return [regions, (s: IRaceState) => s.hp.hpRatioRemaining() >= hpPer] as [
         RegionList,
         DynamicCondition,
       ];
@@ -510,7 +522,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
         throw new Error('must be is_activate_other_skill_detail==1');
       }
 
-      return [regions, (s: RaceState) => s.usedSkills.has(extra.skillId)] as [
+      return [regions, (s: IRaceState) => s.usedSkills.has(extra.skillId)] as [
         RegionList,
         DynamicCondition,
       ];
@@ -544,8 +556,8 @@ export const defaultConditions: ConditionsMap<ICondition> = {
       }
 
       const f = flag
-        ? (s: RaceState) => s.startDelay > 0.08
-        : (s: RaceState) => s.startDelay <= 0.08;
+        ? (s: IRaceState) => s.startDelay > 0.08
+        : (s: IRaceState) => s.startDelay <= 0.08;
       return [regions, f] as [RegionList, DynamicCondition];
     },
   }),
@@ -669,7 +681,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
         throw new Error('must be is_hp_empty_onetime==1');
       }
 
-      return [regions, (s: RaceState) => !s.hp.hasRemainingHp()] as [RegionList, DynamicCondition];
+      return [regions, (s: IRaceState) => !s.hp.hasRemainingHp()] as [RegionList, DynamicCondition];
     },
   }),
   is_lastspurt: immediate({
@@ -685,7 +697,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
       }
 
       const bounds = new Region(CourseHelpers.phaseStart(course.distance, 2), course.distance);
-      return [regions.rmap((r) => r.intersect(bounds)), (s: RaceState) => s.isLastSpurt] as [
+      return [regions.rmap((r) => r.intersect(bounds)), (s: IRaceState) => s.isLastSpurt] as [
         RegionList,
         DynamicCondition,
       ];
@@ -767,7 +779,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
       _1: HorseParameters,
       _extra: RaceParameters,
     ) {
-      return [regions, (s: RaceState) => s.usedSkills.has('' + skillId)] as [
+      return [regions, (s: IRaceState) => s.usedSkills.has('' + skillId)] as [
         RegionList,
         DynamicCondition,
       ];
@@ -786,13 +798,13 @@ export const defaultConditions: ConditionsMap<ICondition> = {
       let f;
       switch (case_) {
         case 1:
-          f = (s: RaceState) => s.isLastSpurt && s.lastSpurtTransition != -1;
+          f = (s: IRaceState) => s.isLastSpurt && s.lastSpurtTransition != -1;
           break;
         case 2:
-          f = (s: RaceState) => s.isLastSpurt && s.lastSpurtTransition == -1;
+          f = (s: IRaceState) => s.isLastSpurt && s.lastSpurtTransition == -1;
           break;
         case 3:
-          f = (s: RaceState) => !s.isLastSpurt;
+          f = (s: IRaceState) => !s.isLastSpurt;
           break;
         default:
           throw new Error('lastspurt case must be 1-3');
@@ -1051,7 +1063,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
   },
   popularity: noopImmediate,
   post_number: (function () {
-    function gateBlock(s: RaceState, numUmas: number) {
+    function gateBlock(s: IRaceState, numUmas: number) {
       const gateNumber = s.gateRoll % numUmas; // modulo result guaranteed to be uniformly distributed due to the properties of s.gateRoll
       // see comment in RaceSolver.ts where gateRoll is initialized
       if (gateNumber < 9) return gateNumber;
@@ -1065,7 +1077,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
         _1: HorseParameters,
         extra: RaceParameters,
       ) {
-        return [regions, (s: RaceState) => gateBlock(s, extra.numUmas || 9) == post] as [
+        return [regions, (s: IRaceState) => gateBlock(s, extra.numUmas || 9) == post] as [
           RegionList,
           DynamicCondition,
         ];
@@ -1077,7 +1089,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
         _1: HorseParameters,
         extra: RaceParameters,
       ) {
-        return [regions, (s: RaceState) => gateBlock(s, extra.numUmas || 9) <= post] as [
+        return [regions, (s: IRaceState) => gateBlock(s, extra.numUmas || 9) <= post] as [
           RegionList,
           DynamicCondition,
         ];
@@ -1089,7 +1101,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
         _1: HorseParameters,
         extra: RaceParameters,
       ) {
-        return [regions, (s: RaceState) => gateBlock(s, extra.numUmas || 9) >= post] as [
+        return [regions, (s: IRaceState) => gateBlock(s, extra.numUmas || 9) >= post] as [
           RegionList,
           DynamicCondition,
         ];
@@ -1104,7 +1116,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
       _1: HorseParameters,
       _extra: RaceParameters,
     ) {
-      return [regions, (s: RaceState) => s.randomLot < lot] as [RegionList, DynamicCondition];
+      return [regions, (s: IRaceState) => s.randomLot < lot] as [RegionList, DynamicCondition];
     },
   }),
   remain_distance: immediate({

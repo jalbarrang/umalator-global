@@ -214,7 +214,7 @@ describe('RaceSolver - Step Function', () => {
     expect(solver.startDash).toBe(false);
 
     // Speed should not go below minSpeed
-    expect(solver.currentSpeed).toBeGreaterThanOrEqual(solver.minSpeed);
+    expect(solver.currentSpeed).toBeGreaterThanOrEqual(solver.miSpeed);
   });
 
   test('step handles start delay', () => {
@@ -349,4 +349,3 @@ describe('RaceSolver - Lane Movement', () => {
     expect(solver.currentLane).toBeLessThanOrEqual(solver.course.maxLaneDistance);
   });
 });
-

@@ -12,11 +12,11 @@ import type { ICondition } from '../definitions';
 import type { CourseData } from '../../../course/definitions';
 import type { HorseParameters } from '../../../runner/HorseTypes';
 import type { RaceParameters } from '../../../definitions';
-import type { RaceState } from '../../../core/RaceSolver';
+import type { IRaceState } from '../../../core/RaceSolver';
 import type { DistributionRandomPolicy } from '../../policies/ActivationSamplePolicy';
 
 // K as in SKI combinators
-export function kTrue(_: RaceState) {
+export function kTrue(_: IRaceState) {
   return true;
 }
 

@@ -3,16 +3,17 @@ import { cloneDeep } from 'es-toolkit';
 import { immediate, noopRandom, random } from '../skills/parser/conditions/utils';
 import { defaultConditions } from '../skills/parser/conditions/conditions';
 import { createParser } from '../skills/parser/ConditionParser';
+import { GameHpPolicy } from '../runner/health/game.policy';
 import { RaceSolver } from './RaceSolver';
 import type { DefaultParser } from '../skills/parser/definitions';
 import type { SeededRng } from '@/modules/simulation/lib/utils/Random';
 import type { ActivationSamplePolicy } from '@/modules/simulation/lib/skills/policies/ActivationSamplePolicy';
 import type {
   DynamicCondition,
+  IRaceState,
   OnSkillCallback,
   OnSkillEffectCallback,
   PendingSkill,
-  RaceState,
   SkillEffect,
 } from './RaceSolver';
 import type {
@@ -35,7 +36,7 @@ import type {
 
 import type { Skill } from '@/modules/skills/utils';
 import type { HorseParameters } from '@/modules/simulation/lib/runner/HorseTypes';
-import type { HpPolicy } from '@/modules/simulation/lib/runner/health/HpPolicy';
+import type { HpPolicy } from '@/modules/simulation/lib/runner/health/health-policy';
 import {
   ImmediatePolicy,
   createFixedPositionPolicy,
@@ -56,8 +57,8 @@ import {
   Weather,
 } from '@/modules/simulation/lib/course/definitions';
 import { Aptitude, Mood, PosKeepMode, Strategy } from '@/modules/simulation/lib/runner/definitions';
-import { EnhancedHpPolicy } from '@/modules/simulation/lib/runner/health/EnhancedHpPolicy';
-import { GameHpPolicy, NoopHpPolicy } from '@/modules/simulation/lib/runner/health/HpPolicy';
+import { EnhancedHpPolicy } from '@/modules/simulation/lib/runner/health/enhanced.policy';
+import { NoopHpPolicy } from '@/modules/simulation/lib/runner/health/health-policy';
 import { Rule30CARng } from '@/modules/simulation/lib/utils/Random';
 import { skillsById } from '@/modules/skills/utils';
 
@@ -1050,7 +1051,7 @@ export class RaceSolverBuilder {
           samplePolicy: ImmediatePolicy,
 
           // TODO do current speed skills count toward reaching max speed or not?
-          extraCondition: (s: RaceState) => s.currentSpeed >= s.lastSpurtSpeed,
+          extraCondition: (s: IRaceState) => s.currentSpeed >= s.lastSpurtSpeed,
           effects: [
             {
               type: SkillType.TargetSpeed,

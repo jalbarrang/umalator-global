@@ -9,6 +9,7 @@
  * - Includes proper HP consumption modeling for different race phases
  */
 
+import type { HpPolicy } from './health-policy';
 import type { HorseParameters } from '@/modules/simulation/lib/runner/HorseTypes';
 import type {
   CourseData,
@@ -17,7 +18,7 @@ import type {
 } from '@/modules/simulation/lib/course/definitions';
 import type { PRNG } from '@/modules/simulation/lib/utils/Random';
 import type { IPositionKeepState } from '@/modules/simulation/lib/skills/definitions';
-import type { RaceState } from '@/modules/simulation/lib/core/RaceSolver';
+import type { IRaceState } from '@/modules/simulation/lib/core/RaceSolver';
 import { PositionKeepState } from '@/modules/simulation/lib/skills/definitions';
 
 export const HpStrategyCoefficient = [0, 0.95, 0.89, 1.0, 0.995, 0.86] as const;
@@ -34,7 +35,7 @@ type SpurtParameters = {
   time: number;
 };
 
-export class EnhancedHpPolicy {
+export class EnhancedHpPolicy implements HpPolicy {
   distance: number;
   baseSpeed: number;
   maxHp: number;
@@ -165,7 +166,7 @@ export class EnhancedHpPolicy {
     );
   }
 
-  tick(state: RaceState, dt: number) {
+  tick(state: IRaceState, dt: number) {
     this.hp -= this.hpPerSecond(state, state.currentSpeed) * dt;
   }
 
@@ -177,7 +178,7 @@ export class EnhancedHpPolicy {
     return Math.max(0.0, this.hp / this.maxHp);
   }
 
-  recover(modifier: number, state?: RaceState) {
+  recover(modifier: number, state?: IRaceState) {
     this.hp = Math.min(this.maxHp, this.hp + this.maxHp * modifier);
 
     // Accuracy mode: Recalculate spurt parameters after heal in phase 2+
@@ -276,7 +277,7 @@ export class EnhancedHpPolicy {
    * Calculate how far the horse can spurt at a given speed
    * Ported from RaceState.calcSpurtDistance in Kotlin
    */
-  private calcSpurtDistance(state: RaceState, targetSpeed: number): number {
+  private calcSpurtDistance(state: IRaceState, targetSpeed: number): number {
     const remainingDistance = this.distance - state.pos;
     const v3 = this.baseTargetSpeed2;
 
@@ -319,7 +320,11 @@ export class EnhancedHpPolicy {
    * In accuracy mode (recalculateOnHeal=true), this will be called multiple
    * times if heals occur in phase 2+, matching Kotlin's dynamic behavior.
    */
-  getLastSpurtPair(state: RaceState, maxSpeed: number, baseTargetSpeed2: number): [number, number] {
+  getLastSpurtPair(
+    state: IRaceState,
+    maxSpeed: number,
+    baseTargetSpeed2: number,
+  ): [number, number] {
     // Update internal values
     this.maxSpurtSpeed = maxSpeed;
     this.baseTargetSpeed2 = baseTargetSpeed2;

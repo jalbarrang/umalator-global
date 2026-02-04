@@ -9,7 +9,7 @@ import {
   Weather,
 } from '../../course/definitions';
 import { Aptitude, Strategy } from '../../runner/definitions';
-import { NoopHpPolicy } from '../../runner/health/HpPolicy';
+import { NoopHpPolicy } from '../../runner/health/health-policy';
 import { Region, RegionList } from '../../utils/Region';
 import { SeededRng } from '../../utils/Random';
 import { RaceSolver } from '../RaceSolver';

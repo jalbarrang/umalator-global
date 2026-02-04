@@ -2,12 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import { PosKeepMode, Strategy } from '../../runner/definitions';
 import { PositionKeepState } from '../../skills/definitions';
 import { PositionKeep } from '../RaceSolver';
-import {
-  advanceToPosition,
-  createMockCourse,
-  createMockHorse,
-  createRaceSolver,
-} from './fixtures';
+import { advanceToPosition, createMockCourse, createMockHorse, createRaceSolver } from './fixtures';
 
 describe('RaceSolver - Position Keep Thresholds', () => {
   describe('Threshold Calculations', () => {
@@ -324,4 +319,3 @@ describe('RaceSolver - Position Keep State Transitions', () => {
     });
   });
 });
-

@@ -1,67 +1,30 @@
-import type { IStrategy } from '@/modules/simulation/lib/runner/definitions';
-import type { HorseParameters } from '@/modules/simulation/lib/runner/HorseTypes';
-import type { IPositionKeepState } from '@/modules/simulation/lib/skills/definitions';
-import type {
-  CourseData,
-  IGroundCondition,
-  IPhase,
-} from '@/modules/simulation/lib/course/definitions';
-import type { PRNG } from '@/modules/simulation/lib/utils/Random';
-import type { RaceState } from '@/modules/simulation/lib/core/RaceSolver';
-import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
-import { Strategy } from '@/modules/simulation/lib/runner/definitions';
-import { PositionKeepState } from '@/modules/simulation/lib/skills/definitions';
+import { CourseHelpers } from '../../course/CourseData';
+import { PositionKeepState } from '../../skills/definitions';
+import { Strategy } from '../definitions';
+import type { IStrategy } from '../definitions';
+import type { HorseParameters } from '../HorseTypes';
+import type { IPositionKeepState } from '../../skills/definitions';
+import type { CourseData, IGroundCondition, IPhase } from '../../course/definitions';
+import type { IRaceState } from '../../core/RaceSolver';
+import type { PRNG } from '../../utils/Random';
+import type { HpPolicy } from './health-policy';
 
-export interface HpPolicy {
-  init: (horse: HorseParameters) => void;
-  tick: (state: RaceState, dt: number) => void;
-  hasRemainingHp: () => boolean;
-  hpRatioRemaining: () => number; // separate methods as the former can be much cheaper to check
-  recover: (modifier: number, state?: RaceState) => void;
-  getLastSpurtPair: (
-    state: RaceState,
-    maxSpeed: number,
-    baseTargetSpeed2: number,
-  ) => [number, number];
-  hp: number;
-  isMaxSpurt: () => boolean;
-}
+export const HpStrategyCoefficient = Object.freeze([0, 0.95, 0.89, 1.0, 0.995, 0.86]);
+export const HpConsumptionGroundModifier = Object.freeze(
+  [[], [0, 1.0, 1.0, 1.02, 1.02], [0, 1.0, 1.0, 1.01, 1.02]].map((o) => Object.freeze(o)),
+);
 
-export const NoopHpPolicy: HpPolicy = {
-  hp: 1.0,
-  init(_: HorseParameters) {},
-  tick(_0: RaceState, _1: number) {},
-  hasRemainingHp() {
-    return true;
-  },
-  hpRatioRemaining() {
-    return 1.0;
-  },
-  recover(_: number, _state?: RaceState) {},
-  getLastSpurtPair(_0: RaceState, maxSpeed: number, _1: number) {
-    return [-1, maxSpeed] as [number, number];
-  },
-  isMaxSpurt() {
-    return this.hp === 1.0;
-  },
-};
-
-export const HpStrategyCoefficient = [0, 0.95, 0.89, 1.0, 0.995, 0.86] as const;
-export const HpConsumptionGroundModifier = [
-  [],
-  [0, 1.0, 1.0, 1.02, 1.02],
-  [0, 1.0, 1.0, 1.01, 1.02],
-] as const;
-
-export class GameHpPolicy {
+export class GameHpPolicy implements HpPolicy {
   distance: number;
   baseSpeed: number;
   maxHp: number;
   hp: number;
   groundModifier: number;
+  rng: PRNG;
+
   declare gutsModifier: number;
   declare subparAcceptChance: number;
-  rng: PRNG;
+
   private achievedMaxSpurt = false;
 
   constructor(course: CourseData, ground: IGroundCondition, rng: PRNG) {
@@ -134,7 +97,7 @@ export class GameHpPolicy {
     );
   }
 
-  tick(state: RaceState, dt: number) {
+  tick(state: IRaceState, dt: number) {
     // NOTE unsure whether hp is consumed by `amount*dt` per frame or `amount` once every second
     // i think it is actually the latter
     this.hp -= this.hpPerSecond(state, state.currentSpeed) * dt;
@@ -148,11 +111,11 @@ export class GameHpPolicy {
     return Math.max(0.0, this.hp / this.maxHp);
   }
 
-  recover(modifier: number, _state?: RaceState) {
+  recover(modifier: number) {
     this.hp = Math.min(this.maxHp, this.hp + this.maxHp * modifier);
   }
 
-  getLastSpurtPair(state: RaceState, maxSpeed: number, baseTargetSpeed2: number) {
+  getLastSpurtPair(state: IRaceState, maxSpeed: number, baseTargetSpeed2: number) {
     const maxDist = this.distance - CourseHelpers.phaseStart(this.distance, 2);
     const s = (maxDist - 60) / maxSpeed;
     const lastleg = {
@@ -173,7 +136,7 @@ export class GameHpPolicy {
     }
     const candidates: Array<[number, number]> = [];
     const remainDistance = this.distance - 60 - state.pos;
-    // const statusModifier = this.getStatusModifier(lastleg);
+    const statusModifier = this.getStatusModifier(lastleg);
 
     for (let speed = maxSpeed - 0.1; speed >= baseTargetSpeed2; speed -= 0.1) {
       // solve:
@@ -191,7 +154,7 @@ export class GameHpPolicy {
         ),
       );
       const spurtDistance = spurtDuration * speed;
-      candidates.push([this.distance - spurtDistance, speed]);
+      candidates.push([this.distance - spurtDistance - 60, speed]);
     }
     candidates.sort(
       (a, b) =>
@@ -200,13 +163,8 @@ export class GameHpPolicy {
         ((b[0] - state.pos) / baseTargetSpeed2 + (this.distance - b[0]) / b[1]),
     );
 
-    // PRE-ROLL the random value to ensure fixed RNG consumption
-    // This guarantees both horses in a comparison consume exactly 1 RNG call,
-    // preventing desynchronization of the random number streams
-    const randomRoll = this.rng.uniform(100000);
-
     for (let i = 0; i < candidates.length; ++i) {
-      if (randomRoll <= this.subparAcceptChance) {
+      if (this.rng.uniform(100000) <= this.subparAcceptChance) {
         return candidates[i];
       }
     }

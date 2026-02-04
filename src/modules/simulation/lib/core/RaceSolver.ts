@@ -17,7 +17,7 @@ import type {
   ConditionEntry,
   ConditionState,
 } from '@/modules/simulation/lib/core/ApproximateStartContinue';
-import type { HpPolicy } from '@/modules/simulation/lib/runner/health/HpPolicy';
+import type { HpPolicy } from '@/modules/simulation/lib/runner/health/health-policy';
 import { PosKeepMode, Strategy } from '@/modules/simulation/lib/runner/definitions';
 import {
   PositionKeepState,
@@ -145,8 +145,8 @@ export class CompensatedAccumulator {
   }
 }
 
-export type RaceState = {
-  accumulatetime: Readonly<Timer>;
+export interface IRaceState {
+  accumulatetime: Timer;
   activateCount: Array<number>;
   activateCountHeal: number;
   currentSpeed: number;
@@ -157,16 +157,16 @@ export type RaceState = {
   isDownhillMode: boolean;
   phase: IPhase;
   pos: number;
-  hp: Readonly<HpPolicy>;
+  hp: HpPolicy;
   randomLot: number;
   startDelay: number;
   gateRoll: number;
-  usedSkills: ReadonlySet<string>;
+  usedSkills: Set<string>;
   leadCompetition: boolean;
   posKeepStrategy: IStrategy;
-};
+}
 
-export type DynamicCondition = (state: RaceState) => boolean;
+export type DynamicCondition = (state: IRaceState) => boolean;
 
 export function getPositionKeepStateName(state: IPositionKeepState): string {
   switch (state) {
@@ -262,16 +262,31 @@ type RaceSolverParams = {
   isPacer?: boolean;
 };
 
-export class RaceSolver {
+export class RaceSolver implements IRaceState {
+  // ======= Race State =======
   accumulatetime: Timer;
-  pos: number;
-  minSpeed: number;
+  activateCount: Array<number>;
+  activateCountHeal: number;
   currentSpeed: number;
+  declare isLastSpurt: boolean;
+  lastSpurtSpeed: number;
+  lastSpurtTransition: number;
+  positionKeepState: IPositionKeepState;
+  isDownhillMode: boolean;
+  phase: IPhase;
+  pos: number;
+  hp: HpPolicy;
+  randomLot: number;
+  startDelay: number;
+  gateRoll: number;
+  usedSkills: Set<string>;
+  leadCompetition: boolean;
+  posKeepStrategy: IStrategy;
+
+  miSpeed: number;
   targetSpeed: number;
   accel: number;
   baseTargetSpeed: Array<number>;
-  lastSpurtSpeed: number;
-  lastSpurtTransition: number;
   sectionModifier: Array<number>;
   baseAccel: Array<number>;
   horse: { -readonly [P in keyof HorseParameters]: HorseParameters[P] };
@@ -279,7 +294,6 @@ export class RaceSolver {
   // Cached values for performance optimization
   baseSpeed: number;
   cachedSlopePenalties: Array<number>;
-  hp: HpPolicy;
   rng: PRNG;
   syncRng: PRNG;
   gorosiRng: PRNG;
@@ -290,12 +304,7 @@ export class RaceSolver {
   laneMovementRng: PRNG;
   timers: Array<Timer>;
   startDash: boolean;
-  startDelay: number;
   startDelayAccumulator: number;
-  gateRoll: number;
-  randomLot: number;
-  declare isLastSpurt: boolean;
-  phase: IPhase;
   nextPhaseTransition: number;
   activeTargetSpeedSkills: Array<ActiveSkill>;
   activeCurrentSpeedSkills: Array<ActiveSkill & { naturalDeceleration: boolean }>;
@@ -304,23 +313,13 @@ export class RaceSolver {
   activeChangeLaneSkills: Array<ActiveSkill>;
   pendingSkills: Array<PendingSkill>;
   pendingRemoval: Set<string>;
-  usedSkills: Set<string>;
+
   declare nHills: number;
   declare hillIdx: number;
   declare hillStart: Array<number>;
   declare hillEnd: Array<number>;
 
   //=== Skill Tracking ===
-
-  /**
-   * Tracks the number of times a skill has been activated.
-   */
-  activateCount: Array<number>;
-
-  /**
-   * Tracks the number of times a skill has been activated for healing specifically.
-   */
-  activateCountHeal: number;
 
   /**
    * Callback when a skill is being activated by a runner.
@@ -358,10 +357,8 @@ export class RaceSolver {
   declare posKeepExitPosition: number;
   declare posKeepExitDistance: number;
   posKeepEnd: number;
-  positionKeepState: IPositionKeepState;
   posKeepMode: IPosKeepMode;
   posKeepSpeedCoef: number;
-  posKeepStrategy: IStrategy;
   mode: string | undefined;
   pacer: RaceSolver | null;
 
@@ -378,7 +375,6 @@ export class RaceSolver {
   speedUpProbability: number; // 0-100, probability of entering speed-up mode
 
   //downhill mode
-  isDownhillMode: boolean;
   disableDownhill: boolean;
   downhillModeStart: number | null; // Frame when downhill mode started
   lastDownhillCheckFrame: number; // Last frame we checked for downhill mode changes
@@ -394,7 +390,6 @@ export class RaceSolver {
   competeFightTargets: Set<RaceSolver>;
 
   // Lead Competition
-  leadCompetition: boolean;
   leadCompetitionStart: number | null;
   leadCompetitionEnd: number | null;
   leadCompetitionTimer: Timer;
@@ -564,7 +559,7 @@ export class RaceSolver {
     this.currentSpeed = 3.0;
     this.targetSpeed = 0.85 * this.baseSpeed;
     this.processSkillActivations(); // activate gate skills (must come before setting minimum speed because green skills can modify guts)
-    this.minSpeed = 0.85 * this.baseSpeed + Math.sqrt(200.0 * this.horse.guts) * 0.001;
+    this.miSpeed = 0.85 * this.baseSpeed + Math.sqrt(200.0 * this.horse.guts) * 0.001;
     this.startDash = true;
     this.modifiers.accel.add(24.0); // start dash accel
 
@@ -802,8 +797,8 @@ export class RaceSolver {
 
     this.currentSpeed = Math.min(this.currentSpeed + this.accel * dt, this.getMaxSpeed());
 
-    if (!this.startDash && this.currentSpeed < this.minSpeed) {
-      this.currentSpeed = this.minSpeed;
+    if (!this.startDash && this.currentSpeed < this.miSpeed) {
+      this.currentSpeed = this.miSpeed;
     }
 
     const displacement =
@@ -1364,7 +1359,7 @@ export class RaceSolver {
 
   updateTargetSpeed() {
     if (!this.hp.hasRemainingHp()) {
-      this.targetSpeed = this.minSpeed;
+      this.targetSpeed = this.miSpeed;
     } else if (this.isLastSpurt) {
       this.targetSpeed = this.lastSpurtSpeed;
     } else {
@@ -1377,7 +1372,7 @@ export class RaceSolver {
     if (this.hillIdx != -1) {
       // Use pre-calculated slope penalty for performance
       this.targetSpeed -= this.cachedSlopePenalties[this.hillIdx];
-      this.targetSpeed = Math.max(this.targetSpeed, this.minSpeed);
+      this.targetSpeed = Math.max(this.targetSpeed, this.miSpeed);
     }
 
     if (this.competeFight) {
@@ -1802,7 +1797,7 @@ export class RaceSolver {
         ++this.activateCountHeal;
         // Pass state to recover for dynamic spurt recalculation in accuracy mode
 
-        this.hp.recover(skillEffect.modifier, this);
+        this.hp.recover(skillEffect.modifier);
 
         if (this.phase >= 2 && !this.isLastSpurt) {
           this.updateLastSpurtState();
