@@ -1,10 +1,7 @@
-import { CheckIcon } from 'lucide-react';
 import { useMemo } from 'react';
-import { clearResult, getCandidate, useSkillPlannerStore } from '../skill-planner.store';
-import { Button } from '@/components/ui/button';
+import { getCandidate, useSkillPlannerStore } from '../skill-planner.store';
 import { Progress } from '@/components/ui/progress';
-import { getSkillNameById } from '@/modules/skills/utils';
-import { setSkillToRunner, useRunner } from '@/store/runners.store';
+import { getSkillMetaById, getSkillNameById } from '@/modules/skills/utils';
 import { cn } from '@/lib/utils';
 
 type SkillPlannerResultsProps = React.HTMLAttributes<HTMLDivElement>;
@@ -14,29 +11,21 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
 
   const { candidates, budget, isOptimizing, progress, result } = useSkillPlannerStore();
 
-  const { runnerId } = useRunner();
-
   const candidateList = useMemo(() => Object.values(candidates), [candidates]);
   const canOptimize = useMemo(
     () => candidateList.length > 0 && budget > 0,
     [candidateList, budget],
   );
 
-  const handleApplyToRunner = () => {
-    if (!result) return;
-
-    // Add all recommended skills to the runner
-    result.skillsToBuy.forEach((skillId) => {
-      setSkillToRunner(runnerId, skillId);
-    });
-
-    // Clear the result after applying
-    clearResult();
-  };
-
   const progressPercentage = useMemo(() => {
     return progress ? (progress.completed / progress.total) * 100 : 0;
   }, [progress]);
+
+  // Sort combinations by bashin gain (highest to lowest)
+  const rankedCombinations = useMemo(() => {
+    if (!result?.allResults) return [];
+    return [...result.allResults].sort((a, b) => b.bashin - a.bashin);
+  }, [result]);
 
   return (
     <div className={cn('space-y-4', className)} {...rest}>
@@ -52,7 +41,7 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
           <Progress value={progressPercentage} />
           {progress.currentBest && (
             <div className="text-xs text-muted-foreground mt-2">
-              <p>Current best: +{progress.currentBest.bashin.toFixed(2)} Bashin</p>
+              <p>Current best: +{progress.currentBest.bashin.toFixed(2)} Lengths</p>
               <p className="text-xs opacity-75">
                 {progress.currentBest.skills.length} skills for {progress.currentBest.cost} pts
               </p>
@@ -64,87 +53,107 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
       {/* Results Display */}
       {!isOptimizing && result && (
         <div className="border rounded-lg bg-card overflow-hidden">
-          {/* Header */}
-          <div className="border-b bg-primary/10 p-4">
-            <h3 className="font-semibold text-lg flex items-center gap-2">
-              <CheckIcon className="w-5 h-5 text-green-600" />
-              Optimization Complete
-            </h3>
-            <div className="mt-2 space-y-1 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Expected Gain (Median):</span>
-                <span className="font-bold text-lg text-green-600">
-                  +{result.bashinStats.median.toFixed(2)} Bashin
-                </span>
+          {/* Header - Sticky Summary */}
+          <div className="border-b bg-primary/10 px-4 py-4 sticky top-0 z-10">
+            <div className="flex items-center justify-between">
+              <div className="font-semibold text-sm flex items-center gap-2">
+                Simulation Complete
               </div>
-              <div className="flex justify-between text-xs">
-                <span className="text-muted-foreground">Range:</span>
-                <span>
-                  {result.bashinStats.min.toFixed(2)} to {result.bashinStats.max.toFixed(2)} Bashin
-                </span>
-              </div>
-              <div className="flex justify-between text-xs">
-                <span className="text-muted-foreground">Mean Gain:</span>
-                <span>{result.bashinStats.mean.toFixed(2)} Bashin</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Total Cost:</span>
-                <span className="font-medium">
-                  {result.totalCost} / {budget} pts
-                </span>
-              </div>
-              <div className="flex justify-between text-xs">
-                <span className="text-muted-foreground">Combinations Tested:</span>
-                <span>{result.simulationCount}</span>
-              </div>
-              <div className="flex justify-between text-xs">
-                <span className="text-muted-foreground">Time Taken:</span>
-                <span>{(result.timeTaken / 1000).toFixed(1)}s</span>
+
+              <div className="flex gap-4 text-sm text-muted-foreground">
+                <span>Combinations Tested: {result.simulationCount}</span>
+                <span>Time Taken: {(result.timeTaken / 1000).toFixed(1)}s</span>
+                <span>Top Results Shown: {rankedCombinations.length}</span>
               </div>
             </div>
           </div>
 
-          {/* Recommended Skills */}
-          <div className="p-4">
-            <h4 className="font-medium text-sm mb-2">Recommended Skills to Buy:</h4>
-            {result.skillsToBuy.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                No skills recommended (current setup is optimal)
-              </p>
-            ) : (
-              <div className="max-h-[200px] overflow-y-auto">
-                <div className="space-y-1 pr-2">
-                  {result.skillsToBuy.map((skillId, index) => {
-                    const candidate = getCandidate(skillId);
-                    const skillName = getSkillNameById(skillId);
+          {/* Ranked Combinations List */}
+          <div className="flex flex-col flex-1">
+            <div className="p-4 space-y-3">
+              {rankedCombinations.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No combinations found
+                </p>
+              )}
 
-                    return (
-                      <div
-                        key={`${skillId}-${index}`}
-                        className="flex items-center justify-between p-2 border rounded bg-background text-sm"
-                      >
-                        <span>{skillName}</span>
-                        <span className="text-muted-foreground text-xs">
-                          {candidate && !candidate.isObtained
-                            ? `${candidate.effectiveCost} pts`
-                            : 'Free'}
+              {rankedCombinations.map((combination, index) => {
+                const bashinGain = combination.bashin;
+
+                return (
+                  <div
+                    key={`combo-${index}-${combination.skills.join('-')}`}
+                    className="border rounded-lg p-3 bg-background"
+                  >
+                    {/* Skills List */}
+                    <div className="mb-2">
+                      {combination.skills.length === 0 && (
+                        <p className="text-sm text-muted-foreground italic">
+                          No additional skills (baseline)
+                        </p>
+                      )}
+
+                      {
+                        <div className="space-y-1">
+                          {combination.skills.map((skillId, skillIndex) => {
+                            const skillName = getSkillNameById(skillId);
+                            const skillMeta = getSkillMetaById(skillId);
+                            const skillIconPath = skillMeta?.iconId
+                              ? `/icons/${skillMeta.iconId}.png`
+                              : '';
+                            const candidate = getCandidate(skillId);
+
+                            return (
+                              <div
+                                key={`${skillId}-${skillIndex}`}
+                                className="flex items-center justify-between text-sm"
+                              >
+                                <div className="flex items-center gap-2">
+                                  {skillIconPath && (
+                                    <img
+                                      src={skillIconPath}
+                                      alt=""
+                                      className="w-5 h-5 object-contain"
+                                    />
+                                  )}
+                                  <span>{skillName}</span>
+                                </div>
+
+                                {candidate && (
+                                  <span className="text-xs text-muted-foreground">
+                                    {`${candidate.displayCost ?? candidate.effectiveCost} pts`}
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      }
+                    </div>
+
+                    {/* Cost Summary and Lengths */}
+                    <div className="grid grid-cols-2 items-center pt-2 border-t text-xs">
+                      <div>
+                        <span className="text-muted-foreground">Total Cost: </span>
+                        <span className="font-medium">
+                          {combination.cost} / {budget} pts
                         </span>
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
 
-          {/* Apply Button */}
-          {result.skillsToBuy.length > 0 && (
-            <div className="border-t p-4">
-              <Button onClick={handleApplyToRunner} className="w-full">
-                Apply to Runner
-              </Button>
+                      <div className="flex justify-end items-center gap-2">
+                        <div className="font-bold">
+                          {bashinGain > 0 ? '+' : ''}
+                          {bashinGain.toFixed(2)}
+                        </div>
+
+                        <div className="text-xs text-muted-foreground">Lengths</div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          )}
+          </div>
         </div>
       )}
 

@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { PlayIcon, XIcon } from 'lucide-react';
 import { setBudget, setHasFastLearner, useSkillPlannerStore } from '../skill-planner.store';
+import { useSkillPlannerOptimizer } from '../hooks/useSkillPlannerOptimizer';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -14,6 +15,7 @@ export function CostModifiersPanel(props: CostModifiersPanelProps) {
   const { className, ...rest } = props;
 
   const { budget, hasFastLearner, candidates, isOptimizing } = useSkillPlannerStore();
+  const { handleOptimize, handleCancel } = useSkillPlannerOptimizer();
 
   const candidateList = useMemo(() => Object.values(candidates), [candidates]);
   const canOptimize = useMemo(
@@ -23,19 +25,12 @@ export function CostModifiersPanel(props: CostModifiersPanelProps) {
 
   const handleBudgetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value) || 0;
+
     setBudget(value);
   };
 
   const handleFastLearnerChange = (checked: boolean) => {
     setHasFastLearner(checked);
-  };
-
-  const handleOptimize = () => {
-    console.log('Optimize');
-  };
-
-  const handleCancel = () => {
-    console.log('Cancel');
   };
 
   return (
@@ -88,6 +83,7 @@ export function CostModifiersPanel(props: CostModifiersPanelProps) {
             Optimize
           </Button>
         )}
+
         {isOptimizing && (
           <Button onClick={handleCancel} variant="destructive" size="lg" className="flex-1">
             <XIcon className="w-4 h-4 mr-2" />

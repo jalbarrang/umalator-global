@@ -1,9 +1,10 @@
 import { TrashIcon } from 'lucide-react';
 import { useMemo } from 'react';
 import {
+  addObtainedSkill,
   removeCandidate,
+  removeObtainedSkill,
   setCandidateHintLevel,
-  setCandidateObtained,
   updateCandidate,
   useSkillPlannerStore,
 } from '../skill-planner.store';
@@ -27,7 +28,7 @@ import { Separator } from '@/components/ui/separator';
 import { SkillIcon } from '@/modules/skills/components/skill-list/SkillItem';
 
 export function CandidateSkillList() {
-  const { candidates, runner } = useSkillPlannerStore();
+  const { candidates, runner, obtainedSkills } = useSkillPlannerStore();
 
   const candidateList = useMemo(() => Object.values(candidates), [candidates]);
   const uniqueSkillId = useMemo(() => {
@@ -51,6 +52,7 @@ export function CandidateSkillList() {
                 key={candidate.skillId}
                 candidate={candidate}
                 isUnique={candidate.skillId === uniqueSkillId}
+                isObtained={obtainedSkills.includes(candidate.skillId)}
               />
             ))}
           </div>
@@ -68,7 +70,7 @@ export function CandidateSkillList() {
               <div className="flex justify-end gap-2">
                 <span>Purchaseable:</span>
                 <span className="font-medium">
-                  {candidateList.filter((c) => !c.isObtained).length}
+                  {candidateList.filter((c) => !obtainedSkills.includes(c.skillId)).length}
                 </span>
               </div>
             </div>
@@ -82,10 +84,12 @@ export function CandidateSkillList() {
 type CandidateSkillItemProps = {
   candidate: CandidateSkill;
   isUnique: boolean;
+  isObtained: boolean;
 };
 
 function CandidateSkillItem(props: CandidateSkillItemProps) {
-  const { candidate, isUnique } = props;
+  const { candidate, isUnique, isObtained } = props;
+  const { obtainedSkills } = useSkillPlannerStore();
 
   const skillName = useMemo(() => getSkillNameById(candidate.skillId), [candidate.skillId]);
 
@@ -96,7 +100,11 @@ function CandidateSkillItem(props: CandidateSkillItemProps) {
   };
 
   const handleObtainedChange = (checked: boolean) => {
-    setCandidateObtained(candidate.skillId, checked);
+    if (checked) {
+      addObtainedSkill(candidate.skillId);
+    } else {
+      removeObtainedSkill(candidate.skillId);
+    }
   };
 
   const handleStackableChange = (checked: boolean) => {
@@ -136,11 +144,16 @@ function CandidateSkillItem(props: CandidateSkillItemProps) {
           <div className="">
             <SkillIcon iconId={skillIconId} />
           </div>
-          <p className="font-medium text-sm">{skillName}</p>
+          <p className="font-medium text-sm">
+            {candidate.tierLevel === 1 && <span className="text-muted-foreground mr-1">○</span>}
+            {candidate.tierLevel === 2 && <span className="text-muted-foreground mr-1">◎</span>}
+            {candidate.isGold && <span className="text-amber-500 mr-1">★</span>}
+            {skillName}
+          </p>
         </div>
 
         <div className="flex flex-col gap-4">
-          {!isUnique && !candidate.isObtained && (
+          {!isUnique && !isObtained && (
             <div className="flex items-center gap-2">
               <Select value={candidate.hintLevel} onValueChange={handleHintLevelChange}>
                 <SelectTrigger id={`hint-${candidate.skillId}`} className="text-xs">
@@ -169,7 +182,7 @@ function CandidateSkillItem(props: CandidateSkillItemProps) {
               <div className="flex justify-end gap-2">
                 <Checkbox
                   id={`obtained-${candidate.skillId}`}
-                  checked={candidate.isObtained}
+                  checked={isObtained}
                   onCheckedChange={handleObtainedChange}
                 />
                 <Label
@@ -185,10 +198,26 @@ function CandidateSkillItem(props: CandidateSkillItemProps) {
       </div>
 
       {/* Cost Display */}
-      {!candidate.isObtained && (
-        <div className="flex justify-between items-center pt-2 border-t text-xs">
-          <span className="text-muted-foreground">Cost:</span>
-          <span className="font-medium">{candidate.effectiveCost} pts</span>
+      {!isObtained && (
+        <div className="flex flex-col gap-1 pt-2 border-t text-xs">
+          {candidate.isGold &&
+          candidate.whiteSkillId &&
+          !obtainedSkills.includes(candidate.whiteSkillId) ? (
+            // Bundled cost display for gold skills
+            <>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Cost (bundled):</span>
+                <span className="font-medium">{candidate.displayCost ?? candidate.effectiveCost} pts</span>
+              </div>
+              <div className="text-xs text-muted-foreground italic">Includes all white tiers</div>
+            </>
+          ) : (
+            // Normal cost display
+            <div className="flex justify-between items-center">
+              <span className="text-muted-foreground">Cost:</span>
+              <span className="font-medium">{candidate.displayCost ?? candidate.effectiveCost} pts</span>
+            </div>
+          )}
         </div>
       )}
     </div>

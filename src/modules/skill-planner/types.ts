@@ -1,8 +1,4 @@
 import type { SimulationData } from '@/modules/simulation/compare.types';
-import type { CourseData } from '@/modules/simulation/lib/course/definitions';
-import type { RaceParameters } from '@/modules/simulation/lib/definitions';
-import type { RunnerState } from '@/modules/runners/components/runner-card/types';
-import type { SimulationOptions } from '@/modules/simulation/types';
 
 export type HintLevel = 0 | 1 | 2 | 3 | 4 | 5;
 
@@ -10,16 +6,28 @@ export type HintLevel = 0 | 1 | 2 | 3 | 4 | 5;
 export interface CandidateSkill {
   skillId: string;
   hintLevel: HintLevel;
-  isObtained: boolean; // Already owned, excluded from budget
+
+  // Stackable support
   isStackable: boolean; // Can be purchased twice
+  tierLevel?: 1 | 2; // 1=base (○), 2=upgrade (◎)
+  nextTierId?: string; // ID of next tier (upgrade tier)
+  previousTierId?: string; // ID of previous tier (base tier)
+
+  // Gold/White relationship
+  isGold: boolean; // rarity=2 (gold) or rarity=1 (white)
+  whiteSkillId?: string; // White version of this gold skill
+  goldSkillId?: string; // Gold version of this white skill
+  baseTierIdForGold?: string; // For gold skills, the base tier white skill ID
+
+  // Cost calculation
   effectiveCost: number; // Calculated with all discounts applied
+  displayCost?: number; // May differ from effectiveCost for bundled skills
 }
 
 // Optimization result
 export type OptimizationResult = {
   skillsToBuy: ReadonlyArray<string>;
   totalCost: Readonly<number>;
-  // Expanded statistics
   bashinStats: Readonly<{
     min: number;
     max: number;
@@ -47,25 +55,11 @@ export interface OptimizationProgress {
   currentBest: CombinationResult | null;
 }
 
-// Skill planner simulation types
-export interface SkillPlannerSimulationParams {
-  nsamples: number;
-  course: CourseData;
-  racedef: RaceParameters;
-  baseRunner: RunnerState; // Runner with obtained skills only
-  skillCombinations: Array<Array<string>>; // Array of skill combinations to test
-  options: SimulationOptions;
-}
-
-export interface CombinationSimulationResult {
-  skills: Array<string>; // The skill combination tested
-  bashin: number; // Mean bashin gain
-  min: number;
-  max: number;
-  median: number;
-}
-
-export interface BatchSimulationResult {
-  results: Array<CombinationSimulationResult>;
-  totalSimulations: number;
+// Cost breakdown for individual skills
+export interface CostBreakdown {
+  skillId: string;
+  baseCost: number;
+  hintDiscount: number;
+  bundledWhiteCost?: number; // For gold skills when white not obtained
+  finalCost: number;
 }
