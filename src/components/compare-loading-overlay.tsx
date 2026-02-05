@@ -7,7 +7,6 @@
 
 import { useMemo } from 'react';
 import { Loader2 } from 'lucide-react';
-import { useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 
