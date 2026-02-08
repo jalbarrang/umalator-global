@@ -1,24 +1,35 @@
-import { CourseHelpers } from '../../course/CourseData';
-import { PositionKeepState } from '../../skills/definitions';
-import { Strategy } from '../definitions';
-import type { IStrategy } from '../definitions';
-import type { HorseParameters } from '../HorseTypes';
-import type { IPositionKeepState } from '../../skills/definitions';
-import type { CourseData, IGroundCondition, IPhase } from '../../course/definitions';
-import type { IRaceState } from '../../core/RaceSolver';
-import type { PRNG } from '../../utils/Random';
-import type { HpPolicy } from './health-policy';
+import { PositionKeepState } from '../../lib/skills/definitions';
+import { Strategy } from '../../lib/runner/definitions';
+import { CourseHelpers } from '../../lib/course/CourseData';
+import type { Runner } from '../runner';
+import type { IStrategy } from '../../lib/runner/definitions';
+import type { IPositionKeepState } from '../../lib/skills/definitions';
+import type { CourseData, IGroundCondition, IPhase } from '../../lib/course/definitions';
+import type { PRNG } from '../../lib/utils/Random';
+import type { HpPolicy, RaceStateSlice } from './health-policy';
 
-export const HpStrategyCoefficient = Object.freeze([0, 0.95, 0.89, 1.0, 0.995, 0.86]);
-export const HpConsumptionGroundModifier = Object.freeze(
-  [[], [0, 1.0, 1.0, 1.02, 1.02], [0, 1.0, 1.0, 1.01, 1.02]].map((o) => Object.freeze(o)),
-);
+/**
+ * The coefficient for the stamina modifier based on the strategy
+ */
+export const HpStrategyCoefficient: ReadonlyArray<number> = [
+  0, // None
+  0.95, // Front Runner
+  0.89, // Pace Chaser
+  1.0, // Late Surger
+  0.995, // End Closer
+  0.86, // Runaway
+];
+export const HpConsumptionGroundModifier: ReadonlyArray<ReadonlyArray<number>> = [
+  [], // None
+  [0, 1.0, 1.0, 1.02, 1.02],
+  [0, 1.0, 1.0, 1.01, 1.02],
+];
 
 export class GameHpPolicy implements HpPolicy {
   distance: number;
   baseSpeed: number;
   maxHp: number;
-  hp: number;
+  currentHealth: number;
   groundModifier: number;
   rng: PRNG;
 
@@ -33,17 +44,17 @@ export class GameHpPolicy implements HpPolicy {
     this.groundModifier = HpConsumptionGroundModifier[course.surface][ground];
     this.rng = rng;
     this.maxHp = 1.0; // the first round of skill activations happens before init() is called (so we can get the correct stamina after greens)
-    this.hp = 1.0; // but there are some conditions that access HpPolicy methods which can run in the first round (e.g. is_hp_empty_onetime)
+    this.currentHealth = 1.0; // but there are some conditions that access HpPolicy methods which can run in the first round (e.g. is_hp_empty_onetime)
     // so we have to be "initialized enough" for them
     this.achievedMaxSpurt = false;
   }
 
-  init(horse: HorseParameters) {
-    this.maxHp = 0.8 * HpStrategyCoefficient[horse.strategy] * horse.stamina + this.distance;
-    this.hp = this.maxHp;
-    this.gutsModifier = 1.0 + 200.0 / Math.sqrt(600.0 * horse.guts);
-    this.subparAcceptChance = Math.round((15.0 + 0.05 * horse.wisdom) * 1000);
-    this.achievedMaxSpurt = false; // Reset for each race
+  init(runner: Runner) {
+    this.maxHp = 0.8 * HpStrategyCoefficient[runner.strategy] * runner.stamina + this.distance;
+    this.currentHealth = this.maxHp;
+    this.gutsModifier = 1.0 + 200.0 / Math.sqrt(600.0 * runner.guts);
+    this.subparAcceptChance = Math.round((15.0 + 0.05 * runner.wit) * 1000);
+    this.achievedMaxSpurt = false;
   }
 
   getStatusModifier(state: {
@@ -77,17 +88,20 @@ export class GameHpPolicy implements HpPolicy {
     return modifier;
   }
 
-  hpPerSecond(
-    state: {
-      phase: IPhase;
-      positionKeepState: IPositionKeepState;
-      isRushed?: boolean;
-      isDownhillMode?: boolean;
-      leadCompetition?: boolean;
-      posKeepStrategy?: IStrategy;
-    },
-    velocity: number,
-  ) {
+  private extractRunnerState(runner: Runner): RaceStateSlice {
+    return {
+      phase: runner.phase,
+      positionKeepState: runner.positionKeepState,
+      isRushed: runner.isRushed,
+      isDownhillMode: runner.isDownhillMode,
+      inSpotStruggle: runner.inSpotStruggle,
+      posKeepStrategy: runner.strategy,
+      pos: runner.position,
+      currentSpeed: runner.currentSpeed,
+    };
+  }
+
+  hpPerSecond(state: RaceStateSlice, velocity: number) {
     const gutsModifier = state.phase >= 2 ? this.gutsModifier : 1.0;
     return (
       ((20.0 * Math.pow(velocity - this.baseSpeed + 12.0, 2)) / 144.0) *
@@ -97,36 +111,39 @@ export class GameHpPolicy implements HpPolicy {
     );
   }
 
-  tick(state: IRaceState, dt: number) {
-    // NOTE unsure whether hp is consumed by `amount*dt` per frame or `amount` once every second
-    // i think it is actually the latter
-    this.hp -= this.hpPerSecond(state, state.currentSpeed) * dt;
+  tick(runner: Runner, dt: number) {
+    const state = this.extractRunnerState(runner);
+    this.currentHealth -= this.hpPerSecond(state, runner.currentSpeed) * dt;
   }
 
-  hasRemainingHp() {
-    return this.hp > 0.0;
+  hasRemainingHealth() {
+    return this.currentHealth > 0.0;
   }
 
-  hpRatioRemaining() {
-    return Math.max(0.0, this.hp / this.maxHp);
+  healthRatioRemaining() {
+    return Math.max(0.0, this.currentHealth / this.maxHp);
   }
 
   recover(modifier: number) {
-    this.hp = Math.min(this.maxHp, this.hp + this.maxHp * modifier);
+    this.currentHealth = Math.min(this.maxHp, this.currentHealth + this.maxHp * modifier);
   }
 
-  getLastSpurtPair(state: IRaceState, maxSpeed: number, baseTargetSpeed2: number) {
+  getLastSpurtPair(state: RaceStateSlice, maxSpeed: number, baseTargetSpeed2: number) {
     const maxDist = this.distance - CourseHelpers.phaseStart(this.distance, 2);
     const s = (maxDist - 60) / maxSpeed;
-    const lastleg = {
+
+    const lastleg: RaceStateSlice = {
+      ...state,
+
       phase: 2 as IPhase,
       positionKeepState: PositionKeepState.None,
-      leadCompetition: false,
+      inSpotStruggle: false,
       posKeepStrategy: state.posKeepStrategy,
     };
+
     const hpNeeded = this.hpPerSecond(lastleg, maxSpeed) * s;
 
-    if (this.hp >= hpNeeded) {
+    if (this.currentHealth >= hpNeeded) {
       // Only set on first call (when not already set)
       // This matches Kotlin behavior: track initial decision, not later changes
       if (!this.achievedMaxSpurt) {
@@ -136,8 +153,6 @@ export class GameHpPolicy implements HpPolicy {
     }
     const candidates: Array<[number, number]> = [];
     const remainDistance = this.distance - 60 - state.pos;
-
-    // Ported from Kachi and Alphas, but it's not being used.
     const statusModifier = this.getStatusModifier(lastleg);
 
     for (let speed = maxSpeed - 0.1; speed >= baseTargetSpeed2; speed -= 0.1) {
@@ -149,7 +164,7 @@ export class GameHpPolicy implements HpPolicy {
         remainDistance / speed,
         Math.max(
           0,
-          (baseTargetSpeed2 * this.hp -
+          (baseTargetSpeed2 * this.currentHealth -
             this.hpPerSecond(lastleg, baseTargetSpeed2) * remainDistance) /
             (baseTargetSpeed2 * this.hpPerSecond(lastleg, speed) -
               this.hpPerSecond(lastleg, baseTargetSpeed2) * speed),

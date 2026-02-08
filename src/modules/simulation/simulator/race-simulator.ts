@@ -1,9 +1,22 @@
-import { Rule30CARng } from '../utils/Random';
+import { Rule30CARng } from '../lib/utils/Random';
+import { GameHpPolicy } from './health/game.policy';
+import { NoopHpPolicy } from './health/health-policy';
+import type { PRNG } from '../lib/utils/Random';
+import type {
+  CourseData,
+  IGrade,
+  IGroundCondition,
+  ISeason,
+  ITimeOfDay,
+  IWeather,
+} from '../lib/course/definitions';
 import type { Runner } from './runner';
-import type { CourseData } from '../course/definitions';
-import type { PRNG } from '../utils/Random';
 
-export type RaceSettings = {
+export type SimulationSettings = {
+  /**
+   * Whether the simulation should account for the health system
+   */
+  healthSystem: boolean;
   /**
    * Whether the simulation should account for the section modifier
    */
@@ -34,7 +47,20 @@ export type RaceSettings = {
   witChecks: boolean;
 };
 
+export type RaceParameters = {
+  ground: IGroundCondition;
+  weather: IWeather;
+  season: ISeason;
+  timeOfDay: ITimeOfDay;
+  grade: IGrade;
+};
+
 export type RaceSimulatorProps = {
+  /**
+   * The parameters for the race simulation
+   */
+  parameters: RaceParameters;
+
   /**
    * The number of participants in the race
    */
@@ -46,7 +72,7 @@ export type RaceSimulatorProps = {
   /**
    * The settings for the race simulation
    */
-  settings: RaceSettings;
+  settings: SimulationSettings;
 };
 
 /**
@@ -62,8 +88,15 @@ export class RaceSimulator {
   declare private _pacerId: string;
 
   private _umasCount: number;
-  private _course: CourseData;
-  private _settings: RaceSettings;
+
+  private _settings: SimulationSettings;
+
+  public course: CourseData;
+  public ground: IGroundCondition;
+  public timeOfDay: ITimeOfDay;
+  public weather: IWeather;
+  public grade: IGrade;
+  public season: ISeason;
 
   /**
    * The runners in the race
@@ -73,7 +106,14 @@ export class RaceSimulator {
   constructor(props: RaceSimulatorProps) {
     // From props
     this._umasCount = props.umasCount;
-    this._course = props.course;
+    this.course = props.course;
+
+    this.ground = props.parameters.ground;
+    this.timeOfDay = props.parameters.timeOfDay;
+    this.weather = props.parameters.weather;
+    this.grade = props.parameters.grade;
+    this.season = props.parameters.season;
+
     this._settings = props.settings;
 
     // Default values
@@ -84,14 +124,39 @@ export class RaceSimulator {
   // Lifecycle
   // ==================
 
-  /**
-   * Prepares the race simulation by precalculating all the needed context for the runners
-   *
-   * Note: This needs to be called after all runners have been added to the race and before the race is run.
-   */
+  private assignGate(runner: Runner): number {
+    throw new Error('Not implemented');
+  }
+
   public prepareRace() {
+    if (!this._rng) throw new Error('Seed must be set before preparing race');
+    if (this._runners.size === 0) throw new Error('No runners added to race');
+
     // 1. Get a map of all common skills
     // 2. Get a map of each strategy count
+
+    for (const runner of this._runners.values()) {
+      // Generate runner-specific RNG
+      const runnerRng = new Rule30CARng(this._rng.int32());
+      runner.setupRng(runnerRng);
+
+      // Assign gate (you'll implement this logic)
+      const gate = this.assignGate(runner);
+      runner.setGate(gate);
+
+      // Setup health policy
+      if (this._settings.healthSystem) {
+        // Create health policy RNG (separate from runner's main RNG)
+        const hpRng = new Rule30CARng(this._rng.int32());
+        const healthPolicy = new GameHpPolicy(this.course, this.ground, hpRng);
+        runner.setHealthPolicy(healthPolicy);
+      } else {
+        runner.setHealthPolicy(NoopHpPolicy);
+      }
+
+      // Validate runner is ready
+      runner.onRaceSetup();
+    }
   }
 
   /**
@@ -131,16 +196,18 @@ export class RaceSimulator {
     }
   }
 
-  private markRunnerAsPacer(runnerId: string) {}
+  private markRunnerAsPacer(runnerId: string) {
+    throw new Error('Not implemented');
+  }
 
   // === runner management ===
 
   /**
    * Register a new runner to the race
    */
-  public addRunner(runner: any) {
+  public addRunner(runner: Runner) {
     runner.setRaceSimulator(this);
-    this._runners.set(runner.id, runner);
+    this._runners.set(runner.internalId, runner);
 
     // NOTE: RNG propagation will happen before race starts.
 
@@ -192,21 +259,14 @@ export class RaceSimulator {
    * The base speed for the race
    */
   public get baseSpeed(): number {
-    return 20.0 - (this._course.distance - 2000) / 1000.0;
-  }
-
-  /**
-   * The course data for the race
-   */
-  public get course(): CourseData {
-    return this._course;
+    return 20.0 - (this.course.distance - 2000) / 1000.0;
   }
 
   public get runners(): Map<string, Runner> {
     return this._runners;
   }
 
-  public get settings(): RaceSettings {
+  public get settings(): SimulationSettings {
     return this._settings;
   }
 }
