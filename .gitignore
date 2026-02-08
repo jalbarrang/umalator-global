@@ -15,9 +15,13 @@ db/
 # macOS
 .DS_Store
 
-# MCP Tools
-.task/
+# AI tools
+.cursor/
+.claude/
+.opencode/
 
+CLAUDE.md
+AGENTS.md
 
 # debug scripts
 scripts/runners/*.json
