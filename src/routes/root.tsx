@@ -56,6 +56,23 @@ export function RootComponent() {
           </div>
 
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              className="flex h-9 w-9 items-center justify-center"
+              render={
+                <a
+                  href="https://github.com/jalbarrang/umalator-global"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <img
+                    src="/svg/github.svg"
+                    alt="GitHub Repository"
+                    className="w-4 h-4 dark:invert"
+                  />
+                </a>
+              }
+            />
             <ThemeToggle />
           </div>
         </div>
