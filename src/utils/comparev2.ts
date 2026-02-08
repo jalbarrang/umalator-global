@@ -64,6 +64,7 @@ export function calculateTheoreticalMaxSpurt(
     [0.931, 1.0, 1.0],
     [1.063, 0.962, 0.95],
   ];
+
   const DistanceProficiencyModifier = [1.05, 1.0, 0.9, 0.8, 0.6, 0.4, 0.2, 0.1];
 
   // Parse strategy and aptitude from strings to numeric enums if needed

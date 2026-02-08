@@ -181,8 +181,8 @@ export function runSkillComparison(params: SkillCompareParams): SkillComparisonR
   // Fork to share RNG - both horses face the same random events for fair comparison
   const runnerBRaceSolver = runnerARaceSolver.fork();
 
-  runnerARaceSolver.horse(runnerA);
-  runnerBRaceSolver.horse(runnerB);
+  runnerARaceSolver.trackedRunner(runnerA);
+  runnerBRaceSolver.trackedRunner(runnerB);
 
   // Apply rushed toggles
   runnerARaceSolver.disableRushed();

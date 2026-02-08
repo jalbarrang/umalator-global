@@ -91,10 +91,10 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
 
   const skillActivations: Array<RegionData> = useMemo(() => {
-    if (!chartData?.sk) return [];
+    if (!chartData?.skillActivations) return [];
 
-    const runnerASkills = chartData.sk[0];
-    const runnerBSkills = chartData.sk[1];
+    const runnerASkills = chartData.skillActivations[0];
+    const runnerBSkills = chartData.skillActivations[1];
 
     const skills = [];
 
@@ -139,11 +139,11 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
 
   const posKeepData: Array<PosKeepLabel> = useMemo(() => {
     if (!chartData) return [];
-    if (!chartData.posKeep) return [];
+    if (!chartData.positionKeepModePositions) return [];
 
     const posKeepData = [];
 
-    for (const [umaIndex, posKeepArray] of chartData.posKeep.entries()) {
+    for (const [umaIndex, posKeepArray] of chartData.positionKeepModePositions.entries()) {
       for (const posKeep of posKeepArray) {
         const stateName = getStateName(posKeep[2]);
 
@@ -167,7 +167,7 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
     if (
       !showVirtualPacemakerOnGraph ||
       posKeepMode !== PosKeepMode.Virtual ||
-      chartData.pacerPosKeep == null
+      chartData.pacerPositionKeep == null
     ) {
       return [];
     }
@@ -177,10 +177,10 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
     for (let pacemakerIndex = 0; pacemakerIndex < 3; pacemakerIndex++) {
       if (
         selectedPacemakerIndices.includes(pacemakerIndex) &&
-        chartData.pacerPosKeep &&
-        chartData.pacerPosKeep[pacemakerIndex]
+        chartData.pacerPositionKeep &&
+        chartData.pacerPositionKeep[pacemakerIndex]
       ) {
-        const pacerPosKeepArray = chartData.pacerPosKeep[pacemakerIndex];
+        const pacerPosKeepArray = chartData.pacerPositionKeep[pacemakerIndex];
 
         for (const posKeep of pacerPosKeepArray) {
           const stateName = getStateName(posKeep[2]);
@@ -202,11 +202,11 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
 
   const competeFightData = useMemo(() => {
     if (!chartData) return [];
-    if (!chartData.competeFight) return [];
+    if (!chartData.duelingRegions) return [];
 
     const competeFightData = [];
 
-    for (const [umaIndex, competeFightArray] of chartData.competeFight.entries()) {
+    for (const [umaIndex, competeFightArray] of chartData.duelingRegions.entries()) {
       if (competeFightArray.length === 0) continue;
 
       const start = competeFightArray[0];
@@ -227,11 +227,11 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
 
   const leadCompetitionData = useMemo(() => {
     if (!chartData) return [];
-    if (!chartData.leadCompetition) return [];
+    if (!chartData.spotStruggleRegions) return [];
 
     const leadCompetitionData = [];
 
-    for (const [umaIndex, leadCompetitionArray] of chartData.leadCompetition.entries()) {
+    for (const [umaIndex, leadCompetitionArray] of chartData.spotStruggleRegions.entries()) {
       if (!leadCompetitionArray || leadCompetitionArray.length === 0) {
         continue;
       }
@@ -257,7 +257,7 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
     if (
       !showVirtualPacemakerOnGraph ||
       posKeepMode !== PosKeepMode.Virtual ||
-      chartData.pacerLeadCompetition == null
+      chartData.pacerSpotStruggle == null
     )
       return [];
 
@@ -266,11 +266,11 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
     for (let pacemakerIndex = 0; pacemakerIndex < 3; pacemakerIndex++) {
       if (
         selectedPacemakerIndices.includes(pacemakerIndex) &&
-        chartData.pacerLeadCompetition &&
-        chartData.pacerLeadCompetition[pacemakerIndex] &&
-        chartData.pacerLeadCompetition[pacemakerIndex].length > 0
+        chartData.pacerSpotStruggle &&
+        chartData.pacerSpotStruggle[pacemakerIndex] &&
+        chartData.pacerSpotStruggle[pacemakerIndex].length > 0
       ) {
-        const leadCompetitionArray = chartData.pacerLeadCompetition[pacemakerIndex];
+        const leadCompetitionArray = chartData.pacerSpotStruggle[pacemakerIndex];
 
         const start = leadCompetitionArray[0] ?? 0;
         const end = leadCompetitionArray[1] ?? 0;

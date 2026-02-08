@@ -1299,4 +1299,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
   weather: valueFilter(
     (_0: CourseData, _1: HorseParameters, extra: RaceParameters) => extra.weather,
   ),
+
+  is_exist_chara_id: noopImmediate,
+  remain_distance_viewer_id: noopImmediate,
 };

@@ -50,7 +50,7 @@ function buildSolver(speed: number, guts: number) {
     .course(course)
     .ground(opts.ground)
     .mood(opts.mood)
-    .horse(Object.assign({}, desc, { speed: speed, guts: guts }))
+    .trackedRunner(Object.assign({}, desc, { speed: speed, guts: guts }))
     .withAsiwotameru()
     .withStaminaSyoubu();
 

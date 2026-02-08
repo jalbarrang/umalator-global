@@ -111,7 +111,24 @@ export function SkillSet(iterable: Array<string>): Set<string> {
 }
 
 export const getBaseSkillsToTest = () => {
-  return Object.keys(skillsDataList).filter((id) => skillsDataList[id as SkillId]?.rarity < 3);
+  const skillIds = Object.keys(skillsDataList);
+  const skillsToTest = [];
+
+  for (const id of skillIds) {
+    const skillData = skillsDataList[id as SkillId];
+
+    if (!skillData) continue;
+
+    const firstAlternative = skillData.alternatives[0];
+    if (!firstAlternative) continue;
+
+    // Only test skills that are not unique or evolved and have a condition
+    if (skillData.rarity < 3 && firstAlternative.condition !== '') {
+      skillsToTest.push(id);
+    }
+  }
+
+  return skillsToTest;
 };
 
 export const translateSkillNamesForLang = (lang: 'en' | 'ja'): TranslatedSkillNames => {

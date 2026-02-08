@@ -131,11 +131,11 @@ export const VelocityLines = memo(function VelocityLines(props: VelocityLinesPro
 
   const yScale = useMemo(() => {
     if (!data) return null;
-    if (!data.v) return null;
+    if (!data.velocity) return null;
 
     return d3
       .scaleLinear()
-      .domain([0, d3.max(data.v, (v: Array<number>) => d3.max(v)) ?? 0])
+      .domain([0, d3.max(data.velocity, (v: Array<number>) => d3.max(v)) ?? 0])
       .range([height, 0]);
   }, [data, height]);
 
@@ -191,14 +191,14 @@ export const VelocityLines = memo(function VelocityLines(props: VelocityLinesPro
     <>
       <g transform={`translate(${xOffset},${5 + yOffset})`}>
         {/* Velocity lines */}
-        {data.v.map((v, i) => {
+        {data.velocity.map((v, i) => {
           if (i === 0 && !showUma1) return null;
           if (i === 1 && !showUma2) return null;
 
           return (
             <DataPath
               key={`velocity-${i}`}
-              positions={data.p[i]}
+              positions={data.position[i]}
               values={v}
               xScale={xScale}
               yScale={yScale}
@@ -217,7 +217,7 @@ export const VelocityLines = memo(function VelocityLines(props: VelocityLinesPro
             return (
               <DataPath
                 key={`hp-${i}`}
-                positions={data.p[i]}
+                positions={data.position[i]}
                 values={hp}
                 xScale={xScale}
                 yScale={hpYScale}
@@ -236,7 +236,7 @@ export const VelocityLines = memo(function VelocityLines(props: VelocityLinesPro
             return (
               <DataPath
                 key={`lane-${i}`}
-                positions={data.p[i]}
+                positions={data.position[i]}
                 values={lanes}
                 xScale={xScale}
                 yScale={laneYScale}
@@ -260,7 +260,7 @@ export const VelocityLines = memo(function VelocityLines(props: VelocityLinesPro
             return (
               <DataPath
                 key={`pacer-gap-${i}`}
-                positions={validIndices.map((j) => data.p[i][j])}
+                positions={validIndices.map((j) => data.position[i][j])}
                 values={validIndices.map((j) => gap[j])}
                 xScale={xScale}
                 yScale={pacemakerYScale}
@@ -272,12 +272,12 @@ export const VelocityLines = memo(function VelocityLines(props: VelocityLinesPro
           })}
 
         {/* Virtual pacemaker lines */}
-        {props.showVirtualPacemaker && data.pacerV && data.pacerP && (
+        {props.showVirtualPacemaker && data.pacerVelocity && data.pacerPosition && (
           <>
             {[0, 1, 2].map((pacemakerIndex) => {
               if (!props.selectedPacemakers?.[pacemakerIndex]) return null;
-              const pacerV = data.pacerV?.[pacemakerIndex];
-              const pacerP = data.pacerP?.[pacemakerIndex];
+              const pacerV = data.pacerVelocity?.[pacemakerIndex];
+              const pacerP = data.pacerPosition?.[pacemakerIndex];
               if (!pacerV || !pacerP) return null;
 
               const validIndices = pacerP

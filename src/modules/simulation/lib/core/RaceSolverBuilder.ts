@@ -452,6 +452,10 @@ export function buildSkillData(
   for (let i = 0; i < alternatives.length; ++i) {
     const skillAlternative = alternatives[i];
 
+    if (skillAlternative.condition === '') {
+      continue;
+    }
+
     let full = new RegionList();
     wholeCourse.forEach((r) => full.push(r));
 
@@ -798,8 +802,8 @@ export class RaceSolverBuilder {
     return this;
   }
 
-  horse(horse: HorseDesc) {
-    this._runner = horse;
+  trackedRunner(runner: HorseDesc) {
+    this._runner = runner;
     return this;
   }
 

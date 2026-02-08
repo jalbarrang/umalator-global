@@ -150,7 +150,7 @@ export const useChartData = () => {
       mergedMap[skill] = activations;
     }
 
-    chartData.sk[0] = mergedMap;
+    chartData.skillActivations[0] = mergedMap;
 
     return chartData;
   }, [relevantResults, displaying]);

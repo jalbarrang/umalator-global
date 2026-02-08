@@ -27,7 +27,7 @@ const useRunnerSkillsActivated = (runnerIndex: number) => {
   return useMemo(() => {
     if (!chartData) return [];
 
-    const runnerSkills = chartData.sk[runnerIndex];
+    const runnerSkills = chartData.skillActivations[runnerIndex];
 
     const skillPositions: Array<SkillPosition> = [];
     for (const [skillId, activations] of Object.entries(runnerSkills)) {
@@ -76,7 +76,7 @@ export const SkillsTab = () => {
   const totalSkillDistanceUma1 = useMemo(() => {
     if (!chartData) return 0;
 
-    const runnerSkills = chartData.sk[0];
+    const runnerSkills = chartData.skillActivations[0];
     let totalSkillDistance = 0;
 
     for (const [_, activations] of Object.entries(runnerSkills)) {
@@ -99,7 +99,7 @@ export const SkillsTab = () => {
   const totalSkillDistanceUma2 = useMemo(() => {
     if (!chartData) return 0;
 
-    const runnerSkills = chartData.sk[1];
+    const runnerSkills = chartData.skillActivations[1];
     let totalSkillDistance = 0;
 
     for (const [_, activations] of Object.entries(runnerSkills)) {

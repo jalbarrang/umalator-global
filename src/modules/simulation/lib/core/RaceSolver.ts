@@ -1632,13 +1632,11 @@ export class RaceSolver implements IRaceState {
    *       but if think that each runner should only check their own Wit.
    */
   doWitCheck(skill: PendingSkill): boolean {
-    if (skill.perspective !== SkillPerspective.Self) {
-      throw new Error('Wit check can only be done for self perspective skills');
-    }
+    const witStat =
+      skill.perspective === SkillPerspective.Self ? this.horse.wisdom : (skill.originWisdom ?? 1);
 
     const rngRoll = this.wisdomRollRng.random();
 
-    const witStat = this.horse.wisdom;
     const witCheckThreshold = Math.max(100 - 9000 / witStat, 20) * 0.01;
 
     return rngRoll <= witCheckThreshold;

@@ -124,8 +124,8 @@ export const ResultButtonGroups = () => {
                       </TableCell>
                       <TableCell className="text-right font-mono">
                         {uma1Faster
-                          ? formatTime(chartData.t[0][chartData.t[0].length - 1] * 1.18)
-                          : formatTime(chartData.t[1][chartData.t[1].length - 1] * 1.18)}
+                          ? formatTime(chartData.time[0][chartData.time[0].length - 1] * 1.18)
+                          : formatTime(chartData.time[1][chartData.time[1].length - 1] * 1.18)}
                       </TableCell>
                     </TableRow>
                     <TableRow>

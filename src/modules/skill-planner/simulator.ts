@@ -78,8 +78,8 @@ export function runSkillCombinationComparison(
   // Fork to share RNG - both runners face the same random events for fair comparison
   const testRaceSolver = baseRaceSolver.fork();
 
-  baseRaceSolver.horse(baseRunner);
-  testRaceSolver.horse(testRunner);
+  baseRaceSolver.trackedRunner(baseRunner);
+  testRaceSolver.trackedRunner(testRunner);
 
   // Apply rushed toggles
   baseRaceSolver.disableRushed();
