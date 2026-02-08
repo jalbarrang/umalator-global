@@ -50,10 +50,11 @@ export class GameHpPolicy implements HpPolicy {
   }
 
   init(runner: Runner) {
-    this.maxHp = 0.8 * HpStrategyCoefficient[runner.strategy] * runner.stamina + this.distance;
+    this.maxHp =
+      0.8 * HpStrategyCoefficient[runner.strategy] * runner.stats.stamina + this.distance;
     this.currentHealth = this.maxHp;
-    this.gutsModifier = 1.0 + 200.0 / Math.sqrt(600.0 * runner.guts);
-    this.subparAcceptChance = Math.round((15.0 + 0.05 * runner.wit) * 1000);
+    this.gutsModifier = 1.0 + 200.0 / Math.sqrt(600.0 * runner.stats.guts);
+    this.subparAcceptChance = Math.round((15.0 + 0.05 * runner.stats.wit) * 1000);
     this.achievedMaxSpurt = false;
   }
 

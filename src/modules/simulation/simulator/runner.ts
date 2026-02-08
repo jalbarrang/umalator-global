@@ -2,12 +2,24 @@ import { Acceleration, CompensatedAccumulator, Speed, Timer } from '../lib/core/
 import { CourseHelpers } from '../lib/course/CourseData';
 import { Rule30CARng } from '../lib/utils/Random';
 import { Strategy } from '../lib/runner/definitions';
+import {
+  GroundPowerModifier,
+  GroundSpeedModifier,
+  StrategyProficiencyModifier,
+} from '../lib/core/RaceSolverBuilder';
 import type { IAptitude, IMood, IStrategy } from '../lib/runner/definitions';
 import type { IPositionKeepState } from '../lib/skills/definitions';
 import type { PRNG } from '../lib/utils/Random';
 import type { HpPolicy } from './health/health-policy';
 import type { RaceSimulator } from './race-simulator';
-import type { CourseData, IPhase } from '../lib/course/definitions';
+import type {
+  CourseData,
+  IGroundCondition,
+  IPhase,
+  ISeason,
+  ITimeOfDay,
+  IWeather,
+} from '../lib/course/definitions';
 import type { ActiveSkill, PendingSkill } from '../lib/core/RaceSolver';
 
 const BaseAccel = 0.0006;
@@ -27,6 +39,21 @@ export type RunnerAptitudes = {
   surface: IAptitude;
 };
 
+export type CreateRunner = {
+  outfitId: string;
+  mood: IMood;
+  strategy: IStrategy;
+  aptitudes: RunnerAptitudes;
+  stats: StatLine;
+  skills: Array<string>;
+
+  course: CourseData;
+  ground: IGroundCondition;
+  weather: IWeather;
+  season: ISeason;
+  timeOfDay: ITimeOfDay;
+};
+
 /**
  * # Runner Props
  *
@@ -43,7 +70,8 @@ export type RunnerProps = {
   strategy: IStrategy;
   aptitudes: RunnerAptitudes;
   stats: StatLine;
-  course: CourseData;
+  rawStats: StatLine;
+  skillIds: Array<string>;
 };
 
 export type SpeedModifiers = {
@@ -107,12 +135,13 @@ export class Runner {
 
   public mood: IMood;
   public strategy: IStrategy;
-  public speed: number;
-  public stamina: number;
-  public power: number;
-  public guts: number;
-  public wit: number;
+
+  public stats: StatLine;
+  public rawStats: StatLine;
+
   public aptitudes: RunnerAptitudes;
+
+  public skillIds: Array<string>;
 
   declare public rng: PRNG;
   declare public rushedRng: PRNG;
@@ -353,13 +382,13 @@ export class Runner {
 
     // Thought: Mood could be made so it could be randomly set per race as an option in the UI.
     this.mood = props.mood;
-    this.speed = props.stats.speed;
-    this.stamina = props.stats.stamina;
-    this.power = props.stats.power;
-    this.guts = props.stats.guts;
-    this.wit = props.stats.wit;
+
+    this.stats = props.stats;
+    this.rawStats = props.rawStats;
+
     this.strategy = props.strategy;
     this.aptitudes = props.aptitudes;
+    this.skillIds = props.skillIds;
 
     // === Umamusume related ===
     this.umaId = props.umaId;
@@ -426,7 +455,7 @@ export class Runner {
 
     // Cache slope penalties to avoid recalculating each hill
     this.slopePenalties = this.race.course.slopes.map(
-      (s) => ((s.slope / 10000.0) * 200.0) / this.power,
+      (s) => ((s.slope / 10000.0) * 200.0) / this.stats.power,
     );
   }
 
@@ -650,7 +679,7 @@ export class Runner {
     this.lastSpurtSpeed = this.calculateLastSpurtSpeed();
 
     // Minimum speed (prevents slowing below this after start dash)
-    this.minSpeed = 0.85 * this.race.baseSpeed + Math.sqrt(200.0 * this.guts) * 0.001;
+    this.minSpeed = 0.85 * this.race.baseSpeed + Math.sqrt(200.0 * this.stats.guts) * 0.001;
 
     // Section modifiers (wisdom-based random variance per 1/24 section)
     this.sectionModifiers = Array.from({ length: 24 }, () => {
@@ -658,7 +687,7 @@ export class Runner {
         return 0.0;
       }
 
-      const max = (this.wit / 5500.0) * Math.log10(this.wit * 0.1);
+      const max = (this.stats.wit / 5500.0) * Math.log10(this.stats.wit * 0.1);
       const factor = (max - 0.65 + this.witRng.random() * 0.65) / 100.0;
       return this.race.baseSpeed * factor;
     });
@@ -757,7 +786,7 @@ export class Runner {
     // Accel = BaseAccel * sqrt(500.0 * PowerStat) * StrategyPhaseCoefficient * GroundTypeProficiencyModifier * DistanceProficiencyModifier
     return (
       accelModifier *
-      Math.sqrt(500.0 * this.power) *
+      Math.sqrt(500.0 * this.stats.power) *
       strategyCoefficient *
       groundTypeProficiencyModifier *
       distanceProficiencyModifier
@@ -770,7 +799,7 @@ export class Runner {
 
     if (phase === 2) {
       const proficiencyModifier = Speed.DistanceProficiencyModifier[this.aptitudes.distance];
-      return baseTargetSpeed + Math.sqrt(500.0 * this.speed) * proficiencyModifier * 0.002;
+      return baseTargetSpeed + Math.sqrt(500.0 * this.stats.speed) * proficiencyModifier * 0.002;
     }
 
     return baseTargetSpeed;
@@ -783,10 +812,10 @@ export class Runner {
 
     let result =
       (lateRaceTargetSpeed + 0.01 * courseBaseSpeed) * 1.05 +
-      Math.sqrt(500.0 * this.speed) * proficiencyModifier * 0.002;
+      Math.sqrt(500.0 * this.stats.speed) * proficiencyModifier * 0.002;
 
     // Add guts component
-    result += Math.pow(450.0 * this.guts, 0.597) * 0.0001;
+    result += Math.pow(450.0 * this.stats.guts, 0.597) * 0.0001;
 
     return result;
   }
@@ -874,7 +903,7 @@ export class Runner {
       return true;
     }
 
-    const witStat = this.wit;
+    const witStat = this.stats.wit;
 
     const rngRoll = this.witRng.random();
 
@@ -890,7 +919,7 @@ export class Runner {
    * Formula: RushedChance = (6.5 / log10(0.1 * Wits + 1))²%
    */
   private get baseRushedChance(): number {
-    const wisdomStat = this.wit;
+    const wisdomStat = this.stats.wit;
 
     return Math.pow(6.5 / Math.log10(0.1 * wisdomStat + 1), 2) / 100;
   }
@@ -932,4 +961,81 @@ export class Runner {
     this.timers.push(timer);
     return timer;
   }
+
+  public static create(props: CreateRunner): Runner {
+    const id = crypto.randomUUID();
+    const umaId = props.outfitId.slice(0, 4);
+
+    const statsWithMood = applyMoodCoefficient(props.stats, props.mood);
+    const adjustedStats = adjustStats(statsWithMood, props.course, props.ground, props.strategy);
+
+    const runner = new Runner({
+      id,
+      umaId,
+      outfitId: props.outfitId,
+      name: '',
+      mood: props.mood,
+      strategy: props.strategy,
+      aptitudes: props.aptitudes,
+      stats: adjustedStats,
+      rawStats: props.stats,
+      skillIds: props.skills,
+    });
+
+    return runner;
+  }
 }
+
+const adjustOvercap = (stat: number): number => {
+  return stat > 1200 ? 1200 + Math.floor((stat - 1200) / 2) : stat;
+};
+
+export const calculateMoodCoefficient = (mood: IMood): number => {
+  return 1 + 0.02 * mood;
+};
+
+const applyMoodCoefficient = (stats: StatLine, mood: IMood): StatLine => {
+  const moodCoefficient = calculateMoodCoefficient(mood);
+
+  return {
+    speed: adjustOvercap(stats.speed) * moodCoefficient,
+    stamina: adjustOvercap(stats.stamina) * moodCoefficient,
+    power: adjustOvercap(stats.power) * moodCoefficient,
+    guts: adjustOvercap(stats.guts) * moodCoefficient,
+    wit: adjustOvercap(stats.wit) * moodCoefficient,
+  };
+};
+
+const calculateSpeedModifier = (course: CourseData, stats: StatLine): number => {
+  const statvalues = [0, stats.speed, stats.stamina, stats.power, stats.guts, stats.wit].map((x) =>
+    Math.min(x, 901),
+  );
+
+  return (
+    1 +
+    course.courseSetStatus
+      .map((stat) => (1 + Math.floor(statvalues[stat] / 300.01)) * 0.05)
+      .reduce((a, b) => a + b, 0) /
+      Math.max(course.courseSetStatus.length, 1)
+  );
+};
+
+const adjustStats = (
+  stats: StatLine,
+  course: CourseData,
+  ground: IGroundCondition,
+  strategy: IStrategy,
+): StatLine => {
+  const speedModifier = calculateSpeedModifier(course, stats);
+  const groundModifier = GroundSpeedModifier[course.surface][ground];
+  const surfaceModifier = GroundPowerModifier[course.surface][ground];
+  const strategyModifier = StrategyProficiencyModifier[strategy];
+
+  return {
+    speed: Math.max(stats.speed * speedModifier + groundModifier, 1),
+    stamina: stats.stamina,
+    power: Math.max(stats.power + surfaceModifier, 1),
+    guts: stats.guts,
+    wit: stats.wit * strategyModifier,
+  };
+};

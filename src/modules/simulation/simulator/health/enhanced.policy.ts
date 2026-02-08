@@ -9,7 +9,8 @@
  * - Includes proper HP consumption modeling for different race phases
  */
 
-import type { HpPolicy } from './health-policy';
+import type { Runner } from '../runner';
+import type { HpPolicy, RaceStateSlice } from './health-policy';
 import type { HorseParameters } from '@/modules/simulation/lib/runner/HorseTypes';
 import type {
   CourseData,
@@ -75,15 +76,16 @@ export class EnhancedHpPolicy implements HpPolicy {
     this.recalculateOnHeal = recalculateOnHeal;
   }
 
-  init(horse: HorseParameters) {
-    this.maxHp = 0.8 * HpStrategyCoefficient[horse.strategy] * horse.stamina + this.distance;
+  init(runner: Runner) {
+    this.maxHp =
+      0.8 * HpStrategyCoefficient[runner.strategy] * runner.stats.stamina + this.distance;
     this.currentHealth = this.maxHp;
-    this.gutsModifier = 1.0 + 200.0 / Math.sqrt(600.0 * horse.guts);
-    this.subparAcceptChance = Math.round((15.0 + 0.05 * horse.wisdom) * 1000);
+    this.gutsModifier = 1.0 + 200.0 / Math.sqrt(600.0 * runner.stats.guts);
+    this.subparAcceptChance = Math.round((15.0 + 0.05 * runner.stats.wit) * 1000);
 
     // Pre-calculate spurt speeds for enhanced calculation
-    this.baseTargetSpeed2 = this.calculateBaseTargetSpeed(horse, 2);
-    this.maxSpurtSpeed = this.calculateMaxSpurtSpeed(horse);
+    this.baseTargetSpeed2 = this.calculateBaseTargetSpeed(runner, 2);
+    this.maxSpurtSpeed = this.calculateMaxSpurtSpeed(runner);
 
     // Reset spurt tracking for each race
     this.spurtParameters = null;
@@ -166,8 +168,8 @@ export class EnhancedHpPolicy implements HpPolicy {
     );
   }
 
-  tick(state: IRaceState, dt: number) {
-    this.currentHealth -= this.hpPerSecond(state, state.currentSpeed) * dt;
+  tick(runner: Runner, dt: number) {
+    this.currentHealth -= this.hpPerSecond(runner, runner.currentSpeed) * dt;
   }
 
   hasRemainingHealth() {
@@ -325,7 +327,7 @@ export class EnhancedHpPolicy implements HpPolicy {
    * times if heals occur in phase 2+, matching Kotlin's dynamic behavior.
    */
   getLastSpurtPair(
-    state: IRaceState,
+    state: RaceStateSlice,
     maxSpeed: number,
     baseTargetSpeed2: number,
   ): [number, number] {

@@ -187,6 +187,7 @@ export class RaceSimulator {
    * This will run until all runners have finished the race
    */
   public run() {
+    // What's the difference between this and prepareRace?
     this.onStartRace();
 
     this._finishedCount = 0;
