@@ -1,6 +1,10 @@
 import { Rule30CARng } from '../lib/utils/Random';
+import { Strategy } from '../lib/runner/definitions';
 import { GameHpPolicy } from './health/game.policy';
 import { NoopHpPolicy } from './health/health-policy';
+import { Runner } from './runner';
+import type { IPosKeepMode, IStrategy } from '../lib/runner/definitions';
+import type { CreateRunner } from './runner';
 import type { PRNG } from '../lib/utils/Random';
 import type {
   CourseData,
@@ -10,7 +14,8 @@ import type {
   ITimeOfDay,
   IWeather,
 } from '../lib/course/definitions';
-import type { Runner } from './runner';
+
+export type RunnerMap = Map<number, Runner>;
 
 export type SimulationSettings = {
   /**
@@ -45,6 +50,10 @@ export type SimulationSettings = {
    * - false: Wit checks are disabled so skills always pass.
    */
   witChecks: boolean;
+  /**
+   * The position keep mode that the simulation should use for the runners
+   */
+  positionKeepMode: IPosKeepMode;
 };
 
 export type RaceParameters = {
@@ -83,11 +92,12 @@ export type RaceSimulatorProps = {
  * The core class for running a race simulation.
  */
 export class RaceSimulator {
-  declare private _seed: number;
-  declare private _rng: PRNG;
-  declare private _pacerId: string;
-
+  private _seed: number;
+  private _rng: PRNG | null;
+  private _pacerId: number;
   private _umasCount: number;
+
+  private _lastRunnerId: number;
 
   private _settings: SimulationSettings;
 
@@ -98,10 +108,22 @@ export class RaceSimulator {
   public grade: IGrade;
   public season: ISeason;
 
+  // ==================
+  // Race Stats
+  // ==================
+
+  public commonSkills: Map<string, number>;
+  public strategyCounts: Map<IStrategy, number>;
+  public runnersPerStrategy: Map<IStrategy, Array<Runner>>;
+
   /**
    * The runners in the race
    */
-  private _runners: Map<string, Runner>;
+  private _runners: RunnerMap;
+  /**
+   * Internal map of finished runners
+   */
+  private _finishedRunners: RunnerMap;
 
   constructor(props: RaceSimulatorProps) {
     // From props
@@ -117,32 +139,107 @@ export class RaceSimulator {
     this._settings = props.settings;
 
     // Default values
+    this._seed = -1;
+    this._rng = null;
+    this._lastRunnerId = 0;
+    this._pacerId = -1; // -1 means no pacer has been set yet
     this._runners = new Map();
+    this._finishedRunners = new Map();
+
+    this.commonSkills = new Map();
+    this.strategyCounts = new Map();
+    this.runnersPerStrategy = new Map();
   }
 
   // ==================
   // Lifecycle
   // ==================
 
-  private assignGate(runner: Runner): number {
-    throw new Error('Not implemented');
+  /**
+   * Assign unique gate positions to all runners.
+   *
+   * Uses a Fisher-Yates shuffle seeded from the race RNG to produce
+   * a fair, deterministic, unique gate assignment for each runner.
+   *
+   * Gate numbers are 0-8 (9 positions), mapped to lane positions
+   * by the runner using `gate * course.horseLane`.
+   */
+  private assignGates(): void {
+    if (!this._rng) throw new Error('Race RNG not set');
+
+    // Create gate pool (0 to 8, always 9 gates)
+    const gates = Array.from({ length: 9 }, (_, i) => i);
+
+    // Fisher-Yates shuffle using race RNG
+    for (let i = gates.length - 1; i > 0; i--) {
+      const j = this._rng.uniform(i + 1);
+      [gates[i], gates[j]] = [gates[j], gates[i]];
+    }
+
+    // Assign first N gates to runners (in iteration order, which is insertion order for Map)
+    let gateIndex = 0;
+    for (const runner of this._runners.values()) {
+      runner.setGate(gates[gateIndex]);
+      gateIndex++;
+    }
+  }
+
+  public validateRaceSetup(): void {
+    if (this._runners.size === 0) throw new Error('No runners added to race');
   }
 
   public prepareRace() {
-    if (!this._rng) throw new Error('Seed must be set before preparing race');
-    if (this._runners.size === 0) throw new Error('No runners added to race');
+    const commonSkills = new Map<string, number>();
+    const strategyCounts = new Map<IStrategy, number>([
+      [Strategy.Runaway, 0],
+      [Strategy.FrontRunner, 0],
+      [Strategy.PaceChaser, 0],
+      [Strategy.LateSurger, 0],
+      [Strategy.EndCloser, 0],
+    ]);
 
-    // 1. Get a map of all common skills
-    // 2. Get a map of each strategy count
+    const runnersPerStrategy = new Map<IStrategy, Array<Runner>>([
+      [Strategy.Runaway, []],
+      [Strategy.FrontRunner, []],
+      [Strategy.PaceChaser, []],
+      [Strategy.LateSurger, []],
+      [Strategy.EndCloser, []],
+    ]);
+
+    for (const runner of this._runners.values()) {
+      const strategy = runner.strategy;
+      const skills = runner.skillIds;
+
+      for (const skill of skills) {
+        const count = commonSkills.get(skill) ?? 0;
+        commonSkills.set(skill, count + 1);
+      }
+
+      const stratCount = strategyCounts.get(strategy)!;
+      strategyCounts.set(strategy, stratCount + 1);
+
+      const runners = runnersPerStrategy.get(strategy)!;
+      runners.push(runner);
+      runnersPerStrategy.set(strategy, runners);
+    }
+
+    this.commonSkills = commonSkills;
+    this.strategyCounts = strategyCounts;
+    this.runnersPerStrategy = runnersPerStrategy;
+
+    return this;
+  }
+
+  public prepareRound(masterSeed: number) {
+    this._seed = masterSeed;
+    this._rng = new Rule30CARng(masterSeed);
+
+    this.assignGates();
 
     for (const runner of this._runners.values()) {
       // Generate runner-specific RNG
       const runnerRng = new Rule30CARng(this._rng.int32());
       runner.setupRng(runnerRng);
-
-      // Assign gate (you'll implement this logic)
-      const gate = this.assignGate(runner);
-      runner.setGate(gate);
 
       // Setup health policy
       if (this._settings.healthSystem) {
@@ -155,16 +252,8 @@ export class RaceSimulator {
       }
 
       // Validate runner is ready
-      runner.onRaceSetup();
-    }
-  }
-
-  /**
-   * Called when the race starts
-   */
-  private onStartRace() {
-    for (const runner of this._runners.values()) {
-      runner.onRaceStart();
+      runner.validateSetup();
+      runner.prepareRunner();
     }
   }
 
@@ -172,14 +261,13 @@ export class RaceSimulator {
     for (const runner of this._runners.values()) {
       runner.step(dt);
 
-      // NOTE: Might want to revise this.
       if (runner.hasFinishedRace) {
-        this._finishedCount++;
+        // Remove runner from the active runners and add to the finished runners.
+        this._finishedRunners.set(runner.internalId, runner);
+        this._runners.delete(runner.internalId);
       }
     }
   }
-
-  declare private _finishedCount: number;
 
   /**
    * Runs the race simulation
@@ -187,17 +275,24 @@ export class RaceSimulator {
    * This will run until all runners have finished the race
    */
   public run() {
-    // What's the difference between this and prepareRace?
-    this.onStartRace();
+    // Get the number of runners.
+    const runnerSize = this._runners.size;
 
-    this._finishedCount = 0;
-
-    while (this._finishedCount < this._runners.size) {
+    // Run the race until all runners have finished.
+    while (this._finishedRunners.size < runnerSize) {
       this.step(1 / 15);
     }
+
+    // When the race is over, reset the runners map
+    this._runners = new Map(this._finishedRunners.entries());
+    this._finishedRunners = new Map();
   }
 
-  private markRunnerAsPacer(runnerId: string) {
+  private markRunnerAsPacer(runnerId: number) {
+    throw new Error('Not implemented');
+  }
+
+  public collectStats(): Array<unknown> {
     throw new Error('Not implemented');
   }
 
@@ -206,25 +301,11 @@ export class RaceSimulator {
   /**
    * Register a new runner to the race
    */
-  public addRunner(runner: Runner) {
-    runner.setRaceSimulator(this);
-    this._runners.set(runner.internalId, runner);
+  public addRunner(params: CreateRunner) {
+    const runner = Runner.create(this, this._lastRunnerId, params);
+    this._runners.set(this._lastRunnerId, runner);
 
-    // NOTE: RNG propagation will happen before race starts.
-
-    return this;
-  }
-
-  // === race management ===
-
-  /**
-   * Generates the PRNG seed for the race.
-   *
-   * This will be shared across all runners in the race,
-   */
-  public setSeed(masterSeed: number) {
-    this._seed = masterSeed;
-    this._rng = new Rule30CARng(masterSeed);
+    this._lastRunnerId++;
 
     return this;
   }
@@ -263,7 +344,7 @@ export class RaceSimulator {
     return 20.0 - (this.course.distance - 2000) / 1000.0;
   }
 
-  public get runners(): Map<string, Runner> {
+  public get runners(): RunnerMap {
     return this._runners;
   }
 

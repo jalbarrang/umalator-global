@@ -126,6 +126,7 @@ export const getUmaOutfitName = (outfitId: string): string | null => {
 export const getUmaDisplayInfo = (outfitId: string): { name: string; outfit: string } | null => {
   try {
     const uma = getUmaById(outfitId);
+
     return {
       name: uma.name[1],
       outfit: uma.outfits[outfitId as UmaOutfitKey],

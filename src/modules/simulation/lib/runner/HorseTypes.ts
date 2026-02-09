@@ -23,6 +23,7 @@ export class StrategyHelpers {
 
   static strategyMatches(strategyA: IStrategy, strategyB: IStrategy) {
     const areSame = strategyA === strategyB;
+
     const aIsRunaway = strategyA == Strategy.FrontRunner && strategyB == Strategy.Runaway;
     const bIsRunaway = strategyB == Strategy.FrontRunner && strategyA == Strategy.Runaway;
 

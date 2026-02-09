@@ -1,4 +1,5 @@
 export const SkillType = {
+  Noop: 0,
   // Adds Stat Bonuses
   // - Skills like: Right-Handed, Left-Handed, etc.
   SpeedUp: 1,
@@ -49,6 +50,7 @@ export const SkillType = {
 } as const;
 export type ISkillType = (typeof SkillType)[keyof typeof SkillType];
 export const SkillEffectName: Record<ISkillType, string> = {
+  [SkillType.Noop]: 'Noop',
   [SkillType.SpeedUp]: 'Speed Up',
   [SkillType.StaminaUp]: 'Stamina Up',
   [SkillType.PowerUp]: 'Power Up',

@@ -22,7 +22,6 @@ import type {
   SimulationSettings,
 } from '@/modules/simulation/simulator/race-simulator';
 import type { CreateRunner } from '@/modules/simulation/simulator/runner';
-import { Runner } from '@/modules/simulation/simulator/runner';
 import { RaceSimulator } from '@/modules/simulation/simulator/race-simulator';
 
 type ComparisonParams = {
@@ -43,30 +42,37 @@ export function runComparison(params: ComparisonParams) {
     parameters,
     settings,
     course,
-  });
+  })
+    .addRunner(runnerA)
+    .addRunner(runnerB)
+    // After all runners are added, prepare the race to calculate the stats for easier access
+    .prepareRace();
 
   const results = [];
 
-  // Add runners to the simulator
-  // the idea is that the runners are created once and then used for all samples
-  // For this Runner.create is a special method that will create a new instance with
-  // both the base stats and adjusted statlines set before the race.
-  // Concerns:
-  // - Setting skills proc should be done right before the race.
-  // - For each iteration the race simulator should be reset with a new seed that will propagate to the runners
-  // .. so rng refresh should be again, before the race is run.
-  const runnerAInstance = Runner.create(runnerA);
-  const runnerBInstance = Runner.create(runnerB);
-
-  raceSimulator.addRunner(runnerAInstance);
-  raceSimulator.addRunner(runnerBInstance);
+  raceSimulator.validateRaceSetup();
 
   for (let i = 0; i < sampleCount; i++) {
-    raceSimulator.prepareRace();
+    const seed = startingSeed + i;
+
+    // Prepare or reset every aspect of the race simulator and runners
+    // This will:
+    // - Set the seed for the race
+    // - Reset the RNG for the race
+    // - Reset the runners (including their RNG)
+    // - Build or rebuild the skill and effect data for the runner using the new seed.
+    raceSimulator.prepareRound(seed);
+
+    // Run the race
     raceSimulator.run();
 
+    // Collect the stats of the race
     const currentResult = raceSimulator.collectStats();
 
     results.push(currentResult);
   }
+
+  // Handle post simulation results
+
+  return results;
 }
