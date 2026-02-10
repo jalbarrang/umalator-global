@@ -1,25 +1,43 @@
-import { Acceleration, CompensatedAccumulator, Speed, Timer } from '../lib/core/RaceSolver';
-import { CourseHelpers } from '../lib/course/CourseData';
-import { Rule30CARng } from '../lib/utils/Random';
-import { PosKeepMode, Strategy } from '../lib/runner/definitions';
+import { PositionKeepState, SkillRarity, SkillTarget, SkillType } from './skills/definitions';
+import { StrategyHelpers } from './runner/runner.types';
 import {
+  Acceleration,
   GroundPowerModifier,
   GroundSpeedModifier,
-  StrategyProficiencyModifier,
-} from '../lib/core/RaceSolverBuilder';
-import { PositionKeepState, SkillRarity, SkillTarget, SkillType } from '../lib/skills/definitions';
-import { StrategyHelpers } from '../lib/runner/HorseTypes';
-import type { IPositionKeepState } from '../lib/skills/definitions';
-import type { IAptitude, IMood, IStrategy } from '../lib/runner/definitions';
-import type { PRNG } from '../lib/utils/Random';
+  PositionKeep,
+  Speed,
+  StrategyModule,
+} from './common/definitions';
+import { PosKeepMode, Strategy } from './runner/definitions';
+import { Rule30CARng } from './Random';
+import {
+  createBlockedSideCondition,
+  createOvertakeCondition,
+} from './conditions/special-conditions';
+import { CourseHelpers } from './course/CourseData';
+import { CompensatedAccumulator, Timer } from './simulator.types';
+import { buildSkillData } from './runner/runner.utils';
+import type { ApproximateCondition, ConditionState } from './conditions/ApproximateStartContinue';
+import type { IPositionKeepState } from './skills/definitions';
+import type { IAptitude, IMood, IStrategy } from './runner/definitions';
+import type { PRNG } from './Random';
 import type { HpPolicy, RaceStateSlice } from './health/health-policy';
 import type { RaceSimulator } from './race-simulator';
-import type { CourseData, IGroundCondition, IPhase } from '../lib/course/definitions';
-import type { ActiveSkill, PendingSkill } from '../lib/core/RaceSolver';
+import type { CourseData, IGroundCondition, IPhase } from './course/definitions';
+import type { ActiveSkill, PendingSkill, SkillEffect } from './skills/skill.types';
 import { getUmaDisplayInfo } from '@/modules/runners/utils';
 
+// ===================
+// Constants
+// ===================
+
+const PhaseDeceleration = [-1.2, -0.8, -1.0];
 const BaseAccel = 0.0006;
 const UphillBaseAccel = 0.0004;
+
+// ===================
+// Types
+// ===================
 
 export type StatLine = {
   speed: number;
@@ -60,7 +78,6 @@ export type RunnerProps = {
   strategy: IStrategy;
   aptitudes: RunnerAptitudes;
   stats: StatLine;
-  rawStats: StatLine;
   skillIds: Array<string>;
 };
 
@@ -71,6 +88,10 @@ export type SpeedModifiers = {
   oneFrameAccel: number;
   specialSkillDurationScaling: number;
 };
+
+// ===================
+// Class Definition
+// ===================
 
 /**
  * # Runner
@@ -136,14 +157,38 @@ export class Runner {
    * The strategy that the runner is using for position keeping.
    */
   public posKeepStrategy: IStrategy;
-  public stats: StatLine;
-  public rawStats: StatLine;
   /**
-   * Base stamina is considered the raw stamina with the mood coefficient applied.
+   * The strategy that the runner was using for position keeping before they were rushed.
    */
-  private baseStamina: number;
-  public aptitudes: RunnerAptitudes;
-  public skillIds: Array<string>;
+  declare public preRushedPosKeepStrategy: IStrategy;
+  /**
+   * Represents the Raw Stats of the runner
+   */
+  public readonly _stats: Readonly<StatLine>;
+  /**
+   * Represents the Base Stats of the runner (raw stats + mood coefficient)
+   */
+  public readonly _baseStats: Readonly<StatLine>;
+  /**
+   * Represents the Adjusted Stats of the runner
+   */
+  public readonly _adjustedStats: Readonly<StatLine>;
+  /**
+   * Runtime Mutable Base Stats of the runner
+   */
+  public baseStats: StatLine;
+  /**
+   * Runtime Mutable Adjusted Stats of the runner
+   */
+  public adjustedStats: StatLine;
+  /**
+   * Aptitudes of the runner
+   */
+  public readonly aptitudes: RunnerAptitudes;
+  /**
+   * Skill IDs that this runner has.
+   */
+  public readonly skillIds: Array<string>;
 
   // ===================
   // [Pending]
@@ -154,6 +199,7 @@ export class Runner {
   public posKeepRng: PRNG;
   public laneMovementRng: PRNG;
   public witRng: PRNG;
+  public syncRng: PRNG;
   /**
    * RNG for force activating gold skills
    *
@@ -188,11 +234,11 @@ export class Runner {
   /**
    * The gate number that the runner is in
    *
-   * The value is between 1 and 9, where 1 is the leftmost gate and 9 is the rightmost gate.
+   * The value is between 0 and 8, where 0 is the leftmost gate and 8 is the rightmost gate.
    *
    * This value will be set by the RaceSimulator based on the gate roll.
    */
-  public gate: number;
+  public gate: number | null = null;
   public slopePenalties: Array<number>;
 
   public sectionModifiers: Array<number>;
@@ -238,6 +284,10 @@ export class Runner {
    * Whether the runner has run out of HP and cannot maintain top speed at the last spurt.
    */
   public outOfHp = false;
+  /**
+   * The position where the runner ran out of HP.
+   */
+  public outOfHpPosition: number | null = null;
 
   // ===================
   // Rushed State
@@ -350,7 +400,7 @@ export class Runner {
    * Counts for how long the runner has been in spot struggle.
    */
   public spotStruggleTimer: Timer;
-  public spotStruggleStartPosition: number;
+  public spotStruggleStartPosition: number | null;
   public spotStruggleEndPosition: number;
   /**
    * The IDs of the runners that this runner is spot struggling with in the last spurt.
@@ -359,7 +409,7 @@ export class Runner {
    * - This set doesn't get cleared until the race ends.
    * - This set doesn't include the runner itself.
    */
-  public spotStruggleTargets: Set<string>;
+  public spotStruggleTargets: Set<number>;
   /**
    * Whether the runner has been in spot struggle at the start of the race.
    */
@@ -373,6 +423,7 @@ export class Runner {
    * Whether the runner is currently dueling with another runner.
    */
   public isDueling = false;
+  public canDuel: boolean | null = null;
   /**
    * The timer for the dueling.
    *
@@ -388,7 +439,7 @@ export class Runner {
    * - This set doesn't get cleared until the race ends.
    * - This set doesn't include the runner itself.
    */
-  public duelTargets: Set<string>;
+  public duelTargets: Set<number>;
   /**
    * Whether the runner has dueled in the last spurt of this race.
    */
@@ -396,6 +447,10 @@ export class Runner {
   public duelingRng: PRNG;
 
   public positionKeepState: IPositionKeepState;
+
+  private conditionTimer: Timer;
+  private conditionValues: Map<string, number> = new Map();
+  private conditions: Map<string, ApproximateCondition> = new Map();
 
   // ===================
   // Hills
@@ -416,7 +471,6 @@ export class Runner {
 
   public timers: Array<Timer>;
   public accumulateTime: Timer;
-  public conditionTimer: Timer;
   public phase: IPhase;
   public nextPhaseTransition: number;
   public sectionLength: number;
@@ -439,6 +493,10 @@ export class Runner {
   posKeepMinThreshold: number;
   posKeepMaxThreshold: number;
   posKeepEnd: number;
+  slopePer: number;
+  nonFullSpurtVelocityDiff: number | null;
+  nonFullSpurtDelayDistance: number | null;
+  skillRng: PRNG;
 
   constructor(race: RaceSimulator, props: RunnerProps) {
     this.race = race;
@@ -449,10 +507,19 @@ export class Runner {
     // Thought: Mood could be made so it could be randomly set per race as an option in the UI.
     this.mood = props.mood;
 
-    this.stats = props.stats;
-    this.rawStats = props.rawStats;
-    // This will be set in the initializeHealthPolicy method
-    this.baseStamina = -1;
+    // This stats act as snapshots to be copied later to the mutable stats
+    this._stats = props.stats;
+    this._baseStats = buildBaseStats(props.stats, props.mood);
+    this._adjustedStats = buildAdjustedStats(
+      this._baseStats,
+      race.course,
+      race.ground,
+      props.aptitudes.strategy,
+    );
+
+    // These stats are mutable and will be updated during the race
+    this.baseStats = { ...this._baseStats };
+    this.adjustedStats = { ...this._adjustedStats };
 
     this.strategy = props.strategy;
     this.posKeepStrategy = props.strategy;
@@ -463,6 +530,8 @@ export class Runner {
     this.umaId = props.umaId;
     this.outfitId = props.outfitId;
     this.name = props.name;
+
+    // === Other ===
   }
 
   // === Setup ===
@@ -472,7 +541,7 @@ export class Runner {
     return this;
   }
 
-  public setGate(gate: number) {
+  public setGate(gate: number | null) {
     this.gate = gate;
     return this;
   }
@@ -487,6 +556,10 @@ export class Runner {
     this.posKeepRng = new Rule30CARng(rng.int32());
     this.laneMovementRng = new Rule30CARng(rng.int32());
     this.witRng = new Rule30CARng(rng.int32());
+    this.forceSkillActivatorRng = new Rule30CARng(rng.int32());
+    this.duelingRng = new Rule30CARng(rng.int32());
+    this.syncRng = new Rule30CARng(rng.int32());
+    this.skillRng = new Rule30CARng(rng.int32());
 
     return this;
   }
@@ -519,7 +592,7 @@ export class Runner {
 
     // Cache slope penalties to avoid recalculating each hill
     this.slopePenalties = this.race.course.slopes.map(
-      (s) => ((s.slope / 10000.0) * 200.0) / this.stats.power,
+      (s) => ((s.slope / 10000.0) * 200.0) / this.adjustedStats.power,
     );
   }
 
@@ -527,20 +600,23 @@ export class Runner {
    * Initialize dueling and spot struggle tracking
    * These track multi-runner interactions
    */
-  private initializeCompetitionTracking(): void {
+  private initializeDuelTracking(): void {
     // === Dueling ===
     this.isDueling = false;
+    this.canDuel = null;
     this.hasDueled = false;
     this.duelingTimer = this.createTimer();
     this.duelingStartPosition = -1;
     this.duelingEndPosition = -1;
     this.duelTargets = new Set();
+  }
 
+  private initializeSpotStruggleTracking(): void {
     // === Spot Struggle ===
     this.inSpotStruggle = false;
     this.hasSpotStruggle = false;
     this.spotStruggleTimer = this.createTimer();
-    this.spotStruggleStartPosition = -1;
+    this.spotStruggleStartPosition = null;
     this.spotStruggleEndPosition = -1;
     this.spotStruggleTargets = new Set();
   }
@@ -564,10 +640,21 @@ export class Runner {
       throw new Error('Health policy not set');
     }
 
-    this.baseStamina = this.rawStats.stamina * calculateMoodCoefficient(this.mood);
+    // reset mutable stats
+    this.baseStats = { ...this._baseStats };
+    this.adjustedStats = { ...this._adjustedStats };
+
     this.healthPolicy.init(this);
     this.outOfHp = false;
+  }
+
+  private initializeLastSpurtTracking(): void {
+    this.isLastSpurt = false;
+    this.lastSpurtTransition = -1;
+    this.lastSpurtSpeed = 0.0;
     this.hasAchievedFullSpurt = false;
+    this.nonFullSpurtVelocityDiff = null;
+    this.nonFullSpurtDelayDistance = null;
   }
 
   /**
@@ -586,6 +673,7 @@ export class Runner {
       end: s.start + s.length,
       slope: s.slope,
     }));
+    this.slopePer = 0.0;
   }
 
   /**
@@ -593,7 +681,7 @@ export class Runner {
    * Lane is determined by gate number
    */
   private initializeLaneState(): void {
-    if (!this.gate) {
+    if (this.gate === undefined || this.gate === null) {
       throw new Error('Gate not set');
     }
 
@@ -654,10 +742,6 @@ export class Runner {
     this.nextPhaseTransition = CourseHelpers.phaseStart(this.race.course.distance, 1);
     this.sectionLength = this.race.course.distance / 24.0;
 
-    // Last spurt tracking
-    this.isLastSpurt = false;
-    this.lastSpurtTransition = -1;
-
     // First place tracking (for angling/scheming skills)
     // TODO: replace this later
     this.firstUmaInLateRace = false;
@@ -672,6 +756,9 @@ export class Runner {
 
     // Random lot for various skill conditions
     this.randomLot = this.rng.uniform(100);
+
+    const strategyModifer = StrategyModule.forceInSpeedModifier[this.strategy];
+    this.forceInSpeed = this.rng.uniform(100) * strategyModifer;
   }
 
   /**
@@ -728,16 +815,56 @@ export class Runner {
     this.skillsActivatedHalfRaceMap = [0, 0];
     this.healsActivatedCount = 0;
 
-    // Pending skills (will be set by RaceSimulator)
     this.pendingSkills = [];
+    /**
+     * Compare mode: Doesn't use targeted skills as the two runners being compared are isolated from each other.
+     * Normal mode: 9-runner setups use targeted skills as runners interact with each other.
+     */
     this.targetedSkills = [];
     this.usedSkills = new Set();
     this.pendingSkillRemoval = new Set();
 
     // Overtake tracking
+    // NOTE: this values only apply in normal mode, not in compare mode.
+    // Compare mode uses artificial values to resolve the overtake not handled here.
     this.overtakeCount = 0;
     this.overtakeCountPerPhaseMap = [0, 0, 0, 0];
     this.overtakeCountPerHalfRaceMap = [0, 0];
+
+    // Populate Pending Skills
+    const skillTrigers = this.skillIds.flatMap((skillId) =>
+      buildSkillData({
+        runner: this,
+        raceParams: {
+          ground: this.race.ground,
+          timeOfDay: this.race.timeOfDay,
+          weather: this.race.weather,
+          grade: this.race.grade,
+          season: this.race.season,
+        },
+        course: this.race.course,
+        wholeCourse: this.race.wholeCourse,
+        parser: this.race.parser,
+        skillId: skillId,
+        ignoreNullEffects: false,
+      }),
+    );
+
+    const triggers = skillTrigers.map((skillTrigger) => {
+      // As I've that the override is not being used in other compare files, i'll just use the one that comes with the trigger.
+      const samplePolicy = skillTrigger.samplePolicy;
+      return samplePolicy.sample(skillTrigger.regions, this.race.skillSamples, this.skillRng);
+    });
+
+    const roundIteration = this.race.roundIteration;
+
+    this.pendingSkills = skillTrigers.map((skillTrigger, index) => ({
+      skillId: skillTrigger.skillId,
+      rarity: skillTrigger.rarity,
+      trigger: triggers[index][roundIteration % triggers[index].length],
+      extraCondition: skillTrigger.extraCondition,
+      effects: skillTrigger.effects,
+    }));
   }
 
   /**
@@ -754,7 +881,7 @@ export class Runner {
     this.lastSpurtSpeed = this.calculateLastSpurtSpeed();
 
     // Minimum speed (prevents slowing below this after start dash)
-    this.minSpeed = 0.85 * this.race.baseSpeed + Math.sqrt(200.0 * this.stats.guts) * 0.001;
+    this.minSpeed = 0.85 * this.race.baseSpeed + Math.sqrt(200.0 * this.adjustedStats.guts) * 0.001;
 
     // Section modifiers (wisdom-based random variance per 1/24 section)
     this.sectionModifiers = Array.from({ length: 24 }, () => {
@@ -762,7 +889,7 @@ export class Runner {
         return 0.0;
       }
 
-      const max = (this.stats.wit / 5500.0) * Math.log10(this.stats.wit * 0.1);
+      const max = (this.adjustedStats.wit / 5500.0) * Math.log10(this.adjustedStats.wit * 0.1);
       const factor = (max - 0.65 + this.witRng.random() * 0.65) / 100.0;
       return this.race.baseSpeed * factor;
     });
@@ -790,9 +917,15 @@ export class Runner {
    * Must be called before min speed calculation (can modify guts)
    */
   private activateGateSkills(): void {
-    // This will be implemented when skill system is ready
-    // For now, placeholder
-    // this.processSkillActivations();
+    this.processSkillActivations();
+  }
+
+  private registerCondition(name: string, condition: ApproximateCondition): void {
+    this.conditions.set(name, condition);
+
+    if (!this.conditionValues.has(name)) {
+      this.conditionValues.set(name, condition.valueOnStart);
+    }
   }
 
   /**
@@ -800,9 +933,20 @@ export class Runner {
    * Conditions like blocked_side, overtake, etc.
    */
   private registerConditions(): void {
-    // Will be implemented when condition system is ready
-    // this.registerBlockedSideCondition();
-    // this.registerOvertakeCondition();
+    this.registerCondition('blocked_side', createBlockedSideCondition());
+    this.registerCondition('overtake', createOvertakeCondition());
+  }
+
+  private initializePositionKeep() {
+    this.positionKeepState = PositionKeepState.None;
+    this.posKeepNextTimer = this.createTimer();
+    this.posKeepSpeedCoef = 1.0;
+    this.posKeepExitDistance = 0.0;
+    this.posKeepExitPosition = 0.0;
+    this.posKeepMinThreshold = PositionKeep.minThreshold(this.strategy, this.race.course.distance);
+    this.posKeepMaxThreshold = PositionKeep.maxThreshold(this.strategy, this.race.course.distance);
+    this.posKeepEnd = this.sectionLength * (this.race.settings.mode === 'compare' ? 10.0 : 3.0);
+    this.positionKeepActivations = [];
   }
 
   public validateSetup(): void {
@@ -813,37 +957,39 @@ export class Runner {
   }
 
   public prepareRunner(): void {
-    // 2. Initialize core systems
     this.initializeTimers();
     this.initializeRandomValues();
     this.initializePhaseTracking();
+    this.initializeLastSpurtTracking();
 
-    // 3. Initialize tracking systems
     this.initializeSkillTracking();
-    this.initializeCompetitionTracking();
+    this.initializeDuelTracking();
+    this.initializeSpotStruggleTracking();
 
-    // 4. Initialize physical state
     this.initializeLaneState();
     this.initializeMovementState();
     this.initializeModifiers();
+    this.initializePositionKeep();
 
-    // 5. Calculate derived values
-    this.initializeCachedValues();
+    // Activate gate skills (must be before min speed calc)
+    this.activateGateSkills();
+
+    // Calculate derived values
     this.initializeSpeedCalculations();
     this.initializeAccelerationValues();
 
-    // 6. Initialize mechanics
+    // Initialize mechanics
     this.initializeHillTracking();
     this.initializeRushedState();
     this.initializeDownhillState();
 
-    // 7. Initialize health system
+    // Initialize health system
     this.initializeHealthPolicy();
 
-    // 8. Activate gate skills (must be before min speed calc)
-    this.activateGateSkills();
+    // Cache frequently-accessed values
+    this.initializeCachedValues();
 
-    // 9. Register dynamic conditions
+    // Register dynamic conditions
     this.registerConditions();
   }
 
@@ -857,7 +1003,7 @@ export class Runner {
     // Accel = BaseAccel * sqrt(500.0 * PowerStat) * StrategyPhaseCoefficient * GroundTypeProficiencyModifier * DistanceProficiencyModifier
     return (
       accelModifier *
-      Math.sqrt(500.0 * this.stats.power) *
+      Math.sqrt(500.0 * this.adjustedStats.power) *
       strategyCoefficient *
       groundTypeProficiencyModifier *
       distanceProficiencyModifier
@@ -870,7 +1016,9 @@ export class Runner {
 
     if (phase === 2) {
       const proficiencyModifier = Speed.DistanceProficiencyModifier[this.aptitudes.distance];
-      return baseTargetSpeed + Math.sqrt(500.0 * this.stats.speed) * proficiencyModifier * 0.002;
+      return (
+        baseTargetSpeed + Math.sqrt(500.0 * this.adjustedStats.speed) * proficiencyModifier * 0.002
+      );
     }
 
     return baseTargetSpeed;
@@ -885,10 +1033,10 @@ export class Runner {
 
     let result =
       (lateRaceTargetSpeed + 0.01 * courseBaseSpeed) * 1.05 +
-      Math.sqrt(500.0 * this.stats.speed) * proficiencyModifier * 0.002;
+      Math.sqrt(500.0 * this.adjustedStats.speed) * proficiencyModifier * 0.002;
 
     // Add guts component
-    result += Math.pow(450.0 * this.stats.guts, 0.597) * 0.0001;
+    result += Math.pow(450.0 * this.adjustedStats.guts, 0.597) * 0.0001;
 
     return result;
   }
@@ -899,17 +1047,17 @@ export class Runner {
       const hill = this.hills[this.currentHillIndex];
       if (this.position > hill.end) {
         this.currentHillIndex = -1;
+        this.slopePer = 0;
       }
     }
 
     // Check if we've entered next hill
     if (this.currentHillIndex === -1 && this.nextHillToCheck < this.hills.length) {
       const nextHill = this.hills[this.nextHillToCheck];
+
       if (this.position >= nextHill.start) {
-        // Only track uphills with >1% grade
-        if (nextHill.slope > 100) {
-          this.currentHillIndex = this.nextHillToCheck;
-        }
+        this.currentHillIndex = this.nextHillToCheck;
+        this.slopePer = nextHill.slope;
 
         this.nextHillToCheck++;
       }
@@ -945,6 +1093,7 @@ export class Runner {
       this.position >= this.rushedEnterPosition
     ) {
       this.isRushed = true;
+      this.preRushedPosKeepStrategy = this.posKeepStrategy;
       // Mark that this runner has been rushed
       this.hasBeenRushed = true;
 
@@ -952,6 +1101,34 @@ export class Runner {
 
       // Start tracking, end position will be filled later
       this.rushedActivations.push([this.position, -1]);
+
+      // Always consume 1 RNG call to keep deterministic behavior.
+      const strategyRoll = this.rushedRng.random();
+
+      // Override position keep strategy based on canonical strategy
+      switch (this.strategy) {
+        case Strategy.Runaway:
+        case Strategy.FrontRunner:
+          this.posKeepStrategy = Strategy.FrontRunner;
+          break;
+        case Strategy.PaceChaser:
+          this.posKeepStrategy = Strategy.FrontRunner;
+          break;
+        case Strategy.LateSurger: {
+          this.posKeepStrategy = strategyRoll < 0.75 ? Strategy.FrontRunner : Strategy.PaceChaser;
+          break;
+        }
+        case Strategy.EndCloser: {
+          if (strategyRoll < 0.7) {
+            this.posKeepStrategy = Strategy.FrontRunner;
+          } else if (strategyRoll < 0.9) {
+            this.posKeepStrategy = Strategy.PaceChaser;
+          } else {
+            this.posKeepStrategy = Strategy.LateSurger;
+          }
+          break;
+        }
+      }
     }
 
     // Update rushed state if active
@@ -982,6 +1159,8 @@ export class Runner {
    */
   private leaveRushed() {
     this.isRushed = false;
+    // Restore position keep strategy
+    this.posKeepStrategy = this.preRushedPosKeepStrategy;
 
     // Mark the end position for UI display
     if (this.rushedActivations.length > 0) {
@@ -1038,13 +1217,13 @@ export class Runner {
 
     // Keep rng synced for the virtual pacemaker so that it's the same pacer for both umas
     const downHillCheckRng =
-      this.race.settings.positionKeepMode === PosKeepMode.Virtual && !this.pacer
+      this.race.settings.positionKeepMode === PosKeepMode.Virtual && !this.race.pacer
         ? this.syncRng.random()
         : this.downhillRng.random();
 
     if (this.downhillModeStart === null) {
       // Check for entry: Wisdom * 0.0004 chance each second (matching Kotlin implementation)
-      if (downHillCheckRng < this.stats.wit * 0.0004) {
+      if (downHillCheckRng < this.adjustedStats.wit * 0.0004) {
         this.downhillModeStart = currentFrame;
         this.isDownhillMode = true;
       }
@@ -1059,9 +1238,33 @@ export class Runner {
     }
   }
 
-  public step(dt: number): void {
+  tickConditions(): void {
+    const state: ConditionState = {
+      runner: this,
+    };
+
+    for (const [name, condition] of this.conditions.entries()) {
+      const currentValue = this.conditionValues.get(name) ?? condition.valueOnStart;
+      const newValue = condition.update(state, currentValue);
+      this.conditionValues.set(name, newValue);
+    }
+  }
+
+  public onUpdate(dt: number): void {
     let dtAfterDelay = dt;
 
+    // Update timers
+    for (const timer of this.timers) {
+      timer.t += dt;
+    }
+
+    // Update condition timer
+    if (this.conditionTimer.t >= 0.0) {
+      this.tickConditions();
+      this.conditionTimer.t = -1.0;
+    }
+
+    // Update start delay accumulator
     if (this.startDelayAccumulator > 0.0) {
       this.startDelayAccumulator -= dt;
 
@@ -1087,7 +1290,23 @@ export class Runner {
 
     // Update position
 
-    this.currentSpeed = Math.min(this.currentSpeed + this.acceleration * dt, this.maxSpeed);
+    let newSpeed: number;
+
+    if (this.currentSpeed <= this.targetSpeed) {
+      newSpeed = Math.min(this.currentSpeed + this.acceleration * dt, this.targetSpeed);
+    } else {
+      newSpeed = Math.max(this.currentSpeed + this.acceleration * dt, this.targetSpeed);
+    }
+
+    if (this.startDash && newSpeed > this.maxStartDashSpeed) {
+      newSpeed = this.maxStartDashSpeed;
+    }
+
+    if (!this.startDash && this.currentSpeed < this.minSpeed) {
+      newSpeed = this.minSpeed;
+    }
+
+    this.currentSpeed = newSpeed;
 
     if (!this.startDash && this.currentSpeed < this.minSpeed) {
       this.currentSpeed = this.minSpeed;
@@ -1106,6 +1325,7 @@ export class Runner {
 
     if (!this.healthPolicy.hasRemainingHealth() && !this.outOfHp) {
       this.outOfHp = true;
+      this.outOfHpPosition = this.race.course.distance - this.position;
     }
 
     if (this.startDash && this.currentSpeed >= 0.85 * this.race.baseSpeed) {
@@ -1120,66 +1340,97 @@ export class Runner {
     }
   }
 
+  /**
+   * Applies a targeted skill effect to the runner.
+   */
+  public receiveTargetedEffect(skillEffect: SkillEffect) {
+    // TODO: 1. Support other targeted skill effects that would need timer duration
+    // TODO: 2. Have a configuration to disable being targeted by skills
+    // TODO: 3. Team support where only beneficial effects are applied to the runner.
+
+    switch (skillEffect.type) {
+      case SkillType.Recovery:
+        // Either recover HP or drain HP, depending on the modifier
+        // Positive modifier = recover HP, negative modifier = drain HP
+        this.healthPolicy.recover(skillEffect.modifier);
+        break;
+    }
+  }
+
   private processSkillActivations() {
+    // Clean up target speed effects
     for (let i = this.targetSpeedSkillsActive.length; --i >= 0; ) {
-      const s = this.targetSpeedSkillsActive[i];
-      if (s.durationTimer.t >= 0) {
+      const skillEffect = this.targetSpeedSkillsActive[i];
+
+      if (skillEffect.durationTimer.t >= 0) {
         this.targetSpeedSkillsActive.splice(i, 1);
-        this.modifiers.targetSpeed.add(-s.modifier);
+        // TODO: Depending on the modifier, reverse the sign of the modifier
+        this.modifiers.targetSpeed.add(-skillEffect.modifier);
       }
     }
 
+    // Clean up current speed effects
     for (let i = this.currentSpeedSkillsActive.length; --i >= 0; ) {
-      const s = this.currentSpeedSkillsActive[i];
+      const skillEffects = this.currentSpeedSkillsActive[i];
 
-      if (s.durationTimer.t >= 0) {
+      if (skillEffects.durationTimer.t >= 0) {
         this.currentSpeedSkillsActive.splice(i, 1);
-        this.modifiers.currentSpeed.add(-s.modifier);
+        this.modifiers.currentSpeed.add(-skillEffects.modifier);
 
-        if (s.naturalDeceleration) {
-          this.modifiers.oneFrameAccel += s.modifier;
+        if (skillEffects.naturalDeceleration) {
+          this.modifiers.oneFrameAccel += skillEffects.modifier;
         }
       }
     }
+
+    // Clean up acceleration effects
     for (let i = this.accelerationSkillsActive.length; --i >= 0; ) {
-      const s = this.accelerationSkillsActive[i];
-      if (s.durationTimer.t >= 0) {
+      const skillEffects = this.accelerationSkillsActive[i];
+      if (skillEffects.durationTimer.t >= 0) {
         this.accelerationSkillsActive.splice(i, 1);
-        this.modifiers.accel.add(-s.modifier);
+        this.modifiers.accel.add(-skillEffects.modifier);
       }
     }
+
+    // Clean up lane movement effects
     for (let i = this.laneMovementSkillsActive.length; --i >= 0; ) {
-      const s = this.laneMovementSkillsActive[i];
-      if (s.durationTimer.t >= 0) {
+      const skillEffects = this.laneMovementSkillsActive[i];
+      if (skillEffects.durationTimer.t >= 0) {
         this.laneMovementSkillsActive.splice(i, 1);
       }
     }
 
+    // Clean up change lane effects
     for (let i = this.changeLaneSkillsActive.length; --i >= 0; ) {
-      const s = this.changeLaneSkillsActive[i];
-      if (s.durationTimer.t >= 0) {
+      const skillEffects = this.changeLaneSkillsActive[i];
+      if (skillEffects.durationTimer.t >= 0) {
         this.changeLaneSkillsActive.splice(i, 1);
       }
     }
 
     for (let i = this.pendingSkills.length; --i >= 0; ) {
-      const s = this.pendingSkills[i];
-      if (this.position >= s.trigger.end || this.pendingSkillRemoval.has(s.skillId)) {
+      const skill = this.pendingSkills[i];
+
+      if (this.position >= skill.trigger.end || this.pendingSkillRemoval.has(skill.skillId)) {
         // NB. `Region`s are half-open [start,end) intervals. If pos == end we are out of the trigger.
         // skill failed to activate
         this.pendingSkills.splice(i, 1);
-        this.pendingSkillRemoval.delete(s.skillId);
-      } else if (this.position >= s.trigger.start && s.extraCondition(this)) {
-        if (this.shouldSkipWitCheck(s)) {
+        this.pendingSkillRemoval.delete(skill.skillId);
+
+        continue;
+      }
+
+      if (this.position >= skill.trigger.start && skill.extraCondition(this)) {
+        if (this.shouldSkipWitCheck(skill)) {
           // Wit check skipped - activate skill
-          this.activateSkill(s);
+          this.activateSkill(skill);
           this.pendingSkills.splice(i, 1);
           continue;
         }
 
         if (this.doWitCheck()) {
           // Wisdom check passed - activate skill
-          this.activateSkill(s);
+          this.activateSkill(skill);
           this.pendingSkills.splice(i, 1);
           continue;
         }
@@ -1220,7 +1471,7 @@ export class Runner {
    * Does a Wit Check for a skill a Runner is trying to activate.
    */
   private doWitCheck(): boolean {
-    const witStat = this.stats.wit;
+    const witStat = this._baseStats.wit;
 
     const rngRoll = this.witRng.random();
 
@@ -1243,24 +1494,35 @@ export class Runner {
         skill.rarity === SkillRarity.Evolution ? this.modifiers.specialSkillDurationScaling : 1;
       const scaledDuration = skillEffect.baseDuration * (course.distance / 1000) * scaling;
 
+      /**
+       * If target is not Self, send the skill to the targeted runners so they handle the effect of the skill themselves.
+       */
+      if (skillEffect.target !== SkillTarget.Self) {
+        this.race.broadcastSkillEffect(this, skillEffect);
+        continue;
+      }
+
       switch (skillEffect.type) {
         case SkillType.Noop:
           break;
         case SkillType.SpeedUp:
-          this.stats.speed = Math.max(this.stats.speed + skillEffect.modifier, 1);
+          this.adjustedStats.speed = Math.max(this.adjustedStats.speed + skillEffect.modifier, 1);
           break;
         case SkillType.StaminaUp:
-          this.stats.stamina = Math.max(this.stats.stamina + skillEffect.modifier, 1);
-          this.baseStamina = Math.max(this.baseStamina + skillEffect.modifier, 1);
+          this.adjustedStats.stamina = Math.max(
+            this.adjustedStats.stamina + skillEffect.modifier,
+            1,
+          );
+          this.baseStats.stamina = Math.max(this.baseStats.stamina + skillEffect.modifier, 1);
           break;
         case SkillType.PowerUp:
-          this.stats.power = Math.max(this.stats.power + skillEffect.modifier, 1);
+          this.adjustedStats.power = Math.max(this.adjustedStats.power + skillEffect.modifier, 1);
           break;
         case SkillType.GutsUp:
-          this.stats.guts = Math.max(this.stats.guts + skillEffect.modifier, 1);
+          this.adjustedStats.guts = Math.max(this.adjustedStats.guts + skillEffect.modifier, 1);
           break;
         case SkillType.WisdomUp:
-          this.stats.wit = Math.max(this.stats.wit + skillEffect.modifier, 1);
+          this.adjustedStats.wit = Math.max(this.adjustedStats.wit + skillEffect.modifier, 1);
           break;
         case SkillType.MultiplyStartDelay:
           this.startDelay *= skillEffect.modifier;
@@ -1271,9 +1533,7 @@ export class Runner {
         case SkillType.TargetSpeed:
           this.modifiers.targetSpeed.add(skillEffect.modifier);
           this.targetSpeedSkillsActive.push({
-            executionId: '',
             skillId: skill.skillId,
-            perspective: skill.perspective,
             durationTimer: this.createTimer(-scaledDuration),
             modifier: skillEffect.modifier,
             effectTarget: skillEffect.target,
@@ -1283,9 +1543,7 @@ export class Runner {
         case SkillType.Accel:
           this.modifiers.accel.add(skillEffect.modifier);
           this.accelerationSkillsActive.push({
-            executionId: '',
             skillId: skill.skillId,
-            perspective: skill.perspective,
             durationTimer: this.createTimer(-scaledDuration),
             modifier: skillEffect.modifier,
             effectTarget: skillEffect.target,
@@ -1294,9 +1552,7 @@ export class Runner {
           break;
         case SkillType.LaneMovementSpeed:
           this.laneMovementSkillsActive.push({
-            executionId: '',
             skillId: skill.skillId,
-            perspective: skill.perspective,
             durationTimer: this.createTimer(-scaledDuration),
             modifier: skillEffect.modifier,
             effectTarget: skillEffect.target,
@@ -1307,9 +1563,7 @@ export class Runner {
         case SkillType.CurrentSpeedWithNaturalDeceleration:
           this.modifiers.currentSpeed.add(skillEffect.modifier);
           this.currentSpeedSkillsActive.push({
-            executionId: '',
             skillId: skill.skillId,
-            perspective: skill.perspective,
             durationTimer: this.createTimer(-scaledDuration),
             modifier: skillEffect.modifier,
             naturalDeceleration: skillEffect.type == SkillType.CurrentSpeedWithNaturalDeceleration,
@@ -1318,10 +1572,7 @@ export class Runner {
           });
           break;
         case SkillType.Recovery:
-          // If target was self
-          if (skillEffect.target == SkillTarget.Self) {
-            this.healsActivatedCount += 1;
-          }
+          this.healsActivatedCount += 1;
 
           // Apply health modifier to health policy
           this.healthPolicy.recover(skillEffect.modifier);
@@ -1338,9 +1589,7 @@ export class Runner {
           break;
         case SkillType.ChangeLane:
           this.changeLaneSkillsActive.push({
-            executionId: '',
             skillId: skill.skillId,
-            perspective: skill.perspective,
             durationTimer: this.createTimer(-scaledDuration),
             modifier: skillEffect.modifier,
             effectTarget: skillEffect.target,
@@ -1350,7 +1599,11 @@ export class Runner {
       }
     }
 
+    const halfRace = this.position < this.race.course.distance / 2 ? 0 : 1;
+    this.skillsActivatedHalfRaceMap[halfRace] += 1;
     this.skillsActivatedPhaseMap[this.phase] += 1;
+    this.skillsActivatedCount += 1;
+
     this.usedSkills.add(skill.skillId);
   }
 
@@ -1434,10 +1687,13 @@ export class Runner {
               return;
             }
 
-            if (distanceAhead < threshold && this.speedUpOvertakeWitCheck()) {
+            if (this.isRushed || (distanceAhead < threshold && this.speedUpOvertakeWitCheck())) {
               this.positionKeepActivations.push([this.position, 0, PositionKeepState.SpeedUp]);
               this.positionKeepState = PositionKeepState.SpeedUp;
-              this.posKeepExitPosition = this.position + Math.floor(this.sectionLength);
+              this.posKeepExitPosition =
+                this.position +
+                Math.floor(this.sectionLength) *
+                  (this.posKeepStrategy === Strategy.Runaway ? 3 : 1);
             }
           }
           // Overtake
@@ -1474,7 +1730,8 @@ export class Runner {
         if (this.positionKeepState == PositionKeepState.None) {
           this.posKeepNextTimer.t = -2;
         } else {
-          this.posKeepExitPosition = this.position + Math.floor(this.sectionLength);
+          const multiplier = this.posKeepStrategy === Strategy.Runaway ? 3 : 1;
+          this.posKeepExitPosition = this.position + Math.floor(this.sectionLength) * multiplier;
         }
 
         break;
@@ -1557,14 +1814,31 @@ export class Runner {
         break;
     }
   }
+
+  /**
+   * Returns the runners sorted by distance descending.
+   * ! NOTE: this operation is O(n) and should be avoided if possible.
+   */
   getUmaByDistanceDescending() {
-    throw new Error('Method not implemented.');
+    return Array.from(this.race.runners.values()).sort((a, b) => b.position - a.position);
   }
+
   speedUpOvertakeWitCheck() {
-    throw new Error('Method not implemented.');
+    // If rushed, with check passes automatically
+    if (this.isRushed) {
+      return true;
+    }
+
+    return this.posKeepRng.random() < 0.2 * Math.log10(0.1 * this.adjustedStats.wit);
   }
+
   paceUpWitCheck() {
-    throw new Error('Method not implemented.');
+    // If rushed, with check passes automatically
+    if (this.isRushed) {
+      return true;
+    }
+
+    return this.posKeepRng.random() < 0.15 * Math.log10(0.1 * this.adjustedStats.wit);
   }
 
   updatePositionKeepCoefficient() {
@@ -1609,33 +1883,53 @@ export class Runner {
       return;
     }
 
-    if (this.canCompeteFight === null) {
-      if (this.duelingRates) {
-        let rate = 0;
-        if (this.posKeepStrategy === Strategy.Runaway) {
-          rate = this.duelingRates.runaway;
-        } else if (this.posKeepStrategy === Strategy.FrontRunner) {
-          rate = this.duelingRates.frontRunner;
-        } else if (this.posKeepStrategy === Strategy.PaceChaser) {
-          rate = this.duelingRates.paceChaser;
-        } else if (this.posKeepStrategy === Strategy.LateSurger) {
-          rate = this.duelingRates.lateSurger;
-        } else if (this.posKeepStrategy === Strategy.EndCloser) {
-          rate = this.duelingRates.endCloser;
-        }
+    /**
+     * Comments:
+     * The following logic is layed out so it "artificially" mimics the dueling mechanic
+     * as right now in "compare" mode, only 2 runners are in the race.
+     *
+     * In a 9-runner setup this logic wont apply, as runners will see and interact with each other
+     * naturally.
+     */
 
-        this.canCompeteFight = this.duelingRng.random() < rate / 100;
-        this.duelingTimer.t = 0;
-      } else {
-        this.canCompeteFight = false;
-      }
-    }
-
-    if (!this.canCompeteFight) {
+    if (this.race.settings.mode === 'compare') {
+      this.artificialDueling();
       return;
     }
 
-    if (this.duelingTimer.t >= 1) {
+    // TODO: Implement actual dueling logic for 9-runners setup
+  }
+
+  private artificialDueling() {
+    const duelingRates = this.race.duelingRates;
+    if (this.canDuel === null) {
+      if (duelingRates) {
+        let rate = 0;
+        if (this.posKeepStrategy === Strategy.Runaway) {
+          rate = duelingRates.runaway;
+        } else if (this.posKeepStrategy === Strategy.FrontRunner) {
+          rate = duelingRates.frontRunner;
+        } else if (this.posKeepStrategy === Strategy.PaceChaser) {
+          rate = duelingRates.paceChaser;
+        } else if (this.posKeepStrategy === Strategy.LateSurger) {
+          rate = duelingRates.lateSurger;
+        } else if (this.posKeepStrategy === Strategy.EndCloser) {
+          rate = duelingRates.endCloser;
+        }
+
+        this.canDuel = this.duelingRng.random() < rate / 100;
+        this.duelingTimer.t = 0;
+      } else {
+        this.canDuel = false;
+      }
+    }
+
+    if (!this.canDuel) {
+      return;
+    }
+
+    // "2s proximity" timer
+    if (this.duelingTimer.t >= 2) {
       if (this.duelingRng.random() <= 0.4) {
         this.isDueling = true;
         this.duelingStartPosition = this.position;
@@ -1671,14 +1965,18 @@ export class Runner {
     }
 
     if (this.inSpotStruggle) {
-      const spotStruggleDuration = Math.pow(700 * this.stats.guts, 0.5) * 0.012;
+      const spotStruggleDuration = Math.pow(700 * this.adjustedStats.guts, 0.5) * 0.012;
 
       if (
         this.spotStruggleTimer.t >= spotStruggleDuration ||
         this.position >= this.spotStruggleEndPosition
       ) {
+        // Leave spot struggle
+
         this.inSpotStruggle = false;
         this.spotStruggleEndPosition = this.position;
+
+        this.spotStruggleTargets.clear();
       }
     }
 
@@ -1694,9 +1992,14 @@ export class Runner {
     ) {
       const otherUmas = this.race.runnersPerStrategy.get(this.posKeepStrategy)!;
       const distanceGap = this.posKeepStrategy === Strategy.FrontRunner ? 3.75 : 5;
-      const umasWithinGap = otherUmas.filter(
-        (u) => Math.abs(u.position - this.position) <= distanceGap,
-      );
+      const laneGap = this.posKeepStrategy === Strategy.FrontRunner ? 0.165 : 0.416;
+
+      const umasWithinGap = otherUmas.filter((u) => {
+        const withinDistance = Math.abs(u.position - this.position) <= distanceGap;
+        const withinLane = Math.abs(u.currentLane - this.currentLane) < laneGap;
+
+        return withinDistance && withinLane;
+      });
 
       if (umasWithinGap.length >= 2) {
         for (const uma of umasWithinGap) {
@@ -1704,6 +2007,10 @@ export class Runner {
           uma.inSpotStruggle = true;
           uma.spotStruggleStartPosition = uma.position;
           uma.spotStruggleEndPosition = uma.position + Math.floor(this.sectionLength * 8);
+
+          // Add the runner to the spot struggle targets
+          // Note: the other runner will handle their own spot struggle targets.
+          this.spotStruggleTargets.add(uma.internalId);
         }
       }
     }
@@ -1762,31 +2069,33 @@ export class Runner {
     } else if (this.isLastSpurt) {
       this.targetSpeed = this.lastSpurtSpeed;
     } else {
-      const baseTargetSpeed = this.baseTargetSpeedPerPhase[this.phase];
+      const phase = this.phase as 0 | 1 | 2;
+      const baseTargetSpeed = this.baseTargetSpeedPerPhase[phase];
 
       this.targetSpeed = baseTargetSpeed * this.posKeepSpeedCoef;
       this.targetSpeed += this.sectionModifiers[Math.floor(this.position / this.sectionLength)];
     }
+
     this.targetSpeed += this.modifiers.targetSpeed.acc + this.modifiers.targetSpeed.err;
 
     if (this.isDownhillMode) {
       this.targetSpeed += 0.3 + this.slopePer / 100000.0;
-    } else if (this.hillIdx != -1 && this.slopePer > 0) {
+    } else if (this.currentHillIndex != -1 && this.slopePer > 0) {
       // recalculating this every frame is actually measurably faster than calculating the penalty for each slope ahead of time, somehow
-      this.targetSpeed -= ((this.slopePer / 10000.0) * 200.0) / this.horse.power;
+      this.targetSpeed -= ((this.slopePer / 10000.0) * 200.0) / this.adjustedStats.power;
       this.targetSpeed = Math.max(this.targetSpeed, this.minSpeed);
     }
 
-    if (this.competeFight) {
-      this.targetSpeed += Math.pow(200 * this.stats.guts, 0.708) * 0.0001;
+    if (this.isDueling) {
+      this.targetSpeed += Math.pow(200 * this.adjustedStats.guts, 0.708) * 0.0001;
     }
 
-    if (this.leadCompetition) {
-      this.targetSpeed += Math.pow(500 * this.stats.guts, 0.6) * 0.0001;
+    if (this.inSpotStruggle) {
+      this.targetSpeed += Math.pow(500 * this.adjustedStats.guts, 0.6) * 0.0001;
     }
 
     if (this.laneChangeSpeed > 0.0 && this.laneMovementSkillsActive.length > 0) {
-      const moveLaneModifier = Math.sqrt(0.0002 * this.stats.power);
+      const moveLaneModifier = Math.sqrt(0.0002 * this.adjustedStats.power);
       this.targetSpeed += moveLaneModifier;
     }
   }
@@ -1807,26 +2116,28 @@ export class Runner {
     this.acceleration += this.modifiers.accel.acc + this.modifiers.accel.err;
 
     if (this.isDueling) {
-      this.acceleration += Math.pow(160 * this.stats.guts, 0.59) * 0.0001;
+      this.acceleration += Math.pow(160 * this.adjustedStats.guts, 0.59) * 0.0001;
     }
   }
 
   applyLaneMovement() {
+    const course = this.race.course;
+
     const currentLane = this.currentLane;
     const sideBlocked = this.getConditionValue('blocked_side') === 1;
     const overtake = this.getConditionValue('overtake') === 1;
 
-    if (this.extraMoveLane < 0.0 && this.isAfterFinalCornerOrInFinalStraight()) {
+    if (this.extraMoveLane < 0.0 && this.isAfterFinalCornerOrInFinalStraight) {
       this.extraMoveLane =
-        Math.min(currentLane / 0.1, this.course.maxLaneDistance) * 0.5 +
+        Math.min(currentLane / 0.1, course.maxLaneDistance) * 0.5 +
         this.laneMovementRng.random() * 0.1;
     }
 
-    if (this.activeChangeLaneSkills.length > 0) {
-      this.targetLane = 9.5 * this.course.horseLane;
+    if (this.changeLaneSkillsActive.length > 0) {
+      this.targetLane = 9.5 * course.horseLane;
     } else if (overtake) {
-      this.targetLane = Math.max(this.targetLane, this.course.horseLane, this.extraMoveLane);
-    } else if (!this.hp.hasRemainingHp()) {
+      this.targetLane = Math.max(this.targetLane, course.horseLane, this.extraMoveLane);
+    } else if (!this.healthPolicy.hasRemainingHealth()) {
       this.targetLane = currentLane;
     } else if (this.positionKeepState === PositionKeepState.PaceDown) {
       this.targetLane = 0.18;
@@ -1844,20 +2155,20 @@ export class Runner {
     ) {
       this.laneChangeSpeed = 0.0;
     } else {
-      let targetSpeed = 0.02 * (0.3 + 0.001 * this.horse.power);
+      let targetSpeed = 0.02 * (0.3 + 0.001 * this.adjustedStats.power);
 
-      if (this.pos < this.course.moveLanePoint) {
-        targetSpeed *= 1 + (currentLane / this.course.maxLaneDistance) * 0.05;
+      if (this.position < this.race.course.moveLanePoint) {
+        targetSpeed *= 1 + (currentLane / course.maxLaneDistance) * 0.05;
       }
 
       this.laneChangeSpeed = Math.min(
-        this.laneChangeSpeed + this.course.laneChangeAccelerationPerFrame,
+        this.laneChangeSpeed + course.laneChangeAccelerationPerFrame,
         targetSpeed,
       );
 
       const actualSpeed = Math.min(
         this.laneChangeSpeed +
-          this.activeLaneMovementSkills.reduce((sum, skill) => sum + skill.modifier, 0),
+          this.laneMovementSkillsActive.reduce((sum, skill) => sum + skill.modifier, 0),
         0.6,
       );
 
@@ -1871,6 +2182,18 @@ export class Runner {
       }
     }
   }
+  getConditionValue(name: string): number {
+    if (!this.conditionValues.has(name)) {
+      if (this.conditions.has(name)) {
+        const condition = this.conditions.get(name)!;
+        return condition.valueOnStart;
+      }
+
+      throw new Error(`Condition "${name}" is not registered`);
+    }
+
+    return this.conditionValues.get(name)!;
+  }
 
   /**
    * Calculates the chance of the runner being rushed (in percent).
@@ -1878,7 +2201,7 @@ export class Runner {
    * Formula: RushedChance = (6.5 / log10(0.1 * Wits + 1))²%
    */
   private get baseRushedChance(): number {
-    const wisdomStat = this.stats.wit;
+    const wisdomStat = this.adjustedStats.wit;
 
     return Math.pow(6.5 / Math.log10(0.1 * wisdomStat + 1), 2) / 100;
   }
@@ -1891,9 +2214,13 @@ export class Runner {
     return this.baseRushedChance - (this.hasSelfControl ? 0.03 : 0);
   }
 
+  public get maxStartDashSpeed(): number {
+    return Math.min(this.targetSpeed, 0.85 * this.race.baseSpeed);
+  }
+
   public get maxSpeed(): number {
     if (this.startDash) {
-      return Math.min(this.targetSpeed, 0.85 * this.race.baseSpeed);
+      return this.maxStartDashSpeed;
     }
 
     if (this.currentSpeed + this.modifiers.oneFrameAccel > this.targetSpeed) {
@@ -1932,9 +2259,6 @@ export class Runner {
     const displayInfo = getUmaDisplayInfo(props.outfitId);
     const name = displayInfo?.name ?? `Mob ${id}`;
 
-    const statsWithMood = applyMoodCoefficient(props.stats, props.mood);
-    const adjustedStats = adjustStats(statsWithMood, race.course, race.ground, props.strategy);
-
     const runner = new Runner(race, {
       id: id,
       outfitId: props.outfitId,
@@ -1943,8 +2267,7 @@ export class Runner {
       mood: props.mood,
       strategy: props.strategy,
       aptitudes: props.aptitudes,
-      stats: adjustedStats,
-      rawStats: props.stats,
+      stats: props.stats,
       skillIds: props.skills,
     });
 
@@ -1960,7 +2283,7 @@ export const calculateMoodCoefficient = (mood: IMood): number => {
   return 1 + 0.02 * mood;
 };
 
-const applyMoodCoefficient = (stats: StatLine, mood: IMood): StatLine => {
+const buildBaseStats = (stats: StatLine, mood: IMood): StatLine => {
   const moodCoefficient = calculateMoodCoefficient(mood);
 
   return {
@@ -1986,22 +2309,22 @@ const calculateSpeedModifier = (course: CourseData, stats: StatLine): number => 
   );
 };
 
-const adjustStats = (
+const buildAdjustedStats = (
   stats: StatLine,
   course: CourseData,
   ground: IGroundCondition,
-  strategy: IStrategy,
+  strategyAptitude: IAptitude,
 ): StatLine => {
   const speedModifier = calculateSpeedModifier(course, stats);
   const groundModifier = GroundSpeedModifier[course.surface][ground];
   const surfaceModifier = GroundPowerModifier[course.surface][ground];
-  const strategyModifier = StrategyProficiencyModifier[strategy];
+  const strategyAptitudeModifier = StrategyModule.aptitudeModifier[strategyAptitude];
 
   return {
     speed: Math.max(stats.speed * speedModifier + groundModifier, 1),
     stamina: stats.stamina,
     power: Math.max(stats.power + surfaceModifier, 1),
     guts: stats.guts,
-    wit: stats.wit * strategyModifier,
+    wit: stats.wit * strategyAptitudeModifier,
   };
 };

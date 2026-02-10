@@ -1,62 +1,50 @@
-import { cloneDeep } from 'es-toolkit';
-import { ApproximateMultiCondition, ApproximateStartContinue } from './ApproximateStartContinue';
-import type { IPosKeepMode, IStrategy } from '@/modules/simulation/lib/runner/definitions';
-import type {
-  IPositionKeepState,
-  ISkillPerspective,
-  ISkillRarity,
-  ISkillTarget,
-  ISkillType,
-} from '@/modules/simulation/lib/skills/definitions';
-import type { PRNG } from '@/modules/simulation/lib/utils/Random';
-import type { Region } from '@/modules/simulation/lib/utils/Region';
-import type { HorseParameters } from '@/modules/simulation/lib/runner/HorseTypes';
-import type { CourseData, IPhase } from '@/modules/simulation/lib/course/definitions';
-import type {
-  ApproximateCondition,
-  ConditionEntry,
-  ConditionState,
-} from '@/modules/simulation/lib/core/ApproximateStartContinue';
-import type { HpPolicy } from '@/modules/simulation/lib/runner/health/health-policy';
-import { PosKeepMode, Strategy } from '@/modules/simulation/lib/runner/definitions';
-import {
-  PositionKeepState,
-  SkillPerspective,
-  SkillRarity,
-  SkillType,
-} from '@/modules/simulation/lib/skills/definitions';
-import { Rule30CARng } from '@/modules/simulation/lib/utils/Random';
-import { StrategyHelpers } from '@/modules/simulation/lib/runner/HorseTypes';
-import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
+import { strict as assert } from 'node:assert';
+import { Rule30CARng } from '../utils/Random';
+import { CourseHelpers } from '../course/CourseData';
+import { Strategy } from '../runner/definitions';
+import { StrategyHelpers } from '../runner/HorseTypes';
+import type { ISkillTarget, ISkillType } from '../skills/definitions';
+import type { HorseParameters } from '../runner/HorseTypes';
+import type { IStrategy } from '../runner/definitions';
+import type { ApproximateCondition } from './ApproximateStartContinue';
+import type { PRNG } from '../utils/Random';
+import type { Region } from '../utils/Region';
+import type { HpPolicy } from '../runner/health/health-policy';
+import type { CourseData, IPhase } from '../course/definitions';
 
-export const Speed = {
-  StrategyPhaseCoefficient: [
-    [], // strategies start numbered at 1
-    [1.0, 0.98, 0.962],
-    [0.978, 0.991, 0.975],
-    [0.938, 0.998, 0.994],
-    [0.931, 1.0, 1.0],
-    [1.063, 0.962, 0.95],
-  ],
-  DistanceProficiencyModifier: [1.05, 1.0, 0.9, 0.8, 0.6, 0.4, 0.2, 0.1],
-};
+export namespace Speed {
+  export const StrategyPhaseCoefficient = Object.freeze(
+    [
+      [], // strategies start numbered at 1
+      [1.0, 0.98, 0.962],
+      [0.978, 0.991, 0.975],
+      [0.938, 0.998, 0.994],
+      [0.931, 1.0, 1.0],
+      [1.063, 0.962, 0.95],
+    ].map((a) => Object.freeze(a)),
+  );
+  export const DistanceProficiencyModifier = Object.freeze([
+    1.05, 1.0, 0.9, 0.8, 0.6, 0.4, 0.2, 0.1,
+  ]);
+}
 
-function baseTargetSpeed(horse: HorseParameters, courseBaseSpeed: number, phase: IPhase) {
-  const phaseCoefficient = Speed.StrategyPhaseCoefficient[horse.strategy][phase];
+function baseSpeed(course: CourseData) {
+  return 20.0 - (course.distance - 2000) / 1000.0;
+}
 
+function baseTargetSpeed(horse: HorseParameters, course: CourseData, phase: IPhase) {
   return (
-    courseBaseSpeed * phaseCoefficient +
-    (phase == 2
-      ? Math.sqrt(500.0 * horse.speed) *
-        Speed.DistanceProficiencyModifier[horse.distanceAptitude] *
-        0.002
-      : 0)
+    baseSpeed(course) * Speed.StrategyPhaseCoefficient[horse.strategy][phase] +
+    +(phase == 2) *
+      Math.sqrt(500.0 * horse.speed) *
+      Speed.DistanceProficiencyModifier[horse.distanceAptitude] *
+      0.002
   );
 }
 
-function lastSpurtSpeed(horse: HorseParameters, courseBaseSpeed: number) {
+function lastSpurtSpeed(horse: HorseParameters, course: CourseData) {
   let v =
-    (baseTargetSpeed(horse, courseBaseSpeed, 2) + 0.01 * courseBaseSpeed) * 1.05 +
+    (baseTargetSpeed(horse, course, 2) + 0.01 * baseSpeed(course)) * 1.05 +
     Math.sqrt(500.0 * horse.speed) *
       Speed.DistanceProficiencyModifier[horse.distanceAptitude] *
       0.002;
@@ -64,61 +52,59 @@ function lastSpurtSpeed(horse: HorseParameters, courseBaseSpeed: number) {
   return v;
 }
 
-export const Acceleration = {
-  StrategyPhaseCoefficient: [
-    [],
-    [1.0, 1.0, 0.996],
-    [0.985, 1.0, 0.996],
-    [0.975, 1.0, 1.0],
-    [0.945, 1.0, 0.997],
-    [1.17, 0.94, 0.956],
-  ],
-  GroundTypeProficiencyModifier: [1.05, 1.0, 0.9, 0.8, 0.7, 0.5, 0.3, 0.1],
-  DistanceProficiencyModifier: [1.0, 1.0, 1.0, 1.0, 1.0, 0.6, 0.5, 0.4],
-};
+export namespace Acceleration {
+  export const StrategyPhaseCoefficient = Object.freeze(
+    [
+      [],
+      [1.0, 1.0, 0.996],
+      [0.985, 1.0, 0.996],
+      [0.975, 1.0, 1.0],
+      [0.945, 1.0, 0.997],
+      [1.17, 0.94, 0.956],
+    ].map((a) => Object.freeze(a)),
+  );
+  export const GroundTypeProficiencyModifier = Object.freeze([
+    1.05, 1.0, 0.9, 0.8, 0.7, 0.5, 0.3, 0.1,
+  ]);
+  export const DistanceProficiencyModifier = Object.freeze([
+    1.0, 1.0, 1.0, 1.0, 1.0, 0.6, 0.5, 0.4,
+  ]);
+}
 
 const BaseAccel = 0.0006;
 const UphillBaseAccel = 0.0004;
 
 function baseAccel(baseAccel: number, horse: HorseParameters, phase: IPhase) {
-  const strategyCoefficient = Acceleration.StrategyPhaseCoefficient[horse.strategy][phase];
-  const groundTypeProficiencyModifier =
-    Acceleration.GroundTypeProficiencyModifier[horse.surfaceAptitude];
-  const distanceProficiencyModifier =
-    Acceleration.DistanceProficiencyModifier[horse.distanceAptitude];
-
-  // Accel = BaseAccel * sqrt(500.0 * PowerStat) * StrategyPhaseCoefficient * GroundTypeProficiencyModifier * DistanceProficiencyModifier
   return (
     baseAccel *
     Math.sqrt(500.0 * horse.power) *
-    strategyCoefficient *
-    groundTypeProficiencyModifier *
-    distanceProficiencyModifier
+    Acceleration.StrategyPhaseCoefficient[horse.strategy][phase] *
+    Acceleration.GroundTypeProficiencyModifier[horse.surfaceAptitude] *
+    Acceleration.DistanceProficiencyModifier[horse.distanceAptitude]
   );
 }
 
-export const PhaseDeceleration: ReadonlyArray<number> = [-1.2, -0.8, -1.0];
+const PhaseDeceleration = [-1.2, -0.8, -1.0];
 
-export const PositionKeep = {
-  BaseMinimumThreshold: [0, 0, 3.0, 6.5, 7.5],
-  BaseMaximumThreshold: [0, 0, 5.0, 7.0, 8.0],
+export namespace PositionKeep {
+  export const BaseMinimumThreshold = Object.freeze([0, 0, 3.0, 6.5, 7.5]);
+  export const BaseMaximumThreshold = Object.freeze([0, 0, 5.0, 7.0, 8.0]);
 
-  courseFactor(distance: number) {
+  export function courseFactor(distance: number) {
     return 0.0008 * (distance - 1000) + 1.0;
-  },
+  }
 
-  minThreshold(strategy: IStrategy, distance: number) {
+  export function minThreshold(strategy: Strategy, distance: number) {
     // senkou minimum threshold is a constant 3.0 independent of the course factor for some reason
     return (
-      this.BaseMinimumThreshold[strategy] *
-      (strategy == Strategy.PaceChaser ? 1.0 : this.courseFactor(distance))
+      BaseMinimumThreshold[strategy] * (strategy == Strategy.Senkou ? 1.0 : courseFactor(distance))
     );
-  },
+  }
 
-  maxThreshold(strategy: IStrategy, distance: number) {
-    return this.BaseMaximumThreshold[strategy] * this.courseFactor(distance);
-  },
-};
+  export function maxThreshold(strategy: Strategy, distance: number) {
+    return BaseMaximumThreshold[strategy] * courseFactor(distance);
+  }
+}
 
 // these are commonly initialized with a negative number and then checked >= 0 to see if a duration is up
 // (the reason for doing that instead of initializing with 0 and then checking against the duration is if
@@ -145,30 +131,71 @@ export class CompensatedAccumulator {
   }
 }
 
-export interface IRaceState {
-  accumulatetime: Timer;
-  activateCount: Array<number>;
-  activateCountHeal: number;
-  currentSpeed: number;
-  isLastSpurt: boolean;
-  lastSpurtSpeed: number;
-  lastSpurtTransition: number;
-  positionKeepState: IPositionKeepState;
-  isDownhillMode: boolean;
-  phase: IPhase;
-  pos: number;
-  hp: HpPolicy;
-  randomLot: number;
-  startDelay: number;
-  gateRoll: number;
-  usedSkills: Set<string>;
-  leadCompetition: boolean;
-  posKeepStrategy: IStrategy;
+export interface RaceState {
+  readonly accumulatetime: Readonly<Timer>;
+  readonly activateCount: ReadonlyArray<number>;
+  readonly activateCountHeal: number;
+  readonly currentSpeed: number;
+  readonly isLastSpurt: boolean;
+  readonly lastSpurtSpeed: number;
+  readonly lastSpurtTransition: number;
+  readonly positionKeepState: PositionKeepState;
+  readonly isDownhillMode: boolean;
+  readonly phase: IPhase;
+  readonly pos: number;
+  readonly hp: Readonly<HpPolicy>;
+  readonly randomLot: number;
+  readonly startDelay: number;
+  readonly gateRoll: number;
+  readonly usedSkills: ReadonlySet<string>;
+  readonly leadCompetition: boolean;
+  readonly posKeepStrategy: IStrategy;
 }
 
-export type DynamicCondition = (state: IRaceState) => boolean;
+export type DynamicCondition = (state: RaceState) => boolean;
 
-export function getPositionKeepStateName(state: IPositionKeepState): string {
+export const enum Perspective {
+  Self = 1,
+  Other = 2,
+  Any = 3,
+}
+
+export const enum SkillType {
+  Noop = 0,
+  SpeedUp = 1,
+  StaminaUp = 2,
+  PowerUp = 3,
+  GutsUp = 4,
+  WisdomUp = 5,
+  Recovery = 9,
+  MultiplyStartDelay = 10,
+  SetStartDelay = 14,
+  CurrentSpeed = 21,
+  CurrentSpeedWithNaturalDeceleration = 22,
+  TargetSpeed = 27,
+  LaneMovementSpeed = 28,
+  Accel = 31,
+  ChangeLane = 35,
+  ActivateRandomGold = 37,
+  ExtendEvolvedDuration = 42,
+}
+
+export const enum SkillRarity {
+  White = 1,
+  Gold,
+  Unique,
+  Evolution = 6,
+}
+
+export const enum PositionKeepState {
+  None = 0,
+  PaceUp = 1,
+  PaceDown = 2,
+  SpeedUp = 3,
+  Overtake = 4,
+}
+
+export function getPositionKeepStateName(state: PositionKeepState): string {
   switch (state) {
     case PositionKeepState.None:
       return 'None';
@@ -185,7 +212,13 @@ export function getPositionKeepStateName(state: IPositionKeepState): string {
   }
 }
 
-export function getPosKeepModeName(mode: IPosKeepMode): string {
+export const enum PosKeepMode {
+  None,
+  Approximate,
+  Virtual,
+}
+
+export function getPosKeepModeName(mode: PosKeepMode): string {
   switch (mode) {
     case PosKeepMode.None:
       return 'None';
@@ -199,16 +232,16 @@ export function getPosKeepModeName(mode: IPosKeepMode): string {
 }
 
 export interface SkillEffect {
+  target: ISkillTarget;
   type: ISkillType;
   baseDuration: number;
   modifier: number;
-  target: ISkillTarget;
 }
 
 export interface PendingSkill {
   skillId: string;
-  perspective: ISkillPerspective;
-  rarity: ISkillRarity;
+  perspective?: Perspective;
+  rarity: SkillRarity;
   trigger: Region;
   extraCondition: DynamicCondition;
   effects: Array<SkillEffect>;
@@ -216,97 +249,49 @@ export interface PendingSkill {
 }
 
 export interface ActiveSkill {
-  executionId: string;
   skillId: string;
-  perspective: ISkillPerspective;
+  perspective?: Perspective;
   durationTimer: Timer;
   modifier: number;
-  effectType: ISkillType;
   effectTarget: ISkillTarget;
+  effectType: ISkillType;
 }
 
-function noop(..._args: Array<unknown>) {}
+export function noop(x: unknown) {}
 
-export type OnSkillCallback = (event: {
-  raceSolver: RaceSolver;
-  currentPosition: number;
-  skillId: string;
-}) => void;
-
-export type OnSkillEffectCallback = (
-  raceSolver: RaceSolver,
-  currentPosition: number,
-  executionId: string,
-  skillId: string,
-  perspective: ISkillPerspective,
-  type: ISkillType,
-  target: ISkillTarget,
-) => void;
-
-type RaceSolverParams = {
-  horse: HorseParameters;
-  course: CourseData;
-  rng: PRNG;
-  skills: Array<PendingSkill>;
-  hp: HpPolicy;
-  onSkillActivated: OnSkillCallback | undefined;
-  onEffectActivated: OnSkillEffectCallback | undefined;
-  onEffectExpired: OnSkillEffectCallback | undefined;
-  disableRushed?: boolean;
-  disableDownhill?: boolean;
-  disableSectionModifier?: boolean;
-  speedUpProbability?: number;
-  skillCheckChance?: boolean;
-  posKeepMode?: IPosKeepMode;
-  mode: RaceSolverMode;
-  isPacer?: boolean;
-};
-
-export type RaceSolverMode = 'compare' | 'skill-compare';
-
-export class RaceSolver implements IRaceState {
-  // ======= Race State =======
+export class RaceSolver {
   accumulatetime: Timer;
-  activateCount: Array<number>;
-  activateCountHeal: number;
-  currentSpeed: number;
-  declare isLastSpurt: boolean;
-  lastSpurtSpeed: number;
-  lastSpurtTransition: number;
-  positionKeepState: IPositionKeepState;
-  isDownhillMode: boolean;
-  phase: IPhase;
   pos: number;
-  hp: HpPolicy;
-  randomLot: number;
-  startDelay: number;
-  gateRoll: number;
-  usedSkills: Set<string>;
-  leadCompetition: boolean;
-  posKeepStrategy: IStrategy;
-
-  miSpeed: number;
+  minSpeed: number;
+  currentSpeed: number;
   targetSpeed: number;
   accel: number;
   baseTargetSpeed: Array<number>;
+  lastSpurtSpeed: number;
+  lastSpurtTransition: number;
   sectionModifier: Array<number>;
   baseAccel: Array<number>;
   horse: { -readonly [P in keyof HorseParameters]: HorseParameters[P] };
   course: CourseData;
-  // Cached values for performance optimization
-  baseSpeed: number;
-  cachedSlopePenalties: Array<number>;
+  hp: HpPolicy;
   rng: PRNG;
   syncRng: PRNG;
   gorosiRng: PRNG;
   rushedRng: PRNG;
-  downhillRng: PRNG;
+  downhillRng: Array<PRNG>;
   wisdomRollRng: PRNG;
   posKeepRng: PRNG;
   laneMovementRng: PRNG;
+  specialConditionRng: PRNG;
+  competeFightRng: PRNG;
   timers: Array<Timer>;
   startDash: boolean;
+  startDelay: number;
   startDelayAccumulator: number;
+  gateRoll: number;
+  randomLot: number;
+  isLastSpurt: boolean;
+  phase: IPhase;
   nextPhaseTransition: number;
   activeTargetSpeedSkills: Array<ActiveSkill>;
   activeCurrentSpeedSkills: Array<ActiveSkill & { naturalDeceleration: boolean }>;
@@ -315,60 +300,35 @@ export class RaceSolver implements IRaceState {
   activeChangeLaneSkills: Array<ActiveSkill>;
   pendingSkills: Array<PendingSkill>;
   pendingRemoval: Set<string>;
-
-  declare nHills: number;
-  declare hillIdx: number;
-  declare hillStart: Array<number>;
-  declare hillEnd: Array<number>;
-
-  //=== Skill Tracking ===
-
-  /**
-   * Callback when a skill is being activated by a runner.
-   *
-   * Normally this will also call the `onEffectActivated` callback for each effect in the skill.
-   */
-  onSkillActivated: OnSkillCallback;
-
-  /**
-   * Callback for when a skill effect is being activated.
-   */
-  onEffectActivated: OnSkillEffectCallback;
-
-  /**
-   * Callback for when a skill effect is being expired.
-   */
-  onEffectExpired: (
-    raceSolver: RaceSolver,
-    currentPosition: number,
-    executionId: string,
-    skillId: string,
-    perspective: ISkillPerspective,
-    type: ISkillType,
-    target: ISkillTarget,
-  ) => void;
-
+  usedSkills: Set<string>;
+  nHills: number;
+  hillIdx: number;
+  slopePer: number;
+  hillStart: Array<number>;
+  hillEnd: Array<number>;
+  activateCount: Array<number>;
+  activateCountHeal: number;
+  onSkillActivate: (s: RaceSolver, skillId: string, perspective: Perspective) => void;
+  onSkillDeactivate: (s: RaceSolver, skillId: string, perspective: Perspective) => void;
   sectionLength: number;
   umas: Array<RaceSolver>;
   isPacer: boolean;
   pacerOverride: boolean;
   posKeepMinThreshold: number;
   posKeepMaxThreshold: number;
-  declare posKeepCooldown: Timer;
+  posKeepCooldown: Timer;
   posKeepNextTimer: Timer;
-  declare posKeepExitPosition: number;
-  declare posKeepExitDistance: number;
+  posKeepExitPosition: number;
+  posKeepExitDistance: number;
   posKeepEnd: number;
-  posKeepMode: IPosKeepMode;
+  positionKeepState: PositionKeepState;
+  posKeepMode: PosKeepMode;
   posKeepSpeedCoef: number;
-
-  /**
-   * Mode of the race.
-   * - 'compare': Compare two umas against each other (Only used in Compare page)
-   * - 'skill-compare': Compare a single skill against the baseline (used in Skill Chart, Uma Chart and Skill Planner)
-   */
-  mode: RaceSolverMode;
+  posKeepStrategy: IStrategy;
+  mode: string | undefined;
   pacer: RaceSolver | null;
+  skillWisdomCheck: boolean;
+  rushedKakari: boolean;
 
   // Rushed state
   isRushed: boolean;
@@ -378,31 +338,39 @@ export class RaceSolver implements IRaceState {
   rushedTimer: Timer; // Tracks time in rushed state
   rushedMaxDuration: number; // Maximum duration (12s + extensions)
   rushedActivations: Array<[number, number]>; // Track [start, end] positions for UI
-  positionKeepActivations: Array<[number, number, IPositionKeepState]>; // Track [start, end, state] positions for UI
+  positionKeepActivations: Array<[number, number, PositionKeepState]>; // Track [start, end, state] positions for UI
 
   speedUpProbability: number; // 0-100, probability of entering speed-up mode
 
   //downhill mode
-  disableDownhill: boolean;
-  downhillModeStart: number | null; // Frame when downhill mode started
-  lastDownhillCheckFrame: number; // Last frame we checked for downhill mode changes
-
-  //skill check chance
-  skillCheckChance: boolean;
+  isDownhillMode: boolean;
+  downhillTimer: Timer;
+  downhillActivations: Array<[number, number]>;
 
   // Compete Fight
+  canCompeteFight: boolean | null;
   competeFight: boolean;
   competeFightStart: number | null;
   competeFightEnd: number | null;
   competeFightTimer: Timer;
-  competeFightTargets: Set<RaceSolver>;
+  competeFightEnabled: boolean;
+  duelingRates: {
+    runaway: number;
+    frontRunner: number;
+    paceChaser: number;
+    lateSurger: number;
+    endCloser: number;
+  } | null;
 
   // Lead Competition
+  leadCompetitionEnabled: boolean;
+  leadCompetition: boolean;
   leadCompetitionStart: number | null;
   leadCompetitionEnd: number | null;
   leadCompetitionTimer: Timer;
 
   // lane movement..........
+  laneMovementEnabled: boolean;
   currentLane: number;
   targetLane: number;
   laneChangeSpeed: number;
@@ -412,7 +380,10 @@ export class RaceSolver implements IRaceState {
   firstUmaInLateRace: boolean;
 
   hpDied: boolean;
+  hpDiedPosition: number | null;
   fullSpurt: boolean;
+  nonFullSpurtVelocityDiff: number | null;
+  nonFullSpurtDelayDistance: number | null;
 
   modifiers: {
     targetSpeed: CompensatedAccumulator;
@@ -426,22 +397,47 @@ export class RaceSolver implements IRaceState {
   private conditionValues: Map<string, number> = new Map();
   private conditions: Map<string, ApproximateCondition> = new Map();
 
-  constructor(params: RaceSolverParams) {
+  constructor(params: {
+    horse: HorseParameters;
+    course: CourseData;
+    rng: PRNG;
+    skills: Array<PendingSkill>;
+    hp: HpPolicy;
+    onSkillActivate?: (s: RaceSolver, skillId: string) => void;
+    onSkillDeactivate?: (s: RaceSolver, skillId: string) => void;
+    speedUpProbability?: number;
+    posKeepMode?: PosKeepMode;
+    mode?: string;
+    isPacer?: boolean;
+    skillWisdomCheck?: boolean;
+    rushedKakari?: boolean;
+    competeFight?: boolean;
+    leadCompetition?: boolean;
+    duelingRates?: {
+      runaway: number;
+      frontRunner: number;
+      paceChaser: number;
+      lateSurger: number;
+      endCloser: number;
+    };
+    laneMovement?: boolean;
+  }) {
     // clone since green skills may modify the stat values
     this.horse = Object.assign({}, params.horse);
     this.course = params.course;
     this.hp = params.hp;
     this.rng = params.rng;
-    this.pendingSkills = cloneDeep(params.skills); // copy since we remove from it
+    this.pendingSkills = params.skills.slice(); // copy since we remove from it
     this.pendingRemoval = new Set();
     this.usedSkills = new Set();
     this.syncRng = new Rule30CARng(this.rng.int32());
     this.gorosiRng = new Rule30CARng(this.rng.int32());
     this.rushedRng = new Rule30CARng(this.rng.int32());
-    this.downhillRng = new Rule30CARng(this.rng.int32());
     this.wisdomRollRng = new Rule30CARng(this.rng.int32());
     this.posKeepRng = new Rule30CARng(this.rng.int32());
     this.laneMovementRng = new Rule30CARng(this.rng.int32());
+    this.specialConditionRng = new Rule30CARng(this.rng.int32());
+    this.competeFightRng = new Rule30CARng(this.rng.int32());
     this.timers = [];
     this.conditionTimer = this.getNewTimer(-1.0);
     this.accumulatetime = this.getNewTimer();
@@ -457,10 +453,6 @@ export class RaceSolver implements IRaceState {
     this.randomLot = this.rng.uniform(100);
     this.phase = 0;
     this.nextPhaseTransition = CourseHelpers.phaseStart(this.course.distance, 1);
-
-    // ## Skill Tracking
-
-    // ### Skill activations
     this.activeTargetSpeedSkills = [];
     this.activeCurrentSpeedSkills = [];
     this.activeAccelSkills = [];
@@ -468,35 +460,30 @@ export class RaceSolver implements IRaceState {
     this.activeChangeLaneSkills = [];
     this.activateCount = [0, 0, 0];
     this.activateCountHeal = 0;
-
-    // ### Skill callback
-    this.onSkillActivated = params.onSkillActivated ?? noop;
-    // ### Effect callbacks
-    this.onEffectActivated = params.onEffectActivated ?? noop;
-    this.onEffectExpired = params.onEffectExpired ?? noop;
-
+    this.onSkillActivate = params.onSkillActivate || noop;
+    this.onSkillDeactivate = params.onSkillDeactivate || noop;
     this.sectionLength = this.course.distance / 24.0;
     this.posKeepMinThreshold = PositionKeep.minThreshold(this.horse.strategy, this.course.distance);
     this.posKeepMaxThreshold = PositionKeep.maxThreshold(this.horse.strategy, this.course.distance);
     this.posKeepNextTimer = this.getNewTimer();
     this.positionKeepState = PositionKeepState.None;
-    this.posKeepMode = params.posKeepMode ?? PosKeepMode.None;
+    this.posKeepMode = params.posKeepMode || PosKeepMode.None;
     this.posKeepStrategy = this.horse.strategy;
     this.mode = params.mode;
-
+    this.skillWisdomCheck = params.skillWisdomCheck !== false;
+    this.rushedKakari = params.rushedKakari !== false;
     // For skill chart we want to minimize poskeep skewing results
     // (i.e. in rare situations, an uma can proc a velocity skill, and gain initial positioning
     // but then lose that positioning because they are too far forward to proc Pace Up)
     // this then results in -L in the charts
-
     this.posKeepEnd = this.sectionLength * (this.mode === 'compare' ? 10.0 : 3.0);
     this.posKeepSpeedCoef = 1.0;
-    this.isPacer = params.isPacer ?? false;
+    this.isPacer = params.isPacer || false;
     this.pacerOverride = false;
     this.umas = [];
     this.pacer = null;
 
-    // init timer
+    //init timer
     this.speedUpProbability = params.speedUpProbability != null ? params.speedUpProbability : 100;
 
     // Initialize rushed state
@@ -509,30 +496,37 @@ export class RaceSolver implements IRaceState {
 
     // Initialize downhill mode
     this.isDownhillMode = false;
-    this.disableDownhill = params.disableDownhill ?? false;
-    this.downhillModeStart = null;
-    this.lastDownhillCheckFrame = 0;
+    this.downhillActivations = [];
 
     // Initialize skill check chance
-    this.skillCheckChance = params.skillCheckChance ?? true; // Default to true
     this.rushedActivations = [];
     this.positionKeepActivations = [];
     this.firstUmaInLateRace = false;
     this.hpDied = false;
+    this.hpDiedPosition = null;
     this.fullSpurt = false;
+    this.nonFullSpurtVelocityDiff = null;
+    this.nonFullSpurtDelayDistance = null;
     // Calculate rushed chance and determine if/when it activates
-    this.initRushedState(params.disableRushed ?? false);
+    if (this.rushedKakari) {
+      this.initRushedState();
+    }
 
+    this.competeFightEnabled = params.competeFight !== false;
+    this.duelingRates = params.duelingRates || null;
+    this.canCompeteFight = null;
     this.competeFight = false;
     this.competeFightStart = null;
     this.competeFightEnd = null;
     this.competeFightTimer = this.getNewTimer();
-    this.competeFightTargets = new Set();
 
+    this.leadCompetitionEnabled = params.leadCompetition !== false;
     this.leadCompetition = false;
     this.leadCompetitionStart = null;
     this.leadCompetitionEnd = null;
     this.leadCompetitionTimer = this.getNewTimer();
+
+    this.laneMovementEnabled = params.laneMovement !== false;
 
     const gateNumberRaw = this.gateRoll % 9;
     const gateNumber = gateNumberRaw < 9 ? gateNumberRaw : 1 + ((24 - gateNumberRaw) % 8);
@@ -552,106 +546,43 @@ export class RaceSolver implements IRaceState {
       specialSkillDurationScaling: 1.0,
     };
 
-    this.initHills();
-
-    // Cache baseSpeed and slope penalties for performance
-    this.baseSpeed = 20.0 - (this.course.distance - 2000) / 1000.0;
-    this.cachedSlopePenalties = this.course.slopes.map(
-      (s) => ((s.slope / 10000.0) * 200.0) / this.horse.power,
-    );
-
     this.startDelay = 0.1 * this.rng.random();
 
     this.pos = 0.0;
     this.accel = 0.0;
     this.currentSpeed = 3.0;
-    this.targetSpeed = 0.85 * this.baseSpeed;
+    this.targetSpeed = 0.85 * baseSpeed(this.course);
     this.processSkillActivations(); // activate gate skills (must come before setting minimum speed because green skills can modify guts)
-    this.miSpeed = 0.85 * this.baseSpeed + Math.sqrt(200.0 * this.horse.guts) * 0.001;
+    this.minSpeed = 0.85 * baseSpeed(this.course) + Math.sqrt(200.0 * this.horse.guts) * 0.001;
     this.startDash = true;
     this.modifiers.accel.add(24.0); // start dash accel
+
+    this.initHills();
 
     this.startDelayAccumulator = this.startDelay;
 
     // similarly this must also come after the first round of skill activations
-    this.baseTargetSpeed = [0, 1, 2].map((phase) =>
-      baseTargetSpeed(this.horse, this.baseSpeed, phase as IPhase),
+    this.baseTargetSpeed = ([0, 1, 2] as Array<IPhase>).map((phase) =>
+      baseTargetSpeed(this.horse, this.course, phase),
     );
-    this.lastSpurtSpeed = lastSpurtSpeed(this.horse, this.baseSpeed);
+    this.lastSpurtSpeed = lastSpurtSpeed(this.horse, this.course);
     this.lastSpurtTransition = -1;
 
     this.sectionModifier = Array.from({ length: 24 }, () => {
-      if (params.disableSectionModifier) {
-        return 0.0;
-      }
       const max = (this.horse.wisdom / 5500.0) * Math.log10(this.horse.wisdom * 0.1);
       const factor = (max - 0.65 + this.wisdomRollRng.random() * 0.65) / 100.0;
-      return this.baseSpeed * factor;
+      return baseSpeed(this.course) * factor;
     });
     this.sectionModifier.push(0.0); // last tick after the race is done, or in a comparison in case one uma runs off the end of the track
 
     this.hp.init(this.horse);
 
-    this.baseAccel = [0, 1, 2, 0, 1, 2].map((phase, i) =>
-      baseAccel(i > 2 ? UphillBaseAccel : BaseAccel, this.horse, phase as IPhase),
+    this.baseAccel = ([0, 1, 2, 0, 1, 2] as Array<IPhase>).map((phase, i) =>
+      baseAccel(i > 2 ? UphillBaseAccel : BaseAccel, this.horse, phase),
     );
 
-    this.registerBlockedSideCondition();
-    this.registerOvertakeCondition();
-  }
-
-  private registerBlockedSideCondition(): void {
-    const conditions: Array<ConditionEntry> = [
-      {
-        condition: new ApproximateStartContinue('Outer lane', 0.0, 0.0),
-        predicate: (state: ConditionState) => {
-          const sim = state.simulation;
-          const section = Math.floor(sim.pos / sim.sectionLength);
-          return section >= 1 && section <= 3 && sim.currentLane > 3.0 * this.course.horseLane;
-        },
-      },
-      {
-        condition: new ApproximateStartContinue('Early race', 0.1, 0.85),
-        predicate: (state: ConditionState) => state.simulation.phase === 0,
-      },
-      {
-        condition: new ApproximateStartContinue('Mid race', 0.08, 0.75),
-        predicate: (state: ConditionState) => state.simulation.phase === 1,
-      },
-      {
-        condition: new ApproximateStartContinue('Other', 0.07, 0.5),
-        predicate: null,
-      },
-    ];
-
-    const blockedSideCondition = new ApproximateMultiCondition('blocked_side', conditions, 1);
-
-    this.registerCondition('blocked_side', blockedSideCondition);
-  }
-
-  private registerOvertakeCondition(): void {
-    const conditions: Array<ConditionEntry> = [
-      {
-        condition: new ApproximateStartContinue('逃げ', 0.05, 0.5),
-        predicate: (state: ConditionState) => {
-          return state.simulation.horse.strategy === Strategy.FrontRunner;
-        },
-      },
-      {
-        condition: new ApproximateStartContinue('先行', 0.15, 0.55),
-        predicate: (state: ConditionState) => {
-          return state.simulation.horse.strategy === Strategy.PaceChaser;
-        },
-      },
-      {
-        condition: new ApproximateStartContinue('その他', 0.2, 0.6),
-        predicate: null,
-      },
-    ];
-
-    const overtakeCondition = new ApproximateMultiCondition('overtake', conditions);
-
-    this.registerCondition('overtake', overtakeCondition);
+    this.registerCondition('blocked_side', createBlockedSideCondition());
+    this.registerCondition('overtake', createOvertakeCondition());
   }
 
   initUmas(umas: Array<RaceSolver>) {
@@ -662,23 +593,27 @@ export class RaceSolver implements IRaceState {
     // note that slopes are not always sorted by start location in course_data.json
     // sometimes (?) they are sorted by hill type and then by start
     // require this here because the code relies on encountering them sequentially
-
-    if (!CourseHelpers.isSortedByStart(this.course.slopes)) {
-      throw new Error('slopes must be sorted by start location');
-    }
+    assert(
+      CourseHelpers.isSortedByStart(this.course.slopes),
+      'slopes must be sorted by start location',
+    );
 
     this.nHills = this.course.slopes.length;
     this.hillStart = this.course.slopes.map((s) => s.start).reverse();
     this.hillEnd = this.course.slopes.map((s) => s.start + s.length).reverse();
     this.hillIdx = -1;
+
+    this.downhillRng = this.course.slopes.map((_) => new Rule30CARng(this.rng.int32()));
+    this.downhillTimer = this.getNewTimer();
+
     if (this.hillStart.length > 0 && this.hillStart[this.hillStart.length - 1] == 0) {
-      // Only set hillIdx for uphills with >1.0% grade
-      if (this.course.slopes[0].slope > 100) {
-        this.hillIdx = 0;
-      } else {
-        this.hillEnd.pop();
-      }
+      this.hillIdx = 0;
+      this.slopePer = this.course.slopes[0].slope;
+      this.downhillTimer.t = 0;
+      this.downhillCheck(this.downhillRng[0].random());
       this.hillStart.pop();
+    } else {
+      this.slopePer = 0;
     }
   }
 
@@ -688,18 +623,13 @@ export class RaceSolver implements IRaceState {
     return tm;
   }
 
-  initRushedState(disabled: boolean) {
-    // Skip rushed calculation if disabled
-    if (disabled) {
-      return;
-    }
-
+  initRushedState() {
     // Calculate rushed chance based on wisdom
     // Formula: RushedChance = (6.5 / log10(0.1 * WizStat + 1))²%
     const wisdomStat = this.horse.wisdom;
     const rushedChance = Math.pow(6.5 / Math.log10(0.1 * wisdomStat + 1), 2) / 100;
 
-    // Check if horse has The Restraint skill - ID 202161
+    // Check if horse has 自制心 (Self-Control) skill - ID 202161
     // This reduces rushed chance by flat 3%
     const hasSelfControl = this.pendingSkills.some((s) => s.skillId === '202161');
     const finalRushedChance = Math.max(0, rushedChance - (hasSelfControl ? 0.03 : 0));
@@ -758,17 +688,16 @@ export class RaceSolver implements IRaceState {
     }
   }
 
-  getMaxSpeed() {
-    if (this.startDash) {
-      // target speed can be below 0.85 * BaseSpeed for non-runners if there is a hill at the start of the course
-      // in this case you actually don't exit start dash until your target speed is high enough to be over 0.85 * BaseSpeed
-      return Math.min(this.targetSpeed, 0.85 * this.baseSpeed);
-    } else if (this.currentSpeed + this.modifiers.oneFrameAccel > this.targetSpeed) {
-      return 9999.0; // allow decelerating if targetSpeed drops
-    } else {
-      return this.targetSpeed;
-    }
-    // technically, there's a hard cap of 30m/s, but there's no way to actually hit that without implementing the Pace Up Ex position keep mode
+  getMaxStartDashSpeed() {
+    return Math.min(this.targetSpeed, 0.85 * baseSpeed(this.course));
+  }
+
+  logVelocityData(dt: number) {
+    console.log('frame: ', this.accumulatetime.t);
+    console.log('current speed: ', this.currentSpeed);
+    console.log('accel: ', this.accel);
+    console.log('dist:', this.pos);
+    console.log('--------------------------------');
   }
 
   step(dt: number) {
@@ -792,7 +721,6 @@ export class RaceSolver implements IRaceState {
     this.updateHills();
     this.updatePhase();
     this.updateRushedState();
-    this.updateDownhillMode();
     this.processSkillActivations();
     this.applyPositionKeepStates();
     this.updatePositionKeepCoefficient();
@@ -801,13 +729,27 @@ export class RaceSolver implements IRaceState {
     this.updateLastSpurtState();
     this.updateTargetSpeed();
     this.applyForces();
-    this.applyLaneMovement();
-
-    this.currentSpeed = Math.min(this.currentSpeed + this.accel * dt, this.getMaxSpeed());
-
-    if (!this.startDash && this.currentSpeed < this.miSpeed) {
-      this.currentSpeed = this.miSpeed;
+    if (this.laneMovementEnabled) {
+      this.applyLaneMovement();
     }
+
+    let newSpeed = undefined;
+
+    if (this.currentSpeed <= this.targetSpeed) {
+      newSpeed = Math.min(this.currentSpeed + this.accel * dt, this.targetSpeed);
+    } else {
+      newSpeed = Math.max(this.currentSpeed + this.accel * dt, this.targetSpeed);
+    }
+
+    if (this.startDash && newSpeed > this.getMaxStartDashSpeed()) {
+      newSpeed = this.getMaxStartDashSpeed();
+    }
+
+    if (!this.startDash && this.currentSpeed < this.minSpeed) {
+      newSpeed = this.minSpeed;
+    }
+
+    this.currentSpeed = newSpeed;
 
     const displacement =
       this.currentSpeed + this.modifiers.currentSpeed.acc + this.modifiers.currentSpeed.err;
@@ -822,9 +764,10 @@ export class RaceSolver implements IRaceState {
 
     if (!this.hp.hasRemainingHp() && !this.hpDied) {
       this.hpDied = true;
+      this.hpDiedPosition = this.course.distance - this.pos;
     }
 
-    if (this.startDash && this.currentSpeed >= 0.85 * this.baseSpeed) {
+    if (this.startDash && this.currentSpeed >= 0.85 * baseSpeed(this.course)) {
       this.startDash = false;
       this.modifiers.accel.add(-24.0);
     }
@@ -836,8 +779,6 @@ export class RaceSolver implements IRaceState {
     const currentLane = this.currentLane;
     const sideBlocked = this.getConditionValue('blocked_side') === 1;
     const overtake = this.getConditionValue('overtake') === 1;
-    // TODO: Simulate 'overtake' condition to prevent umas from getting stuck on inside rail late-race
-    // At the moment this doesn't matter because all we care about is early-race behavior.
 
     if (this.extraMoveLane < 0.0 && this.isAfterFinalCornerOrInFinalStraight()) {
       this.extraMoveLane =
@@ -905,10 +846,10 @@ export class RaceSolver implements IRaceState {
   getPacer(): RaceSolver | null {
     // Select furthest-forward front runner
     for (const strategy of [Strategy.Runaway, Strategy.FrontRunner]) {
-      const umas = this.umas.filter((uma) => uma.posKeepStrategy === strategy);
+      var umas = this.umas.filter((uma) => uma.posKeepStrategy === strategy);
 
       if (umas.length > 0) {
-        const uma = umas.reduce((max, uma) => {
+        var uma = umas.reduce((max, uma) => {
           return uma.pos > max.pos ? uma : max;
         }, umas[0]);
 
@@ -925,12 +866,12 @@ export class RaceSolver implements IRaceState {
 
     // Otherwise, lucky pace (set pacerOverride)
     for (const strategy of [Strategy.PaceChaser, Strategy.LateSurger, Strategy.EndCloser]) {
-      const umas = this.umas.filter((uma) =>
+      var umas = this.umas.filter((uma) =>
         StrategyHelpers.strategyMatches(uma.posKeepStrategy, strategy),
       );
 
       if (umas.length > 0) {
-        const uma = umas.reduce((max, uma) => {
+        var uma = umas.reduce((max, uma) => {
           return uma.pos > max.pos ? uma : max;
         }, umas[0]);
 
@@ -949,12 +890,10 @@ export class RaceSolver implements IRaceState {
       pacer.posKeepStrategy = Strategy.FrontRunner;
       return pacer;
     }
-
-    return null;
   }
 
   getUmaByDistanceDescending(): Array<RaceSolver> {
-    return this.umas.toSorted((a, b) => b.pos - a.pos);
+    return this.umas.sort((a, b) => b.pos - a.pos);
   }
 
   isOnlyFrontRunner(): boolean {
@@ -1012,7 +951,7 @@ export class RaceSolver implements IRaceState {
             const umas = this.getUmaByDistanceDescending();
             const secondPlaceUma = umas[1];
             const distanceAhead = pacer.pos - secondPlaceUma.pos;
-            const threshold = myStrategy === Strategy.Runaway ? 17.5 : 4.5;
+            const threshold = myStrategy === Strategy.Oonige ? 17.5 : 4.5;
 
             if (this.posKeepNextTimer.t < 0) {
               return;
@@ -1036,7 +975,7 @@ export class RaceSolver implements IRaceState {
               this.positionKeepState = PositionKeepState.PaceUp;
               this.positionKeepActivations.push([this.pos, 0, PositionKeepState.PaceUp]);
               this.posKeepExitDistance =
-                this.syncRng.random() * (this.posKeepMaxThreshold - this.posKeepMinThreshold) +
+                this.posKeepRng.random() * (this.posKeepMaxThreshold - this.posKeepMinThreshold) +
                 this.posKeepMinThreshold;
             }
           }
@@ -1049,7 +988,7 @@ export class RaceSolver implements IRaceState {
               this.positionKeepState = PositionKeepState.PaceDown;
               this.positionKeepActivations.push([this.pos, 0, PositionKeepState.PaceDown]);
               this.posKeepExitDistance =
-                this.syncRng.random() * (this.posKeepMaxThreshold - this.posKeepMinThreshold) +
+                this.posKeepRng.random() * (this.posKeepMaxThreshold - this.posKeepMinThreshold) +
                 this.posKeepMinThreshold;
             }
           }
@@ -1177,73 +1116,69 @@ export class RaceSolver implements IRaceState {
   }
 
   updateCompeteFight() {
-    // Exit conditions: HP below 5% ends competition
-    if (this.competeFight && this.hp.hpRatioRemaining() <= 0.05) {
-      this.competeFight = false;
-      this.competeFightEnd = this.pos;
-      this.competeFightTargets.clear();
+    if (!this.competeFightEnabled) {
       return;
     }
 
-    // Only on final straight
-    if (!this.isOnFinalStraight()) {
-      this.competeFightTimer.t = 0;
-      this.competeFightTargets.clear();
+    if (this.competeFight) {
+      if (this.hp.hpRatioRemaining() <= 0.05) {
+        this.competeFight = false;
+        this.competeFightEnd = this.pos;
+      }
+
       return;
     }
 
-    // Cannot trigger below 15% HP
-    if (this.hp.hpRatioRemaining() < 0.15) {
+    if (StrategyHelpers.strategyMatches(this.posKeepStrategy, Strategy.FrontRunner)) {
       return;
     }
 
-    // Find competition targets per spec:
-    // abs(DistanceGap) < 3.0m, abs(LaneGap) < 0.25 CourseWidth
-    const newTargets = new Set<RaceSolver>();
-    for (const other of this.umas) {
-      if (other === this) continue;
-      const distanceGap = Math.abs(other.pos - this.pos);
-      const laneGap = Math.abs(other.currentLane - this.currentLane);
-      if (distanceGap < 3.0 && laneGap < 0.25) {
-        newTargets.add(other);
+    if (this.hp.hpRatioRemaining() < 0.15 || !this.isOnFinalStraight()) {
+      return;
+    }
+
+    if (this.canCompeteFight === null) {
+      if (this.duelingRates) {
+        let rate = 0;
+        if (this.posKeepStrategy === Strategy.Runaway) {
+          rate = this.duelingRates.runaway;
+        } else if (this.posKeepStrategy === Strategy.FrontRunner) {
+          rate = this.duelingRates.frontRunner;
+        } else if (this.posKeepStrategy === Strategy.PaceChaser) {
+          rate = this.duelingRates.paceChaser;
+        } else if (this.posKeepStrategy === Strategy.LateSurger) {
+          rate = this.duelingRates.lateSurger;
+        } else if (this.posKeepStrategy === Strategy.EndCloser) {
+          rate = this.duelingRates.endCloser;
+        }
+
+        this.canCompeteFight = this.competeFightRng.random() < rate / 100;
+        this.competeFightTimer.t = 0;
+      } else {
+        this.canCompeteFight = false;
       }
     }
 
-    // Reset timer if no targets
-    if (newTargets.size === 0) {
-      this.competeFightTimer.t = 0;
-      this.competeFightTargets.clear();
+    if (!this.canCompeteFight) {
       return;
     }
 
-    this.competeFightTargets = newTargets;
-
-    // Already in competition - continue
-    if (this.competeFight) {
-      return;
-    }
-
-    // Check trigger conditions:
-    // - Target for 2+ seconds
-    // - Top 50% placement
-    // - Speed gap < 0.6 m/s with at least one target
-    if (this.competeFightTimer.t >= 2) {
-      const placement = this.umas.filter((u) => u.pos > this.pos).length + 1;
-      const isTop50 = placement <= Math.ceil(this.umas.length / 2);
-
-      const hasSpeedMatch = [...this.competeFightTargets].some(
-        (target) => Math.abs(target.currentSpeed - this.currentSpeed) < 0.6,
-      );
-
-      if (isTop50 && hasSpeedMatch) {
+    if (this.competeFightTimer.t >= 1) {
+      if (this.competeFightRng.random() <= 0.4) {
         this.competeFight = true;
         this.competeFightStart = this.pos;
+      } else {
+        this.competeFightTimer.t = 0;
       }
     }
   }
 
   updateLeadCompetition() {
-    if (this.leadCompetition && this.leadCompetitionEnd) {
+    if (!this.leadCompetitionEnabled) {
+      return;
+    }
+
+    if (this.leadCompetition) {
       const leadCompeteDuration = Math.pow(700 * this.horse.guts, 0.5) * 0.012;
 
       if (
@@ -1266,14 +1201,8 @@ export class RaceSolver implements IRaceState {
     ) {
       const otherUmas = this.umas.filter((u) => u.posKeepStrategy === this.posKeepStrategy);
       const distanceGap = this.posKeepStrategy === Strategy.FrontRunner ? 3.75 : 5;
-      // Lane gap per spec: Front Runner 0.165, Oonige 0.416 (in course width units)
-      const laneGap = this.posKeepStrategy === Strategy.FrontRunner ? 0.165 : 0.416;
 
-      const umasWithinGap = otherUmas.filter(
-        (u) =>
-          Math.abs(u.pos - this.pos) <= distanceGap &&
-          Math.abs(u.currentLane - this.currentLane) < laneGap,
-      );
+      const umasWithinGap = otherUmas.filter((u) => Math.abs(u.pos - this.pos) <= distanceGap);
 
       if (umasWithinGap.length >= 2) {
         for (const uma of umasWithinGap) {
@@ -1293,25 +1222,48 @@ export class RaceSolver implements IRaceState {
       return;
     }
 
-    const firstPlaceUma = this.getUmaByDistanceDescending()[0];
+    const sortedUmas = this.getUmaByDistanceDescending();
+    const firstPlaceUma = sortedUmas[0];
 
     if (firstPlaceUma.pos < (this.course.distance * 2) / 3) {
       return;
     }
 
-    firstPlaceUma.firstUmaInLateRace = true;
+    const firstPlacePos = Math.round(firstPlaceUma.pos * 100) / 100;
+    const tiedUmas: Array<RaceSolver> = [];
+
+    for (const uma of sortedUmas) {
+      const umaPos = Math.round(uma.pos * 100) / 100;
+      if (umaPos === firstPlacePos) {
+        tiedUmas.push(uma);
+      } else {
+        break;
+      }
+    }
+
+    // This is sooooooo hacky xDD
+    // But when we have synced RNG both umas can reach late-race on the same frame
+    // In which case, to avoid skewed final leg 1st place results...
+    // ........ we do this
+    const selectedUma = tiedUmas[this.syncRng.uniform(tiedUmas.length)];
+    selectedUma.firstUmaInLateRace = true;
   }
 
-  updateLastSpurtState() {
+  updateLastSpurtState(force: boolean = false) {
     if (this.isLastSpurt || this.phase < 2) return;
-    if (this.lastSpurtTransition == -1) {
+    if (this.lastSpurtTransition == -1 || force) {
+      const initialLastSpurtSpeed = this.lastSpurtSpeed;
       const v = this.hp.getLastSpurtPair(this, this.lastSpurtSpeed, this.baseTargetSpeed[2]);
-
       this.lastSpurtTransition = v[0];
       this.lastSpurtSpeed = v[1];
-
-      if (this.hp.isMaxSpurt()) {
+      if ((this.hp as any).isMaxSpurt && (this.hp as any).isMaxSpurt()) {
         this.fullSpurt = true;
+      } else {
+        this.nonFullSpurtVelocityDiff = this.lastSpurtSpeed - initialLastSpurtSpeed;
+        this.nonFullSpurtDelayDistance =
+          this.lastSpurtTransition >= 0
+            ? this.lastSpurtTransition - (this.course.distance * 2) / 3
+            : null;
       }
     }
     if (this.pos >= this.lastSpurtTransition) {
@@ -1319,68 +1271,23 @@ export class RaceSolver implements IRaceState {
     }
   }
 
-  updateDownhillMode() {
-    // Check if we should update downhill mode (once per second, at 15 FPS)
-    const currentFrame = Math.floor(this.accumulatetime.t * 15);
-    const changeSecond = currentFrame % 15 === 14; // Check on the last frame of each second
-
-    if (!changeSecond || currentFrame === this.lastDownhillCheckFrame) {
-      return; // Not time to check yet, or already checked this second
-    }
-
-    this.lastDownhillCheckFrame = currentFrame;
-
-    // Check if we're on a downhill slope
-    const currentSlope = this.course.slopes.find(
-      (s) => this.pos >= s.start && this.pos <= s.start + s.length,
-    );
-    const isOnDownhill = currentSlope && currentSlope.slope < -1; // Only on downhills with >1.0% grade
-
-    if (!this.disableDownhill && isOnDownhill) {
-      // Keep rng synced for the virtual pacemaker so that it's the same pacer for both umas
-      const rng =
-        this.posKeepMode === PosKeepMode.Virtual && !this.pacer
-          ? this.syncRng.random()
-          : this.downhillRng.random();
-
-      if (this.downhillModeStart === null) {
-        // Check for entry: Wisdom * 0.0004 chance each second (matching Kotlin implementation)
-        if (rng < this.horse.wisdom * 0.0004) {
-          this.downhillModeStart = currentFrame;
-          this.isDownhillMode = true;
-        }
-      } else {
-        // Check for exit: 20% chance each second to exit downhill mode
-        if (rng < 0.2) {
-          this.downhillModeStart = null;
-          this.isDownhillMode = false;
-        }
-      }
-    } else {
-      // Not on a downhill slope, exit downhill mode immediately
-      if (this.isDownhillMode) {
-        this.downhillModeStart = null;
-        this.isDownhillMode = false;
-      }
-    }
-  }
-
   updateTargetSpeed() {
     if (!this.hp.hasRemainingHp()) {
-      this.targetSpeed = this.miSpeed;
+      this.targetSpeed = this.minSpeed;
     } else if (this.isLastSpurt) {
       this.targetSpeed = this.lastSpurtSpeed;
     } else {
       this.targetSpeed = this.baseTargetSpeed[this.phase] * this.posKeepSpeedCoef;
       this.targetSpeed += this.sectionModifier[Math.floor(this.pos / this.sectionLength)];
     }
-
     this.targetSpeed += this.modifiers.targetSpeed.acc + this.modifiers.targetSpeed.err;
 
-    if (this.hillIdx != -1) {
-      // Use pre-calculated slope penalty for performance
-      this.targetSpeed -= this.cachedSlopePenalties[this.hillIdx];
-      this.targetSpeed = Math.max(this.targetSpeed, this.miSpeed);
+    if (this.isDownhillMode) {
+      this.targetSpeed += 0.3 + this.slopePer / 100000.0;
+    } else if (this.hillIdx != -1 && this.slopePer > 0) {
+      // recalculating this every frame is actually measurably faster than calculating the penalty for each slope ahead of time, somehow
+      this.targetSpeed -= ((this.slopePer / 10000.0) * 200.0) / this.horse.power;
+      this.targetSpeed = Math.max(this.targetSpeed, this.minSpeed);
     }
 
     if (this.competeFight) {
@@ -1389,18 +1296,6 @@ export class RaceSolver implements IRaceState {
 
     if (this.leadCompetition) {
       this.targetSpeed += Math.pow(500 * this.horse.guts, 0.6) * 0.0001;
-    }
-
-    // moved logic on every step
-    // We need to check the isDownhill every frame so we actually get the speed boost
-    if (this.isDownhillMode) {
-      const currentSlope = this.course.slopes.find(
-        (s) => this.pos >= s.start && this.pos <= s.start + s.length,
-      );
-      if (currentSlope) {
-        const downhillBonus = 0.3 + Math.abs(currentSlope.slope / 10000) / 10.0;
-        this.targetSpeed += downhillBonus;
-      }
     }
 
     if (this.laneChangeSpeed > 0.0 && this.activeLaneMovementSkills.length > 0) {
@@ -1414,7 +1309,6 @@ export class RaceSolver implements IRaceState {
       this.accel = -1.2;
       return;
     }
-
     if (this.currentSpeed > this.targetSpeed) {
       this.accel =
         this.positionKeepState === PositionKeepState.PaceDown
@@ -1422,12 +1316,18 @@ export class RaceSolver implements IRaceState {
           : PhaseDeceleration[this.phase];
       return;
     }
-
-    this.accel = this.baseAccel[+(this.hillIdx != -1) * 3 + this.phase];
+    this.accel = this.baseAccel[+(this.slopePer > 0) * 3 + this.phase];
     this.accel += this.modifiers.accel.acc + this.modifiers.accel.err;
 
     if (this.competeFight) {
       this.accel += Math.pow(160 * this.horse.guts, 0.59) * 0.0001;
+    }
+  }
+
+  downhillCheck(roll: number) {
+    if (this.slopePer < 0 && roll < this.horse.wisdom * 0.0004) {
+      this.downhillActivations.push([this.pos, this.pos]);
+      this.isDownhillMode = true;
     }
   }
 
@@ -1437,24 +1337,36 @@ export class RaceSolver implements IRaceState {
       this.hillStart.length > 0 &&
       this.pos >= this.hillStart[this.hillStart.length - 1]
     ) {
-      // Only set hillIdx for uphills with >1.0% grade (slope > 100, where SlopePer = slope/100)
-      if (this.course.slopes[this.nHills - this.hillStart.length].slope > 100) {
-        this.hillIdx = this.nHills - this.hillStart.length;
-        return;
-      }
-
-      this.hillEnd.pop();
+      this.hillIdx = this.nHills - this.hillStart.length;
+      this.slopePer = this.course.slopes[this.hillIdx].slope;
+      this.downhillTimer.t = 0;
+      this.downhillCheck(this.downhillRng[this.hillIdx].random());
       this.hillStart.pop();
-      return;
-    }
-
-    if (
+    } else if (
       this.hillIdx != -1 &&
       this.hillEnd.length > 0 &&
       this.pos > this.hillEnd[this.hillEnd.length - 1]
     ) {
       this.hillIdx = -1;
+      this.slopePer = 0;
       this.hillEnd.pop();
+      if (this.isDownhillMode)
+        this.downhillActivations[this.downhillActivations.length - 1][1] = this.pos;
+      this.isDownhillMode = false;
+    }
+
+    if (this.downhillTimer.t >= 1.0 && this.hillIdx != -1) {
+      const roll = this.downhillRng[this.hillIdx].random();
+
+      if (this.isDownhillMode && roll > 0.8) {
+        if (this.isDownhillMode)
+          this.downhillActivations[this.downhillActivations.length - 1][1] = this.pos;
+        this.isDownhillMode = false;
+      } else if (!this.isDownhillMode) {
+        this.downhillCheck(roll);
+      }
+
+      this.downhillTimer.t = 0.0;
     }
   }
 
@@ -1464,7 +1376,6 @@ export class RaceSolver implements IRaceState {
     // and it's easier to treat them together, so cap phase at 2.
     if (this.pos >= this.nextPhaseTransition && this.phase < 2) {
       ++this.phase;
-
       this.nextPhaseTransition = CourseHelpers.phaseStart(
         this.course.distance,
         (this.phase + 1) as IPhase,
@@ -1473,182 +1384,84 @@ export class RaceSolver implements IRaceState {
   }
 
   processSkillActivations() {
-    const currentPosition = this.pos;
-
-    // Process Speed Up Skills - optimized with swap-and-pop pattern
-    let writeIdx = 0;
-    for (let i = 0; i < this.activeTargetSpeedSkills.length; i++) {
-      const skill = this.activeTargetSpeedSkills[i];
-
-      if (skill.durationTimer.t < 0) {
-        this.activeTargetSpeedSkills[writeIdx++] = skill;
-        continue;
+    for (let i = this.activeTargetSpeedSkills.length; --i >= 0; ) {
+      const s = this.activeTargetSpeedSkills[i];
+      if (s.durationTimer.t >= 0) {
+        this.activeTargetSpeedSkills.splice(i, 1);
+        this.modifiers.targetSpeed.add(-s.modifier);
+        this.onSkillDeactivate(this, s.skillId, s.perspective);
       }
-
-      this.modifiers.targetSpeed.add(-skill.modifier);
-
-      this.onEffectExpired(
-        this,
-        currentPosition,
-        skill.executionId,
-        skill.skillId,
-        skill.perspective,
-        skill.effectType,
-        skill.effectTarget,
-      );
     }
-    this.activeTargetSpeedSkills.length = writeIdx;
-
-    // Process Current Speed Skills - optimized with swap-and-pop pattern
-    writeIdx = 0;
-    for (let i = 0; i < this.activeCurrentSpeedSkills.length; i++) {
-      const skill = this.activeCurrentSpeedSkills[i];
-      if (skill.durationTimer.t < 0) {
-        this.activeCurrentSpeedSkills[writeIdx++] = skill;
-        continue;
+    for (let i = this.activeCurrentSpeedSkills.length; --i >= 0; ) {
+      const s = this.activeCurrentSpeedSkills[i];
+      if (s.durationTimer.t >= 0) {
+        this.activeCurrentSpeedSkills.splice(i, 1);
+        this.modifiers.currentSpeed.add(-s.modifier);
+        if (s.naturalDeceleration) {
+          this.modifiers.oneFrameAccel += s.modifier;
+        }
+        this.onSkillDeactivate(this, s.skillId, s.perspective);
       }
-
-      this.modifiers.currentSpeed.add(-skill.modifier);
-
-      if (skill.naturalDeceleration) {
-        this.modifiers.oneFrameAccel += skill.modifier;
-      }
-
-      this.onEffectExpired(
-        this,
-        currentPosition,
-        skill.executionId,
-        skill.skillId,
-        skill.perspective,
-        skill.effectType,
-        skill.effectTarget,
-      );
     }
-    this.activeCurrentSpeedSkills.length = writeIdx;
-
-    // Process Accel Skills - optimized with swap-and-pop pattern
-    writeIdx = 0;
-    for (let i = 0; i < this.activeAccelSkills.length; i++) {
-      const skill = this.activeAccelSkills[i];
-      if (skill.durationTimer.t < 0) {
-        this.activeAccelSkills[writeIdx++] = skill;
-        continue;
+    for (let i = this.activeAccelSkills.length; --i >= 0; ) {
+      const s = this.activeAccelSkills[i];
+      if (s.durationTimer.t >= 0) {
+        this.activeAccelSkills.splice(i, 1);
+        this.modifiers.accel.add(-s.modifier);
+        this.onSkillDeactivate(this, s.skillId, s.perspective);
       }
-
-      this.modifiers.accel.add(-skill.modifier);
-      this.onEffectExpired(
-        this,
-        currentPosition,
-        skill.executionId,
-        skill.skillId,
-        skill.perspective,
-        skill.effectType,
-        skill.effectTarget,
-      );
     }
-    this.activeAccelSkills.length = writeIdx;
-
-    // Process Lane Movement Skills - optimized with swap-and-pop pattern
-    writeIdx = 0;
-    for (let i = 0; i < this.activeLaneMovementSkills.length; i++) {
-      const skill = this.activeLaneMovementSkills[i];
-      if (skill.durationTimer.t < 0) {
-        this.activeLaneMovementSkills[writeIdx++] = skill;
-        continue;
+    for (let i = this.activeLaneMovementSkills.length; --i >= 0; ) {
+      const s = this.activeLaneMovementSkills[i];
+      if (s.durationTimer.t >= 0) {
+        this.activeLaneMovementSkills.splice(i, 1);
+        this.onSkillDeactivate(this, s.skillId, s.perspective);
       }
-
-      this.onEffectExpired(
-        this,
-        currentPosition,
-        skill.executionId,
-        skill.skillId,
-        skill.perspective,
-        skill.effectType,
-        skill.effectTarget,
-      );
     }
-    this.activeLaneMovementSkills.length = writeIdx;
-
-    // Process Change Lane Skills - optimized with swap-and-pop pattern
-    writeIdx = 0;
-    for (let i = 0; i < this.activeChangeLaneSkills.length; i++) {
-      const skill = this.activeChangeLaneSkills[i];
-      if (skill.durationTimer.t < 0) {
-        this.activeChangeLaneSkills[writeIdx++] = skill;
-        continue;
+    for (let i = this.activeChangeLaneSkills.length; --i >= 0; ) {
+      const s = this.activeChangeLaneSkills[i];
+      if (s.durationTimer.t >= 0) {
+        this.activeChangeLaneSkills.splice(i, 1);
+        this.onSkillDeactivate(this, s.skillId, s.perspective);
       }
-
-      this.onEffectExpired(
-        this,
-        currentPosition,
-        skill.executionId,
-        skill.skillId,
-        skill.perspective,
-        skill.effectType,
-        skill.effectTarget,
-      );
     }
-    this.activeChangeLaneSkills.length = writeIdx;
-
-    // Process Pending Skills - optimized with swap-and-pop pattern
-    writeIdx = 0;
-    for (let i = 0; i < this.pendingSkills.length; i++) {
-      const skill = this.pendingSkills[i];
-
-      if (this.pos >= skill.trigger.end || this.pendingRemoval.has(skill.skillId)) {
+    for (let i = this.pendingSkills.length; --i >= 0; ) {
+      const s = this.pendingSkills[i];
+      if (this.pos >= s.trigger.end || this.pendingRemoval.has(s.skillId)) {
         // NB. `Region`s are half-open [start,end) intervals. If pos == end we are out of the trigger.
         // skill failed to activate
-        this.pendingRemoval.delete(skill.skillId);
-        continue;
-      }
-
-      if (this.pos >= skill.trigger.start && skill.extraCondition(this)) {
-        // Wit Check for skill activation if enabled
-        if (
-          this.skillCheckChance &&
-          !this.shouldSkipWisdomCheck(skill) &&
-          !this.doWitCheck(skill)
-        ) {
-          // Wisdom check failed - don't keep
-          continue;
+        this.pendingSkills.splice(i, 1);
+        this.pendingRemoval.delete(s.skillId);
+      } else if (this.pos >= s.trigger.start && s.extraCondition(this)) {
+        // Check wisdom for skill activation if enabled
+        if (!this.shouldSkipWisdomCheck(s) && !this.checkWisdomForSkill(s)) {
+          // Skill fails due to low wisdom
+          this.pendingSkills.splice(i, 1);
+        } else {
+          this.activateSkill(s);
+          this.pendingSkills.splice(i, 1);
         }
-
-        // Wisdom check passed - activate skill
-        this.activateSkill(skill);
-        continue;
       }
-
-      // Skill still pending - keep it
-      this.pendingSkills[writeIdx++] = skill;
     }
-
-    this.pendingSkills.length = writeIdx;
   }
 
-  /**
-   * Does a Wit Check for a skill a Runner is trying to activate.
-   *
-   * NOTE: This method right now for some cases is trying to check the Wit stat for another runner, as in check when another runner has hit them with a debuff or buff.
-   *       but if think that each runner should only check their own Wit.
-   */
-  doWitCheck(skill: PendingSkill): boolean {
-    const witStat =
-      skill.perspective === SkillPerspective.Self ? this.horse.wisdom : (skill.originWisdom ?? 1);
-
+  checkWisdomForSkill(skill: PendingSkill): boolean {
     const rngRoll = this.wisdomRollRng.random();
-
-    const witCheckThreshold = Math.max(100 - 9000 / witStat, 20) * 0.01;
-
-    return rngRoll <= witCheckThreshold;
+    const wisdom =
+      skill.perspective === Perspective.Other && skill.originWisdom !== undefined
+        ? skill.originWisdom
+        : this.horse.wisdom;
+    const wisdomCheck = Math.max(100 - 9000 / wisdom, 20) * 0.01;
+    return rngRoll <= wisdomCheck;
   }
 
   shouldSkipWisdomCheck(skill: PendingSkill): boolean {
+    if (!this.skillWisdomCheck) {
+      return true;
+    }
+
     // Green skills
-    if (
-      skill.effects.length > 0 &&
-      skill.effects[0].type >= SkillType.SpeedUp &&
-      skill.effects[0].type <= SkillType.WisdomUp
-    ) {
+    if (skill.effects.length > 0 && skill.effects[0].type >= 1 && skill.effects[0].type <= 5) {
       return true;
     }
 
@@ -1661,172 +1474,105 @@ export class RaceSolver implements IRaceState {
     return false;
   }
 
-  activateSkill(skill: PendingSkill) {
+  activateSkill(s: PendingSkill) {
     // sort so that the ExtendEvolvedDuration effect always activates after other effects, since it shouldn't extend the duration of other
     // effects on the same skill
-
-    const sortedEffects = skill.effects.toSorted((a, b) => +(a.type == 42) - +(b.type == 42));
-
-    const executionId = `${skill.skillId}-${crypto.randomUUID()}`;
-    const currentPosition = this.pos;
-
-    this.onSkillActivated({
-      raceSolver: this,
-      currentPosition,
-      skillId: skill.skillId,
-    });
-
-    for (const skillEffect of sortedEffects) {
-      const skillDurationScaling =
-        skill.rarity == SkillRarity.Evolution ? this.modifiers.specialSkillDurationScaling : 1; // TODO should probably be awakened skills
-
-      const scaledDuration =
-        skillEffect.baseDuration * (this.course.distance / 1000) * skillDurationScaling;
-
-      // Apply First
-
-      this.applyEffect({
-        skillEffect,
-        executionId,
-        skillId: skill.skillId,
-        perspective: skill.perspective,
-        scaledDuration,
-      });
-
-      // Track later
-
-      if (shouldTrackEffect(skillEffect)) {
-        this.onEffectActivated(
-          this,
-          currentPosition,
-          executionId,
-          skill.skillId,
-          skill.perspective,
-          skillEffect.type,
-          skillEffect.target,
-        );
-      }
-    }
-
-    ++this.activateCount[this.phase];
-    this.usedSkills.add(skill.skillId);
-  }
-
-  applyEffect(options: {
-    skillEffect: SkillEffect;
-    executionId: string;
-    skillId: string;
-    perspective: ISkillPerspective;
-    scaledDuration: number;
-  }) {
-    const { skillEffect, executionId, skillId, perspective, scaledDuration } = options;
-
-    // and not just pinks
-    switch (skillEffect.type) {
-      // Green skills
-      case SkillType.SpeedUp:
-        this.horse.speed = Math.max(this.horse.speed + skillEffect.modifier, 1);
-        break;
-      case SkillType.StaminaUp:
-        this.horse.stamina = Math.max(this.horse.stamina + skillEffect.modifier, 1);
-        this.horse.rawStamina = Math.max(this.horse.rawStamina + skillEffect.modifier, 1);
-        break;
-      case SkillType.PowerUp:
-        this.horse.power = Math.max(this.horse.power + skillEffect.modifier, 1);
-        break;
-      case SkillType.GutsUp:
-        this.horse.guts = Math.max(this.horse.guts + skillEffect.modifier, 1);
-        break;
-      case SkillType.WisdomUp:
-        this.horse.wisdom = Math.max(this.horse.wisdom + skillEffect.modifier, 1);
-        break;
-
-      // Instant/point effects and pre-race modifiers
-      case SkillType.MultiplyStartDelay:
-        this.startDelay *= skillEffect.modifier;
-        break;
-      case SkillType.SetStartDelay:
-        this.startDelay = skillEffect.modifier;
-        break;
-
-      // Duration-based effects
-      case SkillType.TargetSpeed:
-        this.modifiers.targetSpeed.add(skillEffect.modifier);
-        this.activeTargetSpeedSkills.push({
-          executionId,
-          skillId,
-          perspective,
-          durationTimer: this.getNewTimer(-scaledDuration),
-          modifier: skillEffect.modifier,
-          effectType: skillEffect.type,
-          effectTarget: skillEffect.target,
-        });
-        break;
-      case SkillType.Accel:
-        this.modifiers.accel.add(skillEffect.modifier);
-        this.activeAccelSkills.push({
-          executionId,
-          skillId,
-          perspective,
-          durationTimer: this.getNewTimer(-scaledDuration),
-          modifier: skillEffect.modifier,
-          effectType: skillEffect.type,
-          effectTarget: skillEffect.target,
-        });
-        break;
-      case SkillType.LaneMovementSpeed:
-        this.activeLaneMovementSkills.push({
-          executionId,
-          skillId,
-          perspective,
-          durationTimer: this.getNewTimer(-scaledDuration),
-          modifier: skillEffect.modifier,
-          effectType: skillEffect.type,
-          effectTarget: skillEffect.target,
-        });
-        break;
-      case SkillType.CurrentSpeed:
-      case SkillType.CurrentSpeedWithNaturalDeceleration:
-        this.modifiers.currentSpeed.add(skillEffect.modifier);
-        this.activeCurrentSpeedSkills.push({
-          executionId,
-          skillId,
-          perspective,
-          durationTimer: this.getNewTimer(-scaledDuration),
-          modifier: skillEffect.modifier,
-          naturalDeceleration: skillEffect.type == SkillType.CurrentSpeedWithNaturalDeceleration,
-          effectType: skillEffect.type,
-          effectTarget: skillEffect.target,
-        });
-        break;
-      case SkillType.Recovery:
-        ++this.activateCountHeal;
-        // Pass state to recover for dynamic spurt recalculation in accuracy mode
-
-        this.hp.recover(skillEffect.modifier);
-
-        if (this.phase >= 2 && !this.isLastSpurt) {
-          this.updateLastSpurtState();
+    s.effects
+      .sort((a, b) => +(a.type == 42) - +(b.type == 42))
+      .forEach((ef) => {
+        const scaledDuration =
+          ef.baseDuration *
+          (this.course.distance / 1000) *
+          (s.rarity == SkillRarity.Evolution ? this.modifiers.specialSkillDurationScaling : 1); // TODO should probably be awakened skills
+        // and not just pinks
+        switch (ef.type) {
+          case SkillType.Noop:
+            break;
+          case SkillType.SpeedUp:
+            this.horse.speed = Math.max(this.horse.speed + ef.modifier, 1);
+            break;
+          case SkillType.StaminaUp:
+            this.horse.stamina = Math.max(this.horse.stamina + ef.modifier, 1);
+            this.horse.rawStamina = Math.max(this.horse.rawStamina + ef.modifier, 1);
+            break;
+          case SkillType.PowerUp:
+            this.horse.power = Math.max(this.horse.power + ef.modifier, 1);
+            break;
+          case SkillType.GutsUp:
+            this.horse.guts = Math.max(this.horse.guts + ef.modifier, 1);
+            break;
+          case SkillType.WisdomUp:
+            this.horse.wisdom = Math.max(this.horse.wisdom + ef.modifier, 1);
+            break;
+          case SkillType.MultiplyStartDelay:
+            this.startDelay *= ef.modifier;
+            break;
+          case SkillType.SetStartDelay:
+            this.startDelay = ef.modifier;
+            break;
+          case SkillType.TargetSpeed:
+            this.modifiers.targetSpeed.add(ef.modifier);
+            this.activeTargetSpeedSkills.push({
+              skillId: s.skillId,
+              perspective: s.perspective,
+              durationTimer: this.getNewTimer(-scaledDuration),
+              modifier: ef.modifier,
+            });
+            break;
+          case SkillType.Accel:
+            this.modifiers.accel.add(ef.modifier);
+            this.activeAccelSkills.push({
+              skillId: s.skillId,
+              perspective: s.perspective,
+              durationTimer: this.getNewTimer(-scaledDuration),
+              modifier: ef.modifier,
+            });
+            break;
+          case SkillType.LaneMovementSpeed:
+            this.activeLaneMovementSkills.push({
+              skillId: s.skillId,
+              perspective: s.perspective,
+              durationTimer: this.getNewTimer(-scaledDuration),
+              modifier: ef.modifier,
+            });
+            break;
+          case SkillType.CurrentSpeed:
+          case SkillType.CurrentSpeedWithNaturalDeceleration:
+            this.modifiers.currentSpeed.add(ef.modifier);
+            this.activeCurrentSpeedSkills.push({
+              skillId: s.skillId,
+              perspective: s.perspective,
+              durationTimer: this.getNewTimer(-scaledDuration),
+              modifier: ef.modifier,
+              naturalDeceleration: ef.type == SkillType.CurrentSpeedWithNaturalDeceleration,
+            });
+            break;
+          case SkillType.Recovery:
+            if (s.perspective == Perspective.Self) ++this.activateCountHeal;
+            this.hp.recover(ef.modifier);
+            if (this.phase >= 2 && !this.isLastSpurt) {
+              this.updateLastSpurtState(true);
+            }
+            break;
+          case SkillType.ActivateRandomGold:
+            this.doActivateRandomGold(ef.modifier);
+            break;
+          case SkillType.ExtendEvolvedDuration:
+            this.modifiers.specialSkillDurationScaling = ef.modifier;
+            break;
+          case SkillType.ChangeLane:
+            this.activeChangeLaneSkills.push({
+              skillId: s.skillId,
+              perspective: s.perspective,
+              durationTimer: this.getNewTimer(-scaledDuration),
+              modifier: ef.modifier,
+            });
+            break;
         }
-        break;
-      case SkillType.ActivateRandomGold:
-        this.doActivateRandomGold(skillEffect.modifier);
-        break;
-      case SkillType.ExtendEvolvedDuration:
-        this.modifiers.specialSkillDurationScaling = skillEffect.modifier;
-        break;
-      case SkillType.ChangeLane:
-        this.activeChangeLaneSkills.push({
-          executionId,
-          skillId,
-          perspective,
-          durationTimer: this.getNewTimer(-scaledDuration),
-          modifier: skillEffect.modifier,
-          effectType: skillEffect.type,
-          effectTarget: skillEffect.target,
-        });
-        break;
-    }
+      });
+    if (s.perspective == Perspective.Self) ++this.activateCount[this.phase];
+    this.usedSkills.add(s.skillId);
+    this.onSkillActivate(this, s.skillId, s.perspective);
   }
 
   doActivateRandomGold(ngolds: number) {
@@ -1837,45 +1583,30 @@ export class RaceSolver implements IRaceState {
       )
         acc.push(i);
       return acc;
-    }, [] as Array<number>);
-
+    }, []);
     for (let i = goldIndices.length; --i >= 0; ) {
       const j = this.gorosiRng.uniform(i + 1);
       [goldIndices[i], goldIndices[j]] = [goldIndices[j], goldIndices[i]];
     }
-
     for (let i = 0; i < Math.min(ngolds, goldIndices.length); ++i) {
-      const pendingSkill = this.pendingSkills[goldIndices[i]];
-
-      this.activateSkill(pendingSkill);
-
+      const s = this.pendingSkills[goldIndices[i]];
+      this.activateSkill(s);
       // important: we can't actually remove this from pendingSkills directly, since this function runs inside the loop in
       // processSkillActivations. modifying the pendingSkills array here would mess up that loop. this function used to modify
       // the trigger on the skill itself to ensure it was before this.pos and force it to be cleaned up, but mutating the skill
       // is error-prone and undesirable since it means the same PendingSkill instance can't be used with multiple RaceSolvers.
       // instead, flag the skill later to be removed in processSkillActivations (either later in the loop that called us, or
       // the next time processSkillActivations is called).
-      this.pendingRemoval.add(pendingSkill.skillId);
+      this.pendingRemoval.add(s.skillId);
     }
   }
 
   // deactivate any skills that haven't finished their durations yet (intended to be called at the end of a simulation, when a skill
   // might have activated towards the end of the race and the race finished before the skill's duration)
   cleanup() {
-    const callDeactivateHook = (activeSkill: ActiveSkill) => {
-      const currentPosition = this.pos;
-
-      this.onEffectExpired(
-        this,
-        currentPosition,
-        activeSkill.executionId,
-        activeSkill.skillId,
-        activeSkill.perspective,
-        activeSkill.effectType,
-        activeSkill.effectTarget,
-      );
+    const callDeactivateHook = (s: { skillId: string; perspective?: Perspective }) => {
+      this.onSkillDeactivate(this, s.skillId, s.perspective);
     };
-
     this.activeTargetSpeedSkills.forEach(callDeactivateHook);
     this.activeCurrentSpeedSkills.forEach(callDeactivateHook);
     this.activeAccelSkills.forEach(callDeactivateHook);
@@ -1916,39 +1647,3 @@ export class RaceSolver implements IRaceState {
     }
   }
 }
-
-const durationBasedEffects = [
-  SkillType.TargetSpeed, // 27
-  SkillType.CurrentSpeed, // 21
-  SkillType.CurrentSpeedWithNaturalDeceleration, // 22
-  SkillType.Accel, // 31
-  SkillType.LaneMovementSpeed, // 28
-  SkillType.ChangeLane, // 35
-] as Array<number>;
-
-const instantEffects = [
-  SkillType.Recovery, // 9 - HP recovery/drain
-  SkillType.SpeedUp, // 1 - Green skills (gate activation)
-  SkillType.StaminaUp, // 2
-  SkillType.PowerUp, // 3
-  SkillType.GutsUp, // 4
-  SkillType.WisdomUp, // 5
-  SkillType.MultiplyStartDelay, // 10 - Start modifiers
-  SkillType.SetStartDelay, // 14
-
-  // For future use
-  SkillType.ActivateRandomGold, // 37
-  SkillType.ExtendEvolvedDuration, // 42
-] as Array<number>;
-
-const shouldTrackEffect = (effect: SkillEffect) => {
-  const type = effect.type;
-
-  // Duration-based effects (track start/end)
-  if (effect.baseDuration > 0) {
-    return durationBasedEffects.includes(type);
-  }
-
-  // Instant/point effects and pre-race modifiers
-  return instantEffects.includes(type);
-};

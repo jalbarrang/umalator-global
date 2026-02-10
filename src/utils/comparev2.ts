@@ -37,20 +37,36 @@ type ComparisonParams = {
 export function runComparison(params: ComparisonParams) {
   const { startingSeed, sampleCount, runnerA, runnerB, course, parameters, settings } = params;
 
-  const raceSimulator = new RaceSimulator({
+  const commonRaceConfig = {
     umasCount: 2,
     parameters,
     settings,
     course,
-  })
-    .addRunner(runnerA)
-    .addRunner(runnerB)
-    // After all runners are added, prepare the race to calculate the stats for easier access
-    .prepareRace();
+    skillSamples: sampleCount,
+    //
+    duelingRates: {
+      runaway: 10,
+      frontRunner: 10,
+      paceChaser: 10,
+      lateSurger: 10,
+      endCloser: 10,
+    },
+  };
+
+  const pacers: Array<CreateRunner> = [];
+
+  const raceA = new RaceSimulator(commonRaceConfig).addRunner(runnerA);
+  const raceB = new RaceSimulator(commonRaceConfig).addRunner(runnerB);
+
+  for (const pacer of pacers) {
+    raceA.addRunner(pacer);
+    raceB.addRunner(pacer);
+  }
+
+  raceA.prepareRace().validateRaceSetup();
+  raceB.prepareRace().validateRaceSetup();
 
   const results = [];
-
-  raceSimulator.validateRaceSetup();
 
   for (let i = 0; i < sampleCount; i++) {
     const seed = startingSeed + i;
@@ -61,15 +77,23 @@ export function runComparison(params: ComparisonParams) {
     // - Reset the RNG for the race
     // - Reset the runners (including their RNG)
     // - Build or rebuild the skill and effect data for the runner using the new seed.
-    raceSimulator.prepareRound(seed);
+    raceA.prepareRound(seed);
+    raceB.prepareRound(seed);
 
     // Run the race
-    raceSimulator.run();
+    // TODO: This should run in parallel
+    raceA.run();
+    raceB.run();
 
     // Collect the stats of the race
-    const currentResult = raceSimulator.collectStats();
+    const currentResultA = raceA.collectStats();
+    const currentResultB = raceB.collectStats();
 
-    results.push(currentResult);
+    results.push({
+      seed,
+      resultA: currentResultA,
+      resultB: currentResultB,
+    });
   }
 
   // Handle post simulation results

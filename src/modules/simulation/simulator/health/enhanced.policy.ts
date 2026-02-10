@@ -78,10 +78,10 @@ export class EnhancedHpPolicy implements HpPolicy {
 
   init(runner: Runner) {
     this.maxHp =
-      0.8 * HpStrategyCoefficient[runner.strategy] * runner.stats.stamina + this.distance;
+      0.8 * HpStrategyCoefficient[runner.strategy] * runner._adjustedStats.stamina + this.distance;
     this.currentHealth = this.maxHp;
-    this.gutsModifier = 1.0 + 200.0 / Math.sqrt(600.0 * runner.stats.guts);
-    this.subparAcceptChance = Math.round((15.0 + 0.05 * runner.stats.wit) * 1000);
+    this.gutsModifier = 1.0 + 200.0 / Math.sqrt(600.0 * runner._adjustedStats.guts);
+    this.subparAcceptChance = Math.round((15.0 + 0.05 * runner._adjustedStats.wit) * 1000);
 
     // Pre-calculate spurt speeds for enhanced calculation
     this.baseTargetSpeed2 = this.calculateBaseTargetSpeed(runner, 2);

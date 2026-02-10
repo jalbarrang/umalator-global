@@ -1,11 +1,17 @@
-import { Rule30CARng } from '../lib/utils/Random';
 import { Strategy } from '../lib/runner/definitions';
+import { StrategyHelpers } from '../lib/runner/HorseTypes';
+import { Rule30CARng } from './Random';
 import { GameHpPolicy } from './health/game.policy';
 import { NoopHpPolicy } from './health/health-policy';
 import { Runner } from './runner';
+import { Region, RegionList } from './Region';
+import { createParser } from './skills/parser/ConditionParser';
+import { SkillTarget } from './skills/definitions';
+import type { SkillEffect } from './skills/skill.types';
+import type { DefaultParser } from './skills/parser/definitions';
 import type { IPosKeepMode, IStrategy } from '../lib/runner/definitions';
 import type { CreateRunner } from './runner';
-import type { PRNG } from '../lib/utils/Random';
+import type { PRNG } from './Random';
 import type {
   CourseData,
   IGrade,
@@ -18,6 +24,7 @@ import type {
 export type RunnerMap = Map<number, Runner>;
 
 export type SimulationSettings = {
+  mode: 'compare' | 'normal';
   /**
    * Whether the simulation should account for the health system
    */
@@ -82,6 +89,20 @@ export type RaceSimulatorProps = {
    * The settings for the race simulation
    */
   settings: SimulationSettings;
+
+  duelingRates: DuelingRates;
+  /**
+   * The number of skill samples to use for the race simulation
+   */
+  skillSamples: number;
+};
+
+export type DuelingRates = {
+  runaway: number;
+  frontRunner: number;
+  paceChaser: number;
+  lateSurger: number;
+  endCloser: number;
 };
 
 /**
@@ -94,8 +115,8 @@ export type RaceSimulatorProps = {
 export class RaceSimulator {
   private _seed: number;
   private _rng: PRNG | null;
-  private _pacerId: number;
   private _umasCount: number;
+  private accumulatedTime: number;
 
   private _lastRunnerId: number;
 
@@ -115,15 +136,19 @@ export class RaceSimulator {
   public commonSkills: Map<string, number>;
   public strategyCounts: Map<IStrategy, number>;
   public runnersPerStrategy: Map<IStrategy, Array<Runner>>;
+  public pacer: Runner | null;
+
+  public duelingRates: DuelingRates | null;
 
   /**
    * The runners in the race
    */
   private _runners: RunnerMap;
-  /**
-   * Internal map of finished runners
-   */
-  private _finishedRunners: RunnerMap;
+
+  public parser: DefaultParser;
+  public wholeCourse: RegionList;
+  public skillSamples: number;
+  public roundIteration: number;
 
   constructor(props: RaceSimulatorProps) {
     // From props
@@ -137,18 +162,25 @@ export class RaceSimulator {
     this.season = props.parameters.season;
 
     this._settings = props.settings;
+    this.duelingRates = props.duelingRates;
+    this.skillSamples = props.skillSamples;
+    this.roundIteration = 0;
 
     // Default values
     this._seed = -1;
     this._rng = null;
     this._lastRunnerId = 0;
-    this._pacerId = -1; // -1 means no pacer has been set yet
+    this.pacer = null;
     this._runners = new Map();
-    this._finishedRunners = new Map();
+    this.accumulatedTime = 0;
 
     this.commonSkills = new Map();
     this.strategyCounts = new Map();
     this.runnersPerStrategy = new Map();
+
+    this.parser = createParser();
+    this.wholeCourse = new RegionList();
+    this.wholeCourse.push(new Region(0, this.course.distance));
   }
 
   // ==================
@@ -227,6 +259,9 @@ export class RaceSimulator {
     this.strategyCounts = strategyCounts;
     this.runnersPerStrategy = runnersPerStrategy;
 
+    this.accumulatedTime = 0;
+    this.roundIteration = 0;
+
     return this;
   }
 
@@ -255,17 +290,94 @@ export class RaceSimulator {
       runner.validateSetup();
       runner.prepareRunner();
     }
+
+    // Increment the round iteration as setup is complete, so this value should not be used until the next round.
+    this.roundIteration++;
   }
 
-  private step(dt: number): void {
-    for (const runner of this._runners.values()) {
-      runner.step(dt);
+  /**
+   * Steps the race simulation for a given time step.
+   *
+   * @param dt The time step to advance the simulation by.
+   * @param runners The runners to step.
+   */
+  private onUpdate(dt: number, runners: RunnerMap): void {
+    this.accumulatedTime += dt;
+
+    // Internally set the pacer.
+    // ? Should this be done every frame?
+    const pacer = this.getPacer();
+    if (pacer) {
+      this.pacer = pacer;
+    }
+
+    for (const runner of runners.values()) {
+      runner.onUpdate(dt);
 
       if (runner.hasFinishedRace) {
-        // Remove runner from the active runners and add to the finished runners.
-        this._finishedRunners.set(runner.internalId, runner);
-        this._runners.delete(runner.internalId);
+        runners.delete(runner.internalId);
       }
+    }
+  }
+
+  public broadcastSkillEffect(sender: Runner, skillEffect: SkillEffect) {
+    /**
+     * TODO: Use a Switch that handled the different EffectTargets.
+     * For each EffectTarget, we need to filter the runner that apply to that EffectTarget.
+     * Then, broadcast the skill effect to them.
+     *
+     * Note:
+     *
+     * Some EffectTargets come with a value that depending on the context will specify
+     * the amount of runners to target.
+     */
+
+    switch (skillEffect.target) {
+      case SkillTarget.Self:
+        throw new Error('This should never happen');
+      case SkillTarget.All:
+        for (const runner of this._runners.values()) {
+          runner.receiveTargetedEffect(skillEffect);
+        }
+        break;
+      case SkillTarget.InFov:
+        // Find all runners in the FOV of the sender
+        break;
+      case SkillTarget.AheadOfPosition:
+        // Find all runners that are ahead of a certain position
+        // Requires value to be specified
+        break;
+      case SkillTarget.AheadOfSelf:
+        // Find all runners that are ahead of the sender
+        // Optionally uses a value to specify the amount of runners to target
+        break;
+      case SkillTarget.BehindSelf:
+        // Find all runners that are behind the sender
+        // Optionally uses a value to specify the amount of runners to target
+        break;
+      case SkillTarget.AllAllies:
+        // Find all allies of the sender
+        break;
+      case SkillTarget.EnemyStrategy:
+        // Find all enemy runners that are in the specified strategy
+        break;
+      case SkillTarget.KakariAhead:
+        // Find all enemy runners that are rushed ahead of the sender
+        break;
+      case SkillTarget.KakariBehind:
+        // Find all enemy runners that are rushed behind the sender
+        break;
+      case SkillTarget.KakariStrategy:
+        // Find all enemy runners that are rushed and are using a specified strategy
+        break;
+      case SkillTarget.UmaId:
+        // Find the runner with the specified UMA ID (Runner.umaId)
+        break;
+      case SkillTarget.UsedRecovery:
+        // Find all runners that have used a recovery skill
+        break;
+
+      // There might be more, so when they release, we need to add them here.
     }
   }
 
@@ -275,21 +387,73 @@ export class RaceSimulator {
    * This will run until all runners have finished the race
    */
   public run() {
-    // Get the number of runners.
-    const runnerSize = this._runners.size;
+    // Reset the runners to step.
+    const runnersToStep = new Map(this._runners);
 
     // Run the race until all runners have finished.
-    while (this._finishedRunners.size < runnerSize) {
-      this.step(1 / 15);
+    while (runnersToStep.size > 0) {
+      this.onUpdate(1 / 15, runnersToStep);
     }
-
-    // When the race is over, reset the runners map
-    this._runners = new Map(this._finishedRunners.entries());
-    this._finishedRunners = new Map();
   }
 
-  private markRunnerAsPacer(runnerId: number) {
-    throw new Error('Not implemented');
+  private getPacer() {
+    // Select furthest-forward front runner
+    for (const strategy of [Strategy.Runaway, Strategy.FrontRunner]) {
+      // ! NOTE: might revise this.
+      const frontRunners = this._runners
+        .values()
+        .filter((runner) => runner.posKeepStrategy === strategy)
+        .toArray();
+
+      const firstRunner = frontRunners[0];
+
+      if (frontRunners.length > 0) {
+        const pacer = frontRunners.reduce((max, currRunner) => {
+          return currRunner.position > max.position ? currRunner : max;
+        }, firstRunner);
+
+        return pacer;
+      }
+    }
+
+    // Get pacerOverride uma
+    const pacerOverrideUma = this.pacer;
+
+    if (pacerOverrideUma) {
+      return pacerOverrideUma;
+    }
+
+    // Otherwise, lucky pace (set pacerOverride)
+    for (const strategy of [Strategy.PaceChaser, Strategy.LateSurger, Strategy.EndCloser]) {
+      // ! NOTE: might revise this.
+      const runnersWithStrat = this._runners
+        .values()
+        .filter((runner) => StrategyHelpers.strategyMatches(runner.posKeepStrategy, strategy))
+        .toArray();
+
+      const firstRunner = runnersWithStrat[0];
+
+      if (runnersWithStrat.length > 0) {
+        const luckyPacer = runnersWithStrat.reduce((max, currRunner) => {
+          return currRunner.position > max.position ? currRunner : max;
+        }, firstRunner);
+
+        luckyPacer.posKeepStrategy = Strategy.FrontRunner;
+
+        return luckyPacer;
+      }
+    }
+
+    // Otherwise, get virtual pacemaker
+    // (this should never happen though)
+    const pacer = this.pacer;
+
+    if (pacer) {
+      pacer.posKeepStrategy = Strategy.FrontRunner;
+      return pacer;
+    }
+
+    return null;
   }
 
   public collectStats(): Array<unknown> {

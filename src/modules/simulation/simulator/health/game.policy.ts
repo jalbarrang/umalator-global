@@ -2,8 +2,6 @@ import { PositionKeepState } from '../../lib/skills/definitions';
 import { Strategy } from '../../lib/runner/definitions';
 import { CourseHelpers } from '../../lib/course/CourseData';
 import type { Runner } from '../runner';
-import type { IStrategy } from '../../lib/runner/definitions';
-import type { IPositionKeepState } from '../../lib/skills/definitions';
 import type { CourseData, IGroundCondition, IPhase } from '../../lib/course/definitions';
 import type { PRNG } from '../../lib/utils/Random';
 import type { HpPolicy, RaceStateSlice } from './health-policy';
@@ -51,32 +49,27 @@ export class GameHpPolicy implements HpPolicy {
 
   init(runner: Runner) {
     this.maxHp =
-      0.8 * HpStrategyCoefficient[runner.strategy] * runner.stats.stamina + this.distance;
+      0.8 * HpStrategyCoefficient[runner.strategy] * runner._adjustedStats.stamina + this.distance;
     this.currentHealth = this.maxHp;
-    this.gutsModifier = 1.0 + 200.0 / Math.sqrt(600.0 * runner.stats.guts);
-    this.subparAcceptChance = Math.round((15.0 + 0.05 * runner.stats.wit) * 1000);
+    this.gutsModifier = 1.0 + 200.0 / Math.sqrt(600.0 * runner._adjustedStats.guts);
+    this.subparAcceptChance = Math.round((15.0 + 0.05 * runner._adjustedStats.wit) * 1000);
     this.achievedMaxSpurt = false;
   }
 
-  getStatusModifier(state: {
-    positionKeepState: IPositionKeepState;
-    isRushed?: boolean;
-    isDownhillMode?: boolean;
-    leadCompetition?: boolean;
-    posKeepStrategy?: IStrategy;
-  }) {
+  getStatusModifier(state: RaceStateSlice) {
     let modifier = 1.0;
 
     if (state.isDownhillMode) {
       modifier *= 0.4;
     }
 
-    if (state.leadCompetition) {
-      const isOonige = state.posKeepStrategy === Strategy.Runaway;
+    if (state.inSpotStruggle) {
+      const isRunaway = state.posKeepStrategy === Strategy.Runaway;
+
       if (state.isRushed) {
-        modifier *= isOonige ? 7.7 : 3.6;
+        modifier *= isRunaway ? 7.7 : 3.6;
       } else {
-        modifier *= isOonige ? 3.5 : 1.4;
+        modifier *= isRunaway ? 3.5 : 1.4;
       }
     } else if (state.isRushed) {
       modifier *= 1.6;
@@ -96,7 +89,7 @@ export class GameHpPolicy implements HpPolicy {
       isRushed: runner.isRushed,
       isDownhillMode: runner.isDownhillMode,
       inSpotStruggle: runner.inSpotStruggle,
-      posKeepStrategy: runner.strategy,
+      posKeepStrategy: runner.posKeepStrategy,
       pos: runner.position,
       currentSpeed: runner.currentSpeed,
     };
@@ -154,7 +147,6 @@ export class GameHpPolicy implements HpPolicy {
     }
     const candidates: Array<[number, number]> = [];
     const remainDistance = this.distance - 60 - state.pos;
-    const statusModifier = this.getStatusModifier(lastleg);
 
     for (let speed = maxSpeed - 0.1; speed >= baseTargetSpeed2; speed -= 0.1) {
       // solve:
