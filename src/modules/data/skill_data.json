@@ -810,9 +810,9 @@
     "rarity": 5,
     "alternatives": [
       {
-        "baseDuration": 50000,
-        "condition": "remain_distance<=300&order_rate<=40&bashin_diff_infront<=1",
         "precondition": "",
+        "condition": "remain_distance<=300&order_rate<=40&bashin_diff_infront<=1",
+        "baseDuration": 50000,
         "effects": [{ "type": 27, "modifier": 3500, "target": 1 }]
       }
     ]
@@ -1675,9 +1675,9 @@
     "rarity": 2,
     "alternatives": [
       {
-        "baseDuration": -1,
-        "condition": "season==1@season==5",
         "precondition": "",
+        "condition": "season==1@season==5",
+        "baseDuration": -1,
         "effects": [
           { "type": 1, "modifier": 600000, "target": 1 },
           { "type": 3, "modifier": 600000, "target": 1 }
@@ -5114,6 +5114,20 @@
       }
     ]
   },
+  "202031": {
+    "rarity": 2,
+    "alternatives": [
+      {
+        "precondition": "",
+        "condition": "distance_rate_after_random==50",
+        "baseDuration": 18000,
+        "effects": [
+          { "type": 27, "modifier": 4500, "target": 1 },
+          { "type": 9, "modifier": -10000, "target": 1 }
+        ]
+      }
+    ]
+  },
   "202032": {
     "rarity": 1,
     "alternatives": [
@@ -5977,9 +5991,9 @@
     "rarity": 1,
     "alternatives": [
       {
-        "baseDuration": 30000,
-        "condition": "remain_distance<=300&order_rate<=40&bashin_diff_infront<=1",
         "precondition": "",
+        "condition": "remain_distance<=300&order_rate<=40&bashin_diff_infront<=1",
+        "baseDuration": 30000,
         "effects": [{ "type": 27, "modifier": 1500, "target": 1 }]
       }
     ]
