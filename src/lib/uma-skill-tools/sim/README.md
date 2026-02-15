@@ -21,14 +21,14 @@ Broadly, the framework is divided into two parts:
 - Simulating a race
 - Parsing skill conditions and turning them into points on a course where the skill will activate
 
-The former is mostly contained in RaceSolver.ts, which numerically integrates your position and velocity over the course of a race. It is provided with effects that activate at specified times, which is used to implement skills. Activation is controlled by *static conditions* or a *trigger*, which is just a region on the track, and *dynamic conditions*, which is a boolean function dependent on the state of the race solver. Once a trigger is entered, the corresponding dynamic conditions are checked and if they return true the effect is activated for a specified duration.
+The former is mostly contained in RaceSolver.ts, which numerically integrates your position and velocity over the course of a race. It is provided with effects that activate at specified times, which is used to implement skills. Activation is controlled by _static conditions_ or a _trigger_, which is just a region on the track, and _dynamic conditions_, which is a boolean function dependent on the state of the race solver. Once a trigger is entered, the corresponding dynamic conditions are checked and if they return true the effect is activated for a specified duration.
 
 The latter part is responsible for taking skill data mined from the game and generating the triggers and dynamic conditions. It can be further subdivided into two parts:
 
-- ConditionParser.ts and ActivationConditions.ts, which parse the skill conditions into a tree and, given a course, reduce that to a list of regions on the course where the skill has the *potential* to activate, and its dynamic conditions (if any).
+- ConditionParser.ts and ActivationConditions.ts, which parse the skill conditions into a tree and, given a course, reduce that to a list of regions on the course where the skill has the _potential_ to activate, and its dynamic conditions (if any).
 - ActivationSamplePolicy.ts, which samples the list of regions to determine triggers for where the skill will actually activate. Since many skills are either random or modeled as random, many samples are supposed to be taken and the race solver ran many times with different sampled trigger points.
 
-Each skill condition has an associated *sample policy* such as immediate, random (of various types), or random according to a particular probability distribution. Immediate means all samples are the earliest point in their allowable regions, for example phase>=2 is immediate and all samples will be the start of phase 2. The difference between the two random types is the former is used for actually random conditions (i.e., ones that end in \_random, like phase_random, all_corner_random, etc) and the latter is used for conditions that are not actually random but involve other umas in some way and so are modeled as random. When skill conditions are combined with & or @ some sample policies dominate other ones, so something like is_lastspurt==1&phase_random==3 will be sampled randomly (is_lastspurt==1 would otherwise always be sampled as activating immediately).
+Each skill condition has an associated _sample policy_ such as immediate, random (of various types), or random according to a particular probability distribution. Immediate means all samples are the earliest point in their allowable regions, for example phase>=2 is immediate and all samples will be the start of phase 2. The difference between the two random types is the former is used for actually random conditions (i.e., ones that end in \_random, like phase_random, all_corner_random, etc) and the latter is used for conditions that are not actually random but involve other umas in some way and so are modeled as random. When skill conditions are combined with & or @ some sample policies dominate other ones, so something like is_lastspurt==1&phase_random==3 will be sampled randomly (is_lastspurt==1 would otherwise always be sampled as activating immediately).
 
 The sample policy associated with a condition is more of just a default and technically the output of any condition tree can be sampled with any sample policy. This is intended to allow the user some choice in how certain conditions are modeled, since the sample policy is what controls where a given skill is "likely" to activate.
 
@@ -98,7 +98,7 @@ KuromiAK#4505 on Discord let me hassle him about various minutiae of game mechan
 
 # License
 
-Copyright (C) 2022  pecan
+Copyright (C) 2022 pecan
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -107,8 +107,8 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
+along with this program. If not, see <https://www.gnu.org/licenses/>.

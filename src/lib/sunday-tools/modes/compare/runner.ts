@@ -1,205 +1,27 @@
-import { PositionKeepState, SkillRarity, SkillTarget, SkillType } from './skills/definitions';
-import { StrategyHelpers } from './runner/runner.types';
-import {
-  Acceleration,
-  GroundPowerModifier,
-  GroundSpeedModifier,
-  PositionKeep,
-  Speed,
-  StrategyModule,
-} from './common/definitions';
-import { PosKeepMode, Strategy } from './runner/definitions';
-import { Rule30CARng } from './Random';
+import { Runner } from '../../common/runner';
+import { CourseHelpers } from '../../course/CourseData';
 import {
   createBlockedSideCondition,
   createOvertakeCondition,
-} from './conditions/special-conditions';
-import { CourseHelpers } from './course/CourseData';
-import { CompensatedAccumulator, Timer } from './simulator.types';
-import { buildSkillData } from './runner/runner.utils';
-import type { ApproximateCondition, ConditionState } from './conditions/ApproximateStartContinue';
-import type { IPositionKeepState } from './skills/definitions';
-import type { IAptitude, IMood, IStrategy } from './runner/definitions';
-import type { PRNG } from './Random';
-import type { HpPolicy, RaceStateSlice } from './health/health-policy';
-import type { RaceSimulator } from './race-simulator';
-import type { CourseData, IGroundCondition, IPhase } from './course/definitions';
-import type { ActiveSkill, PendingSkill, SkillEffect } from './skills/skill.types';
-import { getUmaDisplayInfo } from '@/modules/runners/utils';
+} from '../../conditions/special-conditions';
+import { PosKeepMode, Strategy } from '../../runner/definitions';
+import type { IPhase } from '../../course/definitions';
+import type { Timer } from '../../simulator.types';
+import type { PRNG } from '../../shared/random';
+import type {
+  ApproximateCondition,
+  ConditionState,
+} from '../../conditions/ApproximateStartContinue';
+import type { Race } from '../../common/race';
+import type { RunnerProps } from '../../common/runner';
 
-// ===================
-// Constants
-// ===================
-
-const PhaseDeceleration = [-1.2, -0.8, -1.0];
-const BaseAccel = 0.0006;
-const UphillBaseAccel = 0.0004;
-
-// ===================
-// Types
-// ===================
-
-export type StatLine = {
-  speed: number;
-  stamina: number;
-  power: number;
-  guts: number;
-  wit: number;
-};
-
-export type RunnerAptitudes = {
-  distance: IAptitude;
-  strategy: IAptitude;
-  surface: IAptitude;
-};
-
-export type CreateRunner = {
-  outfitId: string;
-  mood: IMood;
-  strategy: IStrategy;
-  aptitudes: RunnerAptitudes;
-  stats: StatLine;
-  skills: Array<string>;
-};
-
-/**
- * # Runner Props
- *
- * ## Overview
- *
- * The props for creating a new Runner instance.
- */
-export type RunnerProps = {
-  id: number;
-  umaId: string;
-  outfitId: string;
-  name: string;
-  mood: IMood;
-  strategy: IStrategy;
-  aptitudes: RunnerAptitudes;
-  stats: StatLine;
-  skillIds: Array<string>;
-};
-
-export type SpeedModifiers = {
-  targetSpeed: CompensatedAccumulator;
-  currentSpeed: CompensatedAccumulator;
-  accel: CompensatedAccumulator;
-  oneFrameAccel: number;
-  specialSkillDurationScaling: number;
-};
-
-// ===================
-// Class Definition
-// ===================
-
-/**
- * # Runner
- *
- * ## Overview
- *
- * The class for representing a runner in the race that will be simulated.
- *
- */
-export class Runner {
-  public race: RaceSimulator;
-
-  /**
-   * Unique ID for the runner
-   *
-   * Generated automatically by the RaceSimulator and set to the
-   */
-  public internalId: number;
-
-  /**
-   * The Base Umamusume ID that this runner represents
-   *
-   * Default: `0001` for Mobs
-   *
-   * Example:
-   * - `1001` for `Special Week`
-   */
-  public umaId: string;
-
-  /**
-   *  Outfit ID for the runner
-   *
-   * Default:
-   *  - `00101` for Mobs
-   *
-   * Examples:
-   * - `100101` for `[Special Dreamer]` outfit
-   * - `100102` for `[Hopp'n♪Happy Heart]` outfit
-   */
-  public outfitId: string;
-
-  /**
-   * The name of the runner
-   *
-   * Value is either <Random Name> or the name of the Umamusume that this runner represents
-   *
-   * Examples:
-   * - `Special Week`
-   * - `Silence Suzuka`
-   */
-  public name: string;
-
-  // ===================
-  // Basic Information
-  // ===================
-
-  public readonly mood: IMood;
-  /**
-   * The canonical strategy of the runner
-   */
-  public readonly strategy: IStrategy;
-  /**
-   * The strategy that the runner is using for position keeping.
-   */
-  public posKeepStrategy: IStrategy;
-  /**
-   * The strategy that the runner was using for position keeping before they were rushed.
-   */
-  declare public preRushedPosKeepStrategy: IStrategy;
-  /**
-   * Represents the Raw Stats of the runner
-   */
-  public readonly _stats: Readonly<StatLine>;
-  /**
-   * Represents the Base Stats of the runner (raw stats + mood coefficient)
-   */
-  public readonly _baseStats: Readonly<StatLine>;
-  /**
-   * Represents the Adjusted Stats of the runner
-   */
-  public readonly _adjustedStats: Readonly<StatLine>;
-  /**
-   * Runtime Mutable Base Stats of the runner
-   */
-  public baseStats: StatLine;
-  /**
-   * Runtime Mutable Adjusted Stats of the runner
-   */
-  public adjustedStats: StatLine;
-  /**
-   * Aptitudes of the runner
-   */
-  public readonly aptitudes: RunnerAptitudes;
-  /**
-   * Skill IDs that this runner has.
-   */
-  public readonly skillIds: Array<string>;
-
-  // ===================
-  // [Pending]
-  // ===================
-
-  public rng: PRNG;
-  public rushedRng: PRNG;
-  public posKeepRng: PRNG;
-  public laneMovementRng: PRNG;
-  public witRng: PRNG;
-  public syncRng: PRNG;
+export class CompareRunner extends Runner {
+  declare public posKeepRng: PRNG;
+  declare public laneMovementRng: PRNG;
+  declare public witRng: PRNG;
+  declare public syncRng: PRNG;
+  declare public downhillRng: PRNG;
+  declare public skillRng: PRNG;
   /**
    * RNG for force activating gold skills
    *
@@ -208,716 +30,46 @@ export class Runner {
    * Skill Effects that use this:
    * - ActivateRandomGold
    */
-  public forceSkillActivatorRng: PRNG;
+  declare public forceSkillActivatorRng: PRNG;
+  declare public duelingRng: PRNG;
 
-  // ===================
-  // Downhill mode
-  // ===================
+  // Conditions (Compare mode only)
+  declare private conditionTimer: Timer;
+  declare private conditionValues: Map<string, number>;
+  declare private conditions: Map<string, ApproximateCondition>;
 
-  /**
-   * Whether the runner is currently in downhill mode
-   */
-  public isDownhillMode = false;
-  /**
-   * Frame when downhill mode started
-   */
-  public downhillModeStart: number | null;
-  /**
-   * Last frame we checked for downhill mode changes
-   */
-  public lastDownhillCheckFrame: number;
-  /**
-   * RNG for downhill mode
-   */
-  public downhillRng: PRNG;
-
-  /**
-   * The gate number that the runner is in
-   *
-   * The value is between 0 and 8, where 0 is the leftmost gate and 8 is the rightmost gate.
-   *
-   * This value will be set by the RaceSimulator based on the gate roll.
-   */
-  public gate: number | null = null;
-  public slopePenalties: Array<number>;
-
-  public sectionModifiers: Array<number>;
-  public baseAccel: Array<number>;
-  public baseTargetSpeedPerPhase: [number, number, number];
-
-  public isLastSpurt = false;
-  public lastSpurtSpeed: number;
-  public lastSpurtTransition: number;
-  public hasAchievedFullSpurt = false;
-
-  // ===================
-  // Starting Gate
-  // ===================
-  public startDash = true;
-  public startDelay: number;
-  public startDelayAccumulator: number;
-
-  /**
-   * Current lane the runner is in
-   */
-  public currentLane: number;
-  /**
-   * The position of the runner on the course.
-   */
-  public position: number;
-  /**
-   * Whether the runner has finished the race.
-   *
-   * This is set to true when the runner crosses the finish line (reaches the courses distance).
-   */
-  public hasFinishedRace = false;
-  public currentSpeed: number;
-  public targetSpeed: number;
-  public acceleration: number;
-  public modifiers: SpeedModifiers;
-
-  /**
-   * The health policy for the runner that determines how much HP is consumed and how much is recovered.
-   */
-  public healthPolicy: HpPolicy;
-  /**
-   * Whether the runner has run out of HP and cannot maintain top speed at the last spurt.
-   */
-  public outOfHp = false;
-  /**
-   * The position where the runner ran out of HP.
-   */
-  public outOfHpPosition: number | null = null;
-
-  // ===================
-  // Rushed State
-  // ===================
-  /**
-   * Whether the runner is currently in rushed mode
-   */
-  public isRushed = false;
-  /**
-   * Whether the runner has been rushed in the last spurt of this race.
-   */
-  public hasBeenRushed = false;
-  /**
-   * The section that the runner is in when they are rushed.
-   */
-  public rushedSection: number;
-  /**
-   * The position where the runner enters rushed mode.
-   */
-  public rushedEnterPosition: number;
-  /**
-   * The position where the runner is when they are rushed.
-   */
-  public rushedEndPosition: number;
-  /**
-   * The timer for the rushed state.
-   */
-  public rushedTimer: Timer;
-  /**
-   * The maximum duration of the rushed state.
-   */
-  public rushedMaxDuration: number;
-  /**
-   * The activations of the rushed state.
-   */
-  public rushedActivations: Array<[number, number]>;
-
-  // ===================
-  // Skills
-  // ===================
-
-  /**
-   * The number of skills that have been activated by the runner
-   */
-  public skillsActivatedCount: number;
-  public targetSpeedSkillsActive: Array<ActiveSkill>;
-  public currentSpeedSkillsActive: Array<ActiveSkill & { naturalDeceleration: boolean }>;
-  public accelerationSkillsActive: Array<ActiveSkill>;
-  public laneMovementSkillsActive: Array<ActiveSkill>;
-  public changeLaneSkillsActive: Array<ActiveSkill>;
-  /**
-   * The number of heals that have been activated by the runner
-   */
-  public healsActivatedCount: number;
-  /**
-   * A map of phase to the number of skills that have been activated for that phase
-   *
-   * Phases: [0, 1, 2, 3] (Early, Mid, Late, Last Spurt)
-   */
-  public skillsActivatedPhaseMap: [number, number, number, number];
-  /**
-   * A map of half race to the number of skills that have been activated for that half race
-   *
-   * Half races: [0, 1] (First Half, Second Half)
-   */
-  public skillsActivatedHalfRaceMap: [number, number];
-  /**
-   * Skills that are pending activation
-   */
-  public pendingSkills: Array<PendingSkill>;
-  /**
-   * Skills that are targeted by other runners
-   */
-  public targetedSkills: Array<PendingSkill>;
-
-  // ===================
-  // Overtake
-  // ===================
-
-  /**
-   * The number of times the runner has overtaken another runner
-   */
-  public overtakeCount: number;
-
-  /**
-   * A map of phase to the number of times the runner has overtaken another runner for that phase
-   *
-   * Phases: [0, 1, 2, 3] (Early, Mid, Late, Last Spurt)
-   */
-  public overtakeCountPerPhaseMap: [number, number, number, number];
-
-  /**
-   * A map of half race to the number of times the runner has overtaken another runner for that half race
-   *
-   * Half races: [0, 1] (First Half, Second Half)
-   */
-  public overtakeCountPerHalfRaceMap: [number, number];
-
-  // ===================
-  // Spot Struggle
-  // ===================
-
-  /**
-   * Whether the runner is currently in spot struggle.
-   */
-  public inSpotStruggle = false;
-  /**
-   * The timer for the spot struggle.
-   *
-   * Counts for how long the runner has been in spot struggle.
-   */
-  public spotStruggleTimer: Timer;
-  public spotStruggleStartPosition: number | null;
-  public spotStruggleEndPosition: number;
-  /**
-   * The IDs of the runners that this runner is spot struggling with in the last spurt.
-   *
-   * Notes:
-   * - This set doesn't get cleared until the race ends.
-   * - This set doesn't include the runner itself.
-   */
-  public spotStruggleTargets: Set<number>;
-  /**
-   * Whether the runner has been in spot struggle at the start of the race.
-   */
-  public hasSpotStruggle = false;
-
-  // ===================
-  // Dueling
-  // ===================
-
-  /**
-   * Whether the runner is currently dueling with another runner.
-   */
-  public isDueling = false;
-  public canDuel: boolean | null = null;
-  /**
-   * The timer for the dueling.
-   *
-   * Counts for how long the runner has been in dueling.
-   */
-  public duelingTimer: Timer;
-  public duelingStartPosition: number;
-  public duelingEndPosition: number;
-  /**
-   * The IDs of the runners that this runner is dueling with in the last spurt.
-   *
-   * Notes:
-   * - This set doesn't get cleared until the race ends.
-   * - This set doesn't include the runner itself.
-   */
-  public duelTargets: Set<number>;
-  /**
-   * Whether the runner has dueled in the last spurt of this race.
-   */
-  public hasDueled = false;
-  public duelingRng: PRNG;
-
-  public positionKeepState: IPositionKeepState;
-
-  private conditionTimer: Timer;
-  private conditionValues: Map<string, number> = new Map();
-  private conditions: Map<string, ApproximateCondition> = new Map();
-
-  // ===================
-  // Hills
-  // ===================
-
-  /**
-   * The index of the current hill that the runner is on.
-   */
-  public currentHillIndex: number;
-  /**
-   * The index of the next hill that the runner needs to check.
-   */
-  public nextHillToCheck: number;
-  /**
-   * The hills on the course.
-   */
-  public hills: Array<{ start: number; end: number; slope: number }>;
-
-  public timers: Array<Timer>;
-  public accumulateTime: Timer;
-  public phase: IPhase;
-  public nextPhaseTransition: number;
-  public sectionLength: number;
-  public baseSpeed: number;
-  public minSpeed: number;
-  public randomLot: number;
-  public usedSkills: Set<string>;
-  public pendingSkillRemoval: Set<string>;
-
-  public positionKeepActivations: Array<[number, number, IPositionKeepState]>;
-  public extraMoveLane: number;
-  public forceInSpeed: number;
-  public targetLane: number;
-  public laneChangeSpeed: number;
-  public firstUmaInLateRace = false;
-  posKeepSpeedCoef: number;
-  posKeepNextTimer: any;
-  posKeepExitDistance: number;
-  posKeepExitPosition: number;
-  posKeepMinThreshold: number;
-  posKeepMaxThreshold: number;
-  posKeepEnd: number;
-  slopePer: number;
-  nonFullSpurtVelocityDiff: number | null;
-  nonFullSpurtDelayDistance: number | null;
-  skillRng: PRNG;
-
-  constructor(race: RaceSimulator, props: RunnerProps) {
-    this.race = race;
-
-    // From props
-    this.internalId = props.id;
-
-    // Thought: Mood could be made so it could be randomly set per race as an option in the UI.
-    this.mood = props.mood;
-
-    // This stats act as snapshots to be copied later to the mutable stats
-    this._stats = props.stats;
-    this._baseStats = buildBaseStats(props.stats, props.mood);
-    this._adjustedStats = buildAdjustedStats(
-      this._baseStats,
-      race.course,
-      race.ground,
-      props.aptitudes.strategy,
-    );
-
-    // These stats are mutable and will be updated during the race
-    this.baseStats = { ...this._baseStats };
-    this.adjustedStats = { ...this._adjustedStats };
-
-    this.strategy = props.strategy;
-    this.posKeepStrategy = props.strategy;
-    this.aptitudes = props.aptitudes;
-    this.skillIds = props.skillIds;
-
-    // === Umamusume related ===
-    this.umaId = props.umaId;
-    this.outfitId = props.outfitId;
-    this.name = props.name;
-
-    // === Other ===
+  constructor(race: Race, props: RunnerProps) {
+    super(race, props);
   }
 
-  // === Setup ===
+  // public setupRng(rng: PRNG) {
+  //   // Copy the master RNG
+  //   this.rng = rng;
 
-  public setHealthPolicy(healthPolicy: HpPolicy) {
-    this.healthPolicy = healthPolicy;
-    return this;
-  }
+  //   // Derived RNGs
+  //   this.rushedRng = new Rule30CARng(rng.int32());
+  //   this.downhillRng = new Rule30CARng(rng.int32());
+  //   this.posKeepRng = new Rule30CARng(rng.int32());
+  //   this.laneMovementRng = new Rule30CARng(rng.int32());
+  //   this.witRng = new Rule30CARng(rng.int32());
+  //   this.forceSkillActivatorRng = new Rule30CARng(rng.int32());
+  //   this.duelingRng = new Rule30CARng(rng.int32());
+  //   this.syncRng = new Rule30CARng(rng.int32());
+  //   this.skillRng = new Rule30CARng(rng.int32());
 
-  public setGate(gate: number | null) {
-    this.gate = gate;
-    return this;
-  }
-
-  public setupRng(rng: PRNG) {
-    // Copy the master RNG
-    this.rng = rng;
-
-    // Derived RNGs
-    this.rushedRng = new Rule30CARng(rng.int32());
-    this.downhillRng = new Rule30CARng(rng.int32());
-    this.posKeepRng = new Rule30CARng(rng.int32());
-    this.laneMovementRng = new Rule30CARng(rng.int32());
-    this.witRng = new Rule30CARng(rng.int32());
-    this.forceSkillActivatorRng = new Rule30CARng(rng.int32());
-    this.duelingRng = new Rule30CARng(rng.int32());
-    this.syncRng = new Rule30CARng(rng.int32());
-    this.skillRng = new Rule30CARng(rng.int32());
-
-    return this;
-  }
+  //   return this;
+  // }
 
   // === Runtime ===
 
-  // ==========================================
-  // INITIALIZATION METHODS (alphabetically organized)
-  // ==========================================
+  public override onPrepare(masterSeed: number): void {
+    super.onPrepare(masterSeed);
 
-  /**
-   * Calculate and cache acceleration values for each phase
-   * Must be called after speed calculations
-   */
-  private initializeAccelerationValues(): void {
-    // [0, 1, 2] = normal phases
-    // [3, 4, 5] = uphill phases (use UphillBaseAccel)
-    this.baseAccel = [0, 1, 2, 0, 1, 2].map((phase, i) =>
-      this.calculatePhaseBaseAccel(i > 2 ? UphillBaseAccel : BaseAccel, phase),
-    );
-  }
-
-  /**
-   * Cache frequently-accessed values for performance
-   * Includes baseSpeed and slope penalties
-   */
-  private initializeCachedValues(): void {
-    // Base speed is course-dependent constant
-    this.baseSpeed = this.race.baseSpeed;
-
-    // Cache slope penalties to avoid recalculating each hill
-    this.slopePenalties = this.race.course.slopes.map(
-      (s) => ((s.slope / 10000.0) * 200.0) / this.adjustedStats.power,
-    );
-  }
-
-  /**
-   * Initialize dueling and spot struggle tracking
-   * These track multi-runner interactions
-   */
-  private initializeDuelTracking(): void {
-    // === Dueling ===
-    this.isDueling = false;
-    this.canDuel = null;
-    this.hasDueled = false;
-    this.duelingTimer = this.createTimer();
-    this.duelingStartPosition = -1;
-    this.duelingEndPosition = -1;
-    this.duelTargets = new Set();
-  }
-
-  private initializeSpotStruggleTracking(): void {
-    // === Spot Struggle ===
-    this.inSpotStruggle = false;
-    this.hasSpotStruggle = false;
-    this.spotStruggleTimer = this.createTimer();
-    this.spotStruggleStartPosition = null;
-    this.spotStruggleEndPosition = -1;
-    this.spotStruggleTargets = new Set();
-  }
-
-  /**
-   * Initialize downhill mode state
-   * Downhill mode can increase acceleration on downhill slopes
-   */
-  private initializeDownhillState(): void {
-    this.isDownhillMode = false;
-    this.downhillModeStart = null;
-    this.lastDownhillCheckFrame = 0;
-  }
-
-  /**
-   * Initialize health/stamina policy
-   * Must be called after speed calculations
-   */
-  private initializeHealthPolicy(): void {
-    if (!this.healthPolicy) {
-      throw new Error('Health policy not set');
-    }
-
-    // reset mutable stats
-    this.baseStats = { ...this._baseStats };
-    this.adjustedStats = { ...this._adjustedStats };
-
-    this.healthPolicy.init(this);
-    this.outOfHp = false;
-  }
-
-  private initializeLastSpurtTracking(): void {
-    this.isLastSpurt = false;
-    this.lastSpurtTransition = -1;
-    this.lastSpurtSpeed = 0.0;
-    this.hasAchievedFullSpurt = false;
-    this.nonFullSpurtVelocityDiff = null;
-    this.nonFullSpurtDelayDistance = null;
-  }
-
-  /**
-   * Initialize hill tracking state
-   * Sets up indices for efficient hill detection during race
-   */
-  private initializeHillTracking(): void {
-    if (!CourseHelpers.isSortedByStart(this.race.course.slopes)) {
-      throw new Error('slopes must be sorted by start location');
-    }
-
-    this.currentHillIndex = -1;
-    this.nextHillToCheck = 0;
-    this.hills = this.race.course.slopes.map((s) => ({
-      start: s.start,
-      end: s.start + s.length,
-      slope: s.slope,
-    }));
-    this.slopePer = 0.0;
-  }
-
-  /**
-   * Initialize lane position and movement state
-   * Lane is determined by gate number
-   */
-  private initializeLaneState(): void {
-    if (this.gate === undefined || this.gate === null) {
-      throw new Error('Gate not set');
-    }
-
-    // Calculate initial lane from gate
-    const initialLane = this.gate * this.race.course.horseLane;
-
-    this.currentLane = initialLane;
-    this.targetLane = initialLane;
-    this.laneChangeSpeed = 0.0;
-    this.extraMoveLane = -1.0;
-    this.forceInSpeed = 0.0;
-  }
-
-  /**
-   * Initialize speed modifier accumulators
-   * These track temporary skill effects on speed/accel
-   */
-  private initializeModifiers(): void {
-    this.modifiers = {
-      targetSpeed: new CompensatedAccumulator(0.0),
-      currentSpeed: new CompensatedAccumulator(0.0),
-      accel: new CompensatedAccumulator(0.0),
-      oneFrameAccel: 0.0,
-      specialSkillDurationScaling: 1.0,
-    };
-  }
-
-  /**
-   * Initialize position, speed, and start delay
-   * Sets the runner at the starting gate
-   */
-  private initializeMovementState(): void {
-    if (!this.rng) throw new Error('RNG not set');
-    if (!this.modifiers) throw new Error('Modifiers not set');
-
-    // Start at gate (position 0)
-    this.position = 0.0;
-    this.acceleration = 0.0;
-    this.currentSpeed = 3.0; // Initial speed at gate
-    this.targetSpeed = 0.85 * this.race.baseSpeed;
-
-    // Start dash state
-    this.startDash = true;
-    this.startDelay = 0.1 * this.rng.random(); // Random 0-100ms delay
-    this.startDelayAccumulator = this.startDelay;
-    this.modifiers.accel.add(24.0); // Start dash acceleration boost
-
-    // Not finished yet
-    this.hasFinishedRace = false;
-  }
-
-  /**
-   * Initialize phase tracking
-   * Phases: 0 (early), 1 (mid), 2 (late), last spurt
-   */
-  private initializePhaseTracking(): void {
-    this.phase = 0;
-    this.nextPhaseTransition = CourseHelpers.phaseStart(this.race.course.distance, 1);
-    this.sectionLength = this.race.course.distance / 24.0;
-
-    // First place tracking (for angling/scheming skills)
-    // TODO: replace this later
-    this.firstUmaInLateRace = false;
-  }
-
-  /**
-   * Initialize random values used throughout race
-   * These are drawn once at race start
-   */
-  private initializeRandomValues(): void {
-    if (!this.rng) throw new Error('RNG not set');
-
-    // Random lot for various skill conditions
-    this.randomLot = this.rng.uniform(100);
-
-    const strategyModifer = StrategyModule.forceInSpeedModifier[this.strategy];
-    this.forceInSpeed = this.rng.uniform(100) * strategyModifer;
-  }
-
-  /**
-   * Initialize rushed state
-   * Determines if/when runner will enter rushed state
-   */
-  private initializeRushedState(): void {
-    if (!this.race.settings.rushed) {
-      this.isRushed = false;
-      this.hasBeenRushed = false;
-      this.rushedSection = -1;
-      this.rushedEnterPosition = -1;
-      this.rushedEndPosition = -1;
-      this.rushedTimer = this.createTimer();
-      this.rushedMaxDuration = 12.0;
-      this.rushedActivations = [];
-      return;
-    }
-
-    if (!this.rushedRng) throw new Error('Rushed RNG not set');
-    if (!this.sectionLength) throw new Error('Section length not set');
-
-    this.isRushed = false;
-    this.hasBeenRushed = false;
-    this.rushedSection = -1;
-    this.rushedEnterPosition = -1;
-    this.rushedEndPosition = -1;
-    this.rushedTimer = this.createTimer();
-    this.rushedMaxDuration = 12.0;
-    this.rushedActivations = [];
-
-    if (this.rushedRng.random() < this.rushedChance) {
-      // Determine which section (2-9) the rushed state activates in
-      this.rushedSection = 2 + this.rushedRng.uniform(8); // Random int from 2 to 9
-      this.rushedEnterPosition = this.sectionLength * this.rushedSection;
-    }
-  }
-
-  /**
-   * Initialize skill tracking arrays and counters
-   * These track active and pending skills
-   */
-  private initializeSkillTracking(): void {
-    // Active skill arrays (duration-based effects)
-    this.targetSpeedSkillsActive = [];
-    this.currentSpeedSkillsActive = [];
-    this.accelerationSkillsActive = [];
-    this.laneMovementSkillsActive = [];
-    this.changeLaneSkillsActive = [];
-
-    // Activation counters
-    this.skillsActivatedCount = 0;
-    this.skillsActivatedPhaseMap = [0, 0, 0, 0];
-    this.skillsActivatedHalfRaceMap = [0, 0];
-    this.healsActivatedCount = 0;
-
-    this.pendingSkills = [];
-    /**
-     * Compare mode: Doesn't use targeted skills as the two runners being compared are isolated from each other.
-     * Normal mode: 9-runner setups use targeted skills as runners interact with each other.
-     */
-    this.targetedSkills = [];
-    this.usedSkills = new Set();
-    this.pendingSkillRemoval = new Set();
-
-    // Overtake tracking
-    // NOTE: this values only apply in normal mode, not in compare mode.
-    // Compare mode uses artificial values to resolve the overtake not handled here.
-    this.overtakeCount = 0;
-    this.overtakeCountPerPhaseMap = [0, 0, 0, 0];
-    this.overtakeCountPerHalfRaceMap = [0, 0];
-
-    // Populate Pending Skills
-    const skillTrigers = this.skillIds.flatMap((skillId) =>
-      buildSkillData({
-        runner: this,
-        raceParams: {
-          ground: this.race.ground,
-          timeOfDay: this.race.timeOfDay,
-          weather: this.race.weather,
-          grade: this.race.grade,
-          season: this.race.season,
-        },
-        course: this.race.course,
-        wholeCourse: this.race.wholeCourse,
-        parser: this.race.parser,
-        skillId: skillId,
-        ignoreNullEffects: false,
-      }),
-    );
-
-    const triggers = skillTrigers.map((skillTrigger) => {
-      // As I've that the override is not being used in other compare files, i'll just use the one that comes with the trigger.
-      const samplePolicy = skillTrigger.samplePolicy;
-      return samplePolicy.sample(skillTrigger.regions, this.race.skillSamples, this.skillRng);
-    });
-
-    const roundIteration = this.race.roundIteration;
-
-    this.pendingSkills = skillTrigers.map((skillTrigger, index) => ({
-      skillId: skillTrigger.skillId,
-      rarity: skillTrigger.rarity,
-      trigger: triggers[index][roundIteration % triggers[index].length],
-      extraCondition: skillTrigger.extraCondition,
-      effects: skillTrigger.effects,
-    }));
-  }
-
-  /**
-   * Calculate speed values for each phase and last spurt
-   * Must be called after gate skills activate (they can modify stats)
-   */
-  private initializeSpeedCalculations(): void {
-    // Base target speeds for each phase [early, mid, late]
-    this.baseTargetSpeedPerPhase = [0, 1, 2].map((phase) =>
-      this.calculatePhaseTargetSpeed(phase),
-    ) as [number, number, number];
-
-    // Last spurt (final sprint) speed
-    this.lastSpurtSpeed = this.calculateLastSpurtSpeed();
-
-    // Minimum speed (prevents slowing below this after start dash)
-    this.minSpeed = 0.85 * this.race.baseSpeed + Math.sqrt(200.0 * this.adjustedStats.guts) * 0.001;
-
-    // Section modifiers (wisdom-based random variance per 1/24 section)
-    this.sectionModifiers = Array.from({ length: 24 }, () => {
-      if (!this.race.settings.sectionModifier) {
-        return 0.0;
-      }
-
-      const max = (this.adjustedStats.wit / 5500.0) * Math.log10(this.adjustedStats.wit * 0.1);
-      const factor = (max - 0.65 + this.witRng.random() * 0.65) / 100.0;
-      return this.race.baseSpeed * factor;
-    });
-
-    // Add sentinel for race end
-    this.sectionModifiers.push(0.0);
-  }
-
-  /**
-   * Initialize timer system
-   * Creates base timers used throughout race
-   */
-  private initializeTimers(): void {
-    this.timers = [];
-    this.accumulateTime = this.createTimer(0.0);
     this.conditionTimer = this.createTimer(-1.0);
-  }
+    this.conditionValues = new Map();
+    this.conditions = new Map();
 
-  // ==========================================
-  // SPECIAL INITIALIZATION
-  // ==========================================
-
-  /**
-   * Activate gate skills (green skills that activate at race start)
-   * Must be called before min speed calculation (can modify guts)
-   */
-  private activateGateSkills(): void {
-    this.processSkillActivations();
+    this.registerConditions();
   }
 
   private registerCondition(name: string, condition: ApproximateCondition): void {
@@ -937,109 +89,44 @@ export class Runner {
     this.registerCondition('overtake', createOvertakeCondition());
   }
 
-  private initializePositionKeep() {
-    this.positionKeepState = PositionKeepState.None;
-    this.posKeepNextTimer = this.createTimer();
-    this.posKeepSpeedCoef = 1.0;
-    this.posKeepExitDistance = 0.0;
-    this.posKeepExitPosition = 0.0;
-    this.posKeepMinThreshold = PositionKeep.minThreshold(this.strategy, this.race.course.distance);
-    this.posKeepMaxThreshold = PositionKeep.maxThreshold(this.strategy, this.race.course.distance);
-    this.posKeepEnd = this.sectionLength * (this.race.settings.mode === 'compare' ? 10.0 : 3.0);
-    this.positionKeepActivations = [];
+  protected calculatePosKeepEnd(): number {
+    return this.sectionLength * 10.0;
   }
 
-  public validateSetup(): void {
-    if (!this.race) throw new Error('Race not set');
-    if (!this.rng) throw new Error('RNG not set');
-    if (!this.healthPolicy) throw new Error('Health policy not set');
-    if (this.gate === undefined) throw new Error('Gate not assigned');
-  }
+  // public prepareRunner(): void {
+  //   this.initializeTimers();
+  //   this.initializeRandomValues();
+  //   this.initializePhaseTracking();
+  //   this.initializeLastSpurtTracking();
 
-  public prepareRunner(): void {
-    this.initializeTimers();
-    this.initializeRandomValues();
-    this.initializePhaseTracking();
-    this.initializeLastSpurtTracking();
+  //   this.initializeSkillTracking();
+  //   this.initializeDuelTracking();
+  //   this.initializeSpotStruggleTracking();
 
-    this.initializeSkillTracking();
-    this.initializeDuelTracking();
-    this.initializeSpotStruggleTracking();
+  //   this.initializeLaneState();
+  //   this.initializeMovementState();
+  //   this.initializeModifiers();
 
-    this.initializeLaneState();
-    this.initializeMovementState();
-    this.initializeModifiers();
-    this.initializePositionKeep();
+  //   // Activate gate skills (must be before min speed calc)
+  //   this.activateGateSkills();
 
-    // Activate gate skills (must be before min speed calc)
-    this.activateGateSkills();
+  //   // Calculate derived values
+  //   this.initializeSpeedCalculations();
 
-    // Calculate derived values
-    this.initializeSpeedCalculations();
-    this.initializeAccelerationValues();
+  //   // Initialize mechanics
+  //   this.initializeHillTracking();
+  //   this.initializeRushedState();
+  //   this.initializeDownhillState();
 
-    // Initialize mechanics
-    this.initializeHillTracking();
-    this.initializeRushedState();
-    this.initializeDownhillState();
+  //   // Initialize health system
+  //   this.initializeHealthPolicy();
 
-    // Initialize health system
-    this.initializeHealthPolicy();
+  //   // Cache frequently-accessed values
+  //   this.initializeCachedValues();
 
-    // Cache frequently-accessed values
-    this.initializeCachedValues();
-
-    // Register dynamic conditions
-    this.registerConditions();
-  }
-
-  private calculatePhaseBaseAccel(accelModifier: number, phase: number): number {
-    const strategyCoefficient = Acceleration.StrategyPhaseCoefficient[this.strategy][phase];
-    const groundTypeProficiencyModifier =
-      Acceleration.GroundTypeProficiencyModifier[this.aptitudes.surface];
-    const distanceProficiencyModifier =
-      Acceleration.DistanceProficiencyModifier[this.aptitudes.distance];
-
-    // Accel = BaseAccel * sqrt(500.0 * PowerStat) * StrategyPhaseCoefficient * GroundTypeProficiencyModifier * DistanceProficiencyModifier
-    return (
-      accelModifier *
-      Math.sqrt(500.0 * this.adjustedStats.power) *
-      strategyCoefficient *
-      groundTypeProficiencyModifier *
-      distanceProficiencyModifier
-    );
-  }
-
-  private calculatePhaseTargetSpeed(phase: number): number {
-    const phaseCoefficient = Speed.StrategyPhaseCoefficient[this.strategy][phase];
-    const baseTargetSpeed = this.race.baseSpeed * phaseCoefficient;
-
-    if (phase === 2) {
-      const proficiencyModifier = Speed.DistanceProficiencyModifier[this.aptitudes.distance];
-      return (
-        baseTargetSpeed + Math.sqrt(500.0 * this.adjustedStats.speed) * proficiencyModifier * 0.002
-      );
-    }
-
-    return baseTargetSpeed;
-  }
-
-  private calculateLastSpurtSpeed(): number {
-    if (!this.baseTargetSpeedPerPhase) throw new Error('Base target speed per phase not set');
-
-    const courseBaseSpeed = this.race.baseSpeed;
-    const lateRaceTargetSpeed = this.baseTargetSpeedPerPhase[2];
-    const proficiencyModifier = Speed.DistanceProficiencyModifier[this.aptitudes.distance];
-
-    let result =
-      (lateRaceTargetSpeed + 0.01 * courseBaseSpeed) * 1.05 +
-      Math.sqrt(500.0 * this.adjustedStats.speed) * proficiencyModifier * 0.002;
-
-    // Add guts component
-    result += Math.pow(450.0 * this.adjustedStats.guts, 0.597) * 0.0001;
-
-    return result;
-  }
+  //   // Register dynamic conditions
+  //   this.registerConditions();
+  // }
 
   private updateHills() {
     // Check if we've exited current hill
@@ -1093,7 +180,7 @@ export class Runner {
       this.position >= this.rushedEnterPosition
     ) {
       this.isRushed = true;
-      this.preRushedPosKeepStrategy = this.posKeepStrategy;
+      this.preRushedPosKeepStrategy = this.positionKeepStrategy;
       // Mark that this runner has been rushed
       this.hasBeenRushed = true;
 
@@ -1109,22 +196,23 @@ export class Runner {
       switch (this.strategy) {
         case Strategy.Runaway:
         case Strategy.FrontRunner:
-          this.posKeepStrategy = Strategy.FrontRunner;
+          this.positionKeepStrategy = Strategy.FrontRunner;
           break;
         case Strategy.PaceChaser:
-          this.posKeepStrategy = Strategy.FrontRunner;
+          this.positionKeepStrategy = Strategy.FrontRunner;
           break;
         case Strategy.LateSurger: {
-          this.posKeepStrategy = strategyRoll < 0.75 ? Strategy.FrontRunner : Strategy.PaceChaser;
+          this.positionKeepStrategy =
+            strategyRoll < 0.75 ? Strategy.FrontRunner : Strategy.PaceChaser;
           break;
         }
         case Strategy.EndCloser: {
           if (strategyRoll < 0.7) {
-            this.posKeepStrategy = Strategy.FrontRunner;
+            this.positionKeepStrategy = Strategy.FrontRunner;
           } else if (strategyRoll < 0.9) {
-            this.posKeepStrategy = Strategy.PaceChaser;
+            this.positionKeepStrategy = Strategy.PaceChaser;
           } else {
-            this.posKeepStrategy = Strategy.LateSurger;
+            this.positionKeepStrategy = Strategy.LateSurger;
           }
           break;
         }
@@ -1160,7 +248,7 @@ export class Runner {
   private leaveRushed() {
     this.isRushed = false;
     // Restore position keep strategy
-    this.posKeepStrategy = this.preRushedPosKeepStrategy;
+    this.positionKeepStrategy = this.preRushedPosKeepStrategy;
 
     // Mark the end position for UI display
     if (this.rushedActivations.length > 0) {
@@ -1187,16 +275,6 @@ export class Runner {
 
     this.lastDownhillCheckFrame = currentFrame;
 
-    if (!this.race.settings.downhill) {
-      // Downhill mode is disabled, exit immediately
-      if (this.isDownhillMode) {
-        this.downhillModeStart = null;
-        this.isDownhillMode = false;
-      }
-
-      return;
-    }
-
     // Check if we're on a downhill slope
     const course = this.race.course;
     const currentSlope = course.slopes.find(
@@ -1216,6 +294,7 @@ export class Runner {
     }
 
     // Keep rng synced for the virtual pacemaker so that it's the same pacer for both umas
+    // Compare mode only.
     const downHillCheckRng =
       this.race.settings.positionKeepMode === PosKeepMode.Virtual && !this.race.pacer
         ? this.syncRng.random()
@@ -1250,7 +329,9 @@ export class Runner {
     }
   }
 
-  public onUpdate(dt: number): void {
+  public override onUpdate(dt: number): void {
+    super.onUpdate(dt);
+
     let dtAfterDelay = dt;
 
     // Update timers
@@ -1336,24 +417,7 @@ export class Runner {
     this.modifiers.oneFrameAccel = 0.0;
 
     if (this.position >= this.race.course.distance) {
-      this.hasFinishedRace = true;
-    }
-  }
-
-  /**
-   * Applies a targeted skill effect to the runner.
-   */
-  public receiveTargetedEffect(skillEffect: SkillEffect) {
-    // TODO: 1. Support other targeted skill effects that would need timer duration
-    // TODO: 2. Have a configuration to disable being targeted by skills
-    // TODO: 3. Team support where only beneficial effects are applied to the runner.
-
-    switch (skillEffect.type) {
-      case SkillType.Recovery:
-        // Either recover HP or drain HP, depending on the modifier
-        // Positive modifier = recover HP, negative modifier = drain HP
-        this.healthPolicy.recover(skillEffect.modifier);
-        break;
+      this.finished = true;
     }
   }
 
@@ -1939,26 +1003,6 @@ export class Runner {
     }
   }
 
-  private get isOnFinalStraight() {
-    const course = this.race.course;
-    const lastStraight = course.straights[course.straights.length - 1];
-
-    return this.position >= lastStraight.start && this.position <= lastStraight.end;
-  }
-
-  private get isAfterFinalCorner() {
-    const course = this.race.course;
-
-    const finalCornerStart =
-      course.corners.length > 0 ? course.corners[course.corners.length - 1].start : Infinity;
-
-    return this.position >= finalCornerStart;
-  }
-
-  private get isAfterFinalCornerOrInFinalStraight() {
-    return this.isAfterFinalCorner || this.isOnFinalStraight;
-  }
-
   updateSpotStruggle() {
     if (!this.race.settings.spotStruggle) {
       return;
@@ -2112,7 +1156,7 @@ export class Runner {
           : PhaseDeceleration[this.phase];
       return;
     }
-    this.acceleration = this.baseAccel[+(this.slopePer > 0) * 3 + this.phase];
+    this.acceleration = this.baseAcceleration[+(this.slopePer > 0) * 3 + this.phase];
     this.acceleration += this.modifiers.accel.acc + this.modifiers.accel.err;
 
     if (this.isDueling) {
@@ -2196,59 +1240,6 @@ export class Runner {
   }
 
   /**
-   * Calculates the chance of the runner being rushed (in percent).
-   *
-   * Formula: RushedChance = (6.5 / log10(0.1 * Wits + 1))²%
-   */
-  private get baseRushedChance(): number {
-    const wisdomStat = this.adjustedStats.wit;
-
-    return Math.pow(6.5 / Math.log10(0.1 * wisdomStat + 1), 2) / 100;
-  }
-
-  private get hasSelfControl(): boolean {
-    return this.pendingSkills.some((s) => s.skillId === '202161');
-  }
-
-  private get rushedChance(): number {
-    return this.baseRushedChance - (this.hasSelfControl ? 0.03 : 0);
-  }
-
-  public get maxStartDashSpeed(): number {
-    return Math.min(this.targetSpeed, 0.85 * this.race.baseSpeed);
-  }
-
-  public get maxSpeed(): number {
-    if (this.startDash) {
-      return this.maxStartDashSpeed;
-    }
-
-    if (this.currentSpeed + this.modifiers.oneFrameAccel > this.targetSpeed) {
-      return 9999.0;
-    }
-
-    return this.targetSpeed;
-  }
-
-  public get baseStrategy(): IStrategy {
-    if (this.strategy === Strategy.Runaway) {
-      return Strategy.FrontRunner;
-    }
-
-    return this.strategy;
-  }
-
-  /**
-   * Create a new timer and register it
-   * @param initialValue Initial timer value (default 0)
-   */
-  private createTimer(initialValue: number = 0): Timer {
-    const timer = new Timer(initialValue);
-    this.timers.push(timer);
-    return timer;
-  }
-
-  /**
    * Helper method to create a new Runner instance.
    *
    * This will apply the mood coefficient and adjust the stats based on the course, ground, and strategy.
@@ -2274,57 +1265,3 @@ export class Runner {
     return runner;
   }
 }
-
-const adjustOvercap = (stat: number): number => {
-  return stat > 1200 ? 1200 + Math.floor((stat - 1200) / 2) : stat;
-};
-
-export const calculateMoodCoefficient = (mood: IMood): number => {
-  return 1 + 0.02 * mood;
-};
-
-const buildBaseStats = (stats: StatLine, mood: IMood): StatLine => {
-  const moodCoefficient = calculateMoodCoefficient(mood);
-
-  return {
-    speed: adjustOvercap(stats.speed) * moodCoefficient,
-    stamina: adjustOvercap(stats.stamina) * moodCoefficient,
-    power: adjustOvercap(stats.power) * moodCoefficient,
-    guts: adjustOvercap(stats.guts) * moodCoefficient,
-    wit: adjustOvercap(stats.wit) * moodCoefficient,
-  };
-};
-
-const calculateSpeedModifier = (course: CourseData, stats: StatLine): number => {
-  const statvalues = [0, stats.speed, stats.stamina, stats.power, stats.guts, stats.wit].map((x) =>
-    Math.min(x, 901),
-  );
-
-  return (
-    1 +
-    course.courseSetStatus
-      .map((stat) => (1 + Math.floor(statvalues[stat] / 300.01)) * 0.05)
-      .reduce((a, b) => a + b, 0) /
-      Math.max(course.courseSetStatus.length, 1)
-  );
-};
-
-const buildAdjustedStats = (
-  stats: StatLine,
-  course: CourseData,
-  ground: IGroundCondition,
-  strategyAptitude: IAptitude,
-): StatLine => {
-  const speedModifier = calculateSpeedModifier(course, stats);
-  const groundModifier = GroundSpeedModifier[course.surface][ground];
-  const surfaceModifier = GroundPowerModifier[course.surface][ground];
-  const strategyAptitudeModifier = StrategyModule.aptitudeModifier[strategyAptitude];
-
-  return {
-    speed: Math.max(stats.speed * speedModifier + groundModifier, 1),
-    stamina: stats.stamina,
-    power: Math.max(stats.power + surfaceModifier, 1),
-    guts: stats.guts,
-    wit: stats.wit * strategyAptitudeModifier,
-  };
-};

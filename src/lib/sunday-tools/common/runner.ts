@@ -1,9 +1,11 @@
-import { Strategy } from '../runner/definitions';
+// ===================
+// Constants
+// ===================
+
 import { CompensatedAccumulator, Timer } from '../simulator.types';
 import { PositionKeepState } from '../skills/definitions';
-import { CourseHelpers } from '../course/CourseData';
-import { buildSkillData } from '../runner/runner.utils';
-import { Rule30CARng } from '../../lib/utils/Random';
+import { Rule30CARng } from '../shared/random';
+import { Strategy } from '../runner/definitions';
 import {
   Acceleration,
   GroundPowerModifier,
@@ -11,18 +13,16 @@ import {
   PositionKeep,
   Speed,
   StrategyModule,
-} from './definitions';
-import type { PRNG } from '../../lib/utils/Random';
-import type { IPositionKeepState } from '../skills/definitions';
-import type { HpPolicy } from '../health/health-policy';
-import type { ActiveSkill, PendingSkill } from '../skills/skill.types';
-import type { CourseData, IGroundCondition, IPhase } from '../course/definitions';
-import type { Race } from './race';
+} from '../shared/definitions';
+import { CourseHelpers } from '../course/CourseData';
+import { buildSkillData } from '../runner/runner.utils';
 import type { IAptitude, IMood, IStrategy } from '../runner/definitions';
-
-// ===================
-// Constants
-// ===================
+import type { HpPolicy } from '../health/health-policy';
+import type { PRNG } from '../shared/random';
+import type { Race } from './race';
+import type { IPositionKeepState } from '../skills/definitions';
+import type { CourseData, IGroundCondition, IPhase } from '../course/definitions';
+import type { ActiveSkill, PendingSkill } from '../skills/skill.types';
 
 const PhaseDeceleration = [-1.2, -0.8, -1.0];
 const BaseAccel = 0.0006;

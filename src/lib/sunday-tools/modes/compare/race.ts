@@ -1,17 +1,14 @@
-import { Strategy } from '../lib/runner/definitions';
-import { StrategyHelpers } from '../lib/runner/HorseTypes';
-import { Rule30CARng } from './Random';
-import { GameHpPolicy } from './health/game.policy';
-import { NoopHpPolicy } from './health/health-policy';
-import { Runner } from './runner';
-import { Region, RegionList } from './Region';
-import { createParser } from './skills/parser/ConditionParser';
-import { SkillTarget } from './skills/definitions';
-import type { SkillEffect } from './skills/skill.types';
-import type { DefaultParser } from './skills/parser/definitions';
-import type { IPosKeepMode, IStrategy } from '../lib/runner/definitions';
-import type { CreateRunner } from './runner';
-import type { PRNG } from './Random';
+import { Runner } from '../../common/runner';
+import { GameHpPolicy } from '../../health/game.policy';
+import { NoopHpPolicy } from '../../health/health-policy';
+import { Strategy } from '../../runner/definitions';
+import { StrategyHelpers } from '../../runner/runner.types';
+import { Rule30CARng } from '../../shared/random';
+import { Region, RegionList } from '../../shared/region';
+import { SkillTarget } from '../../skills/definitions';
+import { createParser } from '../../skills/parser/ConditionParser';
+import type { PRNG } from '../../shared/random';
+import type { IPosKeepMode, IStrategy } from '../../runner/definitions';
 import type {
   CourseData,
   IGrade,
@@ -19,7 +16,10 @@ import type {
   ISeason,
   ITimeOfDay,
   IWeather,
-} from '../lib/course/definitions';
+} from '../../course/definitions';
+import type { CreateRunner } from '../../common/runner';
+import type { DefaultParser } from '../../skills/parser/definitions';
+import type { SkillEffect } from '../../skills/skill.types';
 
 export type RunnerMap = Map<number, Runner>;
 
@@ -112,7 +112,7 @@ export type DuelingRates = {
  *
  * The core class for running a race simulation.
  */
-export class RaceSimulator {
+export class CompareRace {
   private _seed: number;
   private _rng: PRNG | null;
   private _umasCount: number;
