@@ -1,10 +1,14 @@
-import { Runner } from '../../common/runner';
+import { PhaseDeceleration, Runner } from '../../common/runner';
 import { CourseHelpers } from '../../course/CourseData';
 import {
   createBlockedSideCondition,
   createOvertakeCondition,
 } from '../../conditions/special-conditions';
 import { PosKeepMode, Strategy } from '../../runner/definitions';
+import { PositionKeepState, SkillRarity, SkillTarget, SkillType } from '../../skills/definitions';
+import { StrategyHelpers } from '../../runner/runner.types';
+import type { RaceStateSlice } from '../../health/health-policy';
+import type { PendingSkill } from '../../skills/skill.types';
 import type { IPhase } from '../../course/definitions';
 import type { Timer } from '../../simulator.types';
 import type { PRNG } from '../../shared/random';
@@ -14,6 +18,7 @@ import type {
 } from '../../conditions/ApproximateStartContinue';
 import type { Race } from '../../common/race';
 import type { RunnerProps } from '../../common/runner';
+import type { CompareRace } from './race';
 
 export class CompareRunner extends Runner {
   declare public posKeepRng: PRNG;
@@ -32,6 +37,7 @@ export class CompareRunner extends Runner {
    */
   declare public forceSkillActivatorRng: PRNG;
   declare public duelingRng: PRNG;
+  declare public spotStruggleTargets: Set<number>;
 
   // Conditions (Compare mode only)
   declare private conditionTimer: Timer;
@@ -42,23 +48,22 @@ export class CompareRunner extends Runner {
     super(race, props);
   }
 
-  // public setupRng(rng: PRNG) {
-  //   // Copy the master RNG
-  //   this.rng = rng;
+  private get compareRace(): CompareRace {
+    return this.race as CompareRace;
+  }
 
-  //   // Derived RNGs
-  //   this.rushedRng = new Rule30CARng(rng.int32());
-  //   this.downhillRng = new Rule30CARng(rng.int32());
-  //   this.posKeepRng = new Rule30CARng(rng.int32());
-  //   this.laneMovementRng = new Rule30CARng(rng.int32());
-  //   this.witRng = new Rule30CARng(rng.int32());
-  //   this.forceSkillActivatorRng = new Rule30CARng(rng.int32());
-  //   this.duelingRng = new Rule30CARng(rng.int32());
-  //   this.syncRng = new Rule30CARng(rng.int32());
-  //   this.skillRng = new Rule30CARng(rng.int32());
+  private get isOnFinalStraightForCompare(): boolean {
+    const course = this.race.course;
+    const lastStraight = course.straights[course.straights.length - 1];
+    return this.position >= lastStraight.start && this.position <= lastStraight.end;
+  }
 
-  //   return this;
-  // }
+  private get isAfterFinalCornerOrInFinalStraightForCompare(): boolean {
+    const course = this.race.course;
+    const finalCornerStart =
+      course.corners.length > 0 ? course.corners[course.corners.length - 1].start : Infinity;
+    return this.position >= finalCornerStart || this.isOnFinalStraightForCompare;
+  }
 
   // === Runtime ===
 
@@ -68,8 +73,10 @@ export class CompareRunner extends Runner {
     this.conditionTimer = this.createTimer(-1.0);
     this.conditionValues = new Map();
     this.conditions = new Map();
+    this.firstPositionInLateRace = false;
 
     this.registerConditions();
+    this.spotStruggleTargets = new Set();
   }
 
   private registerCondition(name: string, condition: ApproximateCondition): void {
@@ -92,41 +99,6 @@ export class CompareRunner extends Runner {
   protected calculatePosKeepEnd(): number {
     return this.sectionLength * 10.0;
   }
-
-  // public prepareRunner(): void {
-  //   this.initializeTimers();
-  //   this.initializeRandomValues();
-  //   this.initializePhaseTracking();
-  //   this.initializeLastSpurtTracking();
-
-  //   this.initializeSkillTracking();
-  //   this.initializeDuelTracking();
-  //   this.initializeSpotStruggleTracking();
-
-  //   this.initializeLaneState();
-  //   this.initializeMovementState();
-  //   this.initializeModifiers();
-
-  //   // Activate gate skills (must be before min speed calc)
-  //   this.activateGateSkills();
-
-  //   // Calculate derived values
-  //   this.initializeSpeedCalculations();
-
-  //   // Initialize mechanics
-  //   this.initializeHillTracking();
-  //   this.initializeRushedState();
-  //   this.initializeDownhillState();
-
-  //   // Initialize health system
-  //   this.initializeHealthPolicy();
-
-  //   // Cache frequently-accessed values
-  //   this.initializeCachedValues();
-
-  //   // Register dynamic conditions
-  //   this.registerConditions();
-  // }
 
   private updateHills() {
     // Check if we've exited current hill
@@ -189,24 +161,19 @@ export class CompareRunner extends Runner {
       // Start tracking, end position will be filled later
       this.rushedActivations.push([this.position, -1]);
 
-      // Always consume 1 RNG call to keep deterministic behavior.
+      // While rushed, position-keep behavior is forced based on strategy bucket.
       const strategyRoll = this.rushedRng.random();
-
-      // Override position keep strategy based on canonical strategy
       switch (this.strategy) {
         case Strategy.Runaway:
         case Strategy.FrontRunner:
-          this.positionKeepStrategy = Strategy.FrontRunner;
-          break;
         case Strategy.PaceChaser:
           this.positionKeepStrategy = Strategy.FrontRunner;
           break;
-        case Strategy.LateSurger: {
+        case Strategy.LateSurger:
           this.positionKeepStrategy =
             strategyRoll < 0.75 ? Strategy.FrontRunner : Strategy.PaceChaser;
           break;
-        }
-        case Strategy.EndCloser: {
+        case Strategy.EndCloser:
           if (strategyRoll < 0.7) {
             this.positionKeepStrategy = Strategy.FrontRunner;
           } else if (strategyRoll < 0.9) {
@@ -215,7 +182,6 @@ export class CompareRunner extends Runner {
             this.positionKeepStrategy = Strategy.LateSurger;
           }
           break;
-        }
       }
     }
 
@@ -247,7 +213,6 @@ export class CompareRunner extends Runner {
    */
   private leaveRushed() {
     this.isRushed = false;
-    // Restore position keep strategy
     this.positionKeepStrategy = this.preRushedPosKeepStrategy;
 
     // Mark the end position for UI display
@@ -265,6 +230,23 @@ export class CompareRunner extends Runner {
   // ==========================
 
   private updateDownhillMode() {
+    if (!this.race.settings.downhill) {
+      if (this.isDownhillMode) {
+        this.downhillModeStart = null;
+        this.isDownhillMode = false;
+      }
+      return;
+    }
+
+    // Only active while inside a downhill segment.
+    if (this.currentHillIndex === -1 || this.slopePer >= 0) {
+      if (this.isDownhillMode) {
+        this.downhillModeStart = null;
+        this.isDownhillMode = false;
+      }
+      return;
+    }
+
     // Check if we should update downhill mode (once per second, at 15 FPS)
     const currentFrame = Math.floor(this.accumulateTime.t * 15);
     const changeSecond = currentFrame % 15 === 14; // Check on the last frame of each second
@@ -275,30 +257,7 @@ export class CompareRunner extends Runner {
 
     this.lastDownhillCheckFrame = currentFrame;
 
-    // Check if we're on a downhill slope
-    const course = this.race.course;
-    const currentSlope = course.slopes.find(
-      (s) => this.position >= s.start && this.position <= s.start + s.length,
-    );
-
-    const isOnDownhill = currentSlope && currentSlope.slope < -1; // Only on downhills with >1.0% grade
-
-    if (!isOnDownhill) {
-      // Not on a downhill slope, exit downhill mode immediately
-      if (this.isDownhillMode) {
-        this.downhillModeStart = null;
-        this.isDownhillMode = false;
-      }
-
-      return;
-    }
-
-    // Keep rng synced for the virtual pacemaker so that it's the same pacer for both umas
-    // Compare mode only.
-    const downHillCheckRng =
-      this.race.settings.positionKeepMode === PosKeepMode.Virtual && !this.race.pacer
-        ? this.syncRng.random()
-        : this.downhillRng.random();
+    const downHillCheckRng = this.downhillRng.random();
 
     if (this.downhillModeStart === null) {
       // Check for entry: Wisdom * 0.0004 chance each second (matching Kotlin implementation)
@@ -311,7 +270,7 @@ export class CompareRunner extends Runner {
     }
 
     // Check for exit: 20% chance each second to exit downhill mode
-    if (downHillCheckRng < 0.2) {
+    if (downHillCheckRng > 0.8) {
       this.downhillModeStart = null;
       this.isDownhillMode = false;
     }
@@ -330,8 +289,6 @@ export class CompareRunner extends Runner {
   }
 
   public override onUpdate(dt: number): void {
-    super.onUpdate(dt);
-
     let dtAfterDelay = dt;
 
     // Update timers
@@ -415,6 +372,8 @@ export class CompareRunner extends Runner {
     }
 
     this.modifiers.oneFrameAccel = 0.0;
+
+    this.updateFirstPositionInLateRace();
 
     if (this.position >= this.race.course.distance) {
       this.finished = true;
@@ -535,6 +494,7 @@ export class CompareRunner extends Runner {
    * Does a Wit Check for a skill a Runner is trying to activate.
    */
   private doWitCheck(): boolean {
+    // Global behavior: skill activation check uses base Wit.
     const witStat = this._baseStats.wit;
 
     const rngRoll = this.witRng.random();
@@ -731,7 +691,7 @@ export class CompareRunner extends Runner {
 
     const pacer = this.race.pacer;
     const behind = pacer.position - this.position;
-    const myStrategy = this.posKeepStrategy;
+    const myStrategy = this.positionKeepStrategy;
 
     switch (this.positionKeepState) {
       case PositionKeepState.None:
@@ -751,13 +711,13 @@ export class CompareRunner extends Runner {
               return;
             }
 
-            if (this.isRushed || (distanceAhead < threshold && this.speedUpOvertakeWitCheck())) {
+            if (distanceAhead < threshold && this.speedUpOvertakeWitCheck()) {
               this.positionKeepActivations.push([this.position, 0, PositionKeepState.SpeedUp]);
               this.positionKeepState = PositionKeepState.SpeedUp;
               this.posKeepExitPosition =
                 this.position +
                 Math.floor(this.sectionLength) *
-                  (this.posKeepStrategy === Strategy.Runaway ? 3 : 1);
+                  (this.positionKeepStrategy === Strategy.Runaway ? 3 : 1);
             }
           }
           // Overtake
@@ -794,8 +754,9 @@ export class CompareRunner extends Runner {
         if (this.positionKeepState == PositionKeepState.None) {
           this.posKeepNextTimer.t = -2;
         } else {
-          const multiplier = this.posKeepStrategy === Strategy.Runaway ? 3 : 1;
-          this.posKeepExitPosition = this.position + Math.floor(this.sectionLength) * multiplier;
+          this.posKeepExitPosition =
+            this.position +
+            Math.floor(this.sectionLength) * (this.positionKeepStrategy === Strategy.Runaway ? 3 : 1);
         }
 
         break;
@@ -887,8 +848,52 @@ export class CompareRunner extends Runner {
     return Array.from(this.race.runners.values()).sort((a, b) => b.position - a.position);
   }
 
+  /**
+   * Port of RaceSolver.updatefirstUmaInLateRace adapted to shared runner model.
+   * Runs once per frame from a single coordinator runner to avoid double RNG use.
+   */
+  private updateFirstPositionInLateRace() {
+    const runners = Array.from(this.race.runners.values());
+    if (runners.length === 0) {
+      return;
+    }
+
+    const coordinatorId = Math.max(...runners.map((runner) => runner.id));
+    if (this.id !== coordinatorId) {
+      return;
+    }
+
+    const existingFirst = runners.find((runner) => runner.firstPositionInLateRace);
+    if (existingFirst) {
+      return;
+    }
+
+    const sortedRunners = [...runners].sort((a, b) => b.position - a.position);
+    const firstRunner = sortedRunners[0];
+
+    if (firstRunner.position < (this.race.course.distance * 2) / 3) {
+      return;
+    }
+
+    const firstPositionRounded = Math.round(firstRunner.position * 100) / 100;
+    const tiedRunners: Array<Runner> = [];
+
+    for (const runner of sortedRunners) {
+      const runnerPosRounded = Math.round(runner.position * 100) / 100;
+
+      if (runnerPosRounded === firstPositionRounded) {
+        tiedRunners.push(runner);
+      } else {
+        break;
+      }
+    }
+
+    const tieBreakerRng = this.syncRng ?? this.rng;
+    const selectedRunner = tiedRunners[tieBreakerRng.uniform(tiedRunners.length)];
+    selectedRunner.firstPositionInLateRace = true;
+  }
+
   speedUpOvertakeWitCheck() {
-    // If rushed, with check passes automatically
     if (this.isRushed) {
       return true;
     }
@@ -897,7 +902,6 @@ export class CompareRunner extends Runner {
   }
 
   paceUpWitCheck() {
-    // If rushed, with check passes automatically
     if (this.isRushed) {
       return true;
     }
@@ -939,11 +943,11 @@ export class CompareRunner extends Runner {
       return;
     }
 
-    if (StrategyHelpers.strategyMatches(this.posKeepStrategy, Strategy.FrontRunner)) {
+    if (StrategyHelpers.strategyMatches(this.positionKeepStrategy, Strategy.FrontRunner)) {
       return;
     }
 
-    if (this.healthPolicy.healthRatioRemaining() < 0.15 || !this.isOnFinalStraight) {
+    if (this.healthPolicy.healthRatioRemaining() < 0.15 || !this.isOnFinalStraightForCompare) {
       return;
     }
 
@@ -956,28 +960,23 @@ export class CompareRunner extends Runner {
      * naturally.
      */
 
-    if (this.race.settings.mode === 'compare') {
-      this.artificialDueling();
-      return;
-    }
-
-    // TODO: Implement actual dueling logic for 9-runners setup
+    this.artificialDueling();
   }
 
   private artificialDueling() {
-    const duelingRates = this.race.duelingRates;
+    const duelingRates = this.compareRace.duelingRates;
     if (this.canDuel === null) {
       if (duelingRates) {
         let rate = 0;
-        if (this.posKeepStrategy === Strategy.Runaway) {
+        if (this.positionKeepStrategy === Strategy.Runaway) {
           rate = duelingRates.runaway;
-        } else if (this.posKeepStrategy === Strategy.FrontRunner) {
+        } else if (this.positionKeepStrategy === Strategy.FrontRunner) {
           rate = duelingRates.frontRunner;
-        } else if (this.posKeepStrategy === Strategy.PaceChaser) {
+        } else if (this.positionKeepStrategy === Strategy.PaceChaser) {
           rate = duelingRates.paceChaser;
-        } else if (this.posKeepStrategy === Strategy.LateSurger) {
+        } else if (this.positionKeepStrategy === Strategy.LateSurger) {
           rate = duelingRates.lateSurger;
-        } else if (this.posKeepStrategy === Strategy.EndCloser) {
+        } else if (this.positionKeepStrategy === Strategy.EndCloser) {
           rate = duelingRates.endCloser;
         }
 
@@ -992,7 +991,7 @@ export class CompareRunner extends Runner {
       return;
     }
 
-    // "2s proximity" timer
+    // Global reference: requires a 2s proximity-style check cadence.
     if (this.duelingTimer.t >= 2) {
       if (this.duelingRng.random() <= 0.4) {
         this.isDueling = true;
@@ -1032,11 +1031,11 @@ export class CompareRunner extends Runner {
 
     if (
       isInSection &&
-      StrategyHelpers.strategyMatches(this.posKeepStrategy, Strategy.FrontRunner)
+      StrategyHelpers.strategyMatches(this.positionKeepStrategy, Strategy.FrontRunner)
     ) {
-      const otherUmas = this.race.runnersPerStrategy.get(this.posKeepStrategy)!;
-      const distanceGap = this.posKeepStrategy === Strategy.FrontRunner ? 3.75 : 5;
-      const laneGap = this.posKeepStrategy === Strategy.FrontRunner ? 0.165 : 0.416;
+      const otherUmas = this.race.runnersPerStrategy.get(this.positionKeepStrategy) ?? [];
+      const distanceGap = this.positionKeepStrategy === Strategy.FrontRunner ? 3.75 : 5;
+      const laneGap = this.positionKeepStrategy === Strategy.FrontRunner ? 0.165 : 0.416;
 
       const umasWithinGap = otherUmas.filter((u) => {
         const withinDistance = Math.abs(u.position - this.position) <= distanceGap;
@@ -1054,7 +1053,7 @@ export class CompareRunner extends Runner {
 
           // Add the runner to the spot struggle targets
           // Note: the other runner will handle their own spot struggle targets.
-          this.spotStruggleTargets.add(uma.internalId);
+          this.spotStruggleTargets.add(uma.id);
         }
       }
     }
@@ -1075,7 +1074,7 @@ export class CompareRunner extends Runner {
         inSpotStruggle: this.inSpotStruggle,
         isDownhillMode: this.isDownhillMode,
         isRushed: this.isRushed,
-        posKeepStrategy: this.posKeepStrategy,
+        posKeepStrategy: this.positionKeepStrategy,
       };
 
       const lateRaceTargetSpeed = this.baseTargetSpeedPerPhase[2];
@@ -1150,13 +1149,11 @@ export class CompareRunner extends Runner {
       return;
     }
     if (this.currentSpeed > this.targetSpeed) {
-      this.acceleration =
-        this.positionKeepState === PositionKeepState.PaceDown
-          ? -0.5
-          : PhaseDeceleration[this.phase];
+      // Global quick reference does not include PaceDown -0.5 override.
+      this.acceleration = PhaseDeceleration[this.phase];
       return;
     }
-    this.acceleration = this.baseAcceleration[+(this.slopePer > 0) * 3 + this.phase];
+    this.acceleration = this.baseAccelerations[+(this.slopePer > 0) * 3 + this.phase];
     this.acceleration += this.modifiers.accel.acc + this.modifiers.accel.err;
 
     if (this.isDueling) {
@@ -1171,7 +1168,7 @@ export class CompareRunner extends Runner {
     const sideBlocked = this.getConditionValue('blocked_side') === 1;
     const overtake = this.getConditionValue('overtake') === 1;
 
-    if (this.extraMoveLane < 0.0 && this.isAfterFinalCornerOrInFinalStraight) {
+    if (this.extraMoveLane < 0.0 && this.isAfterFinalCornerOrInFinalStraightForCompare) {
       this.extraMoveLane =
         Math.min(currentLane / 0.1, course.maxLaneDistance) * 0.5 +
         this.laneMovementRng.random() * 0.1;
@@ -1239,29 +1236,29 @@ export class CompareRunner extends Runner {
     return this.conditionValues.get(name)!;
   }
 
-  /**
-   * Helper method to create a new Runner instance.
-   *
-   * This will apply the mood coefficient and adjust the stats based on the course, ground, and strategy.
-   */
-  public static create(race: RaceSimulator, id: number, props: CreateRunner): Runner {
-    const umaId = props.outfitId.slice(0, 4);
+  // /**
+  //  * Helper method to create a new Runner instance.
+  //  *
+  //  * This will apply the mood coefficient and adjust the stats based on the course, ground, and strategy.
+  //  */
+  // public static create(race: RaceSimulator, id: number, props: CreateRunner): Runner {
+  //   const umaId = props.outfitId.slice(0, 4);
 
-    const displayInfo = getUmaDisplayInfo(props.outfitId);
-    const name = displayInfo?.name ?? `Mob ${id}`;
+  //   const displayInfo = getUmaDisplayInfo(props.outfitId);
+  //   const name = displayInfo?.name ?? `Mob ${id}`;
 
-    const runner = new Runner(race, {
-      id: id,
-      outfitId: props.outfitId,
-      umaId,
-      name,
-      mood: props.mood,
-      strategy: props.strategy,
-      aptitudes: props.aptitudes,
-      stats: props.stats,
-      skillIds: props.skills,
-    });
+  //   const runner = new Runner(race, {
+  //     id: id,
+  //     outfitId: props.outfitId,
+  //     umaId,
+  //     name,
+  //     mood: props.mood,
+  //     strategy: props.strategy,
+  //     aptitudes: props.aptitudes,
+  //     stats: props.stats,
+  //     skillIds: props.skills,
+  //   });
 
-    return runner;
-  }
+  //   return runner;
+  // }
 }

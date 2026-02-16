@@ -1,6 +1,6 @@
-import type { RegionList } from '@/modules/simulation/lib/utils/Region';
-import type { PRNG } from '@/modules/simulation/lib/utils/Random';
-import { Region } from '@/modules/simulation/lib/utils/Region';
+import type { RegionList } from '@/lib/sunday-tools/shared/region';
+import type { PRNG } from '@/lib/sunday-tools/shared/random';
+import { Region } from '@/lib/sunday-tools/shared/region';
 
 export interface ActivationSamplePolicy {
   sample: (regions: RegionList, nsamples: number, rng: PRNG) => Array<Region>;

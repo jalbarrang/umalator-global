@@ -1,13 +1,17 @@
-import { Region, RegionList } from '../Region';
+import { Region, RegionList } from '../shared/region';
 import { ImmediatePolicy } from '../skills/policies/ActivationSamplePolicy';
 import type { ISkillType } from '../skills/definitions';
-import type { Runner } from '../runner';
-import type { RaceParameters } from '../race-simulator';
+import type { Runner } from '../common/runner';
+import type { RaceParameters } from '../common/race';
 import type { CourseData } from '../course/definitions';
-import type { Skill } from '@/modules/skills/utils';
 import type { DefaultParser } from '../skills/parser/definitions';
 import type { SkillAlternative, SkillEffect, SkillTrigger } from '../skills/skill.types';
-import { skillsById } from '@/modules/skills/utils';
+import skillsDataList from '@/modules/data/skill_data.json';
+
+type SkillDataEntry = {
+  alternatives: Array<SkillAlternative>;
+  rarity: number;
+};
 
 export type BuildSkillDataParams = {
   runner: Runner;
@@ -50,7 +54,14 @@ export function buildSkillData(params: BuildSkillDataParams): Array<SkillTrigger
     ignoreNullEffects = false,
   } = params;
 
-  const skill: Skill | undefined = skillsById.get(skillId);
+  const [baseSkillId] = skillId.split('-');
+  if (!baseSkillId) {
+    throw new Error('bad skill ID ' + skillId);
+  }
+
+  const skill = skillsDataList[baseSkillId as keyof typeof skillsDataList] as
+    | SkillDataEntry
+    | undefined;
 
   if (!skill) {
     throw new Error('bad skill ID ' + skillId);

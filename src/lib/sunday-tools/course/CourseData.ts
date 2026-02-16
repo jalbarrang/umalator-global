@@ -4,14 +4,14 @@ import type {
   IOrientation,
   IPhase,
   ISurface,
-} from '@/modules/simulation/lib/course/definitions';
+} from './definitions';
 import {
   distances,
   orientations,
   phases,
   surfaces,
-} from '@/modules/simulation/lib/course/definitions';
-import { getCourseById } from '@/modules/racetrack/courses';
+} from './definitions';
+import { getCourseById } from '../../../modules/racetrack/courses';
 
 export class CourseHelpers {
   static assertIsPhase(phase: number): asserts phase is IPhase {

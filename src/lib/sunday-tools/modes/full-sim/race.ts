@@ -1,3 +1,10 @@
 import { Race } from '../../common/race';
+import type { RaceSimulatorProps } from '../../common/race';
 
-export class FullSimRace extends Race {}
+export type FullSimRaceSimulatorProps = RaceSimulatorProps;
+
+export class FullSimRace extends Race {
+  constructor(props: FullSimRaceSimulatorProps) {
+    super(props);
+  }
+}

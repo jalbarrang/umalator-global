@@ -16,15 +16,11 @@
 	temptation_count_behind, temptation_count_infront, track_id, up_slope_random, weather
 */
 
-import { Region, RegionList } from '../../../utils/Region';
 import {
   AllCornerRandomPolicy,
   ImmediatePolicy,
   StraightRandomPolicy,
 } from '../../policies/ActivationSamplePolicy';
-import { StrategyHelpers } from '../../../runner/HorseTypes';
-import { CourseHelpers } from '../../../course/CourseData';
-import { Strategy } from '../../../runner/definitions';
 import {
   erlangRandom,
   immediate,
@@ -40,61 +36,37 @@ import {
   uniformRandom,
   valueFilter,
 } from './utils';
-import type { HorseParameters } from '../../../runner/HorseTypes';
-import type { DynamicCondition, IRaceState } from '../../../core/RaceSolver';
-import type { RaceParameters } from '../../../definitions';
-import type { CourseData, IPhase } from '../../../course/definitions';
+import type { Runner } from '@/lib/sunday-tools/common/runner';
+import type { DynamicCondition } from '@/lib/sunday-tools/skills/skill.types';
+import type { RaceParameters } from '@/lib/sunday-tools/common/race';
+import type { CourseData, IPhase } from '@/lib/sunday-tools/course/definitions';
 import type { ConditionsMap, ICondition } from '../definitions';
+import { StrategyHelpers } from '@/lib/sunday-tools/runner/runner.types';
+import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { Region, RegionList } from '@/lib/sunday-tools/shared/region';
 
 export const defaultConditions: ConditionsMap<ICondition> = {
   accumulatetime: immediate({
-    filterGte(
-      regions: RegionList,
-      t: number,
-      _0: CourseData,
-      _1: HorseParameters,
-      _extra: RaceParameters,
-    ) {
-      return [regions, (s: IRaceState) => s.accumulatetime.t >= t] as [
-        RegionList,
-        DynamicCondition,
-      ];
+    filterGte(regions: RegionList, t: number, _0: CourseData, _1: Runner, _extra: RaceParameters) {
+      return [regions, (r: Runner) => r.accumulateTime.t >= t] as [RegionList, DynamicCondition];
     },
   }),
   activate_count_all: immediate({
-    filterLte(
-      regions: RegionList,
-      n: number,
-      _0: CourseData,
-      _1: HorseParameters,
-      _extra: RaceParameters,
-    ) {
-      return [regions, (s: IRaceState) => s.activateCount.reduce((a, b) => a + b) <= n] as [
+    filterLte(regions: RegionList, n: number, _0: CourseData, _1: Runner, _extra: RaceParameters) {
+      return [regions, (r: Runner) => r.skillsActivatedCount <= n] as [
         RegionList,
         DynamicCondition,
       ];
     },
-    filterGte(
-      regions: RegionList,
-      n: number,
-      _0: CourseData,
-      _1: HorseParameters,
-      _extra: RaceParameters,
-    ) {
-      return [regions, (s: IRaceState) => s.activateCount.reduce((a, b) => a + b) >= n] as [
+    filterGte(regions: RegionList, n: number, _0: CourseData, _1: Runner, _extra: RaceParameters) {
+      return [regions, (r: Runner) => r.skillsActivatedCount >= n] as [
         RegionList,
         DynamicCondition,
       ];
     },
   }),
   activate_count_end_after: immediate({
-    filterGte(
-      regions: RegionList,
-      n: number,
-      _0: CourseData,
-      _1: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterGte(regions: RegionList, n: number, _0: CourseData, _1: Runner, _extra: RaceParameters) {
       return [regions, (s: IRaceState) => s.activateCount[2] >= n] as [
         RegionList,
         DynamicCondition,

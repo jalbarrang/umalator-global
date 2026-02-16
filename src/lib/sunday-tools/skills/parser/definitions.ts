@@ -1,10 +1,10 @@
-import { RegionList } from '../../Region';
 import { kTrue } from './conditions/utils';
-import type { RaceParameters } from '../../race-simulator';
-import type { ActivationSamplePolicy } from '../policies/ActivationSamplePolicy';
-import type { Runner } from '../../runner';
-import type { CourseData } from '../../course/definitions';
-import type { DynamicCondition } from '../skill.types';
+import type { RaceParameters } from '@/lib/sunday-tools/common/race';
+import type { ActivationSamplePolicy } from '@/lib/sunday-tools/skills/policies/ActivationSamplePolicy';
+import type { Runner } from '@/lib/sunday-tools/common/runner';
+import type { CourseData } from '@/lib/sunday-tools/course/definitions';
+import type { DynamicCondition } from '@/lib/sunday-tools/skills/skill.types';
+import { RegionList } from '@/lib/sunday-tools/shared/region';
 
 // ============================================================
 // Base Types

@@ -1,5 +1,5 @@
-import type { PRNG } from '../../lib/utils/Random';
-import type { Runner } from '../runner';
+import type { PRNG } from '../shared/random';
+import type { Runner } from '../common/runner';
 
 export interface ConditionState {
   runner: Runner;

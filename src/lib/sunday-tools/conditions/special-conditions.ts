@@ -1,4 +1,4 @@
-import { Strategy } from '../../lib/runner/definitions';
+import { Strategy } from '../runner/definitions';
 import { ApproximateMultiCondition, ApproximateStartContinue } from './ApproximateStartContinue';
 import type { ConditionEntry, ConditionState } from './ApproximateStartContinue';
 

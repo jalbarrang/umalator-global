@@ -5,18 +5,17 @@ import {
   RandomPolicy,
   UniformRandomPolicy,
 } from '../../policies/ActivationSamplePolicy';
-import { Region, RegionList } from '../../../utils/Region';
-import { calculateEarlyRaceAverageSpeed } from '../../../utils/SpurtCalculator';
 import { CourseHelpers } from '../../../course/CourseData';
 import type { ICondition } from '../definitions';
-import type { CourseData } from '../../../course/definitions';
-import type { HorseParameters } from '../../../runner/HorseTypes';
-import type { RaceParameters } from '../../../definitions';
-import type { IRaceState } from '../../../core/RaceSolver';
+import type { CourseData } from '@/lib/sunday-tools/course/definitions';
+import type { Runner } from '@/lib/sunday-tools/common/runner';
+import type { RaceParameters } from '@/lib/sunday-tools/common/race';
 import type { DistributionRandomPolicy } from '../../policies/ActivationSamplePolicy';
+import { calculateEarlyRaceAverageSpeed } from '@/lib/sunday-tools/common/spurt-calculator';
+import { Region, RegionList } from '@/lib/sunday-tools/shared/region';
 
 // K as in SKI combinators
-export function kTrue(_: IRaceState) {
+export function kTrue(_: Runner) {
   return true;
 }
 

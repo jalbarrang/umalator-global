@@ -24,9 +24,9 @@ import type { IPositionKeepState } from '../skills/definitions';
 import type { CourseData, IGroundCondition, IPhase } from '../course/definitions';
 import type { ActiveSkill, PendingSkill } from '../skills/skill.types';
 
-const PhaseDeceleration = [-1.2, -0.8, -1.0];
-const BaseAccel = 0.0006;
-const UphillBaseAccel = 0.0004;
+export const PhaseDeceleration = [-1.2, -0.8, -1.0];
+export const BaseAccel = 0.0006;
+export const UphillBaseAccel = 0.0004;
 
 // ===================
 // Types
@@ -110,6 +110,12 @@ export abstract class Runner {
   declare public rng: PRNG;
   declare public rushedRng: PRNG;
   declare public witRng: PRNG;
+  declare public downhillRng: PRNG;
+  declare public posKeepRng: PRNG;
+  declare public laneMovementRng: PRNG;
+  declare public skillRng: PRNG;
+  declare public forceSkillActivatorRng: PRNG;
+  declare public duelingRng: PRNG;
   declare public randomLot: number;
 
   declare public accumulateTime: Timer;
