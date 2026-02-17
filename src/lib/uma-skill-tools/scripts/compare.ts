@@ -6,12 +6,70 @@ import {
   buildBaseStats,
 } from '../sim/RaceSolverBuilder';
 
-import skillmeta from '../skill_meta.json';
 import { Rule30CARng } from '../sim/Random';
+import type { HorseDesc } from '../sim/RaceSolverBuilder';
+import type { HorseParameters } from '../sim/HorseTypes';
 import type { HorseState } from '../components/HorseDefTypes';
-import type { RaceSolver } from '../sim/RaceSolver';
+import type { PositionKeepState, RaceSolver } from '../sim/RaceSolver';
 import type { RaceParameters } from '../sim/RaceParameters';
 import type { CourseData } from '../sim/CourseData';
+import skillsMeta from '@/modules/data/skill_meta.json';
+
+export type SkillActivationMap = Map<string, Array<[number, number]>>;
+
+export type CompareRunData = {
+  t: [Array<number>, Array<number>];
+  p: [Array<number>, Array<number>];
+  v: [Array<number>, Array<number>];
+  hp: [Array<number>, Array<number>];
+  currentLane: [Array<number>, Array<number>];
+  pacerGap: [Array<number>, Array<number>];
+  sk: [SkillActivationMap, SkillActivationMap];
+  sdly: [number, number];
+  rushed: [Array<[number, number]>, Array<[number, number]>];
+  posKeep: [Array<[number, number, PositionKeepState]>, Array<[number, number, PositionKeepState]>];
+  competeFight: [Array<number>, Array<number>];
+  leadCompetition: [Array<number>, Array<number>];
+  downhillActivations: [Array<[number, number]>, Array<[number, number]>];
+  pacerV: [Array<number>, Array<number>, Array<number>];
+  pacerP: [Array<number>, Array<number>, Array<number>];
+  pacerT: [Array<number>, Array<number>, Array<number>];
+  pacerPosKeep: [
+    Array<[number, number, PositionKeepState]>,
+    Array<[number, number, PositionKeepState]>,
+    Array<[number, number, PositionKeepState]>,
+  ];
+  pacerLeadCompetition: [Array<number>, Array<number>, Array<number>];
+};
+
+type RushedStat = {
+  lengths: Array<number>;
+  count: number;
+};
+
+export type CompareOptions = {
+  pacemakerCount: number;
+  seed: number;
+  posKeepMode: PosKeepMode;
+  mode: 'compare' | 'skill-compare';
+  syncRng: boolean;
+  skillWisdomCheck: boolean;
+  rushedKakari: boolean;
+  competeFight: boolean;
+  duelingRates: {
+    runaway: number;
+    frontRunner: number;
+    paceChaser: number;
+    lateSurger: number;
+    endCloser: number;
+  };
+  leadCompetition: boolean;
+  laneMovement: boolean;
+};
+
+type CompareRunner = Omit<HorseState, 'skills'> & {
+  skills: Array<string>;
+};
 
 export function runComparison(
   nsamples: number,
@@ -20,7 +78,7 @@ export function runComparison(
   uma1: HorseState,
   uma2: HorseState,
   pacer: HorseState,
-  options,
+  options: CompareOptions,
 ) {
   const standard = new RaceSolverBuilder(nsamples)
     .seed(options.seed)
@@ -31,9 +89,11 @@ export function runComparison(
     .time(racedef.time)
     .posKeepMode(options.posKeepMode)
     .mode(options.mode);
+
   if (racedef.orderRange != null) {
     standard.order(racedef.orderRange[0], racedef.orderRange[1]).numUmas(racedef.numUmas);
   }
+
   // Fork to share RNG - both horses face the same random events for fair comparison
   const compare = standard.fork();
 
@@ -41,8 +101,20 @@ export function runComparison(
     standard.desync();
   }
 
-  const uma1_ = uma1.update('skills', (sk) => Array.from(sk.values())).toJS();
-  const uma2_ = uma2.update('skills', (sk) => Array.from(sk.values())).toJS();
+  // Convert skills from a Map to an Array
+  const uma1_ = uma1
+    // @ts-expect-error - We forcefully convert the skills to an array
+    .update('skills', (sk): Array<string> => {
+      return Array.from(sk.values());
+    })
+    .toJS() as CompareRunner;
+  const uma2_ = uma2
+    // @ts-expect-error - We forcefully convert the skills to an array
+    .update('skills', (sk): Array<string> => {
+      return Array.from(sk.values());
+    })
+    .toJS() as CompareRunner;
+
   standard.horse(uma1_);
   compare.horse(uma2_);
 
@@ -56,7 +128,7 @@ export function runComparison(
     compare.rushedKakari(false);
   }
 
-  if (options.competeFight !== undefined) {
+  if (options.competeFight) {
     standard.competeFight(options.competeFight);
     compare.competeFight(options.competeFight);
   }
@@ -66,12 +138,12 @@ export function runComparison(
     compare.duelingRates(options.duelingRates);
   }
 
-  if (options.leadCompetition !== undefined) {
+  if (options.leadCompetition) {
     standard.leadCompetition(options.leadCompetition);
     compare.leadCompetition(options.leadCompetition);
   }
 
-  if (options.laneMovement !== undefined) {
+  if (options.laneMovement) {
     standard.laneMovement(options.laneMovement);
     compare.laneMovement(options.laneMovement);
   }
@@ -85,18 +157,22 @@ export function runComparison(
     .intersect(uma2.skills.keySeq().toSet())
     .toArray()
     .sort((a, b) => +a - +b);
-  const commonIdx = (id) => {
-    const i = common.indexOf(skillmeta[id].groupId);
+
+  const commonIdx = (id: string) => {
+    const groupId = skillsMeta[id as keyof typeof skillsMeta].groupId;
+    const i = common.indexOf(`${groupId}`);
+
     return i > -1 ? i : common.length;
   };
-  const sort = (a, b) => commonIdx(a) - commonIdx(b) || +a - +b;
 
-  const uma1Horse = uma1.toJS();
+  const sort = (a: string, b: string) => commonIdx(a) - commonIdx(b) || +a - +b;
+
+  const uma1Horse = uma1.toJS() as HorseDesc;
   const uma1BaseStats = buildBaseStats(uma1Horse, uma1Horse.mood);
   const uma1AdjustedStats = buildAdjustedStats(uma1BaseStats, course, racedef.groundCondition);
   const uma1Wisdom = uma1AdjustedStats.wisdom;
 
-  const uma2Horse = uma2.toJS();
+  const uma2Horse = uma2.toJS() as HorseDesc;
   const uma2BaseStats = buildBaseStats(uma2Horse, uma2Horse.mood);
   const uma2AdjustedStats = buildAdjustedStats(uma2BaseStats, course, racedef.groundCondition);
   const uma2Wisdom = uma2AdjustedStats.wisdom;
@@ -109,6 +185,7 @@ export function runComparison(
       standard.addSkill(id, Perspective.Self);
     }
   });
+
   uma2_.skills.sort(sort).forEach((id) => {
     const forcedPos = uma2.forcedSkillPositions.get(id);
     if (forcedPos != null) {
@@ -117,6 +194,7 @@ export function runComparison(
       compare.addSkill(id, Perspective.Self);
     }
   });
+
   uma1_.skills.forEach((id) => {
     const forcedPos = uma1.forcedSkillPositions.get(id);
     if (forcedPos != null) {
@@ -125,6 +203,7 @@ export function runComparison(
       compare.addSkill(id, Perspective.Other, undefined, uma1Wisdom);
     }
   });
+
   uma2_.skills.forEach((id) => {
     const forcedPos = uma2.forcedSkillPositions.get(id);
     if (forcedPos != null) {
@@ -133,38 +212,38 @@ export function runComparison(
       standard.addSkill(id, Perspective.Other, undefined, uma2Wisdom);
     }
   });
-  if (!CC_GLOBAL) {
-    standard.withAsiwotameru().withStaminaSyoubu();
-    compare.withAsiwotameru().withStaminaSyoubu();
-  }
 
-  let pacerHorse = null;
+  let pacerHorse: HorseParameters | null = null;
 
   if (options.posKeepMode === PosKeepMode.Approximate) {
     pacerHorse = standard.useDefaultPacer(true);
   } else if (options.posKeepMode === PosKeepMode.Virtual) {
     if (pacer) {
-      const pacer_ = pacer.update('skills', (sk) => Array.from(sk.values()));
+      // @ts-expect-error - We forcefully convert the skills to an array
+      const pacer_ = pacer.update('skills', (sk) => Array.from(sk.values())).toJS() as HorseDesc;
       pacerHorse = standard.pacer(pacer_);
     } else {
       pacerHorse = standard.useDefaultPacer();
     }
   }
 
-  const skillPos1 = new Map(),
-    skillPos2 = new Map();
-  function getActivator(skillSet) {
-    return function (s, id, persp) {
+  const skillPos1: Map<string, Array<[number, number]>> = new Map();
+  const skillPos2: Map<string, Array<[number, number]>> = new Map();
+
+  function getActivator(skillSet: Map<string, Array<[number, number]>>) {
+    return function (s: RaceSolver, id: string, persp: Perspective) {
       if (persp == Perspective.Self && id != 'asitame' && id != 'staminasyoubu') {
-        if (!skillSet.has(id)) skillSet.set(id, []);
-        skillSet.get(id).push([s.pos, -1]);
+        const skillSetValue = skillSet.get(id) ?? [];
+        skillSetValue.push([s.pos, -1]);
+        skillSet.set(id, skillSetValue);
       }
     };
   }
-  function getDeactivator(skillSet) {
-    return function (s, id, persp) {
+
+  function getDeactivator(skillSet: Map<string, Array<[number, number]>>) {
+    return function (s: RaceSolver, id: string, persp: Perspective) {
       if (persp == Perspective.Self && id != 'asitame' && id != 'staminasyoubu') {
-        const ar = skillSet.get(id); // activation record
+        const ar = skillSet.get(id) ?? []; // activation record
         // in the case of adding multiple copies of speed debuffs a skill can activate again before the first
         // activation has finished (as each copy has the same ID), so we can't just access a specific index
         // (-1).
@@ -177,23 +256,40 @@ export function runComparison(
       }
     };
   }
+
   standard.onSkillActivate(getActivator(skillPos1));
   standard.onSkillDeactivate(getDeactivator(skillPos1));
   compare.onSkillActivate(getActivator(skillPos2));
   compare.onSkillDeactivate(getDeactivator(skillPos2));
-  const a = standard.build(),
-    b = compare.build();
-  const ai = 1,
-    bi = 0;
+
+  const a = standard.build();
+  const b = compare.build();
+
+  const ai = 1;
+  const bi = 0;
   const sign = 1;
   const diff = [];
-  let min = Infinity,
-    max = -Infinity,
-    estMean,
-    estMedian,
-    bestMeanDiff = Infinity,
-    bestMedianDiff = Infinity;
-  let minrun, maxrun, meanrun, medianrun;
+
+  // ===============================================
+  // Track statistics
+  // ===============================================
+
+  let min = Infinity;
+  let max = -Infinity;
+  let estMean = 0;
+  let estMedian = 0;
+  let bestMeanDiff = Infinity;
+  let bestMedianDiff = Infinity;
+
+  let minrun: CompareRunData | null = null;
+  let maxrun: CompareRunData | null = null;
+  let meanrun: CompareRunData | null = null;
+  let medianrun: CompareRunData | null = null;
+
+  // ===============================================
+  // Track skill activations
+  // ===============================================
+
   const allSkillActivations = [new Map<string, Array<number>>(), new Map<string, Array<number>>()];
   const allSkillActivationBasinn = [
     new Map<string, Array<[number, number]>>(),
@@ -201,20 +297,19 @@ export function runComparison(
   ];
   const sampleCutoff = Math.max(Math.floor(nsamples * 0.8), nsamples - 200);
   let retry = false;
-  const retryCount = 0;
 
   // Track rushed statistics across all simulations
-  const rushedStats = {
+  const rushedStats: { uma1: RushedStat; uma2: RushedStat } = {
     uma1: { lengths: [], count: 0 },
     uma2: { lengths: [], count: 0 },
   };
 
-  const leadCompetitionStats = {
+  const leadCompetitionStats: { uma1: RushedStat; uma2: RushedStat } = {
     uma1: { lengths: [], count: 0 },
     uma2: { lengths: [], count: 0 },
   };
 
-  const competeFightStats = {
+  const competeFightStats: { uma1: RushedStat; uma2: RushedStat } = {
     uma1: { lengths: [], count: 0 },
     uma2: { lengths: [], count: 0 },
   };
@@ -255,27 +350,31 @@ export function runComparison(
   const basePacerRng = new Rule30CARng(options.seed + 1);
 
   for (let i = 0; i < nsamples; ++i) {
-    const pacers = [];
+    const pacers: Array<RaceSolver> = [];
 
     for (let j = 0; j < options.pacemakerCount; ++j) {
+      if (pacerHorse == null) continue;
+
       const pacerRng = new Rule30CARng(basePacerRng.int32());
-      const pacer: RaceSolver | null =
-        pacerHorse != null ? standard.buildPacer(pacerHorse, i, pacerRng) : null;
-      pacers.push(pacer);
+      const builtPacer = standard.buildPacer(pacerHorse, i, pacerRng);
+
+      if (builtPacer == null) continue;
+      pacers.push(builtPacer);
     }
 
-    const pacer: RaceSolver | null = pacers.length > 0 ? pacers[0] : null;
+    const selectedPacer: RaceSolver | null = pacers.length > 0 ? pacers[0] : null;
 
     const s1 = a.next(retry).value as RaceSolver;
     const s2 = b.next(retry).value as RaceSolver;
-    const data = {
+
+    const data: CompareRunData = {
       t: [[], []],
       p: [[], []],
       v: [[], []],
       hp: [[], []],
       currentLane: [[], []],
       pacerGap: [[], []],
-      sk: [null, null],
+      sk: [new Map(), new Map()],
       sdly: [0, 0],
       rushed: [[], []],
       posKeep: [[], []],
@@ -300,35 +399,45 @@ export function runComparison(
     let s2Finished = false;
     let posDifference = 0;
 
+    const updatePacer = (newPacer: RaceSolver | null) => {
+      if (newPacer == null) return;
+
+      newPacer.umas.forEach((u) => {
+        u.updatePacer(newPacer);
+      });
+    };
+
     while (!s1Finished || !s2Finished) {
-      let currentPacer = null;
+      let currentPacer: RaceSolver | null = null;
 
-      if (pacer) {
-        currentPacer = pacer.getPacer();
-
-        pacer.umas.forEach((u) => {
-          u.updatePacer(currentPacer);
-        });
+      if (selectedPacer) {
+        currentPacer = selectedPacer.getPacer();
+        updatePacer(currentPacer);
       }
 
       if (s2.pos < course.distance) {
-        data.pacerGap[ai].push(currentPacer ? currentPacer.pos - s2.pos : undefined);
+        if (currentPacer) {
+          data.pacerGap[ai].push(currentPacer.pos - s2.pos);
+        }
       }
       if (s1.pos < course.distance) {
-        data.pacerGap[bi].push(currentPacer ? currentPacer.pos - s1.pos : undefined);
+        if (currentPacer) {
+          data.pacerGap[bi].push(currentPacer.pos - s1.pos);
+        }
       }
 
       for (let j = 0; j < options.pacemakerCount; j++) {
         const p = j < pacers.length ? pacers[j] : null;
-        if (!p || p.pos >= course.distance) continue;
+        if (p == null || p.pos >= course.distance) continue;
         p.step(1 / 15);
-        data.pacerV[j].push(
-          p
-            ? p.currentSpeed + (p.modifiers.currentSpeed.acc + p.modifiers.currentSpeed.err)
-            : undefined,
-        );
-        data.pacerP[j].push(p ? p.pos : undefined);
-        data.pacerT[j].push(p ? p.accumulatetime.t : undefined);
+
+        if (p) {
+          data.pacerV[j].push(
+            p.currentSpeed + (p.modifiers.currentSpeed.acc + p.modifiers.currentSpeed.err),
+          );
+          data.pacerP[j].push(p.pos);
+          data.pacerT[j].push(p.accumulatetime.t);
+        }
       }
 
       if (s2.pos < course.distance) {
@@ -409,19 +518,21 @@ export function runComparison(
     }
 
     pacers.forEach((p) => {
-      if (p && p.pos < course.distance) {
-        p.step(1 / 15);
+      // Skip if pacer is null
+      if (p == null) return;
+      // Skip if pacer has finished the race
+      if (p.pos >= course.distance) return;
 
-        for (let pacemakerIndex = 0; pacemakerIndex < 3; pacemakerIndex++) {
-          if (pacemakerIndex < pacers.length && pacers[pacemakerIndex] === p) {
-            data.pacerV[pacemakerIndex].push(
-              p
-                ? p.currentSpeed + (p.modifiers.currentSpeed.acc + p.modifiers.currentSpeed.err)
-                : undefined,
-            );
-            data.pacerP[pacemakerIndex].push(p ? p.pos : undefined);
-            data.pacerT[pacemakerIndex].push(p ? p.accumulatetime.t : undefined);
-          }
+      // Step pacer
+      p.step(1 / 15);
+
+      for (let pacemakerIndex = 0; pacemakerIndex < 3; pacemakerIndex++) {
+        if (pacemakerIndex < pacers.length && pacers[pacemakerIndex] === p) {
+          data.pacerV[pacemakerIndex].push(
+            p.currentSpeed + (p.modifiers.currentSpeed.acc + p.modifiers.currentSpeed.err),
+          );
+          data.pacerP[pacemakerIndex].push(p.pos);
+          data.pacerT[pacemakerIndex].push(p.accumulatetime.t);
         }
       }
     });
@@ -552,16 +663,21 @@ export function runComparison(
       min = basinn;
       minrun = data;
     }
+
     if (basinn > max) {
       max = basinn;
       maxrun = data;
     }
+
     if (i == sampleCutoff) {
+      // eslint-disable-next-line no-shadow
       diff.sort((a, b) => a - b);
+      // eslint-disable-next-line no-shadow
       estMean = diff.reduce((a, b) => a + b) / diff.length;
       const mid = Math.floor(diff.length / 2);
       estMedian = mid > 0 && diff.length % 2 == 0 ? (diff[mid - 1] + diff[mid]) / 2 : diff[mid];
     }
+
     if (i >= sampleCutoff) {
       const meanDiff = Math.abs(basinn - estMean),
         medianDiff = Math.abs(basinn - estMedian);
@@ -575,18 +691,23 @@ export function runComparison(
       }
     }
   }
+
+  // eslint-disable-next-line no-shadow
   diff.sort((a, b) => a - b);
 
   // Calculate rushed statistics
-  const calculateStats = (stats) => {
+  const calculateStats = (stats: RushedStat) => {
     if (stats.lengths.length === 0) {
       return { min: 0, max: 0, mean: 0, frequency: 0 };
     }
-    const min = Math.min(...stats.lengths);
-    const max = Math.max(...stats.lengths);
+
+    const minBashin = Math.min(...stats.lengths);
+    const maxBashin = Math.max(...stats.lengths);
+    // eslint-disable-next-line no-shadow
     const mean = stats.lengths.reduce((a, b) => a + b, 0) / stats.lengths.length;
+
     const frequency = (stats.count / nsamples) * 100; // percentage
-    return { min, max, mean, frequency };
+    return { min: minBashin, max: maxBashin, mean, frequency };
   };
 
   const rushedStatsSummary = {
@@ -608,13 +729,19 @@ export function runComparison(
     if (positions.length === 0) {
       return { count: 0, min: null, max: null, mean: null, median: null };
     }
+
+    // eslint-disable-next-line no-shadow
     const sorted = [...positions].sort((a, b) => a - b);
-    const min = sorted[0];
-    const max = sorted[sorted.length - 1];
+
+    const minPosition = sorted[0];
+    const maxPosition = sorted[sorted.length - 1];
+
+    // eslint-disable-next-line no-shadow
     const mean = positions.reduce((a, b) => a + b, 0) / positions.length;
     const mid = Math.floor(sorted.length / 2);
     const median = sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
-    return { count: positions.length, min, max, mean, median };
+
+    return { count: positions.length, min: minPosition, max: maxPosition, mean, median };
   };
 
   // Calculate stamina survival and full spurt rates

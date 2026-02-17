@@ -1,5 +1,5 @@
-import type { IMood, IStrategyName } from '@/modules/simulation/lib/runner/definitions';
-import { Mood } from '@/modules/simulation/lib/runner/definitions';
+import type { IMood, IStrategyName } from '@/lib/sunday-tools/runner/definitions';
+import { Mood } from '@/lib/sunday-tools/runner/definitions';
 
 export const defaultRunnerState: RunnerState = {
   outfitId: '',

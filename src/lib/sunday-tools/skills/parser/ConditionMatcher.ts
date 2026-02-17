@@ -1,9 +1,6 @@
+import { AndOperator, OrOperator } from './conditions/operators';
 import type { CmpOperator, ICondition, Operator, ParseNode } from './definitions';
-import type { ActivationSamplePolicy } from '@/modules/simulation/lib/skills/policies/ActivationSamplePolicy';
-import {
-  AndOperator,
-  OrOperator,
-} from '@/modules/simulation/lib/skills/parser/conditions/operators';
+import type { ActivationSamplePolicy } from '../policies/ActivationSamplePolicy';
 
 function isCmpOperator(tree: Operator): tree is CmpOperator {
   return 'condition' in tree;

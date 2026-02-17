@@ -7,7 +7,7 @@ import { cloneDeep } from 'es-toolkit';
 import { useMemo } from 'react';
 import { useSettingsStore } from './settings.store';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
-import { PosKeepMode } from '@/modules/simulation/lib/runner/definitions';
+import { PosKeepMode } from '@/lib/sunday-tools/runner/definitions';
 import { createRunnerState, runawaySkillId } from '@/modules/runners/components/runner-card/types';
 import {
   getGeneVersionSkillId,

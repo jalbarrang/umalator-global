@@ -1,16 +1,16 @@
+import type { ConditionFilterParams, ICondition } from '../definitions';
+import type { Runner } from '@/lib/sunday-tools/common/runner';
+import type { RaceParameters } from '@/lib/sunday-tools/common/race';
+import type { DistributionRandomPolicy } from '@/lib/sunday-tools/skills/policies/ActivationSamplePolicy';
+import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import {
   ErlangRandomPolicy,
   ImmediatePolicy,
   LogNormalRandomPolicy,
   RandomPolicy,
   UniformRandomPolicy,
-} from '../../policies/ActivationSamplePolicy';
-import { CourseHelpers } from '../../../course/CourseData';
-import type { ICondition } from '../definitions';
-import type { CourseData } from '@/lib/sunday-tools/course/definitions';
-import type { Runner } from '@/lib/sunday-tools/common/runner';
-import type { RaceParameters } from '@/lib/sunday-tools/common/race';
-import type { DistributionRandomPolicy } from '../../policies/ActivationSamplePolicy';
+} from '@/lib/sunday-tools/skills/policies/ActivationSamplePolicy';
+import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 import { calculateEarlyRaceAverageSpeed } from '@/lib/sunday-tools/common/spurt-calculator';
 import { Region, RegionList } from '@/lib/sunday-tools/shared/region';
 
@@ -110,24 +110,12 @@ export const noopErlangRandom = (k: number, lambda: number) => {
 
 export const noopUniformRandom = uniformRandom(noopAll);
 
-export function notSupported(
-  _0: RegionList,
-  _1: number,
-  _2: CourseData,
-  _3: HorseParameters,
-  _extra: RaceParameters,
-): never {
+export function notSupported(_params: ConditionFilterParams): never {
   throw new Error('unsupported comparison');
 }
 
-export function noop(
-  regions: RegionList,
-  _1: number,
-  _2: CourseData,
-  _3: HorseParameters,
-  _extra: RaceParameters,
-) {
-  return regions;
+export function noop(params: ConditionFilterParams) {
+  return params.regions;
 }
 
 export const noopImmediate: ICondition = {
@@ -147,13 +135,9 @@ export const noopRandom: ICondition = { ...noopAll, samplePolicy: RandomPolicy }
  * Uses course-aware early-race average speed estimation based on start dash mechanics
  * (acceleration from 3 m/s to 0.85 × baseSpeed).
  */
-export function shiftRegionsForwardByMinTime(
-  regions: RegionList,
-  minTime: number,
-  course: CourseData,
-  _: HorseParameters,
-  _extra: RaceParameters,
-) {
+export function shiftRegionsForwardByMinTime(params: ConditionFilterParams) {
+  const { regions, arg: minTime, course } = params;
+
   const avgSpeed = calculateEarlyRaceAverageSpeed(course.distance);
   const minDistance = avgSpeed * minTime;
   const shiftedRegions = new RegionList();
@@ -170,16 +154,12 @@ export function shiftRegionsForwardByMinTime(
 }
 
 export function noopSectionRandom(start: number, end: number) {
-  function sectionRandom(
-    regions: RegionList,
-    _0: number,
-    course: CourseData,
-    _1: HorseParameters,
-    _extra: RaceParameters,
-  ) {
+  function sectionRandom(params: ConditionFilterParams) {
+    const { regions, course } = params;
     const bounds = new Region(start * (course.distance / 24), end * (course.distance / 24));
     return regions.rmap((r) => r.intersect(bounds));
   }
+
   return random({
     filterEq: sectionRandom,
     filterNeq: sectionRandom,
@@ -190,76 +170,89 @@ export function noopSectionRandom(start: number, end: number) {
   });
 }
 
-export function valueFilter(
-  getValue: (c: CourseData, h: HorseParameters, e: RaceParameters) => number,
-) {
+export type ValueFilterParams = {
+  regions: RegionList;
+  runner: Runner;
+  extra: RaceParameters;
+  course: CourseData;
+};
+
+export function valueFilter(getValue: (params: ValueFilterParams) => number) {
   return immediate({
-    filterEq(
-      regions: RegionList,
-      value: number,
-      course: CourseData,
-      horse: HorseParameters,
-      extra: RaceParameters,
-    ) {
-      return getValue(course, horse, extra) == value ? regions : new RegionList();
+    filterEq({ regions, arg: value, runner, extra, course }: ConditionFilterParams) {
+      const check =
+        getValue({
+          regions,
+          runner,
+          extra,
+          course,
+        }) == value;
+
+      return check ? regions : new RegionList();
     },
-    filterNeq(
-      regions: RegionList,
-      value: number,
-      course: CourseData,
-      horse: HorseParameters,
-      extra: RaceParameters,
-    ) {
-      return getValue(course, horse, extra) != value ? regions : new RegionList();
+    filterNeq({ regions, arg: value, runner, extra, course }: ConditionFilterParams) {
+      const check =
+        getValue({
+          regions,
+          runner,
+          extra,
+          course,
+        }) != value;
+
+      return check ? regions : new RegionList();
     },
-    filterLt(
-      regions: RegionList,
-      value: number,
-      course: CourseData,
-      horse: HorseParameters,
-      extra: RaceParameters,
-    ) {
-      return getValue(course, horse, extra) < value ? regions : new RegionList();
+    filterLt({ regions, arg: value, runner, extra, course }: ConditionFilterParams) {
+      const check =
+        getValue({
+          regions,
+          runner,
+          extra,
+          course,
+        }) < value;
+
+      return check ? regions : new RegionList();
     },
-    filterLte(
-      regions: RegionList,
-      value: number,
-      course: CourseData,
-      horse: HorseParameters,
-      extra: RaceParameters,
-    ) {
-      return getValue(course, horse, extra) <= value ? regions : new RegionList();
+    filterLte({ regions, arg: value, runner, extra, course }: ConditionFilterParams) {
+      const check =
+        getValue({
+          regions,
+          runner,
+          extra,
+          course,
+        }) <= value;
+
+      return check ? regions : new RegionList();
     },
-    filterGt(
-      regions: RegionList,
-      value: number,
-      course: CourseData,
-      horse: HorseParameters,
-      extra: RaceParameters,
-    ) {
-      return getValue(course, horse, extra) > value ? regions : new RegionList();
+    filterGt({ regions, arg: value, runner, extra, course }: ConditionFilterParams) {
+      const check =
+        getValue({
+          regions,
+          runner,
+          extra,
+          course,
+        }) > value;
+
+      return check ? regions : new RegionList();
     },
-    filterGte(
-      regions: RegionList,
-      value: number,
-      course: CourseData,
-      horse: HorseParameters,
-      extra: RaceParameters,
-    ) {
-      return getValue(course, horse, extra) >= value ? regions : new RegionList();
+    filterGte({ regions, arg: value, runner, extra, course }: ConditionFilterParams) {
+      const check =
+        getValue({
+          regions,
+          runner,
+          extra,
+          course,
+        }) >= value;
+
+      return check ? regions : new RegionList();
     },
   });
 }
 
 export function orderFilter(getPos: (arg: number, n: number) => number) {
   return immediate({
-    filterEq(
-      regions: RegionList,
-      arg: number,
-      _0: CourseData,
-      _1: HorseParameters,
-      extra: RaceParameters,
-    ) {
+    filterEq(params: ConditionFilterParams) {
+      const { regions, arg, extra } = params;
+
       if (extra.orderRange && extra.numUmas) {
         const pos = getPos(arg, extra.numUmas);
         return pos >= extra.orderRange[0] && pos <= extra.orderRange[1]
@@ -269,13 +262,9 @@ export function orderFilter(getPos: (arg: number, n: number) => number) {
 
       return regions;
     },
-    filterNeq(
-      regions: RegionList,
-      arg: number,
-      _0: CourseData,
-      _1: HorseParameters,
-      extra: RaceParameters,
-    ) {
+    filterNeq(params: ConditionFilterParams) {
+      const { regions, arg, extra } = params;
+
       if (extra.orderRange && extra.numUmas) {
         const pos = getPos(arg, extra.numUmas);
 
@@ -284,13 +273,9 @@ export function orderFilter(getPos: (arg: number, n: number) => number) {
 
       return regions;
     },
-    filterLt(
-      regions: RegionList,
-      arg: number,
-      course: CourseData,
-      _: HorseParameters,
-      extra: RaceParameters,
-    ) {
+    filterLt(params: ConditionFilterParams) {
+      const { regions, arg, extra, course } = params;
+
       if (extra.orderRange && extra.numUmas) {
         if (!(1 <= extra.orderRange[0] && extra.orderRange[0] <= extra.orderRange[1])) {
           throw new Error('Invalid order range');
@@ -306,13 +291,9 @@ export function orderFilter(getPos: (arg: number, n: number) => number) {
       }
       return regions;
     },
-    filterLte(
-      regions: RegionList,
-      arg: number,
-      course: CourseData,
-      _: HorseParameters,
-      extra: RaceParameters,
-    ) {
+    filterLte(params: ConditionFilterParams) {
+      const { regions, arg, extra, course } = params;
+
       if (extra.orderRange && extra.numUmas) {
         if (!(1 <= extra.orderRange[0] && extra.orderRange[0] <= extra.orderRange[1])) {
           throw new Error('Invalid order range');
@@ -325,13 +306,9 @@ export function orderFilter(getPos: (arg: number, n: number) => number) {
 
       return regions;
     },
-    filterGt(
-      regions: RegionList,
-      arg: number,
-      _0: CourseData,
-      _1: HorseParameters,
-      extra: RaceParameters,
-    ) {
+    filterGt(params: ConditionFilterParams) {
+      const { regions, arg, extra } = params;
+
       if (extra.orderRange && extra.numUmas) {
         if (!(extra.orderRange[0] <= extra.orderRange[1] && extra.orderRange[1] <= extra.numUmas)) {
           throw new Error('Invalid order range');
@@ -342,13 +319,9 @@ export function orderFilter(getPos: (arg: number, n: number) => number) {
       }
       return regions;
     },
-    filterGte(
-      regions: RegionList,
-      arg: number,
-      _0: CourseData,
-      _1: HorseParameters,
-      extra: RaceParameters,
-    ) {
+    filterGte(params: ConditionFilterParams) {
+      const { regions, arg, extra } = params;
+
       if (extra.orderRange && extra.numUmas) {
         if (!(extra.orderRange[0] <= extra.orderRange[1] && extra.orderRange[1] <= extra.numUmas)) {
           throw new Error('Invalid order range');
@@ -364,13 +337,9 @@ export function orderFilter(getPos: (arg: number, n: number) => number) {
 
 export function orderInFilter(rate: number) {
   return immediate({
-    filterEq(
-      regions: RegionList,
-      one: number,
-      _0: CourseData,
-      _1: HorseParameters,
-      extra: RaceParameters,
-    ) {
+    filterEq(params: ConditionFilterParams) {
+      const { regions, arg: one, extra } = params;
+
       if (one !== 1) {
         throw new Error('must be order_rate_inXX_continue==1');
       }
@@ -394,13 +363,9 @@ export function orderInFilter(rate: number) {
 
 export function orderOutFilter(rate: number) {
   return immediate({
-    filterEq(
-      regions: RegionList,
-      one: number,
-      _0: CourseData,
-      _1: HorseParameters,
-      extra: RaceParameters,
-    ) {
+    filterEq(params: ConditionFilterParams) {
+      const { regions, arg: one, extra } = params;
+
       if (one !== 1) {
         throw new Error('must be order_rate_outXX_continue==1');
       }

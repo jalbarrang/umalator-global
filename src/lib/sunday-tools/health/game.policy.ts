@@ -1,9 +1,9 @@
-import { PositionKeepState } from '../../lib/skills/definitions';
-import { Strategy } from '../../lib/runner/definitions';
-import { CourseHelpers } from '../../lib/course/CourseData';
-import type { Runner } from '../runner';
-import type { CourseData, IGroundCondition, IPhase } from '../../lib/course/definitions';
-import type { PRNG } from '../../lib/utils/Random';
+import { CourseHelpers } from '../course/CourseData';
+import { PositionKeepState } from '../skills/definitions';
+import { Strategy } from '../runner/definitions';
+import type { Runner } from '../common/runner';
+import type { CourseData, IGroundCondition, IPhase } from '../course/definitions';
+import type { PRNG } from '../shared/random';
 import type { HpPolicy, RaceStateSlice } from './health-policy';
 
 /**
@@ -49,10 +49,10 @@ export class GameHpPolicy implements HpPolicy {
 
   init(runner: Runner) {
     this.maxHp =
-      0.8 * HpStrategyCoefficient[runner.strategy] * runner._adjustedStats.stamina + this.distance;
+      0.8 * HpStrategyCoefficient[runner.strategy] * runner.adjustedStats.stamina + this.distance;
     this.currentHealth = this.maxHp;
-    this.gutsModifier = 1.0 + 200.0 / Math.sqrt(600.0 * runner._adjustedStats.guts);
-    this.subparAcceptChance = Math.round((15.0 + 0.05 * runner._adjustedStats.wit) * 1000);
+    this.gutsModifier = 1.0 + 200.0 / Math.sqrt(600.0 * runner.adjustedStats.guts);
+    this.subparAcceptChance = Math.round((15.0 + 0.05 * runner.adjustedStats.wit) * 1000);
     this.achievedMaxSpurt = false;
   }
 
@@ -89,7 +89,7 @@ export class GameHpPolicy implements HpPolicy {
       isRushed: runner.isRushed,
       isDownhillMode: runner.isDownhillMode,
       inSpotStruggle: runner.inSpotStruggle,
-      posKeepStrategy: runner.posKeepStrategy,
+      posKeepStrategy: runner.positionKeepStrategy,
       pos: runner.position,
       currentSpeed: runner.currentSpeed,
     };

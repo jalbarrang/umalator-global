@@ -1,14 +1,17 @@
 import { withDefaultCond } from '../definitions';
 import { kTrue } from './utils';
-import type { CourseData } from '../../../course/definitions';
-import type { RaceParameters } from '../../../definitions';
-import type { HorseParameters } from '../../../runner/HorseTypes';
-import type { RegionList } from '../../../utils/Region';
-import type { ActivationSamplePolicy } from '../../policies/ActivationSamplePolicy';
-import type { ICondition, Operator, OperatorsConfig } from '../definitions';
-import type { DynamicCondition } from '../../../core/RaceSolver';
+import type { RegionList } from '@/lib/sunday-tools/shared/region';
+import type { ActivationSamplePolicy } from '@/lib/sunday-tools/skills/policies/ActivationSamplePolicy';
+import type {
+  ApplyParams,
+  ConditionFilterParams,
+  ICondition,
+  Operator,
+  OperatorsConfig,
+} from '../definitions';
+import type { DynamicCondition } from '@/lib/sunday-tools/skills/skill.types';
 
-export class EqOperator {
+export class EqOperator implements Operator {
   samplePolicy: ActivationSamplePolicy;
 
   constructor(
@@ -18,12 +21,16 @@ export class EqOperator {
     this.samplePolicy = condition.samplePolicy;
   }
 
-  apply(regions: RegionList, course: CourseData, horse: HorseParameters, extra: RaceParameters) {
-    return withDefaultCond(this.condition.filterEq(regions, this.argument, course, horse, extra));
+  apply(params: ApplyParams) {
+    const condParams: ConditionFilterParams = {
+      ...params,
+      arg: this.argument,
+    };
+    return withDefaultCond(this.condition.filterEq(condParams));
   }
 }
 
-export class NeqOperator {
+export class NeqOperator implements Operator {
   samplePolicy: ActivationSamplePolicy;
 
   constructor(
@@ -33,12 +40,17 @@ export class NeqOperator {
     this.samplePolicy = condition.samplePolicy;
   }
 
-  apply(regions: RegionList, course: CourseData, horse: HorseParameters, extra: RaceParameters) {
-    return withDefaultCond(this.condition.filterNeq(regions, this.argument, course, horse, extra));
+  apply(params: ApplyParams) {
+    const condParams: ConditionFilterParams = {
+      ...params,
+      arg: this.argument,
+    };
+
+    return withDefaultCond(this.condition.filterNeq(condParams));
   }
 }
 
-export class LtOperator {
+export class LtOperator implements Operator {
   samplePolicy: ActivationSamplePolicy;
 
   constructor(
@@ -48,12 +60,17 @@ export class LtOperator {
     this.samplePolicy = condition.samplePolicy;
   }
 
-  apply(regions: RegionList, course: CourseData, horse: HorseParameters, extra: RaceParameters) {
-    return withDefaultCond(this.condition.filterLt(regions, this.argument, course, horse, extra));
+  apply(params: ApplyParams) {
+    const condParams: ConditionFilterParams = {
+      ...params,
+      arg: this.argument,
+    };
+
+    return withDefaultCond(this.condition.filterLt(condParams));
   }
 }
 
-export class LteOperator {
+export class LteOperator implements Operator {
   samplePolicy: ActivationSamplePolicy;
 
   constructor(
@@ -63,12 +80,17 @@ export class LteOperator {
     this.samplePolicy = condition.samplePolicy;
   }
 
-  apply(regions: RegionList, course: CourseData, horse: HorseParameters, extra: RaceParameters) {
-    return withDefaultCond(this.condition.filterLte(regions, this.argument, course, horse, extra));
+  apply(params: ApplyParams) {
+    const condParams: ConditionFilterParams = {
+      ...params,
+      arg: this.argument,
+    };
+
+    return withDefaultCond(this.condition.filterLte(condParams));
   }
 }
 
-export class GtOperator {
+export class GtOperator implements Operator {
   samplePolicy: ActivationSamplePolicy;
 
   constructor(
@@ -78,12 +100,17 @@ export class GtOperator {
     this.samplePolicy = condition.samplePolicy;
   }
 
-  apply(regions: RegionList, course: CourseData, horse: HorseParameters, extra: RaceParameters) {
-    return withDefaultCond(this.condition.filterGt(regions, this.argument, course, horse, extra));
+  apply(params: ApplyParams) {
+    const condParams: ConditionFilterParams = {
+      ...params,
+      arg: this.argument,
+    };
+
+    return withDefaultCond(this.condition.filterGt(condParams));
   }
 }
 
-export class GteOperator {
+export class GteOperator implements Operator {
   samplePolicy: ActivationSamplePolicy;
 
   constructor(
@@ -93,12 +120,17 @@ export class GteOperator {
     this.samplePolicy = condition.samplePolicy;
   }
 
-  apply(regions: RegionList, course: CourseData, horse: HorseParameters, extra: RaceParameters) {
-    return withDefaultCond(this.condition.filterGte(regions, this.argument, course, horse, extra));
+  apply(params: ApplyParams) {
+    const condParams: ConditionFilterParams = {
+      ...params,
+      arg: this.argument,
+    };
+
+    return withDefaultCond(this.condition.filterGte(condParams));
   }
 }
 
-export class AndOperator {
+export class AndOperator implements Operator {
   samplePolicy: ActivationSamplePolicy;
 
   constructor(
@@ -108,18 +140,25 @@ export class AndOperator {
     this.samplePolicy = left.samplePolicy.reconcile(right.samplePolicy);
   }
 
-  apply(regions: RegionList, course: CourseData, horse: HorseParameters, extra: RaceParameters) {
-    const [leftval, leftcond] = this.left.apply(regions, course, horse, extra);
-    const [rightval, rightcond] = this.right.apply(leftval, course, horse, extra);
+  apply(params: ApplyParams) {
+    const [leftval, leftcond] = this.left.apply(params);
+    const leftParams: ApplyParams = {
+      ...params,
+      regions: leftval,
+    };
+
+    const [rightval, rightcond] = this.right.apply(leftParams);
+
     if (leftcond === kTrue && rightcond === kTrue) {
       // avoid allocating an unnecessary closure object in the common case of no dynamic conditions
       return [rightval, kTrue] as [RegionList, DynamicCondition];
     }
+
     return [rightval, (s) => leftcond(s) && rightcond(s)] as [RegionList, DynamicCondition];
   }
 }
 
-export class OrOperator {
+export class OrOperator implements Operator {
   samplePolicy: ActivationSamplePolicy;
 
   constructor(
@@ -132,9 +171,9 @@ export class OrOperator {
     this.samplePolicy = left.samplePolicy.reconcile(right.samplePolicy);
   }
 
-  apply(regions: RegionList, course: CourseData, horse: HorseParameters, extra: RaceParameters) {
-    const [leftval, leftcond] = this.left.apply(regions, course, horse, extra);
-    const [rightval, rightcond] = this.right.apply(regions, course, horse, extra);
+  apply(params: ApplyParams) {
+    const [leftval, leftcond] = this.left.apply(params);
+    const [rightval, rightcond] = this.right.apply(params);
 
     // FIXME this is, technically, completely broken. really the correct way to do this is to tie dynamic conditions to regions
     // and propagate them during union and intersection. however, that's really annoying, and it turns out in practice that

@@ -1,15 +1,20 @@
 import { parseSkillCondition, tokenizedConditions } from './conditions';
-import type { ISkillRarity } from '@/modules/simulation/lib/skills/definitions';
-import type { SkillAlternative } from '@/modules/simulation/lib/core/RaceSolverBuilder';
 import type { ISkill } from './types';
 import type { UmaAltId } from '@/modules/runners/utils';
+import type { SkillAlternative } from '@/lib/sunday-tools/skills/skill.types';
+import type { ISkillRarity } from '@/lib/sunday-tools/skills/definitions';
+import { SkillRarity } from '@/lib/sunday-tools/skills/definitions';
+
+// ===== Data =====
+
 import skillsDataList from '@/modules/data/skill_data.json';
 import skillMetaList from '@/modules/data/skill_meta.json';
 import skillNamesList from '@/modules/data/skillnames.json';
 import GametoraSkills from '@/modules/data/gametora/skills.json';
 
-import { treeMatch } from '@/modules/simulation/lib/skills/parser/ConditionMatcher';
-import { SkillRarity } from '@/modules/simulation/lib/skills/definitions';
+// ===== Utils =====
+
+import { treeMatch } from '@/lib/uma-skill-tools/sim/ConditionMatcher';
 
 // Types
 
@@ -53,7 +58,7 @@ export const getBaseSkillId = (id: string): string => {
 export const getSkillDataById = (id: string): SkillData => {
   const baseId = getBaseSkillId(id);
 
-  const skillData = skillsDataList[baseId as SkillId];
+  const skillData = skillsDataList[baseId];
 
   if (!skillData) {
     throw new Error(`Skill data not found for ID: ${id}`);
@@ -65,7 +70,7 @@ export const getSkillDataById = (id: string): SkillData => {
 export const getSkillMetaById = (id: string): SkillMeta => {
   const baseId = getBaseSkillId(id);
 
-  const skillMeta = skillMetaList[baseId as SkillId];
+  const skillMeta = skillMetaList[baseId];
 
   if (!skillMeta) {
     throw new Error(`Skill meta not found for ID: ${id}`);
@@ -77,7 +82,7 @@ export const getSkillMetaById = (id: string): SkillMeta => {
 export const getSkillNameById = (id: string): string => {
   const baseId = getBaseSkillId(id);
 
-  const [skillName] = skillNamesList[baseId as SkillId];
+  const [skillName] = skillNamesList[baseId];
 
   if (!skillName) {
     throw new Error(`Skill names not found for ID: ${id}`);
@@ -115,7 +120,7 @@ export const getBaseSkillsToTest = () => {
   const skillsToTest = [];
 
   for (const id of skillIds) {
-    const skillData = skillsDataList[id as SkillId];
+    const skillData = skillsDataList[id];
 
     if (!skillData) continue;
 

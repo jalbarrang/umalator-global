@@ -1,17 +1,6 @@
-import type {
-  CourseData,
-  IDistanceType,
-  IOrientation,
-  IPhase,
-  ISurface,
-} from './definitions';
-import {
-  distances,
-  orientations,
-  phases,
-  surfaces,
-} from './definitions';
-import { getCourseById } from '../../../modules/racetrack/courses';
+import { distances, orientations, phases, surfaces } from './definitions';
+import type { CourseData, IDistanceType, IOrientation, IPhase, ISurface } from './definitions';
+import { getCourseById } from '@/modules/racetrack/courses';
 
 export class CourseHelpers {
   static assertIsPhase(phase: number): asserts phase is IPhase {
@@ -109,7 +98,7 @@ export class CourseHelpers {
 
     let slopes = course.slopes;
     if (!this.isSortedByStart(slopes)) {
-      slopes = slopes.toSorted((a, b) => a.start - b.start);
+      slopes = slopes.toSorted((a: { start: number }, b: { start: number }) => a.start - b.start);
     }
 
     const courseWidth = 11.25;

@@ -22,34 +22,23 @@ import type {
   SkillTrackedMeta,
   SkillTrackedMetaCollection,
 } from '@/modules/simulation/compare.types';
-
-import type {
-  ActiveSkill,
-  OnSkillCallback,
-  RaceSolver,
-} from '@/modules/simulation/lib/core/RaceSolver';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
-import type { CourseData, IGroundCondition } from '@/modules/simulation/lib/course/definitions';
+import type { CreateRunner, Runner as SundayRunner } from '@/lib/sunday-tools/common/runner';
 import type {
-  ISkillPerspective,
-  ISkillTarget,
-  ISkillType,
-} from '@/modules/simulation/lib/skills/definitions';
+  DuelingRates,
+  SimulationSettings,
+  RaceParameters as SundayRaceParameters,
+} from '@/lib/sunday-tools/common/race';
+import type { CourseData, IGroundCondition } from '@/lib/sunday-tools/course/definitions';
+import type { ISkillTarget, ISkillType } from '@/lib/sunday-tools/skills/definitions';
 import { initializeSkillSimulationRun } from '@/modules/simulation/compare.types';
-import {
-  RaceSolverBuilder,
-  buildAdjustedStats,
-  buildBaseStats,
-  parseAptitude,
-  parseStrategy,
-} from '@/modules/simulation/lib/core/RaceSolverBuilder';
-import { PosKeepMode } from '@/modules/simulation/lib/runner/definitions';
-import {
-  SkillPerspective,
-  SkillTarget,
-  SkillType,
-} from '@/modules/simulation/lib/skills/definitions';
+import { Race } from '@/lib/sunday-tools/common/race';
+import { PosKeepMode } from '@/lib/sunday-tools/runner/definitions';
+import { parseAptitudeName, parseStrategyName } from '@/lib/sunday-tools/runner/runner.types';
+import { SkillTarget, SkillType } from '@/lib/sunday-tools/skills/definitions';
 import { getSkillMetaById } from '@/modules/skills/utils';
+
+import skillsDataList from '@/modules/data/skill_data.json';
 
 export function calculateTheoreticalMaxSpurt(
   horse: RunnerState,
@@ -69,8 +58,8 @@ export function calculateTheoreticalMaxSpurt(
   const DistanceProficiencyModifier = [1.05, 1.0, 0.9, 0.8, 0.6, 0.4, 0.2, 0.1];
 
   // Parse strategy and aptitude from strings to numeric enums if needed
-  const strategy = parseStrategy(horse.strategy);
-  const distanceAptitude = parseAptitude(horse.distanceAptitude, 'distance');
+  const strategy = parseStrategyName(horse.strategy);
+  const distanceAptitude = parseAptitudeName(horse.distanceAptitude);
 
   const baseSpeed = 20.0 - (course.distance - 2000) / 1000.0;
   const maxHp = 0.8 * HpStrategyCoefficient[strategy] * horse.stamina + course.distance;
@@ -154,229 +143,231 @@ type SkillCompareParams = RunComparisonParams & {
   trackedSkillId: string;
 };
 
-export function runSkillComparison(params: SkillCompareParams): SkillComparisonResult {
-  const { nsamples, course, racedef, runnerA, runnerB, trackedSkillId, options } = params;
+type SkillDataEntry = {
+  alternatives?: Array<{
+    effects?: Array<{
+      type: number;
+      target?: number;
+    }>;
+  }>;
+};
 
-  const seed = options.seed ?? 0;
-  const posKeepMode = options.posKeepMode ?? PosKeepMode.None;
-  const numUmas = racedef.numUmas ?? 1;
+const STEP_SECONDS = 1 / 15;
 
-  const runnerARaceSolver = new RaceSolverBuilder(nsamples)
-    .seed(seed)
-    .course(course)
-    .ground(racedef.groundCondition)
-    .weather(racedef.weather)
-    .season(racedef.season)
-    .time(racedef.time)
-    .useHpPolicy(false)
-    .accuracyMode(options.accuracyMode ?? false)
-    .posKeepMode(posKeepMode)
-    .mode('skill-compare');
+const DEFAULT_DUELING_RATES: DuelingRates = {
+  runaway: 10,
+  frontRunner: 10,
+  paceChaser: 10,
+  lateSurger: 10,
+  endCloser: 10,
+};
 
-  if (racedef.orderRange) {
-    const [start, end] = racedef.orderRange;
-    runnerARaceSolver.order(start, end).numUmas(numUmas);
-  }
+function normalizeSkillId(skillId: string): string {
+  return skillId.split('-')[0] ?? skillId;
+}
 
-  // Fork to share RNG - both horses face the same random events for fair comparison
-  const runnerBRaceSolver = runnerARaceSolver.fork();
+function isSameSkill(skillIdA: string, skillIdB: string): boolean {
+  return skillIdA === skillIdB || normalizeSkillId(skillIdA) === normalizeSkillId(skillIdB);
+}
 
-  runnerARaceSolver.trackedRunner(runnerA);
-  runnerBRaceSolver.trackedRunner(runnerB);
+function createSkillSorterByGroup(allSkills: Array<string>) {
+  const commonSkills = Array.from(new Set(allSkills.toSorted((a, b) => +a - +b)));
 
-  // Apply rushed toggles
-  runnerARaceSolver.disableRushed();
-  runnerBRaceSolver.disableRushed();
-
-  // Apply downhill toggles
-  runnerARaceSolver.disableDownhill();
-  runnerBRaceSolver.disableDownhill();
-
-  runnerARaceSolver.disableSectionModifier();
-  runnerBRaceSolver.disableSectionModifier();
-
-  // Apply skill check chance toggle
-  runnerARaceSolver.skillCheckChance(false);
-  runnerBRaceSolver.skillCheckChance(false);
-
-  // ensure skills common to the two umas are added in the same order regardless of what additional skills they have
-  // this is important to make sure the rng for their activations is synced
-  // sort first by groupId so that white and gold versions of a skill get added in the same order
-
-  const commonSkillsArray = [...runnerA.skills, ...runnerB.skills].toSorted((a, b) => +a - +b);
-  const commonSkills = Array.from(new Set(commonSkillsArray));
-
-  // Get groupIds for common skills
   const getCommonGroupIndex = (id: string) => {
     try {
-      const baseId = id.split('-')[0];
+      const baseId = normalizeSkillId(id);
       const groupId = getSkillMetaById(baseId).groupId;
       const index = commonSkills.findIndex((skillId) => {
-        const commonBaseId = skillId.split('-')[0];
+        const commonBaseId = normalizeSkillId(skillId);
         return getSkillMetaById(commonBaseId).groupId === groupId;
       });
       return index > -1 ? index : commonSkills.length;
     } catch {
-      // If skill meta not found, sort to end
       return commonSkills.length;
     }
   };
 
-  // Sort by groupId first (for white/gold versions), then by skill ID
-  const skillSorterByGroup = (a: string, b: string) => {
+  return (a: string, b: string) => {
     const groupIndexA = getCommonGroupIndex(a);
     const groupIndexB = getCommonGroupIndex(b);
     if (groupIndexA !== groupIndexB) {
       return groupIndexA - groupIndexB;
     }
-    // If same group, sort by skill ID
-    return +a.split('-')[0] - +b.split('-')[0];
+    return +normalizeSkillId(a) - +normalizeSkillId(b);
   };
+}
 
-  const runnerABaseStats = buildBaseStats({ ...runnerA });
-  const runnerAAdjustedStats = buildAdjustedStats(
-    runnerABaseStats,
-    course,
-    racedef.groundCondition,
-  );
-  const runnerAWit = runnerAAdjustedStats.wisdom;
+function toCreateRunner(runner: RunnerState, sortedSkills: Array<string>): CreateRunner {
+  return {
+    outfitId: runner.outfitId,
+    mood: runner.mood,
+    strategy: parseStrategyName(runner.strategy),
+    aptitudes: {
+      distance: parseAptitudeName(runner.distanceAptitude),
+      surface: parseAptitudeName(runner.surfaceAptitude),
+      strategy: parseAptitudeName(runner.strategyAptitude),
+    },
+    stats: {
+      speed: runner.speed,
+      stamina: runner.stamina,
+      power: runner.power,
+      guts: runner.guts,
+      wit: runner.wisdom,
+    },
+    skills: sortedSkills,
+  };
+}
 
-  const runnerBBaseStats = buildBaseStats({ ...runnerB });
-  const runnerBAdjustedStats = buildAdjustedStats(
-    runnerBBaseStats,
-    course,
-    racedef.groundCondition,
-  );
+function toSundayRaceParameters(racedef: RunComparisonParams['racedef']): SundayRaceParameters {
+  const race = racedef as Record<string, unknown>;
 
-  const runnerBWit = runnerBAdjustedStats.wisdom;
+  const ground = (race.ground ?? race.groundCondition) as SundayRaceParameters['ground'];
+  const weather = race.weather as SundayRaceParameters['weather'];
+  const season = race.season as SundayRaceParameters['season'];
+  const timeOfDay = (race.timeOfDay ?? race.time) as SundayRaceParameters['timeOfDay'];
+  const grade = race.grade as SundayRaceParameters['grade'];
 
-  const runnerASortedSkills = runnerA.skills.toSorted(skillSorterByGroup);
+  if (ground == null || weather == null || season == null || timeOfDay == null || grade == null) {
+    throw new Error('Invalid race conditions for Sunday engine migration');
+  }
 
-  for (const id of runnerASortedSkills) {
-    const skillId = id.split('-')[0];
-    const forcedPos = runnerA.forcedSkillPositions[id];
+  return {
+    ground,
+    weather,
+    season,
+    timeOfDay,
+    grade,
+  };
+}
 
-    if (forcedPos) {
-      runnerARaceSolver.addSkillAtPosition(skillId, forcedPos, SkillPerspective.Self);
-      runnerBRaceSolver.addSkill(skillId, SkillPerspective.Other, undefined, runnerAWit);
-    } else {
-      runnerARaceSolver.addSkill(skillId, SkillPerspective.Self);
-      runnerBRaceSolver.addSkill(skillId, SkillPerspective.Other, undefined, runnerAWit);
+function createCompareSettings(posKeepMode: number): SimulationSettings {
+  return {
+    mode: 'compare',
+    healthSystem: false,
+    sectionModifier: false,
+    rushed: false,
+    downhill: false,
+    spotStruggle: false,
+    dueling: false,
+    witChecks: false,
+    positionKeepMode: posKeepMode as SimulationSettings['positionKeepMode'],
+  };
+}
+
+function createInitializedRace(params: {
+  course: CourseData;
+  raceParameters: SundayRaceParameters;
+  settings: SimulationSettings;
+  duelingRates: DuelingRates;
+  skillSamples: number;
+  runner: CreateRunner;
+}): { race: Race; runner: SundayRunner } {
+  const race = new Race({
+    course: params.course,
+    parameters: params.raceParameters,
+    settings: params.settings,
+    skillSamples: params.skillSamples,
+    duelingRates: params.duelingRates,
+  });
+
+  race.onInitialize();
+  race.skillSamples = params.skillSamples;
+  race.addRunner(params.runner);
+  race.prepareRace().validateRaceSetup();
+
+  const trackedRunner = Array.from(race.runners.values())[0];
+  if (!trackedRunner) {
+    throw new Error('Failed to initialize runner in race');
+  }
+
+  return { race, runner: trackedRunner };
+}
+
+function getFallbackEffectMeta(skillId: string): {
+  effectType: ISkillType;
+  effectTarget: ISkillTarget;
+} {
+  const baseSkillId = normalizeSkillId(skillId);
+  const skillData = (skillsDataList as Record<string, SkillDataEntry | undefined>)[baseSkillId];
+  const firstEffect = skillData?.alternatives?.[0]?.effects?.[0];
+
+  return {
+    effectType: (firstEffect?.type ?? SkillType.Noop) as ISkillType,
+    effectTarget: (firstEffect?.target ?? SkillTarget.Self) as ISkillTarget,
+  };
+}
+
+type ActiveTrackedEffect = {
+  key: string;
+  effectType: ISkillType;
+  effectTarget: ISkillTarget;
+};
+
+function collectTrackedActiveEffects(
+  runner: SundayRunner,
+  trackedSkillId: string,
+): Array<ActiveTrackedEffect> {
+  const activeEffects: Array<ActiveTrackedEffect> = [];
+  const effectBuckets = [
+    runner.targetSpeedSkillsActive,
+    runner.currentSpeedSkillsActive,
+    runner.accelerationSkillsActive,
+    runner.laneMovementSkillsActive,
+    runner.changeLaneSkillsActive,
+  ];
+
+  for (const bucket of effectBuckets) {
+    for (const effect of bucket) {
+      if (!isSameSkill(effect.skillId, trackedSkillId)) {
+        continue;
+      }
+
+      activeEffects.push({
+        key: `${effect.effectType}:${effect.effectTarget}:${effect.modifier.toFixed(6)}`,
+        effectType: effect.effectType,
+        effectTarget: effect.effectTarget,
+      });
     }
   }
 
-  const runnerBSortedSkills = runnerB.skills.toSorted(skillSorterByGroup);
+  return activeEffects;
+}
 
-  for (const id of runnerBSortedSkills) {
-    const skillId = id.split('-')[0];
-    const forcedPos = runnerB.forcedSkillPositions[id];
+export function runSkillComparison(params: SkillCompareParams): SkillComparisonResult {
+  const { nsamples, course, racedef, runnerA, runnerB, trackedSkillId, options } = params;
 
-    if (forcedPos != null) {
-      runnerBRaceSolver.addSkillAtPosition(skillId, forcedPos, SkillPerspective.Self);
-      runnerARaceSolver.addSkill(skillId, SkillPerspective.Other, undefined, runnerBWit);
-    } else {
-      runnerBRaceSolver.addSkill(skillId, SkillPerspective.Self);
-      runnerARaceSolver.addSkill(skillId, SkillPerspective.Other, undefined, runnerBWit);
-    }
-  }
+  const seed = options.seed ?? 0;
+  const posKeepMode = options.posKeepMode ?? PosKeepMode.None;
+  const skillSorter = createSkillSorterByGroup([...runnerA.skills, ...runnerB.skills]);
+  const runnerASortedSkills = runnerA.skills.toSorted(skillSorter);
+  const runnerBSortedSkills = runnerB.skills.toSorted(skillSorter);
 
-  // ===== Skill Activation Tracking =====
+  const raceParameters = toSundayRaceParameters(racedef);
+  const settings = createCompareSettings(posKeepMode);
 
-  const runnerBSkillActivations: Map<string, SkillTrackedMetaCollection> = new Map();
-  const currentSampleMeta: Map<string, SkillTrackedMeta> = new Map();
-  const runnerBEffectLogs: Map<string, Array<SkillEffectLog>> = new Map();
+  const { race: raceA, runner: runnerAEntity } = createInitializedRace({
+    course,
+    raceParameters,
+    settings,
+    duelingRates: DEFAULT_DUELING_RATES,
+    skillSamples: nsamples,
+    runner: toCreateRunner(runnerA, runnerASortedSkills),
+  });
 
-  const handleSkillActivation = (skillsSet: Map<string, SkillTrackedMeta>): OnSkillCallback => {
-    return (context) => {
-      const { currentPosition, skillId } = context;
+  const { race: raceB, runner: runnerBEntity } = createInitializedRace({
+    course,
+    raceParameters,
+    settings,
+    duelingRates: DEFAULT_DUELING_RATES,
+    skillSamples: nsamples,
+    runner: toCreateRunner(runnerB, runnerBSortedSkills),
+  });
 
-      if (skillId !== trackedSkillId) {
-        return;
-      }
-
-      const skillActivations = skillsSet.get(skillId) ?? {
-        horseLength: 0,
-        positions: [],
-      };
-
-      skillActivations.positions.push(currentPosition);
-      skillsSet.set(skillId, skillActivations);
-    };
-  };
-
-  const handleEffectActivated = (skillsSet: Map<string, Array<SkillEffectLog>>) => {
-    return (
-      _raceSolver: RaceSolver,
-      currentPosition: number,
-      executionId: string,
-      skillId: string,
-      perspective: ISkillPerspective,
-      effectType: ISkillType,
-      effectTarget: ISkillTarget,
-    ) => {
-      if (['asitame', 'staminasyoubu'].includes(skillId)) {
-        return;
-      }
-
-      if (effectTarget === SkillTarget.Self) {
-        const skillSetValue = skillsSet.get(skillId) ?? [];
-
-        skillSetValue.push({
-          executionId,
-          skillId,
-          start: currentPosition,
-          end: currentPosition,
-          perspective,
-          effectType,
-          effectTarget,
-        });
-
-        skillsSet.set(skillId, skillSetValue);
-      }
-    };
-  };
-
-  const handleEffectExpiration = (skillsSet: Map<string, Array<SkillEffectLog>>) => {
-    return (
-      _raceSolver: RaceSolver,
-      currentPosition: number,
-      _executionId: string,
-      skillId: string,
-      _perspective: ISkillPerspective,
-      _effectType: ISkillType,
-      _effectTarget: ISkillTarget,
-    ) => {
-      if (['asitame', 'staminasyoubu'].includes(skillId)) {
-        return;
-      }
-
-      const skillActivations = skillsSet.get(skillId) ?? [];
-
-      if (skillActivations && skillActivations.length > 0) {
-        const firstActivation = skillActivations?.[0];
-
-        for (let i = 0; i < skillActivations.length; i++) {
-          if (skillActivations[i].effectType === SkillType.Recovery) continue;
-
-          if (currentPosition > firstActivation.start) {
-            skillActivations[i].end = Math.min(currentPosition, course.distance);
-          }
-        }
-
-        skillsSet.set(skillId, skillActivations);
-      }
-    };
-  };
-
-  runnerBRaceSolver.onSkillActivated(handleSkillActivation(currentSampleMeta));
-  runnerBRaceSolver.onEffectActivated(handleEffectActivated(runnerBEffectLogs));
-  runnerBRaceSolver.onEffectExpired(handleEffectExpiration(runnerBEffectLogs));
-
-  const builderA = runnerARaceSolver.build();
-  const builderB = runnerBRaceSolver.build();
+  const fallbackEffectMeta = getFallbackEffectMeta(trackedSkillId);
+  const runnerBSkillActivations = new Map<string, SkillTrackedMetaCollection>();
 
   const sign = 1;
-  const diff = [];
+  const diff: Array<number> = [];
 
   let min = Infinity;
   let max = -Infinity;
@@ -392,115 +383,179 @@ export function runSkillComparison(params: SkillCompareParams): SkillComparisonR
 
   const sampleCutoff = Math.max(Math.floor(nsamples * 0.8), nsamples - 200);
 
-  let retry = false;
-
   // ===============================================
   // Sample Loop
   // ===============================================
 
   for (let i = 0; i < nsamples; ++i) {
-    const solverA = builderA.next(retry).value as RaceSolver;
-    const solverB = builderB.next(retry).value as RaceSolver;
+    const sampleSeed = seed + i;
+    raceA.prepareRound(sampleSeed);
+    raceB.prepareRound(sampleSeed);
+
+    raceA.accumulatedTime = 0;
+    raceB.accumulatedTime = 0;
+    raceA.finishedRunners = [];
+    raceB.finishedRunners = [];
 
     const data: SkillSimulationRun = initializeSkillSimulationRun();
+    const trackedMeta: SkillTrackedMeta = {
+      horseLength: 0,
+      positions: [],
+    };
+    const trackedEffectLogs: Array<SkillEffectLog> = [];
+    const openEffectsByKey = new Map<string, Array<number>>();
+    let trackedSkillUsed = false;
+    let effectSequence = 0;
 
-    // Solver A faces solver B
-    solverA.initUmas([solverB]);
-    // Solver B faces solver A
-    solverB.initUmas([solverA]);
+    const appendActivationPosition = (position: number) => {
+      const clampedPosition = Math.min(position, course.distance);
+      const lastPosition = trackedMeta.positions[trackedMeta.positions.length - 1];
+      if (lastPosition == null || Math.abs(lastPosition - clampedPosition) > 1e-9) {
+        trackedMeta.positions.push(clampedPosition);
+      }
+    };
 
-    let solverAFinished = false;
-    let solverBFinished = false;
-    // Difference in position between solver A and solver B
-    let positionDiff = 0;
+    const closeOpenEffects = (position: number) => {
+      const clampedPosition = Math.min(position, course.distance);
+      for (const indices of openEffectsByKey.values()) {
+        while (indices.length > 0) {
+          const logIndex = indices.pop();
+          if (logIndex != null) {
+            trackedEffectLogs[logIndex].end = clampedPosition;
+          }
+        }
+      }
+      openEffectsByKey.clear();
+    };
 
-    while (!solverAFinished || !solverBFinished) {
-      // Update solver B
-      if (solverB.pos < course.distance) {
-        // Step solver B for 1/15 seconds
-        solverB.step(1 / 15);
-      } else if (!solverBFinished) {
-        // Solver B has finished the race
-        solverBFinished = true;
-
-        if (!solverAFinished) {
-          positionDiff = solverB.pos - solverA.pos;
+    const reconcileActiveEffects = () => {
+      if (
+        runnerBEntity.usedSkills.has(trackedSkillId) ||
+        runnerBEntity.usedSkills.has(normalizeSkillId(trackedSkillId))
+      ) {
+        trackedSkillUsed = true;
+      } else {
+        for (const usedSkillId of runnerBEntity.usedSkills) {
+          if (isSameSkill(usedSkillId, trackedSkillId)) {
+            trackedSkillUsed = true;
+            break;
+          }
         }
       }
 
-      // Update solver A
-      if (solverA.pos < course.distance) {
-        // Step solver A for 1/15 seconds
-        solverA.step(1 / 15);
-      } else if (!solverAFinished) {
-        // Solver A has finished the race
-        solverAFinished = true;
+      const currentPosition = Math.min(runnerBEntity.position, course.distance);
+      const trackedEffects = collectTrackedActiveEffects(runnerBEntity, trackedSkillId);
+      const currentCounts = new Map<
+        string,
+        { count: number; effectType: ISkillType; effectTarget: ISkillTarget }
+      >();
 
-        if (!solverBFinished) {
-          positionDiff = solverA.pos - solverB.pos;
+      for (const effect of trackedEffects) {
+        const current = currentCounts.get(effect.key);
+        if (current) {
+          current.count++;
+        } else {
+          currentCounts.set(effect.key, {
+            count: 1,
+            effectType: effect.effectType,
+            effectTarget: effect.effectTarget,
+          });
+        }
+      }
+
+      for (const [key, current] of currentCounts.entries()) {
+        const openIndices = openEffectsByKey.get(key) ?? [];
+        while (openIndices.length < current.count) {
+          appendActivationPosition(currentPosition);
+
+          trackedEffectLogs.push({
+            executionId: `${sampleSeed}-${effectSequence++}`,
+            skillId: trackedSkillId,
+            start: currentPosition,
+            end: currentPosition,
+            perspective: 1,
+            effectType: current.effectType,
+            effectTarget: current.effectTarget,
+          });
+
+          openIndices.push(trackedEffectLogs.length - 1);
+        }
+        openEffectsByKey.set(key, openIndices);
+      }
+
+      for (const [key, openIndices] of openEffectsByKey.entries()) {
+        const expectedCount = currentCounts.get(key)?.count ?? 0;
+        while (openIndices.length > expectedCount) {
+          const logIndex = openIndices.pop();
+          if (logIndex != null) {
+            trackedEffectLogs[logIndex].end = currentPosition;
+          }
+        }
+        if (openIndices.length === 0) {
+          openEffectsByKey.delete(key);
+        }
+      }
+    };
+
+    let raceAFinished = false;
+    let raceBFinished = false;
+    let positionDiff = 0;
+
+    while (!raceAFinished || !raceBFinished) {
+      if (!raceBFinished) {
+        raceB.onUpdate(STEP_SECONDS);
+        reconcileActiveEffects();
+
+        if (runnerBEntity.finished) {
+          raceBFinished = true;
+          closeOpenEffects(runnerBEntity.position);
+
+          if (!raceAFinished) {
+            positionDiff = runnerBEntity.position - runnerAEntity.position;
+          }
+        }
+      }
+
+      if (!raceAFinished) {
+        raceA.onUpdate(STEP_SECONDS);
+
+        if (runnerAEntity.finished) {
+          raceAFinished = true;
+
+          if (!raceBFinished) {
+            positionDiff = runnerAEntity.position - runnerBEntity.position;
+          }
         }
       }
     }
 
-    // Clean up skills that are still active when the race ends
-    // This ensures skills that activate near the finish line get proper end positions
-    // Also handles skills with very short durations that might deactivate in the same frame
-    const cleanupActiveSkills = (
-      solver: RaceSolver,
-      selfSkillSet: Map<string, Array<SkillEffectLog>>,
-    ) => {
-      const callDeactivator = (skill: ActiveSkill) => {
-        // Call the deactivator to set the end position to course.distance
-        // This handles both race-end cleanup and very short duration skills
-        // Use the correct skill position maps for this solver
-        const currentPosition = solver.pos;
-        handleEffectExpiration(selfSkillSet)(
-          solver,
-          currentPosition,
-          skill.executionId,
-          skill.skillId,
-          skill.perspective,
-          skill.effectType,
-          skill.effectTarget,
-        );
-      };
+    closeOpenEffects(course.distance);
 
-      solver.activeTargetSpeedSkills.forEach(callDeactivator);
-      solver.activeCurrentSpeedSkills.forEach(callDeactivator);
-      solver.activeAccelSkills.forEach(callDeactivator);
-    };
+    if (trackedEffectLogs.length === 0 && trackedSkillUsed) {
+      const activationPosition = Math.min(runnerBEntity.position, course.distance);
+      appendActivationPosition(activationPosition);
+      trackedEffectLogs.push({
+        executionId: `${sampleSeed}-fallback`,
+        skillId: trackedSkillId,
+        start: activationPosition,
+        end: activationPosition,
+        perspective: 1,
+        effectType: fallbackEffectMeta.effectType,
+        effectTarget: fallbackEffectMeta.effectTarget,
+      });
+    }
 
-    // Clean up active skills for both horses
-    // s1 comes from generator 'a' (standard), s2 comes from generator 'b' (compare)
-    // standard uses skillPos1 for self, skillPos2 for other, debuffsReceived1 for debuffs received
-    // compare uses skillPos2 for self, skillPos1 for other, debuffsReceived2 for debuffs received
-    cleanupActiveSkills(solverB, runnerBEffectLogs);
-
-    data.sk[1] = Object.fromEntries(runnerBEffectLogs);
-
-    // Clear the maps instead of reassigning to preserve closure references
-    runnerBEffectLogs.clear();
-
-    retry = false;
-
-    // Cleanup AFTER stat tracking
-    solverB.cleanup();
-    solverA.cleanup();
+    if (trackedEffectLogs.length > 0) {
+      data.sk[1][trackedSkillId] = trackedEffectLogs;
+    }
 
     const basinn = (sign * positionDiff) / 2.5;
-
-    currentSampleMeta.forEach((activation) => {
-      activation.horseLength = basinn;
-    });
-
-    currentSampleMeta.forEach((meta, skillId) => {
-      const collection = runnerBSkillActivations.get(skillId) ?? [];
-
-      collection.push(meta); // Add this sample's data
-      runnerBSkillActivations.set(skillId, collection);
-    });
-
-    currentSampleMeta.clear();
+    trackedMeta.horseLength = basinn;
+    if (trackedSkillUsed || trackedMeta.positions.length > 0) {
+      const collection = runnerBSkillActivations.get(trackedSkillId) ?? [];
+      collection.push(trackedMeta);
+      runnerBSkillActivations.set(trackedSkillId, collection);
+    }
 
     diff.push(basinn);
 

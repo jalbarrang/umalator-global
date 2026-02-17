@@ -1,6 +1,6 @@
-import type { Runner } from '../runner';
+import type { Runner } from '../common/runner';
 import type { ActivationSamplePolicy } from './policies/ActivationSamplePolicy';
-import type { Region, RegionList } from '../Region';
+import type { Region, RegionList } from '../shared/region';
 import type { ISkillRarity, ISkillTarget, ISkillType } from './definitions';
 import type { Timer } from '../simulator.types';
 

@@ -10,14 +10,16 @@ import { RegionList } from '@/lib/sunday-tools/shared/region';
 // Base Types
 // ============================================================
 
+export type ApplyParams = {
+  regions: RegionList;
+  course: CourseData;
+  runner: Runner;
+  extra: RaceParameters;
+};
+
 export interface Operator {
   samplePolicy: ActivationSamplePolicy;
-  apply: (
-    regions: RegionList,
-    course: CourseData,
-    runner: Runner,
-    extra: RaceParameters,
-  ) => [RegionList, DynamicCondition];
+  apply: (params: ApplyParams) => [RegionList, DynamicCondition];
 }
 
 export interface CmpOperator extends Operator {
@@ -35,12 +37,16 @@ export interface ICondition {
   filterGte: ConditionFilter;
 }
 
+export type ConditionFilterParams = {
+  regions: RegionList;
+  arg: number;
+  course: CourseData;
+  runner: Runner;
+  extra: RaceParameters;
+};
+
 export type ConditionFilter = (
-  regions: RegionList,
-  arg: number,
-  course: CourseData,
-  runner: Runner,
-  extra: RaceParameters,
+  params: ConditionFilterParams,
 ) => RegionList | [RegionList, DynamicCondition];
 
 // ============================================================

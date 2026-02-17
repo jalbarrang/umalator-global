@@ -11,17 +11,8 @@ import type { CourseData, Phase } from './CourseData';
 import type { HorseParameters } from './HorseTypes';
 import type { HpPolicy } from './HpPolicy';
 
-declare let CC_GLOBAL: boolean;
-
-// for the browser builds, CC_GLOBAL is defined by esbuild as true/false
-// for node however we have to manually define it as false
-// annoyingly we can't use `var` here to define it locally because esbuild rewrites all uses of that to not be
-// replaced by the define
-// not entirely happy with this solution
-if (typeof CC_GLOBAL == 'undefined') global.CC_GLOBAL = false;
-
-namespace Speed {
-  export const StrategyPhaseCoefficient = Object.freeze(
+const Speed = {
+  StrategyPhaseCoefficient: Object.freeze(
     [
       [], // strategies start numbered at 1
       [1.0, 0.98, 0.962],
@@ -30,11 +21,9 @@ namespace Speed {
       [0.931, 1.0, 1.0],
       [1.063, 0.962, 0.95],
     ].map((a) => Object.freeze(a)),
-  );
-  export const DistanceProficiencyModifier = Object.freeze([
-    1.05, 1.0, 0.9, 0.8, 0.6, 0.4, 0.2, 0.1,
-  ]);
-}
+  ),
+  DistanceProficiencyModifier: Object.freeze([1.05, 1.0, 0.9, 0.8, 0.6, 0.4, 0.2, 0.1]),
+};
 
 function baseSpeed(course: CourseData) {
   return 20.0 - (course.distance - 2000) / 1000.0;
@@ -60,8 +49,8 @@ function lastSpurtSpeed(horse: HorseParameters, course: CourseData) {
   return v;
 }
 
-namespace Acceleration {
-  export const StrategyPhaseCoefficient = Object.freeze(
+const Acceleration = {
+  StrategyPhaseCoefficient: Object.freeze(
     [
       [],
       [1.0, 1.0, 0.996],
@@ -70,19 +59,15 @@ namespace Acceleration {
       [0.945, 1.0, 0.997],
       [1.17, 0.94, 0.956],
     ].map((a) => Object.freeze(a)),
-  );
-  export const GroundTypeProficiencyModifier = Object.freeze([
-    1.05, 1.0, 0.9, 0.8, 0.7, 0.5, 0.3, 0.1,
-  ]);
-  export const DistanceProficiencyModifier = Object.freeze([
-    1.0, 1.0, 1.0, 1.0, 1.0, 0.6, 0.5, 0.4,
-  ]);
-}
+  ),
+  GroundTypeProficiencyModifier: Object.freeze([1.05, 1.0, 0.9, 0.8, 0.7, 0.5, 0.3, 0.1]),
+  DistanceProficiencyModifier: Object.freeze([1.0, 1.0, 1.0, 1.0, 1.0, 0.6, 0.5, 0.4]),
+};
 
 const BaseAccel = 0.0006;
 const UphillBaseAccel = 0.0004;
 
-function baseAccel(baseAccel: number, horse: HorseParameters, phase: Phase) {
+function calculateBaseAccel(baseAccel: number, horse: HorseParameters, phase: Phase) {
   return (
     baseAccel *
     Math.sqrt(500.0 * horse.power) *
@@ -94,25 +79,26 @@ function baseAccel(baseAccel: number, horse: HorseParameters, phase: Phase) {
 
 const PhaseDeceleration = [-1.2, -0.8, -1.0];
 
-namespace PositionKeep {
-  export const BaseMinimumThreshold = Object.freeze([0, 0, 3.0, 6.5, 7.5]);
-  export const BaseMaximumThreshold = Object.freeze([0, 0, 5.0, 7.0, 8.0]);
+const PositionKeep = {
+  BaseMinimumThreshold: Object.freeze([0, 0, 3.0, 6.5, 7.5]),
+  BaseMaximumThreshold: Object.freeze([0, 0, 5.0, 7.0, 8.0]),
 
-  export function courseFactor(distance: number) {
+  courseFactor(distance: number) {
     return 0.0008 * (distance - 1000) + 1.0;
-  }
+  },
 
-  export function minThreshold(strategy: Strategy, distance: number) {
+  minThreshold(strategy: Strategy, distance: number) {
     // senkou minimum threshold is a constant 3.0 independent of the course factor for some reason
     return (
-      BaseMinimumThreshold[strategy] * (strategy == Strategy.Senkou ? 1.0 : courseFactor(distance))
+      this.BaseMinimumThreshold[strategy] *
+      (strategy == Strategy.Senkou ? 1.0 : this.courseFactor(distance))
     );
-  }
+  },
 
-  export function maxThreshold(strategy: Strategy, distance: number) {
-    return BaseMaximumThreshold[strategy] * courseFactor(distance);
-  }
-}
+  maxThreshold(strategy: Strategy, distance: number) {
+    return this.BaseMaximumThreshold[strategy] * this.courseFactor(distance);
+  },
+};
 
 // these are commonly initialized with a negative number and then checked >= 0 to see if a duration is up
 // (the reason for doing that instead of initializing with 0 and then checking against the duration is if
@@ -247,7 +233,7 @@ export interface SkillEffect {
 
 export interface PendingSkill {
   skillId: string;
-  perspective?: Perspective;
+  perspective: Perspective;
   rarity: SkillRarity;
   trigger: Region;
   extraCondition: DynamicCondition;
@@ -257,12 +243,12 @@ export interface PendingSkill {
 
 interface ActiveSkill {
   skillId: string;
-  perspective?: Perspective;
+  perspective: Perspective;
   durationTimer: Timer;
   modifier: number;
 }
 
-function noop(x: unknown) {}
+function noop(_: unknown) {}
 
 export class RaceSolver {
   accumulatetime: Timer;
@@ -408,8 +394,8 @@ export class RaceSolver {
     rng: PRNG;
     skills: Array<PendingSkill>;
     hp: HpPolicy;
-    onSkillActivate?: (s: RaceSolver, skillId: string) => void;
-    onSkillDeactivate?: (s: RaceSolver, skillId: string) => void;
+    onSkillActivate?: (s: RaceSolver, skillId: string, perspective: Perspective) => void;
+    onSkillDeactivate?: (s: RaceSolver, skillId: string, perspective: Perspective) => void;
     speedUpProbability?: number;
     posKeepMode?: PosKeepMode;
     mode?: string;
@@ -439,6 +425,7 @@ export class RaceSolver {
     this.gorosiRng = new Rule30CARng(this.rng.int32());
     this.rushedRng = new Rule30CARng(this.rng.int32());
     this.wisdomRollRng = new Rule30CARng(this.rng.int32());
+    this.downhillRng = [];
     this.posKeepRng = new Rule30CARng(this.rng.int32());
     this.laneMovementRng = new Rule30CARng(this.rng.int32());
     this.specialConditionRng = new Rule30CARng(this.rng.int32());
@@ -456,6 +443,9 @@ export class RaceSolver {
     // upper bound, just generate up to lcm(1, 2, … 18) = 12252240
     this.gateRoll = this.rng.uniform(12252240);
     this.randomLot = this.rng.uniform(100);
+    this.isLastSpurt = false;
+    this.lastSpurtSpeed = 0.0;
+    this.lastSpurtTransition = -1;
     this.phase = 0;
     this.nextPhaseTransition = CourseHelpers.phaseStart(this.course.distance, 1);
     this.activeTargetSpeedSkills = [];
@@ -470,6 +460,9 @@ export class RaceSolver {
     this.sectionLength = this.course.distance / 24.0;
     this.posKeepMinThreshold = PositionKeep.minThreshold(this.horse.strategy, this.course.distance);
     this.posKeepMaxThreshold = PositionKeep.maxThreshold(this.horse.strategy, this.course.distance);
+    this.posKeepCooldown = this.getNewTimer();
+    this.posKeepExitPosition = 0.0;
+    this.posKeepExitDistance = 0.0;
     this.posKeepNextTimer = this.getNewTimer();
     this.positionKeepState = PositionKeepState.None;
     this.posKeepMode = params.posKeepMode || PosKeepMode.None;
@@ -502,6 +495,14 @@ export class RaceSolver {
     // Initialize downhill mode
     this.isDownhillMode = false;
     this.downhillActivations = [];
+
+    // Hills
+    this.nHills = 0;
+    this.hillIdx = -1;
+    this.slopePer = 0.0;
+    this.hillStart = [];
+    this.hillEnd = [];
+    this.downhillTimer = this.getNewTimer();
 
     // Initialize skill check chance
     this.rushedActivations = [];
@@ -583,7 +584,7 @@ export class RaceSolver {
     this.hp.init(this.horse);
 
     this.baseAccel = ([0, 1, 2, 0, 1, 2] as Array<Phase>).map((phase, i) =>
-      baseAccel(i > 2 ? UphillBaseAccel : BaseAccel, this.horse, phase),
+      calculateBaseAccel(i > 2 ? UphillBaseAccel : BaseAccel, this.horse, phase),
     );
 
     this.registerCondition('blocked_side', createBlockedSideCondition());
@@ -697,7 +698,7 @@ export class RaceSolver {
     return Math.min(this.targetSpeed, 0.85 * baseSpeed(this.course));
   }
 
-  logVelocityData(dt: number) {
+  logVelocityData(_dt: number) {
     console.log('frame: ', this.accumulatetime.t);
     console.log('current speed: ', this.currentSpeed);
     console.log('accel: ', this.accel);
@@ -851,11 +852,11 @@ export class RaceSolver {
   getPacer(): RaceSolver | null {
     // Select furthest-forward front runner
     for (const strategy of [Strategy.Oonige, Strategy.Nige]) {
-      var umas = this.umas.filter((uma) => uma.posKeepStrategy === strategy);
+      const umas = this.umas.filter((uma) => uma.posKeepStrategy === strategy);
 
       if (umas.length > 0) {
-        var uma = umas.reduce((max, uma) => {
-          return uma.pos > max.pos ? uma : max;
+        const uma = umas.reduce((max, currUma) => {
+          return currUma.pos > max.pos ? currUma : max;
         }, umas[0]);
 
         return uma;
@@ -871,13 +872,13 @@ export class RaceSolver {
 
     // Otherwise, lucky pace (set pacerOverride)
     for (const strategy of [Strategy.Senkou, Strategy.Sasi, Strategy.Oikomi]) {
-      var umas = this.umas.filter((uma) =>
+      const umas = this.umas.filter((uma) =>
         StrategyHelpers.strategyMatches(uma.posKeepStrategy, strategy),
       );
 
       if (umas.length > 0) {
-        var uma = umas.reduce((max, uma) => {
-          return uma.pos > max.pos ? uma : max;
+        const uma = umas.reduce((max, currUma) => {
+          return currUma.pos > max.pos ? currUma : max;
         }, umas[0]);
 
         uma.pacerOverride = true;
@@ -895,6 +896,8 @@ export class RaceSolver {
       pacer.posKeepStrategy = Strategy.Nige;
       return pacer;
     }
+
+    return null;
   }
 
   getUmaByDistanceDescending(): Array<RaceSolver> {
@@ -953,9 +956,9 @@ export class RaceSolver {
         if (StrategyHelpers.strategyMatches(myStrategy, Strategy.Nige)) {
           // Speed Up
           if (pacer === this) {
-            var umas = this.getUmaByDistanceDescending();
-            var secondPlaceUma = umas[1];
-            var distanceAhead = pacer.pos - secondPlaceUma.pos;
+            const umas = this.getUmaByDistanceDescending();
+            const secondPlaceUma = umas[1];
+            const distanceAhead = pacer.pos - secondPlaceUma.pos;
             const threshold = myStrategy === Strategy.Oonige ? 17.5 : 4.5;
 
             if (this.posKeepNextTimer.t < 0) {
@@ -1014,9 +1017,9 @@ export class RaceSolver {
           this.positionKeepActivations[this.positionKeepActivations.length - 1][1] = this.pos;
           this.posKeepNextTimer.t = -3;
         } else if (pacer == this) {
-          var umas = this.getUmaByDistanceDescending();
-          var secondPlaceUma = umas[1];
-          var distanceAhead = pacer.pos - secondPlaceUma.pos;
+          const umas = this.getUmaByDistanceDescending();
+          const secondPlaceUma = umas[1];
+          const distanceAhead = pacer.pos - secondPlaceUma.pos;
           const threshold = myStrategy === Strategy.Oonige ? 17.5 : 4.5;
 
           if (distanceAhead >= threshold) {
@@ -1033,9 +1036,9 @@ export class RaceSolver {
           this.positionKeepActivations[this.positionKeepActivations.length - 1][1] = this.pos;
           this.posKeepNextTimer.t = -3;
         } else if (pacer == this) {
-          var umas = this.getUmaByDistanceDescending();
-          var secondPlaceUma = umas[1];
-          var distanceAhead = this.pos - secondPlaceUma.pos;
+          const umas = this.getUmaByDistanceDescending();
+          const secondPlaceUma = umas[1];
+          const distanceAhead = this.pos - secondPlaceUma.pos;
           const threshold = myStrategy === Strategy.Oonige ? 27.5 : 10;
 
           if (distanceAhead >= threshold) {
@@ -1090,6 +1093,7 @@ export class RaceSolver {
         break;
       case PositionKeepState.Overtake:
         this.posKeepSpeedCoef = 1.05;
+        break;
       case PositionKeepState.PaceUp:
         this.posKeepSpeedCoef = 1.04;
         break;
@@ -1187,7 +1191,7 @@ export class RaceSolver {
 
       if (
         this.leadCompetitionTimer.t >= leadCompeteDuration ||
-        this.pos >= this.leadCompetitionEnd
+        (this.leadCompetitionEnd && this.pos >= this.leadCompetitionEnd)
       ) {
         this.leadCompetition = false;
         this.leadCompetitionEnd = this.pos;
@@ -1587,11 +1591,13 @@ export class RaceSolver {
       )
         acc.push(i);
       return acc;
-    }, []);
+    }, [] as Array<number>);
+
     for (let i = goldIndices.length; --i >= 0; ) {
       const j = this.gorosiRng.uniform(i + 1);
       [goldIndices[i], goldIndices[j]] = [goldIndices[j], goldIndices[i]];
     }
+
     for (let i = 0; i < Math.min(ngolds, goldIndices.length); ++i) {
       const s = this.pendingSkills[goldIndices[i]];
       this.activateSkill(s);
@@ -1608,9 +1614,10 @@ export class RaceSolver {
   // deactivate any skills that haven't finished their durations yet (intended to be called at the end of a simulation, when a skill
   // might have activated towards the end of the race and the race finished before the skill's duration)
   cleanup() {
-    const callDeactivateHook = (s: { skillId: string; perspective?: Perspective }) => {
+    const callDeactivateHook = (s: { skillId: string; perspective: Perspective }) => {
       this.onSkillDeactivate(this, s.skillId, s.perspective);
     };
+
     this.activeTargetSpeedSkills.forEach(callDeactivateHook);
     this.activeCurrentSpeedSkills.forEach(callDeactivateHook);
     this.activeAccelSkills.forEach(callDeactivateHook);

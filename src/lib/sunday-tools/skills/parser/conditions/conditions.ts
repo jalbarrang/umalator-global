@@ -38,27 +38,27 @@ import {
 } from './utils';
 import type { Runner } from '@/lib/sunday-tools/common/runner';
 import type { DynamicCondition } from '@/lib/sunday-tools/skills/skill.types';
-import type { RaceParameters } from '@/lib/sunday-tools/common/race';
-import type { CourseData, IPhase } from '@/lib/sunday-tools/course/definitions';
-import type { ConditionsMap, ICondition } from '../definitions';
+import type { IPhase } from '@/lib/sunday-tools/course/definitions';
+import type { ConditionFilterParams, ConditionsMap, ICondition } from '../definitions';
 import { StrategyHelpers } from '@/lib/sunday-tools/runner/runner.types';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 import { Region, RegionList } from '@/lib/sunday-tools/shared/region';
+import { Strategy } from '@/lib/sunday-tools/runner/definitions';
 
 export const defaultConditions: ConditionsMap<ICondition> = {
   accumulatetime: immediate({
-    filterGte(regions: RegionList, t: number, _0: CourseData, _1: Runner, _extra: RaceParameters) {
+    filterGte({ regions, arg: t }: ConditionFilterParams) {
       return [regions, (r: Runner) => r.accumulateTime.t >= t] as [RegionList, DynamicCondition];
     },
   }),
   activate_count_all: immediate({
-    filterLte(regions: RegionList, n: number, _0: CourseData, _1: Runner, _extra: RaceParameters) {
+    filterLte({ regions, arg: n }: ConditionFilterParams) {
       return [regions, (r: Runner) => r.skillsActivatedCount <= n] as [
         RegionList,
         DynamicCondition,
       ];
     },
-    filterGte(regions: RegionList, n: number, _0: CourseData, _1: Runner, _extra: RaceParameters) {
+    filterGte({ regions, arg: n }: ConditionFilterParams) {
       return [regions, (r: Runner) => r.skillsActivatedCount >= n] as [
         RegionList,
         DynamicCondition,
@@ -66,50 +66,32 @@ export const defaultConditions: ConditionsMap<ICondition> = {
     },
   }),
   activate_count_end_after: immediate({
-    filterGte(regions: RegionList, n: number, _0: CourseData, _1: Runner, _extra: RaceParameters) {
-      return [regions, (s: IRaceState) => s.activateCount[2] >= n] as [
+    filterGte({ regions, arg: n }: ConditionFilterParams) {
+      return [regions, (runner: Runner) => runner.skillsActivatedPhaseMap[2] >= n] as [
         RegionList,
         DynamicCondition,
       ];
     },
   }),
   activate_count_heal: immediate({
-    filterGte(
-      regions: RegionList,
-      n: number,
-      _0: CourseData,
-      _1: HorseParameters,
-      _extra: RaceParameters,
-    ) {
-      return [regions, (s: IRaceState) => s.activateCountHeal >= n] as [
+    filterGte({ regions, arg: n }: ConditionFilterParams) {
+      return [regions, (runner: Runner) => runner.healsActivatedCount >= n] as [
         RegionList,
         DynamicCondition,
       ];
     },
   }),
   activate_count_middle: immediate({
-    filterGte(
-      regions: RegionList,
-      n: number,
-      _0: CourseData,
-      _1: HorseParameters,
-      _extra: RaceParameters,
-    ) {
-      return [regions, (s: IRaceState) => s.activateCount[1] >= n] as [
+    filterGte({ regions, arg: n }: ConditionFilterParams) {
+      return [regions, (runner: Runner) => runner.skillsActivatedPhaseMap[1] >= n] as [
         RegionList,
         DynamicCondition,
       ];
     },
   }),
   activate_count_start: immediate({
-    filterGte(
-      regions: RegionList,
-      n: number,
-      _0: CourseData,
-      _1: HorseParameters,
-      _extra: RaceParameters,
-    ) {
-      return [regions, (s: IRaceState) => s.activateCount[0] >= n] as [
+    filterGte({ regions, arg: n }: ConditionFilterParams) {
+      return [regions, (runner: Runner) => runner.skillsActivatedPhaseMap[0] >= n] as [
         RegionList,
         DynamicCondition,
       ];
@@ -117,13 +99,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
   }),
   all_corner_random: {
     samplePolicy: AllCornerRandomPolicy,
-    filterEq(
-      regions: RegionList,
-      one: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterEq({ regions, arg: one, course }: ConditionFilterParams) {
       if (one !== 1) {
         throw new Error('must be all_corner_random==1');
       }
@@ -138,22 +114,15 @@ export const defaultConditions: ConditionsMap<ICondition> = {
     filterGte: notSupported,
   },
   always: noopImmediate,
+
   // NB. since skill conditions are processed before any skill activations, stats here are base stats (i.e. greens are not included)
-  base_power: valueFilter(
-    (_: CourseData, horse: HorseParameters, _extra: RaceParameters) => horse.power,
-  ),
-  base_speed: valueFilter(
-    (_: CourseData, horse: HorseParameters, _extra: RaceParameters) => horse.speed,
-  ),
-  base_stamina: valueFilter(
-    (_: CourseData, horse: HorseParameters, _extra: RaceParameters) => horse.stamina,
-  ),
-  base_guts: valueFilter(
-    (_: CourseData, horse: HorseParameters, _extra: RaceParameters) => horse.guts,
-  ),
-  base_wiz: valueFilter(
-    (_: CourseData, horse: HorseParameters, _extra: RaceParameters) => horse.wisdom,
-  ),
+  base_power: valueFilter(({ runner }) => runner.baseStats.power),
+  base_speed: valueFilter(({ runner }) => runner.baseStats.speed),
+  base_stamina: valueFilter(({ runner }) => runner.baseStats.stamina),
+  base_guts: valueFilter(({ runner }) => runner.baseStats.guts),
+  base_wiz: valueFilter(({ runner }) => runner.baseStats.wit),
+
+  // Bashin diff conditions
   bashin_diff_behind: noopErlangRandom(3, 2.0),
   bashin_diff_infront: noopErlangRandom(3, 2.0),
   behind_near_lane_time: noopErlangRandom(3, 2.0),
@@ -170,25 +139,13 @@ export const defaultConditions: ConditionsMap<ICondition> = {
   }),
   change_order_onetime: noopErlangRandom(3, 2.0),
   change_order_up_end_after: erlangRandom(3, 2.0, {
-    filterGte(
-      regions: RegionList,
-      _0: number,
-      course: CourseData,
-      _1: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterGte({ regions, course }: ConditionFilterParams) {
       const bounds = new Region(CourseHelpers.phaseStart(course.distance, 2), course.distance);
       return regions.rmap((r) => r.intersect(bounds));
     },
   }),
   change_order_up_finalcorner_after: erlangRandom(3, 2.0, {
-    filterGte(
-      regions: RegionList,
-      _0: number,
-      course: CourseData,
-      _1: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterGte({ regions, course }: ConditionFilterParams) {
       if (!CourseHelpers.isSortedByStart(course.corners)) {
         throw new Error('course corners must be sorted by start');
       }
@@ -202,13 +159,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
     },
   }),
   change_order_up_middle: erlangRandom(3, 2.0, {
-    filterGte(
-      regions: RegionList,
-      _0: number,
-      course: CourseData,
-      _1: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterGte({ regions, course }: ConditionFilterParams) {
       const bounds = new Region(
         CourseHelpers.phaseStart(course.distance, 1),
         CourseHelpers.phaseEnd(course.distance, 1),
@@ -217,13 +168,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
     },
   }),
   compete_fight_count: uniformRandom({
-    filterGt(
-      regions: RegionList,
-      _0: number,
-      course: CourseData,
-      _1: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterGt({ regions, course }: ConditionFilterParams) {
       if (!CourseHelpers.isSortedByStart(course.straights)) {
         throw new Error('course straights must be sorted by start');
       }
@@ -233,13 +178,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
     },
   }),
   corner: immediate({
-    filterEq(
-      regions: RegionList,
-      cornerNum: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterEq({ regions, arg: cornerNum, course }: ConditionFilterParams) {
       if (!CourseHelpers.isSortedByStart(course.corners)) {
         throw new Error('course corners must be sorted by start');
       }
@@ -275,13 +214,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
         return new RegionList();
       }
     },
-    filterNeq(
-      regions: RegionList,
-      cornerNum: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterNeq({ regions, arg: cornerNum, course }: ConditionFilterParams) {
       if (cornerNum !== 0) {
         throw new Error('only supports corner!=0');
       }
@@ -289,9 +222,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
       return regions.rmap((r) => corners.map((c) => r.intersect(c)));
     },
   }),
-  corner_count: valueFilter(
-    (course: CourseData, _: HorseParameters, _extra: RaceParameters) => course.corners.length,
-  ),
+  corner_count: valueFilter(({ course }) => course.corners.length),
   // FIXME this shouldn't actually be random, since in cases like corner_random==1@corner_random==2 it should sample
   // only from the first corner and not from the combined regions, so it needs its own sample policy
   // actually, that's slightly annoying to handle since corners come in back-to-back pairs, so their regions will
@@ -299,143 +230,62 @@ export const defaultConditions: ConditionsMap<ICondition> = {
   // the real way to fix this is to finally allow placing multiple triggers, then each branch of an @ can simply
   // place its own trigger and the problem goes away.
   corner_random: random({
-    filterEq(
-      regions: RegionList,
-      cornerNum: number,
-      course: CourseData,
-      _: HorseParameters,
-      extra: RaceParameters,
-    ) {
+    filterEq({ regions, arg: cornerNum, course }: ConditionFilterParams) {
       if (!CourseHelpers.isSortedByStart(course.corners)) {
         throw new Error('course corners must be sorted by start');
       }
-      // FIXME annoying hack for the corner skills. TEMPORARY. see the note above for why we do this. this condition is
-      // considerably more important in global than in jp (since early global does not have all_corner_random)
-      // these are all the corner_random==1@corner_random==2@corner_random==3@corner_random==4 skills
-      if (
-        [
-          '200331',
-          '200332',
-          '200333',
-          '200341',
-          '200342',
-          '200343',
-          '200351',
-          '200352',
-          '200353',
-          '200971',
-          '200972',
-          '201041',
-          '201042',
-          '201111',
-          '201112',
-          '201181',
-          '201182',
-          '201251',
-          '201252',
-          '201321',
-          '201322',
-          '201391',
-          '201392',
-          '201461',
-          '201462',
-        ].indexOf(extra.skillId) > -1
-      ) {
-        if (cornerNum == 1) {
-          const corner = course.corners[Math.max(course.corners.length - 4, 0)];
-          const cornerBounds = new Region(corner.start, corner.start + corner.length);
-          return regions.rmap((r) => r.intersect(cornerBounds));
-        } else {
-          return new RegionList();
-        }
-      }
+
       if (course.corners.length + cornerNum >= 5) {
         const corner = course.corners[course.corners.length + cornerNum - 5];
         const cornerBounds = new Region(corner.start, corner.start + corner.length);
         return regions.rmap((r) => r.intersect(cornerBounds));
-      } else {
-        return new RegionList();
       }
+
+      return new RegionList();
     },
   }),
-  course_distance: valueFilter(
-    (course: CourseData, _: HorseParameters, _extra: RaceParameters) => course.distance,
-  ),
+  course_distance: valueFilter(({ course }) => course.distance),
   distance_diff_rate: noopImmediate,
   distance_diff_top: noopImmediate,
   distance_diff_top_float: noopImmediate,
   distance_rate: immediate({
-    filterLte(
-      regions: RegionList,
-      rate: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterLte({ regions, arg: rate, course }: ConditionFilterParams) {
       const bounds = new Region(0, (course.distance * rate) / 100);
       return regions.rmap((r) => r.intersect(bounds));
     },
-    filterGte(
-      regions: RegionList,
-      rate: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterGte({ regions, arg: rate, course }: ConditionFilterParams) {
       const bounds = new Region((course.distance * rate) / 100, course.distance);
       return regions.rmap((r) => r.intersect(bounds));
     },
   }),
   distance_rate_after_random: random({
-    filterEq(
-      regions: RegionList,
-      rate: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterEq({ regions, arg: rate, course }: ConditionFilterParams) {
       const bounds = new Region((course.distance * rate) / 100, course.distance);
       return regions.rmap((r) => r.intersect(bounds));
     },
   }),
   distance_type: immediate({
-    filterEq(
-      regions: RegionList,
-      distanceType: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterEq({ regions, arg: distanceType, course }: ConditionFilterParams) {
       CourseHelpers.assertIsDistanceType(distanceType);
+
       if (course.distanceType == distanceType) {
         return regions;
-      } else {
-        return new RegionList();
       }
+
+      return new RegionList();
     },
-    filterNeq(
-      regions: RegionList,
-      distanceType: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterNeq({ regions, arg: distanceType, course }: ConditionFilterParams) {
       CourseHelpers.assertIsDistanceType(distanceType);
+
       if (course.distanceType != distanceType) {
         return regions;
-      } else {
-        return new RegionList();
       }
+
+      return new RegionList();
     },
   }),
   down_slope_random: random({
-    filterEq(
-      regions: RegionList,
-      one: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterEq({ regions, arg: one, course }: ConditionFilterParams) {
       if (one !== 1) {
         throw new Error('must be down_slope_random==1');
       }
@@ -443,39 +293,24 @@ export const defaultConditions: ConditionsMap<ICondition> = {
       const slopes = course.slopes
         .filter((s) => s.slope < 0)
         .map((s) => new Region(s.start, s.start + s.length));
+
       return regions.rmap((r) => slopes.map((s) => r.intersect(s)));
     },
   }),
-  grade: valueFilter((_0: CourseData, _1: HorseParameters, extra: RaceParameters) => extra.grade),
-  ground_condition: valueFilter(
-    (_0: CourseData, _1: HorseParameters, extra: RaceParameters) => extra.groundCondition,
-  ),
-  ground_type: valueFilter(
-    (course: CourseData, _: HorseParameters, _extra: RaceParameters) => course.surface,
-  ),
+  grade: valueFilter(({ extra }) => extra.grade),
+  ground_condition: valueFilter(({ extra }) => extra.ground),
+  ground_type: valueFilter(({ course }) => course.surface),
   hp_per: immediate({
-    filterLte(
-      regions: RegionList,
-      hpPer: number,
-      _0: CourseData,
-      _1: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterLte({ regions, arg: hpPer }: ConditionFilterParams) {
       hpPer /= 100;
-      return [regions, (s: IRaceState) => s.hp.hpRatioRemaining() <= hpPer] as [
+      return [regions, (runner: Runner) => runner.healthPolicy.healthRatioRemaining() <= hpPer] as [
         RegionList,
         DynamicCondition,
       ];
     },
-    filterGte(
-      regions: RegionList,
-      hpPer: number,
-      _0: CourseData,
-      _1: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterGte({ regions, arg: hpPer }: ConditionFilterParams) {
       hpPer /= 100;
-      return [regions, (s: IRaceState) => s.hp.hpRatioRemaining() >= hpPer] as [
+      return [regions, (runner: Runner) => runner.healthPolicy.healthRatioRemaining() >= hpPer] as [
         RegionList,
         DynamicCondition,
       ];
@@ -483,31 +318,19 @@ export const defaultConditions: ConditionsMap<ICondition> = {
   }),
   infront_near_lane_time: noopErlangRandom(3, 2.0),
   is_activate_other_skill_detail: immediate({
-    filterEq(
-      regions: RegionList,
-      one: number,
-      _0: CourseData,
-      _1: HorseParameters,
-      extra: RaceParameters,
-    ) {
+    filterEq({ regions, arg: one, extra }: ConditionFilterParams) {
       if (one !== 1) {
         throw new Error('must be is_activate_other_skill_detail==1');
       }
 
-      return [regions, (s: IRaceState) => s.usedSkills.has(extra.skillId)] as [
+      return [regions, (runner: Runner) => runner.usedSkills.has(extra.skillId)] as [
         RegionList,
         DynamicCondition,
       ];
     },
   }),
   is_basis_distance: immediate({
-    filterEq(
-      regions: RegionList,
-      flag: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterEq({ regions, arg: flag, course }: ConditionFilterParams) {
       if (flag !== 0 && flag !== 1) {
         throw new Error('must be is_basis_distance==0 or is_basis_distance==1');
       }
@@ -516,32 +339,21 @@ export const defaultConditions: ConditionsMap<ICondition> = {
     },
   }),
   is_badstart: immediate({
-    filterEq(
-      regions: RegionList,
-      flag: number,
-      _0: CourseData,
-      _1: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterEq({ regions, arg: flag }: ConditionFilterParams) {
       if (flag !== 0 && flag !== 1) {
         throw new Error('must be is_badstart==0 or is_badstart==1');
       }
 
-      const f = flag
-        ? (s: IRaceState) => s.startDelay > 0.08
-        : (s: IRaceState) => s.startDelay <= 0.08;
-      return [regions, f] as [RegionList, DynamicCondition];
+      const filterFunc = flag
+        ? (runner: Runner) => runner.startDelay > 0.08
+        : (runner: Runner) => runner.startDelay <= 0.08;
+
+      return [regions, filterFunc] as [RegionList, DynamicCondition];
     },
   }),
   is_behind_in: noopImmediate,
   is_dirtgrade: immediate({
-    filterEq(
-      regions: RegionList,
-      flag: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterEq({ regions, arg: flag, course }: ConditionFilterParams) {
       if (flag !== 1) {
         throw new Error('must be is_dirtgrade==1');
       }
@@ -550,13 +362,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
         ? regions
         : new RegionList();
     },
-    filterNeq(
-      regions: RegionList,
-      flag: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterNeq({ regions, arg: flag, course }: ConditionFilterParams) {
       if (flag !== 1) {
         throw new Error('must be is_dirtgrade!=1');
       }
@@ -567,13 +373,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
     },
   }),
   is_finalcorner: immediate({
-    filterEq(
-      regions: RegionList,
-      flag: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterEq({ regions, arg: flag, course }: ConditionFilterParams) {
       if (flag !== 0 && flag !== 1) {
         throw new Error('must be is_finalcorner==0 or is_finalcorner==1');
       }
@@ -593,13 +393,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
     },
   }),
   is_finalcorner_laterhalf: immediate({
-    filterEq(
-      regions: RegionList,
-      one: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterEq({ regions, arg: one, course }: ConditionFilterParams) {
       if (one !== 1) {
         throw new Error('must be is_finalcorner_laterhalf==1');
       }
@@ -618,13 +412,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
     },
   }),
   is_finalcorner_random: random({
-    filterEq(
-      regions: RegionList,
-      one: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterEq({ regions, arg: one, course }: ConditionFilterParams) {
       if (one !== 1) {
         throw new Error('must be is_finalcorner_random==1');
       }
@@ -642,47 +430,32 @@ export const defaultConditions: ConditionsMap<ICondition> = {
     },
   }),
   is_hp_empty_onetime: immediate({
-    filterEq(
-      regions: RegionList,
-      one: number,
-      _course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterEq({ regions, arg: one }: ConditionFilterParams) {
       if (one !== 1) {
         throw new Error('must be is_hp_empty_onetime==1');
       }
 
-      return [regions, (s: IRaceState) => !s.hp.hasRemainingHp()] as [RegionList, DynamicCondition];
+      return [regions, (runner: Runner) => !runner.healthPolicy.hasRemainingHealth()] as [
+        RegionList,
+        DynamicCondition,
+      ];
     },
   }),
   is_lastspurt: immediate({
-    filterEq(
-      regions: RegionList,
-      one: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterEq({ regions, arg: one, course }: ConditionFilterParams) {
       if (one !== 1) {
         throw new Error('must be is_lastspurt==1');
       }
 
       const bounds = new Region(CourseHelpers.phaseStart(course.distance, 2), course.distance);
-      return [regions.rmap((r) => r.intersect(bounds)), (s: IRaceState) => s.isLastSpurt] as [
+      return [regions.rmap((r) => r.intersect(bounds)), (runner: Runner) => runner.isLastSpurt] as [
         RegionList,
         DynamicCondition,
       ];
     },
   }),
   is_last_straight: immediate({
-    filterEq(
-      regions: RegionList,
-      one: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterEq({ regions, arg: one, course }: ConditionFilterParams) {
       if (one !== 1) {
         throw new Error('must be is_last_straight_onetime==1');
       }
@@ -694,13 +467,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
     },
   }),
   is_last_straight_onetime: immediate({
-    filterEq(
-      regions: RegionList,
-      one: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterEq({ regions, arg: one, course }: ConditionFilterParams) {
       if (one !== 1) {
         throw new Error('must be is_last_straight_onetime==1');
       }
@@ -721,13 +488,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
    * Picks a random point on the last straight.
    */
   last_straight_random: immediate({
-    filterEq(
-      regions: RegionList,
-      one: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterEq({ regions, arg: one, course }: ConditionFilterParams) {
       if (one !== 1) {
         throw new Error('must be last_straight_random==1');
       }
@@ -744,14 +505,8 @@ export const defaultConditions: ConditionsMap<ICondition> = {
   is_surrounded: noopErlangRandom(3, 2.0),
   is_temptation: noopImmediate,
   is_used_skill_id: immediate({
-    filterEq(
-      regions: RegionList,
-      skillId: number,
-      _0: CourseData,
-      _1: HorseParameters,
-      _extra: RaceParameters,
-    ) {
-      return [regions, (s: IRaceState) => s.usedSkills.has('' + skillId)] as [
+    filterEq({ regions, arg: skillId }: ConditionFilterParams) {
+      return [regions, (runner: Runner) => runner.usedSkills.has('' + skillId)] as [
         RegionList,
         DynamicCondition,
       ];
@@ -759,24 +514,18 @@ export const defaultConditions: ConditionsMap<ICondition> = {
   }),
   lane_type: noopImmediate,
   lastspurt: immediate({
-    filterEq(
-      regions: RegionList,
-      case_: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterEq({ regions, arg: case_, course }: ConditionFilterParams) {
       // NB. not entirely sure these are correct, based on some vague remarks made by kuromi once
       let f;
       switch (case_) {
         case 1:
-          f = (s: IRaceState) => s.isLastSpurt && s.lastSpurtTransition != -1;
+          f = (runner: Runner) => runner.isLastSpurt && runner.lastSpurtTransition != -1;
           break;
         case 2:
-          f = (s: IRaceState) => s.isLastSpurt && s.lastSpurtTransition == -1;
+          f = (runner: Runner) => runner.isLastSpurt && runner.lastSpurtTransition == -1;
           break;
         case 3:
-          f = (s: IRaceState) => !s.isLastSpurt;
+          f = (runner: Runner) => !runner.isLastSpurt;
           break;
         default:
           throw new Error('lastspurt case must be 1-3');
@@ -785,9 +534,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
       return [regions.rmap((r) => r.intersect(bounds)), f] as [RegionList, DynamicCondition];
     },
   }),
-  motivation: valueFilter(
-    (_0: CourseData, _1: HorseParameters, extra: RaceParameters) => extra.mood + 3,
-  ), // go from -2 to 2 to 1-5 scale
+  motivation: valueFilter(({ runner }) => runner.mood + 3), // go from -2 to 2 to 1-5 scale
   near_count: noopErlangRandom(3, 2.0),
   order: orderFilter((pos: number, _: number) => pos),
   order_rate: orderFilter((rate: number, numUmas: number) => Math.round(numUmas * (rate / 100.0))),
@@ -803,13 +550,9 @@ export const defaultConditions: ConditionsMap<ICondition> = {
   overtake_target_time: noopErlangRandom(3, 2.0),
   phase: {
     samplePolicy: ImmediatePolicy,
-    filterEq(
-      regions: RegionList,
-      phase: number,
-      course: CourseData,
-      _: HorseParameters,
-      extra: RaceParameters,
-    ) {
+    filterEq(params: ConditionFilterParams) {
+      const { regions, arg: phase, course, extra } = params;
+
       CourseHelpers.assertIsPhase(phase);
       // add a little bit to the end to account for the fact that phase check happens later than skill activations
       // this is mainly relevant for skills with phase condition + a corner condition (e.g. kanata) because corner check
@@ -839,13 +582,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
       return regions.rmap((r) => r.intersect(bounds));
     },
     filterNeq: notSupported,
-    filterLt(
-      regions: RegionList,
-      phase: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterLt({ regions, arg: phase, course }: ConditionFilterParams) {
       CourseHelpers.assertIsPhase(phase);
       if (phase <= 0) {
         throw new Error('phase == 0');
@@ -853,24 +590,12 @@ export const defaultConditions: ConditionsMap<ICondition> = {
       const bounds = new Region(0, CourseHelpers.phaseStart(course.distance, phase));
       return regions.rmap((r) => r.intersect(bounds));
     },
-    filterLte(
-      regions: RegionList,
-      phase: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterLte({ regions, arg: phase, course }: ConditionFilterParams) {
       CourseHelpers.assertIsPhase(phase);
       const bounds = new Region(0, CourseHelpers.phaseEnd(course.distance, phase));
       return regions.rmap((r) => r.intersect(bounds));
     },
-    filterGt(
-      regions: RegionList,
-      phase: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterGt({ regions, arg: phase, course }: ConditionFilterParams) {
       CourseHelpers.assertIsPhase(phase);
       if (phase >= 3) {
         throw new Error('phase > 2');
@@ -881,26 +606,14 @@ export const defaultConditions: ConditionsMap<ICondition> = {
       );
       return regions.rmap((r) => r.intersect(bounds));
     },
-    filterGte(
-      regions: RegionList,
-      phase: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterGte({ regions, arg: phase, course }: ConditionFilterParams) {
       CourseHelpers.assertIsPhase(phase);
       const bounds = new Region(CourseHelpers.phaseStart(course.distance, phase), course.distance);
       return regions.rmap((r) => r.intersect(bounds));
     },
   },
   phase_corner_random: random({
-    filterEq(
-      regions: RegionList,
-      phase: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterEq({ regions, arg: phase, course }: ConditionFilterParams) {
       CourseHelpers.assertIsPhase(phase);
       const phaseStart = CourseHelpers.phaseStart(course.distance, phase);
       const phaseEnd = CourseHelpers.phaseEnd(course.distance, phase);
@@ -917,13 +630,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
     },
   }),
   phase_firsthalf: immediate({
-    filterEq(
-      regions: RegionList,
-      phase: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterEq({ regions, arg: phase, course }: ConditionFilterParams) {
       CourseHelpers.assertIsPhase(phase);
       const start = CourseHelpers.phaseStart(course.distance, phase);
       const end = CourseHelpers.phaseEnd(course.distance, phase);
@@ -932,13 +639,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
     },
   }),
   phase_firsthalf_random: random({
-    filterEq(
-      regions: RegionList,
-      phase: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterEq({ regions, arg: phase, course }: ConditionFilterParams) {
       CourseHelpers.assertIsPhase(phase);
       const start = CourseHelpers.phaseStart(course.distance, phase);
       const end = CourseHelpers.phaseEnd(course.distance, phase);
@@ -947,13 +648,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
     },
   }),
   phase_firstquarter: immediate({
-    filterEq(
-      regions: RegionList,
-      phase: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterEq({ regions, arg: phase, course }: ConditionFilterParams) {
       CourseHelpers.assertIsPhase(phase);
       const start = CourseHelpers.phaseStart(course.distance, phase);
       const end = CourseHelpers.phaseEnd(course.distance, phase);
@@ -962,13 +657,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
     },
   }),
   phase_firstquarter_random: random({
-    filterEq(
-      regions: RegionList,
-      phase: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterEq({ regions, arg: phase, course }: ConditionFilterParams) {
       CourseHelpers.assertIsPhase(phase);
       const start = CourseHelpers.phaseStart(course.distance, phase);
       const end = CourseHelpers.phaseEnd(course.distance, phase);
@@ -977,13 +666,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
     },
   }),
   phase_laterhalf_random: random({
-    filterEq(
-      regions: RegionList,
-      phase: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterEq({ regions, arg: phase, course }: ConditionFilterParams) {
       CourseHelpers.assertIsPhase(phase);
       const start = CourseHelpers.phaseStart(course.distance, phase);
       const end = CourseHelpers.phaseEnd(course.distance, phase);
@@ -992,13 +675,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
     },
   }),
   phase_random: random({
-    filterEq(
-      regions: RegionList,
-      phase: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterEq({ regions, arg: phase, course }: ConditionFilterParams) {
       CourseHelpers.assertIsPhase(phase);
       const bounds = new Region(
         CourseHelpers.phaseStart(course.distance, phase),
@@ -1009,13 +686,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
   }),
   phase_straight_random: {
     samplePolicy: StraightRandomPolicy,
-    filterEq(
-      regions: RegionList,
-      phase: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterEq({ regions, arg: phase, course }: ConditionFilterParams) {
       CourseHelpers.assertIsPhase(phase);
 
       const phaseBounds = new Region(
@@ -1035,45 +706,29 @@ export const defaultConditions: ConditionsMap<ICondition> = {
   },
   popularity: noopImmediate,
   post_number: (function () {
-    function gateBlock(s: IRaceState, numUmas: number) {
-      const gateNumber = s.gateRoll % numUmas; // modulo result guaranteed to be uniformly distributed due to the properties of s.gateRoll
-      // see comment in RaceSolver.ts where gateRoll is initialized
+    function gateBlock(runner: Runner) {
+      const gateNumber = runner.gate; // modulo result guaranteed to be uniformly distributed due to the properties of runner.gateRoll
+
       if (gateNumber < 9) return gateNumber;
-      else return 1 + ((24 - gateNumber) % 8);
+
+      return 1 + ((24 - gateNumber) % 8);
     }
+
     return immediate({
-      filterEq(
-        regions: RegionList,
-        post: number,
-        _0: CourseData,
-        _1: HorseParameters,
-        extra: RaceParameters,
-      ) {
-        return [regions, (s: IRaceState) => gateBlock(s, extra.numUmas || 9) == post] as [
+      filterEq({ regions, arg: post }: ConditionFilterParams) {
+        return [regions, (runner: Runner) => gateBlock(runner) == post] as [
           RegionList,
           DynamicCondition,
         ];
       },
-      filterLte(
-        regions: RegionList,
-        post: number,
-        _0: CourseData,
-        _1: HorseParameters,
-        extra: RaceParameters,
-      ) {
-        return [regions, (s: IRaceState) => gateBlock(s, extra.numUmas || 9) <= post] as [
+      filterLte({ regions, arg: post }: ConditionFilterParams) {
+        return [regions, (runner: Runner) => gateBlock(runner) <= post] as [
           RegionList,
           DynamicCondition,
         ];
       },
-      filterGte(
-        regions: RegionList,
-        post: number,
-        _0: CourseData,
-        _1: HorseParameters,
-        extra: RaceParameters,
-      ) {
-        return [regions, (s: IRaceState) => gateBlock(s, extra.numUmas || 9) >= post] as [
+      filterGte({ regions, arg: post }: ConditionFilterParams) {
+        return [regions, (runner: Runner) => gateBlock(runner) >= post] as [
           RegionList,
           DynamicCondition,
         ];
@@ -1081,65 +736,37 @@ export const defaultConditions: ConditionsMap<ICondition> = {
     });
   })(),
   random_lot: immediate({
-    filterEq(
-      regions: RegionList,
-      lot: number,
-      _0: CourseData,
-      _1: HorseParameters,
-      _extra: RaceParameters,
-    ) {
-      return [regions, (s: IRaceState) => s.randomLot < lot] as [RegionList, DynamicCondition];
+    filterEq({ regions, arg: lot }: ConditionFilterParams) {
+      return [regions, (runner: Runner) => runner.randomLot < lot] as [
+        RegionList,
+        DynamicCondition,
+      ];
     },
   }),
   remain_distance: immediate({
-    filterEq(
-      regions: RegionList,
-      remain: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterEq({ regions, arg: remain, course }: ConditionFilterParams) {
       const bounds = new Region(course.distance - remain, course.distance - remain + 1);
       return regions.rmap((r) => r.intersect(bounds));
     },
-    filterLte(
-      regions: RegionList,
-      remain: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterLte({ regions, arg: remain, course }: ConditionFilterParams) {
       const bounds = new Region(course.distance - remain, course.distance);
       return regions.rmap((r) => r.intersect(bounds));
     },
-    filterGte(
-      regions: RegionList,
-      remain: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterGte({ regions, arg: remain, course }: ConditionFilterParams) {
       const bounds = new Region(0, course.distance - remain);
       return regions.rmap((r) => r.intersect(bounds));
     },
   }),
-  rotation: valueFilter(
-    (course: CourseData, _: HorseParameters, _extra: RaceParameters) => course.turn,
-  ),
+  rotation: valueFilter(({ course }) => course.turn),
   running_style: immediate({
-    filterEq(
-      regions: RegionList,
-      strategy: number,
-      _: CourseData,
-      horse: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterEq({ regions, arg: strategy, runner }: ConditionFilterParams) {
       StrategyHelpers.assertIsStrategy(strategy);
-      if (StrategyHelpers.strategyMatches(horse.strategy, strategy)) {
+
+      if (StrategyHelpers.strategyMatches(runner.strategy, strategy)) {
         return regions;
-      } else {
-        return new RegionList();
       }
+
+      return new RegionList();
     },
   }),
   running_style_count_same: noopImmediate,
@@ -1149,20 +776,16 @@ export const defaultConditions: ConditionsMap<ICondition> = {
   // NB. this seems kind of questionable in general. perhaps a perspective member should be added to RaceParameters.
   // also, abusing valueFilter like this only works because these conditions are used like running_style_count_nige_otherself>=1
   running_style_count_nige_otherself: valueFilter(
-    (_: CourseData, horse: HorseParameters, _extra: RaceParameters) =>
-      +StrategyHelpers.strategyMatches(horse.strategy, Strategy.FrontRunner),
+    ({ runner }) => +StrategyHelpers.strategyMatches(runner.strategy, Strategy.FrontRunner),
   ),
   running_style_count_senko_otherself: valueFilter(
-    (_: CourseData, horse: HorseParameters, _extra: RaceParameters) =>
-      +StrategyHelpers.strategyMatches(horse.strategy, Strategy.PaceChaser),
+    ({ runner }) => +StrategyHelpers.strategyMatches(runner.strategy, Strategy.PaceChaser),
   ),
   running_style_count_sashi_otherself: valueFilter(
-    (_: CourseData, horse: HorseParameters, _extra: RaceParameters) =>
-      +StrategyHelpers.strategyMatches(horse.strategy, Strategy.LateSurger),
+    ({ runner }) => +StrategyHelpers.strategyMatches(runner.strategy, Strategy.LateSurger),
   ),
   running_style_count_oikomi_otherself: valueFilter(
-    (_: CourseData, horse: HorseParameters, _extra: RaceParameters) =>
-      +StrategyHelpers.strategyMatches(horse.strategy, Strategy.EndCloser),
+    ({ runner }) => +StrategyHelpers.strategyMatches(runner.strategy, Strategy.EndCloser),
   ),
   running_style_equal_popularity_one: noopImmediate,
   running_style_temptation_count_nige: noopSectionRandom(2, 9),
@@ -1170,15 +793,9 @@ export const defaultConditions: ConditionsMap<ICondition> = {
   running_style_temptation_count_sashi: noopSectionRandom(2, 9),
   running_style_temptation_count_oikomi: noopSectionRandom(2, 9),
   same_skill_horse_count: noopImmediate,
-  season: valueFilter((_0: CourseData, _1: HorseParameters, extra: RaceParameters) => extra.season),
+  season: valueFilter(({ extra }) => extra.season),
   slope: immediate({
-    filterEq(
-      regions: RegionList,
-      slopeType: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterEq({ regions, arg: slopeType, course }: ConditionFilterParams) {
       if (slopeType !== 0 && slopeType !== 1 && slopeType !== 2) {
         throw new Error('slopeType must be 0, 1, or 2');
       }
@@ -1208,13 +825,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
     },
   }),
   straight_front_type: immediate({
-    filterEq(
-      regions: RegionList,
-      frontType: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterEq({ regions, arg: frontType, course }: ConditionFilterParams) {
       if (!(frontType == 1 || frontType == 2)) {
         throw new Error('frontType must be 1 or 2');
       }
@@ -1225,13 +836,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
   }),
   straight_random: {
     samplePolicy: StraightRandomPolicy,
-    filterEq(
-      regions: RegionList,
-      one: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterEq({ regions, arg: one, course }: ConditionFilterParams) {
       if (one !== 1) {
         throw new Error('must be straight_random==1');
       }
@@ -1246,18 +851,10 @@ export const defaultConditions: ConditionsMap<ICondition> = {
   temptation_count: noopImmediate,
   temptation_count_behind: noopSectionRandom(2, 9),
   temptation_count_infront: noopSectionRandom(2, 9),
-  time: valueFilter((_0: CourseData, _1: HorseParameters, extra: RaceParameters) => extra.time),
-  track_id: valueFilter(
-    (course: CourseData, _: HorseParameters, _extra: RaceParameters) => course.raceTrackId,
-  ),
+  time: valueFilter(({ extra }) => extra.timeOfDay),
+  track_id: valueFilter(({ course }) => course.raceTrackId),
   up_slope_random: random({
-    filterEq(
-      regions: RegionList,
-      one: number,
-      course: CourseData,
-      _: HorseParameters,
-      _extra: RaceParameters,
-    ) {
+    filterEq({ regions, arg: one, course }: ConditionFilterParams) {
       if (one !== 1) {
         throw new Error('must be up_slope_random==1');
       }
@@ -1268,9 +865,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
     },
   }),
   visiblehorse: noopImmediate,
-  weather: valueFilter(
-    (_0: CourseData, _1: HorseParameters, extra: RaceParameters) => extra.weather,
-  ),
+  weather: valueFilter(({ extra }) => extra.weather),
 
   is_exist_chara_id: noopImmediate,
   remain_distance_viewer_id: noopImmediate,

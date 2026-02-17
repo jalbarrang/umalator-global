@@ -1,7 +1,7 @@
-import type { IPhase } from '../../lib/course/definitions';
-import type { IStrategy } from '../../lib/runner/definitions';
-import type { IPositionKeepState } from '../../lib/skills/definitions';
-import type { Runner } from '../runner';
+import type { IPhase } from '../course/definitions';
+import type { IStrategy } from '../runner/definitions';
+import type { IPositionKeepState } from '../skills/definitions';
+import type { Runner } from '../common/runner';
 
 export type RaceStateSlice = {
   phase: IPhase;

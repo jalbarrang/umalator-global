@@ -9,13 +9,13 @@ import { Perspective, PosKeepMode, RaceSolver, SkillRarity, SkillType } from './
 import { Grade, GroundCondition, Season, Time, Weather } from './RaceParameters';
 import { GameHpPolicy, NoopHpPolicy } from './HpPolicy';
 
-import skills from './data/skill_data.json';
 import type { Mood, RaceParameters } from './RaceParameters';
 import type { DynamicCondition, PendingSkill, RaceState, SkillEffect } from './RaceSolver';
 import type { ActivationSamplePolicy } from './ActivationSamplePolicy';
 import type { SeededRng } from './Random';
 import type { CourseData, DistanceType } from './CourseData';
 import type { HorseParameters } from './HorseTypes';
+import skills from '@/modules/data/skill_data.json';
 
 type PartialRaceParameters = Omit<
   { -readonly [K in keyof RaceParameters]: RaceParameters[K] },
@@ -33,56 +33,56 @@ export interface HorseDesc {
   surfaceAptitude: string | Aptitude;
   strategyAptitude: string | Aptitude;
   mood: Mood;
+  skills: Array<string>;
 }
 
-const GroundSpeedModifier = Object.freeze(
-  [
-    null, // ground types started at 1
-    [0, 0, 0, 0, -50],
-    [0, 0, 0, 0, -50],
-  ].map((o) => Object.freeze(o)),
-);
+const GroundSpeedModifier: ReadonlyArray<Array<number>> = [
+  [], // ground types started at 1
+  [0, 0, 0, 0, -50],
+  [0, 0, 0, 0, -50],
+];
 
-const GroundPowerModifier = Object.freeze(
-  [null, [0, 0, -50, -50, -50], [0, -100, -50, -100, -100]].map((o) => Object.freeze(o)),
-);
+const GroundPowerModifier: ReadonlyArray<Array<number>> = [
+  [],
+  [0, 0, -50, -50, -50],
+  [0, -100, -50, -100, -100],
+];
 
 const StrategyProficiencyModifier = Object.freeze([1.1, 1.0, 0.85, 0.75, 0.6, 0.4, 0.2, 0.1]);
 
-namespace Asitame {
-  export const StrategyDistanceCoefficient = Object.freeze([
+const Asitame = {
+  StrategyDistanceCoefficient: Object.freeze([
     [], // distances are 1-indexed (as are strategies, hence the 0 in the first column for every row)
     [0, 1.0, 0.7, 0.75, 0.7, 1.0], // short (nige, senkou, sasi, oikomi, oonige)
     [0, 1.0, 0.8, 0.7, 0.75, 1.0], // mile
     [0, 1.0, 0.9, 0.875, 0.86, 1.0], // medium
     [0, 1.0, 0.9, 1.0, 0.9, 1.0], // long
-  ]);
+  ]),
 
-  export const BaseModifier = 0.00875;
+  BaseModifier: 0.00875,
 
-  export function calcApproximateModifier(
-    power: number,
-    strategy: Strategy,
-    distance: DistanceType,
-  ) {
-    return BaseModifier * Math.sqrt(power - 1200) * StrategyDistanceCoefficient[distance][strategy];
-  }
-}
+  calcApproximateModifier(power: number, strategy: Strategy, distance: DistanceType) {
+    return (
+      this.BaseModifier *
+      Math.sqrt(power - 1200) *
+      this.StrategyDistanceCoefficient[distance][strategy]
+    );
+  },
+};
 
-namespace StaminaSyoubu {
-  export function distanceFactor(distance: number) {
+const StaminaSyoubu = {
+  distanceFactor(distance: number) {
     if (distance < 2101) return 0.0;
     else if (distance < 2201) return 0.5;
     else if (distance < 2401) return 1.0;
     else if (distance < 2601) return 1.2;
     else return 1.5;
-  }
-
-  export function calcApproximateModifier(stamina: number, distance: number) {
+  },
+  calcApproximateModifier(stamina: number, distance: number) {
     const randomFactor = 1.0; // TODO implement random factor scaling based on power (unclear how this works currently)
-    return Math.sqrt(stamina - 1200) * 0.0085 * distanceFactor(distance) * randomFactor;
-  }
-}
+    return Math.sqrt(stamina - 1200) * 0.0085 * this.distanceFactor(distance) * randomFactor;
+  },
+};
 
 export function parseStrategy(s: string | Strategy) {
   if (typeof s != 'string') {
@@ -239,7 +239,7 @@ function adjustOvercap(stat: number) {
   return stat > 1200 ? 1200 + Math.floor((stat - 1200) / 2) : stat;
 }
 
-export function buildBaseStats(horseDesc: HorseDesc, mood: Mood) {
+export function buildBaseStats(horseDesc: HorseDesc, _mood: Mood) {
   const motivCoef = 1 + 0.02 * horseDesc.mood;
 
   return Object.freeze({
@@ -262,14 +262,13 @@ export function buildAdjustedStats(
   ground: GroundCondition,
 ) {
   const raceCourseModifier = CourseHelpers.courseSpeedModifier(course, baseStats);
+  const groundSpeedModifier = GroundSpeedModifier[course.surface][ground];
+  const groundPowerModifier = GroundPowerModifier[course.surface][ground];
 
   return Object.freeze({
-    speed: Math.max(
-      baseStats.speed * raceCourseModifier + GroundSpeedModifier[course.surface][ground],
-      1,
-    ),
+    speed: Math.max(baseStats.speed * raceCourseModifier + groundSpeedModifier, 1),
     stamina: baseStats.stamina,
-    power: Math.max(baseStats.power + GroundPowerModifier[course.surface][ground], 1),
+    power: Math.max(baseStats.power + groundPowerModifier, 1),
     guts: baseStats.guts,
     wisdom: baseStats.wisdom * StrategyProficiencyModifier[baseStats.strategyAptitude],
     strategy: baseStats.strategy,
@@ -300,7 +299,7 @@ export { Perspective } from './RaceSolver';
 
 export interface SkillData {
   skillId: string;
-  perspective?: Perspective;
+  perspective: Perspective;
   rarity: SkillRarity;
   samplePolicy: ActivationSamplePolicy;
   regions: RegionList;
@@ -316,12 +315,9 @@ function isTarget(self: Perspective, targetType: SkillTarget) {
   );
 }
 
-function buildSkillEffects(skill, perspective: Perspective) {
-  return skill.effects.map((ef) => ({
-    type:
-      SkillType.hasOwnProperty(ef.type) && isTarget(perspective, ef.target)
-        ? ef.type
-        : SkillType.Noop,
+function buildSkillEffects(skill: ISkillAlternative, perspective: Perspective) {
+  return skill.effects.map((ef: ISkillEffect) => ({
+    type: isTarget(perspective, ef.target) ? ef.type : SkillType.Noop,
     baseDuration: skill.baseDuration / 10000,
     modifier: ef.modifier / 10000,
   }));
@@ -340,8 +336,11 @@ export function buildSkillData(
   if (!(skillId in skills)) {
     throw new Error('bad skill ID ' + skillId);
   }
+
   const extra = Object.assign({ skillId }, raceParams);
-  const alternatives = skills[skillId].alternatives;
+  const skillData = skills[skillId];
+
+  const alternatives = skillData.alternatives;
   const triggers = [];
   for (let i = 0; i < alternatives.length; ++i) {
     const skill = alternatives[i];
@@ -380,6 +379,7 @@ export function buildSkillData(
     const effects = buildSkillEffects(skill, perspective);
     if (effects.length > 0 || ignoreNullEffects) {
       const rarity = skills[skillId].rarity;
+
       triggers.push({
         skillId: skillId,
         perspective: perspective,
@@ -398,24 +398,26 @@ export function buildSkillData(
   // that could still cause them to activate. so just add the first alternative at a location after the course
   // is over with a constantly false dynamic condition so that it never activates normally.
   const effects = buildSkillEffects(alternatives[0], perspective);
+
   if (effects.length == 0 && !ignoreNullEffects) {
     return [];
-  } else {
-    const rarity = skills[skillId].rarity;
-    const afterEnd = new RegionList();
-    afterEnd.push(new Region(9999, 9999));
-    return [
-      {
-        skillId: skillId,
-        perspective: perspective,
-        rarity: rarity >= 3 && rarity <= 5 ? 3 : rarity,
-        samplePolicy: ImmediatePolicy,
-        regions: afterEnd,
-        extraCondition: (_) => false,
-        effects: effects,
-      },
-    ];
   }
+
+  const rarity = skills[skillId].rarity;
+  const afterEnd = new RegionList();
+  afterEnd.push(new Region(9999, 9999));
+
+  return [
+    {
+      skillId: skillId,
+      perspective: perspective,
+      rarity: rarity >= 3 && rarity <= 5 ? 3 : rarity,
+      samplePolicy: ImmediatePolicy,
+      regions: afterEnd,
+      extraCondition: (_state: RaceState) => false,
+      effects: effects,
+    },
+  ];
 }
 
 export const conditionsWithActivateCountsAsRandom = Object.freeze(
@@ -426,7 +428,7 @@ export const conditionsWithActivateCountsAsRandom = Object.freeze(
         n: number,
         course: CourseData,
         _1: HorseParameters,
-        extra: RaceParameters,
+        _2: RaceParameters,
       ) {
         // hard-code TM Opera O (NY) unique and Neo Universe unique to pretend they're immediate while allowing randomness for other skills
         // (conveniently the only two with n == 7)
@@ -450,11 +452,11 @@ export const conditionsWithActivateCountsAsRandom = Object.freeze(
         return regions.rmap((r) => r.intersect(bounds));
       },
       filterLte(
-        regions: RegionList,
-        n: number,
-        course: CourseData,
-        _1: HorseParameters,
-        extra: RaceParameters,
+        _regions: RegionList,
+        _n: number,
+        _course: CourseData,
+        _horse: HorseParameters,
+        _extra: RaceParameters,
       ) {
         return new RegionList(); // tentatively, we're not really interested in the <= branch of these conditions
       },
@@ -465,7 +467,7 @@ export const conditionsWithActivateCountsAsRandom = Object.freeze(
         _0: number,
         course: CourseData,
         _1: HorseParameters,
-        extra: RaceParameters,
+        _extra: RaceParameters,
       ) {
         const bounds = new Region(
           CourseHelpers.phaseStart(course.distance, 2),
@@ -481,7 +483,7 @@ export const conditionsWithActivateCountsAsRandom = Object.freeze(
         _0: number,
         course: CourseData,
         _1: HorseParameters,
-        extra: RaceParameters,
+        _extra: RaceParameters,
       ) {
         const bounds = new Region(course.distance / 2, course.distance);
         return regions.rmap((r) => r.intersect(bounds));
@@ -493,7 +495,7 @@ export const conditionsWithActivateCountsAsRandom = Object.freeze(
         n: number,
         course: CourseData,
         _1: HorseParameters,
-        extra: RaceParameters,
+        _extra: RaceParameters,
       ) {
         const start = CourseHelpers.phaseStart(course.distance, 1),
           end = CourseHelpers.phaseEnd(course.distance, 1);
@@ -508,7 +510,7 @@ export const conditionsWithActivateCountsAsRandom = Object.freeze(
         _0: number,
         course: CourseData,
         _1: HorseParameters,
-        extra: RaceParameters,
+        _extra: RaceParameters,
       ) {
         const bounds = new Region(
           CourseHelpers.phaseStart(course.distance, 0),
@@ -522,6 +524,10 @@ export const conditionsWithActivateCountsAsRandom = Object.freeze(
 
 const defaultParser = getParser();
 const acrParser = getParser(conditionsWithActivateCountsAsRandom);
+
+function noop(_state: RaceSolver, _skillId: string, _perspective: Perspective) {
+  return;
+}
 
 export class RaceSolverBuilder {
   _course: CourseData | null;
@@ -540,8 +546,8 @@ export class RaceSolverBuilder {
   _extraSkillHooks: Array<
     (skilldata: Array<SkillData>, horse: HorseParameters, course: CourseData) => void
   >;
-  _onSkillActivate: (state: RaceSolver, skillId: string) => void;
-  _onSkillDeactivate: (state: RaceSolver, skillId: string) => void;
+  _onSkillActivate: (state: RaceSolver, skillId: string, perspective: Perspective) => void;
+  _onSkillDeactivate: (state: RaceSolver, skillId: string, perspective: Perspective) => void;
   _posKeepMode: PosKeepMode;
   _mode: string | undefined;
   _skillWisdomCheck: boolean | undefined;
@@ -569,6 +575,8 @@ export class RaceSolverBuilder {
       time: Time.Midday,
       grade: Grade.G1,
       popularity: 1,
+      orderRange: [1, 1],
+      numUmas: 1,
     };
     this._horse = null;
     this._pacerSkillData = [];
@@ -582,8 +590,8 @@ export class RaceSolverBuilder {
     this._skills = [];
     this._samplePolicyOverride = new Map();
     this._extraSkillHooks = [];
-    this._onSkillActivate = null;
-    this._onSkillDeactivate = null;
+    this._onSkillActivate = noop;
+    this._onSkillDeactivate = noop;
     this._posKeepMode = PosKeepMode.None;
     this._mode = undefined;
     this._skillWisdomCheck = undefined;
@@ -669,6 +677,10 @@ export class RaceSolverBuilder {
   }
 
   _isNige() {
+    if (!this._horse) {
+      throw new Error('Horse is not set');
+    }
+
     if (typeof this._horse.strategy == 'string') {
       return (
         this._horse.strategy.toUpperCase() == 'NIGE' ||
@@ -680,11 +692,20 @@ export class RaceSolverBuilder {
   }
 
   setupPacer(horse: HorseDesc) {
+    if (!this._course) {
+      throw new Error('Course is not set');
+    }
+
     const pacer = horse;
-    const pacerBaseHorse = pacer ? buildBaseStats(pacer, pacer.mood) : null;
-    const pacerHorse = pacer
-      ? buildAdjustedStats(pacerBaseHorse, this._course, this._raceParams.groundCondition)
-      : null;
+    const pacerBaseHorse: HorseParameters | null = pacer ? buildBaseStats(pacer, pacer.mood) : null;
+    let pacerHorse: HorseParameters | null = null;
+    if (pacerBaseHorse) {
+      pacerHorse = buildAdjustedStats(
+        pacerBaseHorse,
+        this._course,
+        this._raceParams.groundCondition,
+      );
+    }
 
     const wholeCourse = new RegionList();
     wholeCourse.push(new Region(0, this._course.distance));
@@ -702,6 +723,7 @@ export class RaceSolverBuilder {
         wholeCourse,
         this._parser,
       );
+
       pacerSkillData = this._pacerSkillIds.flatMap((id) => makePacerSkill(id, Perspective.Self));
       this._pacerSkillData = pacerSkillData;
     }
@@ -710,6 +732,10 @@ export class RaceSolverBuilder {
   }
 
   setupPacerSkillTriggers(pacerRng: SeededRng) {
+    if (!this._course) {
+      throw new Error('Course is not set');
+    }
+
     const wholeCourse = new RegionList();
     wholeCourse.push(new Region(0, this._course.distance));
     Object.freeze(wholeCourse);
@@ -728,7 +754,11 @@ export class RaceSolverBuilder {
     this._pacerTriggers = pacerTriggers;
   }
 
-  buildPacer(pacerHorse, i: number, pacerRng: SeededRng): RaceSolver | null {
+  buildPacer(pacerHorse: HorseParameters, i: number, pacerRng: SeededRng): RaceSolver | null {
+    if (!this._course) {
+      throw new Error('Course is not set');
+    }
+
     this.setupPacerSkillTriggers(pacerRng);
 
     const pacerSkills =
@@ -803,6 +833,10 @@ export class RaceSolverBuilder {
 
   // NB. must be called after horse and mood are set
   withAsiwotameru() {
+    if (!this._horse) {
+      throw new Error('Horse is not set');
+    }
+
     // for some reason, asitame (probably??) uses *displayed* power adjusted for motivation + greens
     const baseDisplayedPower = this._horse.power * (1 + 0.02 * this._raceParams.mood);
     this._extraSkillHooks.push((skilldata, horse, course) => {
@@ -952,12 +986,12 @@ export class RaceSolverBuilder {
     return this;
   }
 
-  onSkillActivate(cb: (state: RaceSolver, skillId: string) => void) {
+  onSkillActivate(cb: (state: RaceSolver, skillId: string, perspective: Perspective) => void) {
     this._onSkillActivate = cb;
     return this;
   }
 
-  onSkillDeactivate(cb: (state: RaceSolver, skillId: string) => void) {
+  onSkillDeactivate(cb: (state: RaceSolver, skillId: string, perspective: Perspective) => void) {
     this._onSkillDeactivate = cb;
     return this;
   }
@@ -999,6 +1033,14 @@ export class RaceSolverBuilder {
   }
 
   *build() {
+    if (!this._horse) {
+      throw new Error('Horse is not set');
+    }
+
+    if (!this._course) {
+      throw new Error('Course is not set');
+    }
+
     let horse = buildBaseStats(this._horse, this._horse.mood);
     const skillRng = new Rule30CARng(this._rng.int32());
 
@@ -1014,8 +1056,10 @@ export class RaceSolverBuilder {
       wholeCourse,
       this._parser,
     );
+
     const skilldata = this._skills.flatMap(({ id, p }) => makeSkill(id, p));
-    this._extraSkillHooks.forEach((h) => h(skilldata, horse, this._course));
+    this._extraSkillHooks.forEach((h) => h(skilldata, horse, this._course!));
+
     const triggers = skilldata.map((sd) => {
       const key =
         sd.perspective != null ? this.getSamplePolicyKey(sd.skillId, sd.perspective) : sd.skillId;
@@ -1029,7 +1073,7 @@ export class RaceSolverBuilder {
     for (let i = 0; i < this.nsamples; ++i) {
       const solverRng = new Rule30CARng(this._rng.int32());
 
-      const skills = skilldata.map((sd, sdi) => ({
+      const runnerSkills = skilldata.map((sd, sdi) => ({
         skillId: sd.skillId,
         perspective: sd.perspective,
         rarity: sd.rarity,
@@ -1048,7 +1092,7 @@ export class RaceSolverBuilder {
       const redo: boolean = yield new RaceSolver({
         horse,
         course: this._course,
-        skills,
+        skills: runnerSkills,
         hp: hpPolicy,
         rng: solverRng,
         onSkillActivate: this._onSkillActivate,

@@ -1,34 +1,35 @@
 import { Map as ImmMap, Record } from 'immutable';
+import type { Mood } from '../sim/RaceParameters';
 
-import skillmeta from '../skill_meta.json';
-import type skills from '../uma-skill-tools/data/skill_data.json';
+import skillsMeta from '@/modules/data/skill_meta.json';
 
 export function isDebuffSkill(id: string) {
   // iconId 3xxxx is the debuff icons
   // i think this basically matches the intuitive behavior of being able to add multiple debuff skills and not other skills;
   // e.g. there are some skills with both a debuff component and a positive component and typically it doesnt make sense to
   // add multiple of those
-  return skillmeta[id].iconId[0] == '3';
+  return skillsMeta[id as keyof typeof skillsMeta].iconId[0] == '3';
 }
 
-export function SkillSet(ids): ImmMap<(typeof skill_meta)['groupId'], keyof typeof skills> {
-  return ImmMap(
-    ids.reduce(
-      (acc, id) => {
-        const { entries, ndebuff } = acc;
-        const groupId = skillmeta[id].groupId;
-        if (isDebuffSkill(id)) {
-          entries.push([groupId + '-' + ndebuff, id]);
-          return { entries, ndebuff: ndebuff + 1 };
-        } else {
-          entries.push([groupId, id]);
-          return { entries, ndebuff };
-        }
-      },
-      { entries: [], ndebuff: 0 },
-    ).entries,
-  );
+export function SkillSet(ids: Array<string>) {
+  const entries: Array<[string, string]> = [];
+  let ndebuff = 0;
+
+  for (const id of ids) {
+    const groupId = skillsMeta[id as keyof typeof skillsMeta].groupId;
+    if (!isDebuffSkill(id)) {
+      entries.push([`${groupId}`, id]);
+      continue;
+    }
+
+    entries.push([groupId + '-' + ndebuff, id]);
+    ndebuff++;
+  }
+
+  return ImmMap(entries);
 }
+
+const CC_GLOBAL = true;
 
 export class HorseState extends Record({
   outfitId: '',
@@ -44,5 +45,5 @@ export class HorseState extends Record({
   mood: 2 as Mood,
   skills: SkillSet([]),
   // Map of skillId -> forced position (in meters). If a skill is in this map, it will be forced to activate at that position.
-  forcedSkillPositions: ImmMap(),
+  forcedSkillPositions: ImmMap<string, number>(),
 }) {}

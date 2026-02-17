@@ -1,5 +1,5 @@
-import { SkillRarity } from '../simulation/lib/skills/definitions';
 import type { Skill } from '@/modules/skills/utils';
+import { SkillRarity } from '@/lib/sunday-tools/skills/definitions';
 import { skillFilterLookUp } from '@/modules/skills/utils';
 
 // A predicate that takes a skill and returns whether it passes

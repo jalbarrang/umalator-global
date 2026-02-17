@@ -1,6 +1,6 @@
 import { strict as assert } from 'node:assert';
 
-import courses from './data/course_data.json';
+import courses from '@/modules/data/course_data.json';
 
 export type Phase = 0 | 1 | 2 | 3;
 export const enum Surface {

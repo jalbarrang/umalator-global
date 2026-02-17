@@ -1,8 +1,15 @@
 import { Region, RegionList } from '../shared/region';
 import { createParser } from '../skills/parser/ConditionParser';
-import type { DefaultParser } from '../skills/parser/definitions';
+import { Strategy } from '../runner/definitions';
+import { Rule30CARng } from '../shared/random';
+import { GameHpPolicy } from '../health/game.policy';
+import { NoopHpPolicy } from '../health/health-policy';
+import { StrategyHelpers } from '../runner/runner.types';
+import { Runner } from './runner';
+import type { CreateRunner } from './runner';
 import type { PRNG } from '../shared/random';
 import type { IPosKeepMode, IStrategy } from '../runner/definitions';
+import type { DefaultParser } from '../skills/parser/definitions';
 import type {
   CourseData,
   IGrade,
@@ -11,7 +18,6 @@ import type {
   ITimeOfDay,
   IWeather,
 } from '../course/definitions';
-import type { Runner } from './runner';
 
 export type RunnerMap = Map<number, Runner>;
 
@@ -55,12 +61,22 @@ export type SimulationSettings = {
   positionKeepMode: IPosKeepMode;
 };
 
+export type DuelingRates = {
+  runaway: number;
+  frontRunner: number;
+  paceChaser: number;
+  lateSurger: number;
+  endCloser: number;
+};
+
 export type RaceParameters = {
   ground: IGroundCondition;
   weather: IWeather;
   season: ISeason;
   timeOfDay: ITimeOfDay;
   grade: IGrade;
+
+  [key: string]: any;
 };
 
 export type RaceSimulatorProps = {
@@ -82,17 +98,20 @@ export type RaceSimulatorProps = {
    * The number of skill samples to use for the race simulation
    */
   skillSamples: number;
+
+  duelingRates: DuelingRates;
 };
 
-export abstract class Race {
+export class Race {
   // ===================
   // Private
   // ===================
 
-  declare public seed: number;
-  declare public rng: PRNG;
-  declare public lastRunnerId: number;
-  declare public settings: SimulationSettings;
+  public seed!: number;
+  public rng!: PRNG;
+  public lastRunnerId!: number;
+  public settings: SimulationSettings;
+  public duelingRates: DuelingRates;
 
   // ===================
   // Public
@@ -117,6 +136,7 @@ export abstract class Race {
   public grade: IGrade;
 
   public runners: Map<number, Runner>;
+  public finishedRunners: Array<number>;
 
   constructor(props: RaceSimulatorProps) {
     this.course = props.course;
@@ -128,6 +148,10 @@ export abstract class Race {
     this.grade = props.parameters.grade;
 
     this.runners = new Map();
+    this.finishedRunners = [];
+
+    this.settings = props.settings;
+    this.duelingRates = props.duelingRates;
   }
 
   public onInitialize(): void {
@@ -151,36 +175,12 @@ export abstract class Race {
   }
 
   // ===================
-  // Race Loop
-  // ===================
-
-  public onStart(): void {
-    const runners = new Map(this.runners);
-
-    while (runners.size > 0) {
-      this.onUpdate(1 / 15, runners);
-    }
-  }
-
-  public onUpdate(dt: number, runners: Map<number, Runner>): void {
-    for (const runner of runners.values()) {
-      runner.onUpdate(dt);
-
-      if (runner.finished) {
-        runners.delete(runner.id);
-      }
-    }
-  }
-
-  // ===================
   // Getters
   // ===================
 
   public get baseSpeed(): number {
     return 20.0 - (this.course.distance - 2000) / 1000.0;
   }
-
-  // ===================
 
   // ==================
   // Lifecycle
@@ -209,14 +209,14 @@ export abstract class Race {
 
     // Assign first N gates to runners (in iteration order, which is insertion order for Map)
     let gateIndex = 0;
-    for (const runner of this._runners.values()) {
+    for (const runner of this.runners.values()) {
       runner.setGate(gates[gateIndex]);
       gateIndex++;
     }
   }
 
   public validateRaceSetup(): void {
-    if (this._runners.size === 0) throw new Error('No runners added to race');
+    if (this.runners.size === 0) throw new Error('No runners added to race');
   }
 
   public prepareRace() {
@@ -237,7 +237,7 @@ export abstract class Race {
       [Strategy.EndCloser, []],
     ]);
 
-    for (const runner of this._runners.values()) {
+    for (const runner of this.runners.values()) {
       const strategy = runner.strategy;
       const skills = runner.skillIds;
 
@@ -270,10 +270,9 @@ export abstract class Race {
 
     this.assignGates();
 
-    for (const runner of this._runners.values()) {
+    for (const runner of this.runners.values()) {
       // Generate runner-specific RNG
       const runnerRng = new Rule30CARng(this.rng.int32());
-      runner.setupRng(runnerRng);
 
       // Setup health policy
       if (this.settings.healthSystem) {
@@ -285,9 +284,7 @@ export abstract class Race {
         runner.setHealthPolicy(NoopHpPolicy);
       }
 
-      // Validate runner is ready
-      runner.validateSetup();
-      runner.prepareRunner();
+      runner.onPrepare(runnerRng);
     }
 
     // Increment the round iteration as setup is complete, so this value should not be used until the next round.
@@ -300,7 +297,7 @@ export abstract class Race {
    * @param dt The time step to advance the simulation by.
    * @param runners The runners to step.
    */
-  public override onUpdate(dt: number, runners: RunnerMap): void {
+  public onUpdate(dt: number): void {
     this.accumulatedTime += dt;
 
     // Internally set the pacer.
@@ -310,73 +307,14 @@ export abstract class Race {
       this.pacer = pacer;
     }
 
-    for (const runner of runners.values()) {
+    for (const runner of this.runners.values()) {
+      if (this.finishedRunners.includes(runner.id)) continue;
+
       runner.onUpdate(dt);
 
-      if (runner.hasFinishedRace) {
-        runners.delete(runner.internalId);
+      if (runner.finished) {
+        this.finishedRunners.push(runner.id);
       }
-    }
-  }
-
-  public broadcastSkillEffect(sender: Runner, skillEffect: SkillEffect) {
-    /**
-     * TODO: Use a Switch that handled the different EffectTargets.
-     * For each EffectTarget, we need to filter the runner that apply to that EffectTarget.
-     * Then, broadcast the skill effect to them.
-     *
-     * Note:
-     *
-     * Some EffectTargets come with a value that depending on the context will specify
-     * the amount of runners to target.
-     */
-
-    switch (skillEffect.target) {
-      case SkillTarget.Self:
-        throw new Error('This should never happen');
-      case SkillTarget.All:
-        for (const runner of this._runners.values()) {
-          runner.receiveTargetedEffect(skillEffect);
-        }
-        break;
-      case SkillTarget.InFov:
-        // Find all runners in the FOV of the sender
-        break;
-      case SkillTarget.AheadOfPosition:
-        // Find all runners that are ahead of a certain position
-        // Requires value to be specified
-        break;
-      case SkillTarget.AheadOfSelf:
-        // Find all runners that are ahead of the sender
-        // Optionally uses a value to specify the amount of runners to target
-        break;
-      case SkillTarget.BehindSelf:
-        // Find all runners that are behind the sender
-        // Optionally uses a value to specify the amount of runners to target
-        break;
-      case SkillTarget.AllAllies:
-        // Find all allies of the sender
-        break;
-      case SkillTarget.EnemyStrategy:
-        // Find all enemy runners that are in the specified strategy
-        break;
-      case SkillTarget.KakariAhead:
-        // Find all enemy runners that are rushed ahead of the sender
-        break;
-      case SkillTarget.KakariBehind:
-        // Find all enemy runners that are rushed behind the sender
-        break;
-      case SkillTarget.KakariStrategy:
-        // Find all enemy runners that are rushed and are using a specified strategy
-        break;
-      case SkillTarget.UmaId:
-        // Find the runner with the specified UMA ID (Runner.umaId)
-        break;
-      case SkillTarget.UsedRecovery:
-        // Find all runners that have used a recovery skill
-        break;
-
-      // There might be more, so when they release, we need to add them here.
     }
   }
 
@@ -387,11 +325,11 @@ export abstract class Race {
    */
   public run() {
     // Reset the runners to step.
-    const runnersToStep = new Map(this._runners);
+    this.finishedRunners = [];
 
     // Run the race until all runners have finished.
-    while (runnersToStep.size > 0) {
-      this.onUpdate(1 / 15, runnersToStep);
+    while (this.runners.size !== this.finishedRunners.length) {
+      this.onUpdate(1 / 15);
     }
   }
 
@@ -399,9 +337,9 @@ export abstract class Race {
     // Select furthest-forward front runner
     for (const strategy of [Strategy.Runaway, Strategy.FrontRunner]) {
       // ! NOTE: might revise this.
-      const frontRunners = this._runners
+      const frontRunners = this.runners
         .values()
-        .filter((runner) => runner.posKeepStrategy === strategy)
+        .filter((runner) => runner.positionKeepStrategy === strategy)
         .toArray();
 
       const firstRunner = frontRunners[0];
@@ -425,9 +363,9 @@ export abstract class Race {
     // Otherwise, lucky pace (set pacerOverride)
     for (const strategy of [Strategy.PaceChaser, Strategy.LateSurger, Strategy.EndCloser]) {
       // ! NOTE: might revise this.
-      const runnersWithStrat = this._runners
+      const runnersWithStrat = this.runners
         .values()
-        .filter((runner) => StrategyHelpers.strategyMatches(runner.posKeepStrategy, strategy))
+        .filter((runner) => StrategyHelpers.strategyMatches(runner.positionKeepStrategy, strategy))
         .toArray();
 
       const firstRunner = runnersWithStrat[0];
@@ -437,7 +375,7 @@ export abstract class Race {
           return currRunner.position > max.position ? currRunner : max;
         }, firstRunner);
 
-        luckyPacer.posKeepStrategy = Strategy.FrontRunner;
+        luckyPacer.positionKeepStrategy = Strategy.FrontRunner;
 
         return luckyPacer;
       }
@@ -448,7 +386,7 @@ export abstract class Race {
     const pacer = this.pacer;
 
     if (pacer) {
-      pacer.posKeepStrategy = Strategy.FrontRunner;
+      pacer.positionKeepStrategy = Strategy.FrontRunner;
       return pacer;
     }
 
@@ -466,7 +404,7 @@ export abstract class Race {
    */
   public addRunner(params: CreateRunner) {
     const runner = Runner.create(this, this.lastRunnerId, params);
-    this._runners.set(this.lastRunnerId, runner);
+    this.runners.set(this.lastRunnerId, runner);
 
     this.lastRunnerId++;
 

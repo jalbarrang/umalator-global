@@ -19,7 +19,8 @@
     "extract:skill-data": "bun scripts/extract-skill-data.ts",
     "extract:uma-info": "bun scripts/extract-uma-info.ts",
     "extract:course-data": "bun scripts/extract-course-data.ts",
-    "extract:all": "bun scripts/extract-all.ts"
+    "extract:all": "bun scripts/extract-all.ts",
+    "skill:compare": "bun scripts/debug-skill-compare.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.0.0",

@@ -44,7 +44,7 @@ export interface RaceParameters {
   readonly time: Time;
   readonly grade: Grade;
   readonly popularity: number;
-  readonly orderRange?: [number, number];
-  readonly numUmas?: number;
+  readonly orderRange: [number, number];
+  readonly numUmas: number;
   readonly skillId: string;
 }

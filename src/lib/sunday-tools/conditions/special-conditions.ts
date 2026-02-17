@@ -1,6 +1,6 @@
 import { Strategy } from '../runner/definitions';
-import { ApproximateMultiCondition, ApproximateStartContinue } from './ApproximateStartContinue';
-import type { ConditionEntry, ConditionState } from './ApproximateStartContinue';
+import { ApproximateMultiCondition, ApproximateStartContinue } from './aproximate-conditions';
+import type { ConditionEntry, ConditionState } from './aproximate-conditions';
 
 export function createBlockedSideCondition(): ApproximateMultiCondition {
   const conditions: Array<ConditionEntry> = [

@@ -1,6 +1,6 @@
 import { Region, RegionList } from '../shared/region';
 import { ImmediatePolicy } from '../skills/policies/ActivationSamplePolicy';
-import type { ISkillType } from '../skills/definitions';
+import type { ISkillRarity, ISkillType } from '../skills/definitions';
 import type { Runner } from '../common/runner';
 import type { RaceParameters } from '../common/race';
 import type { CourseData } from '../course/definitions';
@@ -59,9 +59,7 @@ export function buildSkillData(params: BuildSkillDataParams): Array<SkillTrigger
     throw new Error('bad skill ID ' + skillId);
   }
 
-  const skill = skillsDataList[baseSkillId as keyof typeof skillsDataList] as
-    | SkillDataEntry
-    | undefined;
+  const skill = skillsDataList[baseSkillId] as SkillDataEntry | undefined;
 
   if (!skill) {
     throw new Error('bad skill ID ' + skillId);
@@ -69,7 +67,7 @@ export function buildSkillData(params: BuildSkillDataParams): Array<SkillTrigger
 
   const extra = Object.assign({ skillId }, raceParams);
 
-  const alternatives = skill.data.alternatives;
+  const alternatives = skill.alternatives;
   const triggers: Array<SkillTrigger> = [];
 
   for (let i = 0; i < alternatives.length; ++i) {
@@ -85,7 +83,12 @@ export function buildSkillData(params: BuildSkillDataParams): Array<SkillTrigger
     if (skillAlternative.precondition) {
       const parsedPrecondition = parser.parse(skillAlternative.precondition);
 
-      const preRegions = parsedPrecondition.apply(wholeCourse, course, runner, extra)[0];
+      const preRegions = parsedPrecondition.apply({
+        regions: wholeCourse,
+        course,
+        runner,
+        extra,
+      })[0];
 
       if (preRegions.length == 0) {
         continue;
@@ -98,7 +101,12 @@ export function buildSkillData(params: BuildSkillDataParams): Array<SkillTrigger
 
     const parsedOperator = parser.parse(skillAlternative.condition);
 
-    const [regions, extraCondition] = parsedOperator.apply(full, course, runner, extra);
+    const [regions, extraCondition] = parsedOperator.apply({
+      regions: full,
+      course,
+      runner,
+      extra,
+    });
 
     if (regions.length === 0) {
       continue;
@@ -122,12 +130,12 @@ export function buildSkillData(params: BuildSkillDataParams): Array<SkillTrigger
     const effects = buildSkillEffects(skillAlternative);
 
     if (effects.length > 0 || ignoreNullEffects) {
-      const rarity = skill.data.rarity;
+      const rarity = skill.rarity;
 
       triggers.push({
         skillId: skillId,
         // for some reason 1*/2* uniques, 1*/2* upgraded to 3*, and naturally 3* uniques all have different rarity (3, 4, 5 respectively)
-        rarity: rarity >= 3 && rarity <= 5 ? 3 : rarity,
+        rarity: rarity >= 3 && rarity <= 5 ? 3 : (rarity as ISkillRarity),
         samplePolicy: parsedOperator.samplePolicy,
         regions: regions,
         extraCondition: extraCondition,
@@ -150,14 +158,14 @@ export function buildSkillData(params: BuildSkillDataParams): Array<SkillTrigger
     return [];
   }
 
-  const rarity = skill.data.rarity;
+  const rarity = skill.rarity;
   const afterEnd = new RegionList();
   afterEnd.push(new Region(9999, 9999));
 
   return [
     {
       skillId: skillId,
-      rarity: rarity >= 3 && rarity <= 5 ? 3 : rarity,
+      rarity: rarity >= 3 && rarity <= 5 ? 3 : (rarity as ISkillRarity),
       samplePolicy: ImmediatePolicy,
       regions: afterEnd,
       extraCondition: (_) => false,

@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Tooltip } from '@/components/Tooltip';
 import i18n from '@/i18n';
-import { createTypedParser } from '@/modules/simulation/lib/skills/parser/ConditionParser';
+import { createTypedParser } from '@/lib/sunday-tools/skills/parser/ConditionParser';
 
 export interface ConditionFormatter {
   name: string;

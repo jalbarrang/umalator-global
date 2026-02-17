@@ -1,8 +1,8 @@
-import { createParser } from '../simulation/lib/skills/parser/ConditionParser';
-import type { Operator } from '../simulation/lib/skills/parser/definitions';
-import SkillsDataList from '@/modules/data/skill_data.json';
+import type { Operator } from '@/lib/sunday-tools/skills/parser/definitions';
+import { createParser } from '@/lib/sunday-tools/skills/parser/ConditionParser';
+import { mockConditions } from '@/lib/sunday-tools/skills/parser/ConditionMatcher';
 
-import { mockConditions } from '@/modules/simulation/lib/skills/parser/ConditionMatcher';
+import SkillsDataList from '@/modules/data/skill_data.json';
 
 const Parser = createParser({
   conditions: mockConditions,

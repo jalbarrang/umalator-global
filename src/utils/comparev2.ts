@@ -16,13 +16,10 @@
  * As this only compares two runners, it is not possible to simulate races with 9 runners as it would defeat the purpose of this compare tool.
  */
 
-import type { CourseData } from '@/modules/simulation/lib/course/definitions';
-import type {
-  RaceParameters,
-  SimulationSettings,
-} from '@/modules/simulation/simulator/race-simulator';
-import type { CreateRunner } from '@/modules/simulation/simulator/runner';
-import { RaceSimulator } from '@/modules/simulation/simulator/race-simulator';
+import type { CreateRunner } from '@/lib/sunday-tools/common/runner';
+import type { CourseData } from '@/lib/sunday-tools/course/definitions';
+import type { RaceParameters, SimulationSettings } from '@/lib/sunday-tools/common/race';
+import { Race } from '@/lib/sunday-tools/common/race';
 
 type ComparisonParams = {
   startingSeed: number;
@@ -43,7 +40,6 @@ export function runComparison(params: ComparisonParams) {
     settings,
     course,
     skillSamples: sampleCount,
-    //
     duelingRates: {
       runaway: 10,
       frontRunner: 10,
@@ -55,8 +51,8 @@ export function runComparison(params: ComparisonParams) {
 
   const pacers: Array<CreateRunner> = [];
 
-  const raceA = new RaceSimulator(commonRaceConfig).addRunner(runnerA);
-  const raceB = new RaceSimulator(commonRaceConfig).addRunner(runnerB);
+  const raceA = new Race(commonRaceConfig).addRunner(runnerA);
+  const raceB = new Race(commonRaceConfig).addRunner(runnerB);
 
   for (const pacer of pacers) {
     raceA.addRunner(pacer);

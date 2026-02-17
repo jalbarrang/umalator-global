@@ -7,7 +7,7 @@ import {
   Season,
   TimeOfDay,
   Weather,
-} from '@/modules/simulation/lib/course/definitions';
+} from '@/lib/sunday-tools/course/definitions';
 
 const PRESET_STORE_NAME = 'umalator-presets';
 

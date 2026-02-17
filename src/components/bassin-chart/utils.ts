@@ -1,13 +1,13 @@
 import type { RoundResult, SkillComparisonRoundResult } from '@/modules/simulation/types';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
-import type { CourseData } from '@/modules/simulation/lib/course/definitions';
-import type { RaceParameters } from '@/modules/simulation/lib/definitions';
-import { buildBaseStats, buildSkillData } from '@/modules/simulation/lib/core/RaceSolverBuilder';
-import { Region, RegionList } from '@/modules/simulation/lib/utils/Region';
-import { SkillPerspective } from '@/modules/simulation/lib/skills/definitions';
-import { PosKeepMode } from '@/modules/simulation/lib/runner/definitions';
-import { createParser } from '@/modules/simulation/lib/skills/parser/ConditionParser';
-import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
+import type { CourseData } from '@/lib/sunday-tools/course/definitions';
+import type { RaceParameters } from '@/lib/sunday-tools/common/race';
+import { buildSkillData } from '@/lib/sunday-tools/runner/runner.utils';
+import { Region, RegionList } from '@/lib/sunday-tools/shared/region';
+import { PosKeepMode } from '@/lib/sunday-tools/runner/definitions';
+import { createParser } from '@/lib/sunday-tools/skills/parser/ConditionParser';
+import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { buildBaseStats } from '@/lib/sunday-tools/common/runner';
 
 // ===== Shared Chart Utilities =====
 
@@ -80,7 +80,7 @@ export function getActivateableSkills(
   raceParams: RaceParameters,
 ) {
   const parser = createParser();
-  const runnerB = buildBaseStats(runner);
+  const baseStatlines = buildBaseStats(runner, runner.mood);
 
   const wholeCourse = new RegionList();
   wholeCourse.push(new Region(0, course.distance));
@@ -88,15 +88,15 @@ export function getActivateableSkills(
   const activableSkills = [];
 
   for (const skillId of skills) {
-    const skillTriggers = buildSkillData(
-      runnerB,
+    const skillTriggers = buildSkillData({
+      runner: baseStatlines,
       raceParams,
       course,
       wholeCourse,
       parser,
       skillId,
-      SkillPerspective.Any,
-    );
+      ignoreNullEffects: false,
+    });
 
     const isActivable = skillTriggers.some(
       (trigger) => trigger.regions.length > 0 && trigger.regions[0].start < 9999,

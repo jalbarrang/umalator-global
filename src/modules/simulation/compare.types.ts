@@ -1,5 +1,9 @@
 import { cloneDeep } from 'es-toolkit';
-import type { ISkillPerspective, ISkillTarget, ISkillType } from './lib/skills/definitions';
+import type {
+  ISkillPerspective,
+  ISkillTarget,
+  ISkillType,
+} from '@/lib/sunday-tools/skills/definitions';
 
 export interface CompareResult {
   results: Array<number>;

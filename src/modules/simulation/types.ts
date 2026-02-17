@@ -1,12 +1,12 @@
-import type { IPosKeepMode } from './lib/runner/definitions';
+import type { IPosKeepMode } from '@/lib/sunday-tools/runner/definitions';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import type {
   SimulationData,
   SkillSimulationData,
   SkillTrackedMetaCollection,
 } from '@/modules/simulation/compare.types';
-import type { CourseData } from './lib/course/definitions';
-import type { RaceParameters } from './lib/definitions';
+import type { CourseData } from '@/lib/sunday-tools/course/definitions';
+import type { RaceParameters } from '@/lib/sunday-tools/common/race';
 
 // Calculate theoretical max spurt based purely on stats (no RNG)
 
