@@ -90,5 +90,5 @@
     "vite-tsconfig-paths": "^6.0.3",
     "web-vitals": "^5.1.0"
   },
-  "license": "MIT"
+  "license": "GPL-3.0"
 }
