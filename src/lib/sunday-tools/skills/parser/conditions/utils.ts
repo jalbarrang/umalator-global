@@ -1,4 +1,4 @@
-import type { ConditionFilterParams, ICondition } from '../definitions';
+import type { ConditionFilterParams, ICondition, SkillEvalRunner } from '../definitions';
 import type { Runner } from '@/lib/sunday-tools/common/runner';
 import type { RaceParameters } from '@/lib/sunday-tools/common/race';
 import type { DistributionRandomPolicy } from '@/lib/sunday-tools/skills/policies/ActivationSamplePolicy';
@@ -172,7 +172,7 @@ export function noopSectionRandom(start: number, end: number) {
 
 export type ValueFilterParams = {
   regions: RegionList;
-  runner: Runner;
+  runner: SkillEvalRunner;
   extra: RaceParameters;
   course: CourseData;
 };

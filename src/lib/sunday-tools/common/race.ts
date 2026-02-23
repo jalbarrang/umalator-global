@@ -8,7 +8,7 @@ import { StrategyHelpers } from '../runner/runner.types';
 import { Runner } from './runner';
 import type { CreateRunner } from './runner';
 import type { PRNG } from '../shared/random';
-import type { IPosKeepMode, IStrategy } from '../runner/definitions';
+import type { IStrategy } from '../runner/definitions';
 import type { DefaultParser } from '../skills/parser/definitions';
 import type {
   CourseData,
@@ -55,11 +55,24 @@ export type SimulationSettings = {
    * - false: Wit checks are disabled so skills always pass.
    */
   witChecks: boolean;
-  /**
-   * The position keep mode that the simulation should use for the runners
-   */
-  positionKeepMode: IPosKeepMode;
 };
+
+export interface RaceLifecycleObserver {
+  /** Called once when prepareRound completes (before any ticks) */
+  onRoundStart(race: Race, seed: number): void;
+
+  /** Called before the main runner update loop each frame */
+  onBeforeTick(race: Race, dt: number): void;
+
+  /** Called after each individual runner is updated in a frame */
+  onAfterRunnerTick(race: Race, runner: Runner, dt: number): void;
+
+  /** Called the moment a runner crosses the finish line */
+  onRunnerFinished(race: Race, runner: Runner): void;
+
+  /** Called when all runners have finished the round */
+  onRoundEnd(race: Race): void;
+}
 
 export type DuelingRates = {
   runaway: number;
@@ -100,6 +113,8 @@ export type RaceSimulatorProps = {
   skillSamples: number;
 
   duelingRates: DuelingRates;
+
+  collector?: RaceLifecycleObserver;
 };
 
 export class Race {
@@ -112,6 +127,7 @@ export class Race {
   public lastRunnerId!: number;
   public settings: SimulationSettings;
   public duelingRates: DuelingRates;
+  public collector?: RaceLifecycleObserver;
 
   // ===================
   // Public
@@ -152,6 +168,7 @@ export class Race {
 
     this.settings = props.settings;
     this.duelingRates = props.duelingRates;
+    this.collector = props.collector;
   }
 
   public onInitialize(): void {
@@ -289,6 +306,8 @@ export class Race {
 
     // Increment the round iteration as setup is complete, so this value should not be used until the next round.
     this.roundIteration++;
+
+    this.collector?.onRoundStart(this, masterSeed);
   }
 
   /**
@@ -298,6 +317,8 @@ export class Race {
    * @param runners The runners to step.
    */
   public onUpdate(dt: number): void {
+    this.collector?.onBeforeTick(this, dt);
+
     this.accumulatedTime += dt;
 
     // Internally set the pacer.
@@ -311,9 +332,11 @@ export class Race {
       if (this.finishedRunners.includes(runner.id)) continue;
 
       runner.onUpdate(dt);
+      this.collector?.onAfterRunnerTick(this, runner, dt);
 
       if (runner.finished) {
         this.finishedRunners.push(runner.id);
+        this.collector?.onRunnerFinished(this, runner);
       }
     }
   }
@@ -331,6 +354,8 @@ export class Race {
     while (this.runners.size !== this.finishedRunners.length) {
       this.onUpdate(1 / 15);
     }
+
+    this.collector?.onRoundEnd(this);
   }
 
   private getPacer() {
@@ -391,10 +416,6 @@ export class Race {
     }
 
     return null;
-  }
-
-  public collectStats(): Array<unknown> {
-    throw new Error('Not implemented');
   }
 
   // === runner management ===

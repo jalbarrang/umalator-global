@@ -1,8 +1,9 @@
 import { kTrue } from './conditions/utils';
 import type { RaceParameters } from '@/lib/sunday-tools/common/race';
 import type { ActivationSamplePolicy } from '@/lib/sunday-tools/skills/policies/ActivationSamplePolicy';
-import type { Runner } from '@/lib/sunday-tools/common/runner';
+import type { StatLine } from '@/lib/sunday-tools/common/runner';
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';
+import type { IMood, IStrategy } from '@/lib/sunday-tools/runner/definitions';
 import type { DynamicCondition } from '@/lib/sunday-tools/skills/skill.types';
 import { RegionList } from '@/lib/sunday-tools/shared/region';
 
@@ -10,10 +11,16 @@ import { RegionList } from '@/lib/sunday-tools/shared/region';
 // Base Types
 // ============================================================
 
+export interface SkillEvalRunner {
+  baseStats: StatLine;
+  strategy: IStrategy;
+  mood: IMood;
+}
+
 export type ApplyParams = {
   regions: RegionList;
   course: CourseData;
-  runner: Runner;
+  runner: SkillEvalRunner;
   extra: RaceParameters;
 };
 
@@ -41,7 +48,7 @@ export type ConditionFilterParams = {
   regions: RegionList;
   arg: number;
   course: CourseData;
-  runner: Runner;
+  runner: SkillEvalRunner;
   extra: RaceParameters;
 };
 

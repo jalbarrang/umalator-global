@@ -16,19 +16,6 @@ export const MoodName = {
 } as const;
 export const moodNames = Object.values(MoodName);
 
-// Position Keep Mode
-export const PosKeepMode = {
-  None: 0,
-  Approximate: 1,
-  Virtual: 2,
-} as const;
-export type IPosKeepMode = (typeof PosKeepMode)[keyof typeof PosKeepMode];
-export const PosKeepModeName = {
-  [PosKeepMode.None]: 'None',
-  [PosKeepMode.Approximate]: 'Approximate',
-  [PosKeepMode.Virtual]: 'Virtual Pacemaker',
-} as const;
-
 export const Aptitude = {
   S: 0,
   A: 1,

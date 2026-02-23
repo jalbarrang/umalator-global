@@ -1,20 +1,14 @@
 import { Region, RegionList } from '../shared/region';
 import { ImmediatePolicy } from '../skills/policies/ActivationSamplePolicy';
 import type { ISkillRarity, ISkillType } from '../skills/definitions';
-import type { Runner } from '../common/runner';
 import type { RaceParameters } from '../common/race';
 import type { CourseData } from '../course/definitions';
-import type { DefaultParser } from '../skills/parser/definitions';
+import type { DefaultParser, SkillEvalRunner } from '../skills/parser/definitions';
 import type { SkillAlternative, SkillEffect, SkillTrigger } from '../skills/skill.types';
-import skillsDataList from '@/modules/data/skill_data.json';
-
-type SkillDataEntry = {
-  alternatives: Array<SkillAlternative>;
-  rarity: number;
-};
+import { skills } from '@/modules/data/skills';
 
 export type BuildSkillDataParams = {
-  runner: Runner;
+  runner: SkillEvalRunner;
   raceParams: RaceParameters;
   course: CourseData;
   wholeCourse: RegionList;
@@ -59,7 +53,7 @@ export function buildSkillData(params: BuildSkillDataParams): Array<SkillTrigger
     throw new Error('bad skill ID ' + skillId);
   }
 
-  const skill = skillsDataList[baseSkillId] as SkillDataEntry | undefined;
+  const skill = skills[baseSkillId];
 
   if (!skill) {
     throw new Error('bad skill ID ' + skillId);

@@ -85,7 +85,7 @@ export class GameHpPolicy implements HpPolicy {
   private extractRunnerState(runner: Runner): RaceStateSlice {
     return {
       phase: runner.phase,
-      positionKeepState: runner.positionKeepState,
+      positionKeepState: PositionKeepState.None,
       isRushed: runner.isRushed,
       isDownhillMode: runner.isDownhillMode,
       inSpotStruggle: runner.inSpotStruggle,

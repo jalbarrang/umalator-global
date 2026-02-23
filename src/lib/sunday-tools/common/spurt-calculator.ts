@@ -5,7 +5,7 @@
  * These utilities can be used standalone or integrated with EnhancedHpPolicy
  */
 
-import type { IGroundCondition } from '@/modules/simulation/lib/course/definitions';
+import type { IGroundCondition } from '@/lib/sunday-tools/course/definitions';
 
 export interface SpurtCandidate {
   transitionPosition: number; // Position where spurt begins

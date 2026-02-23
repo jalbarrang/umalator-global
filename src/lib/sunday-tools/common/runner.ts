@@ -5,12 +5,11 @@
 import { CompensatedAccumulator, Timer } from '../simulator.types';
 import { PositionKeepState, SkillRarity, SkillType } from '../skills/definitions';
 import { Rule30CARng } from '../shared/random';
-import { PosKeepMode, Strategy } from '../runner/definitions';
+import { Strategy } from '../runner/definitions';
 import {
   Acceleration,
   GroundPowerModifier,
   GroundSpeedModifier,
-  PositionKeep,
   Speed,
   StrategyModule,
 } from '../shared/definitions';
@@ -26,7 +25,6 @@ import type { IAptitude, IMood, IStrategy } from '../runner/definitions';
 import type { HpPolicy, RaceStateSlice } from '../health/health-policy';
 import type { PRNG } from '../shared/random';
 import type { Race } from './race';
-import type { IPositionKeepState } from '../skills/definitions';
 import type { CourseData, IGroundCondition, IPhase } from '../course/definitions';
 import type { ActiveSkill, PendingSkill } from '../skills/skill.types';
 import { getUmaDisplayInfo } from '@/modules/runners/utils';
@@ -243,17 +241,6 @@ export class Runner {
   public duelingStartPosition!: number;
   public duelingEndPosition!: number;
 
-  // Position Keep
-  public positionKeepState!: IPositionKeepState;
-  public posKeepSpeedCoef!: number;
-  public posKeepNextTimer!: Timer;
-  public posKeepExitDistance!: number;
-  public posKeepExitPosition!: number;
-  public posKeepMinThreshold!: number;
-  public posKeepMaxThreshold!: number;
-  public posKeepEnd!: number;
-  public positionKeepActivations!: Array<[number, number, IPositionKeepState]>;
-
   // Hills
   public hills!: Array<{ start: number; end: number; slope: number }>;
   public currentHillIndex!: number;
@@ -323,7 +310,6 @@ export class Runner {
     this.initializeRng(runnerRng);
     this.initializePhaseTracking();
     this.initializeLastSpurt();
-    this.initializePositionKeep();
     this.initializeLaneState(); // requires gate assigned by Race before onPrepare
     this.initializeMovementState(); // seeds startDelay/startDelayAccumulator
     this.initializeSkillTracking();
@@ -369,8 +355,6 @@ export class Runner {
     this.updateRushed();
     this.updateDownhillMode();
     this.processSkillActivations();
-    this.applyPositionKeepStates();
-    this.updatePositionKeepCoefficient();
     this.updateDueling();
     this.updateSpotStruggle();
     this.updateLastSpurtState();
@@ -742,42 +726,6 @@ export class Runner {
     selectedRunner.firstPositionInLateRace = true;
   }
 
-  speedUpOvertakeWitCheck() {
-    if (this.isRushed) {
-      return true;
-    }
-
-    return this.posKeepRng.random() < 0.2 * Math.log10(0.1 * this.adjustedStats.wit);
-  }
-
-  paceUpWitCheck() {
-    if (this.isRushed) {
-      return true;
-    }
-
-    return this.posKeepRng.random() < 0.15 * Math.log10(0.1 * this.adjustedStats.wit);
-  }
-
-  updatePositionKeepCoefficient() {
-    switch (this.positionKeepState) {
-      case PositionKeepState.SpeedUp:
-        this.posKeepSpeedCoef = 1.04;
-        break;
-      case PositionKeepState.Overtake:
-        this.posKeepSpeedCoef = 1.05;
-        break;
-      case PositionKeepState.PaceUp:
-        this.posKeepSpeedCoef = 1.04;
-        break;
-      case PositionKeepState.PaceDown:
-        this.posKeepSpeedCoef = 0.915; // 0.945x in mid-race post 1st-anniversary
-        break;
-      default:
-        this.posKeepSpeedCoef = 1.0;
-        break;
-    }
-  }
-
   updateDueling() {
     if (!this.race.settings.dueling) {
       return;
@@ -911,7 +859,7 @@ export class Runner {
 
       const raceState: RaceStateSlice = {
         phase: this.phase,
-        positionKeepState: this.positionKeepState,
+        positionKeepState: PositionKeepState.None,
         pos: this.position,
         currentSpeed: this.currentSpeed,
         inSpotStruggle: this.inSpotStruggle,
@@ -958,7 +906,7 @@ export class Runner {
       const phase = this.phase as 0 | 1 | 2;
       const baseTargetSpeed = this.baseTargetSpeedPerPhase[phase];
 
-      this.targetSpeed = baseTargetSpeed * this.posKeepSpeedCoef;
+      this.targetSpeed = baseTargetSpeed;
       this.targetSpeed += this.sectionModifiers[Math.floor(this.position / this.sectionLength)];
     }
 
@@ -1023,8 +971,6 @@ export class Runner {
       this.targetLane = Math.max(this.targetLane, course.horseLane, this.extraMoveLane);
     } else if (!this.healthPolicy.hasRemainingHealth()) {
       this.targetLane = currentLane;
-    } else if (this.positionKeepState === PositionKeepState.PaceDown) {
-      this.targetLane = 0.18;
     } else if (this.extraMoveLane > currentLane) {
       this.targetLane = this.extraMoveLane;
     } else if (this.phase <= 1 && !sideBlocked) {
@@ -1103,187 +1049,6 @@ export class Runner {
     });
 
     return runner;
-  }
-
-  applyPositionKeepStates() {
-    if (
-      this.position >= this.posKeepEnd ||
-      this.race.settings.positionKeepMode === PosKeepMode.None
-    ) {
-      // State change triggered by poskeep end
-      if (
-        this.positionKeepState !== PositionKeepState.None &&
-        this.positionKeepActivations.length > 0
-      ) {
-        this.positionKeepActivations[this.positionKeepActivations.length - 1][1] = this.position;
-      }
-
-      this.positionKeepState = PositionKeepState.None;
-      return;
-    }
-
-    if (!this.race.pacer) {
-      return;
-    }
-
-    const pacer = this.race.pacer;
-    const behind = pacer.position - this.position;
-    const myStrategy = this.positionKeepStrategy;
-
-    switch (this.positionKeepState) {
-      case PositionKeepState.None:
-        if (this.posKeepNextTimer.t < 0) {
-          return;
-        }
-
-        if (StrategyHelpers.strategyMatches(myStrategy, Strategy.FrontRunner)) {
-          // Speed Up
-          if (pacer === this) {
-            const umas = this.getUmaByDistanceDescending();
-            const secondPlaceUma = umas[1];
-            const distanceAhead = pacer.position - secondPlaceUma.position;
-            const threshold = myStrategy === Strategy.Runaway ? 17.5 : 4.5;
-
-            if (this.posKeepNextTimer.t < 0) {
-              return;
-            }
-
-            if (distanceAhead < threshold && this.speedUpOvertakeWitCheck()) {
-              this.positionKeepActivations.push([this.position, 0, PositionKeepState.SpeedUp]);
-              this.positionKeepState = PositionKeepState.SpeedUp;
-              this.posKeepExitPosition =
-                this.position +
-                Math.floor(this.sectionLength) *
-                  (this.positionKeepStrategy === Strategy.Runaway ? 3 : 1);
-            }
-          }
-          // Overtake
-          else if (this.speedUpOvertakeWitCheck()) {
-            this.positionKeepState = PositionKeepState.Overtake;
-            this.positionKeepActivations.push([this.position, 0, PositionKeepState.Overtake]);
-          }
-        } else {
-          // Pace Up
-          if (behind > this.posKeepMaxThreshold) {
-            if (this.paceUpWitCheck()) {
-              this.positionKeepState = PositionKeepState.PaceUp;
-              this.positionKeepActivations.push([this.position, 0, PositionKeepState.PaceUp]);
-              this.posKeepExitDistance =
-                this.posKeepRng.random() * (this.posKeepMaxThreshold - this.posKeepMinThreshold) +
-                this.posKeepMinThreshold;
-            }
-          }
-          // Pace Down
-          else if (behind < this.posKeepMinThreshold) {
-            if (
-              this.targetSpeedSkillsActive.length == 0 &&
-              this.currentSpeedSkillsActive.length == 0
-            ) {
-              this.positionKeepState = PositionKeepState.PaceDown;
-              this.positionKeepActivations.push([this.position, 0, PositionKeepState.PaceDown]);
-              this.posKeepExitDistance =
-                this.posKeepRng.random() * (this.posKeepMaxThreshold - this.posKeepMinThreshold) +
-                this.posKeepMinThreshold;
-            }
-          }
-        }
-
-        if (this.positionKeepState == PositionKeepState.None) {
-          this.posKeepNextTimer.t = -2;
-        } else {
-          this.posKeepExitPosition =
-            this.position +
-            Math.floor(this.sectionLength) *
-              (this.positionKeepStrategy === Strategy.Runaway ? 3 : 1);
-        }
-
-        break;
-      case PositionKeepState.SpeedUp:
-        if (this.position >= this.posKeepExitPosition) {
-          this.positionKeepState = PositionKeepState.None;
-          this.positionKeepActivations[this.positionKeepActivations.length - 1][1] = this.position;
-          this.posKeepNextTimer.t = -3;
-        } else if (pacer == this) {
-          const umas = this.getUmaByDistanceDescending();
-          const secondPlaceUma = umas[1];
-          const distanceAhead = pacer.position - secondPlaceUma.position;
-          const threshold = myStrategy === Strategy.Runaway ? 17.5 : 4.5;
-
-          if (distanceAhead >= threshold) {
-            this.positionKeepState = PositionKeepState.None;
-            this.positionKeepActivations[this.positionKeepActivations.length - 1][1] =
-              this.position;
-            this.posKeepNextTimer.t = -3;
-          }
-        }
-
-        break;
-      case PositionKeepState.Overtake:
-        if (this.position >= this.posKeepExitPosition) {
-          this.positionKeepState = PositionKeepState.None;
-          this.positionKeepActivations[this.positionKeepActivations.length - 1][1] = this.position;
-          this.posKeepNextTimer.t = -3;
-        } else if (pacer == this) {
-          const umas = this.getUmaByDistanceDescending();
-          const secondPlaceUma = umas[1];
-          const distanceAhead = this.position - secondPlaceUma.position;
-
-          const threshold = myStrategy === Strategy.Runaway ? 27.5 : 10;
-
-          if (distanceAhead >= threshold) {
-            this.positionKeepState = PositionKeepState.None;
-            this.positionKeepActivations[this.positionKeepActivations.length - 1][1] =
-              this.position;
-            this.posKeepNextTimer.t = -3;
-          }
-        }
-
-        break;
-      case PositionKeepState.PaceUp:
-        if (this.position >= this.posKeepExitPosition) {
-          this.positionKeepState = PositionKeepState.None;
-          this.positionKeepActivations[this.positionKeepActivations.length - 1][1] = this.position;
-          this.posKeepNextTimer.t = -3;
-        } else {
-          if (behind < this.posKeepExitDistance) {
-            this.positionKeepState = PositionKeepState.None;
-            this.positionKeepActivations[this.positionKeepActivations.length - 1][1] =
-              this.position;
-            this.posKeepNextTimer.t = -3;
-          }
-        }
-
-        break;
-      case PositionKeepState.PaceDown:
-        if (this.position >= this.posKeepExitPosition) {
-          this.positionKeepState = PositionKeepState.None;
-          this.positionKeepActivations[this.positionKeepActivations.length - 1][1] = this.position;
-          this.posKeepNextTimer.t = -3;
-        } else {
-          if (
-            behind > this.posKeepExitDistance ||
-            this.targetSpeedSkillsActive.length > 0 ||
-            this.currentSpeedSkillsActive.length > 0
-          ) {
-            this.positionKeepState = PositionKeepState.None;
-            this.positionKeepActivations[this.positionKeepActivations.length - 1][1] =
-              this.position;
-            this.posKeepNextTimer.t = -3;
-          }
-        }
-
-        break;
-      default:
-        break;
-    }
-  }
-
-  /**
-   * Returns the runners sorted by distance descending.
-   * ! NOTE: this operation is O(n) and should be avoided if possible.
-   */
-  getUmaByDistanceDescending() {
-    return Array.from(this.race.runners.values()).sort((a, b) => b.position - a.position);
   }
 
   /**
@@ -1468,18 +1233,6 @@ export class Runner {
 
     // Random lot for various skill conditions
     this.randomLot = this.rng.uniform(100);
-  }
-
-  private initializePositionKeep() {
-    this.positionKeepState = PositionKeepState.None;
-    this.posKeepNextTimer = this.createTimer();
-    this.posKeepSpeedCoef = 1.0;
-    this.posKeepExitDistance = 0.0;
-    this.posKeepExitPosition = 0.0;
-    this.posKeepMinThreshold = PositionKeep.minThreshold(this.strategy, this.race.course.distance);
-    this.posKeepMaxThreshold = PositionKeep.maxThreshold(this.strategy, this.race.course.distance);
-    this.positionKeepActivations = [];
-    this.posKeepEnd = this.calculatePosKeepEnd();
   }
 
   /**
@@ -1872,12 +1625,6 @@ export class Runner {
    */
   private activateGateSkills(): void {
     this.processSkillActivations();
-  }
-
-  public calculatePosKeepEnd(): number {
-    const multiplier = this.race.settings.mode === 'compare' ? 10.0 : 3.0;
-
-    return this.sectionLength * multiplier;
   }
 
   private calculatePhaseBaseAccel(accelModifier: number, phase: number): number {
