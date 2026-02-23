@@ -2,7 +2,7 @@ import dayjs from 'dayjs';
 import { BookmarkPlus, CalendarIcon } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import type { IEventType } from '@/modules/simulation/lib/course/definitions';
+import type { IEventType } from '@/lib/sunday-tools/course/definitions';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -27,7 +27,7 @@ import {
 } from '@/components/ui/select';
 import { addPreset, updatePreset, usePresetStore } from '@/store/race/preset.store';
 import { setSelectedPresetId, useSettingsStore } from '@/store/settings.store';
-import { EventType, EventTypeNames } from '@/modules/simulation/lib/course/definitions';
+import { EventType, EventTypeNames } from '@/lib/sunday-tools/course/definitions';
 
 export const SavePresetModal = () => {
   const [open, setOpen] = useState(false);

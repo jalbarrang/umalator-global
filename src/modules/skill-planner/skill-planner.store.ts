@@ -12,7 +12,7 @@ import {
   getWhiteVersion,
   isStackableSkill,
 } from '@/modules/skills/skill-relationships';
-import { getSkillMetaById, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
+import { getSkillById, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import GametoraSkills from '@/modules/data/gametora/skills.json';
 
 interface SkillPlannerState {
@@ -90,7 +90,7 @@ type CreateCandidateParams = {
 export const createCandidate = (params: CreateCandidateParams): CandidateSkill => {
   const { skillId, hintLevel = 0 } = params;
 
-  const skillMeta = getSkillMetaById(skillId);
+  const skill = getSkillById(skillId);
 
   // Get skill data for rarity check
   const skills = GametoraSkills as Array<ISkill>;
@@ -127,7 +127,7 @@ export const createCandidate = (params: CreateCandidateParams): CandidateSkill =
 
   return {
     skillId,
-    cost: skillMeta.baseCost,
+    cost: skill.baseCost,
     hintLevel: hintLevel as CandidateSkill['hintLevel'],
 
     // Stackable support

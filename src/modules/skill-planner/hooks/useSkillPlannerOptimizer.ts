@@ -20,7 +20,7 @@ import {
   useSkillPlannerStore,
 } from '../skill-planner.store';
 import type { OptimizationProgress, OptimizationResult } from '../types';
-import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
+import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 import { racedefToParams } from '@/utils/races';
 import { useSettingsStore } from '@/store/settings.store';
 import { defaultSimulationOptions } from '@/components/bassin-chart/utils';

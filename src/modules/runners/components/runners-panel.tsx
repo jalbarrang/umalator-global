@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import { Link2, Link2Off, Save } from 'lucide-react';
 import { RunnerCard } from './runner-card/runner-card';
 import { SaveRunnerModal } from './save-runner-modal';
-import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
 import {
   copyToRunner,
   linkRunner,
@@ -20,13 +19,13 @@ import { Button } from '@/components/ui/button';
 import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/ui/panel';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { PosKeepMode } from '@/modules/simulation/lib/runner/definitions';
+import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 import { useRunnerLibraryStore } from '@/store/runner-library.store';
 import './style.css';
 
 export const RunnersPanel = () => {
   const { runnerId, runner, updateRunner, resetRunner } = useRunner();
-  const { posKeepMode, courseId } = useSettingsStore();
+  const { courseId } = useSettingsStore();
   const {
     updateRunner: updateLibraryRunner,
     getRunner: getLibraryRunner,
@@ -35,7 +34,6 @@ export const RunnersPanel = () => {
 
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
 
-  const showPacerTab = posKeepMode === PosKeepMode.Virtual;
   const isLinked = !!runner.linkedRunnerId;
   const linkedRunner = isLinked ? getLibraryRunner(runner.linkedRunnerId!) : null;
 
@@ -108,20 +106,6 @@ export const RunnersPanel = () => {
             >
               Uma 2
             </button>
-            {showPacerTab && (
-              <button
-                type="button"
-                className={cn(
-                  'px-3 py-1.5 text-sm font-medium transition-colors',
-                  runnerId === 'pacer'
-                    ? 'bg-[#22c55e] text-white'
-                    : 'bg-background text-muted-foreground hover:bg-muted',
-                )}
-                onClick={() => showRunner('pacer')}
-              >
-                Pacer
-              </button>
-            )}
           </div>
 
           <Button
@@ -136,7 +120,7 @@ export const RunnersPanel = () => {
 
       <PanelContent className="p-0">
         {/* Library Link Indicator */}
-        {isLinked && linkedRunner && runnerId !== 'pacer' && (
+        {isLinked && linkedRunner && (
           <div className="flex items-center justify-between gap-2 p-2 bg-muted/50 border-b">
             <div className="flex items-center gap-2">
               <Badge variant="secondary" className="gap-1">
@@ -171,7 +155,7 @@ export const RunnersPanel = () => {
         )}
 
         {/* Save to Veterans Button */}
-        {!isLinked && runnerId !== 'pacer' && (
+        {!isLinked && (
           <div className="flex items-center justify-end gap-2 p-2 bg-muted/50 border-b">
             <Button size="sm" variant="secondary" onClick={() => setSaveModalOpen(true)}>
               <Save className="w-4 h-4 mr-2" />

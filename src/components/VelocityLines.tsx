@@ -7,7 +7,6 @@ import { useRaceTrackUI } from '@/store/settings.store';
 const colors = ['#2a77c5', '#c52a2a'];
 const hpColors = ['#688aab', '#ab6868'];
 const laneColors = ['#87ceeb', '#ff0000'];
-const pacemakerColors = ['#22c55e', '#a855f7', '#ec4899'];
 
 type DataPathProps = {
   positions: Array<number>;
@@ -109,8 +108,6 @@ type VelocityLinesProps = {
   xOffset: number;
   yOffset?: number;
   horseLane: number;
-  showVirtualPacemaker: boolean;
-  selectedPacemakers: Array<boolean>;
 };
 
 const BASE_WIDTH = 960;
@@ -271,33 +268,6 @@ export const VelocityLines = memo(function VelocityLines(props: VelocityLinesPro
             );
           })}
 
-        {/* Virtual pacemaker lines */}
-        {props.showVirtualPacemaker && data.pacerVelocity && data.pacerPosition && (
-          <>
-            {[0, 1, 2].map((pacemakerIndex) => {
-              if (!props.selectedPacemakers?.[pacemakerIndex]) return null;
-              const pacerV = data.pacerVelocity?.[pacemakerIndex];
-              const pacerP = data.pacerPosition?.[pacemakerIndex];
-              if (!pacerV || !pacerP) return null;
-
-              const validIndices = pacerP
-                .map((pos, j) => (pos !== undefined && pacerV[j] !== undefined ? j : -1))
-                .filter((j) => j >= 0);
-              if (validIndices.length === 0) return null;
-
-              return (
-                <DataPath
-                  key={`vp-${pacemakerIndex}`}
-                  positions={validIndices.map((j) => pacerP[j])}
-                  values={validIndices.map((j) => pacerV[j])}
-                  xScale={xScale}
-                  yScale={yScale}
-                  color={pacemakerColors[pacemakerIndex]}
-                />
-              );
-            })}
-          </>
-        )}
       </g>
 
       {/* Axes */}

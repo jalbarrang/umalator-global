@@ -2,15 +2,12 @@ import { useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
 import type { SimulationRun, SkillEffectLog } from '@/modules/simulation/compare.types';
 import type { PosKeepLabel } from '@/utils/races';
-import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
-import { PosKeepMode } from '@/modules/simulation/lib/runner/definitions';
-import { SkillType } from '@/modules/simulation/lib/skills/definitions';
 import { RegionDisplayType } from '@/modules/racetrack/types';
 import { getSkillNameById } from '@/modules/skills/utils';
 import { useSettingsStore } from '@/store/settings.store';
-import { useSelectedPacemakerIndices } from '@/store/settings/actions';
-import { useUIStore } from '@/store/ui.store';
-import { colors, pacemakerColors, posKeepColors, rushedColors } from '@/utils/colors';
+import { colors, posKeepColors, rushedColors } from '@/utils/colors';
+import { SkillType } from '@/lib/sunday-tools/skills/definitions';
+import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 
 export type RegionData = {
   type: RegionDisplayType;
@@ -28,21 +25,6 @@ export type RegionData = {
   height?: number;
   skillId?: string;
   umaIndex?: number;
-};
-
-const getStateName = (state: number) => {
-  switch (state) {
-    case 1:
-      return 'PU';
-    case 2:
-      return 'PDM';
-    case 3:
-      return 'SU';
-    case 4:
-      return 'O';
-    default:
-      return 'Unknown';
-  }
 };
 
 const getSkillActivation = (
@@ -73,20 +55,11 @@ type UseVisualizationDataProps = {
 export const useVisualizationData = (props: UseVisualizationDataProps) => {
   const { chartData } = props;
 
-  const { posKeepMode, courseId } = useSettingsStore(
+  const { courseId } = useSettingsStore(
     useShallow((state) => ({
-      posKeepMode: state.posKeepMode,
       courseId: state.courseId,
     })),
   );
-
-  const { showVirtualPacemakerOnGraph } = useUIStore(
-    useShallow((state) => ({
-      showVirtualPacemakerOnGraph: state.showVirtualPacemakerOnGraph,
-    })),
-  );
-
-  const selectedPacemakerIndices = useSelectedPacemakerIndices();
 
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
 
@@ -121,11 +94,11 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
     if (!chartData) return [];
     if (!chartData.rushed) return [];
 
-    const rushedIndicators = [];
+    const results = [];
 
     for (const [umaIndex, rushArray] of chartData.rushed.entries()) {
       for (const rush of rushArray) {
-        rushedIndicators.push({
+        results.push({
           type: RegionDisplayType.Textbox,
           color: rushedColors[umaIndex],
           text: 'Rushed',
@@ -134,77 +107,18 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
       }
     }
 
-    return rushedIndicators;
+    return results;
   }, [chartData]);
 
   const posKeepData: Array<PosKeepLabel> = useMemo(() => {
-    if (!chartData) return [];
-    if (!chartData.positionKeepModePositions) return [];
-
-    const posKeepData = [];
-
-    for (const [umaIndex, posKeepArray] of chartData.positionKeepModePositions.entries()) {
-      for (const posKeep of posKeepArray) {
-        const stateName = getStateName(posKeep[2]);
-
-        posKeepData.push({
-          umaIndex: umaIndex,
-          text: stateName,
-          color: posKeepColors[umaIndex],
-          start: posKeep[0],
-          end: posKeep[1],
-          duration: posKeep[1] - posKeep[0],
-        });
-      }
-    }
-
-    return posKeepData;
-  }, [chartData]);
-
-  const virtualPacemakerPosKeepData: Array<PosKeepLabel> = useMemo(() => {
-    if (!chartData) return [];
-
-    if (
-      !showVirtualPacemakerOnGraph ||
-      posKeepMode !== PosKeepMode.Virtual ||
-      chartData.pacerPositionKeep == null
-    ) {
-      return [];
-    }
-
-    const pacemakerPosKeepData = [];
-
-    for (let pacemakerIndex = 0; pacemakerIndex < 3; pacemakerIndex++) {
-      if (
-        selectedPacemakerIndices.includes(pacemakerIndex) &&
-        chartData.pacerPositionKeep &&
-        chartData.pacerPositionKeep[pacemakerIndex]
-      ) {
-        const pacerPosKeepArray = chartData.pacerPositionKeep[pacemakerIndex];
-
-        for (const posKeep of pacerPosKeepArray) {
-          const stateName = getStateName(posKeep[2]);
-
-          pacemakerPosKeepData.push({
-            umaIndex: 2 + pacemakerIndex,
-            text: stateName,
-            color: pacemakerColors[pacemakerIndex],
-            start: posKeep[0],
-            end: posKeep[1],
-            duration: posKeep[1] - posKeep[0],
-          });
-        }
-      }
-    }
-
-    return pacemakerPosKeepData;
-  }, [chartData, showVirtualPacemakerOnGraph, posKeepMode, selectedPacemakerIndices]);
+    return [];
+  }, []);
 
   const competeFightData = useMemo(() => {
     if (!chartData) return [];
     if (!chartData.duelingRegions) return [];
 
-    const competeFightData = [];
+    const results = [];
 
     for (const [umaIndex, competeFightArray] of chartData.duelingRegions.entries()) {
       if (competeFightArray.length === 0) continue;
@@ -212,7 +126,7 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
       const start = competeFightArray[0];
       const end = competeFightArray[1];
 
-      competeFightData.push({
+      results.push({
         umaIndex: umaIndex,
         text: 'Duel',
         color: posKeepColors[umaIndex],
@@ -222,14 +136,14 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
       });
     }
 
-    return competeFightData;
+    return results;
   }, [chartData]);
 
   const leadCompetitionData = useMemo(() => {
     if (!chartData) return [];
     if (!chartData.spotStruggleRegions) return [];
 
-    const leadCompetitionData = [];
+    const results = [];
 
     for (const [umaIndex, leadCompetitionArray] of chartData.spotStruggleRegions.entries()) {
       if (!leadCompetitionArray || leadCompetitionArray.length === 0) {
@@ -239,7 +153,7 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
       const start = leadCompetitionArray[0];
       const end = leadCompetitionArray[1];
 
-      leadCompetitionData.push({
+      results.push({
         umaIndex: umaIndex,
         text: 'SS',
         color: posKeepColors[umaIndex],
@@ -249,64 +163,16 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
       });
     }
 
-    return leadCompetitionData;
+    return results;
   }, [chartData]);
-
-  const virtualPacemakerLeadCompetitionData = useMemo(() => {
-    if (!chartData) return [];
-    if (
-      !showVirtualPacemakerOnGraph ||
-      posKeepMode !== PosKeepMode.Virtual ||
-      chartData.pacerSpotStruggle == null
-    )
-      return [];
-
-    const pacemakerLeadCompetitionData: Array<PosKeepLabel> = [];
-
-    for (let pacemakerIndex = 0; pacemakerIndex < 3; pacemakerIndex++) {
-      if (
-        selectedPacemakerIndices.includes(pacemakerIndex) &&
-        chartData.pacerSpotStruggle &&
-        chartData.pacerSpotStruggle[pacemakerIndex] &&
-        chartData.pacerSpotStruggle[pacemakerIndex].length > 0
-      ) {
-        const leadCompetitionArray = chartData.pacerSpotStruggle[pacemakerIndex];
-
-        const start = leadCompetitionArray[0] ?? 0;
-        const end = leadCompetitionArray[1] ?? 0;
-        const color = pacemakerColors[pacemakerIndex as keyof typeof pacemakerColors] as {
-          stroke: string;
-          fill: string;
-        };
-
-        pacemakerLeadCompetitionData.push({
-          umaIndex: 2 + pacemakerIndex,
-          text: 'SS',
-          color: color,
-          start: start,
-          end: end,
-          duration: end - start,
-        });
-      }
-    }
-    return pacemakerLeadCompetitionData;
-  }, [chartData, showVirtualPacemakerOnGraph, posKeepMode, selectedPacemakerIndices]);
 
   const labels = useMemo(() => {
     return [
       ...posKeepData,
-      ...virtualPacemakerPosKeepData,
       ...competeFightData,
       ...leadCompetitionData,
-      ...virtualPacemakerLeadCompetitionData,
     ];
-  }, [
-    posKeepData,
-    virtualPacemakerPosKeepData,
-    competeFightData,
-    leadCompetitionData,
-    virtualPacemakerLeadCompetitionData,
-  ]);
+  }, [posKeepData, competeFightData, leadCompetitionData]);
 
   const tempLabels = useMemo(
     () =>
@@ -322,7 +188,7 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
   );
 
   const posKeepLabels: Array<PosKeepLabel> = useMemo(() => {
-    const posKeepLabels = [];
+    const results = [];
 
     for (let i = 0; i < tempLabels.length; i++) {
       const currentLabel = tempLabels[i];
@@ -345,10 +211,10 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
       }
 
       const updatedLabel = { ...currentLabel, yOffset: maxYOffset };
-      posKeepLabels.push(updatedLabel);
+      results.push(updatedLabel);
     }
 
-    return posKeepLabels;
+    return results;
   }, [tempLabels]);
 
   return {

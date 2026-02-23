@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  getSkillMetaById,
+  getSkillById,
   getSkillNameById,
   getUniqueSkillForByUmaId,
 } from '@/modules/skills/utils';
@@ -128,8 +128,8 @@ function CandidateSkillItem(props: CandidateSkillItemProps) {
   }, [candidate.hintLevel]);
 
   const skillIconId = useMemo(() => {
-    const skillMeta = getSkillMetaById(candidate.skillId);
-    return skillMeta.iconId;
+    const skill = getSkillById(candidate.skillId);
+    return skill.iconId;
   }, [candidate.skillId]);
 
   const effectiveCost = useMemo(() => {

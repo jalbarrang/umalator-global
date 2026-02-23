@@ -1,4 +1,4 @@
-import type { Courses } from '@/modules/simulation/lib/course/definitions';
+import type { Courses } from '@/lib/sunday-tools/course/definitions';
 import courses from '@/modules/data/course_data.json';
 
 export type CourseByTrack = Record<number, Array<number>>;

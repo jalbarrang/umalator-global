@@ -106,10 +106,6 @@ export interface SimulationRun {
    */
   rushed: Array<Array<RegionActivation>>;
   /**
-   * Position Keep Mode positions for each uma
-   */
-  positionKeepModePositions: Array<Array<Array<number>>>;
-  /**
    * Dueling Regions for each uma
    */
   duelingRegions: Array<RegionActivation | []>;
@@ -117,26 +113,6 @@ export interface SimulationRun {
    * Spot Struggle Regions for each uma
    */
   spotStruggleRegions: Array<RegionActivation | []>;
-  /**
-   * Pacer Velocity (in meters per second) for each time step
-   */
-  pacerVelocity: Array<Array<number>>;
-  /**
-   * Pacer Position (in meters) for each time step
-   */
-  pacerPosition: Array<Array<number>>;
-  /**
-   * Pacer's delta time (in seconds) for each time step
-   */
-  pacerTime: Array<Array<number>>;
-  /**
-   * Pacer Position Keep Mode positions for each time step
-   */
-  pacerPositionKeep: Array<Array<Array<number>>>;
-  /**
-   * Pacer Spot Struggle Regions for each time step
-   */
-  pacerSpotStruggle: Array<RegionActivation | []>;
 }
 
 export interface SkillSimulationRun {
@@ -196,14 +172,8 @@ const defaultSimulationRun: SimulationRun = {
   skillActivations: [{}, {}],
   startDelay: [0, 0],
   rushed: [[], []],
-  positionKeepModePositions: [[], []],
   duelingRegions: [[], []],
   spotStruggleRegions: [[], []],
-  pacerVelocity: [[], [], []],
-  pacerPosition: [[], [], []],
-  pacerTime: [[], [], []],
-  pacerPositionKeep: [[], [], []],
-  pacerSpotStruggle: [[], [], []],
 };
 
 export const initializeSimulationRun = (

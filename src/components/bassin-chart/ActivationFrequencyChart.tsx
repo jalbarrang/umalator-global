@@ -11,7 +11,7 @@ import {
   YAxis,
 } from 'recharts';
 import type { SkillEffectLog, SkillSimulationData } from '@/modules/simulation/compare.types';
-import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
+import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 
 interface ActivationFrequencyChartProps {
   skillId: string;

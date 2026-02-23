@@ -3,7 +3,6 @@ import { useMemo } from 'react';
 import { getUmaDisplayInfo, getUmaImageUrl } from '../utils';
 import { StatImage } from './StatInput';
 import type { SavedRunner } from '@/store/runner-library.store';
-import { strategyNames } from '@/modules/simulation/lib/runner/definitions';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -12,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { strategyNames } from '@/lib/sunday-tools/runner/definitions';
 
 type SavedRunnerCardProps = {
   runner: SavedRunner;

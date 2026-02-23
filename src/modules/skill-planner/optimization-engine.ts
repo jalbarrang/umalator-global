@@ -14,8 +14,8 @@ import type {
   OptimizationResult,
 } from './types';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
-import type { CourseData } from '@/modules/simulation/lib/course/definitions';
-import type { RaceParameters } from '@/modules/simulation/lib/definitions';
+import type { CourseData } from '@/lib/sunday-tools/course/definitions';
+import type { RaceParameters } from '@/lib/sunday-tools/common/race';
 import type { SimulationOptions } from '@/modules/simulation/types';
 
 export interface OptimizationParams {

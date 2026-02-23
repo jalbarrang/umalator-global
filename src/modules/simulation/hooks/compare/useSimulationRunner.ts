@@ -2,16 +2,15 @@ import { useEffect, useMemo, useRef } from 'react';
 import CompareWorker from '@workers/simulator.worker.ts?worker';
 import type { CompareParams } from '../../types';
 import type { CompareResult } from '@/modules/simulation/compare.types';
-import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
 import {
   setIsSimulationRunning,
   setResults,
   setSimulationProgress,
 } from '@/modules/simulation/stores/compare.store';
-import { PosKeepMode } from '@/modules/simulation/lib/runner/definitions';
 import { racedefToParams } from '@/utils/races';
 import { useSettingsStore, useWitVariance } from '@/store/settings.store';
 import { useRunnersStore } from '@/store/runners.store';
+import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 
 const createCompareWorker = () => new CompareWorker();
 
@@ -30,9 +29,9 @@ type WorkerMessage<T> =
     };
 
 export function useSimulationRunner() {
-  const { uma1, uma2, pacer } = useRunnersStore();
+  const { uma1, uma2 } = useRunnersStore();
 
-  const { racedef, nsamples, posKeepMode, pacemakerCount, courseId } = useSettingsStore();
+  const { racedef, nsamples, courseId } = useSettingsStore();
 
   const {
     simWitVariance,
@@ -101,10 +100,8 @@ export function useSimulationRunner() {
       racedef: racedefToParams(racedef),
       uma1: uma1,
       uma2: uma2,
-      pacer: pacer,
       options: {
         seed: simulationSeed,
-        posKeepMode,
         allowRushedUma1: simWitVariance ? allowRushedUma1 : false,
         allowRushedUma2: simWitVariance ? allowRushedUma2 : false,
         allowDownhillUma1: simWitVariance ? allowDownhillUma1 : false,
@@ -115,7 +112,6 @@ export function useSimulationRunner() {
         accuracyMode: false,
         skillCheckChanceUma1: simWitVariance ? allowSkillCheckChanceUma1 : false,
         skillCheckChanceUma2: simWitVariance ? allowSkillCheckChanceUma2 : false,
-        pacemakerCount: posKeepMode === PosKeepMode.Virtual ? pacemakerCount : 1,
       },
     };
 
@@ -138,10 +134,8 @@ export function useSimulationRunner() {
       racedef: racedefToParams(racedef),
       uma1: uma1,
       uma2: uma2,
-      pacer: pacer,
       options: {
         seed: simulationSeed,
-        posKeepMode,
         allowRushedUma1: simWitVariance ? allowRushedUma1 : false,
         allowRushedUma2: simWitVariance ? allowRushedUma2 : false,
         allowDownhillUma1: simWitVariance ? allowDownhillUma1 : false,
@@ -152,7 +146,6 @@ export function useSimulationRunner() {
         accuracyMode: false,
         skillCheckChanceUma1: simWitVariance ? allowSkillCheckChanceUma1 : false,
         skillCheckChanceUma2: simWitVariance ? allowSkillCheckChanceUma2 : false,
-        pacemakerCount: posKeepMode === PosKeepMode.Virtual ? pacemakerCount : 1,
       },
     };
 

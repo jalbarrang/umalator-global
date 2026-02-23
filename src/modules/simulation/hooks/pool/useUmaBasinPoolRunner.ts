@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef } from 'react';
 import UmaBasinPoolWorker from '@workers/pool/uma-basin/uma-basin.pool.worker.ts?worker';
 import type { SkillComparisonResponse } from '@/modules/simulation/types';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
-import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
 import {
   appendResultsToTable,
   resetTable,
@@ -17,10 +16,11 @@ import {
   getNullSkillComparisonRow,
 } from '@/components/bassin-chart/utils';
 import { uniqueSkillIds } from '@/modules/skills/utils';
-import { useRunner, useRunnersStore } from '@/store/runners.store';
+import { useRunner } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
 import { racedefToParams } from '@/utils/races';
 import { PoolManager } from '@/workers/pool/pool-manager';
+import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 
 const createUmaBasinPoolWorker = (options: { name: string }) => new UmaBasinPoolWorker(options);
 
@@ -31,7 +31,6 @@ function removeUniqueSkillsFromRunner(uma: RunnerState): RunnerState {
 }
 
 export function useUmaBasinPoolRunner() {
-  const { pacer } = useRunnersStore();
   const { runner } = useRunner();
   const { racedef, courseId } = useSettingsStore();
 
@@ -82,7 +81,6 @@ export function useUmaBasinPoolRunner() {
         course,
         racedef: params,
         uma,
-        pacer: pacer,
         options: {
           ...defaultSimulationOptions,
           seed: simulationSeed,

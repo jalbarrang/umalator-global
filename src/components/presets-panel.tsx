@@ -12,7 +12,6 @@ import {
   useSettingsStore,
 } from '@/store/settings.store';
 import { createRaceConditions } from '@/utils/races';
-import { EventType } from '@/modules/simulation/lib/course/definitions';
 import { cn } from '@/lib/utils';
 import {
   AlertDialog,
@@ -24,6 +23,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { EventType } from '@/lib/sunday-tools/course/definitions';
 
 export const PresetsPanel = () => {
   const { presets } = usePresetStore();

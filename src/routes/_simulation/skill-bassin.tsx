@@ -11,7 +11,6 @@ import {
 import { BasinnChart } from '@/components/bassin-chart/BasinnChart';
 import { LoadingOverlay } from '@/components/loading-overlay';
 import { Button } from '@/components/ui/button';
-import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
 import { setSkillToRunner, useRunner } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
 import { RaceSettingsPanel } from '@/modules/skill-planner/components/RaceSettingsPanel';
@@ -21,6 +20,7 @@ import { parseSeed } from '@/utils/crypto';
 import { useSkillSingleRunner } from '@/modules/simulation/hooks/skill-bassin/useSkillSingleRunner';
 import { HelpButton } from '@/components/ui/help-button';
 import { skillBassinSteps } from '@/modules/tutorial/steps/skill-bassin-steps';
+import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 
 export function SkillBassin() {
   const { selectedSkills, setSelectedSkills } = useChartData();

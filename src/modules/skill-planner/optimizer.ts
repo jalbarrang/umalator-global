@@ -15,8 +15,8 @@
 
 import type { RunnerState } from '../runners/components/runner-card/types';
 import type { CandidateSkill, CombinationResult } from './types';
-import type { CourseData } from '@/modules/simulation/lib/course/definitions';
-import type { RaceParameters } from '@/modules/simulation/lib/definitions';
+import type { CourseData } from '@/lib/sunday-tools/course/definitions';
+import type { RaceParameters } from '@/lib/sunday-tools/common/race';
 import { getGoldVersion, getUpgradeTier } from '@/modules/skills/skill-relationships';
 
 /**

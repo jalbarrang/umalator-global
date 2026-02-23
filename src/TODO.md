@@ -45,7 +45,7 @@
 ### Miscellaneous
 
 - [x] sort skills by disp_order from the db
-- [x] add to skill_meta.json
+- [x] add to unified skills.json
 - [x] respond to url hash change events to load state
 - [x] make the skill activation position tables on the right scroll when they run out of room instead of causing the viewport to scroll
 - [x] race time selector

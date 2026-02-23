@@ -1,4 +1,3 @@
-import type { IPosKeepMode } from '@/lib/sunday-tools/runner/definitions';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import type {
   SimulationData,
@@ -50,7 +49,6 @@ export interface SimulationOptions {
   seed?: number;
   useEnhancedSpurt?: boolean;
   accuracyMode?: boolean;
-  posKeepMode?: IPosKeepMode;
   mode?: string;
 
   // Wit Variance
@@ -63,8 +61,6 @@ export interface SimulationOptions {
   skillCheckChanceUma1: boolean;
   skillCheckChanceUma2: boolean;
 
-  // Pacemaker
-  pacemakerCount: number;
 }
 
 export type TheoreticalMaxSpurtResult = {
@@ -82,7 +78,6 @@ export type RunComparisonParams = {
   racedef: RaceParameters;
   runnerA: RunnerState;
   runnerB: RunnerState;
-  pacer: RunnerState | null;
   options: SimulationOptions;
 };
 
@@ -92,7 +87,6 @@ export type CompareParams = {
   racedef: RaceParameters;
   uma1: RunnerState;
   uma2: RunnerState;
-  pacer: RunnerState;
   options: SimulationOptions;
 };
 
@@ -102,6 +96,5 @@ export type Run1RoundParams = {
   course: CourseData;
   racedef: RaceParameters;
   uma: RunnerState;
-  pacer: RunnerState | null;
   options: SimulationOptions;
 };

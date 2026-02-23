@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import SkillBasinPoolWorker from '@workers/pool/skill-basin/skill-basin.pool.worker.ts?worker';
 import type { SkillComparisonResponse } from '../../types';
-import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
 import {
   appendResultsToTable,
   resetTable,
@@ -20,13 +19,13 @@ import {
   getNullSkillComparisonRow,
 } from '@/components/bassin-chart/utils';
 import { PoolManager } from '@/workers/pool/pool-manager';
+import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 
 const createSkillBasinPoolWorker = (options: { name: string }) => new SkillBasinPoolWorker(options);
 
 const baseSkillsToTest = getBaseSkillsToTest();
 
 export function useSkillBasinPoolRunner() {
-  const { pacer } = useRunnersStore();
   const { runner } = useRunner();
   const { racedef, courseId } = useSettingsStore();
 
@@ -85,7 +84,6 @@ export function useSkillBasinPoolRunner() {
         course,
         racedef: params,
         uma,
-        pacer: pacer,
         options: {
           ...defaultSimulationOptions,
           seed: simulationSeed,

@@ -9,7 +9,7 @@ import type {
   SkillSimulationData,
   SkillTrackedMetaCollection,
 } from '@/modules/simulation/compare.types';
-import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
+import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 
 type ActivationDetailsProps = {
   skillId: string;

@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { getCandidate, useSkillPlannerStore } from '../skill-planner.store';
 import { Progress } from '@/components/ui/progress';
-import { getSkillMetaById, getSkillNameById } from '@/modules/skills/utils';
+import { getSkillById, getSkillNameById } from '@/modules/skills/utils';
 import { cn } from '@/lib/utils';
 
 type SkillPlannerResultsProps = React.HTMLAttributes<HTMLDivElement>;
@@ -98,10 +98,8 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
                         <div className="space-y-1">
                           {combination.skills.map((skillId, skillIndex) => {
                             const skillName = getSkillNameById(skillId);
-                            const skillMeta = getSkillMetaById(skillId);
-                            const skillIconPath = skillMeta?.iconId
-                              ? `/icons/${skillMeta.iconId}.png`
-                              : '';
+                            const skill = getSkillById(skillId);
+                            const skillIconPath = skill.iconId ? `/icons/${skill.iconId}.png` : '';
                             const candidate = getCandidate(skillId);
 
                             return (

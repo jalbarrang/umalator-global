@@ -5,7 +5,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Aptitude, AptitudeName } from '@/modules/simulation/lib/runner/definitions';
+import { Aptitude, AptitudeName } from '@/lib/sunday-tools/runner/definitions';
 
 type AptitudeSelectProps = {
   value: string;
