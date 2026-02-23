@@ -46,6 +46,16 @@ bun run dev
 
 Open the local URL printed by Vite to use the simulator UI.
 
+### Fetch `master.mdb` (Optional but recommended)
+
+If you want to run local extraction scripts with fresh game data, fetch the latest master database into `./db`:
+
+```bash
+bun run db:fetch
+```
+
+This script downloads `master.mdb` to `db/master.mdb`, which extraction scripts use automatically.
+
 ## Useful Commands
 
 - `bun run dev`: start local development server
@@ -54,6 +64,7 @@ Open the local URL printed by Vite to use the simulator UI.
 - `bun run typecheck`: run TypeScript checks
 - `bun run lint`: run ESLint
 - `bun run test`: run test suite
+- `bun run db:fetch`: download latest `master.mdb` to `./db`
 - `bun run skill:compare`: run skill comparison debug script
 
 ## Acknowledgements

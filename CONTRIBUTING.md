@@ -101,9 +101,7 @@ umalator-global/
 │   │   │   └── utils.ts
 │   │   │
 │   │   └── data/                 # Game data files (JSON)
-│   │       ├── skill_data.json   # Extracted skill data
-│   │       ├── skillnames.json   # Skill name translations
-│   │       ├── skill_meta.json   # Skill metadata (icons, rarity)
+│   │       ├── skills.json       # Unified extracted skill data
 │   │       ├── course_data.json  # Extracted course data
 │   │       ├── umas.json         # Uma musume character data
 │   │       └── tracknames.json   # Track name translations
@@ -204,9 +202,7 @@ Use `--replace` only when you want to completely overwrite files with only curre
 **Extract individual data files:**
 
 ```bash
-bun run extract:skill-meta      # Skill metadata
-bun run extract:skillnames       # Skill names (EN/JP)
-bun run extract:skill-data       # Skill mechanics
+bun run extract:skills           # Unified skill data (meta + names + mechanics)
 bun run extract:uma-info         # Uma musume data
 bun run extract:course-data      # Course/track data
 ```
@@ -277,7 +273,7 @@ These aliases can be used in imports:
 
 ```typescript
 import { RaceSolver } from '@simulation/lib/RaceSolver';
-import skillData from '@data/skill_data.json';
+import { skills } from '@/modules/data/skills';
 ```
 
 **Global Constants:**
@@ -321,29 +317,18 @@ All scripts are TypeScript files in the `scripts/` directory using Bun's native 
 
 See [`scripts/README.md`](scripts/README.md) for detailed documentation.
 
-#### `extract-skill-data.ts`
+#### `extract-skills.ts`
 
-Extracts skill effects, conditions, and parameters from the database.
+Extracts unified skill data (effects, conditions, metadata, and names) from the database.
 
 **Key Features:**
 
 - Applies 1.2x modifier to scenario skills
 - Handles split alternatives (Seirios special case)
-- Processes up to 2 alternatives and 3 effects per skill
+- Merges mechanics + metadata + names into one object
+- Preserves future/datamined entries in merge mode
 
-**Output:** `src/modules/data/skill_data.json`
-
-#### `extract-skillnames.ts`
-
-Extracts skill names in both Japanese and English. Automatically generates inherited versions for unique skills.
-
-**Output:** `src/modules/data/skillnames.json`
-
-#### `extract-skill-meta.ts`
-
-Generates metadata for skills (icon IDs, SP costs, display order).
-
-**Output:** `src/modules/data/skill_meta.json`
+**Output:** `src/modules/data/skills.json`
 
 #### `extract-uma-info.ts`
 
