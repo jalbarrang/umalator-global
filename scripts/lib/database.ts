@@ -1,9 +1,9 @@
 /**
- * Database connection utilities for Bun SQLite
+ * Database connection utilities for better-sqlite3
  */
 
-import { Database } from 'bun:sqlite';
-import type { SQLQueryBindings } from 'bun:sqlite';
+import BetterSqlite3 from 'better-sqlite3';
+import type { Database } from 'better-sqlite3';
 
 /**
  * Open a database connection in readonly mode
@@ -12,7 +12,7 @@ import type { SQLQueryBindings } from 'bun:sqlite';
  */
 export function openDatabase(path: string): Database {
   try {
-    const db = new Database(path, { readonly: true });
+    const db = new BetterSqlite3(path, { readonly: true, fileMustExist: true });
     return db;
   } catch (err) {
     const error = err as Error;
@@ -26,7 +26,7 @@ export function openDatabase(path: string): Database {
  */
 export function closeDatabase(db: Database): void {
   try {
-    db.close(false);
+    db.close();
   } catch (err) {
     const error = err as Error;
     console.error(`Error closing database: ${error.message}`);
@@ -41,7 +41,7 @@ export function closeDatabase(db: Database): void {
  */
 export function queryAll<T>(db: Database, sql: string): Array<T> {
   try {
-    return db.query(sql).all() as Array<T>;
+    return db.prepare(sql).all() as Array<T>;
   } catch (err) {
     const error = err as Error;
     throw new Error(`Query failed: ${error.message}\nSQL: ${sql}`);
@@ -57,10 +57,10 @@ export function queryAll<T>(db: Database, sql: string): Array<T> {
  */
 export function queryAllWithParams<
   T,
-  TParams extends Array<SQLQueryBindings> = Array<SQLQueryBindings>,
+  TParams extends Array<unknown> = Array<unknown>,
 >(db: Database, sql: string, ...params: TParams): Array<T> {
   try {
-    const stmt = db.query(sql);
+    const stmt = db.prepare(sql);
     return stmt.all(...params) as Array<T>;
   } catch (err) {
     const error = err as Error;

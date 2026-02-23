@@ -12,10 +12,8 @@ import type { RunnerState } from '@/modules/runners/components/runner-card/types
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 import { runSkillComparison } from '@/modules/simulation/simulators/skill-compare';
 import { racedefToParams } from '@/utils/races';
-import { PosKeepMode } from '@/lib/sunday-tools/runner/definitions';
 
 export const defaultSimulationOptions = {
-  posKeepMode: PosKeepMode.Approximate,
   allowRushedUma1: false,
   allowRushedUma2: false,
   allowDownhillUma1: false,
@@ -26,7 +24,6 @@ export const defaultSimulationOptions = {
   accuracyMode: false,
   skillCheckChanceUma1: false,
   skillCheckChanceUma2: false,
-  pacemakerCount: 1,
 };
 
 const program = new Command();
@@ -81,7 +78,6 @@ program
     const simOptions = {
       ...defaultSimulationOptions,
       seed,
-      posKeepMode: PosKeepMode.None,
     };
 
     const testRunner: RunnerState = runner;
@@ -102,7 +98,6 @@ program
       racedef: raceParams,
       runnerA: testRunner,
       runnerB: runnerWithSkill,
-      pacer: null,
       options: simOptions,
     });
 

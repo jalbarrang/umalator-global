@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import type { SkillData } from '@/modules/skills/utils';
+import type { SkillEntry } from '@/modules/data/skills';
 import { FormatParser, formatEffect } from '@/modules/skills/components/formatters';
 import { cn } from '@/lib/utils';
 import i18n from '@/i18n';
@@ -14,7 +14,7 @@ import {
 
 type ExpandedSkillDetailsProps = {
   id: string;
-  skillData: SkillData;
+  skillData: Pick<SkillEntry, 'alternatives'>;
   dismissable?: boolean;
   distanceFactor?: number;
   forcedPosition?: number;

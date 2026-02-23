@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 /**
  * Extract course data from master.mdb and courseeventparams
  * Ports make_global_course_data.pl to TypeScript
@@ -6,7 +6,13 @@
 
 import path from 'node:path';
 import { closeDatabase, openDatabase, queryAll } from './lib/database';
-import { resolveMasterDbPath, sortByNumericKey, writeJsonFile } from './lib/shared';
+import {
+  readJsonFile,
+  readJsonFileIfExists,
+  resolveMasterDbPath,
+  sortByNumericKey,
+  writeJsonFile,
+} from './lib/shared';
 
 interface CourseSetStatusRow {
   course_set_status_id: number;
@@ -137,7 +143,7 @@ async function extractCourseData() {
 
       let eventParams: CourseEventParams;
       try {
-        eventParams = await Bun.file(eventParamsPath).json();
+        eventParams = await readJsonFile<CourseEventParams>(eventParamsPath);
       } catch {
         console.warn(`Warning: Could not read ${eventParamsPath}, skipping course ${row.id}`);
         continue;
@@ -233,11 +239,9 @@ async function extractCourseData() {
       finalCourses = courses;
       console.log(`\n⚠️  Full replacement mode: ${processedCount} courses from master.mdb only`);
     } else {
-      const existingFile = Bun.file(outputPath);
+      const existingData = await readJsonFileIfExists<Record<string, CourseData>>(outputPath);
 
-      if (await existingFile.exists()) {
-        const existingData = await existingFile.json();
-
+      if (existingData) {
         // Merge: existing data first, then overwrite with new data
         finalCourses = { ...existingData, ...courses };
 

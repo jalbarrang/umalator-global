@@ -8,9 +8,9 @@ The Perl scripts have been replaced with faster, type-safe TypeScript equivalent
 
 | Legacy Perl Script           | New TypeScript Script    | Speed Improvement |
 | ---------------------------- | ------------------------ | ----------------- |
-| `make_global_skill_meta.pl`  | `extract-skill-meta.ts`  | 3-6x faster       |
-| `make_global_skillnames.pl`  | `extract-skillnames.ts`  | 3-6x faster       |
-| `make_global_skill_data.pl`  | `extract-skill-data.ts`  | 3-6x faster       |
+| `make_global_skill_meta.pl`  | `extract-skills.ts`      | 3-6x faster       |
+| `make_global_skillnames.pl`  | `extract-skills.ts`      | 3-6x faster       |
+| `make_global_skill_data.pl`  | `extract-skills.ts`      | 3-6x faster       |
 | `make_global_uma_info.pl`    | `extract-uma-info.ts`    | 3-6x faster       |
 | `make_global_course_data.pl` | `extract-course-data.ts` | 3-6x faster       |
 | `update.bat`                 | `extract-all.ts`         | -                 |

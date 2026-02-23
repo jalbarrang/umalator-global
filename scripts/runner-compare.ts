@@ -2,11 +2,12 @@
  * Runner compare CLI for Sunday engine.
  *
  * Usage:
- *   bun scripts/runner-compare.ts
- *   bun scripts/runner-compare.ts --samples 200 --seed 42
- *   bun scripts/runner-compare.ts --json
+ *   npm exec -- tsx scripts/runner-compare.ts
+ *   npm exec -- tsx scripts/runner-compare.ts --samples 200 --seed 42
+ *   npm exec -- tsx scripts/runner-compare.ts --json
  */
 
+import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { Command } from 'commander';
 
@@ -19,7 +20,6 @@ import type {
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import { Race } from '@/lib/sunday-tools/common/race';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
-import { PosKeepMode } from '@/lib/sunday-tools/runner/definitions';
 import { parseAptitudeName, parseStrategyName } from '@/lib/sunday-tools/runner/runner.types';
 
 type RunnerConfigInput = {
@@ -82,7 +82,6 @@ const DEFAULT_SETTINGS: SimulationSettings = {
   spotStruggle: true,
   dueling: true,
   witChecks: true,
-  positionKeepMode: PosKeepMode.None,
 };
 
 const DEFAULT_DUELING_RATES: DuelingRates = {
@@ -155,13 +154,16 @@ function createInitializedRace(params: {
 
 async function loadConfig(path: string): Promise<ConfigInput> {
   const resolved = resolve(path);
-  const file = Bun.file(resolved);
+  try {
+    const content = await readFile(resolved, 'utf8');
+    return JSON.parse(content) as ConfigInput;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      throw new Error(`Config file not found: ${path}`);
+    }
 
-  if (!(await file.exists())) {
-    throw new Error(`Config file not found: ${path}`);
+    throw error;
   }
-
-  return (await file.json()) as ConfigInput;
 }
 
 async function runRunnerCompare(options: {

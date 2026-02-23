@@ -203,7 +203,7 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
       .whereText(deferredSearchText)
       .whereAny(activeRarities, (skill, r) => matchRarity(skill.id, r))
       .whereAny(activeIconTypes, (skill, iconKey) =>
-        iconIdPrefixes[iconKey as IconIdPrefix]?.some((p) => skill.meta.iconId.startsWith(p)),
+        iconIdPrefixes[iconKey as IconIdPrefix]?.some((p) => skill.iconId.startsWith(p)),
       )
       .whereConditionMatch(activeStrategies)
       .whereConditionMatch(activeDistances)
@@ -241,12 +241,12 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
     for (const id of currentSkills) {
       // Use the pre-built map for O(1) lookup
       const skill = skillsById.get(id.split('-')[0]); // Handle debuff suffixes like "123456-1"
-      if (!skill?.meta) continue;
+      if (!skill) continue;
 
       // Skip debuffs - they can be selected multiple times
-      if (skill.meta.iconId.startsWith('3')) continue;
+      if (skill.iconId.startsWith('3')) continue;
 
-      selected.push([skill.meta.groupId, id]);
+      selected.push([`${skill.groupId}`, id]);
     }
 
     return new Map(selected);
@@ -268,14 +268,14 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
     const skill = skills.find((skillItem) => skillItem.id === id);
     if (!skill) return;
 
-    const groupId = skill.meta.groupId;
+    const groupId = `${skill.groupId}`;
     const newSelected = new Set(currentSkills);
 
     // Remove skill from same group if exists (for non-debuffs)
     const selectedId = selectedMap.get(groupId);
     if (selectedId) {
       newSelected.delete(selectedId);
-    } else if (skill.meta.iconId.startsWith('3')) {
+    } else if (skill.iconId.startsWith('3')) {
       // For debuffs, find the next available suffix
       let count = 0;
 
@@ -377,14 +377,14 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
       if (!focusedSkill) return;
 
       // Simulate the click event to select the skill
-      const groupId = focusedSkill.meta.groupId;
+      const groupId = `${focusedSkill.groupId}`;
       const newSelected = new Set(currentSkills);
 
       // Remove skill from same group if exists (for non-debuffs)
       const selectedId = selectedMap.get(groupId);
       if (selectedId) {
         newSelected.delete(selectedId);
-      } else if (focusedSkill.meta.iconId.startsWith('3')) {
+      } else if (focusedSkill.iconId.startsWith('3')) {
         // For debuffs, find the next available suffix
         let count = 0;
         for (const newSelectedId of newSelected) {

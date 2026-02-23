@@ -1,8 +1,7 @@
 import type { Operator } from '@/lib/sunday-tools/skills/parser/definitions';
 import { createParser } from '@/lib/sunday-tools/skills/parser/ConditionParser';
 import { mockConditions } from '@/lib/sunday-tools/skills/parser/ConditionMatcher';
-
-import SkillsDataList from '@/modules/data/skill_data.json';
+import { skills } from '@/modules/data/skills';
 
 const Parser = createParser({
   conditions: mockConditions,
@@ -13,7 +12,7 @@ export const parseSkillCondition = (skillCondition: string) => {
 };
 
 const tokenizeSkillsConditions = () => {
-  const conditionEntries = Object.entries(SkillsDataList);
+  const conditionEntries = Object.entries(skills);
 
   const acc: Record<string, Array<Operator>> = {};
 

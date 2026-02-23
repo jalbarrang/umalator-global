@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 /**
  * Master Database Fetcher for Uma Musume Pretty Derby.
  *
@@ -575,9 +575,9 @@ async function main(): Promise<number> {
       'after',
       `
 Examples:
-  bun scripts/fetch_master_db.ts 10004010
-  bun scripts/fetch_master_db.ts 10004010 --output ./downloads
-  bun scripts/fetch_master_db.ts 10004010 --platform Android --quiet
+  npx tsx scripts/fetch_master_db.ts 10004010
+  npx tsx scripts/fetch_master_db.ts 10004010 --output ./downloads
+  npx tsx scripts/fetch_master_db.ts 10004010 --platform Android --quiet
 
 Manifest Chain:
   Root Manifest -> Platform Manifest -> Master Manifest -> master.mdb

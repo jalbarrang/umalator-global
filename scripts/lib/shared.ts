@@ -2,6 +2,7 @@
  * Shared utilities for data extraction scripts
  */
 
+import { access, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { getUniqueSkillForByUmaId as getUniqueSkillForByUmaIdFromUtils } from '@/modules/skills/utils';
 
@@ -33,7 +34,30 @@ export const getUniqueSkillForOutfit = getUniqueSkillForByUmaIdFromUtils;
  */
 export async function writeJsonFile(path: string, data: Record<string, unknown>): Promise<void> {
   const output = JSON.stringify(data) + '\n';
-  await Bun.write(path, output);
+  await writeFile(path, output, 'utf8');
+}
+
+/**
+ * Read and parse a JSON file
+ */
+export async function readJsonFile<T>(path: string): Promise<T> {
+  const content = await readFile(path, 'utf8');
+  return JSON.parse(content) as T;
+}
+
+/**
+ * Read and parse a JSON file if present
+ */
+export async function readJsonFileIfExists<T>(path: string): Promise<T | null> {
+  try {
+    return await readJsonFile<T>(path);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      return null;
+    }
+
+    throw error;
+  }
 }
 
 /**
@@ -72,11 +96,13 @@ export async function resolveMasterDbPath(): Promise<string> {
     return process.argv[2];
   }
 
-  // Check for local db/master.mdb using Bun's native API
+  // Check for local db/master.mdb in current workspace
   const localPath = path.join(process.cwd(), 'db/master.mdb');
-  const localFile = Bun.file(localPath);
-  if (await localFile.exists()) {
+  try {
+    await access(localPath);
     return localPath;
+  } catch {
+    // Fall through to platform-specific default path.
   }
 
   // Fall back to platform-specific default

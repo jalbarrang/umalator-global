@@ -1,11 +1,9 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 /**
  * Master script to run all data extraction scripts
  */
 
-import { extractSkillMeta } from './extract-skill-meta';
-import { extractSkillNames } from './extract-skillnames';
-import { extractSkillData } from './extract-skill-data';
+import { extractSkills } from './extract-skills';
 import { extractUmaInfo } from './extract-uma-info';
 import { extractCourseData } from './extract-course-data';
 
@@ -23,9 +21,7 @@ async function extractAll() {
 
   // Run extractions in sequence
   const extractions = [
-    { name: 'Skill Metadata', fn: extractSkillMeta },
-    { name: 'Skill Names', fn: extractSkillNames },
-    { name: 'Skill Data', fn: extractSkillData },
+    { name: 'Skills', fn: extractSkills },
     { name: 'Uma Info', fn: extractUmaInfo },
     { name: 'Course Data', fn: extractCourseData },
   ];
