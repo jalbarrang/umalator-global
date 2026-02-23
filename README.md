@@ -2,7 +2,6 @@
 
 [![PR Checks](https://github.com/jalbarrang/umalator-global/actions/workflows/pr-checks.yml/badge.svg)](https://github.com/jalbarrang/umalator-global/actions/workflows/pr-checks.yml)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](./LICENSE)
-[![Bun](https://img.shields.io/badge/Bun-runtime-black?logo=bun)](https://bun.sh/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Netlify Status](https://api.netlify.com/api/v1/badges/cd1b22d2-3701-4fca-8c07-dda42d57a259/deploy-status)](https://sundays-shadow.netlify.app/)
 
@@ -33,15 +32,11 @@ Use this project when you want to:
 
 ## Quick Start
 
-### Requirements
-
-- [Bun](https://bun.sh/) (runtime and package manager)
-
 ### Install and Run
 
 ```bash
-bun install
-bun run dev
+pnpm install
+pnpm run dev
 ```
 
 Open the local URL printed by Vite to use the simulator UI.
@@ -51,21 +46,21 @@ Open the local URL printed by Vite to use the simulator UI.
 If you want to run local extraction scripts with fresh game data, fetch the latest master database into `./db`:
 
 ```bash
-bun run db:fetch
+pnpm run db:fetch
 ```
 
 This script downloads `master.mdb` to `db/master.mdb`, which extraction scripts use automatically.
 
 ## Useful Commands
 
-- `bun run dev`: start local development server
-- `bun run build`: build production assets
-- `bun run preview`: preview built app
-- `bun run typecheck`: run TypeScript checks
-- `bun run lint`: run ESLint
-- `bun run test`: run test suite
-- `bun run db:fetch`: download latest `master.mdb` to `./db`
-- `bun run skill:compare`: run skill comparison debug script
+- `pnpm run dev`: start local development server
+- `pnpm run build`: build production assets
+- `pnpm run preview`: preview built app
+- `pnpm run typecheck`: run TypeScript checks
+- `pnpm run lint`: run ESLint
+- `pnpm run test`: run test suite
+- `pnpm run db:fetch`: download latest `master.mdb` to `./db`
+- `pnpm run skill:compare`: run skill comparison debug script
 
 ## Acknowledgements
 
