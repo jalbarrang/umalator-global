@@ -17,4 +17,11 @@ export default defineConfig({
       projects: ['./tsconfig.json'],
     }),
   ],
+  worker: {
+    plugins: () => [
+      viteTsconfigPaths({
+        projects: ['./tsconfig.json'],
+      }),
+    ],
+  },
 });
