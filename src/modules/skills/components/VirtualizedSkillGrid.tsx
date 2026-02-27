@@ -147,7 +147,7 @@ export function VirtualizedSkillGrid({
             <SkillItem
               key={skill.id}
               skillId={skill.id}
-              selected={selectedMap.get(skill.meta.groupId) === skill.id}
+              selected={selectedMap.get(`${skill.groupId}`) === skill.id}
               isHovered={isHovered}
               isFocused={isFocused}
               onMouseEnter={() => setHoveredSkillId(skill.id)}

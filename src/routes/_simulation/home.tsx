@@ -11,12 +11,9 @@ import { VelocityLines } from '@/components/VelocityLines';
 import { RaceTrack } from '@/modules/racetrack/components/RaceTrack';
 import { initializeSimulationRun } from '@/modules/simulation/compare.types';
 import { useSimulationRunner } from '@/modules/simulation/hooks/compare/useSimulationRunner';
-import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
 import { SimulationResultTabs } from '@/modules/simulation/tabs/simulation-result-tabs';
 import { ResultButtonGroups } from '@/modules/simulation/tabs/summary-tab';
 import { useSettingsStore } from '@/store/settings.store';
-import { useSelectedPacemakerBooleans } from '@/store/settings/actions';
-import { useUIStore } from '@/store/ui.store';
 import { RaceSettingsPanel } from '@/modules/skill-planner/components/RaceSettingsPanel';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
@@ -24,12 +21,11 @@ import { Label } from '@/components/ui/label';
 import { parseSeed } from '@/utils/crypto';
 import { HelpButton } from '@/components/ui/help-button';
 import { umalatorSteps } from '@/modules/tutorial/steps/umalator-steps';
+import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 
 export function SimulationHome() {
   const { chartData, results, isSimulationRunning, simulationProgress, seed } = useRaceStore();
   const { courseId } = useSettingsStore();
-  const { showVirtualPacemakerOnGraph } = useUIStore();
-  const selectedPacemakers = useSelectedPacemakerBooleans();
   const { handleRunCompare, handleRunOnce } = useSimulationRunner();
 
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
@@ -140,8 +136,6 @@ export function SimulationHome() {
               xOffset={35}
               yOffset={25}
               horseLane={course.horseLane}
-              showVirtualPacemaker={showVirtualPacemakerOnGraph}
-              selectedPacemakers={selectedPacemakers}
             />
           </RaceTrack>
         </div>

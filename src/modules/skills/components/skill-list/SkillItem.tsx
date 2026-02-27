@@ -1,7 +1,7 @@
 import { Activity, memo, useMemo, useState } from 'react';
 import { X } from 'lucide-react';
 import { ExpandedSkillDetails } from '../ExpandedSkillDetails';
-import { getSkillDataById, getSkillMetaById } from '@/modules/skills/utils';
+import { getSkillById } from '@/modules/skills/utils';
 import { cn } from '@/lib/utils';
 import i18n from '@/i18n';
 import { Button } from '@/components/ui/button';
@@ -38,16 +38,15 @@ export const SkillItem = memo((props: SkillItemProps) => {
 
   const [expanded, setExpanded] = useState(false);
 
-  const skillData = useMemo(() => getSkillDataById(skillId), [skillId]);
-  const skillMeta = useMemo(() => getSkillMetaById(skillId), [skillId]);
+  const skill = useMemo(() => getSkillById(skillId), [skillId]);
 
   const skillContext = useMemo(
     () => ({
       id: skillId.split('-')[0],
-      rarity: skillData?.rarity ?? 0,
-      iconId: skillMeta?.iconId,
+      rarity: skill.rarity,
+      iconId: skill.iconId,
     }),
-    [skillId, skillData, skillMeta],
+    [skillId, skill],
   );
 
   if (!withDetails) {
@@ -160,7 +159,7 @@ export const SkillItem = memo((props: SkillItemProps) => {
       <Activity mode={expanded ? 'visible' : 'hidden'}>
         <ExpandedSkillDetails
           id={skillId}
-          skillData={skillData}
+          skillData={skill}
           dismissable={dismissable}
           distanceFactor={distanceFactor}
           forcedPosition={forcedPosition}

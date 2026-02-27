@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import SkillBasinWorker from '@workers/skill-basin.worker.ts?worker';
 import type { SkillComparisonResponse } from '@/modules/simulation/types';
-import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
+import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 import {
   appendResultsToTable,
   resetTable,
@@ -17,7 +17,7 @@ import {
 
 import { racedefToParams } from '@/utils/races';
 import { useSettingsStore } from '@/store/settings.store';
-import { useRunner, useRunnersStore } from '@/store/runners.store';
+import { useRunner } from '@/store/runners.store';
 import { getBaseSkillsToTest } from '@/modules/skills/utils';
 
 const baseSkillsToTest = getBaseSkillsToTest();
@@ -34,7 +34,6 @@ const WORKER_COUNT = 2;
 const SAMPLES_PER_STAGE = [5, 20, 50, 200];
 
 export function useSkillBasinRunner() {
-  const { pacer } = useRunnersStore();
   const { runner } = useRunner();
   const { racedef, courseId } = useSettingsStore();
 
@@ -154,7 +153,6 @@ export function useSkillBasinRunner() {
         course,
         racedef: params,
         uma,
-        pacer: pacer,
         options: {
           ...defaultSimulationOptions,
           seed,
@@ -169,7 +167,6 @@ export function useSkillBasinRunner() {
         course,
         racedef: params,
         uma,
-        pacer: pacer,
         options: {
           ...defaultSimulationOptions,
           seed,

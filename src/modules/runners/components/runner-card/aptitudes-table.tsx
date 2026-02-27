@@ -2,7 +2,7 @@ import { AptitudeSelect } from '../AptitudeSelect';
 import { MoodSelect } from '../MoodSelect';
 import { StrategySelect } from '../StrategySelect';
 import type { RunnerState } from './types';
-import type { IMood } from '@/modules/simulation/lib/runner/definitions';
+import type { IMood } from '@/lib/sunday-tools/runner/definitions';
 import { Label } from '@/components/ui/label';
 
 export type Aptitude =

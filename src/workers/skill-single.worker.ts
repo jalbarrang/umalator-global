@@ -35,19 +35,12 @@ self.addEventListener('message', (event: MessageEvent<SingleSkillWorkerInMessage
     case 'run': {
       try {
         const { skillId, nsamples, seed, params } = message;
-        const { course, racedef, uma, pacer, options } = params;
+        const { course, racedef, uma, options } = params;
 
-        // Prepare uma and pacer with proper skill arrays
+        // Prepare uma with proper skill arrays
         const baseRunner = cloneDeepWith(uma, (value, key) => {
           if (key === 'skills') return clone(value);
         });
-
-        let basePacer = null;
-        if (pacer) {
-          basePacer = cloneDeepWith(pacer, (value, key) => {
-            if (key === 'skills') return clone(value);
-          });
-        }
 
         // Run simulation for this single skill
         const roundParams = {
@@ -56,7 +49,6 @@ self.addEventListener('message', (event: MessageEvent<SingleSkillWorkerInMessage
           course,
           racedef,
           uma: baseRunner,
-          pacer: basePacer,
           options: {
             ...options,
             seed,

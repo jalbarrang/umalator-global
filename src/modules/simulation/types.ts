@@ -1,14 +1,11 @@
-import type { IPosKeepMode } from './lib/runner/definitions';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import type {
   SimulationData,
   SkillSimulationData,
   SkillTrackedMetaCollection,
 } from '@/modules/simulation/compare.types';
-import type { CourseData } from './lib/course/definitions';
-import type { RaceParameters } from './lib/definitions';
-
-// Calculate theoretical max spurt based purely on stats (no RNG)
+import type { CourseData } from '@/lib/sunday-tools/course/definitions';
+import type { RaceParameters } from '@/lib/sunday-tools/common/race';
 
 export type FilterReason = 'negligible-effect' | 'low-variance' | null;
 
@@ -50,7 +47,6 @@ export interface SimulationOptions {
   seed?: number;
   useEnhancedSpurt?: boolean;
   accuracyMode?: boolean;
-  posKeepMode?: IPosKeepMode;
   mode?: string;
 
   // Wit Variance
@@ -63,18 +59,7 @@ export interface SimulationOptions {
   skillCheckChanceUma1: boolean;
   skillCheckChanceUma2: boolean;
 
-  // Pacemaker
-  pacemakerCount: number;
 }
-
-export type TheoreticalMaxSpurtResult = {
-  canMaxSpurt: boolean;
-  maxHp: number;
-  hpNeededForMaxSpurt: number;
-  maxSpurtSpeed: number;
-  baseTargetSpeed2: number;
-  hpRemaining: number;
-};
 
 export type RunComparisonParams = {
   nsamples: number;
@@ -82,7 +67,6 @@ export type RunComparisonParams = {
   racedef: RaceParameters;
   runnerA: RunnerState;
   runnerB: RunnerState;
-  pacer: RunnerState | null;
   options: SimulationOptions;
 };
 
@@ -92,7 +76,6 @@ export type CompareParams = {
   racedef: RaceParameters;
   uma1: RunnerState;
   uma2: RunnerState;
-  pacer: RunnerState;
   options: SimulationOptions;
 };
 
@@ -102,6 +85,5 @@ export type Run1RoundParams = {
   course: CourseData;
   racedef: RaceParameters;
   uma: RunnerState;
-  pacer: RunnerState | null;
   options: SimulationOptions;
 };

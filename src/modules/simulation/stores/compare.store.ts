@@ -7,8 +7,8 @@ import type {
   StaminaStats,
   Stats,
 } from '@/modules/simulation/compare.types';
-import type { SpurtCandidate } from '@/modules/simulation/lib/utils/SpurtCalculator';
 import { generateSeed } from '@/utils/crypto';
+import { SpurtCandidate } from '@/lib/sunday-tools/common/spurt-calculator';
 
 type IRaceStore = {
   seed: number | null;

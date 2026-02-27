@@ -1,4 +1,4 @@
-import type { RaceParameters } from '@/modules/simulation/lib/definitions';
+import type { RaceParameters } from '@/lib/sunday-tools/common/race';
 import type {
   IEventType,
   IGrade,
@@ -6,16 +6,16 @@ import type {
   ISeason,
   ITimeOfDay,
   IWeather,
-} from '@/modules/simulation/lib/course/definitions';
-import type { IMood } from '@/modules/simulation/lib/runner/definitions';
-import { Mood } from '@/modules/simulation/lib/runner/definitions';
+} from '@/lib/sunday-tools/course/definitions';
+import type { IMood } from '@/lib/sunday-tools/runner/definitions';
+import { Mood } from '@/lib/sunday-tools/runner/definitions';
 import {
   Grade,
   GroundCondition,
   Season,
   TimeOfDay,
   Weather,
-} from '@/modules/simulation/lib/course/definitions';
+} from '@/lib/sunday-tools/course/definitions';
 
 export type PosKeepLabel = {
   umaIndex: number;
@@ -75,7 +75,7 @@ export type RacePreset = {
 };
 
 export function racedefToParams(
-  { mood, ground, weather, season, time, grade }: RaceConditions,
+  { ground, weather, season, time, grade }: RaceConditions,
   includeOrder?: string,
 ): RaceParameters {
   let orderForStrategy: [number, number] | undefined = undefined;
@@ -87,14 +87,11 @@ export function racedefToParams(
   }
 
   return {
-    mood,
-    groundCondition: ground,
+    ground: ground,
     weather,
     season,
-    time,
+    timeOfDay: time,
     grade,
-    popularity: 1,
-    skillId: '',
     orderRange: orderForStrategy,
     numUmas: 9,
   };

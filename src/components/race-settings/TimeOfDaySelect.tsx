@@ -1,4 +1,4 @@
-import type { ITimeOfDay } from '@/modules/simulation/lib/course/definitions';
+import type { ITimeOfDay } from '@/lib/sunday-tools/course/definitions';
 import strings_en from '@/i18n/lang/en/skills';
 import { setRaceParams, useSettingsStore } from '@/store/settings.store';
 import { cn } from '@/lib/utils';

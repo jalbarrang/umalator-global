@@ -4,8 +4,8 @@
 
 import { clone, cloneDeepWith } from 'es-toolkit';
 import { mergeResultSets } from './utils';
-import type { CourseData } from '@/modules/simulation/lib/course/definitions';
-import type { RaceParameters } from '@/modules/simulation/lib/definitions';
+import type { CourseData } from '@/lib/sunday-tools/course/definitions';
+import type { RaceParameters } from '@/lib/sunday-tools/common/race';
 
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import type { Run1RoundParams, SimulationOptions } from '@/modules/simulation/types';
@@ -15,7 +15,6 @@ type PrepareRoundParams = {
   courseData: CourseData;
   raceParams: RaceParameters;
   runner: RunnerState;
-  pacer: RunnerState | null;
   options: SimulationOptions;
 };
 
@@ -28,7 +27,6 @@ function prepareRounds(params: PrepareRoundParams) {
       course: params.courseData,
       racedef: params.raceParams,
       uma: params.runner,
-      pacer: params.pacer,
       options: params.options,
       nsamples: nsamples,
       skills: newSkills,
@@ -41,12 +39,11 @@ type RunChartParams = {
   course: CourseData;
   racedef: RaceParameters;
   uma: RunnerState;
-  pacer: RunnerState;
   options: SimulationOptions;
 };
 
 function runChart(params: RunChartParams) {
-  const { skills, course, racedef, uma, pacer, options } = params;
+  const { skills, course, racedef, uma, options } = params;
 
   // Copy over the skills to avoid mutating the original list
   let newSkills = clone(skills);
@@ -56,19 +53,10 @@ function runChart(params: RunChartParams) {
     if (key === 'skills') return clone(value);
   });
 
-  let basePacer: RunnerState | null = null;
-
-  if (pacer) {
-    basePacer = cloneDeepWith(pacer, (value, key) => {
-      if (key === 'skills') return clone(value);
-    });
-  }
-
   const roundParamGenerator = prepareRounds({
     courseData: course,
     raceParams: racedef,
     runner: baseRunner,
-    pacer: basePacer,
     options: options,
   });
 

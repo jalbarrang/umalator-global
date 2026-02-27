@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { SimulationRun } from '@/modules/simulation/compare.types';
 import type { TooltipData } from '@/modules/racetrack/components/racetrack-tooltip';
-import type { CourseData } from '@/modules/simulation/lib/course/definitions';
+import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import { binSearch } from '@/utils/algorithims';
 
 type UseRaceTrackTooltipProps = {
@@ -22,19 +22,19 @@ export const useRaceTrackTooltip = (props: UseRaceTrackTooltipProps) => {
 
     const x = pos * course.distance;
 
-    const i0 = binSearch(chartData.p[0], x);
-    const i1 = binSearch(chartData.p[1], x);
+    const i0 = binSearch(chartData.position[0], x);
+    const i1 = binSearch(chartData.position[1], x);
 
     // Ensure indices are within bounds
-    const safeI0 = Math.max(0, Math.min(i0, chartData.v[0].length - 1));
-    const safeI1 = Math.max(0, Math.min(i1, chartData.v[1].length - 1));
+    const safeI0 = Math.max(0, Math.min(i0, chartData.velocity[0].length - 1));
+    const safeI1 = Math.max(0, Math.min(i1, chartData.velocity[1].length - 1));
 
-    const v1 = chartData.v[0][safeI0];
-    const t1 = chartData.t[0][safeI0];
+    const v1 = chartData.velocity[0][safeI0];
+    const t1 = chartData.time[0][safeI0];
     const hp1 = chartData.hp[0][safeI0];
 
-    const v2 = chartData.v[1][safeI1];
-    const t2 = chartData.t[1][safeI1];
+    const v2 = chartData.velocity[1][safeI1];
+    const t2 = chartData.time[1][safeI1];
     const hp2 = chartData.hp[1][safeI1];
 
     if (t1 == null || t2 == null) return;

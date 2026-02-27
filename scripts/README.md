@@ -1,10 +1,11 @@
 # Data Extraction Scripts
 
-TypeScript-based data extraction scripts using Bun's native SQLite support. These scripts replace the legacy Perl scripts for extracting game data from `master.mdb`.
+TypeScript-based data extraction scripts using Node.js (`tsx`) and `better-sqlite3`. These scripts replace the legacy Perl scripts for extracting game data from `master.mdb`.
 
 ## Prerequisites
 
-- **Bun** (v1.0 or later) - [Install Bun](https://bun.sh)
+- **Node.js** (v24 or later)
+- **pnpm** (project package manager)
 - **master.mdb** - Game database file from Uma Musume installation
 
 ## Quick Start
@@ -12,7 +13,7 @@ TypeScript-based data extraction scripts using Bun's native SQLite support. Thes
 **Default behavior (Merge Mode - Recommended)**:
 
 ```bash
-bun run extract:all
+pnpm run extract:all
 ```
 
 This will:
@@ -24,19 +25,17 @@ This will:
 **Full replacement mode** (wipes future content):
 
 ```bash
-bun run extract:all --replace
+pnpm run extract:all -- --replace
 # or
-bun run extract:all --full
+pnpm run extract:all -- --full
 ```
 
 Or run individual extraction scripts:
 
 ```bash
-bun run extract:skill-meta      # Skill metadata
-bun run extract:skillnames       # Skill names (EN/JP)
-bun run extract:skill-data       # Skill mechanics
-bun run extract:uma-info         # Uma musume data
-bun run extract:course-data      # Course/track data
+pnpm run extract:skills          # Unified skill data (meta + names + mechanics)
+pnpm run extract:uma-info        # Uma musume data
+pnpm run extract:course-data     # Course/track data
 ```
 
 ## Database Location
@@ -80,7 +79,7 @@ The extraction scripts will automatically detect and use it. This path is gitign
 All scripts also accept a custom database path as the first argument:
 
 ```bash
-bun scripts/extract-skill-meta.ts /path/to/master.mdb
+pnpm exec tsx scripts/extract-skills.ts /path/to/master.mdb
 ```
 
 ## Merge vs Replace Mode
@@ -115,53 +114,25 @@ bun scripts/extract-skill-meta.ts /path/to/master.mdb
 **How to use:**
 
 ```bash
-bun run extract:all --replace
+pnpm run extract:all -- --replace
 # or
-bun run extract:skill-data --full
+pnpm run extract:skills -- --full
 ```
 
 ## Scripts Overview
 
-### extract-skill-meta.ts
+### extract-skills.ts
 
-Extracts skill metadata (group ID, icon ID, SP cost, display order).
+Extracts unified skill data (metadata, names, and mechanics). Applies scenario skill modifiers and handles special cases like Seirios split alternatives.
 
-**Output:** `src/modules/data/skill_meta.json`
-
-**Default:** Merge mode (preserves future content)
-
-**Usage:**
-
-```bash
-bun run extract:skill-meta              # Merge mode (default)
-bun run extract:skill-meta --replace    # Full replacement
-```
-
-### extract-skillnames.ts
-
-Extracts skill names in English and Japanese. Automatically generates inherited versions for unique skills.
-
-**Output:** `src/modules/data/skillnames.json`
-
-**Default:** Merge mode (preserves future content)
-
-**Usage:**
-
-```bash
-bun run extract:skillnames              # Merge mode (default)
-bun run extract:skillnames --replace    # Full replacement
-```
-
-### extract-skill-data.ts
-
-Extracts skill mechanics (conditions, effects, durations). Applies scenario skill modifiers and handles special cases like Seirios split alternatives.
-
-**Output:** `src/modules/data/skill_data.json`
+**Output:** `src/modules/data/skills.json`
 
 **Default:** Merge mode (preserves future content)
 
 **Features:**
 
+- Merges metadata (group ID, icon ID, SP cost, display order) with activation data
+- Includes extracted names from `text_data`
 - Applies 1.2x modifier to scenario skills
 - Handles split alternatives for specific skills (Seirios)
 - Processes up to 2 alternatives per skill
@@ -170,8 +141,8 @@ Extracts skill mechanics (conditions, effects, durations). Applies scenario skil
 **Usage:**
 
 ```bash
-bun run extract:skill-data              # Merge mode (default)
-bun run extract:skill-data --replace    # Full replacement
+pnpm run extract:skills                # Merge mode (default)
+pnpm run extract:skills -- --replace   # Full replacement
 ```
 
 ### extract-uma-info.ts
@@ -184,13 +155,13 @@ Extracts uma musume character data (names, outfits). Filters out unimplemented u
 
 **Requirements:**
 
-- Reads existing `skill_meta.json` for filtering
+- Reads existing `skills.json` for filtering
 
 **Usage:**
 
 ```bash
-bun run extract:uma-info              # Merge mode (default)
-bun run extract:uma-info --replace    # Full replacement
+pnpm run extract:uma-info                # Merge mode (default)
+pnpm run extract:uma-info -- --replace   # Full replacement
 ```
 
 ### extract-course-data.ts
@@ -209,8 +180,8 @@ Extracts course/track data including geometry (corners, straights, slopes).
 **Usage:**
 
 ```bash
-bun run extract:course-data              # Merge mode (default)
-bun run extract:course-data --replace    # Full replacement
+pnpm run extract:course-data                # Merge mode (default)
+pnpm run extract:course-data -- --replace   # Full replacement
 ```
 
 **Special Cases:**
@@ -228,8 +199,8 @@ Master script that runs all extraction scripts in sequence.
 **Usage:**
 
 ```bash
-bun run extract:all              # Merge mode (default)
-bun run extract:all --replace    # Full replacement
+pnpm run extract:all                # Merge mode (default)
+pnpm run extract:all -- --replace   # Full replacement
 ```
 
 **Features:**
@@ -246,9 +217,7 @@ All extracted data is written to `src/modules/data/`:
 
 | File               | Description                           |
 | ------------------ | ------------------------------------- |
-| `skill_meta.json`  | Skill metadata (icons, costs, order)  |
-| `skillnames.json`  | Skill names (English/Japanese)        |
-| `skill_data.json`  | Skill mechanics (conditions, effects) |
+| `skills.json`      | Unified skill data (meta + names + mechanics) |
 | `umas.json`        | Uma musume character data             |
 | `course_data.json` | Course/track geometry data            |
 
@@ -283,9 +252,9 @@ Database helpers:
 
 ## Advantages Over Perl
 
-- **3-6x faster** - Bun's native SQLite is highly optimized
+- **Faster extraction** - `better-sqlite3` is highly optimized
 - **Type safety** - TypeScript catches errors at compile time
-- **No dependencies** - No need to install Perl modules
+- **No Perl dependencies** - No need to install CPAN/Perl modules
 - **Modern tooling** - Better IDE support and debugging
 - **Consistent ecosystem** - Same runtime as the rest of the project
 
@@ -305,7 +274,7 @@ Database helpers:
 
 ### UTF-8 encoding issues
 
-Bun handles UTF-8 automatically. If you see garbled Japanese text:
+Node + SQLite tooling handles UTF-8 automatically. If you see garbled Japanese text:
 
 - Verify the database file is from the current game version
 - Check that your terminal supports UTF-8
@@ -334,13 +303,15 @@ Compare output with Perl version:
 
 ```bash
 # Extract with Perl
-perl scripts/legacy/make_global_skill_meta.pl master.mdb > perl_output.json
+perl scripts/legacy/make_global_skill_meta.pl master.mdb > perl_meta.json
+perl scripts/legacy/make_global_skillnames.pl master.mdb > perl_names.json
+perl scripts/legacy/make_global_skill_data.pl master.mdb > perl_data.json
 
-# Extract with Bun
-bun scripts/extract-skill-meta.ts master.mdb
+# Extract with Node/tsx
+pnpm exec tsx scripts/extract-skills.ts master.mdb
 
-# Compare
-diff perl_output.json src/modules/data/skill_meta.json
+# Compare key count as a quick sanity check
+node -e "const fs=require('fs');const skills=JSON.parse(fs.readFileSync('src/modules/data/skills.json','utf8'));console.log(Object.keys(skills).length)"
 ```
 
 ## Legacy Perl Scripts

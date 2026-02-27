@@ -1,4 +1,3 @@
-import { PositionKeepSettings } from './position-keeps/position-keep-settings';
 import type { WitVarianceSettings } from '@/store/settings.store';
 import {
   setSamples,
@@ -98,11 +97,6 @@ export const AdvancedSettingsPanel = () => {
             className="flex-1"
           />
         </div>
-
-        <Separator />
-
-        {/* Position Keep */}
-        <PositionKeepSettings />
 
         <Separator />
 

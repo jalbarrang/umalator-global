@@ -21,8 +21,8 @@ export const RunnerStatsTab = () => {
     if (!chartData) return null;
 
     return {
-      topSpeed: chartData.v[0].reduce((a, b) => Math.max(a, b), 0),
-      finishTime: chartData.t[0][chartData.t[0].length - 1] * 1.18,
+      topSpeed: chartData.velocity[0].reduce((a, b) => Math.max(a, b), 0),
+      finishTime: chartData.time[0][chartData.time[0].length - 1] * 1.18,
       rushedStats: rushedStats?.uma1,
       leadCompetitionStats: leadCompetitionStats?.uma1,
       staminaStats: staminaStats?.uma1,
@@ -33,8 +33,8 @@ export const RunnerStatsTab = () => {
     if (!chartData) return null;
 
     return {
-      topSpeed: chartData.v[1].reduce((a, b) => Math.max(a, b), 0),
-      finishTime: chartData.t[1][chartData.t[1].length - 1] * 1.18,
+      topSpeed: chartData.velocity[1].reduce((a, b) => Math.max(a, b), 0),
+      finishTime: chartData.time[1][chartData.time[1].length - 1] * 1.18,
       rushedStats: rushedStats?.uma2,
       leadCompetitionStats: leadCompetitionStats?.uma2,
       staminaStats: staminaStats?.uma2,
@@ -76,7 +76,7 @@ export const RunnerStatsTab = () => {
 
               <TableRow>
                 <TableHead className="font-medium">Start delay</TableHead>
-                <TableCell className="font-mono">{chartData.sdly[0].toFixed(4)} s</TableCell>
+                <TableCell className="font-mono">{chartData.startDelay[0].toFixed(4)} s</TableCell>
               </TableRow>
 
               <TableRow>
@@ -141,7 +141,7 @@ export const RunnerStatsTab = () => {
 
               <TableRow>
                 <TableHead className="font-medium">Start delay</TableHead>
-                <TableCell className="font-mono">{chartData.sdly[1].toFixed(4)} s</TableCell>
+                <TableCell className="font-mono">{chartData.startDelay[1].toFixed(4)} s</TableCell>
               </TableRow>
 
               <TableRow>
@@ -240,14 +240,18 @@ export const RunnerStatsTab = () => {
             <span className="text-foreground mb-1">Start Delay Diff</span>
             <span
               className={cn('text-lg font-bold', {
-                'text-[#2a77c5] dark:text-blue-500': chartData.sdly[0] < chartData.sdly[1],
-                'text-[#c52a2a] dark:text-red-500': chartData.sdly[0] > chartData.sdly[1],
+                'text-[#2a77c5] dark:text-blue-500':
+                  chartData.startDelay[0] < chartData.startDelay[1],
+                'text-[#c52a2a] dark:text-red-500':
+                  chartData.startDelay[0] > chartData.startDelay[1],
               })}
             >
-              {Math.abs(chartData.sdly[0] - chartData.sdly[1]).toFixed(4)}s
+              {Math.abs(chartData.startDelay[0] - chartData.startDelay[1]).toFixed(4)}s
             </span>
             <span className="text-xs text-foreground">
-              {chartData.sdly[0] < chartData.sdly[1] ? 'Uma 1 faster start' : 'Uma 2 faster start'}
+              {chartData.startDelay[0] < chartData.startDelay[1]
+                ? 'Uma 1 faster start'
+                : 'Uma 2 faster start'}
             </span>
           </div>
         </div>

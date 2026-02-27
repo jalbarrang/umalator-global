@@ -32,9 +32,8 @@ import type { CellContext, Column, ColumnDef, Row, SortingState } from '@tanstac
 import type { PoolMetrics, SkillComparisonRoundResult } from '@/modules/simulation/types';
 import icons from '@/modules/data/icons.json';
 import umas from '@/modules/data/umas.json';
-import skillnames from '@/modules/data/skillnames.json';
 
-import { allSkills } from '@/modules/skills/utils';
+import { allSkills, getSkillNameById } from '@/modules/skills/utils';
 import { formatMs } from '@/utils/time';
 import i18n from '@/i18n';
 import { cn } from '@/lib/utils';
@@ -105,7 +104,7 @@ const skillNameCell =
     return (
       // <div className="flex items-center gap-2" data-itemtype="skill" data-itemid={id}>
       <>
-        <img src={`/icons/${skill.meta.iconId}.png`} className="w-4 h-4" />
+        <img src={`/icons/${skill.iconId}.png`} className="w-4 h-4" />
         <span>
           {i18n.t(`skillnames.${id}`)} ({id})
         </span>
@@ -270,8 +269,8 @@ export const BasinnChart = (props: BasinnChartProps) => {
           const skillIdA = a.getValue('id');
           const skillIdB = b.getValue('id');
 
-          const skillNameA = skillnames[skillIdA as keyof typeof skillnames];
-          const skillNameB = skillnames[skillIdB as keyof typeof skillnames];
+          const skillNameA = getSkillNameById(`${skillIdA}`);
+          const skillNameB = getSkillNameById(`${skillIdB}`);
 
           return skillNameA < skillNameB ? -1 : 1;
         },

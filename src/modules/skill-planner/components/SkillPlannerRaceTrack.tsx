@@ -1,10 +1,9 @@
 import { Activity, Fragment, useMemo, useRef } from 'react';
 import { useShallow } from 'zustand/shallow';
-import type { CourseData } from '@/modules/simulation/lib/course/definitions';
 import type { SimulationRun } from '@/modules/simulation/compare.types';
 import type { RegionData } from '@/modules/racetrack/hooks/useVisualizationData';
+import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import { useVisualizationData } from '@/modules/racetrack/hooks/useVisualizationData';
-import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
 import { initializeSimulationRun } from '@/modules/simulation/compare.types';
 import {
   toggleShowHp,
@@ -29,6 +28,7 @@ import {
   TrackConditions,
   TrackName,
 } from '@/modules/racetrack/components/RaceTrack';
+import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 
 // Helper function for efficient rung collision detection
 const findAvailableRung = (

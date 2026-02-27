@@ -1,7 +1,7 @@
 import React from 'react';
 import { SectionText } from './section-text';
 import { DistanceMarker } from './distance-marker';
-import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
+import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 
 interface PhaseBarProps {
   distance: number;

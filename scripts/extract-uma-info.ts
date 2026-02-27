@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 /**
  * Extract uma musume info from master.mdb
  * Ports make_global_uma_info.pl to TypeScript
@@ -6,7 +6,13 @@
 
 import path from 'node:path';
 import { closeDatabase, openDatabase, queryAll, queryAllWithParams } from './lib/database';
-import { resolveMasterDbPath, sortByNumericKey, writeJsonFile } from './lib/shared';
+import {
+  readJsonFile,
+  readJsonFileIfExists,
+  resolveMasterDbPath,
+  sortByNumericKey,
+  writeJsonFile,
+} from './lib/shared';
 
 interface UmaNameRow {
   index: number;
@@ -48,7 +54,7 @@ async function extractUmaInfo() {
 
   // Read existing files to check which umas are implemented
   const basePath = path.join(process.cwd(), 'src/modules/data');
-  const skillMeta = await Bun.file(path.join(basePath, 'skill_meta.json')).json();
+  const skills = await readJsonFile<Record<string, unknown>>(path.join(basePath, 'skills.json'));
 
   const db = openDatabase(dbPath);
 
@@ -70,18 +76,21 @@ async function extractUmaInfo() {
 
       // Query outfit epithets for this uma (category 5)
       // Outfit IDs are between (umaId * 100) and ((umaId + 1) * 100)
+      const minOutfitIndex = umaId * 100;
+      const maxOutfitIndex = (umaId + 1) * 100;
       const outfitRows = queryAllWithParams<OutfitRow>(
         db,
         `SELECT [index], text FROM text_data
          WHERE category = 5
-         AND [index] BETWEEN ?1 * 100 AND (?1 + 1) * 100
+         AND [index] BETWEEN ? AND ?
          ORDER BY [index] ASC`,
-        umaId,
+        minOutfitIndex,
+        maxOutfitIndex,
       );
 
       const outfits: Record<string, string> = {};
 
-      // Filter outfits by checking if their unique skill exists in skill_meta
+      // Filter outfits by checking if their unique skill exists in extracted skills
       for (const outfitRow of outfitRows) {
         const outfitId = outfitRow.index;
         const epithet = outfitRow.text;
@@ -89,9 +98,9 @@ async function extractUmaInfo() {
         // Calculate unique skill ID for this outfit
         const skillId = uniqueSkillForOutfit(outfitId);
 
-        // Only include outfit if the unique skill exists in meta
+        // Only include outfit if the unique skill exists in extracted skills
         // (filters out unimplemented umas in global version)
-        if (skillMeta[skillId.toString()]) {
+        if (skills[skillId.toString()]) {
           outfits[outfitId.toString()] = epithet;
         }
       }
@@ -115,11 +124,9 @@ async function extractUmaInfo() {
       finalUmas = umas;
       console.log(`\n⚠️  Full replacement mode: ${processedCount} umas from master.mdb only`);
     } else {
-      const existingFile = Bun.file(outputPath);
+      const existingData = await readJsonFileIfExists<Record<string, UmaInfo>>(outputPath);
 
-      if (await existingFile.exists()) {
-        const existingData = await existingFile.json();
-
+      if (existingData) {
         // Merge: existing data first, then overwrite with new data
         finalUmas = { ...existingData, ...umas };
 

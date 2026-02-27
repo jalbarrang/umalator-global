@@ -3,8 +3,6 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import { useShallow } from 'zustand/shallow';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import type { RaceConditions } from '@/utils/races';
-import type { IPosKeepMode } from '@/modules/simulation/lib/runner/definitions';
-import { PosKeepMode } from '@/modules/simulation/lib/runner/definitions';
 import { createRunnerState } from '@/modules/runners/components/runner-card/types';
 import { DEFAULT_COURSE_ID, DEFAULT_SAMPLES } from '@/utils/constants';
 import { createRaceConditions } from '@/utils/races';
@@ -24,14 +22,9 @@ export type WitVarianceSettings = {
 type ISettingsStore = {
   courseId: number;
   nsamples: number;
-  posKeepMode: IPosKeepMode;
   racedef: RaceConditions;
   uma1: RunnerState;
   uma2: RunnerState;
-  pacer: RunnerState;
-  showVirtualPacemakerOnGraph: boolean;
-  pacemakerCount: number;
-  selectedPacemakers: Array<boolean>;
   witVarianceSettings: WitVarianceSettings;
   selectedPresetId: string | null;
 
@@ -48,11 +41,9 @@ export const useSettingsStore = create<ISettingsStore>()(
     (_) => ({
       courseId: DEFAULT_COURSE_ID,
       nsamples: DEFAULT_SAMPLES,
-      posKeepMode: PosKeepMode.Approximate,
       racedef: createRaceConditions(),
       uma1: createRunnerState(),
       uma2: createRunnerState(),
-      pacer: createRunnerState({ strategy: 'Front Runner' }),
       witVarianceSettings: {
         allowRushedUma1: true,
         allowRushedUma2: true,
@@ -64,9 +55,6 @@ export const useSettingsStore = create<ISettingsStore>()(
         allowSkillCheckChanceUma2: true,
         simWitVariance: true,
       },
-      showVirtualPacemakerOnGraph: false,
-      pacemakerCount: 1,
-      selectedPacemakers: [false, false, false],
       selectedPresetId: null,
 
       // Race Track UI settings
@@ -99,15 +87,6 @@ export const setWitVariance = (witVarianceSettings: Partial<WitVarianceSettings>
 
 export const setSamples = (samples: number) => {
   useSettingsStore.setState({ nsamples: samples });
-};
-
-export const setPosKeepMode = (posKeepMode: IPosKeepMode) => {
-  // const { currentIdx } = useUIStore.getState();
-  useSettingsStore.setState({ posKeepMode });
-
-  // if (posKeepMode !== PosKeepMode.Virtual && currentIdx === 2) {
-  //   setCurrentIdx(0);
-  // }
 };
 
 export const setRaceParams = (raceParams: RaceConditions) => {

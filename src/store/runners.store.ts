@@ -7,7 +7,6 @@ import { cloneDeep } from 'es-toolkit';
 import { useMemo } from 'react';
 import { useSettingsStore } from './settings.store';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
-import { PosKeepMode } from '@/modules/simulation/lib/runner/definitions';
 import { createRunnerState, runawaySkillId } from '@/modules/runners/components/runner-card/types';
 import {
   getGeneVersionSkillId,
@@ -15,12 +14,11 @@ import {
   skillsById,
 } from '@/modules/skills/utils';
 
-type RunnerType = 'uma1' | 'uma2' | 'pacer';
+type RunnerType = 'uma1' | 'uma2';
 
 type IRunnersStore = {
   uma1: RunnerState;
   uma2: RunnerState;
-  pacer: RunnerState;
 
   // UI Specific
   runnerId: RunnerType;
@@ -31,9 +29,6 @@ export const useRunnersStore = create<IRunnersStore>()(
     (_) => ({
       uma1: createRunnerState(),
       uma2: createRunnerState(),
-      pacer: createRunnerState({
-        strategy: 'Front Runner',
-      }),
       runnerId: 'uma1',
     }),
     {
@@ -61,7 +56,7 @@ export const useRunner = () => {
 
   const handleAddSkill = (skillId: string) => {
     const skill = skillsById.get(skillId);
-    const skillRarity = skill?.data?.rarity;
+    const skillRarity = skill?.rarity;
     let newSkillId = skillId;
 
     // If Runner has outfit, it means it has a unique skill.
@@ -96,25 +91,16 @@ export const resetRunner = (runner: RunnerType) => {
 };
 
 export const resetRunners = () => {
-  const { posKeepMode } = useSettingsStore.getState();
-
   useRunnersStore.setState({
     uma1: createRunnerState(),
     uma2: createRunnerState(),
   });
-
-  if (posKeepMode === PosKeepMode.Virtual) {
-    useRunnersStore.setState({
-      pacer: createRunnerState({ strategy: 'Front Runner' }),
-    });
-  }
 };
 
 export const resetAllRunners = () => {
   useRunnersStore.setState({
     uma1: createRunnerState(),
     uma2: createRunnerState(),
-    pacer: createRunnerState({ strategy: 'Front Runner' }),
   });
 
   toast.success('All runners reset');
@@ -191,7 +177,7 @@ export const replaceRunnerOutfit = (
     const skillData = skillsById.get(skillId);
 
     // Clean up skills that are not 3* or lower
-    if (skillData?.data?.rarity && skillData.data.rarity < 3) {
+    if (skillData?.rarity && skillData.rarity < 3) {
       newSkills.push(skillId);
     }
   }

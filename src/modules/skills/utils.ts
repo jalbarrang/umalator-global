@@ -1,41 +1,30 @@
 import { parseSkillCondition, tokenizedConditions } from './conditions';
-import type { ISkillRarity } from '@/modules/simulation/lib/skills/definitions';
-import type { SkillAlternative } from '@/modules/simulation/lib/core/RaceSolverBuilder';
 import type { ISkill } from './types';
 import type { UmaAltId } from '@/modules/runners/utils';
-import skillsDataList from '@/modules/data/skill_data.json';
-import skillMetaList from '@/modules/data/skill_meta.json';
-import skillNamesList from '@/modules/data/skillnames.json';
+import type { ISkillRarity } from '@/lib/sunday-tools/skills/definitions';
+import { SkillRarity } from '@/lib/sunday-tools/skills/definitions';
+import { skills } from '@/modules/data/skills';
+import type { SkillEntry } from '@/modules/data/skills';
+
+// ===== Data =====
+
 import GametoraSkills from '@/modules/data/gametora/skills.json';
 
-import { treeMatch } from '@/modules/simulation/lib/skills/parser/ConditionMatcher';
-import { SkillRarity } from '@/modules/simulation/lib/skills/definitions';
+// ===== Utils =====
+
+import { treeMatch } from '@/lib/sunday-tools/skills/parser/ConditionMatcher';
 
 // Types
 
-export type SkillNamesList = Record<string, Array<string>>;
 export type TranslatedSkillNames = Record<string, string>;
 
-export type SkillData = {
-  alternatives: Array<SkillAlternative>;
-  rarity: ISkillRarity;
-};
+export type SkillData = Pick<SkillEntry, 'alternatives' | 'rarity'>;
 
-export type SkillMeta = {
-  groupId: string;
-  iconId: string;
-  baseCost: number;
-  order: number;
-};
+export type SkillMeta = Pick<SkillEntry, 'groupId' | 'iconId' | 'baseCost' | 'order'>;
 
-export type SkillId = keyof typeof skillsDataList;
-
-export type Skill = {
+export type Skill = SkillEntry & {
   id: string; // The ID of the skill, e.g. "100011-1"
-  name: string; // The name of the skill, e.g. "Corner Adept"
   originalId: string; // The original ID of the skill, e.g. "100011"
-  meta: SkillMeta;
-  data: SkillData;
 };
 
 // Methods
@@ -50,40 +39,50 @@ export const getBaseSkillId = (id: string): string => {
   return skillId;
 };
 
-export const getSkillDataById = (id: string): SkillData => {
+export const getSkillById = (id: string): SkillEntry => {
   const baseId = getBaseSkillId(id);
-
-  const skillData = skillsDataList[baseId as SkillId];
-
-  if (!skillData) {
-    throw new Error(`Skill data not found for ID: ${id}`);
+  const skill = skills[baseId];
+  if (!skill) {
+    throw new Error(`Skill not found for ID: ${id}`);
   }
+  return skill;
+};
 
-  return skillData as SkillData;
+export const getSkillDataById = (id: string): SkillData => {
+  const skill = getSkillById(id);
+  return {
+    alternatives: skill.alternatives,
+    rarity: skill.rarity as ISkillRarity,
+  };
 };
 
 export const getSkillMetaById = (id: string): SkillMeta => {
-  const baseId = getBaseSkillId(id);
-
-  const skillMeta = skillMetaList[baseId as SkillId];
-
-  if (!skillMeta) {
-    throw new Error(`Skill meta not found for ID: ${id}`);
-  }
-
-  return skillMeta as unknown as SkillMeta;
+  const skill = getSkillById(id);
+  return {
+    groupId: skill.groupId,
+    iconId: skill.iconId,
+    baseCost: skill.baseCost,
+    order: skill.order,
+  };
 };
 
 export const getSkillNameById = (id: string): string => {
   const baseId = getBaseSkillId(id);
-
-  const [skillName] = skillNamesList[baseId as SkillId];
-
-  if (!skillName) {
-    throw new Error(`Skill names not found for ID: ${id}`);
+  const skill = skills[baseId];
+  if (skill?.name) {
+    return skill.name;
   }
 
-  return skillName;
+  // Master data doesn't always include inherited aliases. Resolve those from their original unique.
+  if (baseId.startsWith('9')) {
+    const originalId = `1${baseId.slice(1)}`;
+    const originalSkill = skills[originalId];
+    if (originalSkill?.name) {
+      return `${originalSkill.name} (inherited)`;
+    }
+  }
+
+  throw new Error(`Skill name not found for ID: ${id}`);
 };
 
 export function getUniqueSkillForByUmaId(outfitId: UmaAltId): string {
@@ -111,28 +110,41 @@ export function SkillSet(iterable: Array<string>): Set<string> {
 }
 
 export const getBaseSkillsToTest = () => {
-  return Object.keys(skillsDataList).filter((id) => skillsDataList[id as SkillId]?.rarity < 3);
+  const skillIds = Object.keys(skills);
+  const skillsToTest = [];
+
+  for (const id of skillIds) {
+    const skillData = skills[id];
+
+    if (!skillData) continue;
+
+    const firstAlternative = skillData.alternatives[0];
+    if (!firstAlternative) continue;
+
+    // Only test skills that are not unique or evolved and have a condition
+    if (skillData.rarity < 3 && firstAlternative.condition !== '') {
+      skillsToTest.push(id);
+    }
+  }
+
+  return skillsToTest;
 };
 
 export const translateSkillNamesForLang = (lang: 'en' | 'ja'): TranslatedSkillNames => {
-  return Object.entries(skillNamesList).reduce((acc, [key, value]) => {
-    const translatedValue = value[lang === 'en' ? 0 : 1];
-
-    if (translatedValue) {
-      acc[key] = translatedValue;
+  return Object.entries(skills).reduce((acc, [key, value]) => {
+    // Names from master are currently English-only; for now JA falls back to EN.
+    if (lang === 'en' || lang === 'ja') {
+      acc[key] = value.name;
     }
-
     return acc;
   }, {} as TranslatedSkillNames);
 };
 
 export const getAllSkills = (): Array<Skill> => {
-  return Object.keys(skillsDataList).map((id) => ({
+  return Object.entries(skills).map(([id, entry]) => ({
+    ...entry,
     id,
     originalId: getBaseSkillId(id),
-    name: getSkillNameById(id),
-    meta: getSkillMetaById(id),
-    data: getSkillDataById(id),
   }));
 };
 
@@ -349,15 +361,15 @@ export const uniqueSkillIds: Array<string> = [];
 for (const skill of allSkills) {
   skillsById.set(skill.id, skill);
 
-  const isNotUniqueSkill = skill.data.rarity < SkillRarity.Unique;
-  const isEvolvedSkill = skill.data.rarity === SkillRarity.Evolution;
+  const isNotUniqueSkill = skill.rarity < SkillRarity.Unique;
+  const isEvolvedSkill = skill.rarity === SkillRarity.Evolution;
 
   if (isNotUniqueSkill || isEvolvedSkill) {
     nonUniqueSkills.push(skill);
     nonUniqueSkillIds.push(skill.id);
   }
 
-  if (skill.data.rarity >= 4 && skill.id.startsWith('1')) {
+  if (skill.rarity >= 4 && skill.id.startsWith('1')) {
     uniqueSkillIds.push(skill.id);
   }
 }

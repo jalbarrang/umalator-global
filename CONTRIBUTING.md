@@ -10,12 +10,6 @@ Before you begin, ensure you have the following installed:
 
 ### Required Software
 
-1. **Bun** (v1.0 or later)
-   - JavaScript runtime with native SQLite support
-   - Download from [bun.sh](https://bun.sh)
-   - Replaces Node.js for this project
-   - Used for both development and data extraction
-
 ### Game Data Access
 
 You need access to the game's `master.mdb` file for data extraction:
@@ -101,9 +95,7 @@ umalator-global/
 │   │   │   └── utils.ts
 │   │   │
 │   │   └── data/                 # Game data files (JSON)
-│   │       ├── skill_data.json   # Extracted skill data
-│   │       ├── skillnames.json   # Skill name translations
-│   │       ├── skill_meta.json   # Skill metadata (icons, rarity)
+│   │       ├── skills.json       # Unified extracted skill data
 │   │       ├── course_data.json  # Extracted course data
 │   │       ├── umas.json         # Uma musume character data
 │   │       └── tracknames.json   # Track name translations
@@ -184,7 +176,7 @@ npm install
 **Extract all data at once (Merge Mode - Recommended):**
 
 ```bash
-bun run extract:all
+pnpm run extract:all
 ```
 
 This **merge mode** (default):
@@ -196,7 +188,7 @@ This **merge mode** (default):
 **Full replacement mode** (removes future content):
 
 ```bash
-bun run extract:all --replace
+pnpm run extract:all --replace
 ```
 
 Use `--replace` only when you want to completely overwrite files with only current game content.
@@ -204,11 +196,9 @@ Use `--replace` only when you want to completely overwrite files with only curre
 **Extract individual data files:**
 
 ```bash
-bun run extract:skill-meta      # Skill metadata
-bun run extract:skillnames       # Skill names (EN/JP)
-bun run extract:skill-data       # Skill mechanics
-bun run extract:uma-info         # Uma musume data
-bun run extract:course-data      # Course/track data
+pnpm run extract:skills           # Unified skill data (meta + names + mechanics)
+pnpm run extract:uma-info         # Uma musume data
+pnpm run extract:course-data      # Course/track data
 ```
 
 All scripts support `--replace` flag for full replacement mode.
@@ -217,14 +207,14 @@ All scripts support `--replace` flag for full replacement mode.
 The course extraction requires course event parameter JSON files in the `courseeventparams/` directory. These files contain detailed course geometry (corners, slopes, etc.) and must be extracted separately from the game assets.
 
 **Legacy Perl Scripts:**
-Legacy Perl scripts are preserved in `scripts/legacy/` for reference but are no longer maintained. The new Bun-based TypeScript scripts are 3-6x faster and don't require Perl installation.
+Legacy Perl scripts are preserved in `scripts/legacy/` for reference but are no longer maintained. The new Node.js-based TypeScript scripts are 3-6x faster and don't require Perl installation.
 
 ### 3. Build and Run the Application
 
 **Development Server (with hot reload):**
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 Default port is typically 5173. Access at `http://localhost:5173`
@@ -234,7 +224,7 @@ The dev server automatically rebuilds when source files change.
 **Production Build:**
 
 ```bash
-npm run build
+pnpm run build
 ```
 
 Generates optimized output in the `dist/` directory.
@@ -242,7 +232,7 @@ Generates optimized output in the `dist/` directory.
 **Preview Production Build:**
 
 ```bash
-npm run preview
+pnpm run preview
 ```
 
 Serves the production build locally for testing.
@@ -250,11 +240,11 @@ Serves the production build locally for testing.
 **Other Useful Commands:**
 
 ```bash
-npm run typecheck    # Check TypeScript types without building
-npm run lint         # Run ESLint to check code quality
-npm run format       # Format code with Prettier
-npm run test         # Run tests with Vitest
-npm run test:watch   # Run tests in watch mode
+pnpm run typecheck    # Check TypeScript types without building
+pnpm run lint         # Run ESLint to check code quality
+pnpm run format       # Format code with Prettier
+pnpm run test         # Run tests with Vitest
+pnpm run test:watch   # Run tests in watch mode
 ```
 
 ### Build Configuration
@@ -277,7 +267,7 @@ These aliases can be used in imports:
 
 ```typescript
 import { RaceSolver } from '@simulation/lib/RaceSolver';
-import skillData from '@data/skill_data.json';
+import { skills } from '@/modules/data/skills';
 ```
 
 **Global Constants:**
@@ -295,7 +285,7 @@ When the game updates, you'll need to refresh the data:
 2. **Extract new data:**
 
    ```bash
-   bun run extract:all
+   pnpm run extract:all
    # or run individual scripts as needed
    ```
 
@@ -317,33 +307,22 @@ When the game updates, you'll need to refresh the data:
 
 ### Data Extraction Scripts
 
-All scripts are TypeScript files in the `scripts/` directory using Bun's native SQLite support. They output to `src/modules/data/`.
+All scripts are TypeScript files in the `scripts/` directory using `better-sqlite3`. They output to `src/modules/data/`.
 
 See [`scripts/README.md`](scripts/README.md) for detailed documentation.
 
-#### `extract-skill-data.ts`
+#### `extract-skills.ts`
 
-Extracts skill effects, conditions, and parameters from the database.
+Extracts unified skill data (effects, conditions, metadata, and names) from the database.
 
 **Key Features:**
 
 - Applies 1.2x modifier to scenario skills
 - Handles split alternatives (Seirios special case)
-- Processes up to 2 alternatives and 3 effects per skill
+- Merges mechanics + metadata + names into one object
+- Preserves future/datamined entries in merge mode
 
-**Output:** `src/modules/data/skill_data.json`
-
-#### `extract-skillnames.ts`
-
-Extracts skill names in both Japanese and English. Automatically generates inherited versions for unique skills.
-
-**Output:** `src/modules/data/skillnames.json`
-
-#### `extract-skill-meta.ts`
-
-Generates metadata for skills (icon IDs, SP costs, display order).
-
-**Output:** `src/modules/data/skill_meta.json`
+**Output:** `src/modules/data/skills.json`
 
 #### `extract-uma-info.ts`
 
@@ -840,13 +819,9 @@ Be prepared to:
 
 **"Cannot find module":**
 
-- Run `npm install` to ensure all dependencies are installed
+- Run `pnpm install` to ensure all dependencies are installed
 - Check that import paths are correct
 - Verify path aliases are configured in `vite.config.ts`
-
-**"Command not found: bun":**
-
-- Install Bun from [bun.sh](https://bun.sh)
 
 ### Data Extraction Issues
 

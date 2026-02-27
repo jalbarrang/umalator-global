@@ -11,18 +11,17 @@ import {
   setSkillLoading,
   useUniqueSkillBasinStore,
 } from '@/modules/simulation/stores/uma-basin.store';
-import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
-import { useRunner, useRunnersStore } from '@/store/runners.store';
+import { useRunner } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
 import { racedefToParams } from '@/utils/races';
 import { defaultSimulationOptions } from '@/components/bassin-chart/utils';
+import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 
 /**
  * Hook for running additional samples for a single skill in Uma Basin
  * Uses a dedicated worker to run simulations without blocking the UI
  */
 export function useUmaSingleRunner() {
-  const { pacer } = useRunnersStore();
   const { runner } = useRunner();
   const { racedef, courseId } = useSettingsStore();
   const { seed: currentSeed, results } = useUniqueSkillBasinStore(
@@ -116,7 +115,6 @@ export function useUmaSingleRunner() {
         course,
         racedef: params,
         uma: runner,
-        pacer: pacer,
         options: defaultSimulationOptions,
       };
 
@@ -135,7 +133,7 @@ export function useUmaSingleRunner() {
         `Started ${additionalSamples} additional samples for skill ${skillId} with seed ${newSeed}`,
       );
     },
-    [currentSeed, results, course, racedef, runner, pacer],
+    [currentSeed, results, course, racedef, runner],
   );
 
   /**

@@ -2,10 +2,9 @@ import { useMemo } from 'react';
 import { HelpCircleIcon, PlusIcon, TrashIcon } from 'lucide-react';
 import {
   addCandidate,
+  addObtainedSkill,
   clearCandidates,
-  createCandidate,
   resetRunner,
-  setCandidates,
   setSkillsOpen,
   updateRunner,
   useSkillPlannerStore,
@@ -15,23 +14,19 @@ import { SkillPlannerResults } from './SkillPlannerResults';
 import { HelpDialog, useHelpDialog } from './HelpDialog';
 import { RunnerCard } from './RunnerCard';
 import { CostModifiersPanel } from './CostModifiersPanel';
-import { SkillPlannerRaceTrack } from './SkillPlannerRaceTrack';
 import { RaceSettingsPanel } from './RaceSettingsPanel';
-import type { CandidateSkill } from '../types';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { Button } from '@/components/ui/button';
 import {
   getSelectableSkillsForUma,
   getUniqueSkillForByUmaId,
   nonUniqueSkillIds,
-  skillsById,
 } from '@/modules/skills/utils';
 import { SkillPickerDrawer } from '@/modules/skills/components/skill-list/SkillPickerDrawer';
-import { initializeSimulationRun } from '@/modules/simulation/compare.types';
 
 export function SkillPlannerLayout() {
   const { open: helpOpen, setOpen: setHelpOpen } = useHelpDialog();
-  const { skillDrawerOpen, runner, result, hasFastLearner } = useSkillPlannerStore();
+  const { skillDrawerOpen, runner } = useSkillPlannerStore();
 
   const umaId = useMemo(() => {
     if (runner.outfitId) {
@@ -42,8 +37,6 @@ export function SkillPlannerLayout() {
   }, [runner.outfitId]);
 
   const handleSkillSelect = (skills: Array<string>) => {
-    updateRunner({ skills });
-
     for (const skillId of skills) {
       addCandidate(skillId, 0);
     }
@@ -63,36 +56,20 @@ export function SkillPlannerLayout() {
   }, [umaId]);
 
   const handleUpdateRunner = (updates: Partial<RunnerState>) => {
-    const newSkills: Array<string> = [];
-    const newCandidates: Record<string, CandidateSkill> = {};
+    // Update runner state without rebuilding candidates
+    // This preserves auto-added family members (e.g., stackable tiers, gold skill whites)
+    updateRunner(updates);
 
-    for (const skillId of runner.skills) {
-      const skillData = skillsById.get(skillId);
-
-      if (skillData?.data?.rarity && skillData.data.rarity < 3) {
-        newSkills.push(skillId);
-        const candidate = createCandidate({
-          skillId: skillId,
-          hasFastLearner: hasFastLearner,
-        });
-
-        newCandidates[skillId] = candidate;
-      }
-    }
-
+    // Only handle unique skill if outfit changed
     if (updates.outfitId) {
       const uniqueSkill = getUniqueSkillForByUmaId(updates.outfitId);
-      newSkills.push(uniqueSkill);
-      const uniqueCandidate = createCandidate({
-        skillId: uniqueSkill,
-        hasFastLearner: hasFastLearner,
-        isObtained: true,
-      });
-      newCandidates[uniqueSkill] = uniqueCandidate;
-    }
 
-    updateRunner(updates);
-    setCandidates(newCandidates);
+      // Add unique skill to candidates if not already there
+      addCandidate(uniqueSkill, 0);
+
+      // Mark unique skill as obtained
+      addObtainedSkill(uniqueSkill);
+    }
   };
 
   const handleResetRunner = () => {
@@ -105,10 +82,11 @@ export function SkillPlannerLayout() {
         open={skillDrawerOpen}
         umaId={umaId}
         options={availableSkills}
-        currentSkills={runner.skills}
+        currentSkills={[]}
         onSelect={handleSkillSelect}
         onOpenChange={handleOpenChange}
       />
+
       <HelpDialog open={helpOpen} onOpenChange={setHelpOpen} />
 
       <div className="flex flex-col md:flex-row gap-2 flex-1 min-h-0">
@@ -146,13 +124,6 @@ export function SkillPlannerLayout() {
         <div className="flex flex-col gap-2 flex-1">
           {/* Always visible race settings */}
           <RaceSettingsPanel />
-
-          {/* RaceTrack visualization - only after optimization */}
-          {result && result.runData && (
-            <SkillPlannerRaceTrack
-              chartData={result.runData.medianrun ?? initializeSimulationRun()}
-            />
-          )}
 
           <CostModifiersPanel />
           <SkillPlannerResults />

@@ -1,13 +1,9 @@
 import { useMemo } from 'react';
 
 import { ChevronsUpDown, Zap } from 'lucide-react';
-import type { ISkillTarget, ISkillType } from '@/modules/simulation/lib/skills/definitions';
+import type { ISkillTarget, ISkillType } from '@/lib/sunday-tools/skills/definitions';
 import { useRaceStore } from '@/modules/simulation/stores/compare.store';
-import {
-  SkillType,
-  translateSkillEffectTarget,
-  translateSkillEffectType,
-} from '@/modules/simulation/lib/skills/definitions';
+
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   Empty,
@@ -17,6 +13,11 @@ import {
   EmptyTitle,
 } from '@/components/ui/empty';
 import { getSkillNameById } from '@/modules/skills/utils';
+import {
+  SkillType,
+  translateSkillEffectTarget,
+  translateSkillEffectType,
+} from '@/lib/sunday-tools/skills/definitions';
 
 /**
  * Returns skill activates grouped by skill id
@@ -27,7 +28,7 @@ const useRunnerSkillsActivated = (runnerIndex: number) => {
   return useMemo(() => {
     if (!chartData) return [];
 
-    const runnerSkills = chartData.sk[runnerIndex];
+    const runnerSkills = chartData.skillActivations[runnerIndex];
 
     const skillPositions: Array<SkillPosition> = [];
     for (const [skillId, activations] of Object.entries(runnerSkills)) {
@@ -76,7 +77,7 @@ export const SkillsTab = () => {
   const totalSkillDistanceUma1 = useMemo(() => {
     if (!chartData) return 0;
 
-    const runnerSkills = chartData.sk[0];
+    const runnerSkills = chartData.skillActivations[0];
     let totalSkillDistance = 0;
 
     for (const [_, activations] of Object.entries(runnerSkills)) {
@@ -99,7 +100,7 @@ export const SkillsTab = () => {
   const totalSkillDistanceUma2 = useMemo(() => {
     if (!chartData) return 0;
 
-    const runnerSkills = chartData.sk[1];
+    const runnerSkills = chartData.skillActivations[1];
     let totalSkillDistance = 0;
 
     for (const [_, activations] of Object.entries(runnerSkills)) {
@@ -248,12 +249,12 @@ const RunnerSkillsTable = (props: RunnerSkillsTableProps) => {
                       <div className="text-end text-sm">Duration</div>
                     </div>
 
-                    {skill.effects.map((effect, index) => {
+                    {skill.effects.map((effect, effectIndex) => {
                       const effectType = translateSkillEffectType(effect.effectType);
                       const effectTarget = translateSkillEffectTarget(effect.effectTarget);
 
                       return (
-                        <div key={`${skill.id}-${index}`} className="grid grid-cols-5">
+                        <div key={`${skill.id}-${effectIndex}`} className="grid grid-cols-5">
                           <div className="text-sm">{effectType}</div>
                           <div className="text-end text-sm">{effectTarget}</div>
                           <div className="text-end text-sm">{effect.start.toFixed(1)}m</div>

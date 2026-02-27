@@ -98,7 +98,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
     for (const skillId of state.skills) {
       const skillData = skillsById.get(skillId);
 
-      if (skillData?.data?.rarity && skillData.data.rarity < 3) {
+      if (skillData?.rarity && skillData.rarity < 3) {
         newSkills.push(skillId);
       }
     }

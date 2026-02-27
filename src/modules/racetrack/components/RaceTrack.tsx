@@ -14,10 +14,9 @@ import { SkillMarker } from './skill-marker';
 import { SlopeLabelBar } from './slope-label-bar';
 import { SlopeVisualization } from './slope-visualization';
 import type { RegionData } from '../hooks/useVisualizationData';
-import type { CourseData } from '@/modules/simulation/lib/course/definitions';
 import type { SimulationRun } from '@/modules/simulation/compare.types';
 import type { RaceConditions } from '@/utils/races';
-import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
+import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import { initializeSimulationRun } from '@/modules/simulation/compare.types';
 import { updateForcedSkillPosition, useRunnersStore } from '@/store/runners.store';
 import {
@@ -34,6 +33,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { WeatherIcon } from '@/components/race-settings/WeatherSelect';
 import { SeasonIcon } from '@/components/race-settings/SeasonSelect';
+import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 
 // Helper function for efficient rung collision detection
 const findAvailableRung = (
@@ -70,11 +70,10 @@ const RegionSegment = (props: RegionSegmentProps) => {
     })),
   );
 
-  const { uma1, uma2, pacer } = useRunnersStore(
+  const { uma1, uma2 } = useRunnersStore(
     useShallow((state) => ({
       uma1: state.uma1,
       uma2: state.uma2,
-      pacer: state.pacer,
     })),
   );
 
@@ -83,9 +82,8 @@ const RegionSegment = (props: RegionSegmentProps) => {
     () => ({
       uma1: uma1?.forcedSkillPositions ?? {},
       uma2: uma2?.forcedSkillPositions ?? {},
-      pacer: pacer?.forcedSkillPositions ?? {},
     }),
-    [uma1?.forcedSkillPositions, uma2?.forcedSkillPositions, pacer?.forcedSkillPositions],
+    [uma1?.forcedSkillPositions, uma2?.forcedSkillPositions],
   );
 
   return allRegions.reduce(
@@ -130,9 +128,7 @@ const RegionSegment = (props: RegionSegmentProps) => {
                 ? forcedPositions.uma1
                 : desc.umaIndex === 1
                   ? forcedPositions.uma2
-                  : desc.umaIndex === 2
-                    ? forcedPositions.pacer
-                    : null;
+                  : null;
 
             const forcedPos = positions?.[desc.skillId];
             if (forcedPos !== undefined) {
@@ -261,8 +257,6 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (pro
       updateForcedSkillPosition('uma1', skillId, newStart);
     } else if (umaIndex === 1) {
       updateForcedSkillPosition('uma2', skillId, newStart);
-    } else if (umaIndex === 2) {
-      updateForcedSkillPosition('pacer', skillId, newStart);
     }
   };
 

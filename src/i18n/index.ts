@@ -4,7 +4,7 @@ import skills_en from './lang/en/skills';
 import skills_ja from './lang/ja/skills';
 
 import { TRACKNAMES_en, TRACKNAMES_ja } from './lang/tracknames';
-import { GroundCondition } from '@/modules/simulation/lib/course/definitions';
+import { GroundCondition } from '@/lib/sunday-tools/course/definitions';
 
 const definitions = {
   en: {

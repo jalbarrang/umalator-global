@@ -1,6 +1,6 @@
-import type { IMood } from '@/modules/simulation/lib/runner/definitions';
+import type { IMood } from '@/lib/sunday-tools/runner/definitions';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
-import { Mood } from '@/modules/simulation/lib/runner/definitions';
+import { Mood } from '@/lib/sunday-tools/runner/definitions';
 
 type MoodSelectProps = {
   value: IMood;

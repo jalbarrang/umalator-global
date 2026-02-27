@@ -1,6 +1,6 @@
 /**
  * CLI Debug Script for Skill Comparison
- * Usage: bun run debug:skill-compare [options]
+ * Usage: pnpm run skill:compare [options]
  */
 
 import { readFileSync } from 'node:fs';
@@ -9,10 +9,22 @@ import { Command } from 'commander';
 
 import { DebugConfigSchema } from './runner-config.schema';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
-import { CourseHelpers } from '@/modules/simulation/lib/course/CourseData';
+import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 import { runSkillComparison } from '@/modules/simulation/simulators/skill-compare';
 import { racedefToParams } from '@/utils/races';
-import { defaultSimulationOptions } from '@/components/bassin-chart/utils';
+
+export const defaultSimulationOptions = {
+  allowRushedUma1: false,
+  allowRushedUma2: false,
+  allowDownhillUma1: false,
+  allowDownhillUma2: false,
+  allowSectionModifierUma1: false,
+  allowSectionModifierUma2: false,
+  useEnhancedSpurt: false,
+  accuracyMode: false,
+  skillCheckChanceUma1: false,
+  skillCheckChanceUma2: false,
+};
 
 const program = new Command();
 
@@ -86,7 +98,6 @@ program
       racedef: raceParams,
       runnerA: testRunner,
       runnerB: runnerWithSkill,
-      pacer: null,
       options: simOptions,
     });
 

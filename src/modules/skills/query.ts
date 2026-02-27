@@ -1,5 +1,5 @@
-import { SkillRarity } from '../simulation/lib/skills/definitions';
 import type { Skill } from '@/modules/skills/utils';
+import { SkillRarity } from '@/lib/sunday-tools/skills/definitions';
 import { skillFilterLookUp } from '@/modules/skills/utils';
 
 // A predicate that takes a skill and returns whether it passes
@@ -61,7 +61,7 @@ export class SkillQuery {
    * WHERE skill has valid meta (null check)
    */
   whereValid(): this {
-    this.predicates.push((skill) => skill.meta !== null && skill.data !== null);
+    this.predicates.push((skill) => skill.name.length > 0 && skill.iconId.length > 0);
     return this;
   }
 
@@ -136,8 +136,7 @@ export const SkillMatchers = {
   rarity:
     (rarityKey: string) =>
     (skill: Skill): boolean => {
-      if (!skill.data) return false;
-      const rarity = skill.data.rarity;
+      const rarity = skill.rarity;
 
       switch (rarityKey) {
         case 'white':
@@ -159,7 +158,6 @@ export const SkillMatchers = {
     (iconPrefixes: Record<string, Array<string>>) =>
     (iconKey: string) =>
     (skill: Skill): boolean => {
-      if (!skill.meta) return false;
-      return iconPrefixes[iconKey]?.some((p) => skill.meta.iconId.startsWith(p)) ?? false;
+      return iconPrefixes[iconKey]?.some((p) => skill.iconId.startsWith(p)) ?? false;
     },
 };

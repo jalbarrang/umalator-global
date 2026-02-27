@@ -1,5 +1,9 @@
 import { cloneDeep } from 'es-toolkit';
-import type { ISkillPerspective, ISkillTarget, ISkillType } from './lib/skills/definitions';
+import type {
+  ISkillPerspective,
+  ISkillTarget,
+  ISkillType,
+} from '@/lib/sunday-tools/skills/definitions';
 
 export interface CompareResult {
   results: Array<number>;
@@ -39,31 +43,76 @@ export interface SimulationData {
   medianrun: SimulationRun;
 }
 
+/**
+ * Data for a skill comparison simulation
+ */
 export type SkillSimulationData = {
+  /**
+   * Minimum simulation run data
+   */
   minrun: SkillSimulationRun;
+  /**
+   * Maximum simulation run data
+   */
   maxrun: SkillSimulationRun;
+  /**
+   * Mean simulation run data
+   */
   meanrun: SkillSimulationRun;
+  /**
+   * Median simulation run data
+   */
   medianrun: SkillSimulationRun;
 };
 
+/**
+ * Data for a single simulation run
+ */
 export interface SimulationRun {
-  t: Array<Array<number>>;
-  p: Array<Array<number>>;
-  v: Array<Array<number>>;
+  /**
+   * Current Delta Time (in seconds) for each uma
+   */
+  time: Array<Array<number>>;
+  /**
+   * Current Position (in meters) for each uma for each time step
+   */
+  position: Array<Array<number>>;
+  /**
+   * Current Velocity (in meters per second) for each uma for each time step
+   */
+  velocity: Array<Array<number>>;
+  /**
+   * Current HP for each uma for each time step
+   */
   hp: Array<Array<number>>;
+  /**
+   * Current Lane (0-2) for each uma for each time step
+   */
   currentLane: Array<Array<number>>;
+  /**
+   * Current Gap (in meters) between the uma and the pacer for each time step
+   */
   pacerGap: Array<Array<number>>;
-  sk: [SkillActivationMap, SkillActivationMap];
-  sdly: Array<number>;
+  /**
+   * Skill Activations for each uma
+   */
+  skillActivations: [SkillActivationMap, SkillActivationMap];
+  /**
+   * Start Delay (in seconds) for each uma
+   */
+  startDelay: Array<number>;
+  /**
+   * Rushed Mode positions for each uma
+   */
   rushed: Array<Array<RegionActivation>>;
-  posKeep: Array<Array<Array<number>>>;
-  competeFight: Array<RegionActivation | []>;
-  leadCompetition: Array<RegionActivation | []>;
-  pacerV: Array<Array<number>>;
-  pacerP: Array<Array<number>>;
-  pacerT: Array<Array<number>>;
-  pacerPosKeep: Array<Array<Array<number>>>;
-  pacerLeadCompetition: Array<RegionActivation | []>;
+  /**
+   * Dueling Regions for each uma
+   */
+  duelingRegions: Array<RegionActivation | []>;
+  /**
+   * Spot Struggle Regions for each uma
+   */
+  spotStruggleRegions: Array<RegionActivation | []>;
 }
 
 export interface SkillSimulationRun {
@@ -114,23 +163,17 @@ export interface StaminaStatsUma1 {
 }
 
 const defaultSimulationRun: SimulationRun = {
-  t: [[], []],
-  p: [[], []],
-  v: [[], []],
+  time: [[], []],
+  position: [[], []],
+  velocity: [[], []],
   hp: [[], []],
   currentLane: [[], []],
   pacerGap: [[], []],
-  sk: [{}, {}],
-  sdly: [0, 0],
+  skillActivations: [{}, {}],
+  startDelay: [0, 0],
   rushed: [[], []],
-  posKeep: [[], []],
-  competeFight: [[], []],
-  leadCompetition: [[], []],
-  pacerV: [[], [], []],
-  pacerP: [[], [], []],
-  pacerT: [[], [], []],
-  pacerPosKeep: [[], [], []],
-  pacerLeadCompetition: [[], [], []],
+  duelingRegions: [[], []],
+  spotStruggleRegions: [[], []],
 };
 
 export const initializeSimulationRun = (

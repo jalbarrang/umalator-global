@@ -16,11 +16,8 @@ export function WorkInProgress() {
         <p className="text-muted-foreground">
           This feature is currently under development and will be available soon.
         </p>
-        <p className="text-sm text-muted-foreground mt-4">
-          Check back later for updates!
-        </p>
+        <p className="text-sm text-muted-foreground mt-4">Check back later for updates!</p>
       </Card>
     </div>
   );
 }
-

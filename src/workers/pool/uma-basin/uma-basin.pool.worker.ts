@@ -26,19 +26,12 @@ function processBatch(batch: WorkBatch): void {
     return;
   }
 
-  const { course, racedef, uma, pacer, options } = simulationParams;
+  const { course, racedef, uma, options } = simulationParams;
 
-  // Prepare uma and pacer with proper skill arrays
+  // Prepare uma with proper skill arrays
   const baseRunner = cloneDeepWith(uma, (value, key) => {
     if (key === 'skills') return clone(value);
   });
-
-  let basePacer = null;
-  if (pacer) {
-    basePacer = cloneDeepWith(pacer, (value, key) => {
-      if (key === 'skills') return clone(value);
-    });
-  }
 
   const roundParams = {
     nsamples: batch.nsamples,
@@ -46,7 +39,6 @@ function processBatch(batch: WorkBatch): void {
     course,
     racedef,
     uma: baseRunner,
-    pacer: basePacer,
     options,
   };
 

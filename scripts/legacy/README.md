@@ -1,6 +1,6 @@
 # Legacy Perl Scripts
 
-**⚠️ DEPRECATED**: These Perl scripts are no longer maintained and have been replaced by TypeScript scripts using Bun's native SQLite support.
+**⚠️ DEPRECATED**: These Perl scripts are no longer maintained and have been replaced by TypeScript scripts using Node.js and `better-sqlite3`.
 
 ## Migration
 
@@ -8,20 +8,19 @@ The Perl scripts have been replaced with faster, type-safe TypeScript equivalent
 
 | Legacy Perl Script           | New TypeScript Script    | Speed Improvement |
 | ---------------------------- | ------------------------ | ----------------- |
-| `make_global_skill_meta.pl`  | `extract-skill-meta.ts`  | 3-6x faster       |
-| `make_global_skillnames.pl`  | `extract-skillnames.ts`  | 3-6x faster       |
-| `make_global_skill_data.pl`  | `extract-skill-data.ts`  | 3-6x faster       |
+| `make_global_skill_meta.pl`  | `extract-skills.ts`      | 3-6x faster       |
+| `make_global_skillnames.pl`  | `extract-skills.ts`      | 3-6x faster       |
+| `make_global_skill_data.pl`  | `extract-skills.ts`      | 3-6x faster       |
 | `make_global_uma_info.pl`    | `extract-uma-info.ts`    | 3-6x faster       |
 | `make_global_course_data.pl` | `extract-course-data.ts` | 3-6x faster       |
 | `update.bat`                 | `extract-all.ts`         | -                 |
 
 ## Why Deprecated?
 
-1. **Performance**: Bun's native SQLite is 3-6x faster than Perl's DBD::SQLite
-2. **Dependencies**: No need to install Perl and modules (DBI, DBD::SQLite, JSON::PP)
-3. **Type Safety**: TypeScript catches errors at compile time
-4. **Maintainability**: Modern codebase easier to understand and modify
-5. **Consistency**: Same runtime (Bun) for entire project
+1. **Dependencies**: No need to install Perl and modules (DBI, DBD::SQLite, JSON::PP)
+2. **Type Safety**: TypeScript catches errors at compile time
+3. **Maintainability**: Modern codebase easier to understand and modify
+4. **Consistency**: Same runtime (Node.js) for entire project
 
 ## Using New Scripts
 
@@ -30,7 +29,7 @@ See [`../README.md`](../README.md) for documentation on the new TypeScript extra
 Quick start:
 
 ```bash
-bun run extract:all
+pnpm run extract:all
 ```
 
 ## Why Keep These Files?

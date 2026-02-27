@@ -4,7 +4,7 @@
 
 import { cloneDeep } from 'es-toolkit';
 import type { CompareParams } from '@/modules/simulation/types';
-import { runComparison } from '@/utils/compare';
+import { runComparison } from '@/modules/simulation/simulators/vacuum-compare';
 
 function* progressiveSampleSizes(targetSamples: number) {
   let n = Math.min(20, targetSamples);
@@ -20,11 +20,10 @@ function* progressiveSampleSizes(targetSamples: number) {
 }
 
 const runRunnersComparison = (params: CompareParams) => {
-  const { nsamples, course, racedef, uma1, uma2, pacer, options } = params;
+  const { nsamples, course, racedef, uma1, uma2, options } = params;
 
   const uma1_ = cloneDeep(uma1);
   const uma2_ = cloneDeep(uma2);
-  const pacer_ = pacer ? cloneDeep(pacer) : null;
 
   const compareOptions = { ...options, mode: 'compare' };
 
@@ -33,9 +32,8 @@ const runRunnersComparison = (params: CompareParams) => {
       nsamples: n,
       course,
       racedef,
-      runnerA: uma1_,
-      runnerB: uma2_,
-      pacer: pacer_,
+      uma1: uma1_,
+      uma2: uma2_,
       options: compareOptions,
     });
 
@@ -50,9 +48,8 @@ const runRunnersComparison = (params: CompareParams) => {
     nsamples,
     course,
     racedef,
-    runnerA: uma1_,
-    runnerB: uma2_,
-    pacer: pacer_,
+    uma1: uma1_,
+    uma2: uma2_,
     options: compareOptions,
   });
 

@@ -1,5 +1,5 @@
 import { getCourseById, getDistanceCategory, inoutKey } from './courses';
-import { Surface } from '@/modules/simulation/lib/course/definitions';
+import { Surface } from '@/lib/sunday-tools/course/definitions';
 import i18n from '@/i18n';
 
 export const trackDescription = (props: { courseid: number }) => {

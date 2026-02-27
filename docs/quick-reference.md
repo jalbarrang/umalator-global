@@ -127,6 +127,7 @@ This document is a quick reference for the race mechanics that are available cur
 
 - ✅ Sections `1-10` only
 - ✅ `2`-second check interval, `1` section duration
+  - ✅ `Runaway` uses `3` sections (distance uses `floor(sectionLength)` before multiply)
 - ✅ `3`-second cooldown after exit
 - ✅ `Wit`-based entry checks
 - ❌ **Pacemaker selection** (post-1.5 anniversary algorithm)

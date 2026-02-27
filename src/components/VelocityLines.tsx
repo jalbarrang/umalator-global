@@ -7,7 +7,6 @@ import { useRaceTrackUI } from '@/store/settings.store';
 const colors = ['#2a77c5', '#c52a2a'];
 const hpColors = ['#688aab', '#ab6868'];
 const laneColors = ['#87ceeb', '#ff0000'];
-const pacemakerColors = ['#22c55e', '#a855f7', '#ec4899'];
 
 type DataPathProps = {
   positions: Array<number>;
@@ -109,8 +108,6 @@ type VelocityLinesProps = {
   xOffset: number;
   yOffset?: number;
   horseLane: number;
-  showVirtualPacemaker: boolean;
-  selectedPacemakers: Array<boolean>;
 };
 
 const BASE_WIDTH = 960;
@@ -131,11 +128,11 @@ export const VelocityLines = memo(function VelocityLines(props: VelocityLinesPro
 
   const yScale = useMemo(() => {
     if (!data) return null;
-    if (!data.v) return null;
+    if (!data.velocity) return null;
 
     return d3
       .scaleLinear()
-      .domain([0, d3.max(data.v, (v: Array<number>) => d3.max(v)) ?? 0])
+      .domain([0, d3.max(data.velocity, (v: Array<number>) => d3.max(v)) ?? 0])
       .range([height, 0]);
   }, [data, height]);
 
@@ -191,14 +188,14 @@ export const VelocityLines = memo(function VelocityLines(props: VelocityLinesPro
     <>
       <g transform={`translate(${xOffset},${5 + yOffset})`}>
         {/* Velocity lines */}
-        {data.v.map((v, i) => {
+        {data.velocity.map((v, i) => {
           if (i === 0 && !showUma1) return null;
           if (i === 1 && !showUma2) return null;
 
           return (
             <DataPath
               key={`velocity-${i}`}
-              positions={data.p[i]}
+              positions={data.position[i]}
               values={v}
               xScale={xScale}
               yScale={yScale}
@@ -217,7 +214,7 @@ export const VelocityLines = memo(function VelocityLines(props: VelocityLinesPro
             return (
               <DataPath
                 key={`hp-${i}`}
-                positions={data.p[i]}
+                positions={data.position[i]}
                 values={hp}
                 xScale={xScale}
                 yScale={hpYScale}
@@ -236,7 +233,7 @@ export const VelocityLines = memo(function VelocityLines(props: VelocityLinesPro
             return (
               <DataPath
                 key={`lane-${i}`}
-                positions={data.p[i]}
+                positions={data.position[i]}
                 values={lanes}
                 xScale={xScale}
                 yScale={laneYScale}
@@ -260,7 +257,7 @@ export const VelocityLines = memo(function VelocityLines(props: VelocityLinesPro
             return (
               <DataPath
                 key={`pacer-gap-${i}`}
-                positions={validIndices.map((j) => data.p[i][j])}
+                positions={validIndices.map((j) => data.position[i][j])}
                 values={validIndices.map((j) => gap[j])}
                 xScale={xScale}
                 yScale={pacemakerYScale}
@@ -271,33 +268,6 @@ export const VelocityLines = memo(function VelocityLines(props: VelocityLinesPro
             );
           })}
 
-        {/* Virtual pacemaker lines */}
-        {props.showVirtualPacemaker && data.pacerV && data.pacerP && (
-          <>
-            {[0, 1, 2].map((pacemakerIndex) => {
-              if (!props.selectedPacemakers?.[pacemakerIndex]) return null;
-              const pacerV = data.pacerV?.[pacemakerIndex];
-              const pacerP = data.pacerP?.[pacemakerIndex];
-              if (!pacerV || !pacerP) return null;
-
-              const validIndices = pacerP
-                .map((pos, j) => (pos !== undefined && pacerV[j] !== undefined ? j : -1))
-                .filter((j) => j >= 0);
-              if (validIndices.length === 0) return null;
-
-              return (
-                <DataPath
-                  key={`vp-${pacemakerIndex}`}
-                  positions={validIndices.map((j) => pacerP[j])}
-                  values={validIndices.map((j) => pacerV[j])}
-                  xScale={xScale}
-                  yScale={yScale}
-                  color={pacemakerColors[pacemakerIndex]}
-                />
-              );
-            })}
-          </>
-        )}
       </g>
 
       {/* Axes */}
