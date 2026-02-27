@@ -5,6 +5,7 @@ import { SimulationHome } from './_simulation/home';
 import { SkillBassin } from './_simulation/skill-bassin';
 import { UmaBassin } from './_simulation/uma-bassin';
 import { SkillPlanner } from './skill-planner';
+import { RaceSim } from './race-sim';
 import { RunnersLayout } from './runners';
 import { RunnersHome } from './runners/home';
 import { RunnersNew } from './runners/new';
@@ -28,6 +29,7 @@ export function RootComponent() {
   const getCurrentTab = () => {
     if (location.pathname.startsWith('/runners')) return 'runners';
     if (location.pathname === '/skill-planner') return 'skill-planner';
+    if (location.pathname === '/race-sim') return 'race-sim';
     return 'simulation';
   };
 
@@ -47,13 +49,16 @@ export function RootComponent() {
                   navigate('/runners');
                 } else if (value === 'skill-planner') {
                   navigate('/skill-planner');
+                } else if (value === 'race-sim') {
+                  navigate('/race-sim');
                 }
               }}
             >
               <TabsList>
-                <TabsTrigger value="simulation">Umalator</TabsTrigger>
-                <TabsTrigger value="runners">Veterans</TabsTrigger>
+                <TabsTrigger value="simulation">Compare</TabsTrigger>
                 <TabsTrigger value="skill-planner">Skill Planner</TabsTrigger>
+                <TabsTrigger value="race-sim">Race Sim</TabsTrigger>
+                <TabsTrigger value="runners">Veterans</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -128,6 +133,7 @@ export function RootComponent() {
               <Route path="/runners/:runnerId/edit" element={<RunnersEdit />} />
             </Route>
 
+            <Route path="/race-sim" element={<RaceSim />} />
             <Route path="/skill-planner" element={<SkillPlanner />} />
           </Routes>
         </main>
@@ -152,10 +158,7 @@ export function NotFoundComponent() {
         <h2 className="text-2xl font-semibold">Page Not Found</h2>
         <p className="text-muted-foreground">The page you're looking for doesn't exist.</p>
         <div className="flex gap-2 justify-center pt-4">
-          <Button onClick={() => navigate('/')}>Go to Umalator</Button>
-          <Button variant="outline" onClick={() => navigate('/runners')}>
-            Go to Veterans
-          </Button>
+          <Button onClick={() => navigate('/')}>Go to Home</Button>
         </div>
       </div>
     </div>

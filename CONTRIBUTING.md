@@ -1,161 +1,218 @@
-# Contributing to Umalator-Global
+# Contributing to Sunday's Shadow
 
 ## Introduction
 
-This guide will help you set up a development environment, understand the codebase structure, and contribute to the Umalator-Global project. Whether you're updating game data, fixing bugs, or adding new features, this document provides the information you need.
+This guide will help you set up a development environment, understand the codebase structure, and contribute to the Sunday's Shadow project. Whether you're updating game data, fixing bugs, or adding new features, this document provides the information you need.
 
 ## Prerequisites
 
 Before you begin, ensure you have the following installed:
 
-### Required Software
+- **Node.js** v24 or later
+- **pnpm** (the project's package manager, specified in `packageManager` field)
 
 ### Game Data Access
 
-You need access to the game's `master.mdb` file for data extraction:
+The project ships with pre-extracted JSON data in `src/modules/data/`, so you can run the app without the game database. If you want to re-extract data from the source database:
 
-**Location (Windows):**
+**Option A: Download via script (recommended)**
 
-```
-%APPDATA%\..\LocalLow\Cygames\Umamusume\master\master.mdb
-```
-
-Full path typically:
-
-```
-C:\Users\[YourUsername]\AppData\LocalLow\Cygames\Umamusume\master\master.mdb
+```bash
+pnpm run db:fetch <version-id> # e.g. 10004010
 ```
 
-**Location (Steam Deck / Linux via Proton):**
+This downloads `master.mdb` into `db/master.mdb`, which the extraction scripts detect automatically.
 
-```
-~/.local/share/Steam/steamapps/compatdata/[AppID]/pfx/drive_c/users/steamuser/AppData/LocalLow/Cygames/Umamusume/master/master.mdb
-```
+**Option B: Copy from a local game installation**
 
-**How to Find:**
+Copy your `master.mdb` file to `db/master.mdb` at the project root. See [`scripts/README.md`](scripts/README.md) for platform-specific paths.
 
-1. Ensure Uma Musume is installed
-2. Run the game at least once to generate the master.mdb file
-3. Navigate to the path above
-4. The file is a SQLite database containing all game data
-
-**Note:** The `master.mdb` file updates with game patches. You'll need to re-extract data after game updates to keep the simulator current.
+The `db/` directory is gitignored.
 
 ## Project Structure
 
-Understanding the project layout:
-
 ```
 umalator-global/
-├── src/                          # Main application source
-│   ├── main.tsx                  # Application entry point
-│   ├── App.tsx                   # Root component with routing
-│   ├── app.css                   # Application styles
-│   ├── styles.css                # Global styles
+├── src/                              # Application source
+│   ├── main.tsx                      # Entry point (HashRouter, theme provider)
 │   │
-│   ├── modules/                  # Feature modules
-│   │   ├── simulation/           # Race simulation engine
-│   │   │   ├── lib/              # Core simulation logic
-│   │   │   │   ├── RaceSolver.ts           # Main race simulator
-│   │   │   │   ├── RaceSolverEnhanced.ts   # Enhanced position keeping
-│   │   │   │   ├── RaceSolverBuilder.ts    # Builder pattern
-│   │   │   │   ├── ConditionParser.ts      # Skill condition parsing
-│   │   │   │   ├── CourseData.ts           # Course/track data handling
-│   │   │   │   ├── HorseTypes.ts           # Uma musume type definitions
-│   │   │   │   ├── RaceParameters.ts       # Race configuration types
-│   │   │   │   └── tools/
-│   │   │   │       └── ConditionMatcher.ts # Condition matching logic
-│   │   │   ├── hooks/            # Simulation React hooks
-│   │   │   ├── stores/           # Module-specific Zustand stores
-│   │   │   ├── tabs/             # Result visualization tabs
-│   │   │   └── types.ts          # Type definitions
+│   ├── routes/                       # React Router page routes
+│   │   ├── root.tsx                  # Root layout and route definitions
+│   │   ├── _simulation.tsx           # Simulation section layout
+│   │   ├── _simulation/
+│   │   │   ├── home.tsx              # Compare tools (default page)
+│   │   │   ├── skill-bassin.tsx      # Skill basin comparison
+│   │   │   └── uma-bassin.tsx        # Uma basin comparison
+│   │   ├── runners.tsx               # Runners section layout
+│   │   ├── runners/
+│   │   │   ├── home.tsx              # Runner library list
+│   │   │   ├── new.tsx               # Create new runner
+│   │   │   └── $runnerId.edit.tsx    # Edit existing runner
+│   │   ├── skill-planner.tsx         # Skill planner page
+│   │   └── stamina-calculator.tsx    # Stamina calculator page
+│   │
+│   ├── lib/                          # Core libraries
+│   │   ├── sunday-tools/             # Race simulation engine
+│   │   │   ├── common/               # Race, runner, spurt calculator, observer
+│   │   │   ├── course/               # Course data and definitions
+│   │   │   ├── conditions/           # Approximate and special conditions
+│   │   │   ├── health/               # HP/stamina policies
+│   │   │   ├── poskeep/              # Position keeping (analytical pacer)
+│   │   │   ├── runner/               # Runner types, definitions, utilities
+│   │   │   ├── shared/               # Shared definitions, region, random
+│   │   │   ├── skills/               # Skill types, definitions, parser, policies
+│   │   │   │   └── parser/           # Condition parser and matcher
+│   │   │   └── simulator.types.ts    # Top-level simulator types
+│   │   ├── feature-flags.ts          # Feature flag utilities
+│   │   └── utils.ts                  # General utilities (cn, etc.)
+│   │
+│   ├── modules/                      # Feature modules
+│   │   ├── simulation/               # Simulation UI and orchestration
+│   │   │   ├── simulators/           # Compare strategies (skill, uma, vacuum)
+│   │   │   ├── hooks/                # Simulation React hooks
+│   │   │   ├── stores/               # Zustand stores (compare, skill-basin, uma-basin)
+│   │   │   ├── tabs/                 # Result visualization tabs
+│   │   │   ├── compare.types.ts      # Compare type definitions
+│   │   │   └── types.ts              # Module types
 │   │   │
-│   │   ├── skills/               # Skill system
-│   │   │   ├── components/       # Skill UI components
-│   │   │   ├── store.ts          # Skill state management
-│   │   │   ├── query.ts          # Skill data queries
-│   │   │   └── utils.ts          # Skill utilities
+│   │   ├── skills/                   # Skill system
+│   │   │   ├── components/           # Skill UI components
+│   │   │   ├── store.ts              # Skill selection state
+│   │   │   ├── query.ts              # Skill data queries
+│   │   │   ├── filters.ts            # Skill filtering logic
+│   │   │   ├── effects-query.ts      # Skill effects queries
+│   │   │   ├── conditions.ts         # Condition utilities
+│   │   │   ├── skill-relationships.ts # Skill relationship mapping
+│   │   │   ├── icons.ts              # Skill icon handling
+│   │   │   └── utils.ts              # Skill utilities
 │   │   │
-│   │   ├── racetrack/            # Course visualization
-│   │   │   ├── components/       # Track UI components
-│   │   │   │   ├── RaceTrack.tsx         # Main track visualization
-│   │   │   │   ├── skill-marker.tsx      # Skill activation markers
-│   │   │   │   ├── slope-visualization.tsx
-│   │   │   │   └── ...
-│   │   │   ├── hooks/            # Track-related hooks
-│   │   │   └── courses.ts        # Course data utilities
+│   │   ├── racetrack/                # Course visualization
+│   │   │   ├── components/           # Track UI components
+│   │   │   ├── hooks/                # Track-related hooks
+│   │   │   ├── courses.ts            # Course data utilities
+│   │   │   ├── labels.ts             # Track labels
+│   │   │   └── types.ts              # Track types
 │   │   │
-│   │   ├── runners/              # Uma musume configuration
-│   │   │   ├── components/       # Runner UI components
-│   │   │   │   ├── runners-panel.tsx
-│   │   │   │   ├── StatInput.tsx
-│   │   │   │   ├── StrategySelect.tsx
-│   │   │   │   └── ...
-│   │   │   ├── ocr/              # OCR import functionality
-│   │   │   └── utils.ts
+│   │   ├── runners/                  # Runner configuration
+│   │   │   ├── components/           # Runner UI components
+│   │   │   ├── ocr/                  # OCR import functionality
+│   │   │   ├── hooks/                # Runner hooks
+│   │   │   ├── data/                 # Runner data utilities
+│   │   │   └── utils.ts              # Runner utilities
 │   │   │
-│   │   └── data/                 # Game data files (JSON)
-│   │       ├── skills.json       # Unified extracted skill data
-│   │       ├── course_data.json  # Extracted course data
-│   │       ├── umas.json         # Uma musume character data
-│   │       └── tracknames.json   # Track name translations
+│   │   ├── skill-planner/            # Skill planner feature
+│   │   │   ├── components/           # Planner UI components
+│   │   │   ├── hooks/                # Planner hooks
+│   │   │   ├── skill-planner.store.ts # Planner state
+│   │   │   ├── optimization-engine.ts # Skill optimization engine
+│   │   │   ├── optimizer.ts          # Optimizer logic
+│   │   │   ├── simulator.ts          # Planner simulation runner
+│   │   │   ├── cost-calculator.ts    # SP cost calculator
+│   │   │   └── types.ts              # Planner types
+│   │   │
+│   │   ├── tutorial/                 # Tutorial system
+│   │   │   ├── steps/                # Tutorial step definitions
+│   │   │   └── types.ts              # Tutorial types
+│   │   │
+│   │   └── data/                     # Game data files (JSON)
+│   │       ├── skills.json           # Unified skill data
+│   │       ├── course_data.json      # Course/track data
+│   │       ├── umas.json             # Uma musume character data
+│   │       ├── tracknames.json       # Track name translations
+│   │       ├── icons.json            # Icon data
+│   │       ├── skill-types.ts        # Skill type definitions
+│   │       ├── skills.ts             # Skill data access layer
+│   │       └── gametora/             # Gametora sourced data
 │   │
-│   ├── components/               # Shared UI components
-│   │   ├── ui/                   # Radix UI components
-│   │   ├── bassin-chart/         # Skill efficacy chart
-│   │   └── ...
+│   ├── components/                   # Shared UI components
+│   │   ├── ui/                       # shadcn/ui components
+│   │   ├── bassin-chart/             # Basinn chart components
+│   │   ├── race-settings/            # Race configuration components
+│   │   ├── tutorial/                 # Tutorial UI components
+│   │   └── ...                       # Modals, overlays, presets, etc.
 │   │
-│   ├── store/                    # Global Zustand stores
-│   │   ├── runners.store.ts      # Runner state management
-│   │   ├── settings.store.ts     # Application settings
-│   │   ├── theme.store.ts        # Theme management
-│   │   └── ui.store.ts           # UI state
+│   ├── store/                        # Global Zustand stores
+│   │   ├── runners.store.ts          # Runner state management
+│   │   ├── runner-library.store.ts   # Runner library state
+│   │   ├── settings.store.ts         # Application settings
+│   │   ├── ui.store.ts               # UI state (modals, panels)
+│   │   ├── tutorial.store.ts         # Tutorial state
+│   │   └── race/
+│   │       └── preset.store.ts       # Race preset state
 │   │
-│   ├── workers/                  # Web Workers for simulations
-│   │   ├── simulator.worker.ts   # Main simulation worker
-│   │   ├── skill-basin.worker.ts # Skill basin worker
-│   │   ├── uma-basin.worker.ts   # Uma basin worker
-│   │   ├── ocr.worker.ts         # OCR processing worker
-│   │   └── pool/                 # Worker pool management
+│   ├── workers/                      # Web Workers
+│   │   ├── simulator.worker.ts       # Single race simulations
+│   │   ├── skill-basin.worker.ts     # Skill basin comparisons
+│   │   ├── uma-basin.worker.ts       # Uma basin comparisons
+│   │   ├── skill-single.worker.ts    # Single skill simulations
+│   │   ├── skill-planner.worker.ts   # Skill planner worker
+│   │   ├── ocr.worker.ts             # OCR processing
+│   │   ├── pool/                     # Worker pool management
+│   │   └── utils.ts                  # Worker utilities
 │   │
-│   ├── layout/                   # Layout components
-│   ├── pages/                    # Page components
-│   ├── hooks/                    # Shared React hooks
-│   ├── i18n/                     # Internationalization
-│   └── utils/                    # Utility functions
+│   ├── providers/                    # React context providers
+│   │   └── theme/                    # Theme provider (light/dark)
+│   │
+│   ├── layout/                       # Layout components
+│   │   ├── left-sidebar.tsx          # Left sidebar layout
+│   │   └── runner-editor-layout.tsx  # Runner editor layout
+│   │
+│   ├── hooks/                        # Shared React hooks
+│   │   └── useBreakpoint.ts          # Responsive breakpoint hook
+│   │
+│   ├── i18n/                         # Internationalization
+│   │   ├── index.ts                  # i18next setup
+│   │   └── lang/                     # Language files (EN/JA)
+│   │
+│   ├── utils/                        # Utility functions
+│   ├── data/                         # App-level data
+│   │   └── changelog.ts              # Changelog entries
+│   │
+│   ├── app.css                       # Application styles
+│   └── styles.css                    # Global / Tailwind styles
 │
-├── cli/                          # Command-line tools
-│   ├── skillgrep.ts              # Search skills by name/condition
-│   ├── dump.ts                   # Dump race simulation data
-│   ├── speedguts.ts              # Speed/guts analysis tool
-│   └── data/                     # CLI data utilities
+├── scripts/                          # Data extraction and debug scripts
+│   ├── extract-all.ts                # Run all extractions
+│   ├── extract-skills.ts             # Extract skill data
+│   ├── extract-uma-info.ts           # Extract uma data
+│   ├── extract-course-data.ts        # Extract course data
+│   ├── fetch-master-db.ts            # Download master.mdb
+│   ├── debug-skill-compare.ts        # Skill comparison debugging
+│   ├── runner-compare.ts             # Runner comparison script
+│   ├── runner-config.schema.ts       # Runner config schema (Zod)
+│   ├── lib/                          # Shared script libraries
+│   │   ├── database.ts               # SQLite database helpers
+│   │   └── shared.ts                 # Shared utilities
+│   ├── runners/                      # Runner configuration files
+│   ├── skill-lists/                  # Skill list presets
+│   ├── legacy/                       # Legacy Perl scripts (reference only)
+│   └── README.md                     # Script documentation
 │
-├── scripts/                      # Data extraction Perl scripts
-│   ├── update.bat                # Windows: Update all data
-│   ├── make_global_skill_data.pl       # Extract skill data
-│   ├── make_global_skillnames.pl       # Extract skill names
-│   ├── make_global_skill_meta.pl       # Extract skill metadata
-│   ├── make_global_uma_info.pl         # Extract uma data
-│   └── make_global_course_data.pl      # Extract course data
+├── courseeventparams/                # Course event parameter JSONs
+│   └── [course files].json           # Course geometry data
 │
-├── courseeventparams/            # Course event parameter JSONs
-│   └── [course files].json       # Course geometry data
+├── docs/                             # Documentation
+│   ├── quick-reference.md            # Race mechanics quick reference
+│   ├── race-mechanics.md             # Detailed race mechanics
+│   ├── simulator-patterns.md         # Simulator design patterns
+│   └── ...                           # Additional documentation
 │
-├── public/                       # Static assets
-│   ├── fonts/                    # Font files
-│   └── icons/                    # Icon images
+├── tests/                            # End-to-end tests
+│   └── *.e2e.ts                      # Playwright E2E tests
 │
-├── dist/                         # Build output (generated)
-│   ├── index.html
-│   └── assets/                   # Bundled JS, CSS, and workers
+├── public/                           # Static assets
 │
 └── Configuration files
-    ├── package.json              # Dependencies and scripts
-    ├── tsconfig.json             # TypeScript configuration
-    ├── vite.config.ts            # Vite build configuration
-    ├── eslint.config.mjs         # ESLint configuration
-    ├── components.json           # Radix UI components config
-    └── .prettierrc               # Prettier code formatting
+    ├── package.json                  # Dependencies and scripts
+    ├── tsconfig.json                 # TypeScript configuration
+    ├── vite.config.ts                # Vite build configuration
+    ├── .oxlintrc.json                # oxlint linter configuration
+    ├── .oxfmtrc.json                 # oxfmt formatter configuration
+    ├── .editorconfig                 # Editor configuration
+    ├── components.json               # shadcn/ui configuration
+    ├── playwright.config.ts          # Playwright test configuration
+    ├── netlify.toml                  # Netlify deployment configuration
+    └── .env.example                  # Environment variable template
 ```
 
 ## Development Setup
@@ -163,642 +220,353 @@ umalator-global/
 ### 1. Clone and Install Dependencies
 
 ```bash
-# Clone the repository
-git clone [repository-url]
+git clone https://github.com/jalbarrang/umalator-global.git
 cd umalator-global
-
-# Install Node.js dependencies
-npm install
+pnpm install
 ```
 
-### 2. Extract Game Data
-
-**Extract all data at once (Merge Mode - Recommended):**
-
-```bash
-pnpm run extract:all
-```
-
-This **merge mode** (default):
-
-- ✅ Updates entries from `master.mdb` (current game content)
-- ✅ **Preserves** entries not in master.mdb (future/datamined content)
-- ✅ Automatically finds `db/master.mdb` if it exists
-
-**Full replacement mode** (removes future content):
-
-```bash
-pnpm run extract:all --replace
-```
-
-Use `--replace` only when you want to completely overwrite files with only current game content.
-
-**Extract individual data files:**
-
-```bash
-pnpm run extract:skills           # Unified skill data (meta + names + mechanics)
-pnpm run extract:uma-info         # Uma musume data
-pnpm run extract:course-data      # Course/track data
-```
-
-All scripts support `--replace` flag for full replacement mode.
-
-**Note on Course Data:**
-The course extraction requires course event parameter JSON files in the `courseeventparams/` directory. These files contain detailed course geometry (corners, slopes, etc.) and must be extracted separately from the game assets.
-
-**Legacy Perl Scripts:**
-Legacy Perl scripts are preserved in `scripts/legacy/` for reference but are no longer maintained. The new Node.js-based TypeScript scripts are 3-6x faster and don't require Perl installation.
-
-### 3. Build and Run the Application
-
-**Development Server (with hot reload):**
+### 2. Run the Development Server
 
 ```bash
 pnpm run dev
 ```
 
-Default port is typically 5173. Access at `http://localhost:5173`
+Default port is 5173. Open `http://localhost:5173` in your browser.
 
-The dev server automatically rebuilds when source files change.
+### 3. Extract Game Data (Optional)
 
-**Production Build:**
+The repo ships with pre-extracted JSON data, so this step is only needed when updating data after a game patch.
 
-```bash
-pnpm run build
-```
-
-Generates optimized output in the `dist/` directory.
-
-**Preview Production Build:**
+**Fetch the latest database:**
 
 ```bash
-pnpm run preview
+pnpm run db:fetch
 ```
 
-Serves the production build locally for testing.
-
-**Other Useful Commands:**
+**Extract all data at once (merge mode, recommended):**
 
 ```bash
-pnpm run typecheck    # Check TypeScript types without building
-pnpm run lint         # Run ESLint to check code quality
-pnpm run format       # Format code with Prettier
-pnpm run test         # Run tests with Vitest
-pnpm run test:watch   # Run tests in watch mode
+pnpm run extract:all
 ```
+
+Merge mode (the default) updates entries from `master.mdb` while preserving future/datamined content not yet in the database.
+
+**Full replacement mode** (removes future content):
+
+```bash
+pnpm run extract:all -- --replace
+```
+
+**Extract individual data files:**
+
+```bash
+pnpm run extract:skills           # Unified skill data
+pnpm run extract:uma-info         # Uma musume data
+pnpm run extract:course-data      # Course/track data
+```
+
+All scripts support `--replace` for full replacement mode. See [`scripts/README.md`](scripts/README.md) for detailed documentation.
 
 ### Build Configuration
 
-The build uses **Vite** with the following configuration (`vite.config.ts`):
+The build uses **Vite** with the following plugins (`vite.config.ts`):
 
-**Plugins:**
+- **@vitejs/plugin-react**: React support
+- **@tailwindcss/vite**: Tailwind CSS integration
+- **vite-tsconfig-paths**: Resolves TypeScript path aliases in both app and worker code
 
-- **@vitejs/plugin-react**: Enables React support with React Compiler (babel-plugin-react-compiler)
-- **@tailwindcss/vite**: Integrates Tailwind CSS
+**Path Aliases** (defined in `tsconfig.json`, resolved by `vite-tsconfig-paths`):
 
-**Path Aliases:**
-
-- `@` → `./src`
-- `@data` → `./src/modules/data`
-- `@simulation` → `./src/modules/simulation`
-- `@skills` → `./src/modules/skills`
-
-These aliases can be used in imports:
+- `@/*` → `./src/*`
+- `@scripts/*` → `./scripts/*`
+- `@workers/*` → `./src/workers/*`
 
 ```typescript
-import { RaceSolver } from '@simulation/lib/RaceSolver';
-import { skills } from '@/modules/data/skills';
+import { useSettingsStore } from '@/store/settings.store';
+import { Race } from '@/lib/sunday-tools/common/race';
 ```
 
-**Global Constants:**
+**Feature Flags:**
 
-- `CC_DEBUG`: Set to `true` in development, `false` in production
+Feature flags are managed via environment variables prefixed with `VITE_FEATURE_`. They are accessible at runtime via `import.meta.env`. See `.env.example` for available flags.
 
-## Data Update Workflow
+## Technology Stack
 
-When the game updates, you'll need to refresh the data:
-
-### Step-by-Step Update Process
-
-1. **Update the game** and ensure `master.mdb` is current
-
-2. **Extract new data:**
-
-   ```bash
-   pnpm run extract:all
-   # or run individual scripts as needed
-   ```
-
-3. **Verify the data:**
-   - Check that JSON files in `src/modules/data/` are valid
-   - Look for new skills, umas, or courses
-   - Test with the dev server
-
-4. **Rebuild the application:**
-
-   ```bash
-   npm run build
-   ```
-
-5. **Test thoroughly:**
-   - Test new skills for correct behavior
-   - Verify course data accuracy
-   - Check for any breaking changes
-
-### Data Extraction Scripts
-
-All scripts are TypeScript files in the `scripts/` directory using `better-sqlite3`. They output to `src/modules/data/`.
-
-See [`scripts/README.md`](scripts/README.md) for detailed documentation.
-
-#### `extract-skills.ts`
-
-Extracts unified skill data (effects, conditions, metadata, and names) from the database.
-
-**Key Features:**
-
-- Applies 1.2x modifier to scenario skills
-- Handles split alternatives (Seirios special case)
-- Merges mechanics + metadata + names into one object
-- Preserves future/datamined entries in merge mode
-
-**Output:** `src/modules/data/skills.json`
-
-#### `extract-uma-info.ts`
-
-Extracts uma musume character data. Filters out unimplemented umas by checking if their unique skills exist.
-
-**Output:** `src/modules/data/umas.json`
-
-#### `extract-course-data.ts`
-
-Processes course geometry, corners, slopes, and track characteristics.
-
-**Requirements:**
-
-- `master.mdb` for track metadata
-- `courseeventparams/*.json` for course geometry
-
-**Output:** `src/modules/data/course_data.json`
-
-#### `extract-all.ts`
-
-Master script that runs all extraction scripts in sequence with error handling and progress reporting.
+- **React 19** with React Router v7 (HashRouter)
+- **TypeScript** with strict mode
+- **Vite 7** for builds and dev server
+- **Tailwind CSS v4** for styling
+- **shadcn/ui** (base-nova style) with Base UI React primitives
+- **Zustand** for state management
+- **Immer** for immutable state updates
+- **i18next** for internationalization (EN/JA)
+- **Recharts** for chart visualizations
+- **Zod** for schema validation
+- **Vitest** for unit tests
+- **Playwright** for end-to-end tests
+- **oxlint** for linting
+- **oxfmt** for formatting
+- **Lucide React** for icons
 
 ## Code Structure and Key Components
 
-### Technology Stack
-
-The application uses modern web technologies:
-
-- **React 19**: UI framework with concurrent features
-- **TypeScript**: Type-safe JavaScript
-- **Vite**: Fast build tool and dev server
-- **Tailwind CSS**: Utility-first CSS framework
-- **Radix UI**: Accessible UI component primitives
-- **Zustand**: Lightweight state management
-- **React Router**: Client-side routing
-- **i18next**: Internationalization (EN/JP)
-- **Vitest**: Unit testing framework
-- **ESLint + Prettier**: Code quality and formatting
-
 ### Application Entry Point
 
-**`src/main.tsx`**
+**`src/main.tsx`** sets up the React root with:
 
-Main entry point that sets up:
+- `HashRouter` for client-side routing
+- `ThemeStoreProvider` for light/dark mode
+- Immer `MapSet` plugin
+- i18n initialization
 
-- React root rendering
-- React Router (BrowserRouter)
-- PostHog analytics provider (optional)
-- Global CSS imports
-- Toast notifications
+**`src/routes/root.tsx`** is the root layout component containing:
 
-**`src/App.tsx`**
+- Top-level navigation tabs (Compare tools, Skill Planner, Runners)
+- React Router `<Routes>` configuration
+- Global UI elements (toaster, modals, theme toggle, tutorial)
 
-Root component containing:
+### Routes
 
-- React Router routes configuration
-- Layout components
-- Page routing (Compare, Skill Basin, Uma Basin)
+| Route                     | Component        | Description             |
+| ------------------------- | ---------------- | ----------------------- |
+| `/`                       | `SimulationHome` | Compare tools (default) |
+| `/skill-bassin`           | `SkillBassin`    | Skill basin comparison  |
+| `/uma-bassin`             | `UmaBassin`      | Uma basin comparison    |
+| `/runners`                | `RunnersHome`    | Runner library          |
+| `/runners/new`            | `RunnersNew`     | Create new runner       |
+| `/runners/:runnerId/edit` | `RunnersEdit`    | Edit runner             |
+| `/skill-planner`          | `SkillPlanner`   | Skill planner           |
+
+### Simulation Engine (`src/lib/sunday-tools/`)
+
+The core race simulation engine lives in `src/lib/sunday-tools/`. This is a self-contained library implementing Uma Musume race mechanics:
+
+- **`common/`**: `Race`, `Runner`, `SpurtCalculator`, `RaceObserver`
+- **`course/`**: Course data loading and definitions
+- **`conditions/`**: Skill activation condition evaluation
+- **`health/`**: HP/stamina consumption policies
+- **`poskeep/`**: Position keeping with analytical pacing
+- **`runner/`**: Runner type definitions and utilities
+- **`skills/`**: Skill types, parser, condition matching, activation policies
+
+See `src/lib/sunday-tools/README.md` for simulation mode documentation and `docs/quick-reference.md` for implemented race mechanics.
+
+### Simulation Orchestration (`src/modules/simulation/`)
+
+The simulation module connects the engine to the UI:
+
+- **`simulators/`**: Compare strategies (`skill-compare.ts`, `vacuum-compare.ts`, `skill-planner-compare.ts`)
+- **`hooks/`**: React hooks for running simulations (compare, skill basin, uma basin)
+- **`stores/`**: Zustand stores for simulation state
+- **`tabs/`**: Result visualization tab components
 
 ### State Management
 
-The application uses **Zustand** for state management with stores organized by concern:
-
 **Global Stores (`src/store/`):**
 
-- `runners.store.ts`: Uma musume configuration state
-- `settings.store.ts`: Application settings
-- `theme.store.ts`: Theme (light/dark mode)
-- `ui.store.ts`: UI state (modals, panels)
+- `runners.store.ts` — active runner configuration
+- `runner-library.store.ts` — saved runner library
+- `settings.store.ts` — application settings
+- `ui.store.ts` — UI state (modals, panels)
+- `tutorial.store.ts` — tutorial progress
+- `race/preset.store.ts` — race presets
 
-**Module Stores:**
+**Module Stores** are co-located with their modules (e.g., `simulation/stores/`, `skills/store.ts`, `skill-planner/skill-planner.store.ts`).
 
-- `src/modules/simulation/stores/`: Simulation-specific state
-- `src/modules/skills/store.ts`: Skill selection state
-
-### Web Worker Threads
-
-**`src/workers/`**
+### Web Workers (`src/workers/`)
 
 Simulations run in background threads to keep the UI responsive:
 
-**Main Workers:**
+- `simulator.worker.ts` — single race simulations
+- `skill-basin.worker.ts` — skill basin comparisons
+- `uma-basin.worker.ts` — uma performance analysis
+- `skill-single.worker.ts` — single skill simulations
+- `skill-planner.worker.ts` — skill planner optimization
+- `ocr.worker.ts` — OCR image processing
+- `pool/` — worker pool management for parallel simulations
 
-- `simulator.worker.ts`: Single race simulations
-- `skill-basin.worker.ts`: Skill efficacy comparisons
-- `uma-basin.worker.ts`: Uma performance analysis
-- `ocr.worker.ts`: OCR image processing
+### UI Components
 
-**Worker Pool:**
+**`src/components/ui/`** — shadcn/ui components (Button, Dialog, Select, Tabs, etc.) configured via `components.json`.
 
-- `pool/`: Worker pool management for parallel simulations
-- Distributes work across multiple worker instances
+**`src/components/bassin-chart/`** — basinn chart components for skill efficacy visualization.
 
-**Message Protocol:**
+**`src/components/race-settings/`** — race condition selectors (ground, weather, season, time of day).
 
-- Workers receive: Configuration (horse, course, parameters)
-- Workers return: Simulation results (velocities, skill activations, statistics)
-
-### Core Simulation Engine
-
-**`src/modules/simulation/lib/`**
-
-Contains the race simulation logic implementing Uma Musume game mechanics.
-
-#### Main Simulation Files
-
-**`RaceSolver.ts`**
-
-Core race simulation logic:
-
-- Physics calculations (velocity, acceleration)
-- Stamina/HP management
-- Skill activation checking
-- Base position keeping simulation
-
-**`RaceSolverEnhanced.ts`**
-
-Enhanced version with:
-
-- Improved position keeping algorithm
-- Virtual pacemaker support
-- Spot struggle simulation
-- Lane movement approximation
-
-**`RaceSolverBuilder.ts`**
-
-Builder pattern for constructing race solvers with different configurations.
-
-#### Supporting Files
-
-**`ConditionParser.ts`**
-
-Parses and evaluates skill activation conditions:
-
-- Distance ranges (`>=`, `<=`, phase-based)
-- Race conditions (weather, ground, season, etc.)
-- Positioning conditions (order, blocked, surrounded)
-- Random conditions (`corner_random`, `phase_random`, etc.)
-
-**`tools/ConditionMatcher.ts`**
-
-Advanced condition matching logic for complex skill conditions.
-
-**`CourseData.ts`**
-
-Course/track data handling:
-
-- Loading course JSON data
-- Course geometry calculations
-- Region detection (corners, slopes, straights)
-
-**`HorseTypes.ts`**
-
-Type definitions for uma musume:
-
-- Stats structure
-- Strategy enums
-- Aptitude enums
-- Motivation levels
-
-**`RaceParameters.ts`**
-
-Race configuration types:
-
-- Course selection
-- Weather conditions
-- Ground conditions
-- Season and time of day
-
-**`ActivationConditions.ts`**
-
-Skill activation condition implementations.
-
-**`SpurtCalculator.ts`**
-
-Last spurt speed calculation logic.
-
-**`HpPolicy.ts` / `EnhancedHpPolicy.ts`**
-
-HP consumption and management strategies.
-
-### Skill System
-
-**`src/modules/skills/`**
-
-Manages skill data, selection, and display:
-
-**Components:**
-
-- `components/SkillList.tsx`: Skill selector interface
-- `components/ExpandedSkillDetails.tsx`: Detailed skill information
-
-**Data Management:**
-
-- `store.ts`: Skill selection state (Zustand)
-- `query.ts`: Skill data queries and searches
-- `filters.ts`: Skill filtering logic
-- `utils.ts`: Skill utilities
-
-### Course Visualization
-
-**`src/modules/racetrack/`**
-
-Renders race courses with skill activation markers:
-
-**Main Components:**
-
-- `components/RaceTrack.tsx`: Main track visualization
-- `components/skill-marker.tsx`: Skill activation markers
-- `components/slope-visualization.tsx`: Slope indicators
-- `components/distance-marker.tsx`: Distance markers
-- `components/section-bar.tsx`: Section indicators
-
-**Utilities:**
-
-- `courses.ts`: Course data utilities
-- `hooks/`: Track-related React hooks
-
-### Uma Musume Configuration
-
-**`src/modules/runners/`**
-
-UI for configuring uma musume:
-
-**Components:**
-
-- `components/runners-panel.tsx`: Main runner configuration panel
-- `components/runner-card/`: Individual runner card
-- `components/StatInput.tsx`: Stat input fields
-- `components/StrategySelect.tsx`: Strategy selection
-- `components/StrategySelect.tsx`: Aptitude selection
-- `components/MoodSelect.tsx`: Mood/motivation selection
-
-**OCR Import:**
-
-- `ocr/`: OCR functionality for importing from screenshots
-- `components/ocr-import-dialog.tsx`: OCR import UI
-
-### Shared UI Components
-
-**`src/components/ui/`**
-
-Radix UI component wrappers with Tailwind styling:
-
-- Button, Dialog, Select, Checkbox, etc.
-- Configured via `components.json`
-- Consistent styling with class-variance-authority
-
-**`src/components/bassin-chart/`**
-
-Skill efficacy chart (バ身 chart):
-
-- Statistical analysis display
-- Histogram visualization
-- Skill comparison tables
+**`src/components/tutorial/`** — tutorial overlay and popover system.
 
 ## Making Code Changes
 
 ### Development Workflow
 
-1. **Make changes** to source files in `src/`
-
-2. **Test with dev server:**
+1. **Start the dev server:**
 
    ```bash
-   npm run dev
+   pnpm run dev
    ```
 
-3. **Check for TypeScript errors:**
+2. **Check for TypeScript errors:**
 
    ```bash
-   npm run typecheck
+   pnpm run typecheck
    ```
 
-4. **Run linter:**
+3. **Run the linter:**
 
    ```bash
-   npm run lint
+   pnpm run lint
+   ```
+
+4. **Fix lint issues automatically:**
+
+   ```bash
+   pnpm run lint:fix
    ```
 
 5. **Format code:**
 
    ```bash
-   npm run format
+   pnpm run format
    ```
 
-6. **Test your changes thoroughly:**
-   - Run multiple simulations
-   - Test edge cases
-   - Verify UI responsiveness
+6. **Check formatting without writing:**
 
-7. **Build for production:**
    ```bash
-   npm run build
+   pnpm run format:check
    ```
 
-### Code Style and Conventions
+7. **Run unit tests:**
 
-- **Formatting**: Enforced by Prettier
-  - 2 spaces for indentation
-  - Single quotes for strings
-  - Semicolons required
-  - 80 character line width
-- **Linting**: Enforced by ESLint
-- **TypeScript**: Strict type checking enabled
-- **Components**: Use functional components with hooks
-- **Styling**: Use Tailwind CSS utility classes
-- **Imports**: Use path aliases (`@`, `@simulation`, etc.)
-- **Comments**: Add comments for complex logic
-- **Performance**: Keep in mind simulations run 500+ times
+   ```bash
+   pnpm run test
+   ```
+
+8. **Build for production:**
+
+   ```bash
+   pnpm run build
+   ```
+
+### Code Style
+
+Formatting is enforced by **oxfmt** (`.oxfmtrc.json`):
+
+- 2 spaces for indentation
+- Single quotes
+- Semicolons required
+- 100 character line width
+- LF line endings
+
+Linting is enforced by **oxlint** (`.oxlintrc.json`).
+
+TypeScript strict mode is enabled. Use functional React components with hooks. Style with Tailwind CSS utility classes. Use path aliases for imports.
 
 ### Common Development Tasks
 
 #### Adding a New Skill Effect
 
-1. Check if the effect type exists in `src/modules/simulation/lib/`
-2. Add effect handling in `RaceSolver.ts` or related files:
-
-```typescript
-// src/modules/simulation/lib/RaceSolver.ts
-import { SkillEffect } from '@simulation/lib/HorseTypes';
-
-// Add handling in the appropriate calculation method
-private applySkillEffects() {
-  for (const skill of this.activeSkills) {
-    if (skill.type === 'new_effect_type') {
-      // Implement effect logic
-    }
-  }
-}
-```
-
-3. Update condition parsing if needed in `ConditionParser.ts`
-4. Test with known skills that use the effect
+1. Check if the effect type exists in `src/lib/sunday-tools/skills/`
+2. Add effect handling in the appropriate simulation file
+3. Update condition parsing if needed in `src/lib/sunday-tools/skills/parser/`
+4. Add or update tests in corresponding `*.test.ts` files
+5. Test with known skills that use the effect
 
 #### Adding a New UI Feature
 
-1. Create or modify components in `src/components/` or module directories:
-
-```typescript
-// src/components/new-feature.tsx
-import { Button } from '@/components/ui/button';
-import { useSimulationStore } from '@simulation/stores/...';
-
-export function NewFeature() {
-  const { state, action } = useSimulationStore();
-
-  return (
-    <div className="flex gap-2">
-      <Button onClick={action}>Click me</Button>
-    </div>
-  );
-}
-```
-
-2. Update state management in Zustand stores if needed
-3. Add Tailwind CSS classes for styling
-4. Ensure the feature works with the web worker architecture
+1. Create or modify components in the appropriate module directory
+2. Update Zustand stores if state management is needed
+3. Use shadcn/ui primitives from `src/components/ui/` where possible
+4. Use Tailwind CSS for styling
+5. Ensure the feature works with the web worker architecture if it involves simulations
 
 #### Updating Course Data
 
-1. Ensure `courseeventparams/` has the latest course JSONs
-2. Re-run the extraction script:
+1. Ensure `courseeventparams/` has the latest course geometry JSONs
+2. Run the extraction:
 
 ```bash
-cd scripts
-perl make_global_course_data.pl /path/to/master.mdb ../courseeventparams > ../src/modules/data/course_data.json
+pnpm run extract:course-data
 ```
 
 3. Verify course geometry in the visualization
 4. Test skill activations on the updated course
 
-#### Fixing a Bug
+## Testing
 
-1. Reproduce the bug with specific parameters
-2. Add debugging output if needed (check `CC_DEBUG` flag)
-3. Fix the issue in the appropriate module
-4. Test to confirm the fix
-5. Test related functionality for regressions
+### Unit Tests
 
-#### Working with Path Aliases
+Run with Vitest:
 
-The project uses TypeScript path aliases for cleaner imports:
-
-```typescript
-// Instead of:
-import { RaceSolver } from '../../../modules/simulation/lib/RaceSolver';
-
-// Use:
-import { RaceSolver } from '@simulation/lib/RaceSolver';
-
-// Available aliases:
-import something from '@/...'; // src/
-import data from '@data/...'; // src/modules/data/
-import { Simulator } from '@simulation/...'; // src/modules/simulation/
-import { SkillQuery } from '@skills/...'; // src/modules/skills/
+```bash
+pnpm run test          # Run once
+pnpm run test:watch    # Watch mode
 ```
 
-## CLI Tools
+Add tests in `*.test.ts` files alongside the code they test.
 
-The `cli/` directory contains command-line tools for advanced analysis. See `cli/README.md` for detailed usage.
+### End-to-End Tests
 
-**Available Tools:**
+Run with Playwright:
 
-- **skillgrep.ts**: Search skills by name or condition
+```bash
+pnpm exec playwright test
+```
 
-  ```bash
-  npx tsx cli/skillgrep.ts --name "Acceleration"
-  ```
-
-- **dump.ts**: Simulate races and collect detailed position/velocity/acceleration data
-
-  ```bash
-  npx tsx cli/dump.ts [options]
-  ```
-
-- **speedguts.ts**: Analyze different combinations of speed and guts stats
-  ```bash
-  npx tsx cli/speedguts.ts [options]
-  ```
-
-Refer to `cli/README.md` for full options and usage examples.
-
-## Testing Your Changes
+E2E tests live in the `tests/` directory and match `*.e2e.ts`. Playwright is configured in `playwright.config.ts` to start the dev server automatically and run against Chromium.
 
 ### Manual Testing Checklist
 
 - [ ] Simulations complete without errors
-- [ ] Results are consistent with game behavior
+- [ ] Results are consistent with expected race behavior
 - [ ] UI is responsive and doesn't freeze
 - [ ] Skill activations appear correct on the chart
 - [ ] Statistics (min/median/mean/max) are reasonable
 - [ ] Changes work in both development and production builds
 
-### Automated Testing
+## CI/CD
 
-Run the test suite:
+### GitHub Actions
 
-```bash
-npm run test        # Run once
-npm run test:watch  # Watch mode
-```
+**PR Checks** (`.github/workflows/pr-checks.yml`):
 
-Add tests for new functionality in corresponding `*.test.ts` files.
+Runs on pull requests to `main`:
 
-### Regression Testing
+- TypeScript type checking (`pnpm run typecheck`)
+- Linting (`pnpm run lint`)
 
-After changes, test:
+**Playwright Tests** (`.github/workflows/playwright.yml`):
 
-- Multiple running styles (Runaway, Front Runner, Pace Chaser, Late Surger, End Closer)
-- Various courses (short, mile, medium, long)
-- Different skill types (acceleration, speed, special conditions)
-- Edge cases (very low stamina, extreme stats)
+Runs on pull requests to `main`:
+
+- Installs Playwright browsers
+- Runs E2E tests
+- Uploads test report artifact (retained 30 days)
+
+Both workflows use Node.js 24 and pnpm with frozen lockfile.
+
+### Deployment
+
+The project deploys to **Netlify** automatically. The build command is `pnpm run build` (configured in `netlify.toml`).
 
 ## Submitting Contributions
 
 ### Preparing Your Contribution
 
-1. **Document your changes:**
-   - Update changelog in `src/data/changelog.ts` if user-facing
-   - Add code comments explaining complex logic
-   - Update this guide if adding new workflows
-
-2. **Ensure code quality:**
+1. **Ensure code quality:**
 
    ```bash
-   npm run typecheck  # No TypeScript errors
-   npm run lint       # No linting errors
-   npm run format     # Code is formatted
-   npm run test       # Tests pass
+   pnpm run typecheck    # No TypeScript errors
+   pnpm run lint         # No linting errors
+   pnpm run format:check # Code is formatted
+   pnpm run test         # Tests pass
    ```
+
+2. **Update the changelog** in `src/data/changelog.ts` if the change is user-facing.
 
 3. **Test thoroughly:**
    - Run simulations with your changes
-   - Verify accuracy against in-game results
    - Check for performance regressions
+   - Test multiple running styles, courses, and skill types
 
 4. **Create a pull request:**
    - Describe what you changed and why
@@ -821,11 +589,11 @@ Be prepared to:
 
 - Run `pnpm install` to ensure all dependencies are installed
 - Check that import paths are correct
-- Verify path aliases are configured in `vite.config.ts`
+- Verify path aliases are configured in `tsconfig.json`
 
 ### Data Extraction Issues
 
-**"Can't open master.mdb":**
+**"Failed to open database":**
 
 - Verify the file path is correct
 - Ensure the game is not running (file may be locked)
@@ -833,9 +601,8 @@ Be prepared to:
 
 **Empty or invalid JSON:**
 
-- Check for Perl script errors in the console
 - Verify `master.mdb` is from the current game version
-- Ensure required Perl modules are installed
+- Check console output for script errors
 
 ### Runtime Errors
 
@@ -847,37 +614,29 @@ Be prepared to:
 
 **Simulations freeze:**
 
-- Check for infinite loops in race solver
+- Check for infinite loops in simulation code
 - Verify stamina is sufficient for the course
-- Use the development build (`npm run dev`) for more detailed error messages
-
-**Type errors during development:**
-
-- Run `npm run typecheck` to see all type errors
-- Check that types are imported correctly
-- Verify path aliases are working
+- Use the development build for detailed error messages
 
 ### Vite-Specific Issues
 
 **Port already in use:**
 
 - Vite will automatically try the next available port
-- Or specify a port: `npm run dev -- --port 3000`
+- Or specify a port: `pnpm run dev -- --port 3000`
 
 **Hot reload not working:**
 
-- Check if files are being watched correctly
 - Try restarting the dev server
 - Clear browser cache
 
-## Getting Help
-
-- Review existing documentation and code comments
-- Check the changelog in `src/data/changelog.ts` for recent changes
-- Search for similar issues in the repository
-- Ask questions in the community
-
 ## Additional Resources
+
+- [`scripts/README.md`](scripts/README.md) — data extraction script documentation
+- [`src/lib/sunday-tools/README.md`](src/lib/sunday-tools/README.md) — simulation engine documentation
+- [`docs/quick-reference.md`](docs/quick-reference.md) — race mechanics quick reference
+- [`docs/race-mechanics.md`](docs/race-mechanics.md) — detailed race mechanics
+- [`docs/simulator-patterns.md`](docs/simulator-patterns.md) — simulator design patterns
 
 ### Original Umalator
 
@@ -886,8 +645,8 @@ The simulator is based on the original Umalator project:
 - **Simulator Engine**: [github.com/alpha123/uma-skill-tools](https://github.com/alpha123/uma-skill-tools)
 - **UI Components**: [github.com/alpha123/uma-tools](https://github.com/alpha123/uma-tools)
 
-Enhanced with features by the community (see README.md for credits).
+See `README.md` for full acknowledgements.
 
 ---
 
-Thank you for contributing to Umalator-Global! Your efforts help make the simulator better for everyone.
+Thank you for contributing to Sunday's Shadow!
