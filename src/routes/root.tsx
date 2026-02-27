@@ -1,31 +1,42 @@
-import { Route, Routes, useLocation, useNavigate } from 'react-router';
+import { Route, Routes, useLocation, useNavigate } from "react-router";
 
-import { SimulationLayout } from './_simulation';
-import { SimulationHome } from './_simulation/home';
-import { SkillBassin } from './_simulation/skill-bassin';
-import { UmaBassin } from './_simulation/uma-bassin';
-import { SkillPlanner } from './skill-planner';
-import { RunnersLayout } from './runners';
-import { RunnersHome } from './runners/home';
-import { RunnersNew } from './runners/new';
-import { RunnersEdit } from './runners/$runnerId.edit';
-import { Toaster } from '@/components/ui/sonner';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { ChangelogModal } from '@/components/changelog-modal';
-import { CreditsModal } from '@/components/credits-modal';
-import { FeatureFlagDebugPanel } from '@/components/feature-flag-debug-panel';
-import { TutorialProvider, TutorialRoot } from '@/components/tutorial';
+import { SimulationLayout } from "./_simulation";
+import { SimulationHome } from "./_simulation/home";
+import { SkillBassin } from "./_simulation/skill-bassin";
+import { UmaBassin } from "./_simulation/uma-bassin";
+import { SkillPlanner } from "./skill-planner";
+import { RunnersLayout } from "./runners";
+import { RunnersHome } from "./runners/home";
+import { RunnersNew } from "./runners/new";
+import { RunnersEdit } from "./runners/$runnerId.edit";
+import { Toaster } from "@/components/ui/sonner";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { ChangelogModal } from "@/components/changelog-modal";
+import { CreditsModal } from "@/components/credits-modal";
+import { FeatureFlagDebugPanel } from "@/components/feature-flag-debug-panel";
+import { TutorialProvider, TutorialRoot } from "@/components/tutorial";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { MegaphoneIcon } from "lucide-react";
 
 export function RootComponent() {
   const location = useLocation();
   const navigate = useNavigate();
 
   const getCurrentTab = () => {
-    if (location.pathname.startsWith('/runners')) return 'runners';
-    if (location.pathname === '/skill-planner') return 'skill-planner';
-    return 'simulation';
+    if (location.pathname.startsWith("/runners")) return "runners";
+    if (location.pathname === "/skill-planner") return "skill-planner";
+    return "simulation";
   };
 
   const currentTab = getCurrentTab();
@@ -38,12 +49,12 @@ export function RootComponent() {
             <Tabs
               value={currentTab}
               onValueChange={(value) => {
-                if (value === 'simulation') {
-                  navigate('/');
-                } else if (value === 'runners') {
-                  navigate('/runners');
-                } else if (value === 'skill-planner') {
-                  navigate('/skill-planner');
+                if (value === "simulation") {
+                  navigate("/");
+                } else if (value === "runners") {
+                  navigate("/runners");
+                } else if (value === "skill-planner") {
+                  navigate("/skill-planner");
                 }
               }}
             >
@@ -56,23 +67,50 @@ export function RootComponent() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              className="flex h-9 w-9 items-center justify-center"
-              render={
-                <a
-                  href="https://github.com/jalbarrang/umalator-global"
-                  target="_blank"
-                  rel="noopener noreferrer"
+            <Dialog>
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <DialogTrigger
+                      render={
+                        <Button
+                          variant="outline"
+                          className="flex h-9 w-9 items-center justify-center"
+                        />
+                      }
+                    />
+                  }
                 >
-                  <img
-                    src="/svg/github.svg"
-                    alt="GitHub Repository"
-                    className="w-4 h-4 dark:invert"
-                  />
-                </a>
-              }
-            />
+                  <MegaphoneIcon className="h-4 w-4" />
+                </TooltipTrigger>
+                <TooltipContent>Disclaimer</TooltipContent>
+              </Tooltip>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Disclaimer</DialogTitle>
+                  <DialogDescription>
+                    <span className="block mb-3">
+                      Sadly, I cannot share the code anymore as a public repo. There are some bad
+                      actors from some communities stealing this work and claiming it as their own
+                      without attribution.
+                    </span>
+                    <span className="block mb-3">
+                      If this decision makes you not trust me or not use the tool anymore, I
+                      understand, this work was originally made as a passion project that followed
+                      the great work done by Pecan, Kachi and other members of the JP community and
+                      VF Discord.
+                    </span>
+                    <span className="block mb-3">
+                      I will still make updates on this, but don't expect me to make the code open
+                      anymore.
+                    </span>
+                    <span className="block">Cheers.</span>
+                    <span className="block mt-1 font-medium">Albhax.</span>
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter showCloseButton />
+              </DialogContent>
+            </Dialog>
             <ThemeToggle />
           </div>
         </div>
@@ -115,8 +153,8 @@ export function NotFoundComponent() {
         <h2 className="text-2xl font-semibold">Page Not Found</h2>
         <p className="text-muted-foreground">The page you're looking for doesn't exist.</p>
         <div className="flex gap-2 justify-center pt-4">
-          <Button onClick={() => navigate('/')}>Go to Umalator</Button>
-          <Button variant="outline" onClick={() => navigate('/runners')}>
+          <Button onClick={() => navigate("/")}>Go to Umalator</Button>
+          <Button variant="outline" onClick={() => navigate("/runners")}>
             Go to Veterans
           </Button>
         </div>
