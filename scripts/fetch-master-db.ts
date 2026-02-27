@@ -7,6 +7,8 @@
  *
  * For fetching the version ID fetch from the following URL:
  * https://uma.moe/api/ver
+ *
+ * Credits to Werseter (@werseter) from Gametora's Discord for the original python script.
  */
 
 import { mkdir, writeFile } from 'node:fs/promises';
