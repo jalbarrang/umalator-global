@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { cloneDeep } from 'es-toolkit';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
-import { createRunnerState } from '@/modules/runners/components/runner-card/types';
+import { createRunnerState, runawaySkillId } from '@/modules/runners/components/runner-card/types';
 import { createRaceConditions, racedefToParams } from '@/utils/races';
 import type { CompareParams, SimulationOptions } from '@/modules/simulation/types';
 import { runSkillComparison } from './skill-compare';
+import { runPlannerComparison } from './skill-planner-compare';
 import { runComparison } from './vacuum-compare';
 
 const TEST_COURSE_ID = 10101;
@@ -90,5 +91,41 @@ describe('vacuum-compare simulator', () => {
     expect(result.staminaStats.uma1.fullSpurtRate).toBeLessThanOrEqual(100);
     expect(result.firstUmaStats.uma1.firstPlaceRate).toBeGreaterThanOrEqual(0);
     expect(result.firstUmaStats.uma1.firstPlaceRate).toBeLessThanOrEqual(100);
+  });
+});
+
+describe('skill-planner-compare simulator', () => {
+  it('is deterministic and returns sorted basinn deltas', () => {
+    const course = CourseHelpers.getCourse(TEST_COURSE_ID);
+    const racedef = racedefToParams(createRaceConditions());
+    const runnerA = createRunnerState({ outfitId: '100101', skills: [] });
+    const runnerB = cloneDeep(runnerA);
+    runnerB.skills = [runawaySkillId];
+    const options = createSimulationOptions(12345);
+
+    const first = runPlannerComparison({
+      nsamples: 10,
+      course,
+      racedef,
+      runnerA,
+      runnerB,
+      candidateSkills: [runawaySkillId],
+      options,
+    });
+
+    const second = runPlannerComparison({
+      nsamples: 10,
+      course,
+      racedef,
+      runnerA,
+      runnerB,
+      candidateSkills: [runawaySkillId],
+      options,
+    });
+
+    expect(first.results).toEqual(second.results);
+    expect(first.mean).toBe(second.mean);
+    expect(first.median).toBe(second.median);
+    expect(first.results).toEqual([...first.results].sort((a, b) => a - b));
   });
 });

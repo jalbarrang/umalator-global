@@ -13,21 +13,17 @@ import type {
   Run1RoundParams,
   RunComparisonParams,
   SkillComparisonResponse,
-  TheoreticalMaxSpurtResult,
 } from '@/modules/simulation/types';
 import type {
   SkillSimulationData,
   SkillSimulationRun,
   SkillTrackedMetaCollection,
 } from '@/modules/simulation/compare.types';
-import type { RunnerState } from '@/modules/runners/components/runner-card/types';
-import type { CourseData, IGroundCondition } from '@/lib/sunday-tools/course/definitions';
 import { initializeSkillSimulationRun } from '@/modules/simulation/compare.types';
 import {
+  BassinCollector,
   SkillCompareDataCollector,
-  VacuumCompareDataCollector,
 } from '@/lib/sunday-tools/common/race-observer';
-import { parseAptitudeName, parseStrategyName } from '@/lib/sunday-tools/runner/runner.types';
 import {
   DEFAULT_DUELING_RATES,
   computePositionDiff,
@@ -38,81 +34,6 @@ import {
   toCreateRunner,
   toSundayRaceParameters,
 } from './shared';
-
-export function calculateTheoreticalMaxSpurt(
-  horse: RunnerState,
-  course: CourseData,
-  ground: IGroundCondition,
-): TheoreticalMaxSpurtResult {
-  const HpStrategyCoefficient = [0, 0.95, 0.89, 1.0, 0.995, 0.86];
-  const HpConsumptionGroundModifier = [[], [0, 1.0, 1.0, 1.02, 1.02], [0, 1.0, 1.0, 1.01, 1.02]];
-  const StrategyPhaseCoefficient = [
-    [],
-    [1.0, 0.98, 0.962],
-    [0.978, 0.991, 0.975],
-    [0.938, 0.998, 0.994],
-    [0.931, 1.0, 1.0],
-    [1.063, 0.962, 0.95],
-  ];
-  const DistanceProficiencyModifier = [1.05, 1.0, 0.9, 0.8, 0.6, 0.4, 0.2, 0.1];
-
-  const strategy = parseStrategyName(horse.strategy);
-  const distanceAptitude = parseAptitudeName(horse.distanceAptitude);
-
-  const baseSpeed = 20.0 - (course.distance - 2000) / 1000.0;
-  const maxHp = 0.8 * HpStrategyCoefficient[strategy] * horse.stamina + course.distance;
-  const groundModifier = HpConsumptionGroundModifier[course.surface][ground];
-  const gutsModifier = 1.0 + 200.0 / Math.sqrt(600.0 * horse.guts);
-
-  const baseTargetSpeed2 =
-    baseSpeed * StrategyPhaseCoefficient[strategy][2] +
-    Math.sqrt(500.0 * horse.speed) * DistanceProficiencyModifier[distanceAptitude] * 0.002;
-
-  const maxSpurtSpeed =
-    (baseSpeed * (StrategyPhaseCoefficient[strategy][2] + 0.01) +
-      Math.sqrt(horse.speed / 500.0) * DistanceProficiencyModifier[distanceAptitude]) *
-      1.05 +
-    Math.sqrt(500.0 * horse.speed) * DistanceProficiencyModifier[distanceAptitude] * 0.002 +
-    Math.pow(450.0 * horse.guts, 0.597) * 0.0001;
-
-  const phase0Distance = course.distance / 6;
-  const phase0Speed = baseSpeed * StrategyPhaseCoefficient[strategy][0];
-  const phase0HpPerSec =
-    ((20.0 * Math.pow(phase0Speed - baseSpeed + 12.0, 2)) / 144.0) * groundModifier;
-  const phase0Time = phase0Distance / phase0Speed;
-  const phase0Hp = phase0HpPerSec * phase0Time;
-
-  const phase1Distance = (course.distance * 2) / 3 - phase0Distance;
-  const phase1Speed = baseSpeed * StrategyPhaseCoefficient[strategy][1];
-  const phase1HpPerSec =
-    ((20.0 * Math.pow(phase1Speed - baseSpeed + 12.0, 2)) / 144.0) * groundModifier;
-  const phase1Time = phase1Distance / phase1Speed;
-  const phase1Hp = phase1HpPerSec * phase1Time;
-
-  const spurtEntryPos = (course.distance * 2) / 3;
-  const remainingDistance = course.distance - spurtEntryPos;
-  const spurtDistance = remainingDistance - 60;
-
-  const spurtHpPerSec =
-    ((20.0 * Math.pow(maxSpurtSpeed - baseSpeed + 12.0, 2)) / 144.0) *
-    groundModifier *
-    gutsModifier;
-  const spurtTime = spurtDistance / maxSpurtSpeed;
-  const spurtHp = spurtHpPerSec * spurtTime;
-
-  const totalHpNeeded = phase0Hp + phase1Hp + spurtHp;
-  const hpRemaining = maxHp - totalHpNeeded;
-  const canMaxSpurt = hpRemaining >= 0;
-
-  return {
-    canMaxSpurt,
-    maxHp,
-    hpNeededForMaxSpurt: totalHpNeeded,
-    maxSpurtSpeed,
-    baseTargetSpeed2,
-    hpRemaining,
-  };
-}
 
 export interface SkillComparisonResult {
   results: Array<number>;
@@ -141,7 +62,7 @@ export function runSkillComparison(params: SkillCompareParams): SkillComparisonR
   const settings = createCompareSettings();
 
   const fallbackEffectMeta = getFallbackEffectMeta(trackedSkillId);
-  const collectorA = new VacuumCompareDataCollector();
+  const collectorA = new BassinCollector();
   const collectorB = new SkillCompareDataCollector({
     trackedSkillId,
     fallbackEffectType: fallbackEffectMeta.effectType,
@@ -192,14 +113,14 @@ export function runSkillComparison(params: SkillCompareParams): SkillComparisonR
     raceA.run();
     raceB.run();
 
-    const roundA = collectorA.getPrimaryRunnerRoundData();
+    const baselinePosition = collectorA.getPosition();
     const roundB = collectorB.getPrimaryRunnerRoundData();
 
-    if (!roundA || !roundB) {
+    if (baselinePosition.length === 0 || !roundB) {
       throw new Error('Missing collected runner data for skill comparison');
     }
 
-    const positionDiff = computePositionDiff(roundA.position, roundB.position);
+    const positionDiff = computePositionDiff(baselinePosition, roundB.position);
     const basinn = (sign * positionDiff) / 2.5;
     collectorB.finalizeCurrentTrackedMeta(basinn);
 
@@ -217,13 +138,13 @@ export function runSkillComparison(params: SkillCompareParams): SkillComparisonR
       maxrun = data;
     }
 
-    if (i == sampleCutoff) {
+    if (i === sampleCutoff) {
       diff.sort((a, b) => a - b);
 
       estMean = diff.reduce((a, b) => a + b) / diff.length;
 
       const mid = Math.floor(diff.length / 2);
-      estMedian = mid > 0 && diff.length % 2 == 0 ? (diff[mid - 1] + diff[mid]) / 2 : diff[mid];
+      estMedian = mid > 0 && diff.length % 2 === 0 ? (diff[mid - 1] + diff[mid]) / 2 : diff[mid];
     }
 
     if (i >= sampleCutoff) {
@@ -245,7 +166,7 @@ export function runSkillComparison(params: SkillCompareParams): SkillComparisonR
   diff.sort((a, b) => a - b);
 
   const mid = Math.floor(diff.length / 2);
-  const median = diff.length % 2 == 0 ? (diff[mid - 1] + diff[mid]) / 2 : diff[mid];
+  const median = diff.length % 2 === 0 ? (diff[mid - 1] + diff[mid]) / 2 : diff[mid];
   const mean = diff.reduce((a, b) => a + b) / diff.length;
 
   const trackedMetaCollection = collectorB.getTrackedMetaCollection();

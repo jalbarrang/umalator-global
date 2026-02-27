@@ -1,5 +1,5 @@
 import { HelpCircleIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -149,15 +149,6 @@ export function HelpDialog({ open, onOpenChange }: HelpDialogProps) {
 // Hook to manage help dialog visibility
 export function useHelpDialog() {
   const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    // Check if user has dismissed the help dialog before
-    const dismissed = localStorage.getItem(STORAGE_KEY);
-    if (!dismissed) {
-      // Show help dialog on first visit
-      setOpen(true);
-    }
-  }, []);
 
   return { open, setOpen };
 }

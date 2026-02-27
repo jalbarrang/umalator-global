@@ -7,8 +7,6 @@ import type {
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import type { RaceParameters } from '@/lib/sunday-tools/common/race';
 
-// Calculate theoretical max spurt based purely on stats (no RNG)
-
 export type FilterReason = 'negligible-effect' | 'low-variance' | null;
 
 export type RoundResult = {
@@ -62,15 +60,6 @@ export interface SimulationOptions {
   skillCheckChanceUma2: boolean;
 
 }
-
-export type TheoreticalMaxSpurtResult = {
-  canMaxSpurt: boolean;
-  maxHp: number;
-  hpNeededForMaxSpurt: number;
-  maxSpurtSpeed: number;
-  baseTargetSpeed2: number;
-  hpRemaining: number;
-};
 
 export type RunComparisonParams = {
   nsamples: number;

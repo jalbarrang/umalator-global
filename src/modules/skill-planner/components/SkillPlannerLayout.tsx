@@ -14,7 +14,6 @@ import { SkillPlannerResults } from './SkillPlannerResults';
 import { HelpDialog, useHelpDialog } from './HelpDialog';
 import { RunnerCard } from './RunnerCard';
 import { CostModifiersPanel } from './CostModifiersPanel';
-import { SkillPlannerRaceTrack } from './SkillPlannerRaceTrack';
 import { RaceSettingsPanel } from './RaceSettingsPanel';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { Button } from '@/components/ui/button';
@@ -24,11 +23,10 @@ import {
   nonUniqueSkillIds,
 } from '@/modules/skills/utils';
 import { SkillPickerDrawer } from '@/modules/skills/components/skill-list/SkillPickerDrawer';
-import { initializeSimulationRun } from '@/modules/simulation/compare.types';
 
 export function SkillPlannerLayout() {
   const { open: helpOpen, setOpen: setHelpOpen } = useHelpDialog();
-  const { skillDrawerOpen, runner, result } = useSkillPlannerStore();
+  const { skillDrawerOpen, runner } = useSkillPlannerStore();
 
   const umaId = useMemo(() => {
     if (runner.outfitId) {
@@ -88,6 +86,7 @@ export function SkillPlannerLayout() {
         onSelect={handleSkillSelect}
         onOpenChange={handleOpenChange}
       />
+
       <HelpDialog open={helpOpen} onOpenChange={setHelpOpen} />
 
       <div className="flex flex-col md:flex-row gap-2 flex-1 min-h-0">
@@ -125,13 +124,6 @@ export function SkillPlannerLayout() {
         <div className="flex flex-col gap-2 flex-1">
           {/* Always visible race settings */}
           <RaceSettingsPanel />
-
-          {/* RaceTrack visualization - only after optimization */}
-          {result && result.runData && (
-            <SkillPlannerRaceTrack
-              chartData={result.runData.medianrun ?? initializeSimulationRun()}
-            />
-          )}
 
           <CostModifiersPanel />
           <SkillPlannerResults />

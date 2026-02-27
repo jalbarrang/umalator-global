@@ -506,22 +506,44 @@ export class SkillCompareDataCollector extends VacuumCompareDataCollector {
 
 export class UniqueSkillCompareDataCollector extends SkillCompareDataCollector {}
 
-export class SkillPlannerDataCollector implements RaceLifecycleObserver {
+/**
+ * Lightweight collector that only tracks position per tick and finish position.
+ * Provides data compatible with `computePositionDiff` without the overhead
+ * of full skill-activation / velocity / HP tracking.
+ */
+export class BassinCollector implements RaceLifecycleObserver {
+  private position: Array<number> = [];
   private finishPosition = 0;
+  private runnerId: number | null = null;
 
   public onRoundStart(_race: Race, _seed: number): void {
+    this.position = [];
     this.finishPosition = 0;
+    this.runnerId = null;
   }
 
   public onBeforeTick(_race: Race, _dt: number): void {}
 
-  public onAfterRunnerTick(_race: Race, _runner: Runner, _dt: number): void {}
+  public onAfterRunnerTick(_race: Race, runner: Runner, _dt: number): void {
+    if (this.runnerId == null) {
+      this.runnerId = runner.id;
+    }
+    if (runner.id === this.runnerId) {
+      this.position.push(runner.position);
+    }
+  }
 
   public onRunnerFinished(race: Race, runner: Runner): void {
-    this.finishPosition = Math.min(runner.position, race.course.distance);
+    if (this.runnerId == null || runner.id === this.runnerId) {
+      this.finishPosition = Math.min(runner.position, race.course.distance);
+    }
   }
 
   public onRoundEnd(_race: Race): void {}
+
+  public getPosition(): Array<number> {
+    return this.position;
+  }
 
   public getFinishPosition(): number {
     return this.finishPosition;

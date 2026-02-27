@@ -1,5 +1,3 @@
-import type { SimulationData } from '@/modules/simulation/compare.types';
-
 export type HintLevel = 0 | 1 | 2 | 3 | 4 | 5;
 
 // Candidate skill with purchase metadata
@@ -45,7 +43,6 @@ export type OptimizationResult = {
   simulationCount: Readonly<number>;
   timeTaken: Readonly<number>;
   allResults: ReadonlyArray<CombinationResult>; // For showing alternative combinations
-  runData?: Readonly<SimulationData>; // Full simulation data for RaceTrack visualization
 };
 
 // Individual combination result during optimization
@@ -53,7 +50,6 @@ export interface CombinationResult {
   skills: Array<string>;
   cost: number;
   bashin: number;
-  runData?: SimulationData;
 }
 
 // Progress update from worker

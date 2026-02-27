@@ -6,7 +6,7 @@
 import { clone, cloneDeepWith } from 'es-toolkit';
 import type { SkillComparisonResponse } from '@/modules/simulation/types';
 import type { SimulationParams, WorkBatch, WorkerInMessage, WorkerOutMessage } from '../types';
-import { runSampling } from '@/modules/simulation/simulators/unique-compare';
+import { runSampling } from '@/modules/simulation/simulators/skill-compare';
 
 let workerId = -1;
 let simulationParams: SimulationParams | null = null;

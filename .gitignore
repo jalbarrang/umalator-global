@@ -26,3 +26,10 @@ AGENTS.md
 # debug scripts
 scripts/runners/*.json
 scripts/skill-lists/*.json
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
