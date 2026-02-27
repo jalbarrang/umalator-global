@@ -140,7 +140,68 @@ export function generateCombinations(
     }
   }
 
-  return combinations;
+  return enforcePrerequisites(combinations, candidates, budget);
+}
+
+/**
+ * Enforce prerequisite skills in generated combinations.
+ *
+ * Gold skills require their white counterpart unless that white skill
+ * is already obtained (and therefore absent from candidate pool).
+ */
+function enforcePrerequisites(
+  combinations: Array<Array<string>>,
+  candidates: Array<CandidateSkill>,
+  budget: number,
+): Array<Array<string>> {
+  const candidateMap = new Map(candidates.map((candidate) => [candidate.skillId, candidate]));
+  const prerequisites = new Map<string, string>();
+
+  for (const candidate of candidates) {
+    if (!candidate.isGold || !candidate.whiteSkillId) {
+      continue;
+    }
+
+    // Only enforce when the white prerequisite is still purchasable.
+    if (candidateMap.has(candidate.whiteSkillId)) {
+      prerequisites.set(candidate.skillId, candidate.whiteSkillId);
+    }
+  }
+
+  if (prerequisites.size === 0) {
+    return combinations;
+  }
+
+  const uniqueKeys = new Set<string>();
+  const filtered: Array<Array<string>> = [];
+
+  for (const combination of combinations) {
+    const withPrerequisites = new Set(combination);
+
+    for (const skillId of combination) {
+      const whitePrerequisite = prerequisites.get(skillId);
+      if (whitePrerequisite) {
+        withPrerequisites.add(whitePrerequisite);
+      }
+    }
+
+    const normalized = Array.from(withPrerequisites);
+    const key = normalized.toSorted().join(',');
+
+    if (uniqueKeys.has(key)) {
+      continue;
+    }
+
+    const cost = calculateCombinationCost(normalized, candidates);
+    if (cost > budget) {
+      continue;
+    }
+
+    uniqueKeys.add(key);
+    filtered.push(normalized);
+  }
+
+  return filtered;
 }
 
 /**

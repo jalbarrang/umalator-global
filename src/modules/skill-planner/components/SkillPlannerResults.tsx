@@ -64,7 +64,7 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
               <div className="flex gap-4 text-sm text-muted-foreground">
                 <span>Combinations Tested: {result.simulationCount}</span>
                 <span>Time Taken: {(result.timeTaken / 1000).toFixed(1)}s</span>
-                <span>Top Results Shown: {rankedCombinations.length}</span>
+                <span>Results: {rankedCombinations.length}</span>
               </div>
             </div>
           </div>

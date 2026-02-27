@@ -132,6 +132,12 @@ export function runAdaptiveOptimization(params: OptimizationParams): Optimizatio
   const endTime = performance.now();
   const timeTaken = endTime - startTime;
 
+  // Merge stage 2 (accurate) results with remaining stage 1 results.
+  // Stage 2 candidates were re-evaluated with more samples, so prefer those scores.
+  const stage2SkillKeys = new Set(stage2Results.map((r) => r.skills.join(',')));
+  const remainingStage1 = stage1Results.filter((r) => !stage2SkillKeys.has(r.skills.join(',')));
+  const allResults = [...stage2Results, ...remainingStage1];
+
   // Build final optimization result
   const optimizationResult: OptimizationResult = {
     skillsToBuy: winner.skills,
@@ -139,12 +145,12 @@ export function runAdaptiveOptimization(params: OptimizationParams): Optimizatio
     bashinStats: {
       min: finalResult.min,
       max: finalResult.max,
-      mean: finalResult.bashin, // evaluateCombination returns 'bashin', not 'mean'
+      mean: finalResult.bashin,
       median: finalResult.median,
     },
     simulationCount: combinations.length + topCombinations.length + 1,
     timeTaken,
-    allResults: stage2Results,
+    allResults,
   };
 
   return optimizationResult;

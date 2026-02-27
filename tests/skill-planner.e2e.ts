@@ -53,7 +53,7 @@ test('skill planner optimizes a candidate skill combination', async ({ page }) =
   // Wait for results
   await expect(page.getByText('Simulation Complete')).toBeVisible({ timeout: 60_000 });
   await expect(page.getByText(/Combinations Tested:/)).toBeVisible();
-  await expect(page.getByText(/Top Results Shown:/)).toBeVisible();
+  await expect(page.getByText(/Results:/)).toBeVisible();
   await expect(page.getByText('Lengths').first()).toBeVisible();
 
   // Verify baseline result is present
