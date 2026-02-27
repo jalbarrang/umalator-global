@@ -13,11 +13,25 @@ const PRESET_STORE_NAME = 'umalator-presets';
 
 type IPresetStore = {
   presets: Record<string, RacePreset>;
+  presetOrder: string[];
 };
+
+const DEFAULT_PRESET_IDS = [
+  '550e8400-e29b-41d4-a716-446655440001',
+  '550e8400-e29b-41d4-a716-446655440002',
+  '550e8400-e29b-41d4-a716-446655440003',
+  '550e8400-e29b-41d4-a716-446655440004',
+  '550e8400-e29b-41d4-a716-446655440005',
+  '550e8400-e29b-41d4-a716-446655440006',
+  '550e8400-e29b-41d4-a716-446655440007',
+  '550e8400-e29b-41d4-a716-446655440008',
+  '550e8400-e29b-41d4-a716-446655440009',
+];
 
 export const usePresetStore = create<IPresetStore>()(
   persist(
     (_) => ({
+      presetOrder: DEFAULT_PRESET_IDS,
       presets: {
         '550e8400-e29b-41d4-a716-446655440001': {
           id: '550e8400-e29b-41d4-a716-446655440001',
@@ -123,6 +137,18 @@ export const usePresetStore = create<IPresetStore>()(
     {
       name: PRESET_STORE_NAME,
       storage: createJSONStorage(() => localStorage),
+      merge: (persisted, current) => {
+        const state = persisted as IPresetStore;
+        if (!state) return current;
+
+        const presetIds = Object.keys(state.presets);
+        const order = state.presetOrder?.length
+          ? state.presetOrder.filter((id) => presetIds.includes(id))
+          : presetIds;
+        const missing = presetIds.filter((id) => !order.includes(id));
+
+        return { ...current, ...state, presetOrder: [...order, ...missing] };
+      },
     },
   ),
 );
@@ -130,6 +156,7 @@ export const usePresetStore = create<IPresetStore>()(
 export const addPreset = (preset: RacePreset) => {
   usePresetStore.setState((state) => ({
     presets: { ...state.presets, [preset.id]: preset },
+    presetOrder: [preset.id, ...state.presetOrder],
   }));
 };
 
@@ -142,6 +169,27 @@ export const updatePreset = (id: string, preset: RacePreset) => {
 export const deletePreset = (id: string) => {
   usePresetStore.setState((state) => {
     const { [id]: _, ...remainingPresets } = state.presets;
-    return { presets: remainingPresets };
+    return {
+      presets: remainingPresets,
+      presetOrder: state.presetOrder.filter((pid) => pid !== id),
+    };
   });
+};
+
+export const deletePresets = (ids: string[]) => {
+  const idSet = new Set(ids);
+  usePresetStore.setState((state) => {
+    const remaining: Record<string, RacePreset> = {};
+    for (const [key, value] of Object.entries(state.presets)) {
+      if (!idSet.has(key)) remaining[key] = value;
+    }
+    return {
+      presets: remaining,
+      presetOrder: state.presetOrder.filter((pid) => !idSet.has(pid)),
+    };
+  });
+};
+
+export const reorderPresets = (newOrder: string[]) => {
+  usePresetStore.setState({ presetOrder: newOrder });
 };
