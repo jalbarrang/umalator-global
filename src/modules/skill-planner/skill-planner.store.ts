@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { cloneDeep } from 'es-toolkit';
+import { generateSeed } from '@/utils/crypto';
 import { createRunnerState } from '../runners/components/runner-card/types';
 import type { RunnerState } from '../runners/components/runner-card/types';
 import type { CandidateSkill, OptimizationProgress, OptimizationResult } from './types';
@@ -27,6 +28,7 @@ interface SkillPlannerState {
   hasFastLearner: boolean;
 
   // Optimization state
+  seed: number | null;
   isOptimizing: boolean;
   progress: OptimizationProgress | null;
   result: OptimizationResult | null;
@@ -43,6 +45,7 @@ export const useSkillPlannerStore = create<SkillPlannerState>()(
       obtainedSkills: [],
       budget: 1000,
       hasFastLearner: false,
+      seed: null,
       isOptimizing: false,
       progress: null,
       result: null,
@@ -370,6 +373,16 @@ export const setHasFastLearner = (hasFastLearner: boolean) => {
   useSkillPlannerStore.setState({
     hasFastLearner,
   });
+};
+
+export const setSeed = (seed: number | null) => {
+  useSkillPlannerStore.setState({ seed });
+};
+
+export const createNewSeed = () => {
+  const seed = generateSeed();
+  useSkillPlannerStore.setState({ seed });
+  return seed;
 };
 
 export const setIsOptimizing = (isOptimizing: boolean) => {

@@ -1,4 +1,3 @@
-import type { ChangelogEntry } from '@/data/changelog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { setShowChangelogModal, useUIStore } from '@/store/ui.store';
 import { changelog } from '@/data/changelog';
@@ -8,7 +7,7 @@ export function ChangelogModal() {
 
   return (
     <Dialog open={showChangelogModal} onOpenChange={setShowChangelogModal}>
-      <DialogContent className="max-w-lg max-h-[80vh] flex flex-col">
+      <DialogContent className="max-w-lg! max-h-[80vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Changelog</DialogTitle>
         </DialogHeader>

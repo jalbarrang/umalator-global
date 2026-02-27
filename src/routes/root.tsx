@@ -68,16 +68,16 @@ export function RootComponent() {
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label="Open repository"
-                    />
+                    >
+                      <img
+                        src="/svg/github.svg"
+                        alt="GitHub Repository"
+                        className="h-4 w-4 dark:invert"
+                      />
+                    </a>
                   </Button>
                 }
-              >
-                <img
-                  src="/svg/github.svg"
-                  alt="GitHub Repository"
-                  className="h-4 w-4 dark:invert"
-                />
-              </TooltipTrigger>
+              ></TooltipTrigger>
               <TooltipContent>Repository</TooltipContent>
             </Tooltip>
             <Tooltip>

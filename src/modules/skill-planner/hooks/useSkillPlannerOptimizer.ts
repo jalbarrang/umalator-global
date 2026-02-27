@@ -14,6 +14,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import SkillPlannerWorker from '@workers/skill-planner.worker.ts?worker';
 import {
+  createNewSeed,
   setIsOptimizing,
   setProgress,
   setResult,
@@ -45,7 +46,7 @@ type WorkerMessage =
     };
 
 export function useSkillPlannerOptimizer() {
-  const { runner, candidates, budget, obtainedSkills } = useSkillPlannerStore();
+  const { runner, candidates, budget, obtainedSkills, seed } = useSkillPlannerStore();
   const { courseId, racedef } = useSettingsStore();
 
   const webWorkerRef = useRef<Worker | null>(null);
@@ -98,22 +99,16 @@ export function useSkillPlannerOptimizer() {
     };
   }, []);
 
-  // Start optimization
-  const handleOptimize = () => {
+  const runWithSeed = (seedValue: number) => {
     if (!webWorkerRef.current) {
       console.error('Worker not initialized');
       return;
     }
 
-    // Clear previous results
     setResult(null);
     setProgress(null);
     setIsOptimizing(true);
 
-    // Generate random seed
-    const seed = Math.floor(Math.random() * 1000000);
-
-    // Send optimization request to worker
     webWorkerRef.current.postMessage({
       msg: 'optimize',
       data: {
@@ -125,10 +120,20 @@ export function useSkillPlannerOptimizer() {
         racedef: raceParams,
         options: {
           ...defaultSimulationOptions,
-          seed,
+          seed: seedValue,
         },
       },
     });
+  };
+
+  const handleOptimize = () => {
+    const newSeed = createNewSeed();
+    runWithSeed(newSeed);
+  };
+
+  const handleReplay = () => {
+    if (seed === null) return;
+    runWithSeed(seed);
   };
 
   // Cancel optimization
@@ -151,6 +156,7 @@ export function useSkillPlannerOptimizer() {
 
   return {
     handleOptimize,
+    handleReplay,
     handleCancel,
   };
 }
