@@ -43,7 +43,7 @@ export function HelpDialog({ open, onOpenChange }: HelpDialogProps) {
             <p className="text-muted-foreground">
               After completing a career, you receive skill hints that discount specific skills. The
               Skill Planner finds the best combination of skills to buy within your budget by
-              running full race simulations to maximize your Bashin (distance) gains.
+              running compare simulations to maximize your Bashin (distance) gains.
             </p>
           </div>
 
