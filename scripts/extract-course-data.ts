@@ -5,6 +5,7 @@
  */
 
 import path from 'node:path';
+import { Command } from 'commander';
 import { closeDatabase, openDatabase, queryAll } from './lib/database';
 import {
   readJsonFile,
@@ -76,6 +77,35 @@ interface CourseData {
   slopes: Array<Slope>;
 }
 
+type ExtractCourseDataOptions = {
+  replaceMode: boolean;
+  dbPath?: string;
+  courseEventParamsPath?: string;
+};
+
+function parseCliArgs(argv: Array<string>): ExtractCourseDataOptions {
+  const program = new Command();
+
+  program
+    .name('extract-course-data')
+    .description('Extract course data from master.mdb and courseeventparams')
+    .option('-r, --replace', 'replace existing extracted data')
+    .option('--full', 'alias for --replace')
+    .argument('[dbPath]', 'path to master.mdb')
+    .argument('[courseEventParamsPath]', 'path to courseeventparams directory');
+
+  program.parse(argv);
+
+  const options = program.opts<{ replace?: boolean; full?: boolean }>();
+  const [dbPath, courseEventParamsPath] = program.args as Array<string>;
+
+  return {
+    replaceMode: Boolean(options.replace || options.full),
+    dbPath,
+    courseEventParamsPath,
+  };
+}
+
 /**
  * Calculate distance type category
  */
@@ -86,12 +116,12 @@ function distanceType(distance: number): number {
   return 4; // Long
 }
 
-async function extractCourseData() {
+async function extractCourseData(options: ExtractCourseDataOptions = { replaceMode: false }) {
   console.log('📖 Extracting course data...\n');
 
-  const dbPath = await resolveMasterDbPath();
-  const replaceMode = process.argv.includes('--replace') || process.argv.includes('--full');
-  const courseEventParamsPath = process.argv[3] || path.join(process.cwd(), 'courseeventparams');
+  const { replaceMode, dbPath: cliDbPath, courseEventParamsPath: cliCourseEventParamsPath } = options;
+  const dbPath = await resolveMasterDbPath(cliDbPath);
+  const courseEventParamsPath = cliCourseEventParamsPath || path.join(process.cwd(), 'courseeventparams');
 
   console.log(
     `Mode: ${replaceMode ? '⚠️  Full Replacement' : '✓ Merge (preserves future content)'}`,
@@ -269,10 +299,12 @@ async function extractCourseData() {
 
 // Run if called directly
 if (import.meta.main) {
-  extractCourseData().catch((error) => {
+  const options = parseCliArgs(process.argv);
+
+  extractCourseData(options).catch((error) => {
     console.error('Error:', error.message);
     process.exit(1);
   });
 }
 
-export { extractCourseData };
+export { extractCourseData, parseCliArgs };

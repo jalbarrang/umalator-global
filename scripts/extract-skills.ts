@@ -5,6 +5,7 @@
  */
 
 import path from 'node:path';
+import { Command } from 'commander';
 import { closeDatabase, openDatabase, queryAll } from './lib/database';
 import { readJsonFileIfExists, resolveMasterDbPath, sortByNumericKey, writeJsonFile } from './lib/shared';
 import type { SkillEntry } from '@/modules/data/skill-types';
@@ -86,6 +87,32 @@ const SCENARIO_SKILLS = new Set([
 ]);
 
 const SPLIT_ALTERNATIVES = new Set([100701, 900701]);
+
+type ExtractSkillsOptions = {
+  replaceMode: boolean;
+  dbPath?: string;
+};
+
+function parseCliArgs(argv: Array<string>): ExtractSkillsOptions {
+  const program = new Command();
+
+  program
+    .name('extract-skills')
+    .description('Extract unified skill data from master.mdb')
+    .option('-r, --replace', 'replace existing extracted data')
+    .option('--full', 'alias for --replace')
+    .argument('[dbPath]', 'path to master.mdb');
+
+  program.parse(argv);
+
+  const options = program.opts<{ replace?: boolean; full?: boolean }>();
+  const [dbPath] = program.args as Array<string>;
+
+  return {
+    replaceMode: Boolean(options.replace || options.full),
+    dbPath,
+  };
+}
 
 function patchModifier(id: number, value: number): number {
   if (SCENARIO_SKILLS.has(id)) {
@@ -171,11 +198,11 @@ function buildAlternatives(row: SkillRow): Array<SkillAlternative> {
   return alternatives;
 }
 
-async function extractSkills() {
+async function extractSkills(options: ExtractSkillsOptions = { replaceMode: false }) {
   console.log('📖 Extracting unified skills...\n');
 
-  const dbPath = await resolveMasterDbPath();
-  const replaceMode = process.argv.includes('--replace') || process.argv.includes('--full');
+  const { replaceMode, dbPath: cliDbPath } = options;
+  const dbPath = await resolveMasterDbPath(cliDbPath);
 
   console.log(
     `Mode: ${replaceMode ? '⚠️  Full Replacement' : '✓ Merge (preserves future content)'}`,
@@ -285,10 +312,12 @@ async function extractSkills() {
 }
 
 if (import.meta.main) {
-  extractSkills().catch((error) => {
+  const options = parseCliArgs(process.argv);
+
+  extractSkills(options).catch((error) => {
     console.error('Error:', error.message);
     process.exit(1);
   });
 }
 
-export { extractSkills };
+export { extractSkills, parseCliArgs };

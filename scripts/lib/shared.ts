@@ -88,12 +88,12 @@ export function getDefaultMasterDbPath(): string {
 }
 
 /**
- * Resolve master.mdb path from CLI args, local db/, or default
+ * Resolve master.mdb path from explicit input, local db/, or default
  */
-export async function resolveMasterDbPath(): Promise<string> {
-  // Check for command-line argument first
-  if (process.argv[2]) {
-    return process.argv[2];
+export async function resolveMasterDbPath(cliDbPath?: string): Promise<string> {
+  // Prefer explicit caller-provided path.
+  if (cliDbPath) {
+    return cliDbPath;
   }
 
   // Check for local db/master.mdb in current workspace

@@ -5,6 +5,7 @@
  */
 
 import path from 'node:path';
+import { Command } from 'commander';
 import { closeDatabase, openDatabase, queryAll, queryAllWithParams } from './lib/database';
 import {
   readJsonFile,
@@ -29,6 +30,32 @@ interface UmaInfo {
   outfits: Record<string, string>; // {outfitId: epithet}
 }
 
+type ExtractUmaInfoOptions = {
+  replaceMode: boolean;
+  dbPath?: string;
+};
+
+function parseCliArgs(argv: Array<string>): ExtractUmaInfoOptions {
+  const program = new Command();
+
+  program
+    .name('extract-uma-info')
+    .description('Extract uma musume info from master.mdb')
+    .option('-r, --replace', 'replace existing extracted data')
+    .option('--full', 'alias for --replace')
+    .argument('[dbPath]', 'path to master.mdb');
+
+  program.parse(argv);
+
+  const options = program.opts<{ replace?: boolean; full?: boolean }>();
+  const [dbPath] = program.args as Array<string>;
+
+  return {
+    replaceMode: Boolean(options.replace || options.full),
+    dbPath,
+  };
+}
+
 /**
  * Calculate unique skill ID from outfit ID
  * Formula from Perl: 100000 + 10000 * (v - 1) + i * 10 + 1
@@ -41,11 +68,11 @@ function uniqueSkillForOutfit(outfitId: number): number {
   return 100000 + 10000 * (v - 1) + i * 10 + 1;
 }
 
-async function extractUmaInfo() {
+async function extractUmaInfo(options: ExtractUmaInfoOptions = { replaceMode: false }) {
   console.log('📖 Extracting uma musume info...\n');
 
-  const dbPath = await resolveMasterDbPath();
-  const replaceMode = process.argv.includes('--replace') || process.argv.includes('--full');
+  const { replaceMode, dbPath: cliDbPath } = options;
+  const dbPath = await resolveMasterDbPath(cliDbPath);
 
   console.log(
     `Mode: ${replaceMode ? '⚠️  Full Replacement' : '✓ Merge (preserves future content)'}`,
@@ -160,10 +187,12 @@ async function extractUmaInfo() {
 
 // Run if called directly
 if (import.meta.main) {
-  extractUmaInfo().catch((error) => {
+  const options = parseCliArgs(process.argv);
+
+  extractUmaInfo(options).catch((error) => {
     console.error('Error:', error.message);
     process.exit(1);
   });
 }
 
-export { extractUmaInfo };
+export { extractUmaInfo, parseCliArgs };

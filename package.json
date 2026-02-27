@@ -19,7 +19,8 @@
     "extract:uma-info": "tsx scripts/extract-uma-info.ts",
     "extract:course-data": "tsx scripts/extract-course-data.ts",
     "extract:all": "tsx scripts/extract-all.ts",
-    "skill:compare": "tsx scripts/debug-skill-compare.ts"
+    "skill:compare": "tsx scripts/run-skill-compare.ts",
+    "runner:compare": "tsx scripts/run-runner-compare.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.0.0",
