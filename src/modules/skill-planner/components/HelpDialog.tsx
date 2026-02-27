@@ -25,7 +25,7 @@ export function HelpDialog({ open, onOpenChange }: HelpDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl sm:max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <HelpCircleIcon className="w-5 h-5" />
@@ -36,7 +36,7 @@ export function HelpDialog({ open, onOpenChange }: HelpDialogProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 text-sm">
+        <div className="flex flex-col gap-4 text-sm max-h-[80vh] overflow-y-auto">
           {/* Overview */}
           <div>
             <h3 className="font-semibold mb-2">What is this?</h3>
@@ -75,10 +75,6 @@ export function HelpDialog({ open, onOpenChange }: HelpDialogProps) {
                 <strong className="text-foreground">Click "Optimize"</strong> - Wait 30s-2min for
                 results
               </li>
-              <li>
-                <strong className="text-foreground">Apply to Runner</strong> - Add recommended
-                skills to test in Umalator
-              </li>
             </ol>
           </div>
 
@@ -112,30 +108,6 @@ export function HelpDialog({ open, onOpenChange }: HelpDialogProps) {
               </div>
             </div>
           </div>
-
-          {/* Tips */}
-          <div>
-            <h3 className="font-semibold mb-2">Tips for Best Results</h3>
-            <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-              <li>Limit candidates to 10-15 most promising skills for faster optimization</li>
-              <li>
-                Mark skills you already have as "Already Obtained" - they're free but included in
-                sims
-              </li>
-              <li>Some skills can be bought twice - check "Can buy twice" for stackable skills</li>
-              <li>The optimizer accounts for skill synergies through full race simulations</li>
-            </ul>
-          </div>
-
-          {/* What happens during optimization */}
-          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
-            <h3 className="font-semibold mb-2 text-blue-600">What Happens During Optimization?</h3>
-            <p className="text-muted-foreground text-xs">
-              The planner tests hundreds of valid skill combinations within your budget, running
-              25-sample simulations for each. The best combination then gets a final 200-sample
-              simulation for accuracy. Progress is shown in real-time.
-            </p>
-          </div>
         </div>
 
         <DialogFooter className="flex-col sm:flex-row gap-2">
@@ -151,9 +123,4 @@ export function useHelpDialog() {
   const [open, setOpen] = useState(false);
 
   return { open, setOpen };
-}
-
-// Utility to reset help dialog (for testing or user preference reset)
-export function resetHelpDialog() {
-  localStorage.removeItem(STORAGE_KEY);
 }
