@@ -18,16 +18,8 @@ import { CreditsModal } from "@/components/credits-modal";
 import { FeatureFlagDebugPanel } from "@/components/feature-flag-debug-panel";
 import { TutorialProvider, TutorialRoot } from "@/components/tutorial";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { MegaphoneIcon } from "lucide-react";
+import { ScrollTextIcon, UsersIcon } from "lucide-react";
+import { setShowChangelogModal, setShowCreditsModal } from "@/store/ui.store";
 
 export function RootComponent() {
   const location = useLocation();
@@ -67,50 +59,57 @@ export function RootComponent() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Dialog>
-              <Tooltip>
-                <TooltipTrigger
-                  render={
-                    <DialogTrigger
-                      render={
-                        <Button
-                          variant="outline"
-                          className="flex h-9 w-9 items-center justify-center"
-                        />
-                      }
-                    />
-                  }
-                >
-                  <MegaphoneIcon className="h-4 w-4" />
-                </TooltipTrigger>
-                <TooltipContent>Disclaimer</TooltipContent>
-              </Tooltip>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Disclaimer</DialogTitle>
-                  <DialogDescription>
-                    <span className="block mb-3">
-                      Sadly, I cannot share the code anymore as a public repo. There are some bad
-                      actors from some communities stealing this work and claiming it as their own
-                      without attribution.
-                    </span>
-                    <span className="block mb-3">
-                      If this decision makes you not trust me or not use the tool anymore, I
-                      understand, this work was originally made as a passion project that followed
-                      the great work done by Pecan, Kachi and other members of the JP community and
-                      VF Discord.
-                    </span>
-                    <span className="block mb-3">
-                      I will still make updates on this, but don't expect me to make the code open
-                      anymore.
-                    </span>
-                    <span className="block">Cheers.</span>
-                    <span className="block mt-1 font-medium">Albhax.</span>
-                  </DialogDescription>
-                </DialogHeader>
-                <DialogFooter showCloseButton />
-              </DialogContent>
-            </Dialog>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button
+                    variant="outline"
+                    className="flex h-9 w-9 items-center justify-center"
+                    render={
+                      <a
+                        href="https://github.com/jalbarrang/umalator-global"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="Open repository"
+                      />
+                    }
+                  />
+                }
+              >
+                <img src="/svg/github.svg" alt="GitHub Repository" className="h-4 w-4 dark:invert" />
+              </TooltipTrigger>
+              <TooltipContent>Repository</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button
+                    variant="outline"
+                    className="flex h-9 w-9 items-center justify-center"
+                    onClick={() => setShowCreditsModal(true)}
+                    aria-label="Open credits"
+                  />
+                }
+              >
+                <UsersIcon className="h-4 w-4" />
+              </TooltipTrigger>
+              <TooltipContent>Credits</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button
+                    variant="outline"
+                    className="flex h-9 w-9 items-center justify-center"
+                    onClick={() => setShowChangelogModal(true)}
+                    aria-label="Open changelog"
+                  />
+                }
+              >
+                <ScrollTextIcon className="h-4 w-4" />
+              </TooltipTrigger>
+              <TooltipContent>Changelog</TooltipContent>
+            </Tooltip>
             <ThemeToggle />
           </div>
         </div>
