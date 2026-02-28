@@ -4,7 +4,9 @@ const navigateToSkillPlanner = async (page: Page) => {
   await page.goto('/');
   await page.getByRole('tab', { name: 'Skill Planner' }).click();
   await expect(page).toHaveURL(/#\/skill-planner/);
-  await expect(page.getByRole('button', { name: 'Save' })).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByRole('button', { name: 'Save', exact: true })).toBeVisible({
+    timeout: 10_000,
+  });
 };
 
 const selectPreset = async (page: Page, name: string) => {
@@ -14,7 +16,7 @@ const selectPreset = async (page: Page, name: string) => {
 };
 
 const openSaveModal = async (page: Page) => {
-  await page.getByRole('button', { name: 'Save' }).click();
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
 };
 
 test.describe('Save Preset Modal', () => {

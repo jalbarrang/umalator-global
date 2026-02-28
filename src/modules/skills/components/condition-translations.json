@@ -1,0 +1,672 @@
+{
+  "accumulatetime": {
+    "label": "Elapsed race time",
+    "eq": "The race has been running for {{seconds}}",
+    "gt": "More than {{seconds}} have passed since the race started",
+    "gte": "At least {{seconds}} have passed since the race started",
+    "lt": "Less than {{seconds}} have passed since the race started",
+    "lte": "At most {{seconds}} have passed since the race started"
+  },
+  "activate_count_all": {
+    "label": "Activated skills (total)",
+    "eq": "You have activated exactly {{v}} skills since the race started",
+    "gt": "You have activated more than {{v}} skills since the race started",
+    "gte": "You have activated at least {{v}} skills since the race started",
+    "lt": "You have activated fewer than {{v}} skills since the race started",
+    "lte": "You have activated at most {{v}} skills since the race started"
+  },
+  "activate_count_end_after": {
+    "label": "Activated skills in late-race or later",
+    "gte": "You have activated at least {{v}} skills in the late-race or later"
+  },
+  "activate_count_heal": {
+    "label": "Activated recovery skills",
+    "gte": "You have activated at least {{v}} recovery skills since the race started"
+  },
+  "activate_count_middle": {
+    "label": "Activated skills in mid-race",
+    "gte": "You have activated at least {{v}} skills in the mid-race"
+  },
+  "activate_count_start": {
+    "label": "Activated skills in early-race",
+    "gte": "You have activated at least {{v}} skills in the early-race"
+  },
+  "all_corner_random": {
+    "label": "Random corner trigger",
+    "eq_1": "You're in a random point of any corner."
+  },
+  "always": {
+    "label": "Always",
+    "eq_1": "Free activation"
+  },
+  "base_power": {
+    "label": "Power stat",
+    "gte": "Your base power is at least {{v}}",
+    "lte": "Your base power is at most {{v}}"
+  },
+  "base_speed": {
+    "label": "Speed stat",
+    "gte": "Your base speed is at least {{v}}",
+    "lte": "Your base speed is at most {{v}}"
+  },
+  "base_stamina": {
+    "label": "Stamina stat",
+    "gte": "Your base stamina is at least {{v}}",
+    "lte": "Your base stamina is at most {{v}}"
+  },
+  "base_guts": {
+    "label": "Guts stat",
+    "gte": "Your base guts is at least {{v}}",
+    "lte": "Your base guts is at most {{v}}"
+  },
+  "base_wiz": {
+    "label": "Wisdom stat",
+    "gte": "Your base wit is at least {{v}}",
+    "lte": "Your base wit is at most {{v}}"
+  },
+  "bashin_diff_behind": {
+    "label": "Gap to runner behind",
+    "eq": "The runner behind you is exactly {{bashin}} away",
+    "gte": "The runner behind you is further than {{bashin}} away",
+    "lte": "The runner behind you is closer than {{bashin}} away"
+  },
+  "bashin_diff_infront": {
+    "label": "Gap to runner ahead",
+    "eq": "The runner ahead of you is exactly {{bashin}} away",
+    "gte": "The runner ahead of you is further than {{bashin}} away",
+    "lte": "The runner ahead of you is closer than {{bashin}} away"
+  },
+  "behind_near_lane_time": {
+    "label": "Time with runner right behind",
+    "gte": "A runner has been right behind you for at least {{seconds}}"
+  },
+  "behind_near_lane_time_set1": {
+    "label": "Time with runner behind (wide range)",
+    "gte": "A runner has been behind you for at least {{seconds}}"
+  },
+  "blocked_all_continuetime": {
+    "label": "Time blocked front and side",
+    "gte": "You were surrounded for at least {{seconds}}"
+  },
+  "blocked_front": {
+    "label": "Blocked in front",
+    "eq_1": "You are currently blocked by a runner in front",
+    "eq_0": "You are not currently blocked by a runner in front"
+  },
+  "blocked_front_continuetime": {
+    "label": "Time blocked in front",
+    "gte": "You were blocked by a runner in front for at least {{seconds}}"
+  },
+  "blocked_side_continuetime": {
+    "label": "Time blocked on side",
+    "gte": "You were blocked by a runner on either side for at least {{seconds}}"
+  },
+  "change_order_onetime": {
+    "label": "Recent position change",
+    "lt": "You just overtook someone",
+    "gt": "You just got overtaken",
+    "eq_0": "No recent position change"
+  },
+  "change_order_up_end_after": {
+    "label": "Overtakes after late-race starts",
+    "gte": "You have overtaken another runner at least {{v}} times since the late-race started"
+  },
+  "change_order_up_finalcorner_after": {
+    "label": "Overtakes after final corner starts",
+    "gte": "You have overtaken another runner at least {{v}} times since the final corner started"
+  },
+  "change_order_up_middle": {
+    "label": "Overtakes in mid-race",
+    "gte": "You have overtaken another runner at least {{v}} times in the mid-race"
+  },
+  "compete_fight_count": {
+    "label": "Dueling count",
+    "gt": "You have participated in more than {{v}} duels.",
+    "gt_1": "You have participated in more than one duel.",
+    "gte": "You have participated in at least {{v}} duels.",
+    "gte_1": "You have participated in at least one duel.",
+    "eq_0": "You have not participated in any duels."
+  },
+  "corner": {
+    "label": "Corner segment",
+    "eq_0": "You are not on a corner",
+    "neq_0": "You are on a corner",
+    "eq_1": "You are on the first corner",
+    "eq_2": "You are on the second corner",
+    "eq_3": "You are on the third corner",
+    "eq_4": "You are on the fourth corner"
+  },
+  "corner_count": {
+    "label": "Total corners in course",
+    "eq": "The course has {{v}} corners",
+    "eq_1": "The course has exactly one corner",
+    "gte": "The course has at least {{v}} corners",
+    "lte": "The course has at most {{v}} corners"
+  },
+  "corner_random": {
+    "label": "Random trigger on a specific corner",
+    "eq_1": "You're in a random point on the first corner",
+    "eq_2": "You're in a random point on the second corner",
+    "eq_3": "You're in a random point on the third corner",
+    "eq_4": "You're in a random point on the fourth corner"
+  },
+  "course_distance": {
+    "label": "Course distance",
+    "eq": "The course is {{meters}} long",
+    "gte": "The course is at least {{meters}} long",
+    "lte": "The course is at most {{meters}} long"
+  },
+  "distance_diff_rate": {
+    "label": "Position relative to leader",
+    "eq": "You're positioned exactly {{percent}} between the leader and the last runner",
+    "gte": "You're positioned no less than {{percent}} between the leader and the last runner",
+    "lte": "You're positioned no further than {{percent}} between the leader and the last runner"
+  },
+  "distance_diff_top": {
+    "label": "Gap from leader",
+    "eq": "The gap between you and the leader is {{meters}}",
+    "gte": "The gap between you and the leader is at least {{meters}}",
+    "lte": "The gap between you and the leader is at most {{meters}}"
+  },
+  "distance_diff_top_float": {
+    "label": "Gap from leader (decimal)",
+    "eq": "The gap between you and the leader is {{floatMeters}}",
+    "gte": "The gap between you and the leader is at least {{floatMeters}}",
+    "lte": "The gap between you and the leader is at most {{floatMeters}}"
+  },
+  "distance_rate": {
+    "label": "Race progress",
+    "eq": "You're just at the {{percent}} of the race",
+    "gt": "You're passed the {{percent}} of the race",
+    "gte": "You're passed the {{percent}} of the race",
+    "gte_50": "You're at the second half of the race",
+    "gte_80": "You're near the end of the race",
+    "lt": "You're before the {{percent}} of the race",
+    "lte": "You're before the {{percent}} of the race",
+    "lte_50": "You're at the first half of the race"
+  },
+  "distance_rate_after_random": {
+    "label": "Random trigger after race progress",
+    "eq": "You're in a random point after the race is {{percent}} of the way through",
+    "eq_50": "You're in a random point after the second half of the race"
+  },
+  "distance_type": {
+    "label": "Race distance type",
+    "eq_1": "The race is a sprint",
+    "eq_2": "The race is a mile",
+    "eq_3": "The race is a medium distance track",
+    "eq_4": "The race is a long distance track"
+  },
+  "down_slope_random": {
+    "label": "Random trigger on downhill",
+    "eq_1": "You're in a random point on a downhill"
+  },
+  "grade": {
+    "label": "Race grade",
+    "eq_100": "The race is a G1 race",
+    "eq_200": "The race is a G2 race",
+    "eq_300": "The race is a G3 race",
+    "eq_400": "The race is an Open race",
+    "eq_700": "The race is a Pre-Open race",
+    "eq_800": "The race is a Maiden race",
+    "eq_900": "The race is a Debut race",
+    "eq_999": "The race is a Daily race"
+  },
+  "ground_condition": {
+    "label": "Track condition",
+    "eq_1": "The track is in firm conditions",
+    "eq_2": "The track is in good conditions",
+    "eq_3": "The track is in soft conditions",
+    "eq_4": "The track is in heavy conditions"
+  },
+  "ground_type": {
+    "label": "Ground type",
+    "eq_1": "The race is on a Turf track",
+    "eq_2": "The race is on a Dirt track"
+  },
+  "hp_per": {
+    "label": "Remaining stamina",
+    "eq": "You have exactly {{percent}} stamina left",
+    "gte": "You have {{percent}} or more stamina left",
+    "lte": "You have {{percent}} or less stamina left",
+    "lte_30": "You have 30% or less stamina left",
+    "lte_45": "You have 45% or less stamina left",
+    "lte_70": "You have 70% or less stamina left"
+  },
+  "infront_near_lane_time": {
+    "label": "Time with runner right ahead",
+    "gte": "A runner has been right ahead of you for at least {{seconds}}"
+  },
+  "is_activate_other_skill_detail": {
+    "label": "Another trigger of this skill already activated",
+    "eq_1": "Another trigger of this skill already activated"
+  },
+  "is_basis_distance": {
+    "label": "Core distance (divisible by 400m)",
+    "eq_1": "The race is on Standard distance track",
+    "eq_0": "The race is on Non-Standard distance track"
+  },
+  "is_badstart": {
+    "label": "Late start status",
+    "eq_1": "You had a late start",
+    "eq_0": "You did not have a late start"
+  },
+  "is_behind_in": {
+    "label": "Runner behind is toward inner rail",
+    "eq_1": "The runner behind you is closer to the inner rail",
+    "eq_0": "The runner behind you is not closer to the inner rail"
+  },
+  "is_dirtgrade": {
+    "label": "Local dirt track race",
+    "eq_1": "The race is on a local dirt track",
+    "eq_0": "The race is not on a local dirt track"
+  },
+  "is_exist_chara_id": {
+    "label": "Specific character is in race",
+    "eq": "Character {{v}} is participating"
+  },
+  "is_finalcorner": {
+    "label": "At or after final corner",
+    "eq_1": "You're at or after the final corner",
+    "eq_0": "You're before the final corner"
+  },
+  "is_finalcorner_laterhalf": {
+    "label": "Later half of final corner",
+    "eq_1": "You're in the later half of the final corner"
+  },
+  "is_finalcorner_random": {
+    "label": "Random trigger on final corner",
+    "eq_1": "You're in a random point on the final corner"
+  },
+  "is_hp_empty_onetime": {
+    "label": "Stamina depleted at least once",
+    "eq_1": "Your stamina has been depleted at least once in the race"
+  },
+  "is_lastspurt": {
+    "label": "In last spurt mode",
+    "eq_1": "You're currently in last spurt mode"
+  },
+  "is_last_straight": {
+    "label": "On final straight",
+    "eq_1": "You're currently on the final straight"
+  },
+  "is_last_straight_onetime": {
+    "label": "Just entered final straight",
+    "eq_1": "You've just entered the final straight"
+  },
+  "last_straight_random": {
+    "label": "Random trigger on final straight",
+    "eq_1": "You're in a random point on the final straight"
+  },
+  "is_move_lane": {
+    "label": "Recent lane movement",
+    "eq_1": "You've moved toward the inner rail",
+    "eq_2": "You've moved away from the inner rail"
+  },
+  "is_overtake": {
+    "label": "Has overtake target",
+    "eq_1": "You can overtake the runner in front of you",
+    "eq_0": "You cannot overtake the runner in front of you"
+  },
+  "is_surrounded": {
+    "label": "Surrounded by runners",
+    "eq_1": "You are currently surrounded by runners",
+    "eq_0": "You are not currently surrounded by runners"
+  },
+  "is_temptation": {
+    "label": "In rushing state (kakari)",
+    "eq_1": "You are currently rushing",
+    "eq_0": "You are not currently rushing"
+  },
+  "is_used_skill_id": {
+    "label": "Specific skill already activated",
+    "eq": "Skill {{v}} has already activated"
+  },
+  "lane_type": {
+    "label": "Current lane region",
+    "eq_0": "You're running on the inner lane",
+    "eq_1": "You're running on the middle lane",
+    "eq_2": "You're running on the outer lane",
+    "eq_3": "You're running on the outside lane",
+    "eq": "You're running in lane region {{v}}"
+  },
+  "lastspurt": {
+    "label": "Last spurt stamina state",
+    "eq_0": "You do not have enough stamina to finish at base speed",
+    "eq_1": "You can finish at base speed but not at max speed",
+    "eq_2": "You can finish at max speed"
+  },
+  "motivation": {
+    "label": "Race motivation",
+    "eq_1": "You are in Awful mood",
+    "eq_2": "You are in Bad mood",
+    "eq_3": "You are in Normal mood",
+    "eq_4": "You are in Good mood",
+    "eq_5": "You are in Great mood",
+    "gte_3": "Your motivation is Normal or better",
+    "gte_4": "Your motivation is Good or better",
+    "gte": "Your motivation is at least {{v}}",
+    "lte": "Your motivation is at most {{v}}"
+  },
+  "near_count": {
+    "label": "Nearby runner count",
+    "eq": "There are exactly {{v}} runners nearby",
+    "gte": "There are at least {{v}} runners nearby",
+    "lte": "There are at most {{v}} runners nearby"
+  },
+  "order": {
+    "label": "Current race position",
+    "eq": "You are in {{ord}} place",
+    "eq_1": "You are in the lead",
+    "gt": "You are behind {{ord}} place",
+    "gte": "You are behind {{ord}} place or worse",
+    "lte_2": "You are in the top 2",
+    "lte_3": "You are in the top 3",
+    "lte_4": "You are in the top 4",
+    "lte_5": "You are in the top 5",
+    "lt": "You are ahead of {{ord}} place",
+    "lte": "You are in {{ord}} place or better"
+  },
+  "order_rate": {
+    "label": "Position percentile",
+    "eq": "You're at {{percent}} of the pack (CM: {{cm}}, LoH: {{loh}})",
+    "gt": "You're above {{percent}} of the pack (CM: {{cm}}, LoH: {{loh}})",
+    "gte": "You're at least at {{percent}} of the pack (CM: {{cm}}, LoH: {{loh}})",
+    "lt": "You're below {{percent}} of the pack (CM: {{cm}}, LoH: {{loh}})",
+    "lte": "You're at most at {{percent}} of the pack (CM: {{cm}}, LoH: {{loh}})",
+    "lte_50": "You are in the first half of the pack",
+    "gte_50": "You are in the second half of the pack"
+  },
+  "order_rate_in20_continue": {
+    "label": "Stayed within top 20%",
+    "eq_1": "You stayed within the top 20% for the race"
+  },
+  "order_rate_in40_continue": {
+    "label": "Stayed within top 40%",
+    "eq_1": "You stayed within the top 40% for the race"
+  },
+  "order_rate_in50_continue": {
+    "label": "Stayed within top 50%",
+    "eq_1": "You stayed within the top 50% for the race"
+  },
+  "order_rate_in80_continue": {
+    "label": "Stayed within top 80%",
+    "eq_1": "You stayed within the top 80% for the race"
+  },
+  "order_rate_out20_continue": {
+    "label": "Stayed outside top 20%",
+    "eq_1": "You stayed outside the top 20% for the race"
+  },
+  "order_rate_out40_continue": {
+    "label": "Stayed outside top 40%",
+    "eq_1": "You stayed outside the top 40% for the race"
+  },
+  "order_rate_out50_continue": {
+    "label": "Stayed outside top 50%",
+    "eq_1": "You stayed outside the top 50% for the race"
+  },
+  "order_rate_out70_continue": {
+    "label": "Stayed outside top 70%",
+    "eq_1": "You stayed outside the top 70% for the race"
+  },
+  "overtake_target_no_order_up_time": {
+    "label": "Time with overtake targets",
+    "gte": "You have had overtake targets for at least {{seconds}}"
+  },
+  "overtake_target_time": {
+    "label": "Time as someone else's overtake target",
+    "gte": "You have been an overtake target for at least {{seconds}}"
+  },
+  "phase": {
+    "label": "Race phase",
+    "eq_0": "During the early-race",
+    "eq_1": "During the mid-race",
+    "eq_2": "During the late-race",
+    "eq_3": "During the last spurt phase",
+    "gte_1": "During the mid-race or later",
+    "gte_2": "During the late-race or the last spurt",
+    "lte_1": "During the early-race or the mid-race"
+  },
+  "phase_corner_random": {
+    "label": "Random trigger on corner in phase",
+    "eq_0": "You're in a random point on a corner in the early-race",
+    "eq_1": "You're in a random point on a corner in the mid-race",
+    "eq_2": "You're in a random point on a corner in the late-race",
+    "eq_3": "You're in a random point on a corner in the last spurt phase"
+  },
+  "phase_firsthalf": {
+    "label": "First half of phase",
+    "eq_0": "You're in the first half of the early-race",
+    "eq_1": "You're in the first half of the mid-race",
+    "eq_2": "You're in the first half of the late-race",
+    "eq_3": "You're in the first half of the last spurt phase"
+  },
+  "phase_firsthalf_random": {
+    "label": "Random trigger in first half of phase",
+    "eq_0": "You're in a random point in the first half of the early-race",
+    "eq_1": "You're in a random point in the first half of the mid-race",
+    "eq_2": "You're in a random point in the first half of the late-race",
+    "eq_3": "You're in a random point in the first half of the last spurt phase"
+  },
+  "phase_firstquarter": {
+    "label": "First quarter of phase",
+    "eq_0": "You're in the first quarter of the early-race",
+    "eq_1": "You're in the first quarter of the mid-race",
+    "eq_2": "You're in the first quarter of the late-race",
+    "eq_3": "You're in the first quarter of the last spurt phase"
+  },
+  "phase_firstquarter_random": {
+    "label": "Random trigger in first quarter of phase",
+    "eq_0": "You're in a random point in the first quarter of early-race",
+    "eq_1": "You're in a random point in the first quarter of mid-race",
+    "eq_2": "You're in a random point in the first quarter of late-race",
+    "eq_3": "You're in a random point in the first quarter of last spurt phase"
+  },
+  "phase_laterhalf_random": {
+    "label": "Random trigger in later half of phase",
+    "eq_0": "You're in a random point in the later half of early-race",
+    "eq_1": "You're in a random point in the later half of mid-race",
+    "eq_2": "You're in a random point in the later half of late-race",
+    "eq_3": "You're in a random point in the later half of last spurt phase"
+  },
+  "phase_random": {
+    "label": "Random trigger in phase",
+    "eq_0": "You're in a random point in the early-race",
+    "eq_1": "You're in a random point in the mid-race",
+    "eq_2": "You're in a random point in the late-race",
+    "eq_3": "You're in a random point in the last spurt phase"
+  },
+  "phase_straight_random": {
+    "label": "Random trigger on straight in phase",
+    "eq_0": "You're in a random point on a straight in the early-race",
+    "eq_1": "You're in a random point on a straight in the mid-race",
+    "eq_2": "You're in a random point on a straight in the late-race",
+    "eq_3": "You're in a random point on a straight in the last spurt phase"
+  },
+  "popularity": {
+    "label": "Popularity rank",
+    "eq": "You ranked {{ord}} in popularity",
+    "gte": "You're ranked at least {{ord}} in popularity",
+    "lte": "You're ranked at most {{ord}} in popularity"
+  },
+  "post_number": {
+    "label": "Gate block",
+    "eq": "You're in gate block {{v}}",
+    "gte": "Your gate block is {{v}} or higher",
+    "lte": "Your gate block is {{v}} or lower"
+  },
+  "random_lot": {
+    "label": "Random chance",
+    "eq": "There's a {{percent}} chance of activation"
+  },
+  "remain_distance": {
+    "label": "Remaining distance",
+    "eq": "You have exactly {{v}} meters left",
+    "gt": "You have more than {{v}} meters left",
+    "gte": "You have at least {{v}} meters left",
+    "lt": "You have less than {{v}} meters left",
+    "lte": "You have at most {{v}} meters left",
+    "lte_200": "You're within the final 200 meters",
+    "lte_300": "You're within the final 300 meters"
+  },
+  "rotation": {
+    "label": "Course rotation",
+    "eq_1": "The course is run clockwise",
+    "eq_2": "The course is run counterclockwise"
+  },
+  "running_style": {
+    "label": "Running style",
+    "eq_1": "You're a Front Runner",
+    "eq_2": "You're a Pace Chaser",
+    "eq_3": "You're a Late Surger",
+    "eq_4": "You're an End Closer"
+  },
+  "running_style_count_same": {
+    "label": "Amount of runners sharing your running style",
+    "eq": "Exactly {{v}} runners share your running style",
+    "gte": "At least {{v}} runners share your running style",
+    "lte": "At most {{v}} runners share your running style",
+    "lte_1": "Nobody shares the same running style with you"
+  },
+  "running_style_count_same_rate": {
+    "label": "Percent sharing your running style",
+    "eq": "Exactly {{percent}} of runners share your running style",
+    "gte": "At least the {{percent}} of runners share your running style",
+    "lte": "At most the {{percent}} of runners share your running style"
+  },
+  "running_style_count_nige_otherself": {
+    "label": "Other Front Runners count",
+    "eq": "There are exactly {{v}} other Front Runners in the race",
+    "gte": "There are at least {{v}} other Front Runners in the race",
+    "lte": "There are at most {{v}} other Front Runners in the race"
+  },
+  "running_style_count_senko_otherself": {
+    "label": "Other Pace Chasers count",
+    "eq": "There are exactly {{v}} other Pace Chasers in the race",
+    "gte": "There are at least {{v}} other Pace Chasers in the race",
+    "lte": "There are at most {{v}} other Pace Chasers in the race"
+  },
+  "running_style_count_sashi_otherself": {
+    "label": "Other Late Surgers count",
+    "eq": "There are exactly {{v}} other Late Surgers in the race",
+    "gte": "There are at least {{v}} other Late Surgers in the race",
+    "lte": "There are at most {{v}} other Late Surgers in the race"
+  },
+  "running_style_count_oikomi_otherself": {
+    "label": "Other End Closers count",
+    "eq": "There are exactly {{v}} other End Closers in the race",
+    "gte": "There are at least {{v}} other End Closers in the race",
+    "lte": "There are at most {{v}} other End Closers in the race"
+  },
+  "running_style_equal_popularity_one": {
+    "label": "Shares style with most popular runner",
+    "eq_1": "You share running style with the most popular runner"
+  },
+  "running_style_temptation_count_nige": {
+    "label": "Rushing Front Runners count",
+    "eq": "Exactly {{v}} Front Runners are rushing",
+    "gte": "At least {{v}} Front Runners are rushing",
+    "lte": "At most {{v}} Front Runners are rushing"
+  },
+  "running_style_temptation_count_senko": {
+    "label": "Rushing Pace Chasers count",
+    "eq": "Exactly {{v}} Pace Chasers are rushing",
+    "gte": "At least {{v}} Pace Chasers are rushing",
+    "lte": "At most {{v}} Pace Chasers are rushing"
+  },
+  "running_style_temptation_count_sashi": {
+    "label": "Rushing Late Surgers count",
+    "eq": "Exactly {{v}} Late Surgers are rushing",
+    "gte": "At least {{v}} Late Surgers are rushing",
+    "lte": "At most {{v}} Late Surgers are rushing"
+  },
+  "running_style_temptation_count_oikomi": {
+    "label": "Rushing End Closers count",
+    "eq": "Exactly {{v}} End Closers are rushing",
+    "gte": "At least {{v}} End Closers are rushing",
+    "lte": "At most {{v}} End Closers are rushing"
+  },
+  "same_skill_horse_count": {
+    "label": "Runners with same skill",
+    "eq": "Exactly {{v}} runners have this skill (including you)",
+    "eq_1": "You are the only runner who has this skill",
+    "gte": "At least {{v}} runners have this skill (including you)",
+    "lte": "At most {{v}} runners have this skill (including you)"
+  },
+  "season": {
+    "label": "Season",
+    "eq_1": "It's in early spring",
+    "eq_2": "It's in summer",
+    "eq_3": "It's in autumn",
+    "eq_4": "It's in winter",
+    "eq_5": "It's in late spring (the cherry blossom season)"
+  },
+  "slope": {
+    "label": "Slope state",
+    "eq_0": "You're on a flat section",
+    "eq_1": "You're on an uphill",
+    "eq_2": "You're on a downhill"
+  },
+  "straight_front_type": {
+    "label": "Straight side",
+    "eq_1": "You're on the audience-side straight",
+    "eq_2": "You're on the back-side straight"
+  },
+  "straight_random": {
+    "label": "Random trigger on straight",
+    "eq_1": "You're in a random point on a straight"
+  },
+  "temptation_count": {
+    "label": "Rushing count",
+    "eq": "You've rushed exactly {{v}} times",
+    "eq_0": "You've not rushed at all",
+    "gte": "You've rushed at least {{v}} times",
+    "lte": "You've rushed at most {{v}} times"
+  },
+  "temptation_count_behind": {
+    "label": "Rushing runners behind count",
+    "eq": "Exactly {{v}} runners are rushing behind you",
+    "gte": "At least {{v}} runners are rushing behind you",
+    "lte": "At most {{v}} runners are rushing behind you"
+  },
+  "temptation_count_infront": {
+    "label": "Rushing runners ahead count",
+    "eq": "Exactly {{v}} runners are rushing ahead of you",
+    "gte": "At least {{v}} runners are rushing ahead of you",
+    "lte": "At most {{v}} runners are rushing ahead of you"
+  },
+  "time": {
+    "label": "Time of day",
+    "eq_1": "It's in the morning",
+    "eq_2": "It's in the afternoon",
+    "eq_3": "It's in the evening",
+    "eq_4": "It's at night"
+  },
+  "track_id": {
+    "label": "Race track",
+    "eq": "Track is {{track}}"
+  },
+  "up_slope_random": {
+    "label": "Random trigger on uphill",
+    "eq_1": "You're in a random point on an uphill"
+  },
+  "visiblehorse": {
+    "label": "Visible runner count",
+    "eq": "You can see exactly {{v}} runners",
+    "gte": "You can see at least {{v}} runners",
+    "lte": "You can see at most {{v}} runners"
+  },
+  "weather": {
+    "label": "Weather",
+    "eq_1": "It's currently sunny",
+    "eq_2": "It's currently cloudy",
+    "eq_3": "It's currently raining",
+    "eq_4": "It's currently snowing"
+  },
+  "remain_distance_viewer_id": {
+    "label": "Any player runner remaining distance",
+    "eq": "Any player runner has exactly {{meters}} remaining",
+    "gte": "Any player runner has at least {{meters}} remaining",
+    "lte": "Any player runner has at most {{meters}} remaining"
+  }
+}

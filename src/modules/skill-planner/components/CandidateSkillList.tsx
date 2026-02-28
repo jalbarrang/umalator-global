@@ -19,11 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  getSkillById,
-  getSkillNameById,
-  getUniqueSkillForByUmaId,
-} from '@/modules/skills/utils';
+import { getSkillById, getSkillNameById, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import { Separator } from '@/components/ui/separator';
 import { SkillIcon } from '@/modules/skills/components/skill-list/SkillItem';
 

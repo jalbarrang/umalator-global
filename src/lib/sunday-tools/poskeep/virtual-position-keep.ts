@@ -90,14 +90,23 @@ export function initializePositionKeep(runner: RunnerLike, createTimer: () => Ti
   runner.posKeepSpeedCoef = 1.0;
   runner.posKeepExitDistance = 0.0;
   runner.posKeepExitPosition = 0.0;
-  runner.posKeepMinThreshold = PositionKeep.minThreshold(runner.strategy, runner.race.course.distance);
-  runner.posKeepMaxThreshold = PositionKeep.maxThreshold(runner.strategy, runner.race.course.distance);
+  runner.posKeepMinThreshold = PositionKeep.minThreshold(
+    runner.strategy,
+    runner.race.course.distance,
+  );
+  runner.posKeepMaxThreshold = PositionKeep.maxThreshold(
+    runner.strategy,
+    runner.race.course.distance,
+  );
   runner.positionKeepActivations = [];
   runner.posKeepEnd = calculatePosKeepEnd(runner);
 }
 
 export function exitPositionKeep(runner: RunnerLike, nextTimerValue?: number): void {
-  if (runner.positionKeepState !== PositionKeepState.None && runner.positionKeepActivations.length > 0) {
+  if (
+    runner.positionKeepState !== PositionKeepState.None &&
+    runner.positionKeepActivations.length > 0
+  ) {
     runner.positionKeepActivations[runner.positionKeepActivations.length - 1][1] = runner.position;
   }
 
@@ -156,7 +165,8 @@ export function applyVirtualPositionKeep(runner: RunnerLike): void {
             runner.positionKeepState = PositionKeepState.SpeedUp;
             runner.posKeepExitPosition =
               runner.position +
-              Math.floor(runner.sectionLength) * (runner.positionKeepStrategy === Strategy.Runaway ? 3 : 1);
+              Math.floor(runner.sectionLength) *
+                (runner.positionKeepStrategy === Strategy.Runaway ? 3 : 1);
           }
         } else if (speedUpOvertakeWitCheck(runner)) {
           runner.positionKeepState = PositionKeepState.Overtake;
@@ -168,7 +178,8 @@ export function applyVirtualPositionKeep(runner: RunnerLike): void {
             runner.positionKeepState = PositionKeepState.PaceUp;
             runner.positionKeepActivations.push([runner.position, 0, PositionKeepState.PaceUp]);
             runner.posKeepExitDistance =
-              runner.posKeepRng.random() * (runner.posKeepMaxThreshold - runner.posKeepMinThreshold) +
+              runner.posKeepRng.random() *
+                (runner.posKeepMaxThreshold - runner.posKeepMinThreshold) +
               runner.posKeepMinThreshold;
           }
         } else if (behind < runner.posKeepMinThreshold) {
@@ -179,7 +190,8 @@ export function applyVirtualPositionKeep(runner: RunnerLike): void {
             runner.positionKeepState = PositionKeepState.PaceDown;
             runner.positionKeepActivations.push([runner.position, 0, PositionKeepState.PaceDown]);
             runner.posKeepExitDistance =
-              runner.posKeepRng.random() * (runner.posKeepMaxThreshold - runner.posKeepMinThreshold) +
+              runner.posKeepRng.random() *
+                (runner.posKeepMaxThreshold - runner.posKeepMinThreshold) +
               runner.posKeepMinThreshold;
           }
         }
@@ -190,7 +202,8 @@ export function applyVirtualPositionKeep(runner: RunnerLike): void {
       } else {
         runner.posKeepExitPosition =
           runner.position +
-          Math.floor(runner.sectionLength) * (runner.positionKeepStrategy === Strategy.Runaway ? 3 : 1);
+          Math.floor(runner.sectionLength) *
+            (runner.positionKeepStrategy === Strategy.Runaway ? 3 : 1);
       }
 
       break;

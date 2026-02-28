@@ -137,8 +137,10 @@ class AndFormatter {
     return (
       <>
         {this.left.format()}
-        <span className="operatorAnd">&amp;</span>
-        {this.right.format()}
+        <div>
+          <span>&amp;</span>
+          {this.right.format()}
+        </div>
       </>
     );
   }
@@ -154,9 +156,10 @@ class OrFormatter {
     return (
       <>
         {this.left.format()}
-        <span className="operatorOr">
-          @<span className="operatorOrText">or</span>
-        </span>
+        <div>
+          <span>@</span>
+          <span className="italic"> (or)</span>
+        </div>
         {this.right.format()}
       </>
     );
@@ -172,11 +175,11 @@ function CmpFormatter(op: string) {
 
     format() {
       return (
-        <div className="condition">
-          <span className="conditionName">{this.cond.name}</span>
-          <span className="conditionOp">{op}</span>
-          <span className="conditionArg">{this.cond.formatArg(this.arg)}</span>
-        </div>
+        <span>
+          {this.cond.name}
+          {op}
+          {this.cond.formatArg(this.arg)}
+        </span>
       );
     }
   };

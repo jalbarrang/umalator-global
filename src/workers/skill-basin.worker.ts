@@ -18,9 +18,6 @@ type PrepareRoundParams = {
   options: SimulationOptions;
 };
 
-/**
- * Utility function to prepare round parameters for the skill basin simulation.
- */
 function prepareRounds(params: PrepareRoundParams) {
   return (nsamples: number, newSkills: Array<string>): Run1RoundParams => {
     return {

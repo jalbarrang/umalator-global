@@ -20,7 +20,7 @@ function* progressiveSampleSizes(targetSamples: number) {
 }
 
 const runRunnersComparison = (params: CompareParams) => {
-  const { nsamples, course, racedef, uma1, uma2, options } = params;
+  const { nsamples, course, racedef, uma1, uma2, options, forcedPositions } = params;
 
   const uma1_ = cloneDeep(uma1);
   const uma2_ = cloneDeep(uma2);
@@ -35,6 +35,7 @@ const runRunnersComparison = (params: CompareParams) => {
       uma1: uma1_,
       uma2: uma2_,
       options: compareOptions,
+      forcedPositions,
     });
 
     postMessage({
@@ -51,6 +52,7 @@ const runRunnersComparison = (params: CompareParams) => {
     uma1: uma1_,
     uma2: uma2_,
     options: compareOptions,
+    forcedPositions,
   });
 
   // Always post final results

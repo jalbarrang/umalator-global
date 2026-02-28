@@ -4,8 +4,9 @@ import type { SimulationRun, SkillEffectLog } from '@/modules/simulation/compare
 import type { PosKeepLabel } from '@/utils/races';
 import { RegionDisplayType } from '@/modules/racetrack/types';
 import { getSkillNameById } from '@/modules/skills/utils';
+import { useForcedPositions } from '@/modules/simulation/stores/forced-positions.store';
 import { useSettingsStore } from '@/store/settings.store';
-import { colors, posKeepColors, rushedColors } from '@/utils/colors';
+import { colors, posKeepColors, recoveryColors, rushedColors } from '@/utils/colors';
 import { SkillType } from '@/lib/sunday-tools/skills/definitions';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 
@@ -26,6 +27,20 @@ export type RegionData = {
   skillId?: string;
   umaIndex?: number;
 };
+
+export type RecoveryMarkerData = {
+  skillId: string;
+  text: string;
+  position: number;
+  umaIndex: number;
+  rung: number;
+  color: {
+    fill: string;
+    stroke: string;
+  };
+};
+
+const RECOVERY_STACK_PROXIMITY_METERS = 55;
 
 const getSkillActivation = (
   skillId: string,
@@ -54,6 +69,7 @@ type UseVisualizationDataProps = {
 
 export const useVisualizationData = (props: UseVisualizationDataProps) => {
   const { chartData } = props;
+  const forcedPositions = useForcedPositions();
 
   const { courseId } = useSettingsStore(
     useShallow((state) => ({
@@ -109,6 +125,56 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
 
     return results;
   }, [chartData]);
+
+  const recoveryMarkers: Array<RecoveryMarkerData> = useMemo(() => {
+    if (!chartData?.skillActivations) return [];
+
+    const rawMarkers: Array<Omit<RecoveryMarkerData, 'rung'>> = [];
+    const skillMaps = [chartData.skillActivations[0], chartData.skillActivations[1]] as const;
+
+    for (const [umaIndex, skillMap] of skillMaps.entries()) {
+      for (const [skillId, activations] of Object.entries(skillMap)) {
+        for (const activation of activations) {
+          if (activation.effectType !== SkillType.Recovery) continue;
+
+          const forcedPosition =
+            umaIndex === 0 ? forcedPositions.uma1[skillId] : forcedPositions.uma2[skillId];
+
+          rawMarkers.push({
+            skillId,
+            text: getSkillNameById(skillId),
+            position: forcedPosition ?? activation.start,
+            umaIndex,
+            color: recoveryColors[umaIndex],
+          });
+        }
+      }
+    }
+
+    const sortedMarkers = rawMarkers.toSorted((a, b) => a.position - b.position);
+    const stackedMarkers: Array<RecoveryMarkerData> = [];
+    const rungHighWater: Array<number> = [];
+
+    for (const marker of sortedMarkers) {
+      let rung = 0;
+
+      while (true) {
+        const lastPosition = rungHighWater[rung];
+        const hasSpacing =
+          lastPosition == null || marker.position - lastPosition >= RECOVERY_STACK_PROXIMITY_METERS;
+
+        if (hasSpacing) {
+          rungHighWater[rung] = marker.position;
+          stackedMarkers.push({ ...marker, rung });
+          break;
+        }
+
+        rung += 1;
+      }
+    }
+
+    return stackedMarkers;
+  }, [chartData, forcedPositions]);
 
   const posKeepData: Array<PosKeepLabel> = useMemo(() => {
     return [];
@@ -167,11 +233,7 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
   }, [chartData]);
 
   const labels = useMemo(() => {
-    return [
-      ...posKeepData,
-      ...competeFightData,
-      ...leadCompetitionData,
-    ];
+    return [...posKeepData, ...competeFightData, ...leadCompetitionData];
   }, [posKeepData, competeFightData, leadCompetitionData]);
 
   const tempLabels = useMemo(
@@ -220,6 +282,7 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
   return {
     skillActivations,
     rushedIndicators,
+    recoveryMarkers,
     posKeepLabels,
   };
 };

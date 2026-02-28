@@ -72,6 +72,8 @@ export default {
     motivation: ['', 'Awful', 'Bad', 'Normal', 'Good', 'Great'],
     order_rate: 'CM: {{cm}}, LOH: {{loh}}',
     preconditions: 'Preconditions:',
+    show_raw_conditions: 'Show raw conditions',
+    show_raw_preconditions: 'Show raw preconditions',
     rotation: ['', 'Clockwise', 'Counterclockwise'],
     running_style: ['', 'Front Runner', 'Pace Chaser', 'Late Surger', 'End Closer'],
     season: ['', 'Early spring', 'Summer', 'Autumn', 'Winter', 'Late spring'],

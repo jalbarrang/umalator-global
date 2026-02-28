@@ -4,10 +4,7 @@ import type {
   SkillTrackedMeta,
   SkillTrackedMetaCollection,
 } from '@/modules/simulation/compare.types';
-import {
-  isSameSkill,
-  getSkillEffectMetadata,
-} from '@/modules/simulation/simulators/shared';
+import { isSameSkill, getSkillEffectMetadata } from '@/modules/simulation/simulators/shared';
 import {
   SkillTarget,
   SkillType,
@@ -183,7 +180,9 @@ export class VacuumCompareDataCollector implements RaceLifecycleObserver {
   private captureFrame(race: Race, runner: Runner, data: CollectedRunnerRoundData): void {
     data.time.push(runner.accumulateTime.t);
     data.position.push(runner.position);
-    data.velocity.push(runner.currentSpeed + runner.modifiers.currentSpeed.acc + runner.modifiers.currentSpeed.err);
+    data.velocity.push(
+      runner.currentSpeed + runner.modifiers.currentSpeed.acc + runner.modifiers.currentSpeed.err,
+    );
     data.hp.push(runner.healthPolicy.currentHealth);
     data.currentLane.push(runner.currentLane);
 
@@ -329,11 +328,17 @@ export class VacuumCompareDataCollector implements RaceLifecycleObserver {
     data.rushed = cloneRegionArray(runner.rushedActivations);
     data.duelingRegion =
       runner.duelingStartPosition >= 0
-        ? [runner.duelingStartPosition, runner.duelingEndPosition >= 0 ? runner.duelingEndPosition : courseDistance]
+        ? [
+            runner.duelingStartPosition,
+            runner.duelingEndPosition >= 0 ? runner.duelingEndPosition : courseDistance,
+          ]
         : [];
     data.spotStruggleRegion =
       runner.spotStruggleStartPosition != null
-        ? [runner.spotStruggleStartPosition, runner.spotStruggleEndPosition >= 0 ? runner.spotStruggleEndPosition : courseDistance]
+        ? [
+            runner.spotStruggleStartPosition,
+            runner.spotStruggleEndPosition >= 0 ? runner.spotStruggleEndPosition : courseDistance,
+          ]
         : [];
     data.hasAchievedFullSpurt = runner.hasAchievedFullSpurt;
     data.outOfHp = runner.outOfHp;
@@ -357,10 +362,13 @@ export class VacuumCompareDataCollector implements RaceLifecycleObserver {
       skillActivations: cloneSkillActivationMap(data.skillActivations),
       startDelay: data.startDelay,
       rushed: cloneRegionArray(data.rushed),
-      duelingRegion: Array.isArray(data.duelingRegion) && data.duelingRegion.length === 2 ? [...data.duelingRegion] as [number, number] : [],
+      duelingRegion:
+        Array.isArray(data.duelingRegion) && data.duelingRegion.length === 2
+          ? ([...data.duelingRegion] as [number, number])
+          : [],
       spotStruggleRegion:
         Array.isArray(data.spotStruggleRegion) && data.spotStruggleRegion.length === 2
-          ? [...data.spotStruggleRegion] as [number, number]
+          ? ([...data.spotStruggleRegion] as [number, number])
           : [],
       hasAchievedFullSpurt: data.hasAchievedFullSpurt,
       outOfHp: data.outOfHp,
@@ -432,7 +440,10 @@ export class SkillCompareDataCollector extends VacuumCompareDataCollector {
       isSameSkill(usedSkillId, this.trackedSkillId),
     );
 
-    const logs = trackedLogs.length > 0 ? trackedLogs : this.buildFallbackLogsIfNeeded(runnerData, trackedUsed);
+    const logs =
+      trackedLogs.length > 0
+        ? trackedLogs
+        : this.buildFallbackLogsIfNeeded(runnerData, trackedUsed);
     this.currentRoundTrackedLogs = logs.map((log) => ({ ...log }));
     const positions = this.extractUniquePositions(logs);
 

@@ -14,8 +14,6 @@ export const defaultRunnerState: RunnerState = {
   strategyAptitude: 'A',
   mood: Mood.Great,
   skills: [],
-  // Map of skillId -> forced position (in meters). If a skill is in this map, it will be forced to activate at that position.
-  forcedSkillPositions: {},
   randomMobId: Math.floor(Math.random() * 624) + 8000,
 };
 
@@ -38,7 +36,6 @@ export type RunnerState = {
   strategyAptitude: string;
   mood: IMood;
   skills: Array<string>;
-  forcedSkillPositions: Record<string, number>; // TODO: Change to Map for easier serialization
   randomMobId?: number; // For placeholder image when no uma selected
   linkedRunnerId?: string; // Link to saved runner in library
 };

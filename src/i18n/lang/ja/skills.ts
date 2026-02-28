@@ -67,6 +67,8 @@ export default {
     motivation: ['', '絶不調', '不調', '普通', '好調', '絶好調'],
     order_rate: 'チャンミ：{{cm}}、リグヒ：{{loh}}',
     preconditions: '前提条件',
+    show_raw_conditions: '生の発動条件を表示',
+    show_raw_preconditions: '生の前提条件を表示',
     rotation: ['', '右回り', '左回り'],
     running_style: ['', '逃げ', '先行', '差し', '追込'],
     season: ['', '早春', '夏', '秋', '冬', '春'],

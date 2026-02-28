@@ -5,14 +5,21 @@
  */
 
 import path from 'node:path';
+import { Command } from 'commander';
 import { closeDatabase, openDatabase, queryAll } from './lib/database';
-import { readJsonFileIfExists, resolveMasterDbPath, sortByNumericKey, writeJsonFile } from './lib/shared';
+import {
+  readJsonFileIfExists,
+  resolveMasterDbPath,
+  sortByNumericKey,
+  writeJsonFile,
+} from './lib/shared';
 import type { SkillEntry } from '@/modules/data/skill-types';
 import type { ISkillTarget } from '@/lib/sunday-tools/skills/definitions';
 
 interface SkillRow {
   id: number;
   rarity: number;
+  precondition_1: string;
   condition_1: string;
   float_ability_time_1: number;
   ability_type_1_1: number;
@@ -24,6 +31,7 @@ interface SkillRow {
   ability_type_1_3: number;
   float_ability_value_1_3: number;
   target_type_1_3: number;
+  precondition_2: string;
   condition_2: string;
   float_ability_time_2: number;
   ability_type_2_1: number;
@@ -87,6 +95,32 @@ const SCENARIO_SKILLS = new Set([
 
 const SPLIT_ALTERNATIVES = new Set([100701, 900701]);
 
+type ExtractSkillsOptions = {
+  replaceMode: boolean;
+  dbPath?: string;
+};
+
+function parseCliArgs(argv: Array<string>): ExtractSkillsOptions {
+  const program = new Command();
+
+  program
+    .name('extract-skills')
+    .description('Extract unified skill data from master.mdb')
+    .option('-r, --replace', 'replace existing extracted data')
+    .option('--full', 'alias for --replace')
+    .argument('[dbPath]', 'path to master.mdb');
+
+  program.parse(argv);
+
+  const options = program.opts<{ replace?: boolean; full?: boolean }>();
+  const [dbPath] = program.args as Array<string>;
+
+  return {
+    replaceMode: Boolean(options.replace || options.full),
+    dbPath,
+  };
+}
+
 function patchModifier(id: number, value: number): number {
   if (SCENARIO_SKILLS.has(id)) {
     return value * 1.2;
@@ -94,10 +128,7 @@ function patchModifier(id: number, value: number): number {
   return value;
 }
 
-function buildEffects(
-  row: SkillRow,
-  prefix: '1' | '2',
-): Array<SkillEffect> {
+function buildEffects(row: SkillRow, prefix: '1' | '2'): Array<SkillEffect> {
   const effects: Array<SkillEffect> = [];
 
   if (prefix === '1') {
@@ -152,7 +183,7 @@ function buildEffects(
 function buildAlternatives(row: SkillRow): Array<SkillAlternative> {
   const alternatives: Array<SkillAlternative> = [
     {
-      precondition: '',
+      precondition: row.precondition_1 === '0' ? '' : row.precondition_1,
       condition: row.condition_1,
       baseDuration: row.float_ability_time_1,
       effects: buildEffects(row, '1'),
@@ -161,7 +192,7 @@ function buildAlternatives(row: SkillRow): Array<SkillAlternative> {
 
   if (row.condition_2 && row.condition_2 !== '' && row.condition_2 !== '0') {
     alternatives.push({
-      precondition: '',
+      precondition: row.precondition_2 === '0' ? '' : row.precondition_2,
       condition: row.condition_2,
       baseDuration: row.float_ability_time_2,
       effects: buildEffects(row, '2'),
@@ -171,11 +202,11 @@ function buildAlternatives(row: SkillRow): Array<SkillAlternative> {
   return alternatives;
 }
 
-async function extractSkills() {
+async function extractSkills(options: ExtractSkillsOptions = { replaceMode: false }) {
   console.log('📖 Extracting unified skills...\n');
 
-  const dbPath = await resolveMasterDbPath();
-  const replaceMode = process.argv.includes('--replace') || process.argv.includes('--full');
+  const { replaceMode, dbPath: cliDbPath } = options;
+  const dbPath = await resolveMasterDbPath(cliDbPath);
 
   console.log(
     `Mode: ${replaceMode ? '⚠️  Full Replacement' : '✓ Merge (preserves future content)'}`,
@@ -188,11 +219,13 @@ async function extractSkills() {
     const rows = queryAll<SkillRow>(
       db,
       `SELECT s.id, s.rarity,
+              s.precondition_1,
               s.condition_1,
               s.float_ability_time_1,
               s.ability_type_1_1, s.float_ability_value_1_1, s.target_type_1_1,
               s.ability_type_1_2, s.float_ability_value_1_2, s.target_type_1_2,
               s.ability_type_1_3, s.float_ability_value_1_3, s.target_type_1_3,
+              s.precondition_2,
               s.condition_2,
               s.float_ability_time_2,
               s.ability_type_2_1, s.float_ability_value_2_1, s.target_type_2_1,
@@ -285,10 +318,12 @@ async function extractSkills() {
 }
 
 if (import.meta.main) {
-  extractSkills().catch((error) => {
+  const options = parseCliArgs(process.argv);
+
+  extractSkills(options).catch((error) => {
     console.error('Error:', error.message);
     process.exit(1);
   });
 }
 
-export { extractSkills };
+export { extractSkills, parseCliArgs };

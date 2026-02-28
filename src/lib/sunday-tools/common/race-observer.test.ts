@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
-import { Grade, GroundCondition, Season, TimeOfDay, Weather } from '@/lib/sunday-tools/course/definitions';
+import {
+  Grade,
+  GroundCondition,
+  Season,
+  TimeOfDay,
+  Weather,
+} from '@/lib/sunday-tools/course/definitions';
 import { Aptitude, Mood, Strategy } from '@/lib/sunday-tools/runner/definitions';
 import { SkillTarget, SkillType } from '@/lib/sunday-tools/skills/definitions';
 import type { CreateRunner } from './runner';

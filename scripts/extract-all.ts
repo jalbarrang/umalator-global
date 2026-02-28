@@ -6,9 +6,36 @@
 import { extractSkills } from './extract-skills';
 import { extractUmaInfo } from './extract-uma-info';
 import { extractCourseData } from './extract-course-data';
+import { Command } from 'commander';
 
-async function extractAll() {
-  const replaceMode = process.argv.includes('--replace') || process.argv.includes('--full');
+type ExtractAllOptions = {
+  replaceMode: boolean;
+  dbPath?: string;
+};
+
+function parseCliArgs(argv: Array<string>): ExtractAllOptions {
+  const program = new Command();
+
+  program
+    .name('extract-all')
+    .description('Run all data extraction scripts in sequence')
+    .option('-r, --replace', 'replace existing extracted data')
+    .option('--full', 'alias for --replace')
+    .argument('[dbPath]', 'path to master.mdb');
+
+  program.parse(argv);
+
+  const options = program.opts<{ replace?: boolean; full?: boolean }>();
+  const [dbPath] = program.args as Array<string>;
+
+  return {
+    replaceMode: Boolean(options.replace || options.full),
+    dbPath,
+  };
+}
+
+async function extractAll(options: ExtractAllOptions = { replaceMode: false }) {
+  const { replaceMode, dbPath } = options;
 
   console.log('🚀 Starting full data extraction...\n');
   console.log(
@@ -20,7 +47,10 @@ async function extractAll() {
   const results: Array<{ name: string; success: boolean; error?: string }> = [];
 
   // Run extractions in sequence
-  const extractions = [
+  const extractions: Array<{
+    name: string;
+    fn: (options: { replaceMode: boolean; dbPath?: string }) => Promise<void>;
+  }> = [
     { name: 'Skills', fn: extractSkills },
     { name: 'Uma Info', fn: extractUmaInfo },
     { name: 'Course Data', fn: extractCourseData },
@@ -31,7 +61,7 @@ async function extractAll() {
       console.log(`\n${'='.repeat(60)}`);
       console.log(`📦 ${name}`);
       console.log('='.repeat(60));
-      await fn();
+      await fn({ replaceMode, dbPath });
       results.push({ name, success: true });
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
@@ -67,10 +97,12 @@ async function extractAll() {
 
 // Run if called directly
 if (import.meta.main) {
-  extractAll().catch((error) => {
+  const options = parseCliArgs(process.argv);
+
+  extractAll(options).catch((error) => {
     console.error('\n💥 Fatal error:', error.message);
     process.exit(1);
   });
 }
 
-export { extractAll };
+export { extractAll, parseCliArgs };

@@ -37,7 +37,7 @@ function calculateStats(stats: CompareStatsAccumulator, totalSamples: number) {
 }
 
 export function runComparison(params: CompareParams): CompareResult {
-  const { nsamples, course, racedef, uma1, uma2, options } = params;
+  const { nsamples, course, racedef, uma1, uma2, options, forcedPositions } = params;
 
   const seed = options.seed ?? 0;
   const raceParameters = toSundayRaceParameters(racedef);
@@ -63,7 +63,7 @@ export function runComparison(params: CompareParams): CompareResult {
     }),
     duelingRates: DEFAULT_DUELING_RATES,
     skillSamples: nsamples,
-    runner: toCreateRunner(uma1, runnerASortedSkills),
+    runner: toCreateRunner(uma1, runnerASortedSkills, forcedPositions?.uma1),
     collector: collectorA,
   });
 
@@ -80,7 +80,7 @@ export function runComparison(params: CompareParams): CompareResult {
     }),
     duelingRates: DEFAULT_DUELING_RATES,
     skillSamples: nsamples,
-    runner: toCreateRunner(uma2, runnerBSortedSkills),
+    runner: toCreateRunner(uma2, runnerBSortedSkills, forcedPositions?.uma2),
     collector: collectorB,
   });
 

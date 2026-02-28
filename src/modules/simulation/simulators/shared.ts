@@ -86,7 +86,11 @@ export function createSkillSorterByGroup(allSkills: Array<string>) {
   };
 }
 
-export function toCreateRunner(runner: RunnerState, sortedSkills: Array<string>): CreateRunner {
+export function toCreateRunner(
+  runner: RunnerState,
+  sortedSkills: Array<string>,
+  forcedPositions?: Record<string, number>,
+): CreateRunner {
   return {
     outfitId: runner.outfitId,
     mood: runner.mood,
@@ -104,6 +108,7 @@ export function toCreateRunner(runner: RunnerState, sortedSkills: Array<string>)
       wit: runner.wisdom,
     },
     skills: sortedSkills,
+    forcedPositions,
   };
 }
 
@@ -167,10 +172,7 @@ export function createInitializedRace(params: {
   return race;
 }
 
-export function computePositionDiff(
-  positionA: Array<number>,
-  positionB: Array<number>,
-): number {
+export function computePositionDiff(positionA: Array<number>, positionB: Array<number>): number {
   if (positionA.length === 0 || positionB.length === 0) {
     throw new Error('Position data is empty while computing position difference');
   }

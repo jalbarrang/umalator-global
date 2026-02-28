@@ -152,20 +152,6 @@ export const copyToRunner = (fromRunner: RunnerType, toRunner: RunnerType) => {
   toast.success('Runner copied');
 };
 
-export const updateForcedSkillPosition = (
-  runnerId: RunnerType,
-  skillId: number,
-  position: number,
-) => {
-  useRunnersStore.setState((prev) => {
-    const newRunnerState = cloneDeep(prev[runnerId]);
-
-    newRunnerState.forcedSkillPositions[skillId] = position;
-
-    return { ...prev, [runnerId]: newRunnerState };
-  });
-};
-
 export const replaceRunnerOutfit = (
   runner: RunnerState,
   newOutfitId: string,

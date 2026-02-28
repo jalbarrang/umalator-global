@@ -27,38 +27,17 @@ import {
 } from '../ui/dropdown-menu';
 import { TableSearchBar } from './TableSearchBar';
 import { useTableSearch } from './hooks/useTableSearch';
-import { ActivationDetails } from './activation-details';
 import type { CellContext, Column, ColumnDef, Row, SortingState } from '@tanstack/react-table';
 import type { PoolMetrics, SkillComparisonRoundResult } from '@/modules/simulation/types';
-import icons from '@/modules/data/icons.json';
-import umas from '@/modules/data/umas.json';
 
-import { allSkills, getSkillNameById } from '@/modules/skills/utils';
+import { getSkillById, getSkillNameById } from '@/modules/skills/utils';
+import { groups_filters } from '@/modules/skills/filters';
+import { iconIdPrefixes } from '@/modules/skills/icons';
 import { formatMs } from '@/utils/time';
 import i18n from '@/i18n';
 import { cn } from '@/lib/utils';
-
-function umaForUniqueSkill(skillId: string): string | null {
-  const sid = parseInt(skillId);
-  if (sid < 100000 || sid >= 200000) return null;
-
-  const remainder = sid - 100001;
-  if (remainder < 0) return null;
-
-  const i = Math.floor(remainder / 10) % 1000;
-  const v = Math.floor(remainder / 10 / 1000) + 1;
-
-  const umaId = i.toString().padStart(3, '0');
-  const baseUmaId = `1${umaId}`;
-  const outfitId = `${baseUmaId}${v.toString().padStart(2, '0')}`;
-  const uma = umas[baseUmaId as keyof typeof umas];
-
-  if (uma?.outfits[outfitId as keyof typeof uma.outfits]) {
-    return outfitId;
-  }
-
-  return null;
-}
+import { BassinTableBody } from './bassin-table-body';
+import { skillNameCell } from './skill-name-cell';
 
 const formatBasinn = (props: CellContext<SkillComparisonRoundResult, unknown>) => {
   const value = props.getValue() as number;
@@ -66,52 +45,7 @@ const formatBasinn = (props: CellContext<SkillComparisonRoundResult, unknown>) =
   return value.toFixed(2).replace('-0.00', '0.00') + ' L';
 };
 
-const skillNameCell =
-  (showUmaIcons: boolean = false) =>
-  (props: CellContext<SkillComparisonRoundResult, unknown>) => {
-    const id = props.getValue() as string;
-
-    const skill = allSkills.find((currSkill) => currSkill.originalId === id);
-
-    if (showUmaIcons) {
-      const umaId = umaForUniqueSkill(id);
-
-      if (umaId && icons[umaId as keyof typeof icons]) {
-        const icon = icons[umaId as keyof typeof icons];
-
-        return (
-          <>
-            {/* className="flex items-center gap-2" data-itemtype="uma" data-itemid={umaId} */}
-            <img src={icon} className="w-8 h-8" />
-            <span>
-              {i18n.t(`skillnames.${id}`)} ({id})
-            </span>
-          </>
-        );
-      }
-    }
-
-    if (!skill) {
-      return (
-        // <div className="flex items-center gap-2" data-itemtype="skill" data-itemid={id}>
-        <span>
-          {i18n.t(`skillnames.${id}`)} ({id})
-        </span>
-        // </div>
-      );
-    }
-
-    return (
-      // <div className="flex items-center gap-2" data-itemtype="skill" data-itemid={id}>
-      <>
-        <img src={`/icons/${skill.iconId}.png`} className="w-4 h-4" />
-        <span>
-          {i18n.t(`skillnames.${id}`)} ({id})
-        </span>
-      </>
-      // </div>
-    );
-  };
+type IconTypeFilterKey = keyof typeof iconIdPrefixes;
 
 const sortableHeader =
   (name: string, _key: string) =>
@@ -155,7 +89,7 @@ type BasinnChartProps = {
   onRunAdditionalSamples?: (skillId: string, additionalSamples: number) => void;
 };
 
-const gridClass = 'grid grid-cols-[50px_50px_1fr_100px_100px_100px_100px] w-full';
+export const gridClass = 'grid grid-cols-[50px_50px_1fr_100px_100px_100px_100px] w-full';
 
 export const BasinnChart = (props: BasinnChartProps) => {
   const {
@@ -171,6 +105,37 @@ export const BasinnChart = (props: BasinnChartProps) => {
   } = props;
 
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [showSkillIds, setShowSkillIds] = useState(false);
+  const [iconTypeFilters, setIconTypeFilters] = useState<Record<IconTypeFilterKey, boolean>>(() => {
+    const initialState = {} as Record<IconTypeFilterKey, boolean>;
+    for (const iconType of groups_filters.icontype) {
+      initialState[iconType as IconTypeFilterKey] = true;
+    }
+    return initialState;
+  });
+
+  const skillMetadataById = useMemo(() => {
+    return new Map(props.data.map((row) => [row.id, getSkillById(row.id)]));
+  }, [props.data]);
+
+  const activeIconTypeFilters = useMemo(() => {
+    return groups_filters.icontype.filter(
+      (iconType) => iconTypeFilters[iconType as IconTypeFilterKey],
+    );
+  }, [iconTypeFilters]);
+
+  const filteredData = useMemo(() => {
+    return props.data.filter((row) => {
+      const skill = skillMetadataById.get(row.id);
+      if (!skill) return true;
+
+      return activeIconTypeFilters.some((iconType) =>
+        iconIdPrefixes[iconType as IconTypeFilterKey]?.some((prefix) =>
+          skill.iconId.startsWith(prefix),
+        ),
+      );
+    });
+  }, [activeIconTypeFilters, props.data, skillMetadataById]);
 
   const handleToggleRow = useCallback((skillId: string) => {
     setExpandedRows((prev) => {
@@ -181,6 +146,39 @@ export const BasinnChart = (props: BasinnChartProps) => {
         next.add(skillId);
       }
       return next;
+    });
+  }, []);
+
+  const handleToggleIconTypeFilter = useCallback((iconType: IconTypeFilterKey) => {
+    setIconTypeFilters((prev) => {
+      const allActive = groups_filters.icontype.every(
+        (filter) => prev[filter as IconTypeFilterKey],
+      );
+
+      if (allActive) {
+        const nextState = {} as Record<IconTypeFilterKey, boolean>;
+        for (const filter of groups_filters.icontype) {
+          nextState[filter as IconTypeFilterKey] = filter === iconType;
+        }
+        return nextState;
+      }
+
+      const toggledState = {
+        ...prev,
+        [iconType]: !prev[iconType],
+      };
+
+      const anyActive = groups_filters.icontype.some(
+        (filter) => toggledState[filter as IconTypeFilterKey],
+      );
+
+      if (!anyActive) {
+        for (const filter of groups_filters.icontype) {
+          toggledState[filter as IconTypeFilterKey] = true;
+        }
+      }
+
+      return toggledState;
     });
   }, []);
 
@@ -264,7 +262,12 @@ export const BasinnChart = (props: BasinnChartProps) => {
       {
         header: () => <span>Skill name</span>,
         accessorKey: 'id',
-        cell: skillNameCell(showUmaIcons),
+        cell: skillNameCell({
+          showUmaIcons,
+          showSkillIds,
+          skillMetadataById,
+          courseDistance: props.courseDistance,
+        }),
         sortingFn: (a, b, _) => {
           const skillIdA = a.getValue('id');
           const skillIdB = b.getValue('id');
@@ -300,14 +303,14 @@ export const BasinnChart = (props: BasinnChartProps) => {
       },
     ];
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showUmaIcons, expandedRows, selectedSkills]);
+  }, [showUmaIcons, showSkillIds, skillMetadataById, expandedRows, selectedSkills]);
 
   const [sorting, setSorting] = useState<SortingState>([{ id: 'mean', desc: true }]);
   const [rowSelection, setRowSelection] = useState({});
 
   const table = useReactTable({
     columns,
-    data: props.data,
+    data: filteredData,
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -380,6 +383,35 @@ export const BasinnChart = (props: BasinnChartProps) => {
         </div>
       )}
 
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-1.5">
+          {groups_filters.icontype.map((iconType) => (
+            <Button
+              key={iconType}
+              variant="ghost"
+              size="icon"
+              className={cn('border rounded-none', {
+                'border-primary': iconTypeFilters[iconType as IconTypeFilterKey],
+              })}
+              onClick={() => handleToggleIconTypeFilter(iconType as IconTypeFilterKey)}
+              title={`Filter by icon type ${iconType}`}
+            >
+              <img src={`/icons/${iconType}1.png`} className="w-6 h-6" />
+            </Button>
+          ))}
+        </div>
+
+        <Button variant="outline" size="sm" onClick={() => setShowSkillIds((prev) => !prev)}>
+          {showSkillIds ? 'Hide IDs' : 'Show IDs'}
+        </Button>
+
+        {activeIconTypeFilters.length < groups_filters.icontype.length && (
+          <span className="text-sm text-muted-foreground">
+            Showing {filteredData.length} / {props.data.length} skills
+          </span>
+        )}
+      </div>
+
       {/* Search Bar */}
       <TableSearchBar
         isOpen={search.isSearchOpen}
@@ -419,79 +451,19 @@ export const BasinnChart = (props: BasinnChartProps) => {
           </div>
 
           {/* Table Body */}
-          <div
-            className="relative"
-            style={{
-              height: `${virtualizer.getTotalSize()}px`,
-            }}
-          >
-            {virtualizer.getVirtualItems().map((virtualRow, _index) => {
-              const row = rows[virtualRow.index];
-
-              const id: string = row.getValue('id');
-              const isSelected = selectedSkills.includes(id);
-              const isExpanded = expandedRows.has(id);
-              const rowData = props.data.find((d) => d.id === id);
-              const hasRunData = rowData?.runData != null;
-              const isSearchMatch = search.matches.includes(virtualRow.index);
-              const isCurrentMatch = search.matches[search.currentMatchIndex] === virtualRow.index;
-
-              return (
-                <div
-                  key={row.id}
-                  data-index={virtualRow.index}
-                  ref={(node) => virtualizer.measureElement(node)}
-                  className={cn(
-                    'w-full bg-background hover:bg-muted p-2 border-b last-of-type:border-b-0',
-                    'flex flex-col gap-2',
-                    {
-                      hidden: props.hiddenSkills.includes(id),
-                      'bg-primary/5': isSelected && !isSearchMatch,
-                      'bg-yellow-100/50 dark:bg-yellow-900/20': isSearchMatch && !isCurrentMatch,
-                      'bg-yellow-200/70 dark:bg-yellow-800/40': isCurrentMatch,
-                    },
-                  )}
-                  style={{
-                    position: 'absolute',
-                    transform: `translateY(${virtualRow.start}px)`, //this should always be a `style` as it changes on scroll
-                  }}
-                >
-                  <div className={gridClass}>
-                    {row.getVisibleCells().map((cell) => {
-                      const column = cell.column;
-                      const columnId = column.id;
-                      const cellValue = cell.getValue();
-                      const extraProps: Record<string, unknown> = {};
-
-                      if (columnId === 'id') {
-                        extraProps['data-itemtype'] = 'skill';
-                        extraProps['data-itemid'] = cellValue;
-                      }
-
-                      return (
-                        <div key={cell.id} className="flex items-center gap-2" {...extraProps}>
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {isExpanded && hasRunData && rowData?.runData && (
-                    <ActivationDetails
-                      skillId={id}
-                      runData={rowData.runData}
-                      skillActivations={rowData.skillActivations}
-                      courseDistance={props.courseDistance ?? 1400}
-                      currentSeed={currentSeed}
-                      isGlobalSimulationRunning={isSimulationRunning}
-                      isSkillLoading={skillLoadingStates[id] ?? false}
-                      onRunAdditionalSamples={onRunAdditionalSamples}
-                    />
-                  )}
-                </div>
-              );
-            })}
-          </div>
+          <BassinTableBody
+            virtualizer={virtualizer}
+            rows={rows}
+            selectedSkills={selectedSkills}
+            expandedRows={expandedRows}
+            search={search}
+            hiddenSkills={props.hiddenSkills}
+            courseDistance={props.courseDistance}
+            currentSeed={currentSeed}
+            isSimulationRunning={isSimulationRunning}
+            skillLoadingStates={skillLoadingStates}
+            onRunAdditionalSamples={onRunAdditionalSamples}
+          />
         </div>
       </div>
     </div>

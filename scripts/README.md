@@ -215,11 +215,11 @@ pnpm run extract:all -- --replace   # Full replacement
 
 All extracted data is written to `src/modules/data/`:
 
-| File               | Description                           |
-| ------------------ | ------------------------------------- |
+| File               | Description                                   |
+| ------------------ | --------------------------------------------- |
 | `skills.json`      | Unified skill data (meta + names + mechanics) |
-| `umas.json`        | Uma musume character data             |
-| `course_data.json` | Course/track geometry data            |
+| `umas.json`        | Uma musume character data                     |
+| `course_data.json` | Course/track geometry data                    |
 
 ## Data Format
 
