@@ -14,6 +14,11 @@ export const rushedColors: Array<{ stroke: string; fill: string }> = [
   { stroke: 'rgb(197, 42, 42)', fill: 'rgba(197, 42, 42, 0.8)' }, // Red for Uma 2
 ];
 
+export const recoveryColors: Array<{ stroke: string; fill: string }> = [
+  { stroke: 'rgb(42, 119, 197)', fill: 'rgba(42, 119, 197, 0.82)' }, // Uma 1 (blue)
+  { stroke: 'rgb(197, 42, 42)', fill: 'rgba(197, 42, 42, 0.82)' }, // Uma 2 (red)
+];
+
 export const posKeepColors: Array<{ stroke: string; fill: string }> = [
   { stroke: 'rgb(42, 119, 197)', fill: 'rgba(42, 119, 197, 0.6)' },
   { stroke: 'rgb(197, 42, 42)', fill: 'rgba(197, 42, 42, 0.6)' },

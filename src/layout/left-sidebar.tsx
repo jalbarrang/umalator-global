@@ -8,11 +8,14 @@ import { RunnersPanel } from '@/modules/runners/components/runners-panel';
 import { AdvancedSettingsPanel } from '@/components/advanced-settings-panel';
 import { PresetsPanel } from '@/components/presets-panel';
 import { ForcedPositionsPanel } from '@/modules/simulation/components/ForcedPositionsPanel';
+import { useForcedPositions } from '@/modules/simulation/stores/forced-positions.store';
 import { setLeftSidebar, useLeftSidebar } from '@/store/ui.store';
 
 export const LeftSidebar = () => {
   const { activePanel, hidden } = useLeftSidebar();
+  const { uma1, uma2 } = useForcedPositions();
   const location = useLocation();
+  const hasForcedPositions = Object.keys(uma1).length > 0 || Object.keys(uma2).length > 0;
 
   const isCompareRunnersView = location.pathname === '/';
 
@@ -23,32 +26,36 @@ export const LeftSidebar = () => {
         label: 'Runners',
         icon: UsersIcon,
         content: <RunnersPanel />,
+        hasBadge: false,
       },
       {
         id: 'presets',
         label: 'Presets',
         icon: BookmarkIcon,
         content: <PresetsPanel />,
+        hasBadge: false,
       },
       {
         id: 'advanced-settings',
         label: 'Advanced Settings',
         icon: SlidersHorizontalIcon,
         content: <AdvancedSettingsPanel />,
+        hasBadge: false,
       },
     ];
 
     if (isCompareRunnersView) {
       basePanels.push({
         id: 'forced-positions',
-        label: 'Forced Positions',
+        label: 'Force Skill Positions',
         icon: CrosshairIcon,
         content: <ForcedPositionsPanel />,
+        hasBadge: hasForcedPositions,
       });
     }
 
     return basePanels;
-  }, [isCompareRunnersView]);
+  }, [hasForcedPositions, isCompareRunnersView]);
 
   useEffect(() => {
     const panelIsValid = panels.some((panel) => panel.id === activePanel);
@@ -73,7 +80,7 @@ export const LeftSidebar = () => {
                   <Button
                     variant={activePanel === panel.id ? 'secondary' : 'ghost'}
                     size="icon"
-                    className={cn('h-9 w-9', activePanel === panel.id && 'bg-accent')}
+                    className={cn('relative h-9 w-9', activePanel === panel.id && 'bg-accent')}
                     onClick={() => {
                       if (activePanel === panel.id && !hidden) {
                         setLeftSidebar({ hidden: true });
@@ -83,6 +90,9 @@ export const LeftSidebar = () => {
                     }}
                   >
                     <panel.icon className="h-4 w-4" />
+                    {panel.hasBadge && (
+                      <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-primary ring-1 ring-background" />
+                    )}
                   </Button>
                 }
               />

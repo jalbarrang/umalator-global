@@ -66,3 +66,40 @@
 .poskeep-label line {
   filter: drop-shadow(0.5px 0.5px 1px rgba(0, 0, 0, 0.3)) opacity(1) !important;
 }
+
+.recovery-marker {
+  pointer-events: auto;
+  cursor: grab;
+}
+
+.recovery-marker:active {
+  cursor: grabbing;
+}
+
+.recovery-marker polygon {
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.35));
+  animation: recovery-pulse 2s ease-in-out infinite;
+}
+
+@keyframes recovery-pulse {
+  0%,
+  100% {
+    opacity: 0.82;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.recovery-tooltip rect {
+  fill: color-mix(in srgb, var(--background) 85%, black);
+  stroke: color-mix(in srgb, var(--foreground) 45%, transparent);
+}
+
+.recovery-tooltip text {
+  fill: var(--foreground);
+  paint-order: stroke;
+  stroke: var(--background);
+  stroke-width: 1px;
+  font-weight: 600;
+}

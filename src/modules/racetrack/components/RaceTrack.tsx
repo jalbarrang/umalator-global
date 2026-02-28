@@ -1,4 +1,4 @@
-import { Activity, Fragment, useMemo, useRef } from 'react';
+import { Activity, Fragment, useMemo, useRef, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { useDragSkill } from '../hooks/useDragSkill';
 import { useRaceTrackTooltip } from '../hooks/useRaceTrackTooltip';
@@ -13,7 +13,7 @@ import { SectionNumbers } from './section-numbers';
 import { SkillMarker } from './skill-marker';
 import { SlopeLabelBar } from './slope-label-bar';
 import { SlopeVisualization } from './slope-visualization';
-import type { RegionData } from '../hooks/useVisualizationData';
+import type { RecoveryMarkerData, RegionData } from '../hooks/useVisualizationData';
 import type { SimulationRun } from '@/modules/simulation/compare.types';
 import type { RaceConditions } from '@/utils/races';
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';
@@ -201,6 +201,16 @@ type RaceTrackProps = {
 // Base dimensions for aspect ratio calculation
 const BASE_WIDTH = 960;
 const BASE_HEIGHT = 240;
+const RECOVERY_MARKER_SIZE = 5;
+const RECOVERY_BASELINE_Y_RATIO = 0.86;
+const RECOVERY_RUNG_STEP = 14;
+const RECOVERY_DRAG_RANGE_METERS = 50;
+
+type HoveredRecoveryMarker = {
+  label: string;
+  x: number;
+  y: number;
+};
 
 export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (props) => {
   const { chartData } = props;
@@ -225,8 +235,11 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (pro
 
   const width = props.width ?? BASE_WIDTH;
   const height = props.height ?? BASE_HEIGHT;
+  const [hoveredRecovery, setHoveredRecovery] = useState<HoveredRecoveryMarker | null>(null);
 
-  const { skillActivations, rushedIndicators, posKeepLabels } = useVisualizationData({ chartData });
+  const { skillActivations, rushedIndicators, recoveryMarkers, posKeepLabels } = useVisualizationData({
+    chartData,
+  });
 
   const allRegions = useMemo(() => {
     return [...skillActivations, ...rushedIndicators];
@@ -304,6 +317,7 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (pro
     }
 
     rtMouseLeave();
+    setHoveredRecovery(null);
     handleDragEnd();
   };
 
@@ -344,6 +358,28 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (pro
             <SectionNumbers />
 
             <RegionSegment allRegions={allRegions} course={course} onDragStart={handleDragStart} />
+
+            {recoveryMarkers.map((marker, index) => {
+              if (marker.umaIndex === 0 && !showUma1) return null;
+              if (marker.umaIndex === 1 && !showUma2) return null;
+
+              return (
+                <RecoveryMarker
+                  key={`recovery-${marker.skillId}-${marker.position}-${index}`}
+                  marker={marker}
+                  distance={course.distance}
+                  width={width}
+                  height={height}
+                  onDragStart={handleDragStart}
+                  onHoverStart={setHoveredRecovery}
+                  onHoverEnd={() => setHoveredRecovery(null)}
+                />
+              );
+            })}
+
+            {hoveredRecovery && (
+              <RecoveryHoverTooltip marker={hoveredRecovery} trackWidth={width} />
+            )}
 
             {posKeepLabels &&
               posKeepLabels.map((label, index) => {
@@ -537,6 +573,85 @@ export const ThresholdMarker = (props: ThresholdMarkerProps) => {
         fontWeight="bold"
       >
         {text ?? `${threshold}m left`}
+      </text>
+    </g>
+  );
+};
+
+type RecoveryMarkerProps = {
+  marker: RecoveryMarkerData;
+  distance: number;
+  width: number;
+  height: number;
+  onDragStart: (
+    e: React.MouseEvent,
+    skillId: string,
+    umaIndex: number,
+    start: number,
+    end: number,
+  ) => void;
+  onHoverStart: (marker: HoveredRecoveryMarker) => void;
+  onHoverEnd: () => void;
+};
+
+const RecoveryMarker = (props: RecoveryMarkerProps) => {
+  const { marker, distance, width, height, onDragStart, onHoverStart, onHoverEnd } = props;
+  const x = (marker.position / distance) * width;
+  const y = height * RECOVERY_BASELINE_Y_RATIO - marker.rung * RECOVERY_RUNG_STEP;
+  const stemHeight = Math.max(0, height - y - RECOVERY_MARKER_SIZE);
+  const diamondPoints = `0,-${RECOVERY_MARKER_SIZE} ${RECOVERY_MARKER_SIZE},0 0,${RECOVERY_MARKER_SIZE} -${RECOVERY_MARKER_SIZE},0`;
+  const markerLabel = `${marker.text} (Recovery) - ${Math.round(marker.position)}m`;
+  const syntheticEnd = Math.min(distance, marker.position + RECOVERY_DRAG_RANGE_METERS);
+
+  return (
+    <g
+      className="recovery-marker"
+      transform={`translate(${x} ${y})`}
+      onMouseDown={(e) => onDragStart(e, marker.skillId, marker.umaIndex, marker.position, syntheticEnd)}
+      onMouseEnter={() => onHoverStart({ label: markerLabel, x, y })}
+      onMouseLeave={onHoverEnd}
+    >
+
+      <line
+        x1="0"
+        y1={RECOVERY_MARKER_SIZE}
+        x2="0"
+        y2={stemHeight}
+        stroke={marker.color.stroke}
+        strokeWidth="1"
+        strokeDasharray="2,2"
+        opacity="0.55"
+      />
+
+      <polygon
+        points={diamondPoints}
+        fill={marker.color.fill}
+        stroke={marker.color.stroke}
+        strokeWidth="1.5"
+      />
+    </g>
+  );
+};
+
+type RecoveryHoverTooltipProps = {
+  marker: HoveredRecoveryMarker;
+  trackWidth: number;
+};
+
+const RecoveryHoverTooltip = (props: RecoveryHoverTooltipProps) => {
+  const { marker, trackWidth } = props;
+  const tooltipWidth = Math.max(120, marker.label.length * 6.5 + 14);
+  const tooltipX = Math.min(
+    trackWidth - tooltipWidth - 4,
+    Math.max(4, marker.x - tooltipWidth / 2),
+  );
+  const tooltipY = Math.max(14, marker.y - 12);
+
+  return (
+    <g className="recovery-tooltip" transform={`translate(${tooltipX} ${tooltipY})`} pointerEvents="none">
+      <rect x="0" y="-12" width={tooltipWidth} height="18" rx="4" ry="4" />
+      <text x="7" y="-2" fontSize="10px">
+        {marker.label}
       </text>
     </g>
   );
