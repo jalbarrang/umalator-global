@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.3.1 - 2026-02-28
+
+- Fixed an UI issue on Skill activation list.
+- Fixed an issue that compare run didn't use the forced skill positions properly.
+- Fixed an issue where Skill Planner was displaying base cost instead of the net cost (after discounts).
+- Fixed an issue where all simulators were wrongly getting the bassin value from the first runner instead of the second one at the end of the race.
+
 ## 0.3.0 - 2026-02-28
 
 - Added Diamond indicators for Recovery Skills and Debuffs they are also movable and can be used to force skill positions.
