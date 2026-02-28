@@ -14,6 +14,7 @@
     "format:check": "oxfmt --check",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test --reporter=list",
     "db:fetch": "tsx ./scripts/fetch-master-db.ts",
     "extract:skills": "tsx scripts/extract-skills.ts",
     "extract:uma-info": "tsx scripts/extract-uma-info.ts",
