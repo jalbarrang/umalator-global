@@ -11,6 +11,7 @@ import {
   createCompareSettings,
   createInitializedRace,
   createSkillSorterByGroup,
+  computePositionDiff,
   DEFAULT_DUELING_RATES,
   toCreateRunner,
   toSundayRaceParameters,
@@ -68,6 +69,61 @@ describe('skill-compare simulator', () => {
     expect(first.median).toBe(second.median);
     expect(first.skillActivations).toEqual({});
   });
+
+  it('keeps basin sign consistent when runnerA is faster than runnerB', () => {
+    const course = CourseHelpers.getCourse(10914);
+    const racedef = racedefToParams(
+      createRaceConditions({
+        ground: 4,
+        weather: 3,
+        season: 1,
+        time: 2,
+      }),
+    );
+
+    const runnerA = createRunnerState({
+      outfitId: '100602',
+      speed: 1200,
+      stamina: 900,
+      power: 800,
+      guts: 600,
+      wisdom: 1000,
+      strategy: 'Pace Chaser',
+      distanceAptitude: 'S',
+      surfaceAptitude: 'A',
+      strategyAptitude: 'A',
+      mood: 2,
+      skills: ['110061', '200741', '201351', '200351'],
+      randomMobId: 8256,
+    });
+    const runnerB = createRunnerState({
+      outfitId: '100602',
+      speed: 1200,
+      stamina: 900,
+      power: 800,
+      guts: 600,
+      wisdom: 1000,
+      strategy: 'Pace Chaser',
+      distanceAptitude: 'S',
+      surfaceAptitude: 'A',
+      strategyAptitude: 'A',
+      mood: 2,
+      skills: ['110061'],
+      randomMobId: 8256,
+    });
+
+    const result = runSkillComparison({
+      trackedSkillId: '110061',
+      nsamples: 64,
+      course,
+      racedef,
+      runnerA,
+      runnerB,
+      options: createSimulationOptions(20260306),
+    });
+
+    expect(result.mean).toBeLessThan(0);
+  });
 });
 
 describe('vacuum-compare simulator', () => {
@@ -100,6 +156,111 @@ describe('vacuum-compare simulator', () => {
     expect(result.staminaStats.uma1.fullSpurtRate).toBeLessThanOrEqual(100);
     expect(result.firstUmaStats.uma1.firstPlaceRate).toBeGreaterThanOrEqual(0);
     expect(result.firstUmaStats.uma1.firstPlaceRate).toBeLessThanOrEqual(100);
+  });
+
+  it('keeps basin sign aligned with finish times for provided race presets', () => {
+    const course = CourseHelpers.getCourse(10914);
+    const racedef = racedefToParams(
+      createRaceConditions({
+        ground: 4,
+        weather: 3,
+        season: 1,
+        time: 2,
+      }),
+    );
+
+    const uma1 = createRunnerState({
+      outfitId: '100602',
+      speed: 1200,
+      stamina: 900,
+      power: 800,
+      guts: 600,
+      wisdom: 1000,
+      strategy: 'Pace Chaser',
+      distanceAptitude: 'S',
+      surfaceAptitude: 'A',
+      strategyAptitude: 'A',
+      mood: 2,
+      skills: ['110061', '200741', '201351', '200351'],
+      randomMobId: 8256,
+    });
+    const uma2 = createRunnerState({
+      outfitId: '100602',
+      speed: 1200,
+      stamina: 900,
+      power: 800,
+      guts: 600,
+      wisdom: 1000,
+      strategy: 'Pace Chaser',
+      distanceAptitude: 'S',
+      surfaceAptitude: 'A',
+      strategyAptitude: 'A',
+      mood: 2,
+      skills: ['110061'],
+      randomMobId: 8256,
+    });
+
+    const result = runComparison({
+      nsamples: 64,
+      course,
+      racedef,
+      uma1,
+      uma2,
+      options: createSimulationOptions(20260306),
+    });
+
+    const mean = result.results.reduce((sum, value) => sum + value, 0) / result.results.length;
+    const meanRunUma1Time = result.runData.meanrun.time[0][result.runData.meanrun.time[0].length - 1];
+    const meanRunUma2Time = result.runData.meanrun.time[1][result.runData.meanrun.time[1].length - 1];
+
+    expect(meanRunUma1Time).toBeLessThan(meanRunUma2Time);
+    expect(mean).toBeLessThan(0);
+  });
+});
+
+describe('computePositionDiff', () => {
+  it('returns a negative value when runner A finishes ahead with fewer frames', () => {
+    const runnerAPosition = [100, 250, 400];
+    const runnerBPosition = [80, 190, 300, 360];
+
+    expect(computePositionDiff(runnerAPosition, runnerBPosition)).toBeLessThan(0);
+  });
+
+  it('returns a positive value when runner B finishes ahead with fewer frames', () => {
+    const runnerAPosition = [90, 220, 330, 390];
+    const runnerBPosition = [120, 270, 430];
+
+    expect(computePositionDiff(runnerAPosition, runnerBPosition)).toBeGreaterThan(0);
+  });
+
+  it('returns a negative value when both have same frames and runner A is ahead', () => {
+    const runnerAPosition = [100, 210, 320];
+    const runnerBPosition = [90, 180, 300];
+
+    expect(computePositionDiff(runnerAPosition, runnerBPosition)).toBeLessThan(0);
+  });
+
+  it('returns a positive value when both have same frames and runner B is ahead', () => {
+    const runnerAPosition = [80, 170, 260];
+    const runnerBPosition = [90, 200, 320];
+
+    expect(computePositionDiff(runnerAPosition, runnerBPosition)).toBeGreaterThan(0);
+  });
+
+  it('returns zero when both runners have identical final position', () => {
+    const runnerAPosition = [100, 200, 300];
+    const runnerBPosition = [100, 200, 300];
+
+    expect(computePositionDiff(runnerAPosition, runnerBPosition)).toBe(0);
+  });
+
+  it('throws when one of the position arrays is empty', () => {
+    expect(() => computePositionDiff([], [100])).toThrow(
+      'Position data is empty while computing position difference',
+    );
+    expect(() => computePositionDiff([100], [])).toThrow(
+      'Position data is empty while computing position difference',
+    );
   });
 });
 
@@ -176,10 +337,6 @@ describe('forced skill positions', () => {
   });
 
   it('should produce different results with vs without forced positions', () => {
-    const course = CourseHelpers.getCourse(TEST_COURSE_ID);
-    const racedef = racedefToParams(createRaceConditions());
-    const raceParameters = toSundayRaceParameters(racedef);
-
     const skillId = runawaySkillId;
     const runner = createRunnerState({
       outfitId: '100101',
@@ -403,5 +560,60 @@ describe('skill-planner-compare simulator', () => {
     expect(first.mean).toBe(second.mean);
     expect(first.median).toBe(second.median);
     expect(first.results).toEqual([...first.results].sort((a, b) => a - b));
+  });
+
+  it('keeps basin sign consistent when runnerA is faster than runnerB', () => {
+    const course = CourseHelpers.getCourse(10914);
+    const racedef = racedefToParams(
+      createRaceConditions({
+        ground: 4,
+        weather: 3,
+        season: 1,
+        time: 2,
+      }),
+    );
+
+    const runnerA = createRunnerState({
+      outfitId: '100602',
+      speed: 1200,
+      stamina: 900,
+      power: 800,
+      guts: 600,
+      wisdom: 1000,
+      strategy: 'Pace Chaser',
+      distanceAptitude: 'S',
+      surfaceAptitude: 'A',
+      strategyAptitude: 'A',
+      mood: 2,
+      skills: ['110061', '200741', '201351', '200351'],
+      randomMobId: 8256,
+    });
+    const runnerB = createRunnerState({
+      outfitId: '100602',
+      speed: 1200,
+      stamina: 900,
+      power: 800,
+      guts: 600,
+      wisdom: 1000,
+      strategy: 'Pace Chaser',
+      distanceAptitude: 'S',
+      surfaceAptitude: 'A',
+      strategyAptitude: 'A',
+      mood: 2,
+      skills: ['110061'],
+      randomMobId: 8256,
+    });
+
+    const result = runPlannerComparison({
+      nsamples: 64,
+      course,
+      racedef,
+      runnerA,
+      runnerB,
+      candidateSkills: ['110061'],
+      options: createSimulationOptions(20260306),
+    });
+
+    expect(result.mean).toBeLessThan(0);
   });
 });
