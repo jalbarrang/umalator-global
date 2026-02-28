@@ -167,10 +167,7 @@ export function createInitializedRace(params: {
   return race;
 }
 
-export function computePositionDiff(
-  positionA: Array<number>,
-  positionB: Array<number>,
-): number {
+export function computePositionDiff(positionA: Array<number>, positionB: Array<number>): number {
   if (positionA.length === 0 || positionB.length === 0) {
     throw new Error('Position data is empty while computing position difference');
   }

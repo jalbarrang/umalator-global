@@ -267,7 +267,6 @@ export const VelocityLines = memo(function VelocityLines(props: VelocityLinesPro
               />
             );
           })}
-
       </g>
 
       {/* Axes */}

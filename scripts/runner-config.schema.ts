@@ -21,7 +21,6 @@ export const RunnerConfigSchema = z.object({
   strategyAptitude: z.enum(aptitudeNames),
   mood: z.literal(moods),
   skills: z.array(z.string()),
-  forcedSkillPositions: z.record(z.string(), z.number()).optional().default({}),
   randomMobId: z.number().optional().default(8573),
 });
 

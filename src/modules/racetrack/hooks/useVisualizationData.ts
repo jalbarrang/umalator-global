@@ -167,11 +167,7 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
   }, [chartData]);
 
   const labels = useMemo(() => {
-    return [
-      ...posKeepData,
-      ...competeFightData,
-      ...leadCompetitionData,
-    ];
+    return [...posKeepData, ...competeFightData, ...leadCompetitionData];
   }, [posKeepData, competeFightData, leadCompetitionData]);
 
   const tempLabels = useMemo(

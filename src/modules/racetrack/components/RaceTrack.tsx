@@ -18,7 +18,7 @@ import type { SimulationRun } from '@/modules/simulation/compare.types';
 import type { RaceConditions } from '@/utils/races';
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import { initializeSimulationRun } from '@/modules/simulation/compare.types';
-import { updateForcedSkillPosition, useRunnersStore } from '@/store/runners.store';
+import { setForcedPosition, useForcedPositions } from '@/modules/simulation/stores/forced-positions.store';
 import {
   toggleShowHp,
   toggleShowLanes,
@@ -69,22 +69,7 @@ const RegionSegment = (props: RegionSegmentProps) => {
       showUma2: state.showUma2,
     })),
   );
-
-  const { uma1, uma2 } = useRunnersStore(
-    useShallow((state) => ({
-      uma1: state.uma1,
-      uma2: state.uma2,
-    })),
-  );
-
-  // Extract only forcedSkillPositions to prevent recomputation when other runner properties change
-  const forcedPositions = useMemo(
-    () => ({
-      uma1: uma1?.forcedSkillPositions ?? {},
-      uma2: uma2?.forcedSkillPositions ?? {},
-    }),
-    [uma1?.forcedSkillPositions, uma2?.forcedSkillPositions],
-  );
+  const forcedPositions = useForcedPositions();
 
   return allRegions.reduce(
     (state, desc, descIndex) => {
@@ -254,9 +239,9 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (pro
     _newEnd: number,
   ) => {
     if (umaIndex === 0) {
-      updateForcedSkillPosition('uma1', skillId, newStart);
+      setForcedPosition('uma1', skillId, newStart);
     } else if (umaIndex === 1) {
-      updateForcedSkillPosition('uma2', skillId, newStart);
+      setForcedPosition('uma2', skillId, newStart);
     }
   };
 

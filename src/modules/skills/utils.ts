@@ -109,11 +109,18 @@ export function SkillSet(iterable: Array<string>): Set<string> {
   return new Set<string>(sortSkills(iterable));
 }
 
+/**
+ * Skills that are never acquired through training, so we don't need to test them.
+ */
+const nonMeasurableSkills = ['300051', '300061'];
+
 export const getBaseSkillsToTest = () => {
   const skillIds = Object.keys(skills);
   const skillsToTest = [];
 
   for (const id of skillIds) {
+    if (nonMeasurableSkills.includes(id)) continue;
+
     const skillData = skills[id];
 
     if (!skillData) continue;

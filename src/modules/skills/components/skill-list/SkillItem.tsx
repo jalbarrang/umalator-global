@@ -1,10 +1,11 @@
-import { Activity, memo, useMemo, useState } from 'react';
-import { X } from 'lucide-react';
+import { Activity, memo, useMemo } from 'react';
+import { CircleHelp, X } from 'lucide-react';
 import { ExpandedSkillDetails } from '../ExpandedSkillDetails';
 import { getSkillById } from '@/modules/skills/utils';
 import { cn } from '@/lib/utils';
 import i18n from '@/i18n';
 import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { isEvolutionSkill, isGoldSkill, isUniqueSkill, isWhiteSkill } from '@/store/runners.store';
 
 export const SkillIcon = (props: { iconId: string }) => {
@@ -17,8 +18,6 @@ type SkillItemProps = React.HTMLAttributes<HTMLDivElement> & {
   dismissable?: boolean;
   withDetails?: boolean;
   distanceFactor?: number;
-  forcedPosition?: number;
-  onPositionChange?: (position: string | undefined) => void;
   isHovered?: boolean;
   isFocused?: boolean;
 };
@@ -30,13 +29,9 @@ export const SkillItem = memo((props: SkillItemProps) => {
     dismissable = false,
     withDetails = false,
     distanceFactor = 0,
-    forcedPosition = 0,
-    onPositionChange = () => {},
     isHovered = false,
     isFocused = false,
   } = props;
-
-  const [expanded, setExpanded] = useState(false);
 
   const skill = useMemo(() => getSkillById(skillId), [skillId]);
 
@@ -104,68 +99,72 @@ export const SkillItem = memo((props: SkillItemProps) => {
   return (
     <div
       data-skillid={skillId}
-      className={cn({
-        'max-h-[44px]': !expanded,
-      })}
       style={props.style}
+      onMouseEnter={props.onMouseEnter}
+      onMouseLeave={props.onMouseLeave}
+      className={cn(
+        'rounded-md bg-background border-2 flex h-[44px]',
+        {
+          selected: selected,
+          'bg-yellow-200/70 dark:bg-yellow-800/40': isHovered || isFocused,
+        },
+        props.className,
+      )}
     >
       <div
-        onClick={() => setExpanded(!expanded)}
-        onMouseEnter={props.onMouseEnter}
-        onMouseLeave={props.onMouseLeave}
-        className={cn(
-          'rounded-md bg-background border-2 flex h-[44px]',
-          {
-            selected: selected,
-            'rounded-b-none': expanded,
-            'bg-yellow-200/70 dark:bg-yellow-800/40': isHovered || isFocused,
-          },
-          props.className,
-        )}
-      >
-        <div
-          className={cn('flex w-6 border rounded-l', {
-            'skill-white': isWhiteSkill(skillContext.rarity),
-            'skill-gold': isGoldSkill(skillContext.rarity),
-            'skill-unique': isUniqueSkill(skillContext.rarity),
-            'skill-pink': isEvolutionSkill(skillContext.rarity),
-          })}
-        ></div>
+        className={cn('flex w-6 border rounded-l', {
+          'skill-white': isWhiteSkill(skillContext.rarity),
+          'skill-gold': isGoldSkill(skillContext.rarity),
+          'skill-unique': isUniqueSkill(skillContext.rarity),
+          'skill-pink': isEvolutionSkill(skillContext.rarity),
+        })}
+      ></div>
 
-        <div className="flex flex-1 items-center gap-2 p-2">
-          <Activity mode={skillContext.iconId ? 'visible' : 'hidden'}>
-            <SkillIcon iconId={skillContext.iconId} />
-          </Activity>
+      <div className="flex flex-1 items-center gap-2 p-2">
+        <Activity mode={skillContext.iconId ? 'visible' : 'hidden'}>
+          <SkillIcon iconId={skillContext.iconId} />
+        </Activity>
 
-          <span className={cn('text-sm text-foreground')}>
-            {i18n.t(`skillnames.${skillContext.id}`)}
-          </span>
-        </div>
-
-        {dismissable && (
-          <Button
-            variant="ghost"
-            size="icon"
-            type="button"
-            data-event="remove-skill"
-            data-skillid={skillId}
-            className="h-full"
-          >
-            <X className="w-4 h-4" />
-          </Button>
-        )}
+        <span className={cn('text-sm text-foreground')}>
+          {i18n.t(`skillnames.${skillContext.id}`)}
+        </span>
       </div>
 
-      <Activity mode={expanded ? 'visible' : 'hidden'}>
-        <ExpandedSkillDetails
-          id={skillId}
-          skillData={skill}
-          dismissable={dismissable}
-          distanceFactor={distanceFactor}
-          forcedPosition={forcedPosition}
-          onPositionChange={onPositionChange}
+      <Popover>
+        <PopoverTrigger
+          render={
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-full shrink-0 text-muted-foreground"
+              title="Show skill details"
+            >
+              <CircleHelp className="h-4 w-4" />
+            </Button>
+          }
         />
-      </Activity>
+        <PopoverContent align="start" side="right" className="w-[420px] p-0">
+          <ExpandedSkillDetails
+            id={skillId}
+            skill={skill}
+            dismissable={dismissable}
+            distanceFactor={distanceFactor}
+          />
+        </PopoverContent>
+      </Popover>
+
+      {dismissable && (
+        <Button
+          variant="ghost"
+          size="icon"
+          type="button"
+          data-event="remove-skill"
+          data-skillid={skillId}
+          className="h-full"
+        >
+          <X className="w-4 h-4" />
+        </Button>
+      )}
     </div>
   );
 });

@@ -7,13 +7,19 @@
 import path from 'node:path';
 import { Command } from 'commander';
 import { closeDatabase, openDatabase, queryAll } from './lib/database';
-import { readJsonFileIfExists, resolveMasterDbPath, sortByNumericKey, writeJsonFile } from './lib/shared';
+import {
+  readJsonFileIfExists,
+  resolveMasterDbPath,
+  sortByNumericKey,
+  writeJsonFile,
+} from './lib/shared';
 import type { SkillEntry } from '@/modules/data/skill-types';
 import type { ISkillTarget } from '@/lib/sunday-tools/skills/definitions';
 
 interface SkillRow {
   id: number;
   rarity: number;
+  precondition_1: string;
   condition_1: string;
   float_ability_time_1: number;
   ability_type_1_1: number;
@@ -25,6 +31,7 @@ interface SkillRow {
   ability_type_1_3: number;
   float_ability_value_1_3: number;
   target_type_1_3: number;
+  precondition_2: string;
   condition_2: string;
   float_ability_time_2: number;
   ability_type_2_1: number;
@@ -121,10 +128,7 @@ function patchModifier(id: number, value: number): number {
   return value;
 }
 
-function buildEffects(
-  row: SkillRow,
-  prefix: '1' | '2',
-): Array<SkillEffect> {
+function buildEffects(row: SkillRow, prefix: '1' | '2'): Array<SkillEffect> {
   const effects: Array<SkillEffect> = [];
 
   if (prefix === '1') {
@@ -179,7 +183,7 @@ function buildEffects(
 function buildAlternatives(row: SkillRow): Array<SkillAlternative> {
   const alternatives: Array<SkillAlternative> = [
     {
-      precondition: '',
+      precondition: row.precondition_1 === '0' ? '' : row.precondition_1,
       condition: row.condition_1,
       baseDuration: row.float_ability_time_1,
       effects: buildEffects(row, '1'),
@@ -188,7 +192,7 @@ function buildAlternatives(row: SkillRow): Array<SkillAlternative> {
 
   if (row.condition_2 && row.condition_2 !== '' && row.condition_2 !== '0') {
     alternatives.push({
-      precondition: '',
+      precondition: row.precondition_2 === '0' ? '' : row.precondition_2,
       condition: row.condition_2,
       baseDuration: row.float_ability_time_2,
       effects: buildEffects(row, '2'),
@@ -215,11 +219,13 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
     const rows = queryAll<SkillRow>(
       db,
       `SELECT s.id, s.rarity,
+              s.precondition_1,
               s.condition_1,
               s.float_ability_time_1,
               s.ability_type_1_1, s.float_ability_value_1_1, s.target_type_1_1,
               s.ability_type_1_2, s.float_ability_value_1_2, s.target_type_1_2,
               s.ability_type_1_3, s.float_ability_value_1_3, s.target_type_1_3,
+              s.precondition_2,
               s.condition_2,
               s.float_ability_time_2,
               s.ability_type_2_1, s.float_ability_value_2_1, s.target_type_2_1,

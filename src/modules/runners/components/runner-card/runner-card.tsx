@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 
-import { ArrowLeftRight, Copy, PlusIcon, TrashIcon, Upload } from 'lucide-react';
+import { CopyPlus, PlusIcon, TrashIcon, Upload } from 'lucide-react';
 import { StatsTable } from './stats-table';
 import { AptitudesTable } from './aptitudes-table';
 import { runawaySkillId } from './types';
@@ -21,7 +21,6 @@ import { UmaSelector } from '@/modules/runners/components/runner-selector';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/useBreakpoint';
 import { openSkillPicker, updateCurrentSkills } from '@/modules/skills/store';
-import './styles.css';
 
 type RunnerCardProps = {
   value: RunnerState;
@@ -39,7 +38,7 @@ type RunnerCardProps = {
 };
 
 export const RunnerCard = (props: RunnerCardProps) => {
-  const { value: state, onChange, onReset, onCopy, onSwap, hideSkillButton = false } = props;
+  const { value: state, onChange, onReset, onCopy, hideSkillButton = false } = props;
 
   const isMobile = useIsMobile();
 
@@ -109,38 +108,6 @@ export const RunnerCard = (props: RunnerCardProps) => {
 
     onChange({ ...state, outfitId: outfitId, skills: newSkills });
   }
-
-  const handlePositionChange = (skillId: string, value: string | undefined) => {
-    const numValue = value ? parseFloat(value) : undefined;
-
-    console.log('numValue', numValue);
-
-    if (numValue === undefined || isNaN(numValue)) {
-      // Clear the forced position
-      const newForcedMap = new Map(Object.entries(state.forcedSkillPositions));
-      newForcedMap.delete(skillId);
-
-      onChange({
-        ...state,
-        forcedSkillPositions: Object.fromEntries(newForcedMap),
-      });
-
-      console.log('newForcedMap', newForcedMap);
-
-      return;
-    }
-
-    // Set the forced position
-    const newForcedSkillPositions = {
-      ...state.forcedSkillPositions,
-      [skillId]: numValue,
-    };
-
-    onChange({
-      ...state,
-      forcedSkillPositions: newForcedSkillPositions,
-    });
-  };
 
   const handleUpdateStat = (prop: StatsKey) => (value: number) => {
     onChange({ ...state, [prop]: value });
@@ -216,15 +183,8 @@ export const RunnerCard = (props: RunnerCardProps) => {
 
           {props.runnerId !== 'pacer' && (
             <Button onClick={onCopy} size="sm" variant="outline" title="Copy to other runner">
-              <Copy className="w-4 h-4" />
-              <span className="hidden md:inline!">Copy</span>
-            </Button>
-          )}
-
-          {props.runnerId !== 'pacer' && (
-            <Button onClick={onSwap} size="sm" variant="outline" title="Swap runners">
-              <ArrowLeftRight className="w-4 h-4" />
-              <span className="hidden md:inline!">Swap</span>
+              <CopyPlus className="w-4 h-4" />
+              <span className="hidden md:inline!">Duplicate</span>
             </Button>
           )}
 
@@ -276,8 +236,6 @@ export const RunnerCard = (props: RunnerCardProps) => {
               dismissable={id !== umaUniqueSkillId}
               withDetails
               distanceFactor={props.courseDistance}
-              forcedPosition={state.forcedSkillPositions[id]}
-              onPositionChange={(value) => handlePositionChange(id, value)}
             />
           );
         })}

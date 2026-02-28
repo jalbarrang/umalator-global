@@ -119,9 +119,14 @@ function distanceType(distance: number): number {
 async function extractCourseData(options: ExtractCourseDataOptions = { replaceMode: false }) {
   console.log('📖 Extracting course data...\n');
 
-  const { replaceMode, dbPath: cliDbPath, courseEventParamsPath: cliCourseEventParamsPath } = options;
+  const {
+    replaceMode,
+    dbPath: cliDbPath,
+    courseEventParamsPath: cliCourseEventParamsPath,
+  } = options;
   const dbPath = await resolveMasterDbPath(cliDbPath);
-  const courseEventParamsPath = cliCourseEventParamsPath || path.join(process.cwd(), 'courseeventparams');
+  const courseEventParamsPath =
+    cliCourseEventParamsPath || path.join(process.cwd(), 'courseeventparams');
 
   console.log(
     `Mode: ${replaceMode ? '⚠️  Full Replacement' : '✓ Merge (preserves future content)'}`,

@@ -1,6 +1,11 @@
 import { useCallback, useMemo, useState } from 'react';
 import { PlayIcon, RotateCcwIcon, XIcon } from 'lucide-react';
-import { setBudget, setHasFastLearner, setSeed, useSkillPlannerStore } from '../skill-planner.store';
+import {
+  setBudget,
+  setHasFastLearner,
+  setSeed,
+  useSkillPlannerStore,
+} from '../skill-planner.store';
 import { useSkillPlannerOptimizer } from '../hooks/useSkillPlannerOptimizer';
 import { parseSeed } from '@/utils/crypto';
 import { Label } from '@/components/ui/label';
@@ -102,7 +107,12 @@ export function CostModifiersPanel(props: CostModifiersPanelProps) {
 
       <div className="flex gap-2 flex-1 items-center">
         {!isOptimizing && (
-          <Button onClick={handleOptimizeClick} size="lg" disabled={!canOptimize} className="flex-1">
+          <Button
+            onClick={handleOptimizeClick}
+            size="lg"
+            disabled={!canOptimize}
+            className="flex-1"
+          >
             <PlayIcon className="w-4 h-4 mr-2" />
             Optimize
           </Button>
@@ -120,7 +130,10 @@ export function CostModifiersPanel(props: CostModifiersPanelProps) {
       <Separator className="md:hidden" />
 
       <div className="flex items-center gap-2">
-        <Label htmlFor="planner-seed-input" className="text-sm text-muted-foreground whitespace-nowrap">
+        <Label
+          htmlFor="planner-seed-input"
+          className="text-sm text-muted-foreground whitespace-nowrap"
+        >
           Seed:
         </Label>
         <Input

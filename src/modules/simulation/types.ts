@@ -58,7 +58,6 @@ export interface SimulationOptions {
   allowSectionModifierUma2: boolean;
   skillCheckChanceUma1: boolean;
   skillCheckChanceUma2: boolean;
-
 }
 
 export type RunComparisonParams = {

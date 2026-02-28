@@ -1,40 +1,65 @@
-import { BookmarkIcon, SlidersHorizontalIcon, UsersIcon } from 'lucide-react';
-import { useMemo } from 'react';
+import { BookmarkIcon, CrosshairIcon, SlidersHorizontalIcon, UsersIcon } from 'lucide-react';
+import { useEffect, useMemo } from 'react';
+import { useLocation } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { RunnersPanel } from '@/modules/runners/components/runners-panel';
 import { AdvancedSettingsPanel } from '@/components/advanced-settings-panel';
 import { PresetsPanel } from '@/components/presets-panel';
+import { ForcedPositionsPanel } from '@/modules/simulation/components/ForcedPositionsPanel';
 import { setLeftSidebar, useLeftSidebar } from '@/store/ui.store';
-
-const panels = [
-  {
-    id: 'runners',
-    label: 'Runners',
-    icon: UsersIcon,
-    content: <RunnersPanel />,
-  },
-  {
-    id: 'presets',
-    label: 'Presets',
-    icon: BookmarkIcon,
-    content: <PresetsPanel />,
-  },
-  {
-    id: 'advanced-settings',
-    label: 'Advanced Settings',
-    icon: SlidersHorizontalIcon,
-    content: <AdvancedSettingsPanel />,
-  },
-];
 
 export const LeftSidebar = () => {
   const { activePanel, hidden } = useLeftSidebar();
+  const location = useLocation();
+
+  const isCompareRunnersView = location.pathname === '/';
+
+  const panels = useMemo(() => {
+    const basePanels = [
+      {
+        id: 'runners',
+        label: 'Runners',
+        icon: UsersIcon,
+        content: <RunnersPanel />,
+      },
+      {
+        id: 'presets',
+        label: 'Presets',
+        icon: BookmarkIcon,
+        content: <PresetsPanel />,
+      },
+      {
+        id: 'advanced-settings',
+        label: 'Advanced Settings',
+        icon: SlidersHorizontalIcon,
+        content: <AdvancedSettingsPanel />,
+      },
+    ];
+
+    if (isCompareRunnersView) {
+      basePanels.push({
+        id: 'forced-positions',
+        label: 'Forced Positions',
+        icon: CrosshairIcon,
+        content: <ForcedPositionsPanel />,
+      });
+    }
+
+    return basePanels;
+  }, [isCompareRunnersView]);
+
+  useEffect(() => {
+    const panelIsValid = panels.some((panel) => panel.id === activePanel);
+    if (!panelIsValid) {
+      setLeftSidebar({ activePanel: 'runners' });
+    }
+  }, [activePanel, panels]);
 
   const activePanelContent = useMemo(() => {
     return panels.find((panel) => panel.id === activePanel)?.content;
-  }, [activePanel]);
+  }, [activePanel, panels]);
 
   return (
     <div className="flex">
