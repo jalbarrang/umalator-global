@@ -1,9 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
-const navigateToSkillPlanner = async (page: Page) => {
+const navigateToHome = async (page: Page) => {
   await page.goto('/');
-  await page.getByRole('tab', { name: 'Skill Planner' }).click();
-  await expect(page).toHaveURL(/#\/skill-planner/);
   await expect(page.getByRole('button', { name: 'Save', exact: true })).toBeVisible({
     timeout: 10_000,
   });
@@ -22,7 +20,7 @@ const openSaveModal = async (page: Page) => {
 test.describe('Save Preset Modal', () => {
   test.describe('without a preset selected', () => {
     test('shows no tabs and defaults to create-new flow', async ({ page }) => {
-      await navigateToSkillPlanner(page);
+      await navigateToHome(page);
       await openSaveModal(page);
 
       await expect(page.getByRole('heading', { name: 'Save Race Preset' })).toBeVisible();
@@ -39,7 +37,7 @@ test.describe('Save Preset Modal', () => {
     });
 
     test('saves a new preset', async ({ page }) => {
-      await navigateToSkillPlanner(page);
+      await navigateToHome(page);
       await openSaveModal(page);
 
       await page.getByLabel('Preset Name *').fill('My Test Preset');
@@ -52,7 +50,7 @@ test.describe('Save Preset Modal', () => {
     });
 
     test('shows validation error when name is empty', async ({ page }) => {
-      await navigateToSkillPlanner(page);
+      await navigateToHome(page);
       await openSaveModal(page);
 
       await page.getByRole('button', { name: 'Save Preset' }).click();
@@ -65,7 +63,7 @@ test.describe('Save Preset Modal', () => {
     test('shows Edit and Create New tabs, defaults to Edit with readonly name', async ({
       page,
     }) => {
-      await navigateToSkillPlanner(page);
+      await navigateToHome(page);
       await selectPreset(page, 'Aquarius Cup');
       await openSaveModal(page);
 
@@ -85,7 +83,7 @@ test.describe('Save Preset Modal', () => {
     test('switching to Create New tab shows editable empty name and Save Preset button', async ({
       page,
     }) => {
-      await navigateToSkillPlanner(page);
+      await navigateToHome(page);
       await selectPreset(page, 'Aquarius Cup');
       await openSaveModal(page);
 
@@ -102,7 +100,7 @@ test.describe('Save Preset Modal', () => {
     });
 
     test('switching back to Edit tab restores readonly name', async ({ page }) => {
-      await navigateToSkillPlanner(page);
+      await navigateToHome(page);
       await selectPreset(page, 'Aquarius Cup');
       await openSaveModal(page);
 
@@ -117,7 +115,7 @@ test.describe('Save Preset Modal', () => {
     });
 
     test('updates an existing preset', async ({ page }) => {
-      await navigateToSkillPlanner(page);
+      await navigateToHome(page);
       await selectPreset(page, 'Aquarius Cup');
       await openSaveModal(page);
 
@@ -127,7 +125,7 @@ test.describe('Save Preset Modal', () => {
     });
 
     test('creates a new preset from the Create New tab', async ({ page }) => {
-      await navigateToSkillPlanner(page);
+      await navigateToHome(page);
       await selectPreset(page, 'Aquarius Cup');
       await openSaveModal(page);
 
@@ -143,7 +141,7 @@ test.describe('Save Preset Modal', () => {
   });
 
   test('cancel closes the dialog without saving', async ({ page }) => {
-    await navigateToSkillPlanner(page);
+    await navigateToHome(page);
     await openSaveModal(page);
 
     await page.getByLabel('Preset Name *').fill('Should Not Save');

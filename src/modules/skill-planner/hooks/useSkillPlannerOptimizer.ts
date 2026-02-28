@@ -46,7 +46,8 @@ type WorkerMessage =
     };
 
 export function useSkillPlannerOptimizer() {
-  const { runner, candidates, budget, obtainedSkills, seed } = useSkillPlannerStore();
+  const { runner, candidates, budget, obtainedSkills, hasFastLearner, seed } =
+    useSkillPlannerStore();
   const { courseId, racedef } = useSettingsStore();
 
   const webWorkerRef = useRef<Worker | null>(null);
@@ -115,6 +116,7 @@ export function useSkillPlannerOptimizer() {
         candidates,
         obtainedSkills,
         budget,
+        hasFastLearner,
         runner,
         course,
         racedef: raceParams,

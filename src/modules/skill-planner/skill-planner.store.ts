@@ -131,6 +131,7 @@ export const createCandidate = (params: CreateCandidateParams): CandidateSkill =
   return {
     skillId,
     cost: skill.baseCost,
+    netCost: skill.baseCost,
     hintLevel: hintLevel as CandidateSkill['hintLevel'],
 
     // Stackable support
