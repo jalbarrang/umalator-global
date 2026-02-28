@@ -15,6 +15,7 @@ import {
 } from '../shared/definitions';
 import { CourseHelpers } from '../course/CourseData';
 import { buildSkillData } from '../runner/runner.utils';
+import { createFixedPositionPolicy } from '../skills/policies/ActivationSamplePolicy';
 import { StrategyHelpers } from '../runner/runner.types';
 import {
   createBlockedSideCondition,
@@ -58,6 +59,7 @@ export type CreateRunner = {
   aptitudes: RunnerAptitudes;
   stats: StatLine;
   skills: Array<string>;
+  forcedPositions?: Record<string, number>;
 };
 
 export type SpeedModifiers = {
@@ -85,6 +87,7 @@ export type RunnerProps = {
   aptitudes: RunnerAptitudes;
   stats: StatLine;
   skillIds: Array<string>;
+  forcedPositions?: Record<string, number>;
 };
 
 export class Runner {
@@ -106,6 +109,7 @@ export class Runner {
   public readonly _baseStats: Readonly<StatLine>;
 
   public readonly skillIds: ReadonlyArray<string>;
+  public readonly forcedPositions: Readonly<Record<string, number>>;
 
   // ===================
   // Resetable Values
@@ -273,6 +277,7 @@ export class Runner {
       props.aptitudes.strategy,
     );
     this.skillIds = props.skillIds;
+    this.forcedPositions = props.forcedPositions ?? {};
   }
 
   /**
@@ -1046,6 +1051,7 @@ export class Runner {
       aptitudes: props.aptitudes,
       stats: props.stats,
       skillIds: props.skills,
+      forcedPositions: props.forcedPositions,
     });
 
     return runner;
@@ -1336,7 +1342,14 @@ export class Runner {
     );
 
     const triggers = skillTrigers.map((skillTrigger) => {
-      // As I've that the override is not being used in other compare files, i'll just use the one that comes with the trigger.
+      const baseSkillId = skillTrigger.skillId.split('-')[0] ?? skillTrigger.skillId;
+      const forcedPosition = this.forcedPositions[baseSkillId];
+
+      if (forcedPosition !== undefined) {
+        const fixedPolicy = createFixedPositionPolicy(forcedPosition);
+        return fixedPolicy.sample(skillTrigger.regions, this.race.skillSamples, this.skillRng);
+      }
+
       const samplePolicy = skillTrigger.samplePolicy;
       return samplePolicy.sample(skillTrigger.regions, this.race.skillSamples, this.skillRng);
     });

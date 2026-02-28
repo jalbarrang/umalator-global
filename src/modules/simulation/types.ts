@@ -69,6 +69,11 @@ export type RunComparisonParams = {
   options: SimulationOptions;
 };
 
+export type ForcedPositionsMap = {
+  uma1: Record<string, number>;
+  uma2: Record<string, number>;
+};
+
 export type CompareParams = {
   nsamples: number;
   course: CourseData;
@@ -76,6 +81,7 @@ export type CompareParams = {
   uma1: RunnerState;
   uma2: RunnerState;
   options: SimulationOptions;
+  forcedPositions?: ForcedPositionsMap;
 };
 
 export type Run1RoundParams = {

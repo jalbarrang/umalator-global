@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.3.0 - 2026-02-28
+
+- Added Diamond indicators for Recovery Skills and Debuffs they are also movable and can be used to force skill positions.
+- Added new Panel: "Force Skill Positions" that unifies the way to edit and clear skill positions for both runners.
+- New page: "Skill Planner" that let's you optimize skill combinations for a given runner and budget.
+- Refactor SkillItem component to remove the old input field and added a "Help" button that shows the skill details in a popover.
+- Each Skill Popover now shows a translated version of the skill conditions and effects.
+- Fixed an issue that compare run didn't use the forced skill positions.
+
 ## 0.2.3 - 2026-02-27
 
 - Work in progress on refactoring the simulation library with a focus on separating the Race and Runner logic

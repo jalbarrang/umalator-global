@@ -10,6 +10,7 @@ import {
 import { racedefToParams } from '@/utils/races';
 import { useSettingsStore, useWitVariance } from '@/store/settings.store';
 import { useRunnersStore } from '@/store/runners.store';
+import { useForcedPositions } from '@/modules/simulation/stores/forced-positions.store';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 
 const createCompareWorker = () => new CompareWorker();
@@ -44,6 +45,8 @@ export function useSimulationRunner() {
     allowSkillCheckChanceUma1,
     allowSkillCheckChanceUma2,
   } = useWitVariance();
+
+  const { uma1: forcedUma1, uma2: forcedUma2 } = useForcedPositions();
 
   const webWorkerRef = useRef<Worker | null>(null);
 
@@ -94,6 +97,9 @@ export function useSimulationRunner() {
     // Generate random seed if not provided
     const simulationSeed = seed ?? Math.floor(Math.random() * 1000000);
 
+    const hasForcedPositions =
+      Object.keys(forcedUma1).length > 0 || Object.keys(forcedUma2).length > 0;
+
     const params: CompareParams = {
       nsamples,
       course,
@@ -113,6 +119,9 @@ export function useSimulationRunner() {
         skillCheckChanceUma1: simWitVariance ? allowSkillCheckChanceUma1 : false,
         skillCheckChanceUma2: simWitVariance ? allowSkillCheckChanceUma2 : false,
       },
+      forcedPositions: hasForcedPositions
+        ? { uma1: forcedUma1, uma2: forcedUma2 }
+        : undefined,
     };
 
     webWorkerRef.current?.postMessage({
@@ -127,6 +136,9 @@ export function useSimulationRunner() {
 
     // Generate random seed if not provided
     const simulationSeed = seed ?? Math.floor(Math.random() * 1000000);
+
+    const hasForcedPositions =
+      Object.keys(forcedUma1).length > 0 || Object.keys(forcedUma2).length > 0;
 
     const params: CompareParams = {
       nsamples: 1,
@@ -147,6 +159,9 @@ export function useSimulationRunner() {
         skillCheckChanceUma1: simWitVariance ? allowSkillCheckChanceUma1 : false,
         skillCheckChanceUma2: simWitVariance ? allowSkillCheckChanceUma2 : false,
       },
+      forcedPositions: hasForcedPositions
+        ? { uma1: forcedUma1, uma2: forcedUma2 }
+        : undefined,
     };
 
     webWorkerRef.current?.postMessage({
