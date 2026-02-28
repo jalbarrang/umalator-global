@@ -28,11 +28,13 @@ import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import type { RaceParameters } from '@/lib/sunday-tools/common/race';
 import type { SimulationOptions } from '@/modules/simulation/types';
 import { runAdaptiveOptimization } from '@/modules/skill-planner/optimization-engine';
+import { getNetCost } from '@/modules/skill-planner/cost-calculator';
 
 interface OptimizeParams {
   candidates: Record<string, CandidateSkill>;
   obtainedSkills: Array<string>; // Skills already owned (cost=0, always in baseline)
   budget: number;
+  hasFastLearner: boolean;
   runner: RunnerState;
   course: CourseData;
   racedef: RaceParameters;
@@ -43,12 +45,16 @@ interface OptimizeParams {
  * Main optimization logic - delegates to optimization engine
  */
 function runOptimization(params: OptimizeParams) {
-  const { candidates, obtainedSkills, budget, runner, course, racedef, options } = params;
+  const { candidates, obtainedSkills, budget, hasFastLearner, runner, course, racedef, options } =
+    params;
 
   // Convert candidates Record to Array, excluding obtained skills
-  const candidateArray = Object.values(candidates).filter(
-    (c) => !obtainedSkills.includes(c.skillId),
-  );
+  const candidateArray = Object.values(candidates)
+    .filter((c) => !obtainedSkills.includes(c.skillId))
+    .map((candidate) => ({
+      ...candidate,
+      netCost: getNetCost(candidate, hasFastLearner),
+    }));
 
   // Run optimization with progress callbacks
   const result = runAdaptiveOptimization({

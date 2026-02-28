@@ -32,6 +32,13 @@ export function calculateSkillCost(
 }
 
 /**
+ * Compute discounted net cost for a candidate.
+ */
+export function getNetCost(candidate: CandidateSkill, hasFastLearner: boolean): number {
+  return calculateSkillCost(candidate.skillId, candidate.hintLevel, hasFastLearner);
+}
+
+/**
  * Get the base cost of a skill without any discounts
  */
 export function getBaseCost(skillId: string): number {
@@ -69,7 +76,7 @@ export function calculateDisplayCost(
 
   // If candidate is not a gold skill, return effective cost
   if (!candidate.isGold) {
-    return candidate.cost;
+    return getNetCost(candidate, hasFastLearner);
   }
 
   // For gold skills, check if white skill is already obtained
@@ -81,10 +88,8 @@ export function calculateDisplayCost(
 
   // If white skill is in obtainedSkills, return only gold cost
   if (obtainedSkills.includes(whiteSkillId)) {
-    return candidate.cost;
+    return getNetCost(candidate, hasFastLearner);
   }
-
-  const whiteCandidate = candidates[whiteSkillId];
 
   // White skill not obtained - calculate bundled cost (includes ALL white tiers)
   const goldBaseCost = getBaseCost(skillId);

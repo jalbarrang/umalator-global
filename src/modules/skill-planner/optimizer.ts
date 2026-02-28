@@ -97,11 +97,11 @@ export function generateCombinations(
   combinations.push([]);
 
   // Sort candidates by display cost (cheapest first for better coverage)
-  const sortedCandidates = candidates.toSorted((a, b) => a.cost - b.cost);
+  const sortedCandidates = candidates.toSorted((a, b) => a.netCost - b.netCost);
 
   // Test individual skills
   for (const candidate of sortedCandidates) {
-    const cost = candidate.cost;
+    const cost = candidate.netCost;
     if (cost <= budget) {
       combinations.push([candidate.skillId]);
     }
@@ -110,8 +110,8 @@ export function generateCombinations(
   // Test pairs (limited to avoid combinatorial explosion)
   for (let i = 0; i < Math.min(sortedCandidates.length, 10); i++) {
     for (let j = i + 1; j < Math.min(sortedCandidates.length, 10); j++) {
-      const costI = sortedCandidates[i].cost;
-      const costJ = sortedCandidates[j].cost;
+      const costI = sortedCandidates[i].netCost;
+      const costJ = sortedCandidates[j].netCost;
       const cost = costI + costJ;
 
       if (cost <= budget) {
@@ -124,9 +124,9 @@ export function generateCombinations(
   for (let i = 0; i < Math.min(sortedCandidates.length, 5); i++) {
     for (let j = i + 1; j < Math.min(sortedCandidates.length, 5); j++) {
       for (let k = j + 1; k < Math.min(sortedCandidates.length, 5); k++) {
-        const costI = sortedCandidates[i].cost;
-        const costJ = sortedCandidates[j].cost;
-        const costK = sortedCandidates[k].cost;
+        const costI = sortedCandidates[i].netCost;
+        const costJ = sortedCandidates[j].netCost;
+        const costK = sortedCandidates[k].netCost;
         const cost = costI + costJ + costK;
 
         if (cost <= budget) {
@@ -218,7 +218,7 @@ export function calculateCombinationCost(
     const candidate = candidateMap.get(skillId);
 
     if (candidate) {
-      total += candidate.cost;
+      total += candidate.netCost;
     }
   }
 

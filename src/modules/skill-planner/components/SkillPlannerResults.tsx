@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { getCandidate, useSkillPlannerStore } from '../skill-planner.store';
+import { useSkillPlannerStore } from '../skill-planner.store';
 import { Progress } from '@/components/ui/progress';
 import { getSkillById, getSkillNameById } from '@/modules/skills/utils';
 import { cn } from '@/lib/utils';
@@ -100,7 +100,7 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
                             const skillName = getSkillNameById(skillId);
                             const skill = getSkillById(skillId);
                             const skillIconPath = skill.iconId ? `/icons/${skill.iconId}.png` : '';
-                            const candidate = getCandidate(skillId);
+                            const skillCost = combination.skillCosts[skillId] ?? 0;
 
                             return (
                               <div
@@ -117,12 +117,9 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
                                   )}
                                   <span>{skillName}</span>
                                 </div>
-
-                                {candidate && (
-                                  <span className="text-xs text-muted-foreground">
-                                    {`${candidate.cost} pts`}
-                                  </span>
-                                )}
+                                <span className="text-xs text-muted-foreground">
+                                  {`${skillCost} pts`}
+                                </span>
                               </div>
                             );
                           })}

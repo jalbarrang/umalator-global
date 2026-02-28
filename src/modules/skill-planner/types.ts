@@ -11,6 +11,11 @@ export interface CandidateSkill {
    */
   cost: number;
   /**
+   * Effective net cost after discounts (hint + Fast Learner)
+   * Computed at optimization boundary.
+   */
+  netCost: number;
+  /**
    * Hint level of the skill
    */
   hintLevel: HintLevel;
@@ -49,6 +54,7 @@ export type OptimizationResult = {
 export interface CombinationResult {
   skills: Array<string>;
   cost: number;
+  skillCosts: Record<string, number>;
   bashin: number;
 }
 

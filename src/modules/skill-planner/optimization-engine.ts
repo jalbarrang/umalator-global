@@ -235,6 +235,7 @@ interface EvaluateCombinationParams {
 interface EvaluationResult {
   skills: Array<string>;
   cost: number;
+  skillCosts: Record<string, number>;
   bashin: number;
   min: number;
   max: number;
@@ -254,6 +255,12 @@ interface EvaluationResult {
 function evaluateCombination(params: EvaluateCombinationParams): EvaluationResult {
   const { combination, candidates, obtainedSkills, runner, course, racedef, options, samples } =
     params;
+  const candidateMap = new Map(candidates.map((candidate) => [candidate.skillId, candidate]));
+  const skillCosts: Record<string, number> = {};
+
+  for (const skillId of combination) {
+    skillCosts[skillId] = candidateMap.get(skillId)?.netCost ?? 0;
+  }
 
   // Create base runner with ONLY obtained skills
   // The simulator will create the test runner by adding candidateSkills
@@ -274,6 +281,7 @@ function evaluateCombination(params: EvaluateCombinationParams): EvaluationResul
   return {
     skills: combination,
     cost: calculateCombinationCost(combination, candidates),
+    skillCosts,
     bashin: result.mean,
     min: result.min,
     max: result.max,

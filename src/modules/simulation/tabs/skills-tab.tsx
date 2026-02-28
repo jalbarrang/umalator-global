@@ -228,7 +228,7 @@ const RunnerSkillsTable = (props: RunnerSkillsTableProps) => {
                 className="grid grid-cols-1 border-b last:border-b-0 p-2"
               >
                 <Collapsible>
-                  <CollapsibleTrigger>
+                  <CollapsibleTrigger className="w-full">
                     <div className="grid grid-cols-2">
                       <div className="flex items-center gap-2 cursor-pointer">
                         <ChevronsUpDown className="size-4" />

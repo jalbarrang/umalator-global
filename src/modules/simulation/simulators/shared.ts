@@ -183,5 +183,5 @@ export function computePositionDiff(positionA: Array<number>, positionB: Array<n
   }
 
   const aFrames = positionA.length;
-  return positionA[aFrames - 1] - positionB[aFrames - 1];
+  return positionB[aFrames - 1] - positionA[aFrames - 1];
 }
