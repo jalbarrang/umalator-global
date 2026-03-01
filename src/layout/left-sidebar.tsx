@@ -1,4 +1,4 @@
-import { BookmarkIcon, CrosshairIcon, SlidersHorizontalIcon, UsersIcon } from 'lucide-react';
+import { BookmarkIcon, CrosshairIcon, ShieldAlertIcon, SlidersHorizontalIcon, UsersIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router';
 import { Button } from '@/components/ui/button';
@@ -7,15 +7,19 @@ import { cn } from '@/lib/utils';
 import { RunnersPanel } from '@/modules/runners/components/runners-panel';
 import { AdvancedSettingsPanel } from '@/components/advanced-settings-panel';
 import { PresetsPanel } from '@/components/presets-panel';
+import { DebuffsPanel } from '@/modules/simulation/components/DebuffsPanel';
 import { ForcedPositionsPanel } from '@/modules/simulation/components/ForcedPositionsPanel';
+import { useDebuffs } from '@/modules/simulation/stores/compare.store';
 import { useForcedPositions } from '@/modules/simulation/stores/forced-positions.store';
 import { setLeftSidebar, useLeftSidebar } from '@/store/ui.store';
 
 export const LeftSidebar = () => {
   const { activePanel, hidden } = useLeftSidebar();
   const { uma1, uma2 } = useForcedPositions();
+  const { uma1: uma1Debuffs, uma2: uma2Debuffs } = useDebuffs();
   const location = useLocation();
   const hasForcedPositions = Object.keys(uma1).length > 0 || Object.keys(uma2).length > 0;
+  const hasDebuffs = uma1Debuffs.length > 0 || uma2Debuffs.length > 0;
 
   const isCompareRunnersView = location.pathname === '/';
 
@@ -52,10 +56,17 @@ export const LeftSidebar = () => {
         content: <ForcedPositionsPanel />,
         hasBadge: hasForcedPositions,
       });
+      basePanels.push({
+        id: 'debuffs',
+        label: 'Debuffs',
+        icon: ShieldAlertIcon,
+        content: <DebuffsPanel />,
+        hasBadge: hasDebuffs,
+      });
     }
 
     return basePanels;
-  }, [hasForcedPositions, isCompareRunnersView]);
+  }, [hasDebuffs, hasForcedPositions, isCompareRunnersView]);
 
   useEffect(() => {
     const panelIsValid = panels.some((panel) => panel.id === activePanel);

@@ -91,12 +91,49 @@
   }
 }
 
+.debuff-marker {
+  pointer-events: auto;
+  cursor: grab;
+}
+
+.debuff-marker:active {
+  cursor: grabbing;
+}
+
+.debuff-marker polygon {
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.35));
+  animation: debuff-pulse 2s ease-in-out infinite;
+}
+
+@keyframes debuff-pulse {
+  0%,
+  100% {
+    opacity: 0.76;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
 .recovery-tooltip rect {
   fill: color-mix(in srgb, var(--background) 85%, black);
   stroke: color-mix(in srgb, var(--foreground) 45%, transparent);
 }
 
+.debuff-tooltip rect {
+  fill: color-mix(in srgb, var(--background) 85%, black);
+  stroke: color-mix(in srgb, var(--foreground) 45%, transparent);
+}
+
 .recovery-tooltip text {
+  fill: var(--foreground);
+  paint-order: stroke;
+  stroke: var(--background);
+  stroke-width: 1px;
+  font-weight: 600;
+}
+
+.debuff-tooltip text {
   fill: var(--foreground);
   paint-order: stroke;
   stroke: var(--background);

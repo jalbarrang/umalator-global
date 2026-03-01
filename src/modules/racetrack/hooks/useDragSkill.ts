@@ -22,6 +22,8 @@ export interface DraggedSkill {
   umaIndex: number;
   originalStart: number;
   originalEnd: number;
+  markerType: 'skill' | 'debuff';
+  debuffId?: string;
 }
 
 interface DragOffset {
@@ -33,7 +35,14 @@ interface UseDragSkillParams {
   xOffset: number;
   courseDistance: number;
   viewBoxWidth: number; // Add this new param
-  onSkillDrag?: (skillId: number, umaIndex: number, start: number, end: number) => void;
+  onSkillDrag?: (
+    skillId: string,
+    umaIndex: number,
+    start: number,
+    end: number,
+    markerType: 'skill' | 'debuff',
+    debuffId?: string,
+  ) => void;
 }
 
 export function useDragSkill({
@@ -46,7 +55,15 @@ export function useDragSkill({
   const [dragOffset, setDragOffset] = useState<DragOffset>({ x: 0, y: 0 });
 
   const handleDragStart = useCallback(
-    (e: React.MouseEvent, skillId: string, umaIndex: number, start: number, end: number) => {
+    (
+      e: React.MouseEvent,
+      skillId: string,
+      umaIndex: number,
+      start: number,
+      end: number,
+      markerType: 'skill' | 'debuff' = 'skill',
+      debuffId?: string,
+    ) => {
       e.preventDefault();
       e.stopPropagation();
 
@@ -66,6 +83,8 @@ export function useDragSkill({
         umaIndex,
         originalStart: start,
         originalEnd: end,
+        markerType,
+        debuffId,
       });
       setDragOffset({ x: dragX - start, y: 0 });
     },
@@ -92,7 +111,14 @@ export function useDragSkill({
       );
 
       if (onSkillDrag) {
-        onSkillDrag(parseInt(draggedSkill.skillId, 10), draggedSkill.umaIndex, newStart, newEnd);
+        onSkillDrag(
+          draggedSkill.skillId,
+          draggedSkill.umaIndex,
+          newStart,
+          newEnd,
+          draggedSkill.markerType,
+          draggedSkill.debuffId,
+        );
       }
     },
     [draggedSkill, dragOffset, xOffset, courseDistance, viewBoxWidth, onSkillDrag],

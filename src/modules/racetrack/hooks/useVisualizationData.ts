@@ -4,10 +4,9 @@ import type { SimulationRun, SkillEffectLog } from '@/modules/simulation/compare
 import type { PosKeepLabel } from '@/utils/races';
 import { RegionDisplayType } from '@/modules/racetrack/types';
 import { getSkillNameById } from '@/modules/skills/utils';
-import { useForcedPositions } from '@/modules/simulation/stores/forced-positions.store';
 import { useSettingsStore } from '@/store/settings.store';
-import { colors, posKeepColors, recoveryColors, rushedColors } from '@/utils/colors';
-import { SkillType } from '@/lib/sunday-tools/skills/definitions';
+import { colors, posKeepColors, rushedColors } from '@/utils/colors';
+import { SkillPerspective, SkillType } from '@/lib/sunday-tools/skills/definitions';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 
 export type RegionData = {
@@ -26,21 +25,8 @@ export type RegionData = {
   height?: number;
   skillId?: string;
   umaIndex?: number;
+  effectType?: number;
 };
-
-export type RecoveryMarkerData = {
-  skillId: string;
-  text: string;
-  position: number;
-  umaIndex: number;
-  rung: number;
-  color: {
-    fill: string;
-    stroke: string;
-  };
-};
-
-const RECOVERY_STACK_PROXIMITY_METERS = 55;
 
 const getSkillActivation = (
   skillId: string,
@@ -48,7 +34,9 @@ const getSkillActivation = (
   umaIndex: number,
 ) => {
   const validActivation = activations.find(
-    (activation) => activation.effectType !== SkillType.Recovery,
+    (activation) =>
+      activation.effectType !== SkillType.Recovery &&
+      activation.perspective === SkillPerspective.Self,
   );
 
   if (!validActivation) return null;
@@ -59,6 +47,7 @@ const getSkillActivation = (
     text: getSkillNameById(skillId),
     skillId: skillId,
     umaIndex: umaIndex,
+    effectType: validActivation.effectType,
     regions: [{ start: validActivation.start, end: validActivation.end }],
   };
 };
@@ -69,7 +58,6 @@ type UseVisualizationDataProps = {
 
 export const useVisualizationData = (props: UseVisualizationDataProps) => {
   const { chartData } = props;
-  const forcedPositions = useForcedPositions();
 
   const { courseId } = useSettingsStore(
     useShallow((state) => ({
@@ -118,6 +106,7 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
           type: RegionDisplayType.Textbox,
           color: rushedColors[umaIndex],
           text: 'Rushed',
+          umaIndex,
           regions: [{ start: rush[0], end: rush[1] }],
         });
       }
@@ -125,56 +114,6 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
 
     return results;
   }, [chartData]);
-
-  const recoveryMarkers: Array<RecoveryMarkerData> = useMemo(() => {
-    if (!chartData?.skillActivations) return [];
-
-    const rawMarkers: Array<Omit<RecoveryMarkerData, 'rung'>> = [];
-    const skillMaps = [chartData.skillActivations[0], chartData.skillActivations[1]] as const;
-
-    for (const [umaIndex, skillMap] of skillMaps.entries()) {
-      for (const [skillId, activations] of Object.entries(skillMap)) {
-        for (const activation of activations) {
-          if (activation.effectType !== SkillType.Recovery) continue;
-
-          const forcedPosition =
-            umaIndex === 0 ? forcedPositions.uma1[skillId] : forcedPositions.uma2[skillId];
-
-          rawMarkers.push({
-            skillId,
-            text: getSkillNameById(skillId),
-            position: forcedPosition ?? activation.start,
-            umaIndex,
-            color: recoveryColors[umaIndex],
-          });
-        }
-      }
-    }
-
-    const sortedMarkers = rawMarkers.toSorted((a, b) => a.position - b.position);
-    const stackedMarkers: Array<RecoveryMarkerData> = [];
-    const rungHighWater: Array<number> = [];
-
-    for (const marker of sortedMarkers) {
-      let rung = 0;
-
-      while (true) {
-        const lastPosition = rungHighWater[rung];
-        const hasSpacing =
-          lastPosition == null || marker.position - lastPosition >= RECOVERY_STACK_PROXIMITY_METERS;
-
-        if (hasSpacing) {
-          rungHighWater[rung] = marker.position;
-          stackedMarkers.push({ ...marker, rung });
-          break;
-        }
-
-        rung += 1;
-      }
-    }
-
-    return stackedMarkers;
-  }, [chartData, forcedPositions]);
 
   const posKeepData: Array<PosKeepLabel> = useMemo(() => {
     return [];
@@ -282,7 +221,6 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
   return {
     skillActivations,
     rushedIndicators,
-    recoveryMarkers,
     posKeepLabels,
   };
 };

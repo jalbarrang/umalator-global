@@ -31,12 +31,27 @@ export type PendingSkill = {
   extraCondition: DynamicCondition;
 };
 
+export type TargetedSkillOrigin = 'injection' | 'runner';
+
+export type PendingTargetedSkill = {
+  skillId: string;
+  origin: TargetedSkillOrigin;
+  sourceRunnerId?: number;
+  trigger: Region;
+  effects: Array<SkillEffect>;
+};
+
 export type ActiveSkill = {
   skillId: string;
   durationTimer: Timer;
   modifier: number;
   effectTarget: ISkillTarget;
   effectType: ISkillType;
+};
+
+export type ActiveTargetedSkill = ActiveSkill & {
+  origin: TargetedSkillOrigin;
+  sourceRunnerId?: number;
 };
 
 export type RawSkillEffect = {

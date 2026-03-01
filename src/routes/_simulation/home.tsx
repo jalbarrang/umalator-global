@@ -1,4 +1,4 @@
-import { Activity, useCallback, useMemo, useState } from 'react';
+import { Activity, useCallback, useState } from 'react';
 import {
   createNewSeed,
   resetResults,
@@ -7,8 +7,6 @@ import {
 } from '@/modules/simulation/stores/compare.store';
 import { Button } from '@/components/ui/button';
 import { CompareLoadingOverlay } from '@/components/compare-loading-overlay';
-import { VelocityLines } from '@/components/VelocityLines';
-import { RaceTrack } from '@/modules/racetrack/components/RaceTrack';
 import { initializeSimulationRun } from '@/modules/simulation/compare.types';
 import { useSimulationRunner } from '@/modules/simulation/hooks/compare/useSimulationRunner';
 import { SimulationResultTabs } from '@/modules/simulation/tabs/simulation-result-tabs';
@@ -21,14 +19,24 @@ import { Label } from '@/components/ui/label';
 import { parseSeed } from '@/utils/crypto';
 import { HelpButton } from '@/components/ui/help-button';
 import { umalatorSteps } from '@/modules/tutorial/steps/umalator-steps';
-import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { SectionNumbersBar } from '@/modules/racetrack/layers/section-numbers';
+import { SectionTypesBar } from '@/modules/racetrack/layers/section-bar';
+import { PhaseBar } from '@/modules/racetrack/layers/phase-bar';
+import { UmaSkillSection } from '@/modules/racetrack/skills/uma-skill-section';
+import { RaceTrackRoot } from '@/modules/racetrack/core/racetrack-root';
+import { TrackHeader } from '@/modules/racetrack/chrome/track-header';
+import { YAxis } from '@/modules/racetrack/axes/y-axis';
+import { RaceTrackRender } from '@/modules/racetrack/core/racetrack-render';
+import { TrackLegend } from '@/modules/racetrack/chrome/track-legend';
+import { TrackControls } from '@/modules/racetrack/chrome/track-controls';
+import { XAxis } from '@/modules/racetrack/axes/x-axis';
+import { SlopeLabelBar } from '@/modules/racetrack/layers/slope-label-bar';
+import { SlopeVisualization } from '@/modules/racetrack/layers/slope-visualization';
 
 export function SimulationHome() {
   const { chartData, results, isSimulationRunning, simulationProgress, seed } = useRaceStore();
   const { courseId } = useSettingsStore();
   const { handleRunCompare, handleRunOnce } = useSimulationRunner();
-
-  const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
 
   const [seedInput, setSeedInput] = useState<string>(() => {
     if (seed === null) return '';
@@ -123,21 +131,29 @@ export function SimulationHome() {
 
       <Activity mode={!isSimulationRunning ? 'visible' : 'hidden'}>
         <div data-tutorial="race-visualization">
-          <RaceTrack
-            courseid={courseId}
-            chartData={chartData ?? initializeSimulationRun()}
-            xOffset={35}
-            yOffset={35}
-            yExtra={20}
-          >
-            <VelocityLines
-              data={chartData}
-              courseDistance={course.distance}
-              xOffset={35}
-              yOffset={25}
-              horseLane={course.horseLane}
-            />
-          </RaceTrack>
+          <RaceTrackRoot courseid={courseId} chartData={chartData ?? initializeSimulationRun()}>
+            <TrackHeader />
+
+            <RaceTrackRender>
+              {/* Background */}
+              <SlopeVisualization />
+
+              {/* Bars */}
+              <SlopeLabelBar yOffset={72} />
+              <SectionTypesBar yOffset={72 + 50} />
+              <PhaseBar yOffset={72 + 50} />
+              <SectionNumbersBar yOffset={72 + 50 + 20} />
+
+              <UmaSkillSection yOffset={72 + 50 + 20 + 20} />
+
+              {/* Axes */}
+              <YAxis xOffset={20} />
+              <XAxis yOffset={240 - 20} xOffset={20} />
+            </RaceTrackRender>
+
+            <TrackLegend />
+            <TrackControls />
+          </RaceTrackRoot>
         </div>
 
         <div data-tutorial="race-settings">

@@ -165,6 +165,7 @@ export type SkillPickerContentProps = {
   className?: string;
   hideSelected?: boolean;
   isMobile?: boolean;
+  allowDuplicateSkills?: boolean;
 };
 
 export function SkillPickerContent(props: SkillPickerContentProps) {
@@ -177,6 +178,7 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
     className,
     hideSelected = false,
     isMobile = false,
+    allowDuplicateSkills = false,
   } = props;
 
   const umaUniqueSkillId = umaId ? getUniqueSkillForByUmaId(umaId) : undefined;
@@ -233,6 +235,8 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
 
   // Create a lookup map from skill ID to Skill object
   const skillsById = new Map(skills.map((skill) => [skill.id, skill]));
+  const shouldAllowDuplicateSkill = (skill: { iconId: string }) =>
+    allowDuplicateSkills || skill.iconId.startsWith('3');
 
   // Build selected map using the pre-built lookup
   const selectedMap = (() => {
@@ -244,7 +248,7 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
       if (!skill) continue;
 
       // Skip debuffs - they can be selected multiple times
-      if (skill.iconId.startsWith('3')) continue;
+      if (shouldAllowDuplicateSkill(skill)) continue;
 
       selected.push([`${skill.groupId}`, id]);
     }
@@ -275,7 +279,7 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
     const selectedId = selectedMap.get(groupId);
     if (selectedId) {
       newSelected.delete(selectedId);
-    } else if (skill.iconId.startsWith('3')) {
+    } else if (shouldAllowDuplicateSkill(skill)) {
       // For debuffs, find the next available suffix
       let count = 0;
 
@@ -384,7 +388,7 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
       const selectedId = selectedMap.get(groupId);
       if (selectedId) {
         newSelected.delete(selectedId);
-      } else if (focusedSkill.iconId.startsWith('3')) {
+      } else if (shouldAllowDuplicateSkill(focusedSkill)) {
         // For debuffs, find the next available suffix
         let count = 0;
         for (const newSelectedId of newSelected) {

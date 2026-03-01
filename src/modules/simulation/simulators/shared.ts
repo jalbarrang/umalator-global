@@ -8,7 +8,7 @@ import type {
 } from '@/lib/sunday-tools/common/race';
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import type { ISkillTarget, ISkillType } from '@/lib/sunday-tools/skills/definitions';
-import type { RunComparisonParams } from '@/modules/simulation/types';
+import type { InjectedDebuff, RunComparisonParams } from '@/modules/simulation/types';
 import { Race } from '@/lib/sunday-tools/common/race';
 import { parseAptitudeName, parseStrategyName } from '@/lib/sunday-tools/runner/runner.types';
 import { SkillTarget, SkillType } from '@/lib/sunday-tools/skills/definitions';
@@ -90,6 +90,7 @@ export function toCreateRunner(
   runner: RunnerState,
   sortedSkills: Array<string>,
   forcedPositions?: Record<string, number>,
+  injectedDebuffs?: Array<InjectedDebuff>,
 ): CreateRunner {
   return {
     outfitId: runner.outfitId,
@@ -109,6 +110,7 @@ export function toCreateRunner(
     },
     skills: sortedSkills,
     forcedPositions,
+    injectedDebuffs: injectedDebuffs?.map(({ skillId, position }) => ({ skillId, position })),
   };
 }
 

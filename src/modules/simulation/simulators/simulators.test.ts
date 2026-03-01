@@ -527,6 +527,109 @@ describe('forced skill positions', () => {
   });
 });
 
+describe('injected debuffs', () => {
+  const TEST_DEBUFF_SKILL_ID = '201082';
+
+  it('includes injectedDebuffs in CreateRunner when provided', () => {
+    const runner = createRunnerState({
+      outfitId: '100101',
+      skills: [],
+    });
+
+    const injectedDebuffs = [{ skillId: TEST_DEBUFF_SKILL_ID, position: 700 }];
+    const createRunnerObj = (toCreateRunner as any)(runner, runner.skills, undefined, injectedDebuffs);
+
+    expect(createRunnerObj.injectedDebuffs).toEqual(injectedDebuffs);
+  });
+
+  it('does not include injectedDebuffs in CreateRunner when not provided', () => {
+    const runner = createRunnerState({
+      outfitId: '100101',
+      skills: [],
+    });
+
+    const createRunnerObj = toCreateRunner(runner, runner.skills);
+    expect((createRunnerObj as any).injectedDebuffs).toBeUndefined();
+  });
+
+  it('runComparison with injectedDebuffs produces different results than without', () => {
+    const course = CourseHelpers.getCourse(TEST_COURSE_ID);
+    const racedef = racedefToParams(createRaceConditions());
+    const uma1 = createRunnerState({
+      outfitId: '100101',
+      strategy: 'Runaway',
+      skills: [],
+    });
+    const uma2 = createRunnerState({
+      outfitId: '100201',
+      strategy: 'Pace Chaser',
+      skills: [],
+    });
+
+    const baseParams = {
+      nsamples: 24,
+      course,
+      racedef,
+      uma1,
+      uma2,
+      options: createSimulationOptions(4242),
+    };
+
+    const withoutDebuff = runComparison(baseParams);
+    const withDebuff = runComparison({
+      ...baseParams,
+      injectedDebuffs: {
+        uma1: [{ skillId: TEST_DEBUFF_SKILL_ID, position: 200 }],
+        uma2: [],
+      },
+    } as any);
+
+    expect(withDebuff.results).not.toEqual(withoutDebuff.results);
+  });
+
+  it('injected debuff at a fixed position slows the affected uma', () => {
+    const course = CourseHelpers.getCourse(TEST_COURSE_ID);
+    const racedef = racedefToParams(createRaceConditions());
+    const uma1 = createRunnerState({
+      outfitId: '100101',
+      strategy: 'Runaway',
+      skills: [],
+    });
+    const uma2 = createRunnerState({
+      outfitId: '100201',
+      strategy: 'Pace Chaser',
+      skills: [],
+    });
+
+    const withoutDebuff = runComparison({
+      nsamples: 32,
+      course,
+      racedef,
+      uma1,
+      uma2,
+      options: createSimulationOptions(5511),
+    });
+
+    const withDebuff = runComparison({
+      nsamples: 32,
+      course,
+      racedef,
+      uma1,
+      uma2,
+      options: createSimulationOptions(5511),
+      injectedDebuffs: {
+        uma1: [{ skillId: TEST_DEBUFF_SKILL_ID, position: 100 }],
+        uma2: [],
+      },
+    } as any);
+
+    const meanWithout = withoutDebuff.results.reduce((sum, value) => sum + value, 0) / withoutDebuff.results.length;
+    const meanWith = withDebuff.results.reduce((sum, value) => sum + value, 0) / withDebuff.results.length;
+
+    expect(meanWith).toBeGreaterThan(meanWithout);
+  });
+});
+
 describe('skill-planner-compare simulator', () => {
   it('is deterministic and returns sorted basinn deltas', () => {
     const course = CourseHelpers.getCourse(TEST_COURSE_ID);

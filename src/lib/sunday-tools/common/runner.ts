@@ -15,8 +15,10 @@ import {
 } from '../shared/definitions';
 import { CourseHelpers } from '../course/CourseData';
 import { buildSkillData } from '../runner/runner.utils';
+import { getExternalDebuffEffects } from '../skills/external-debuffs';
 import { createFixedPositionPolicy } from '../skills/policies/ActivationSamplePolicy';
 import { StrategyHelpers } from '../runner/runner.types';
+import { Region } from '../shared/region';
 import {
   createBlockedSideCondition,
   createOvertakeCondition,
@@ -27,7 +29,13 @@ import type { HpPolicy, RaceStateSlice } from '../health/health-policy';
 import type { PRNG } from '../shared/random';
 import type { Race } from './race';
 import type { CourseData, IGroundCondition, IPhase } from '../course/definitions';
-import type { ActiveSkill, PendingSkill } from '../skills/skill.types';
+import type {
+  ActiveSkill,
+  ActiveTargetedSkill,
+  PendingSkill,
+  PendingTargetedSkill,
+  SkillEffect,
+} from '../skills/skill.types';
 import { getUmaDisplayInfo } from '@/modules/runners/utils';
 
 export const PhaseDeceleration = [-1.2, -0.8, -1.0];
@@ -60,6 +68,7 @@ export type CreateRunner = {
   stats: StatLine;
   skills: Array<string>;
   forcedPositions?: Record<string, number>;
+  injectedDebuffs?: Array<{ skillId: string; position: number }>;
 };
 
 export type SpeedModifiers = {
@@ -88,6 +97,7 @@ export type RunnerProps = {
   stats: StatLine;
   skillIds: Array<string>;
   forcedPositions?: Record<string, number>;
+  injectedDebuffs?: Array<{ skillId: string; position: number }>;
 };
 
 export class Runner {
@@ -110,6 +120,7 @@ export class Runner {
 
   public readonly skillIds: ReadonlyArray<string>;
   public readonly forcedPositions: Readonly<Record<string, number>>;
+  public readonly injectedDebuffs: ReadonlyArray<{ skillId: string; position: number }>;
 
   // ===================
   // Resetable Values
@@ -190,6 +201,13 @@ export class Runner {
   public accelerationSkillsActive!: Array<ActiveSkill>;
   public laneMovementSkillsActive!: Array<ActiveSkill>;
   public changeLaneSkillsActive!: Array<ActiveSkill>;
+  public targetedTargetSpeedActive!: Array<ActiveTargetedSkill>;
+  public targetedCurrentSpeedActive!: Array<
+    ActiveTargetedSkill & { naturalDeceleration: boolean }
+  >;
+  public targetedAccelerationActive!: Array<ActiveTargetedSkill>;
+  public targetedLaneMovementSkillsActive!: Array<ActiveTargetedSkill>;
+  public targetedChangeLaneSkillsActive!: Array<ActiveTargetedSkill>;
   public healsActivatedCount!: number;
   public usedSkills!: Set<string>;
   public pendingSkillRemoval!: Set<string>;
@@ -209,6 +227,7 @@ export class Runner {
    * Skills that are pending activation
    */
   public pendingSkills!: Array<PendingSkill>;
+  public pendingTargetedSkills!: Array<PendingTargetedSkill>;
 
   // Health System
   public outOfHp = false;
@@ -278,6 +297,7 @@ export class Runner {
     );
     this.skillIds = props.skillIds;
     this.forcedPositions = props.forcedPositions ?? {};
+    this.injectedDebuffs = props.injectedDebuffs ?? [];
   }
 
   /**
@@ -360,6 +380,7 @@ export class Runner {
     this.updateRushed();
     this.updateDownhillMode();
     this.processSkillActivations();
+    this.processTargetedSkillActivations();
     this.updateDueling();
     this.updateSpotStruggle();
     this.updateLastSpurtState();
@@ -503,6 +524,179 @@ export class Runner {
         this.pendingSkills.splice(i, 1);
       }
     }
+  }
+
+  private processTargetedSkillActivations() {
+    for (let i = this.targetedTargetSpeedActive.length; --i >= 0; ) {
+      const skillEffect = this.targetedTargetSpeedActive[i];
+      if (skillEffect.durationTimer.t >= 0) {
+        this.targetedTargetSpeedActive.splice(i, 1);
+        this.modifiers.targetSpeed.add(-skillEffect.modifier);
+      }
+    }
+
+    for (let i = this.targetedCurrentSpeedActive.length; --i >= 0; ) {
+      const skillEffect = this.targetedCurrentSpeedActive[i];
+      if (skillEffect.durationTimer.t >= 0) {
+        this.targetedCurrentSpeedActive.splice(i, 1);
+        this.modifiers.currentSpeed.add(-skillEffect.modifier);
+
+        if (skillEffect.naturalDeceleration) {
+          this.modifiers.oneFrameAccel += skillEffect.modifier;
+        }
+      }
+    }
+
+    for (let i = this.targetedAccelerationActive.length; --i >= 0; ) {
+      const skillEffect = this.targetedAccelerationActive[i];
+      if (skillEffect.durationTimer.t >= 0) {
+        this.targetedAccelerationActive.splice(i, 1);
+        this.modifiers.accel.add(-skillEffect.modifier);
+      }
+    }
+
+    for (let i = this.targetedLaneMovementSkillsActive.length; --i >= 0; ) {
+      const skillEffect = this.targetedLaneMovementSkillsActive[i];
+      if (skillEffect.durationTimer.t >= 0) {
+        this.targetedLaneMovementSkillsActive.splice(i, 1);
+      }
+    }
+
+    for (let i = this.targetedChangeLaneSkillsActive.length; --i >= 0; ) {
+      const skillEffect = this.targetedChangeLaneSkillsActive[i];
+      if (skillEffect.durationTimer.t >= 0) {
+        this.targetedChangeLaneSkillsActive.splice(i, 1);
+      }
+    }
+
+    for (let i = this.pendingTargetedSkills.length; --i >= 0; ) {
+      const skill = this.pendingTargetedSkills[i];
+      if (this.position >= skill.trigger.end) {
+        this.pendingTargetedSkills.splice(i, 1);
+        continue;
+      }
+
+      if (this.position >= skill.trigger.start) {
+        this.applyTargetedEffect(skill);
+        this.pendingTargetedSkills.splice(i, 1);
+      }
+    }
+  }
+
+  private applyTargetedEffect(skill: PendingTargetedSkill) {
+    const skillEffects = skill.effects.toSorted((a, b) => +(a.type == 42) - +(b.type == 42));
+    const course = this.race.course;
+
+    for (const skillEffect of skillEffects) {
+      const scaledDuration = skillEffect.baseDuration * (course.distance / 1000);
+
+      switch (skillEffect.type) {
+        case SkillType.Noop:
+          break;
+        case SkillType.SpeedUp:
+          this.adjustedStats.speed = Math.max(this.adjustedStats.speed + skillEffect.modifier, 1);
+          break;
+        case SkillType.StaminaUp:
+          this.adjustedStats.stamina = Math.max(
+            this.adjustedStats.stamina + skillEffect.modifier,
+            1,
+          );
+          this.baseStats.stamina = Math.max(this.baseStats.stamina + skillEffect.modifier, 1);
+          break;
+        case SkillType.PowerUp:
+          this.adjustedStats.power = Math.max(this.adjustedStats.power + skillEffect.modifier, 1);
+          break;
+        case SkillType.GutsUp:
+          this.adjustedStats.guts = Math.max(this.adjustedStats.guts + skillEffect.modifier, 1);
+          break;
+        case SkillType.WisdomUp:
+          this.adjustedStats.wit = Math.max(this.adjustedStats.wit + skillEffect.modifier, 1);
+          break;
+        case SkillType.MultiplyStartDelay:
+          this.startDelay *= skillEffect.modifier;
+          break;
+        case SkillType.SetStartDelay:
+          this.startDelay = skillEffect.modifier;
+          break;
+        case SkillType.TargetSpeed:
+          this.modifiers.targetSpeed.add(skillEffect.modifier);
+          this.targetedTargetSpeedActive.push({
+            skillId: skill.skillId,
+            durationTimer: this.createTimer(-scaledDuration),
+            modifier: skillEffect.modifier,
+            effectTarget: skillEffect.target,
+            effectType: skillEffect.type,
+            origin: skill.origin,
+            sourceRunnerId: skill.sourceRunnerId,
+          });
+          break;
+        case SkillType.Accel:
+          this.modifiers.accel.add(skillEffect.modifier);
+          this.targetedAccelerationActive.push({
+            skillId: skill.skillId,
+            durationTimer: this.createTimer(-scaledDuration),
+            modifier: skillEffect.modifier,
+            effectTarget: skillEffect.target,
+            effectType: skillEffect.type,
+            origin: skill.origin,
+            sourceRunnerId: skill.sourceRunnerId,
+          });
+          break;
+        case SkillType.LaneMovementSpeed:
+          this.targetedLaneMovementSkillsActive.push({
+            skillId: skill.skillId,
+            durationTimer: this.createTimer(-scaledDuration),
+            modifier: skillEffect.modifier,
+            effectTarget: skillEffect.target,
+            effectType: skillEffect.type,
+            origin: skill.origin,
+            sourceRunnerId: skill.sourceRunnerId,
+          });
+          break;
+        case SkillType.CurrentSpeed:
+        case SkillType.CurrentSpeedWithNaturalDeceleration:
+          this.modifiers.currentSpeed.add(skillEffect.modifier);
+          this.targetedCurrentSpeedActive.push({
+            skillId: skill.skillId,
+            durationTimer: this.createTimer(-scaledDuration),
+            modifier: skillEffect.modifier,
+            naturalDeceleration: skillEffect.type == SkillType.CurrentSpeedWithNaturalDeceleration,
+            effectTarget: skillEffect.target,
+            effectType: skillEffect.type,
+            origin: skill.origin,
+            sourceRunnerId: skill.sourceRunnerId,
+          });
+          break;
+        case SkillType.Recovery:
+          this.healthPolicy.recover(skillEffect.modifier);
+
+          if (this.phase >= 2 && !this.isLastSpurt) {
+            this.updateLastSpurtState(true);
+          }
+          break;
+        case SkillType.ChangeLane:
+          this.targetedChangeLaneSkillsActive.push({
+            skillId: skill.skillId,
+            durationTimer: this.createTimer(-scaledDuration),
+            modifier: skillEffect.modifier,
+            effectTarget: skillEffect.target,
+            effectType: skillEffect.type,
+            origin: skill.origin,
+            sourceRunnerId: skill.sourceRunnerId,
+          });
+          break;
+      }
+    }
+  }
+
+  public receiveTargetedEffect(skillId: string, effects: Array<SkillEffect>, sourceRunnerId: number) {
+    this.applyTargetedEffect({
+      skillId,
+      origin: 'runner',
+      sourceRunnerId,
+      trigger: new Region(this.position, this.position + 1),
+      effects,
+    });
   }
 
   /**
@@ -1052,6 +1246,7 @@ export class Runner {
       stats: props.stats,
       skillIds: props.skills,
       forcedPositions: props.forcedPositions,
+      injectedDebuffs: props.injectedDebuffs,
     });
 
     return runner;
@@ -1311,6 +1506,11 @@ export class Runner {
     this.accelerationSkillsActive = [];
     this.laneMovementSkillsActive = [];
     this.changeLaneSkillsActive = [];
+    this.targetedTargetSpeedActive = [];
+    this.targetedCurrentSpeedActive = [];
+    this.targetedAccelerationActive = [];
+    this.targetedLaneMovementSkillsActive = [];
+    this.targetedChangeLaneSkillsActive = [];
 
     // Activation counters
     this.skillsActivatedCount = 0;
@@ -1319,6 +1519,7 @@ export class Runner {
     this.healsActivatedCount = 0;
 
     this.pendingSkills = [];
+    this.pendingTargetedSkills = [];
     this.usedSkills = new Set();
     this.pendingSkillRemoval = new Set();
 
@@ -1363,6 +1564,50 @@ export class Runner {
       extraCondition: skillTrigger.extraCondition,
       effects: skillTrigger.effects,
     }));
+
+    this.initializeTargetedSkillTracking(roundIteration);
+  }
+
+  private initializeTargetedSkillTracking(roundIteration: number) {
+    if (this.injectedDebuffs.length === 0) {
+      return;
+    }
+
+    for (const injectedDebuff of this.injectedDebuffs) {
+      const skillTriggers = buildSkillData({
+        runner: this,
+        raceParams: {
+          ground: this.race.ground,
+          timeOfDay: this.race.timeOfDay,
+          weather: this.race.weather,
+          grade: this.race.grade,
+          season: this.race.season,
+        },
+        course: this.race.course,
+        wholeCourse: this.race.wholeCourse,
+        parser: this.race.parser,
+        skillId: injectedDebuff.skillId,
+        ignoreNullEffects: false,
+      });
+
+      for (const skillTrigger of skillTriggers) {
+        const externalDebuffEffects = getExternalDebuffEffects(skillTrigger.effects);
+        if (externalDebuffEffects.length === 0) {
+          continue;
+        }
+
+        const fixedPolicy = createFixedPositionPolicy(injectedDebuff.position);
+        const triggers = fixedPolicy.sample(skillTrigger.regions, this.race.skillSamples, this.skillRng);
+        const trigger = triggers[roundIteration % triggers.length];
+
+        this.pendingTargetedSkills.push({
+          skillId: skillTrigger.skillId,
+          origin: 'injection',
+          trigger,
+          effects: externalDebuffEffects,
+        });
+      }
+    }
   }
 
   /**

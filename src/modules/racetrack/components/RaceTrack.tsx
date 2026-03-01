@@ -1,5 +1,4 @@
-import { Activity, Fragment, useMemo, useRef, useState } from 'react';
-import { useShallow } from 'zustand/shallow';
+import React, { Activity, memo, useMemo, useRef } from 'react';
 import { useDragSkill } from '../hooks/useDragSkill';
 import { useRaceTrackTooltip } from '../hooks/useRaceTrackTooltip';
 import { useVisualizationData } from '../hooks/useVisualizationData';
@@ -10,15 +9,18 @@ import { RaceTrackTooltip } from './racetrack-tooltip';
 import './RaceTrack.css';
 import { SectionBar } from './section-bar';
 import { SectionNumbers } from './section-numbers';
-import { SkillMarker } from './skill-marker';
 import { SlopeLabelBar } from './slope-label-bar';
 import { SlopeVisualization } from './slope-visualization';
-import type { RecoveryMarkerData, RegionData } from '../hooks/useVisualizationData';
+import type { RegionData } from '../hooks/useVisualizationData';
 import type { SimulationRun } from '@/modules/simulation/compare.types';
 import type { RaceConditions } from '@/utils/races';
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import { initializeSimulationRun } from '@/modules/simulation/compare.types';
-import { setForcedPosition, useForcedPositions } from '@/modules/simulation/stores/forced-positions.store';
+import { updateDebuffPosition } from '@/modules/simulation/stores/compare.store';
+import {
+  setForcedPosition,
+  useForcedPositions,
+} from '@/modules/simulation/stores/forced-positions.store';
 import {
   toggleShowHp,
   toggleShowLanes,
@@ -34,6 +36,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { WeatherIcon } from '@/components/race-settings/WeatherSelect';
 import { SeasonIcon } from '@/components/race-settings/SeasonSelect';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { debuffColors, recoveryColors } from '@/utils/colors';
+import { SkillType } from '@/lib/sunday-tools/skills/definitions';
 
 // Helper function for efficient rung collision detection
 const findAvailableRung = (
@@ -41,147 +45,248 @@ const findAvailableRung = (
   end: number,
   rungs: Array<Array<{ start: number; end: number }>>,
 ): number => {
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < rungs.length; i++) {
     const hasOverlap = rungs[i].some((b) => !(end <= b.start || start >= b.end));
     if (!hasOverlap) return i;
   }
   return 0;
 };
 
-type RegionSegmentProps = {
-  allRegions: Array<RegionData>;
+// Uma skill row layout (absolute pixels in viewBox space)
+const UMA_ROW_HEIGHT = 36;
+const UMA_ROW_GAP = 4;
+const DISTANCE_AXIS_HEIGHT = 22;
+const UMA_SECTION_HEIGHT =
+  UMA_ROW_GAP + UMA_ROW_HEIGHT + UMA_ROW_GAP + UMA_ROW_HEIGHT + UMA_ROW_GAP + DISTANCE_AXIS_HEIGHT;
+const COMPACT_BAR_HEIGHT = 10;
+const COMPACT_LANES = 3;
+const COMPACT_SYMBOL_SIZE = 3.5;
+
+type CompactSkillMarkerProps = {
+  x: number;
+  y: number;
+  width: number;
+  barHeight: number;
+  color: { fill: string; stroke: string };
+  text: string;
+  effectType?: number;
+  skillId?: string;
+  onDragStart?: (e: React.MouseEvent) => void;
+};
+
+const CompactSkillMarker = memo<CompactSkillMarkerProps>(
+  ({ x, y, width, barHeight, color, text, effectType, skillId, onDragStart }) => {
+    const isDraggable = !!skillId && !!onDragStart;
+    return (
+      <svg
+        className="compact-skill-marker select-none"
+        x={`${x}%`}
+        y={y}
+        width={`${width}%`}
+        height={barHeight}
+        overflow="visible"
+        onMouseDown={onDragStart}
+        style={{ cursor: isDraggable ? 'grab' : 'default' }}
+      >
+        <rect
+          x="0"
+          y="0"
+          width="100%"
+          height="100%"
+          fill={color.fill}
+          stroke={color.stroke}
+          strokeWidth="0.6"
+          rx="2"
+          ry="2"
+        />
+        {effectType != null && (
+          <g transform={`translate(${barHeight / 2}, ${barHeight / 2})`}>
+            <EffectSymbol
+              effectType={effectType}
+              color={{ fill: 'rgba(255,255,255,0.9)', stroke: color.stroke }}
+              injected={false}
+              size={COMPACT_SYMBOL_SIZE}
+            />
+          </g>
+        )}
+        <title>{text}</title>
+      </svg>
+    );
+  },
+);
+
+type UmaSkillRowProps = {
+  regions: Array<RegionData>;
   course: CourseData;
+  umaIndex: 0 | 1;
+  label: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  visible: boolean;
   onDragStart: (
     e: React.MouseEvent,
     skillId: string,
     umaIndex: number,
     start: number,
     end: number,
+    markerType?: 'skill' | 'debuff',
+    debuffId?: string,
   ) => void;
 };
 
-const RegionSegment = (props: RegionSegmentProps) => {
-  const { allRegions, course, onDragStart } = props;
-
-  const { showUma1, showUma2 } = useSettingsStore(
-    useShallow((state) => ({
-      showUma1: state.showUma1,
-      showUma2: state.showUma2,
-    })),
-  );
+const UmaSkillRow = (props: UmaSkillRowProps) => {
+  const { regions, course, label, x, y, width, height, visible, onDragStart } = props;
   const forcedPositions = useForcedPositions();
 
-  return allRegions.reduce(
-    (state, desc, descIndex) => {
-      if (desc.umaIndex === 0 && !showUma1) return state;
-      if (desc.umaIndex === 1 && !showUma2) return state;
+  if (!visible) return null;
 
-      if (desc.type === RegionDisplayType.Immediate && desc.regions.length > 0) {
-        let x = (desc.regions[0].start / course.distance) * 100;
+  const rungs: Array<Array<{ start: number; end: number }>> = Array.from(
+    { length: COMPACT_LANES },
+    () => [],
+  );
+  const seen = new Set<number>();
 
-        // Use percentage-based offset instead of width-dependent calculation
-        const COLLISION_OFFSET = 0.3; // 0.3% of track
-        while (state.seen.has(x)) {
-          x += COLLISION_OFFSET;
+  const immediateLines: Array<React.ReactElement> = [];
+  const markers: Array<React.ReactElement> = [];
+
+  for (let descIndex = 0; descIndex < regions.length; descIndex++) {
+    const desc = regions[descIndex];
+
+    if (desc.type === RegionDisplayType.Immediate && desc.regions.length > 0) {
+      let xPct = (desc.regions[0].start / course.distance) * 100;
+      const COLLISION_OFFSET = 0.3;
+      while (seen.has(xPct)) {
+        xPct += COLLISION_OFFSET;
+      }
+      seen.add(xPct);
+      immediateLines.push(
+        <line
+          key={`imm-${descIndex}`}
+          x1={`${xPct}%`}
+          y1="0"
+          x2={`${xPct}%`}
+          y2="100%"
+          stroke={desc.color.stroke}
+          strokeWidth={xPct === 0 ? 3 : 1.5}
+        />,
+      );
+      continue;
+    }
+
+    if (desc.type === RegionDisplayType.Textbox) {
+      for (let rIndex = 0; rIndex < desc.regions.length; rIndex++) {
+        const r = desc.regions[rIndex];
+        let start = r.start;
+        let end = r.end;
+
+        if (desc.skillId && desc.umaIndex !== undefined) {
+          const positions =
+            desc.umaIndex === 0 ? forcedPositions.uma1 : forcedPositions.uma2;
+          const forcedPos = positions?.[desc.skillId];
+          if (forcedPos !== undefined) {
+            start = forcedPos;
+            end = forcedPos + (r.end - r.start);
+          }
         }
 
-        state.seen.add(x);
-        state.elem.push(
-          <line
-            key={`immediate-${descIndex}`}
-            x1={`${x}%`}
-            y1="0"
-            x2={`${x}%`}
-            y2="100%"
-            stroke={desc.color.stroke}
-            strokeWidth={x === 0 ? 4 : 2}
+        const xPct = (start / course.distance) * 100;
+        const wPct = ((end - start) / course.distance) * 100;
+
+        const rungIndex = findAvailableRung(start, end, rungs);
+        rungs[rungIndex % COMPACT_LANES].push({ start, end });
+
+        const markerY = height - COMPACT_BAR_HEIGHT - 2 - (COMPACT_BAR_HEIGHT + 1) * rungIndex;
+
+        const handleOnDragStart = (e: React.MouseEvent) => {
+          if (!desc.skillId || desc.umaIndex === undefined) return;
+          onDragStart(e, desc.skillId, desc.umaIndex, start, end);
+        };
+
+        markers.push(
+          <CompactSkillMarker
+            key={`c-${descIndex}-${rIndex}-${desc.skillId ?? 'n'}`}
+            x={xPct}
+            y={markerY}
+            width={wPct}
+            barHeight={COMPACT_BAR_HEIGHT}
+            color={desc.color}
+            text={desc.text}
+            effectType={desc.effectType}
+            skillId={desc.skillId}
+            onDragStart={handleOnDragStart}
           />,
         );
-
-        return state;
       }
+    }
+  }
 
-      if (desc.type === RegionDisplayType.Textbox) {
-        const markers = desc.regions.map((r, rIndex) => {
-          // Check if this skill has a forced position
-          let start = r.start;
-          let end = r.end;
+  return (
+    <svg x={x} y={y} width={width} height={height}>
+      <rect
+        x="0"
+        y="0"
+        width="100%"
+        height="100%"
+        fill="var(--card)"
+        stroke="color-mix(in srgb, var(--border) 60%, transparent)"
+        strokeWidth="0.6"
+        rx="3"
+        ry="3"
+      />
+      <text
+        x="4"
+        y="50%"
+        fill="var(--muted-foreground)"
+        fontSize="9px"
+        fontWeight="600"
+        dominantBaseline="central"
+        opacity="0.7"
+      >
+        {label}
+      </text>
+      {immediateLines}
+      {markers}
+    </svg>
+  );
+};
 
-          if (desc.skillId && desc.umaIndex !== undefined) {
-            const positions =
-              desc.umaIndex === 0
-                ? forcedPositions.uma1
-                : desc.umaIndex === 1
-                  ? forcedPositions.uma2
-                  : null;
+type DistanceAxisProps = {
+  x: number;
+  y: number;
+  width: number;
+  distance: number;
+};
 
-            const forcedPos = positions?.[desc.skillId];
-            if (forcedPos !== undefined) {
-              start = forcedPos;
-              end = forcedPos + (r.end - r.start);
-            }
-          }
+const DistanceAxis = ({ x, y, width, distance }: DistanceAxisProps) => {
+  const step = distance <= 1400 ? 200 : 500;
+  const ticks: Array<number> = [];
+  for (let t = 0; t <= distance; t += step) {
+    ticks.push(t);
+  }
 
-          const x = (start / course.distance) * 100;
-          const w = ((end - start) / course.distance) * 100;
-
-          const rungIndex = findAvailableRung(start, end, state.rungs);
-          state.rungs[rungIndex % 10].push({ start, end });
-          const y = 90 - 10 * rungIndex;
-
-          const handleOnDragStart = (e: React.MouseEvent) => {
-            if (!desc.skillId) return;
-            if (desc.umaIndex === undefined) return;
-
-            onDragStart(e, desc.skillId, desc.umaIndex, start, end);
-          };
-
-          return (
-            <SkillMarker
-              key={`skill-${descIndex}-${rIndex}-${desc.skillId ?? 'none'}`}
-              x={x}
-              y={y}
-              width={w}
-              color={desc.color}
-              text={desc.text}
-              skillId={desc.skillId}
-              umaIndex={desc.umaIndex}
-              onDragStart={handleOnDragStart}
-            />
-          );
-        });
-
-        state.elem.push(
-          <Fragment key={`textbox-${descIndex}-${desc.skillId ?? 'none'}`}>{markers}</Fragment>,
+  return (
+    <g transform={`translate(${x}, ${y})`}>
+      <line x1={0} x2={width} y1={0} y2={0} stroke="var(--foreground)" strokeOpacity="0.4" />
+      {ticks.map((tick) => {
+        const tx = (tick / distance) * width;
+        return (
+          <g key={tick} transform={`translate(${tx}, 0)`}>
+            <line y2={4} stroke="var(--foreground)" strokeOpacity="0.4" />
+            <text
+              y={14}
+              textAnchor="middle"
+              fontSize="9"
+              fill="var(--muted-foreground)"
+            >
+              {tick}
+            </text>
+          </g>
         );
-
-        return state;
-      }
-
-      state.elem.push(
-        <Fragment key={`region-${descIndex}`}>
-          {desc.regions.map((r, i) => (
-            <rect
-              key={`rect-${i}`}
-              x={`${(r.start / course.distance) * 100}%`}
-              y={`${100 - (desc.height ?? 0)}%`}
-              width={`${((r.end - r.start) / course.distance) * 100}%`}
-              height={`${desc.height}%`}
-              fill={desc.color.fill}
-              stroke={desc.color.stroke}
-            />
-          ))}
-        </Fragment>,
-      );
-
-      return state;
-    },
-    {
-      seen: new Set<number>(),
-      rungs: Array.from({ length: 10 }, () => [] as Array<{ start: number; end: number }>),
-      elem: [] as Array<React.ReactElement>,
-    },
-  ).elem;
+      })}
+    </g>
+  );
 };
 
 type RaceTrackProps = {
@@ -201,16 +306,6 @@ type RaceTrackProps = {
 // Base dimensions for aspect ratio calculation
 const BASE_WIDTH = 960;
 const BASE_HEIGHT = 240;
-const RECOVERY_MARKER_SIZE = 5;
-const RECOVERY_BASELINE_Y_RATIO = 0.86;
-const RECOVERY_RUNG_STEP = 14;
-const RECOVERY_DRAG_RANGE_METERS = 50;
-
-type HoveredRecoveryMarker = {
-  label: string;
-  x: number;
-  y: number;
-};
 
 export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (props) => {
   const { chartData } = props;
@@ -235,22 +330,38 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (pro
 
   const width = props.width ?? BASE_WIDTH;
   const height = props.height ?? BASE_HEIGHT;
-  const [hoveredRecovery, setHoveredRecovery] = useState<HoveredRecoveryMarker | null>(null);
-
-  const { skillActivations, rushedIndicators, recoveryMarkers, posKeepLabels } = useVisualizationData({
+  const { skillActivations, rushedIndicators, posKeepLabels } = useVisualizationData({
     chartData,
   });
 
-  const allRegions = useMemo(() => {
-    return [...skillActivations, ...rushedIndicators];
-  }, [skillActivations, rushedIndicators]);
+  const uma1Regions = useMemo(
+    () => [
+      ...skillActivations.filter((region) => region.umaIndex === 0),
+      ...rushedIndicators.filter((region) => region.umaIndex === 0),
+    ],
+    [skillActivations, rushedIndicators],
+  );
+  const uma2Regions = useMemo(
+    () => [
+      ...skillActivations.filter((region) => region.umaIndex === 1),
+      ...rushedIndicators.filter((region) => region.umaIndex === 1),
+    ],
+    [skillActivations, rushedIndicators],
+  );
 
   const handleSkillDrag = (
-    skillId: number,
+    skillId: string,
     umaIndex: number,
     newStart: number,
     _newEnd: number,
+    markerType: 'skill' | 'debuff' = 'skill',
+    debuffId?: string,
   ) => {
+    if (markerType === 'debuff' && debuffId) {
+      updateDebuffPosition(umaIndex === 0 ? 'uma1' : 'uma2', debuffId, newStart);
+      return;
+    }
+
     if (umaIndex === 0) {
       setForcedPosition('uma1', skillId, newStart);
     } else if (umaIndex === 1) {
@@ -317,170 +428,283 @@ export const RaceTrack: React.FC<React.PropsWithChildren<RaceTrackProps>> = (pro
     }
 
     rtMouseLeave();
-    setHoveredRecovery(null);
     handleDragEnd();
   };
 
   const courseLabel = trackDescription({ courseid: props.courseid });
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-2">
       <div className="flex flex-col gap-4">
         <TrackName course={course} courseLabel={courseLabel} />
         <TrackConditions racedef={racedef} />
       </div>
 
       <div className="flex justify-center">
-        <svg
-          version="1.1"
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox={`0 0 ${width + xOffset + xExtra} ${height + yOffset + yExtra}`}
-          preserveAspectRatio="xMidYMid meet"
-          className="racetrackView w-full"
-          style={{ maxWidth: `1200px` }} // Optional: cap max size
-          data-courseid={props.courseid}
-          onMouseMove={doMouseMove}
-          onMouseLeave={doMouseLeave}
-          onMouseUp={handleDragEnd}
-        >
-          <svg x={xOffset} y={yOffset} width={width} height={height}>
-            <SlopeVisualization slopes={course.slopes} distance={course.distance} />
+        <div className="flex flex-col w-full" style={{ maxWidth: '1200px' }}>
+          <svg
+            version="1.1"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox={`0 0 ${width + xOffset + xExtra} ${height + yOffset + yExtra}`}
+            preserveAspectRatio="xMidYMid meet"
+            className="racetrackView w-full"
+            data-courseid={props.courseid}
+            onMouseMove={doMouseMove}
+            onMouseLeave={doMouseLeave}
+            onMouseUp={handleDragEnd}
+          >
+            <svg x={xOffset} y={yOffset} width={width} height={height}>
+              <SlopeVisualization slopes={course.slopes} distance={course.distance} />
 
-            <SlopeLabelBar slopes={course.slopes} distance={course.distance} />
+              <SlopeLabelBar slopes={course.slopes} distance={course.distance} />
 
-            <SectionBar
-              straights={course.straights}
-              corners={course.corners}
-              distance={course.distance}
+              <SectionBar
+                straights={course.straights}
+                corners={course.corners}
+                distance={course.distance}
+              />
+
+              <PhaseBar distance={course.distance} />
+              <SectionNumbers />
+
+              {posKeepLabels &&
+                posKeepLabels.map((label, index) => {
+                  if (label.umaIndex === 0 && !showUma1) return null;
+                  if (label.umaIndex === 1 && !showUma2) return null;
+
+                  if (label.x == null || label.width == null || label.yOffset == null) return null;
+
+                  return (
+                    <g key={index} className="poskeep-label">
+                      <text
+                        x={label.x + label.width / 2}
+                        y={5 + label.yOffset}
+                        fill={label.color.stroke}
+                        fontSize="10px"
+                        fontWeight="bold"
+                        textAnchor="middle"
+                        dominantBaseline="hanging"
+                      >
+                        {label.text}
+                      </text>
+
+                      <line
+                        x1={label.x}
+                        y1={5 + label.yOffset + 12}
+                        x2={label.x + label.width}
+                        y2={5 + label.yOffset + 12}
+                        stroke={label.color.stroke}
+                        strokeWidth="2"
+                      />
+                    </g>
+                  );
+                })}
+
+              <line
+                ref={mouseLineRef}
+                className="mouseoverLine"
+                x1="-5"
+                y1="0"
+                x2="-5"
+                y2="100%"
+                stroke="rgb(121,64,22)"
+                strokeWidth="2"
+                pointerEvents="none"
+              />
+
+              <text
+                ref={mouseTextRef}
+                className="mouseoverText"
+                x="-5"
+                y="-5"
+                fill="rgb(121,64,22)"
+                pointerEvents="none"
+              ></text>
+            </svg>
+
+            <RaceTrackTooltip
+              data={tooltipData}
+              visible={tooltipVisible}
+              position={{ xOffset, yOffset }}
             />
 
-            <PhaseBar distance={course.distance} />
-            <SectionNumbers />
+            <Activity mode={showThresholds ? 'visible' : 'hidden'}>
+              <ThresholdMarker
+                threshold={course.distance / 2}
+                text={`Halfway (${course.distance / 2}m)`}
+                distance={course.distance}
+                xOffset={xOffset}
+                yOffset={yOffset}
+                yExtra={-10}
+                width={width}
+                height={height}
+                strokeColor="var(--color-green-400)"
+              />
 
-            <RegionSegment allRegions={allRegions} course={course} onDragStart={handleDragStart} />
+              <ThresholdMarker
+                threshold={777}
+                distance={course.distance}
+                xOffset={xOffset}
+                yOffset={yOffset}
+                width={width}
+                height={height}
+                strokeColor="var(--color-amber-400)"
+              />
 
-            {recoveryMarkers.map((marker, index) => {
-              if (marker.umaIndex === 0 && !showUma1) return null;
-              if (marker.umaIndex === 1 && !showUma2) return null;
+              <ThresholdMarker
+                threshold={200}
+                distance={course.distance}
+                xOffset={xOffset}
+                yOffset={yOffset}
+                width={width}
+                height={height}
+                strokeColor="var(--color-amber-400)"
+              />
+            </Activity>
 
-              return (
-                <RecoveryMarker
-                  key={`recovery-${marker.skillId}-${marker.position}-${index}`}
-                  marker={marker}
-                  distance={course.distance}
-                  width={width}
-                  height={height}
-                  onDragStart={handleDragStart}
-                  onHoverStart={setHoveredRecovery}
-                  onHoverEnd={() => setHoveredRecovery(null)}
-                />
-              );
-            })}
-
-            {hoveredRecovery && (
-              <RecoveryHoverTooltip marker={hoveredRecovery} trackWidth={width} />
+            {React.Children.map(props.children, (child) =>
+              React.isValidElement(child)
+                ? React.cloneElement(child as React.ReactElement<{ hideXAxis?: boolean }>, {
+                    hideXAxis: true,
+                  })
+                : child,
             )}
-
-            {posKeepLabels &&
-              posKeepLabels.map((label, index) => {
-                if (label.umaIndex === 0 && !showUma1) return null;
-                if (label.umaIndex === 1 && !showUma2) return null;
-
-                if (label.x == null || label.width == null || label.yOffset == null) return null;
-
-                return (
-                  <g key={index} className="poskeep-label">
-                    <text
-                      x={label.x + label.width / 2}
-                      y={5 + label.yOffset}
-                      fill={label.color.stroke}
-                      fontSize="10px"
-                      fontWeight="bold"
-                      textAnchor="middle"
-                      dominantBaseline="hanging"
-                    >
-                      {label.text}
-                    </text>
-
-                    <line
-                      x1={label.x}
-                      y1={5 + label.yOffset + 12}
-                      x2={label.x + label.width}
-                      y2={5 + label.yOffset + 12}
-                      stroke={label.color.stroke}
-                      strokeWidth="2"
-                    />
-                  </g>
-                );
-              })}
-
-            <line
-              ref={mouseLineRef}
-              className="mouseoverLine"
-              x1="-5"
-              y1="0"
-              x2="-5"
-              y2="100%"
-              stroke="rgb(121,64,22)"
-              strokeWidth="2"
-              pointerEvents="none"
-            />
-
-            <text
-              ref={mouseTextRef}
-              className="mouseoverText"
-              x="-5"
-              y="-5"
-              fill="rgb(121,64,22)"
-              pointerEvents="none"
-            ></text>
           </svg>
 
-          <RaceTrackTooltip
-            data={tooltipData}
-            visible={tooltipVisible}
-            position={{ xOffset, yOffset }}
-          />
-
-          <Activity mode={showThresholds ? 'visible' : 'hidden'}>
-            <ThresholdMarker
-              threshold={course.distance / 2}
-              text={`Halfway (${course.distance / 2}m)`}
-              distance={course.distance}
-              xOffset={xOffset}
-              yOffset={yOffset}
-              yExtra={-10}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox={`0 0 ${width + xOffset + xExtra} ${UMA_SECTION_HEIGHT}`}
+            preserveAspectRatio="xMidYMid meet"
+            className="racetrackView w-full"
+            onMouseMove={(e) => {
+              if (draggedSkill) handleDragMove(e);
+            }}
+            onMouseLeave={handleDragEnd}
+            onMouseUp={handleDragEnd}
+          >
+            <UmaSkillRow
+              regions={uma1Regions}
+              course={course}
+              umaIndex={0}
+              label="Uma 1"
+              x={xOffset}
+              y={UMA_ROW_GAP}
               width={width}
-              height={height}
-              strokeColor="var(--color-green-400)"
+              height={UMA_ROW_HEIGHT}
+              visible={showUma1}
+              onDragStart={handleDragStart}
             />
 
-            <ThresholdMarker
-              threshold={777}
-              distance={course.distance}
-              xOffset={xOffset}
-              yOffset={yOffset}
+            <UmaSkillRow
+              regions={uma2Regions}
+              course={course}
+              umaIndex={1}
+              label="Uma 2"
+              x={xOffset}
+              y={UMA_ROW_GAP + UMA_ROW_HEIGHT + UMA_ROW_GAP}
               width={width}
-              height={height}
-              strokeColor="var(--color-amber-400)"
+              height={UMA_ROW_HEIGHT}
+              visible={showUma2}
+              onDragStart={handleDragStart}
             />
 
-            <ThresholdMarker
-              threshold={200}
-              distance={course.distance}
-              xOffset={xOffset}
-              yOffset={yOffset}
+            <DistanceAxis
+              x={xOffset}
+              y={UMA_ROW_GAP + UMA_ROW_HEIGHT + UMA_ROW_GAP + UMA_ROW_HEIGHT + UMA_ROW_GAP}
               width={width}
-              height={height}
-              strokeColor="var(--color-amber-400)"
+              distance={course.distance}
             />
-          </Activity>
-
-          {props.children}
-        </svg>
+          </svg>
+        </div>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-4 bg-secondary px-4 py-2 rounded-md">
+      <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground bg-card px-4 py-2 rounded-md">
+        <span className="font-semibold tracking-wide">Legend</span>
+        <div className="flex items-center gap-2">
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+            <g transform="translate(8 8)">
+              <EffectSymbol
+                effectType={SkillType.TargetSpeed}
+                color={recoveryColors[0]}
+                injected={false}
+              />
+            </g>
+          </svg>
+          <span>Speed</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+            <g transform="translate(8 8)">
+              <EffectSymbol
+                effectType={SkillType.Accel}
+                color={recoveryColors[0]}
+                injected={false}
+              />
+            </g>
+          </svg>
+          <span>Accel</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+            <g transform="translate(8 8)">
+              <EffectSymbol
+                effectType={SkillType.Recovery}
+                color={recoveryColors[0]}
+                injected={false}
+              />
+            </g>
+          </svg>
+          <span>Recovery / drain</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+            <g transform="translate(8 8)">
+              <EffectSymbol
+                effectType={SkillType.LaneMovementSpeed}
+                color={recoveryColors[0]}
+                injected={false}
+              />
+            </g>
+          </svg>
+          <span>Lane</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <svg width="18" height="16" viewBox="0 0 18 16" aria-hidden="true">
+            <rect
+              x="1"
+              y="5"
+              width="16"
+              height="6"
+              fill={recoveryColors[0].fill}
+              stroke={recoveryColors[0].stroke}
+              strokeWidth="1"
+              rx="1"
+              ry="1"
+            />
+          </svg>
+          <span>Self clip</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <svg width="18" height="16" viewBox="0 0 18 16" aria-hidden="true">
+            <rect
+              x="1"
+              y="5"
+              width="16"
+              height="6"
+              fill={debuffColors[0].fill}
+              stroke={debuffColors[0].stroke}
+              strokeDasharray="2,2"
+              strokeWidth="1"
+              rx="1"
+              ry="1"
+              opacity="0.75"
+            />
+          </svg>
+          <span>Injected clip</span>
+        </div>
+      </div>
+
+      <div className="flex flex-col md:flex-row gap-4 bg-card text-xs px-4 py-2 rounded-md">
         <div className="flex items-center gap-2">
           <Checkbox id="showhp" checked={showHp} onCheckedChange={toggleShowHp} />
           <Label htmlFor="showhp" className="text-sm font-normal cursor-pointer">
@@ -578,82 +802,108 @@ export const ThresholdMarker = (props: ThresholdMarkerProps) => {
   );
 };
 
-type RecoveryMarkerProps = {
-  marker: RecoveryMarkerData;
-  distance: number;
-  width: number;
-  height: number;
-  onDragStart: (
-    e: React.MouseEvent,
-    skillId: string,
-    umaIndex: number,
-    start: number,
-    end: number,
-  ) => void;
-  onHoverStart: (marker: HoveredRecoveryMarker) => void;
-  onHoverEnd: () => void;
+type EffectSymbolProps = {
+  effectType: number;
+  color: { fill: string; stroke: string };
+  injected: boolean;
+  size?: number;
 };
 
-const RecoveryMarker = (props: RecoveryMarkerProps) => {
-  const { marker, distance, width, height, onDragStart, onHoverStart, onHoverEnd } = props;
-  const x = (marker.position / distance) * width;
-  const y = height * RECOVERY_BASELINE_Y_RATIO - marker.rung * RECOVERY_RUNG_STEP;
-  const stemHeight = Math.max(0, height - y - RECOVERY_MARKER_SIZE);
-  const diamondPoints = `0,-${RECOVERY_MARKER_SIZE} ${RECOVERY_MARKER_SIZE},0 0,${RECOVERY_MARKER_SIZE} -${RECOVERY_MARKER_SIZE},0`;
-  const markerLabel = `${marker.text} (Recovery) - ${Math.round(marker.position)}m`;
-  const syntheticEnd = Math.min(distance, marker.position + RECOVERY_DRAG_RANGE_METERS);
+const EffectSymbol = (props: EffectSymbolProps) => {
+  const { effectType, color, injected, size = 4 } = props;
+  const strokeDasharray = injected ? '2,1' : undefined;
 
-  return (
-    <g
-      className="recovery-marker"
-      transform={`translate(${x} ${y})`}
-      onMouseDown={(e) => onDragStart(e, marker.skillId, marker.umaIndex, marker.position, syntheticEnd)}
-      onMouseEnter={() => onHoverStart({ label: markerLabel, x, y })}
-      onMouseLeave={onHoverEnd}
-    >
-
-      <line
-        x1="0"
-        y1={RECOVERY_MARKER_SIZE}
-        x2="0"
-        y2={stemHeight}
-        stroke={marker.color.stroke}
-        strokeWidth="1"
-        strokeDasharray="2,2"
-        opacity="0.55"
-      />
-
+  if (effectType === SkillType.Recovery) {
+    return (
       <polygon
-        points={diamondPoints}
-        fill={marker.color.fill}
-        stroke={marker.color.stroke}
-        strokeWidth="1.5"
+        points={`0,-${size} ${size},0 0,${size} -${size},0`}
+        fill={color.fill}
+        stroke={color.stroke}
+        strokeDasharray={strokeDasharray}
+        strokeWidth="1.2"
       />
-    </g>
-  );
-};
+    );
+  }
 
-type RecoveryHoverTooltipProps = {
-  marker: HoveredRecoveryMarker;
-  trackWidth: number;
-};
+  if (effectType === SkillType.Accel) {
+    return (
+      <polygon
+        points={`0,-${size} ${size},${size} -${size},${size}`}
+        fill={color.fill}
+        stroke={color.stroke}
+        strokeDasharray={strokeDasharray}
+        strokeWidth="1.2"
+      />
+    );
+  }
 
-const RecoveryHoverTooltip = (props: RecoveryHoverTooltipProps) => {
-  const { marker, trackWidth } = props;
-  const tooltipWidth = Math.max(120, marker.label.length * 6.5 + 14);
-  const tooltipX = Math.min(
-    trackWidth - tooltipWidth - 4,
-    Math.max(4, marker.x - tooltipWidth / 2),
-  );
-  const tooltipY = Math.max(14, marker.y - 12);
+  if (effectType === SkillType.LaneMovementSpeed || effectType === SkillType.ChangeLane) {
+    return (
+      <>
+        <rect
+          x={-size}
+          y={-size + 1}
+          width={size * 2}
+          height={(size - 1) * 2}
+          fill={color.fill}
+          stroke={color.stroke}
+          strokeDasharray={strokeDasharray}
+          strokeWidth="1.1"
+          rx="1"
+          ry="1"
+        />
+        <line
+          x1={-size + 1}
+          y1={size - 1}
+          x2={size - 1}
+          y2={-size + 1}
+          stroke={color.stroke}
+          strokeWidth="1"
+          strokeDasharray={strokeDasharray}
+        />
+      </>
+    );
+  }
+
+  if (
+    effectType === SkillType.TargetSpeed ||
+    effectType === SkillType.CurrentSpeed ||
+    effectType === SkillType.CurrentSpeedWithNaturalDeceleration
+  ) {
+    return (
+      <>
+        <polyline
+          points={`${-size},-${size - 1} 0,0 ${-size},${size - 1}`}
+          fill="none"
+          stroke={color.stroke}
+          strokeDasharray={strokeDasharray}
+          strokeWidth="1.4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <polyline
+          points={`0,-${size - 1} ${size},0 0,${size - 1}`}
+          fill="none"
+          stroke={color.stroke}
+          strokeDasharray={strokeDasharray}
+          strokeWidth="1.4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </>
+    );
+  }
 
   return (
-    <g className="recovery-tooltip" transform={`translate(${tooltipX} ${tooltipY})`} pointerEvents="none">
-      <rect x="0" y="-12" width={tooltipWidth} height="18" rx="4" ry="4" />
-      <text x="7" y="-2" fontSize="10px">
-        {marker.label}
-      </text>
-    </g>
+    <circle
+      cx="0"
+      cy="0"
+      r={size - 1}
+      fill={color.fill}
+      stroke={color.stroke}
+      strokeDasharray={strokeDasharray}
+      strokeWidth="1.2"
+    />
   );
 };
 

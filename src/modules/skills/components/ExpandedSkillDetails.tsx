@@ -13,7 +13,6 @@ import { SkillIcon } from './skill-list/SkillItem';
 type ExpandedSkillDetailsProps = {
   id: string;
   skill: SkillEntry;
-  dismissable?: boolean;
   distanceFactor?: number;
 };
 
@@ -52,9 +51,7 @@ function AlternativeDetails({
         <div className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground mb-1">
           {i18n.t('skilldetails.conditions')}
         </div>
-        <div className="pl-1">
-          {HumanReadableParser.parse(alternative.condition).format()}
-        </div>
+        <div className="pl-1">{HumanReadableParser.parse(alternative.condition).format()}</div>
         <Collapsible>
           <CollapsibleTrigger className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors cursor-pointer mt-1">
             <Code className="w-3 h-3" />
@@ -88,30 +85,27 @@ function AlternativeDetails({
         </div>
       </div>
 
-      <div>
-        {alternative.baseDuration > 0 && (
+      {alternative.baseDuration > 0 && (
+        <div>
           <div>
             {i18n.t('skilldetails.baseduration')}{' '}
             {i18n.t('skilldetails.seconds', {
               n: alternative.baseDuration / 10000,
             })}
           </div>
-        )}
 
-        {distanceFactor && alternative.baseDuration > 0 && (
-          <div>
-            {i18n.t('skilldetails.effectiveduration', {
-              distance: distanceFactor,
-            })}{' '}
-            {i18n.t('skilldetails.seconds', {
-              n: +(
-                (alternative.baseDuration / 10000) *
-                (distanceFactor / 1000)
-              ).toFixed(2),
-            })}
-          </div>
-        )}
-      </div>
+          {!!distanceFactor && (
+            <div>
+              {i18n.t('skilldetails.effectiveduration', {
+                distance: distanceFactor,
+              })}{' '}
+              {i18n.t('skilldetails.seconds', {
+                n: +((alternative.baseDuration / 10000) * (distanceFactor / 1000)).toFixed(2),
+              })}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
