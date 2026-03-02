@@ -3,11 +3,12 @@ import { useShallow } from 'zustand/shallow';
 import type { SimulationRun, SkillEffectLog } from '@/modules/simulation/compare.types';
 import type { PosKeepLabel } from '@/utils/races';
 import { RegionDisplayType } from '@/modules/racetrack/types';
-import { getSkillNameById } from '@/modules/skills/utils';
+import { getSkillById, getSkillNameById } from '@/modules/skills/utils';
 import { useSettingsStore } from '@/store/settings.store';
 import { colors, debuffColors, posKeepColors, recoveryColors, rushedColors } from '@/utils/colors';
-import { SkillPerspective, SkillType } from '@/lib/sunday-tools/skills/definitions';
+import { SkillPerspective, SkillTarget, SkillType } from '@/lib/sunday-tools/skills/definitions';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { isExternalDebuffEffect } from '@/lib/sunday-tools/skills/external-debuffs';
 import { useDebuffs } from '@/modules/simulation/stores/compare.store';
 
 export type RegionData = {
@@ -31,6 +32,28 @@ export type RegionData = {
 };
 
 const INSTANT_DURATION_THRESHOLD = 1;
+
+const getDebuffIndicatorEffectType = (skillId: string): number => {
+  try {
+    const skillData = getSkillById(skillId);
+
+    for (const alternative of skillData.alternatives) {
+      for (const effect of alternative.effects) {
+        const type = effect.type ?? SkillType.Noop;
+        const target = effect.target ?? SkillTarget.Self;
+        const modifier = effect.modifier ?? 0;
+
+        if (isExternalDebuffEffect({ type, target, modifier })) {
+          return type;
+        }
+      }
+    }
+
+    return skillData.alternatives[0]?.effects[0]?.type ?? SkillType.Noop;
+  } catch {
+    return SkillType.Noop;
+  }
+};
 
 const getSkillActivations = (
   skillId: string,
@@ -153,6 +176,7 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
           text: getSkillNameById(debuff.skillId),
           skillId: debuff.skillId,
           umaIndex,
+          effectType: getDebuffIndicatorEffectType(debuff.skillId),
           debuffId: debuff.id,
           regions: [{ start: debuff.position, end: debuff.position }],
         });

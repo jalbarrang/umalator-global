@@ -147,6 +147,7 @@ export const RaceTrack = (props: RaceTrackProps) => {
       <div className="flex flex-col gap-2 w-full max-w-[1600px]">
         <TrackHeader course={course} courseId={courseId} racedef={racedef} />
 
+        <TrackLegend />
         <div className="w-full">
           <svg
             version="1.1"
@@ -209,7 +210,6 @@ export const RaceTrack = (props: RaceTrackProps) => {
           </svg>
         </div>
 
-        <TrackLegend />
         <TrackControls />
       </div>
     </div>

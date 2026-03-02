@@ -65,7 +65,6 @@ export const CompactSkillMarker = memo<CompactSkillMarkerProps>(
             <EffectSymbol
               effectType={effectType}
               color={{ fill: '#fff', stroke: '#fff' }}
-              injected={false}
               size={COMPACT_SYMBOL_SIZE}
             />
           </g>

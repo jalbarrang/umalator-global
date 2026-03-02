@@ -7,6 +7,7 @@ import { SkillTooltip, useSkillTooltip } from './skill-tooltip';
 export type ImmediateLayout = {
   key: string;
   xPct: number;
+  markerY: number;
   effectType: number;
   color: { fill: string; stroke: string };
   isDebuff: boolean;
@@ -20,6 +21,7 @@ export type ImmediateLayout = {
 export const ImmediateMarker = React.memo<ImmediateLayout & { onDragStart: DragStartHandler }>(
   ({
     xPct,
+    markerY,
     effectType,
     color,
     isDebuff,
@@ -52,7 +54,7 @@ export const ImmediateMarker = React.memo<ImmediateLayout & { onDragStart: DragS
     return (
       <svg
         x={`${xPct}%`}
-        y="50%"
+        y={`${markerY}%`}
         width="0"
         height="0"
         overflow="visible"
@@ -72,7 +74,6 @@ export const ImmediateMarker = React.memo<ImmediateLayout & { onDragStart: DragS
         <EffectSymbol
           effectType={effectType}
           color={color}
-          injected={isDebuff}
           size={IMMEDIATE_SYMBOL_SIZE}
         />
 

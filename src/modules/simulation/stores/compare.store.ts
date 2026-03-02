@@ -148,17 +148,35 @@ export const updateDebuffPosition = (
   debuffId: string,
   position: number,
 ) => {
-  useRaceStore.setState((state) => ({
-    injectedDebuffs: {
-      ...state.injectedDebuffs,
-      [runnerId]: state.injectedDebuffs[runnerId].map((debuff) => {
-        if (debuff.id !== debuffId) {
-          return debuff;
-        }
-        return { ...debuff, position: Math.round(position) };
-      }),
-    },
-  }));
+  const normalizedPosition = Math.round(position);
+
+  useRaceStore.setState((state) => {
+    let changed = false;
+
+    const nextRunnerDebuffs = state.injectedDebuffs[runnerId].map((debuff) => {
+      if (debuff.id !== debuffId) {
+        return debuff;
+      }
+
+      if (debuff.position === normalizedPosition) {
+        return debuff;
+      }
+
+      changed = true;
+      return { ...debuff, position: normalizedPosition };
+    });
+
+    if (!changed) {
+      return state;
+    }
+
+    return {
+      injectedDebuffs: {
+        ...state.injectedDebuffs,
+        [runnerId]: nextRunnerDebuffs,
+      },
+    };
+  });
 };
 
 export const clearAllDebuffs = () => {

@@ -3,13 +3,11 @@ import { SkillType } from '@/lib/sunday-tools/skills/definitions';
 export type EffectSymbolProps = {
   effectType: number;
   color: { fill: string; stroke: string };
-  injected: boolean;
   size?: number;
 };
 
 export const EffectSymbol = (props: EffectSymbolProps) => {
-  const { effectType, color, injected, size = 4 } = props;
-  const strokeDasharray = injected ? '2,1' : undefined;
+  const { effectType, color, size = 4 } = props;
 
   if (effectType === SkillType.Recovery) {
     return (
@@ -17,7 +15,6 @@ export const EffectSymbol = (props: EffectSymbolProps) => {
         points={`0,-${size} ${size},0 0,${size} -${size},0`}
         fill={color.fill}
         stroke={color.stroke}
-        strokeDasharray={strokeDasharray}
         strokeWidth="1"
       />
     );
@@ -30,7 +27,6 @@ export const EffectSymbol = (props: EffectSymbolProps) => {
           points={`${-size},-${size - 1} 0,0 ${-size},${size - 1}`}
           fill="none"
           stroke={color.stroke}
-          strokeDasharray={strokeDasharray}
           strokeWidth="1"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -39,7 +35,6 @@ export const EffectSymbol = (props: EffectSymbolProps) => {
           points={`0,-${size - 1} ${size},0 0,${size - 1}`}
           fill="none"
           stroke={color.stroke}
-          strokeDasharray={strokeDasharray}
           strokeWidth="1"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -58,7 +53,6 @@ export const EffectSymbol = (props: EffectSymbolProps) => {
           x2={size - 0.5}
           y2="0"
           stroke={color.stroke}
-          strokeDasharray={strokeDasharray}
           strokeWidth="1"
           strokeLinecap="round"
         />
@@ -68,7 +62,6 @@ export const EffectSymbol = (props: EffectSymbolProps) => {
           points={`${-size + 3},-${size - 2} ${-size + 1},0 ${-size + 3},${size - 2}`}
           fill="none"
           stroke={color.stroke}
-          strokeDasharray={strokeDasharray}
           strokeWidth="1"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -79,7 +72,6 @@ export const EffectSymbol = (props: EffectSymbolProps) => {
           points={`${size - 3},-${size - 2} ${size - 1},0 ${size - 3},${size - 2}`}
           fill="none"
           stroke={color.stroke}
-          strokeDasharray={strokeDasharray}
           strokeWidth="1"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -98,7 +90,6 @@ export const EffectSymbol = (props: EffectSymbolProps) => {
         points={`0,-${size - 1} ${size - 1},${size - 1} -${size - 1},${size - 1}`}
         fill={color.fill}
         stroke={color.stroke}
-        strokeDasharray={strokeDasharray}
         strokeWidth="1"
       />
     );
@@ -111,7 +102,6 @@ export const EffectSymbol = (props: EffectSymbolProps) => {
       r={size}
       fill={color.fill}
       stroke={color.stroke}
-      strokeDasharray={strokeDasharray}
       strokeWidth="1"
     />
   );
