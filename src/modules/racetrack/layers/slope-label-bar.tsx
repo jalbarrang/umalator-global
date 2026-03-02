@@ -36,6 +36,7 @@ export const SlopeLabelBar = React.memo<SlopeLabelBarProps>((props) => {
     // Slope section boxes
     const slopeBoxes = slopes.map((s, i) => {
       const isUphill = s.slope > 0;
+
       const colorIndex = isUphill ? uphillIndex++ : downhillIndex++;
       const colors = isUphill ? UPHILL_COLORS : DOWNHILL_COLORS;
 
@@ -55,7 +56,7 @@ export const SlopeLabelBar = React.memo<SlopeLabelBarProps>((props) => {
           <rect x="0" y="0" height="100%" width="100%" fill={colors.main[colorIndex % 2]} />
           <rect x="0" y="45" height="5" width="100%" fill={colors.accent[colorIndex % 2]} />
 
-          <SectionText id={isUphill ? 'uphill' : 'downhill'} w={s.length / distance} />
+          <SectionText id={isUphill ? 'uphill' : 'downhill'} w={width} />
         </svg>
       );
     });

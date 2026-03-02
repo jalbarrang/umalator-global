@@ -1,4 +1,5 @@
 import i18n from '@/i18n';
+import { useMemo } from 'react';
 
 type SectionTextProps = {
   w: number;
@@ -11,7 +12,10 @@ type SectionTextProps = {
 export const SectionText: React.FC<SectionTextProps> = (props) => {
   const { y = '50%', w, id, fields } = props;
 
-  const translationKey = `racetrack${w < 0.075 ? '.short' : ''}.${id}`;
+  const translationKey = useMemo(
+    () => (w < 10 ? `racetrack.short.${id}` : `racetrack.${id}`),
+    [w, id],
+  );
 
   return (
     <text

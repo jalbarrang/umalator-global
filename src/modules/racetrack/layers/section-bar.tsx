@@ -50,7 +50,9 @@ export const SectionTypesBar = React.memo<SectionTypesBarProps>((props) => {
     // Straight section boxes
     const straightBoxes = straights.map((s, i) => {
       const x = (s.start / distance) * 100;
-      const width = ((s.end - s.start) / distance) * 100;
+      const region = s.end - s.start;
+      const regionPercentage = region / distance;
+      const width = regionPercentage * 100;
 
       return (
         <svg
@@ -64,7 +66,7 @@ export const SectionTypesBar = React.memo<SectionTypesBarProps>((props) => {
           <rect x="0" y="0" height="100%" width="100%" fill={STRAIGHT_COLORS.main[i % 2]} />
           <rect x="0" y="90%" height="10%" width="100%" fill={STRAIGHT_COLORS.accent[i % 2]} />
 
-          <SectionText id="straight" w={width} y="40%" />
+          <SectionText id="straight" w={width} y="50%" />
         </svg>
       );
     });
@@ -73,6 +75,7 @@ export const SectionTypesBar = React.memo<SectionTypesBarProps>((props) => {
     const cornerBoxes = corners.map((c, i) => {
       const x = (c.start / distance) * 100;
       const width = (c.length / distance) * 100;
+
       const fields = { n: 4 - ((corners.length - i - 1) % 4) };
 
       return (
@@ -87,7 +90,7 @@ export const SectionTypesBar = React.memo<SectionTypesBarProps>((props) => {
           <rect x="0" y="0" height="100%" width="100%" fill={CORNER_COLORS.main[i % 2]} />
           <rect x="0" y="90%" height="10%" width="100%" fill={CORNER_COLORS.accent[i % 2]} />
 
-          <SectionText id="corner" w={width} fields={fields} y="40%" />
+          <SectionText id="corner" w={width} fields={fields} />
         </svg>
       );
     });
