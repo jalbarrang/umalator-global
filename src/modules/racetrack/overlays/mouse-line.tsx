@@ -1,11 +1,12 @@
 import { RaceTrackDimensions } from '../types';
+import React from 'react';
 
 type MouseLineProps = {
   mouseLineRef: React.RefObject<SVGLineElement | null>;
   mouseTextRef: React.RefObject<SVGTextElement | null>;
 };
 
-export const MouseLine = (props: MouseLineProps) => {
+export const MouseLine = React.memo((props: MouseLineProps) => {
   const { mouseLineRef, mouseTextRef } = props;
 
   return (
@@ -31,4 +32,4 @@ export const MouseLine = (props: MouseLineProps) => {
       />
     </svg>
   );
-};
+});

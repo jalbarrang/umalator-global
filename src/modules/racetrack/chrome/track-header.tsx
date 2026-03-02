@@ -4,7 +4,7 @@ import i18n from '@/i18n';
 import { CourseData, Surface } from '@/lib/sunday-tools/course/definitions';
 import { RaceConditions } from '@/utils/races';
 import { ExternalLinkIcon } from 'lucide-react';
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { getCourseById, inoutKey } from '../courses';
 import { trackDescription } from '../labels';
 
@@ -29,7 +29,7 @@ export type TrackHeaderProps = {
   racedef: RaceConditions;
 };
 
-export const TrackHeader = (props: TrackHeaderProps) => {
+export const TrackHeader = React.memo((props: TrackHeaderProps) => {
   const { course, courseId, racedef } = props;
 
   const courseLabel = trackDescription({ courseid: courseId });
@@ -59,4 +59,4 @@ export const TrackHeader = (props: TrackHeaderProps) => {
       </div>
     </div>
   );
-};
+});

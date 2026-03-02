@@ -17,7 +17,7 @@ export const XAxis = memo<XAxisProps>(function XAxis(props) {
 
   const xScale = useMemo(
     () => d3.scaleLinear().domain([0, courseDistance]).range([0, barWidth]),
-    [courseDistance, barWidth],
+    [courseDistance],
   );
 
   const ticks = xScale.ticks();

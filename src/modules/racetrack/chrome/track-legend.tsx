@@ -1,8 +1,9 @@
-import { debuffColors, recoveryColors } from "@/utils/colors";
-import { SkillType } from "@/lib/sunday-tools/skills/definitions";
-import { EffectSymbol } from "../primitives/effect-symbol";
+import { debuffColors, recoveryColors } from '@/utils/colors';
+import { SkillType } from '@/lib/sunday-tools/skills/definitions';
+import { EffectSymbol } from '../primitives/effect-symbol';
+import React from 'react';
 
-export const TrackLegend = () => {
+export const TrackLegend = React.memo(() => {
   return (
     <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground bg-card px-4 py-2 rounded-md">
       <span className="font-semibold tracking-wide">Legend</span>
@@ -21,11 +22,7 @@ export const TrackLegend = () => {
       <div className="flex items-center gap-2">
         <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
           <g transform="translate(8 8)">
-            <EffectSymbol
-              effectType={SkillType.Accel}
-              color={recoveryColors[0]}
-              injected={false}
-            />
+            <EffectSymbol effectType={SkillType.Accel} color={recoveryColors[0]} injected={false} />
           </g>
         </svg>
         <span>Accel</span>
@@ -90,4 +87,4 @@ export const TrackLegend = () => {
       </div>
     </div>
   );
-};
+});
