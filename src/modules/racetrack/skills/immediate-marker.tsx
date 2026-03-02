@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { DragStartHandler } from '../types';
 import { IMMEDIATE_HIT_PADDING, IMMEDIATE_SYMBOL_SIZE } from './definitions';
 import { EffectSymbol } from '../primitives/effect-symbol';
@@ -16,6 +16,7 @@ export type ImmediateLayout = {
   umaIndex?: number;
   position: number;
   debuffId?: string;
+  isDragging?: boolean;
 };
 
 export const ImmediateMarker = React.memo<ImmediateLayout & { onDragStart: DragStartHandler }>(
@@ -30,10 +31,24 @@ export const ImmediateMarker = React.memo<ImmediateLayout & { onDragStart: DragS
     umaIndex,
     position,
     debuffId,
+    isDragging = false,
     onDragStart,
   }) => {
     const { tooltipRef, bgRef, show, hide } = useSkillTooltip();
+    const wasDraggingRef = useRef(false);
     const label = useMemo(() => `${text} @ ${Math.round(position)}m`, [text, position]);
+
+    useEffect(() => {
+      if (isDragging) {
+        wasDraggingRef.current = true;
+        return;
+      }
+
+      if (wasDraggingRef.current) {
+        hide();
+        wasDraggingRef.current = false;
+      }
+    }, [isDragging, hide]);
 
     const handleMouseDown = useCallback(
       (e: React.MouseEvent) => {
@@ -51,6 +66,14 @@ export const ImmediateMarker = React.memo<ImmediateLayout & { onDragStart: DragS
       [skillId, umaIndex, position, isDebuff, debuffId, onDragStart],
     );
 
+    const handlePointerLeave = useCallback(
+      (e: React.PointerEvent<SVGSVGElement>) => {
+        if (isDragging || e.buttons !== 0) return;
+        hide();
+      },
+      [hide, isDragging],
+    );
+
     return (
       <svg
         x={`${xPct}%`}
@@ -61,7 +84,7 @@ export const ImmediateMarker = React.memo<ImmediateLayout & { onDragStart: DragS
         style={{ cursor: skillId ? 'grab' : 'default' }}
         onMouseDown={handleMouseDown}
         onPointerEnter={show}
-        onPointerLeave={hide}
+        onPointerLeave={handlePointerLeave}
       >
         <rect
           x={-IMMEDIATE_HIT_PADDING}

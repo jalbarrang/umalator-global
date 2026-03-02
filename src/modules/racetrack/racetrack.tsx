@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef } from 'react';
 import { initializeSimulationRun, SimulationRun } from '../simulation/compare.types';
-import { useDragSkill } from './hooks/useDragSkill';
+import { getActiveDragPreview, useDragSkill } from './hooks/useDragSkill';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 import { useSettingsStore } from '@/store/settings.store';
 import { useVisualizationData } from './hooks/useVisualizationData';
@@ -94,13 +94,22 @@ export const RaceTrack = (props: RaceTrackProps) => {
       point.y = e.clientY;
       const svgPoint = point.matrixTransform(ctm.inverse());
 
-      const isWithinRaceBounds =
-        svgPoint.x - RaceTrackDimensions.xOffset > 0 &&
-        svgPoint.x - RaceTrackDimensions.xOffset <= RaceTrackDimensions.RenderWidth;
+      const cursorX = svgPoint.x - RaceTrackDimensions.xOffset;
+      const isWithinRaceBounds = cursorX > 0 && cursorX <= RaceTrackDimensions.RenderWidth;
+      if (draggedSkill) {
+        handleDragMove(e);
+      }
+      if (!isWithinRaceBounds && !draggedSkill) return;
 
-      if (!isWithinRaceBounds) return;
+      let x = cursorX;
+      if (draggedSkill) {
+        const preview = getActiveDragPreview();
+        x =
+          preview != null
+            ? (preview.start / course.distance) * RaceTrackDimensions.RenderWidth
+            : Math.max(0, Math.min(RaceTrackDimensions.RenderWidth, cursorX));
+      }
 
-      const x = svgPoint.x - RaceTrackDimensions.xOffset;
       const y = svgPoint.y;
 
       if (mouseLineRef.current) {
@@ -119,10 +128,6 @@ export const RaceTrack = (props: RaceTrackProps) => {
       }
 
       tooltipRef.current?.updateFromPositionRatio(x / RaceTrackDimensions.RenderWidth);
-
-      if (draggedSkill) {
-        handleDragMove(e);
-      }
     },
     [handleDragMove, draggedSkill, course.distance],
   );

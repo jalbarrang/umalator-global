@@ -2,6 +2,7 @@ import { SkillType } from '@/lib/sunday-tools/skills/definitions';
 import { colors, debuffColors } from '@/utils/colors';
 import { EffectSymbol } from '../primitives/effect-symbol';
 import React from 'react';
+import { Separator } from '@/components/ui/separator';
 
 const EFFECT_ITEMS = [
   { label: 'Speed', type: SkillType.TargetSpeed },
@@ -28,7 +29,9 @@ export const TrackLegend = React.memo(() => {
     <div className="flex flex-wrap items-center gap-3 rounded-md border border-border/70 bg-linear-to-r from-card via-card to-card/80 px-4 py-2 text-xs text-foreground/90">
       <span className="pr-2 font-semibold tracking-wide text-foreground">Legend</span>
 
-      <div className="flex flex-wrap items-center gap-3 border-l border-border/70 pl-3">
+      <Separator orientation="vertical" />
+
+      <div className="flex flex-wrap items-center gap-3">
         {EFFECT_ITEMS.map((item) => (
           <div key={item.label} className="flex items-center gap-2">
             <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
@@ -45,7 +48,9 @@ export const TrackLegend = React.memo(() => {
         ))}
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 border-l border-border/70 pl-3">
+      <Separator orientation="vertical" />
+
+      <div className="flex flex-wrap items-center gap-2">
         {RUNNER_PAIRS.map((pair) => (
           <div
             key={pair.label}
@@ -73,7 +78,7 @@ export const TrackLegend = React.memo(() => {
                 }}
                 aria-hidden="true"
               />
-              Debuff Applied
+              Debuff Hit
             </span>
           </div>
         ))}

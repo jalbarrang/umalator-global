@@ -17,6 +17,7 @@ export type DurationLayout = {
   end: number;
   isDebuff: boolean;
   debuffId?: string;
+  isDragging?: boolean;
 };
 
 export const DurationMarker = React.memo<DurationLayout & { onDragStart: DragStartHandler }>(
@@ -33,6 +34,7 @@ export const DurationMarker = React.memo<DurationLayout & { onDragStart: DragSta
     end,
     isDebuff,
     debuffId,
+    isDragging = false,
     onDragStart,
   }) => {
     const handleMouseDown = useCallback(
@@ -55,6 +57,7 @@ export const DurationMarker = React.memo<DurationLayout & { onDragStart: DragSta
         skillId={skillId}
         start={start}
         end={end}
+        isDragging={isDragging}
         onDragStart={handleMouseDown}
       />
     );

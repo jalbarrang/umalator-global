@@ -1,4 +1,4 @@
-import React, { memo, useMemo } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useRef } from 'react';
 import { EffectSymbol } from '../primitives/effect-symbol';
 import { COMPACT_SYMBOL_SIZE } from './definitions';
 import { SkillTooltip, useSkillTooltip } from './skill-tooltip';
@@ -14,11 +14,25 @@ export type CompactSkillMarkerProps = {
   skillId?: string;
   start?: number;
   end?: number;
+  isDragging?: boolean;
   onDragStart?: (e: React.MouseEvent) => void;
 };
 
 export const CompactSkillMarker = memo<CompactSkillMarkerProps>(
-  ({ x, y, width, barHeight, color, text, effectType, skillId, start, end, onDragStart }) => {
+  ({
+    x,
+    y,
+    width,
+    barHeight,
+    color,
+    text,
+    effectType,
+    skillId,
+    start,
+    end,
+    isDragging = false,
+    onDragStart,
+  }) => {
     const isDraggable = useMemo(() => !!skillId && !!onDragStart, [skillId, onDragStart]);
     const markerStyle = useMemo(
       () => ({ cursor: isDraggable ? 'grab' : 'default' }),
@@ -26,6 +40,7 @@ export const CompactSkillMarker = memo<CompactSkillMarkerProps>(
     );
 
     const { tooltipRef, bgRef, show, hide } = useSkillTooltip();
+    const wasDraggingRef = useRef(false);
 
     const tooltipLabel = useMemo(() => {
       if (start == null) return text;
@@ -34,6 +49,26 @@ export const CompactSkillMarker = memo<CompactSkillMarkerProps>(
         ? `${text} @ ${Math.round(start)}m (${Math.round(duration)}m)`
         : `${text} @ ${Math.round(start)}m`;
     }, [text, start, end]);
+
+    useEffect(() => {
+      if (isDragging) {
+        wasDraggingRef.current = true;
+        return;
+      }
+
+      if (wasDraggingRef.current) {
+        hide();
+        wasDraggingRef.current = false;
+      }
+    }, [isDragging, hide]);
+
+    const handlePointerLeave = useCallback(
+      (e: React.PointerEvent<SVGSVGElement>) => {
+        if (isDragging || e.buttons !== 0) return;
+        hide();
+      },
+      [hide, isDragging],
+    );
 
     return (
       <svg
@@ -45,7 +80,7 @@ export const CompactSkillMarker = memo<CompactSkillMarkerProps>(
         overflow="visible"
         onMouseDown={onDragStart}
         onPointerEnter={show}
-        onPointerLeave={hide}
+        onPointerLeave={handlePointerLeave}
         style={markerStyle}
       >
         <rect

@@ -100,6 +100,10 @@ export const useDragPreviewForUma = (umaIndex: 0 | 1) => {
   });
 };
 
+export const getActiveDragPreview = () => {
+  return useDragPreviewStore.getState().preview;
+};
+
 interface UseDragSkillParams {
   xOffset: number;
   courseDistance: number;
@@ -143,7 +147,7 @@ export function useDragSkill({
       const svgCoords = clientToSvgCoords(mainSvg, e.clientX, e.clientY);
       if (!svgCoords) return;
 
-      const trackWidth = viewBoxWidth - xOffset;
+      const trackWidth = viewBoxWidth;
       const x = svgCoords.x - xOffset;
       const dragX = (x / trackWidth) * courseDistance;
 
@@ -169,7 +173,7 @@ export function useDragSkill({
       const svgCoords = clientToSvgCoords(svg, e.clientX, e.clientY);
       if (!svgCoords) return;
 
-      const trackWidth = viewBoxWidth - xOffset;
+      const trackWidth = viewBoxWidth;
       const x = svgCoords.x - xOffset;
 
       const newStart = Math.round(

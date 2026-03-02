@@ -60,7 +60,7 @@ export const UmaSkillRow = React.memo<UmaSkillRowProps>((props) => {
   const positionsMap = useForcedPositionMap(runnerId);
   const dragPreview = useDragPreviewForUma(umaIndex);
   const immediateCenterOffsetPct =
-    ((COMPACT_BAR_HEIGHT / 2) / RaceTrackDimensions.UmaSkillSectionRowHeight) * 100;
+    (COMPACT_BAR_HEIGHT / 2 / RaceTrackDimensions.UmaSkillSectionRowHeight) * 100;
 
   const rowY = useMemo(() => (umaIndex === 0 ? 0 : '50%'), [umaIndex]);
 
@@ -85,6 +85,9 @@ export const UmaSkillRow = React.memo<UmaSkillRowProps>((props) => {
 
     for (let i = 0; i < umaRegions.length; i++) {
       const desc = umaRegions[i];
+      const isDebuff = desc.isDebuff ?? !!desc.debuffId;
+      const markerType = desc.debuffId ? 'debuff' : 'skill';
+      const dragSkillId = isDebuff && !desc.debuffId ? undefined : desc.skillId;
 
       if (desc.type === RegionDisplayType.Immediate && desc.regions.length > 0) {
         let position = desc.regions[0].start;
@@ -93,13 +96,12 @@ export const UmaSkillRow = React.memo<UmaSkillRowProps>((props) => {
           position = positionsMap[desc.skillId];
         }
 
-        const markerType = desc.debuffId ? 'debuff' : 'skill';
         const matchesPreview =
           !!dragPreview &&
           dragPreview.markerType === markerType &&
           dragPreview.umaIndex === umaIndex &&
           ((markerType === 'debuff' && desc.debuffId === dragPreview.debuffId) ||
-            (desc.skillId === dragPreview.skillId &&
+            (dragSkillId === dragPreview.skillId &&
               position === dragPreview.originalStart &&
               position === dragPreview.originalEnd));
 
@@ -121,12 +123,13 @@ export const UmaSkillRow = React.memo<UmaSkillRowProps>((props) => {
           markerY: MARKER_START_PCT + MARKER_RUNG_STEP_PCT * rungIndex + immediateCenterOffsetPct,
           effectType: desc.effectType ?? 0,
           color: desc.color,
-          isDebuff: !!desc.debuffId,
+          isDebuff,
           text: desc.text,
-          skillId: desc.skillId,
+          skillId: dragSkillId,
           umaIndex: desc.umaIndex,
           position,
           debuffId: desc.debuffId,
+          isDragging: matchesPreview,
         });
         continue;
       }
@@ -144,13 +147,12 @@ export const UmaSkillRow = React.memo<UmaSkillRowProps>((props) => {
             end = start + duration;
           }
 
-          const markerType = desc.debuffId ? 'debuff' : 'skill';
           const matchesPreview =
             !!dragPreview &&
             dragPreview.markerType === markerType &&
             dragPreview.umaIndex === umaIndex &&
             ((markerType === 'debuff' && desc.debuffId === dragPreview.debuffId) ||
-              (desc.skillId === dragPreview.skillId &&
+              (dragSkillId === dragPreview.skillId &&
                 start === dragPreview.originalStart &&
                 end === dragPreview.originalEnd));
 
@@ -173,12 +175,13 @@ export const UmaSkillRow = React.memo<UmaSkillRowProps>((props) => {
             color: desc.color,
             text: desc.text,
             effectType: desc.effectType,
-            skillId: desc.skillId,
+            skillId: dragSkillId,
             umaIndex: desc.umaIndex,
             start,
             end,
-            isDebuff: !!desc.debuffId,
+            isDebuff,
             debuffId: desc.debuffId,
+            isDragging: matchesPreview,
           });
         }
       }
