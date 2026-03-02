@@ -1,6 +1,6 @@
 import { CourseData } from '@/lib/sunday-tools/course/definitions';
 import React, { useMemo } from 'react';
-import { RaceTrackDimensions } from '../types';
+import { RaceTrackDimensions, slopeValueToPercentage } from '../types';
 
 interface Slope {
   readonly start: number;
@@ -8,14 +8,14 @@ interface Slope {
   readonly slope: number;
 }
 
-export const baseSlopeYPx = 12;
-export const baseSlopeHeightPx = 30;
-export const baseSlopeHeightFloat = 0.3;
-export const baseSlopeHeightPercentage = '30%';
-
 type SlopeVisualizationProps = {
   course: CourseData;
 };
+
+const vizHeight = RaceTrackDimensions.SlopeVisualizationHeight;
+const renderWidth = RaceTrackDimensions.RenderWidth;
+const groundY = vizHeight;
+const baselineY = vizHeight - 5;
 
 export const SlopeVisualization = React.memo<SlopeVisualizationProps>((props) => {
   const { course } = props;
@@ -24,106 +24,99 @@ export const SlopeVisualization = React.memo<SlopeVisualizationProps>((props) =>
   const distance = course.distance;
 
   const elements = useMemo(() => {
-    // Calculate the elevation range
-    const [, highestPoint, lowestPoint] = slopes.reduce(
-      (acc, s) => {
-        const [last, highest, lowest] = acc;
-        const current = last + (s.slope / 10000) * s.length;
+    // Elevation range from slope sections only
+    let elevation = 0;
+    let highestPoint = 1;
+    let lowestPoint = 0;
 
-        if (current > highest) {
-          return [current, current, lowest];
-        } else if (current < lowest) {
-          return [current, highest, current];
-        } else {
-          return [current, highest, lowest];
-        }
-      },
-      [0, 1, 0],
-    );
+    for (let i = 0; i < slopes.length; i++) {
+      const slopePercentage = slopeValueToPercentage(slopes[i].slope);
+      elevation += slopePercentage * slopes[i].length;
+      if (elevation > highestPoint) highestPoint = elevation;
+      if (elevation < lowestPoint) lowestPoint = elevation;
+    }
 
     const range = highestPoint - (lowestPoint + highestPoint > -30 ? 0 : lowestPoint);
 
     // Fill in flat sections between slopes
     const full: Array<Slope> = slopes.slice();
-
     let lastEnd = 0;
 
-    slopes.forEach((s) => {
+    for (let i = 0; i < slopes.length; i++) {
+      const s = slopes[i];
       if (s.start !== lastEnd) {
         full.push({ start: lastEnd, length: s.start - lastEnd, slope: 0 });
       }
       lastEnd = s.start + s.length;
-    });
+    }
 
     if (lastEnd < distance) {
-      full.push({
-        start: lastEnd,
-        length: distance - lastEnd,
-        slope: 0,
-      });
+      full.push({ start: lastEnd, length: distance - lastEnd, slope: 0 });
     }
 
     full.sort((a, b) => a.start - b.start);
 
-    // Calculate terrain elements
-    const slopeEndHeights = [50];
+    // Pass 1: cumulative heights + min/max
+    const heights = new Float64Array(full.length + 1);
+    let maxH = 0;
+    let minH = 0;
 
-    const terrainElements = full.reduce<Array<React.ReactElement>>((elems, s, i) => {
-      const lastEndHeight = slopeEndHeights[slopeEndHeights.length - 1];
+    for (let i = 0; i < full.length; i++) {
+      const slopePercentage = slopeValueToPercentage(full[i].slope);
+      const slopeHeight = slopePercentage * full[i].length;
+      heights[i + 1] = heights[i] - (slopeHeight / range) * 20;
+      if (heights[i + 1] > maxH) maxH = heights[i + 1];
+      if (heights[i + 1] < minH) minH = heights[i + 1];
+    }
 
-      const thisEndHeight = lastEndHeight - (((s.slope / 10000) * s.length) / range) * 40;
+    const heightRange = maxH - minH;
+    const scaleFactor = heightRange > 0 ? (baselineY * 0.6) / heightRange : 0;
 
-      slopeEndHeights.push(thisEndHeight);
+    // Pass 2: build polygons with stable normalization
+    const terrainElements: Array<React.ReactElement> = [];
 
-      if (s.slope === 0) {
-        elems.push(
-          <rect
-            id={`terrain-flat-${i}`}
-            key={`terrain-${i}`}
-            x={`${(s.start / distance) * 100}%`}
-            y={`${lastEndHeight * baseSlopeHeightFloat}%`}
-            width={`${(s.length / distance) * 100}%`}
-            height={baseSlopeHeightPercentage}
-            fill="rgb(211,243,68)"
-          />,
-        );
-      } else {
-        elems.push(
-          <svg
-            id={`terrain-hill-${i}`}
-            key={`terrain-${i}`}
-            className={`hillArea ${s.slope < 0 ? 'downhill' : 'uphill'}`}
-            x={`${(s.start / distance) * 100}%`}
-            y="0"
-            width={`${(s.length / distance) * 100}%`}
-            height={baseSlopeHeightPercentage}
-            viewBox="0 0 100 100"
-            preserveAspectRatio="none"
-          >
-            <polygon
-              points={`0,${lastEndHeight} 0,100 100,100 100,${thisEndHeight}`}
-              fill="rgb(211,243,68)"
-            />
-          </svg>,
-        );
-      }
-      return elems;
-    }, []);
+    for (let i = 0; i < full.length; i++) {
+      const s = full[i];
+      const xStart = (s.start / distance) * renderWidth;
+      const xEnd = ((s.start + s.length) / distance) * renderWidth;
+      const yLeft = baselineY + (heights[i] - maxH) * scaleFactor;
+      const yRight = baselineY + (heights[i + 1] - maxH) * scaleFactor;
+
+      terrainElements.push(
+        <polygon
+          id={`terrain-${i}`}
+          key={`terrain-${i}`}
+          points={`${xStart},${yLeft} ${xStart},${groundY} ${xEnd},${groundY} ${xEnd},${yRight}`}
+          fill="rgb(211,243,68)"
+        />,
+      );
+    }
 
     return terrainElements;
   }, [slopes, distance]);
 
   return (
-    <svg
-      id="racetrack-slope-visualization"
-      x={RaceTrackDimensions.xOffset}
-      y={0}
-      width={RaceTrackDimensions.RenderWidth}
-    >
-      {elements}
+    <>
+      <svg
+        id="racetrack-slope-visualization"
+        x={RaceTrackDimensions.xOffset}
+        y={RaceTrackDimensions.SlopeVisualizationY - 5}
+        width={RaceTrackDimensions.RenderWidth}
+        height={RaceTrackDimensions.SlopeVisualizationHeight}
+        viewBox={`0 0 ${renderWidth} ${vizHeight}`}
+        preserveAspectRatio="none"
+      >
+        {elements}
+      </svg>
 
       {/* Grass divider line */}
-      <rect x="0" y="28%" width="100%" height="2%" fill="rgb(140,170,10)" />
-    </svg>
+      <rect
+        x={RaceTrackDimensions.xOffset}
+        y={RaceTrackDimensions.SlopeLabelBarY - 5}
+        width={RaceTrackDimensions.RenderWidth}
+        height={5}
+        fill="rgb(140,170,10)"
+      />
+    </>
   );
 });

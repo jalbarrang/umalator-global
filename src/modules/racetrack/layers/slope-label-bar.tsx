@@ -73,7 +73,7 @@ export const SlopeLabelBar = React.memo<SlopeLabelBarProps>((props) => {
             key={`slope-marker-${i}-start`}
             d={s.start}
             x={(s.start / distance) * 100}
-            y={42}
+            y={RaceTrackDimensions.SlopeLabelBarHeight}
             up={i > 0 && s.start - (slopes[i - 1].start + slopes[i - 1].length) < distance * 0.05}
           />,
         );
@@ -86,7 +86,7 @@ export const SlopeLabelBar = React.memo<SlopeLabelBarProps>((props) => {
             key={`slope-marker-${i}-end`}
             d={s.start + s.length}
             x={((s.start + s.length) / distance) * 100}
-            y={42}
+            y={RaceTrackDimensions.SlopeLabelBarHeight}
             up={markedStart && s.length < distance * 0.05}
           />,
         );

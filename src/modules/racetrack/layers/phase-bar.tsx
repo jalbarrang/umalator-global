@@ -75,14 +75,15 @@ export const PhaseBar = React.memo<PhaseBarProps>((props) => {
         >
           <rect x="0" y="0" height="100%" width="100%" fill={phase.mainColor} />
           <rect x="0" y="90%" height="10%" width="100%" fill={phase.accentColor} />
+
           <SectionText id={phase.id} w={phase.w} />
         </svg>
       ))}
 
       {/* Phase boundary markers */}
-      <DistanceMarker d={phase1Start} x={16.67} y={RaceTrackDimensions.PhaseBarHeight - 2} />
-      <DistanceMarker d={phase2Start} x={66.67} y={RaceTrackDimensions.PhaseBarHeight - 2} />
-      <DistanceMarker d={phase3Start} x={83.33} y={RaceTrackDimensions.PhaseBarHeight - 2} />
+      <DistanceMarker d={phase1Start} x={16.67} y={RaceTrackDimensions.PhaseBarHeight} />
+      <DistanceMarker d={phase2Start} x={66.67} y={RaceTrackDimensions.PhaseBarHeight} />
+      <DistanceMarker d={phase3Start} x={83.33} y={RaceTrackDimensions.PhaseBarHeight} />
     </svg>
   );
 });

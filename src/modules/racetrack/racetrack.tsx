@@ -26,6 +26,8 @@ import { PhaseBar } from './layers/phase-bar';
 import { RaceTrackDimensions } from './types';
 import { UmaSkillRow } from './skills/uma-skill-row';
 
+import './components/RaceTrack.css';
+
 export type RaceTrackProps = {
   courseId: number;
   chartData?: SimulationRun | null;
@@ -41,7 +43,7 @@ export const RaceTrack = (props: RaceTrackProps) => {
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
   const { racedef, showUma1, showUma2 } = useSettingsStore();
 
-  const { tooltipData, rtMouseMove, rtMouseLeave } = useRaceTrackTooltip({
+  const { tooltipData, tooltipVisible, rtMouseMove, rtMouseLeave } = useRaceTrackTooltip({
     chartData,
     course,
   });
@@ -75,7 +77,7 @@ export const RaceTrack = (props: RaceTrackProps) => {
   const { draggedSkill, handleDragStart, handleDragMove, handleDragEnd } = useDragSkill({
     xOffset: 0,
     courseDistance: course.distance,
-    viewBoxWidth: RaceTrackDimensions.ViewWidth,
+    viewBoxWidth: RaceTrackDimensions.RenderWidth,
     onSkillDrag: handleSkillDrag,
   });
 
@@ -90,9 +92,13 @@ export const RaceTrack = (props: RaceTrackProps) => {
     point.y = e.clientY;
     const svgPoint = point.matrixTransform(ctm.inverse());
 
-    if (svgPoint.x < 0) return;
+    const isWithinRaceBounds =
+      svgPoint.x - RaceTrackDimensions.xOffset > 0 &&
+      svgPoint.x - RaceTrackDimensions.xOffset <= RaceTrackDimensions.RenderWidth;
 
-    const x = svgPoint.x;
+    if (!isWithinRaceBounds) return;
+
+    const x = svgPoint.x - RaceTrackDimensions.xOffset;
     const y = svgPoint.y;
 
     if (mouseLineRef.current) {
@@ -103,14 +109,14 @@ export const RaceTrack = (props: RaceTrackProps) => {
     if (mouseTextRef.current) {
       mouseTextRef.current.setAttribute(
         'x',
-        (x > RaceTrackDimensions.ViewWidth - 45 ? x - 45 : x + 5).toString(),
+        (x > RaceTrackDimensions.RenderWidth - 45 ? x - 45 : x + 5).toString(),
       );
       mouseTextRef.current.setAttribute('y', y.toString());
       mouseTextRef.current.textContent =
-        Math.round((x / RaceTrackDimensions.ViewWidth) * course.distance) + 'm';
+        Math.round((x / RaceTrackDimensions.RenderWidth) * course.distance) + 'm';
     }
 
-    rtMouseMove(x / RaceTrackDimensions.ViewWidth);
+    rtMouseMove(x / RaceTrackDimensions.RenderWidth);
 
     if (draggedSkill) {
       handleDragMove(e);
@@ -133,11 +139,11 @@ export const RaceTrack = (props: RaceTrackProps) => {
   };
 
   return (
-    <div className="flex flex-col gap-2">
-      <TrackHeader course={course} courseId={courseId} racedef={racedef} />
+    <div className="flex flex-col gap-2 justify-center items-center">
+      <div className="flex flex-col gap-2 w-full max-w-[1300px]">
+        <TrackHeader course={course} courseId={courseId} racedef={racedef} />
 
-      <div className="flex flex-1 justify-center">
-        <div className="flex flex-col w-full max-w-[1200px]">
+        <div className="w-full">
           <svg
             version="1.1"
             xmlns="http://www.w3.org/2000/svg"
@@ -193,14 +199,14 @@ export const RaceTrack = (props: RaceTrackProps) => {
             <ThresholdMarkers courseDistance={course.distance} />
 
             <PosKeepLabels posKeepLabels={posKeepLabels} />
-            <RaceTrackTooltip tooltipData={tooltipData} />
+            <RaceTrackTooltip tooltipData={tooltipData} tooltipVisible={tooltipVisible} />
             <MouseLine mouseLineRef={mouseLineRef} mouseTextRef={mouseTextRef} />
           </svg>
         </div>
-      </div>
 
-      <TrackLegend />
-      <TrackControls />
+        <TrackLegend />
+        <TrackControls />
+      </div>
     </div>
   );
 };

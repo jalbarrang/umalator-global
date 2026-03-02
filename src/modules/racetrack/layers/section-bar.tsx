@@ -64,7 +64,7 @@ export const SectionTypesBar = React.memo<SectionTypesBarProps>((props) => {
           <rect x="0" y="0" height="100%" width="100%" fill={STRAIGHT_COLORS.main[i % 2]} />
           <rect x="0" y="90%" height="10%" width="100%" fill={STRAIGHT_COLORS.accent[i % 2]} />
 
-          <SectionText id="straight" w={width} />
+          <SectionText id="straight" w={width} y="40%" />
         </svg>
       );
     });
@@ -87,7 +87,7 @@ export const SectionTypesBar = React.memo<SectionTypesBarProps>((props) => {
           <rect x="0" y="0" height="100%" width="100%" fill={CORNER_COLORS.main[i % 2]} />
           <rect x="0" y="90%" height="10%" width="100%" fill={CORNER_COLORS.accent[i % 2]} />
 
-          <SectionText id="corner" w={width} fields={fields} />
+          <SectionText id="corner" w={width} fields={fields} y="40%" />
         </svg>
       );
     });
@@ -118,7 +118,13 @@ export const SectionTypesBar = React.memo<SectionTypesBarProps>((props) => {
         const up = markedStart && s.end - s.start < distance * 0.05;
 
         nodes.push(
-          <DistanceMarker key={`section-marker-${i}-end`} d={s.end} x={x} y={2} up={up} />,
+          <DistanceMarker
+            key={`section-marker-${i}-end`}
+            d={s.end}
+            x={x}
+            y={RaceTrackDimensions.SectionTypesBarHeight}
+            up={up}
+          />,
         );
       }
 

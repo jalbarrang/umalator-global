@@ -45,10 +45,6 @@ export const useRaceTrackTooltip = (props: UseRaceTrackTooltipProps) => {
     setTooltipData({
       v1Text,
       v2Text,
-      // Reserve for future use
-      vpText: undefined,
-      pd1Text: undefined,
-      pd2Text: undefined,
     });
   };
 

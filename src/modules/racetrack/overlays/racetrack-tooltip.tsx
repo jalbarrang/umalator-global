@@ -10,10 +10,15 @@ export type TooltipData = {
 
 type RaceTrackTooltipProps = {
   tooltipData: TooltipData | null;
+  tooltipVisible: boolean;
 };
 
 export const RaceTrackTooltip = (props: RaceTrackTooltipProps) => {
-  const { tooltipData } = props;
+  const { tooltipData, tooltipVisible } = props;
+
+  if (!tooltipVisible) {
+    return null;
+  }
 
   return (
     <svg

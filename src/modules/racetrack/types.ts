@@ -24,20 +24,29 @@ export namespace RaceTrackDimensions {
 
   export const yAxisHeight = ViewHeight - xAxisHeight - marginBottom - marginTop;
 
-  export const SectionNumbersBarHeight = 40;
+  export const SectionNumbersBarHeight = 60;
   export const SectionNumbersBarY = xAxisY - SectionNumbersBarHeight;
 
-  export const PhaseBarHeight = 50;
+  export const PhaseBarHeight = 40;
   export const PhaseBarY = SectionNumbersBarY - PhaseBarHeight;
 
-  export const SectionTypesBarHeight = 50;
+  export const SectionTypesBarHeight = 40;
   export const SectionTypesBarY = PhaseBarY - SectionTypesBarHeight;
 
   export const SlopeLabelBarHeight = 50;
   export const SlopeLabelBarY = SectionTypesBarY - SlopeLabelBarHeight;
+
+  // Slope visualization (background terrain)
+  export const SlopeVisualizationHeight = 50;
+  export const SlopeVisualizationY = SlopeLabelBarY - SlopeVisualizationHeight;
 
   // Other
 
   export const UmaSkillSectionHeight = SectionNumbersBarHeight;
   export const UmaSkillSectionRowHeight = UmaSkillSectionHeight / 2;
 }
+
+export const slopeConversionValue = 10000;
+export const slopeValueToPercentage = (value: number) => {
+  return value / slopeConversionValue;
+};

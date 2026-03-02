@@ -10,16 +10,27 @@ type DistanceMarkerProps = {
 export const DistanceMarker: React.FC<DistanceMarkerProps> = (props) => {
   const { x, y, d, up = false } = props;
 
-  const textYOffset = useMemo(() => {
-    return up ? -0.8 : 0.8;
-  }, [up]);
+  const textY = useMemo(() => {
+    if (up) {
+      return y - y + 10;
+    }
 
-  const lineYOffset = useMemo(() => {
-    return up ? -2.5 : 2.5;
-  }, [up]);
+    return y - 10;
+  }, [y, up]);
 
-  const yOffset = useMemo(() => {
-    return up ? -11.5 : 0;
+  const lineY = useMemo(() => {
+    if (up) {
+      const baseY = y - y;
+      return {
+        start: baseY - 2,
+        end: baseY + 8,
+      };
+    }
+
+    return {
+      start: y - 8,
+      end: y,
+    };
   }, [y, up]);
 
   return (
@@ -27,8 +38,8 @@ export const DistanceMarker: React.FC<DistanceMarkerProps> = (props) => {
       <text
         className="distanceMarker"
         x={`${x}%`}
-        y={`${y + yOffset + textYOffset}%`}
-        fontSize="10px"
+        y={`${textY}`}
+        fontSize="8px"
         textAnchor="middle"
         dominantBaseline={up ? 'hanging' : 'auto'}
         fill="rgb(121,64,22)"
@@ -36,9 +47,9 @@ export const DistanceMarker: React.FC<DistanceMarkerProps> = (props) => {
 
       <line
         x1={`${x}%`}
-        y1={`${y + yOffset}%`}
+        y1={`${lineY.start}`}
         x2={`${x}%`}
-        y2={`${y + yOffset + lineYOffset}%`}
+        y2={`${lineY.end}`}
         stroke="rgb(121,64,22)"
       />
     </>
