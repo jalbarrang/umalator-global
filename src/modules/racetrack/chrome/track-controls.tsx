@@ -1,17 +1,18 @@
-import { Separator } from '@/components/ui/separator';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Separator } from "@/components/ui/separator";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   toggleShowHp,
   toggleShowLanes,
   toggleShowThresholds,
   toggleShowUma1,
   toggleShowUma2,
-} from '@/store/settings.store';
-import { useRaceTrack } from '../context/RaceTrackContext';
+  useSettingsStore,
+} from "@/store/settings.store";
 
 export const TrackControls = () => {
-  const { showHp, showLanes, showThresholds, showUma1, showUma2 } = useRaceTrack();
+  const { showHp, showLanes, showUma1, showUma2, showThresholds } =
+    useSettingsStore();
 
   return (
     <div className="flex flex-col md:flex-row gap-4 bg-card text-xs px-4 py-2 rounded-md">
@@ -23,8 +24,15 @@ export const TrackControls = () => {
       </div>
 
       <div className="flex items-center gap-2">
-        <Checkbox id="showlanes" checked={showLanes} onCheckedChange={toggleShowLanes} />
-        <Label htmlFor="showlanes" className="text-sm font-normal cursor-pointer">
+        <Checkbox
+          id="showlanes"
+          checked={showLanes}
+          onCheckedChange={toggleShowLanes}
+        />
+        <Label
+          htmlFor="showlanes"
+          className="text-sm font-normal cursor-pointer"
+        >
           Show Lanes
         </Label>
       </div>
@@ -35,7 +43,10 @@ export const TrackControls = () => {
           checked={showThresholds}
           onCheckedChange={toggleShowThresholds}
         />
-        <Label htmlFor="showthresholds" className="text-sm font-normal cursor-pointer">
+        <Label
+          htmlFor="showthresholds"
+          className="text-sm font-normal cursor-pointer"
+        >
           Show thresholds
         </Label>
       </div>
@@ -43,15 +54,29 @@ export const TrackControls = () => {
       <Separator orientation="vertical" className="hidden md:block" />
 
       <div className="flex items-center gap-2">
-        <Checkbox id="show-uma1" checked={showUma1} onCheckedChange={toggleShowUma1} />
-        <Label htmlFor="show-uma1" className="text-sm font-normal cursor-pointer">
+        <Checkbox
+          id="show-uma1"
+          checked={showUma1}
+          onCheckedChange={toggleShowUma1}
+        />
+        <Label
+          htmlFor="show-uma1"
+          className="text-sm font-normal cursor-pointer"
+        >
           Show Uma 1
         </Label>
       </div>
 
       <div className="flex items-center gap-2">
-        <Checkbox id="show-uma2" checked={showUma2} onCheckedChange={toggleShowUma2} />
-        <Label htmlFor="show-uma2" className="text-sm font-normal cursor-pointer">
+        <Checkbox
+          id="show-uma2"
+          checked={showUma2}
+          onCheckedChange={toggleShowUma2}
+        />
+        <Label
+          htmlFor="show-uma2"
+          className="text-sm font-normal cursor-pointer"
+        >
           Show Uma 2
         </Label>
       </div>

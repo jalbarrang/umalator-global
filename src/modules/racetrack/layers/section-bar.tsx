@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
 import { SectionText } from '../primitives/section-text';
 import { DistanceMarker } from '../primitives/distance-marker';
-import { useRaceTrack } from '../context/RaceTrackContext';
+import { CourseData } from '@/lib/sunday-tools/course/definitions';
+import { RaceTrackDimensions } from '../types';
 
 interface Straight {
   readonly start: number;
@@ -25,13 +26,12 @@ const CORNER_COLORS = {
 };
 
 type SectionTypesBarProps = {
-  readonly yOffset: number;
+  course: CourseData;
 };
 
-const sectionBarHeightPx = 50;
+export const SectionTypesBar = React.memo<SectionTypesBarProps>((props) => {
+  const { course } = props;
 
-export const SectionTypesBar = React.memo<SectionTypesBarProps>(({ yOffset }) => {
-  const { course } = useRaceTrack();
   const straights = course.straights as ReadonlyArray<Straight>;
   const corners = course.corners as ReadonlyArray<Corner>;
   const distance = course.distance;
@@ -59,7 +59,7 @@ export const SectionTypesBar = React.memo<SectionTypesBarProps>(({ yOffset }) =>
           x={`${x}%`}
           y="0"
           width={`${width}%`}
-          height={sectionBarHeightPx}
+          height={RaceTrackDimensions.SectionTypesBarHeight}
         >
           <rect x="0" y="0" height="100%" width="100%" fill={STRAIGHT_COLORS.main[i % 2]} />
           <rect x="0" y="90%" height="10%" width="100%" fill={STRAIGHT_COLORS.accent[i % 2]} />
@@ -82,7 +82,7 @@ export const SectionTypesBar = React.memo<SectionTypesBarProps>(({ yOffset }) =>
           x={`${x}%`}
           y="0"
           width={`${width}%`}
-          height={sectionBarHeightPx}
+          height={RaceTrackDimensions.SectionTypesBarHeight}
         >
           <rect x="0" y="0" height="100%" width="100%" fill={CORNER_COLORS.main[i % 2]} />
           <rect x="0" y="90%" height="10%" width="100%" fill={CORNER_COLORS.accent[i % 2]} />
@@ -107,7 +107,7 @@ export const SectionTypesBar = React.memo<SectionTypesBarProps>(({ yOffset }) =>
             key={`section-marker-${i}-start`}
             d={s.start}
             x={x}
-            y={sectionBarHeightPx}
+            y={RaceTrackDimensions.SectionTypesBarHeight}
             up={up}
           />,
         );
@@ -129,7 +129,13 @@ export const SectionTypesBar = React.memo<SectionTypesBarProps>(({ yOffset }) =>
   }, [straights, corners, distance]);
 
   return (
-    <svg id="race-sections" x="0" y={yOffset} width="100%" height={sectionBarHeightPx}>
+    <svg
+      id="race-sections"
+      x={RaceTrackDimensions.xOffset}
+      y={RaceTrackDimensions.SectionTypesBarY}
+      width={RaceTrackDimensions.RenderWidth}
+      height={RaceTrackDimensions.SectionTypesBarHeight}
+    >
       {/* Background bar */}
       <svg id="section-bar-background" x="0" y="0" width="100%" height="100%">
         <rect x="0" y="0" height="100%" width="100%" fill="rgb(232,232,232)" />

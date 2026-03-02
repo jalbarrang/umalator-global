@@ -1,7 +1,9 @@
 {
   "plugins": null,
   "categories": {},
-  "rules": {},
+  "rules": {
+    "@typescript-eslint/no-unused-vars": "on"
+  },
   "settings": {
     "jsx-a11y": {
       "polymorphicPropName": null,

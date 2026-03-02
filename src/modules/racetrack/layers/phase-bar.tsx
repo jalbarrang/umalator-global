@@ -2,7 +2,8 @@ import React from 'react';
 import { SectionText } from '../primitives/section-text';
 import { DistanceMarker } from '../primitives/distance-marker';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
-import { useRaceTrack } from '../context/RaceTrackContext';
+import { CourseData } from '@/lib/sunday-tools/course/definitions';
+import { RaceTrackDimensions } from '../types';
 
 // Phase configuration
 const PHASES = [
@@ -40,24 +41,29 @@ const PHASES = [
   },
 ];
 
-const phaseBarHeightPx = 50;
-
 /**
  * Renders the race phase bar (Phase 0-3: Early, Mid, Late, Last Spurt).
  */
 type PhaseBarProps = {
-  readonly yOffset: number;
+  course: CourseData;
 };
 
-export const PhaseBar = React.memo<PhaseBarProps>(({ yOffset }) => {
-  const { courseDistance: distance } = useRaceTrack();
+export const PhaseBar = React.memo<PhaseBarProps>((props) => {
+  const { course } = props;
+
   // Calculate phase start distances
-  const phase1Start = Math.round(CourseHelpers.phaseStart(distance, 1));
-  const phase2Start = Math.round(CourseHelpers.phaseStart(distance, 2));
-  const phase3Start = Math.round(CourseHelpers.phaseStart(distance, 3));
+  const phase1Start = Math.round(CourseHelpers.phaseStart(course.distance, 1));
+  const phase2Start = Math.round(CourseHelpers.phaseStart(course.distance, 2));
+  const phase3Start = Math.round(CourseHelpers.phaseStart(course.distance, 3));
 
   return (
-    <svg id="race-phases" x="0" y={yOffset} width="100%" height={phaseBarHeightPx}>
+    <svg
+      id="race-phases"
+      x={RaceTrackDimensions.xOffset}
+      y={RaceTrackDimensions.PhaseBarY}
+      width={RaceTrackDimensions.RenderWidth}
+      height={RaceTrackDimensions.PhaseBarHeight}
+    >
       {PHASES.map((phase) => (
         <svg
           key={phase.id}
@@ -74,9 +80,9 @@ export const PhaseBar = React.memo<PhaseBarProps>(({ yOffset }) => {
       ))}
 
       {/* Phase boundary markers */}
-      <DistanceMarker d={phase1Start} x={16.67} y={phaseBarHeightPx - 2} />
-      <DistanceMarker d={phase2Start} x={66.67} y={phaseBarHeightPx - 2} />
-      <DistanceMarker d={phase3Start} x={83.33} y={phaseBarHeightPx - 2} />
+      <DistanceMarker d={phase1Start} x={16.67} y={RaceTrackDimensions.PhaseBarHeight - 2} />
+      <DistanceMarker d={phase2Start} x={66.67} y={RaceTrackDimensions.PhaseBarHeight - 2} />
+      <DistanceMarker d={phase3Start} x={83.33} y={RaceTrackDimensions.PhaseBarHeight - 2} />
     </svg>
   );
 });

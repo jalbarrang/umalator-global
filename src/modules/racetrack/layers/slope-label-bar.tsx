@@ -1,7 +1,8 @@
 import React, { Fragment, useMemo } from 'react';
 import { SectionText } from '../primitives/section-text';
 import { DistanceMarker } from '../primitives/distance-marker';
-import { useRaceTrack } from '../context/RaceTrackContext';
+import { CourseData } from '@/lib/sunday-tools/course/definitions';
+import { RaceTrackDimensions } from '../types';
 
 interface Slope {
   readonly start: number;
@@ -20,13 +21,12 @@ const DOWNHILL_COLORS = {
 };
 
 type SlopeLabelBarProps = {
-  readonly yOffset: number;
+  course: CourseData;
 };
 
-const slopeBarHeightPx = 50;
+export const SlopeLabelBar = React.memo<SlopeLabelBarProps>((props) => {
+  const { course } = props;
 
-export const SlopeLabelBar = React.memo<SlopeLabelBarProps>(({ yOffset }) => {
-  const { course } = useRaceTrack();
   const slopes = course.slopes as ReadonlyArray<Slope>;
   const distance = course.distance;
   const elements = useMemo(() => {
@@ -99,7 +99,13 @@ export const SlopeLabelBar = React.memo<SlopeLabelBarProps>(({ yOffset }) => {
   }, [slopes, distance]);
 
   return (
-    <svg id="racetrack-slope-label-bar" x="0" y={yOffset} width="100%" height={slopeBarHeightPx}>
+    <svg
+      id="racetrack-slope-label-bar"
+      x={RaceTrackDimensions.xOffset}
+      y={RaceTrackDimensions.SlopeLabelBarY}
+      width={RaceTrackDimensions.RenderWidth}
+      height={RaceTrackDimensions.SlopeLabelBarHeight}
+    >
       {/* Background bar */}
       <svg id="slope-label-bar-background" x="0" y="0" width="100%" height="100%">
         <rect x="0" y="0" height="100%" width="100%" fill="rgb(239,229,241)" />

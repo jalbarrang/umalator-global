@@ -1,7 +1,10 @@
+import { CourseData } from '@/lib/sunday-tools/course/definitions';
+import { SimulationRun } from '@/modules/simulation/compare.types';
+import { useSettingsStore } from '@/store/settings.store';
 // @ts-expect-error d3 types are not typed
 import * as d3 from 'd3';
 import { memo, useMemo } from 'react';
-import { useRaceTrack } from '../context/RaceTrackContext';
+import { RaceTrackDimensions } from '../types';
 
 const colors = ['#2a77c5', '#c52a2a'];
 const hpColors = ['#688aab', '#ab6868'];
@@ -40,22 +43,22 @@ const DataPath = memo((props: DataPathProps) => {
   );
 });
 
-export const VelocityPaths = memo(function VelocityPaths() {
-  const {
-    chartData,
-    courseDistance,
-    width,
-    height,
-    showUma1,
-    showUma2,
-    showHp,
-    showLanes,
-    course,
-  } = useRaceTrack();
+type VelocityPathsProps = {
+  chartData: SimulationRun;
+  course: CourseData;
+};
+
+const height = RaceTrackDimensions.yAxisHeight;
+// const xOffset = RaceTrackDimensions.xOffset;
+
+export const VelocityPaths = memo<VelocityPathsProps>(function VelocityPaths(props) {
+  const { chartData, course } = props;
+
+  const { showHp, showLanes, showUma1, showUma2 } = useSettingsStore();
 
   const xScale = useMemo(
-    () => d3.scaleLinear().domain([0, courseDistance]).range([0, width]),
-    [courseDistance, width],
+    () => d3.scaleLinear().domain([0, course.distance]).range([0, RaceTrackDimensions.RenderWidth]),
+    [course.distance],
   );
 
   const yScale = useMemo(() => {
@@ -65,7 +68,7 @@ export const VelocityPaths = memo(function VelocityPaths() {
       .scaleLinear()
       .domain([0, d3.max(chartData.velocity, (v: Array<number>) => d3.max(v)) ?? 0])
       .range([height, 0]);
-  }, [chartData, height]);
+  }, [chartData]);
 
   const hpYScale = useMemo(() => {
     if (!chartData?.hp) return null;
@@ -74,21 +77,7 @@ export const VelocityPaths = memo(function VelocityPaths() {
       .scaleLinear()
       .domain([0, d3.max(chartData.hp, (hp: Array<number>) => d3.max(hp)) ?? 0])
       .range([height, 0]);
-  }, [chartData, height]);
-
-  const pacemakerYScale = useMemo(() => {
-    if (!chartData?.pacerGap) return null;
-
-    const allValues = chartData.pacerGap.flatMap((gap) => gap.filter((d) => d !== undefined));
-    if (allValues.length === 0) return null;
-
-    const maxValue = d3.max(allValues) ?? 10;
-
-    return d3
-      .scaleLinear()
-      .domain([0, Math.max(maxValue, 10)])
-      .range([height, height * 0.6]);
-  }, [chartData, height]);
+  }, [chartData]);
 
   const laneYScale = useMemo(() => {
     if (!chartData?.currentLane || !course.horseLane) return null;
@@ -100,12 +89,18 @@ export const VelocityPaths = memo(function VelocityPaths() {
       .scaleLinear()
       .domain([0, maxLane])
       .range([height, height * 0.5]);
-  }, [chartData, height, course.horseLane]);
+  }, [chartData, course.horseLane]);
 
   if (!chartData || !yScale) return null;
 
   return (
-    <g id="racetrack-velocity-paths" transform={`translate(0, 5)`}>
+    <svg
+      id="racetrack-velocity-paths"
+      x={RaceTrackDimensions.xOffset}
+      y={RaceTrackDimensions.marginTop}
+      height={height}
+      width={RaceTrackDimensions.RenderWidth}
+    >
       {chartData.velocity.map((v, i) => {
         if (i === 0 && !showUma1) return null;
         if (i === 1 && !showUma2) return null;
@@ -157,31 +152,6 @@ export const VelocityPaths = memo(function VelocityPaths() {
             />
           );
         })}
-
-      {chartData.pacerGap &&
-        pacemakerYScale &&
-        chartData.pacerGap.map((gap, i) => {
-          const validIndices = gap
-            .map((g, j) => (g !== undefined && g >= 0 ? j : -1))
-            .filter((j) => j >= 0);
-          if (validIndices.length === 0) return null;
-
-          if (i === 0 && !showUma1) return null;
-          if (i === 1 && !showUma2) return null;
-
-          return (
-            <DataPath
-              key={`pacer-gap-${i}`}
-              positions={validIndices.map((j) => chartData.position[i][j])}
-              values={validIndices.map((j) => gap[j])}
-              xScale={xScale}
-              yScale={pacemakerYScale}
-              color={colors[i]}
-              strokeWidth={2}
-              strokeDasharray="5,5"
-            />
-          );
-        })}
-    </g>
+    </svg>
   );
 });

@@ -1,32 +1,43 @@
 // @ts-expect-error d3 types are not typed
 import * as d3 from 'd3';
 import { memo, useMemo } from 'react';
-import { useRaceTrack } from '../context/RaceTrackContext';
+import { RaceTrackDimensions } from '../types';
+
+const barHeight = RaceTrackDimensions.xAxisHeight;
+const barWidth = RaceTrackDimensions.RenderWidth;
+const sectionY = RaceTrackDimensions.xAxisY;
+const sectionX = RaceTrackDimensions.xOffset;
 
 type XAxisProps = {
-  yOffset: number;
-  xOffset: number;
+  courseDistance: number;
 };
+
 export const XAxis = memo<XAxisProps>(function XAxis(props) {
-  const { yOffset, xOffset } = props;
-  const { courseDistance, width } = useRaceTrack();
+  const { courseDistance } = props;
 
   const xScale = useMemo(
-    () => d3.scaleLinear().domain([0, courseDistance]).range([0, width]),
-    [courseDistance, width],
+    () => d3.scaleLinear().domain([0, courseDistance]).range([0, barWidth]),
+    [courseDistance, barWidth],
   );
 
   const ticks = xScale.ticks();
   const [rangeStart, rangeEnd] = xScale.range();
 
   return (
-    <svg x={xOffset} y={yOffset} width="100%" height="20">
-      <line x1={rangeStart} x2={rangeEnd} y1={0} y2={0} stroke="var(--color-black)" />
+    <svg
+      id="racetrack-x-axis"
+      x={sectionX}
+      y={sectionY}
+      width={barWidth}
+      height={barHeight}
+      overflow="visible"
+    >
+      <line x1={rangeStart} x2={rangeEnd} y1={0} y2={0} stroke="var(--color-foreground)" />
 
       {ticks.map((tick: number) => (
         <g key={tick} transform={`translate(${xScale(tick)},0)`}>
-          <line y2={6} stroke="var(--color-black)" />
-          <text y={20} textAnchor="middle" fontSize={10} fill="var(--color-foreground)">
+          <line y2={6} stroke="var(--color-foreground)" />
+          <text y={15} textAnchor="middle" fontSize={10} fill="var(--color-foreground)">
             {tick}
           </text>
         </g>

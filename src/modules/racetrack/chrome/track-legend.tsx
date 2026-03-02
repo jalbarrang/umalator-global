@@ -1,6 +1,6 @@
-import { debuffColors, recoveryColors } from '@/utils/colors';
-import { SkillType } from '@/lib/sunday-tools/skills/definitions';
-import { EffectSymbol } from '../primitives/effect-symbol';
+import { debuffColors, recoveryColors } from "@/utils/colors";
+import { SkillType } from "@/lib/sunday-tools/skills/definitions";
+import { EffectSymbol } from "../primitives/effect-symbol";
 
 export const TrackLegend = () => {
   return (

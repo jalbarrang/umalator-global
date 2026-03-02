@@ -1,7 +1,14 @@
-import { useRaceTrack } from '../context/RaceTrackContext';
+import { useSettingsStore } from "@/store/settings.store";
+import { PosKeepLabel } from "@/utils/races";
 
-export const PosKeepLabels = () => {
-  const { posKeepLabels, showUma1, showUma2 } = useRaceTrack();
+type PosKeepLabelsProps = {
+  posKeepLabels: PosKeepLabel[];
+};
+
+export const PosKeepLabels = (props: PosKeepLabelsProps) => {
+  const { posKeepLabels } = props;
+
+  const { showUma1, showUma2 } = useSettingsStore();
 
   if (!posKeepLabels) return null;
 
@@ -10,7 +17,8 @@ export const PosKeepLabels = () => {
       {posKeepLabels.map((label, index) => {
         if (label.umaIndex === 0 && !showUma1) return null;
         if (label.umaIndex === 1 && !showUma2) return null;
-        if (label.x == null || label.width == null || label.yOffset == null) return null;
+        if (label.x == null || label.width == null || label.yOffset == null)
+          return null;
 
         return (
           <g key={index} className="poskeep-label">

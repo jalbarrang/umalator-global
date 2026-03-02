@@ -1,11 +1,12 @@
-import i18n from '@/i18n';
-import { WeatherIcon } from '@/components/race-settings/WeatherSelect';
 import { SeasonIcon } from '@/components/race-settings/SeasonSelect';
-import { useRaceTrack } from '../context/RaceTrackContext';
-import { useMemo } from 'react';
+import { WeatherIcon } from '@/components/race-settings/WeatherSelect';
+import i18n from '@/i18n';
+import { CourseData, Surface } from '@/lib/sunday-tools/course/definitions';
+import { RaceConditions } from '@/utils/races';
 import { ExternalLinkIcon } from 'lucide-react';
-import { Surface } from '@/lib/sunday-tools/course/definitions';
+import { useMemo } from 'react';
 import { getCourseById, inoutKey } from '../courses';
+import { trackDescription } from '../labels';
 
 const getRaceTrackUrl = (courseid: number) => {
   const course = getCourseById(courseid);
@@ -22,12 +23,20 @@ const getRaceTrackUrl = (courseid: number) => {
   return `${baseUrl}/${trackName}#${distance}-${surface}-${inout}`;
 };
 
-export const TrackHeader = () => {
-  const { course, courseid, courseLabel, racedef } = useRaceTrack();
+export type TrackHeaderProps = {
+  course: CourseData;
+  courseId: number;
+  racedef: RaceConditions;
+};
+
+export const TrackHeader = (props: TrackHeaderProps) => {
+  const { course, courseId, racedef } = props;
+
+  const courseLabel = trackDescription({ courseid: courseId });
 
   const raceTrackUrl = useMemo(() => {
-    return getRaceTrackUrl(courseid);
-  }, [courseid]);
+    return getRaceTrackUrl(courseId);
+  }, [courseId]);
 
   return (
     <div className="flex flex-col gap-4">

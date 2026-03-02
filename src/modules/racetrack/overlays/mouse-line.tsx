@@ -1,10 +1,15 @@
-import { useRaceTrack } from '../context/RaceTrackContext';
+import { RaceTrackDimensions } from '../types';
 
-export const MouseLine = () => {
-  const { mouseLineRef, mouseTextRef } = useRaceTrack();
+type MouseLineProps = {
+  mouseLineRef: React.RefObject<SVGLineElement | null>;
+  mouseTextRef: React.RefObject<SVGTextElement | null>;
+};
+
+export const MouseLine = (props: MouseLineProps) => {
+  const { mouseLineRef, mouseTextRef } = props;
 
   return (
-    <>
+    <svg id="racetrack-mouse-line" x={RaceTrackDimensions.xOffset} y="0" width="100%" height="100%">
       <line
         ref={mouseLineRef}
         className="mouseoverLine"
@@ -24,6 +29,6 @@ export const MouseLine = () => {
         fill="rgb(121,64,22)"
         pointerEvents="none"
       />
-    </>
+    </svg>
   );
 };

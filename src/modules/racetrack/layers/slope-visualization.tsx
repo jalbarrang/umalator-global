@@ -1,5 +1,6 @@
+import { CourseData } from '@/lib/sunday-tools/course/definitions';
 import React, { useMemo } from 'react';
-import { useRaceTrack } from '../context/RaceTrackContext';
+import { RaceTrackDimensions } from '../types';
 
 interface Slope {
   readonly start: number;
@@ -12,8 +13,12 @@ export const baseSlopeHeightPx = 30;
 export const baseSlopeHeightFloat = 0.3;
 export const baseSlopeHeightPercentage = '30%';
 
-export const SlopeVisualization = React.memo(() => {
-  const { course } = useRaceTrack();
+type SlopeVisualizationProps = {
+  course: CourseData;
+};
+
+export const SlopeVisualization = React.memo<SlopeVisualizationProps>((props) => {
+  const { course } = props;
 
   const slopes = course.slopes as ReadonlyArray<Slope>;
   const distance = course.distance;
@@ -109,11 +114,16 @@ export const SlopeVisualization = React.memo(() => {
   }, [slopes, distance]);
 
   return (
-    <g id="racetrack-slope-visualization">
+    <svg
+      id="racetrack-slope-visualization"
+      x={RaceTrackDimensions.xOffset}
+      y={0}
+      width={RaceTrackDimensions.RenderWidth}
+    >
       {elements}
 
       {/* Grass divider line */}
       <rect x="0" y="28%" width="100%" height="2%" fill="rgb(140,170,10)" />
-    </g>
+    </svg>
   );
 });

@@ -1,20 +1,29 @@
-import { Activity } from 'react';
-import { useRaceTrack } from '../context/RaceTrackContext';
+import { useSettingsStore } from '@/store/settings.store';
+import { Activity, useMemo } from 'react';
+import { RaceTrackDimensions } from '../types';
 
 type ThresholdMarkerProps = {
   threshold: number;
+  courseDistance: number;
+  width: number;
+  height: number;
   text?: string;
   strokeColor?: string;
 };
 
-const ThresholdMarker = ({
-  threshold,
-  text,
-  strokeColor = 'rgb(239, 68, 68)',
-}: ThresholdMarkerProps) => {
-  const { courseDistance, width, height } = useRaceTrack();
+const ThresholdMarker = (props: ThresholdMarkerProps) => {
+  const {
+    threshold,
+    text,
+    strokeColor = 'rgb(239, 68, 68)',
+    courseDistance,
+    width,
+    height,
+  } = props;
 
-  const x = ((courseDistance - threshold) / courseDistance) * width;
+  const x = useMemo(() => {
+    return ((courseDistance - threshold) / courseDistance) * width;
+  }, []);
 
   return (
     <g className="threshold-marker">
@@ -41,19 +50,43 @@ const ThresholdMarker = ({
   );
 };
 
-export const ThresholdMarkers = () => {
-  const { showThresholds, courseDistance } = useRaceTrack();
+type ThresholdMarkersProps = {
+  courseDistance: number;
+};
+
+const width = RaceTrackDimensions.RenderWidth;
+const height = RaceTrackDimensions.ViewHeight;
+
+export const ThresholdMarkers = (props: ThresholdMarkersProps) => {
+  const { courseDistance } = props;
+
+  const { showThresholds } = useSettingsStore();
 
   return (
     <Activity mode={showThresholds ? 'visible' : 'hidden'}>
       <g id="race-threshold-markers">
         <ThresholdMarker
           threshold={courseDistance / 2}
+          courseDistance={courseDistance}
+          width={width}
+          height={height}
           text={`Halfway (${courseDistance / 2}m)`}
           strokeColor="var(--color-green-400)"
         />
-        <ThresholdMarker threshold={777} strokeColor="var(--color-amber-400)" />
-        <ThresholdMarker threshold={200} strokeColor="var(--color-amber-400)" />
+        <ThresholdMarker
+          threshold={777}
+          strokeColor="var(--color-amber-400)"
+          courseDistance={courseDistance}
+          width={width}
+          height={height}
+        />
+        <ThresholdMarker
+          threshold={200}
+          strokeColor="var(--color-amber-400)"
+          courseDistance={courseDistance}
+          width={width}
+          height={height}
+        />
       </g>
     </Activity>
   );

@@ -1,4 +1,4 @@
-import { useRaceTrack } from '../context/RaceTrackContext';
+import { RaceTrackDimensions } from '../types';
 
 export type TooltipData = {
   v1Text: string;
@@ -8,30 +8,29 @@ export type TooltipData = {
   pd2Text?: string;
 };
 
-export const RaceTrackTooltip = () => {
-  const { tooltipData, tooltipVisible } = useRaceTrack();
+type RaceTrackTooltipProps = {
+  tooltipData: TooltipData | null;
+};
 
-  if (!tooltipData || !tooltipVisible) {
-    return null;
-  }
+export const RaceTrackTooltip = (props: RaceTrackTooltipProps) => {
+  const { tooltipData } = props;
 
   return (
-    <g id="racetrack-tooltip" className="font-mono">
-      <text x={5} y={-25} fill="#2a77c5" fontSize="10px">
-        {tooltipData.v1Text}
-      </text>
-      <text x={5} y={-10} fill="#c52a2a" fontSize="10px">
-        {tooltipData.v2Text}
-      </text>
-      <text x={5} y={-10} fill="#22c55e" fontSize="10px">
-        {tooltipData.vpText}
-      </text>
+    <svg
+      id="racetrack-tooltip"
+      className="font-mono"
+      x={RaceTrackDimensions.xOffset}
+      y={RaceTrackDimensions.marginTop}
+      width={RaceTrackDimensions.RenderWidth}
+      height={RaceTrackDimensions.yAxisHeight}
+      overflow="visible"
+    >
       <text x={5} y={0} fill="#2a77c5" fontSize="10px">
-        {tooltipData.pd1Text}
+        {tooltipData?.v1Text ?? ''}
       </text>
-      <text x={5} y={10} fill="#2a77c5" fontSize="10px">
-        {tooltipData.pd2Text}
+      <text x={5} y={15} fill="#c52a2a" fontSize="10px">
+        {tooltipData?.v2Text ?? ''}
       </text>
-    </g>
+    </svg>
   );
 };

@@ -1,9 +1,9 @@
 import React, { useMemo } from 'react';
 import { useForcedPositions } from '@/modules/simulation/stores/forced-positions.store';
-import { RegionDisplayType } from '../types';
+import { RaceTrackDimensions, RegionDisplayType } from '../types';
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import { CompactSkillMarker } from './compact-skill-marker';
-import { useRaceTrack } from '../context/RaceTrackContext';
+import { RegionData } from '../hooks/useVisualizationData';
 
 const COMPACT_BAR_HEIGHT = 10;
 const COMPACT_LANES = 3;
@@ -22,11 +22,10 @@ const findAvailableRung = (
 
 export type UmaSkillRowProps = {
   course: CourseData;
+  skillActivations: Array<RegionData>;
+  rushedIndicators: Array<RegionData>;
   umaIndex: 0 | 1;
   label: string;
-
-  yOffset: number;
-
   visible: boolean;
   onDragStart: (
     e: React.MouseEvent,
@@ -40,10 +39,15 @@ export type UmaSkillRowProps = {
 };
 
 export const UmaSkillRow = React.memo<UmaSkillRowProps>((props) => {
-  const { umaIndex, course, label, yOffset, visible, onDragStart } = props;
+  const { umaIndex, course, skillActivations, rushedIndicators, label, visible, onDragStart } =
+    props;
+
   const forcedPositions = useForcedPositions();
 
-  const { skillActivations, rushedIndicators } = useRaceTrack();
+  const rowY = useMemo(
+    () => (umaIndex === 0 ? 0 : RaceTrackDimensions.UmaSkillSectionRowHeight),
+    [umaIndex],
+  );
 
   const umaRegions = useMemo(
     () => [
@@ -109,7 +113,7 @@ export const UmaSkillRow = React.memo<UmaSkillRowProps>((props) => {
         const rungIndex = findAvailableRung(start, end, rungs);
         rungs[rungIndex % COMPACT_LANES].push({ start, end });
 
-        const markerY = yOffset + COMPACT_BAR_HEIGHT + 2 + (COMPACT_BAR_HEIGHT + 1) * rungIndex;
+        const markerY = rowY + COMPACT_BAR_HEIGHT + 2 + (COMPACT_BAR_HEIGHT + 1) * rungIndex;
 
         const handleOnDragStart = (e: React.MouseEvent) => {
           if (!desc.skillId || desc.umaIndex === undefined) return;
@@ -135,18 +139,9 @@ export const UmaSkillRow = React.memo<UmaSkillRowProps>((props) => {
   }
 
   return (
-    <svg x="0" y={yOffset} width="100%" height="20">
-      <rect
-        x="0"
-        y="0"
-        width="100%"
-        height="100%"
-        fill="var(--card)"
-        stroke="color-mix(in srgb, var(--border) 60%, transparent)"
-        strokeWidth="0.6"
-        rx="3"
-        ry="3"
-      />
+    <svg x="0" y={rowY} width="100%" height={RaceTrackDimensions.UmaSkillSectionRowHeight}>
+      <rect x="0" y="0" width="100%" height="100%" fill="transparent" />
+
       <text
         x="4"
         y="50%"
