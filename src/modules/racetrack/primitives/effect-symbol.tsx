@@ -18,46 +18,71 @@ export const EffectSymbol = (props: EffectSymbolProps) => {
         fill={color.fill}
         stroke={color.stroke}
         strokeDasharray={strokeDasharray}
-        strokeWidth="1.2"
+        strokeWidth="1"
       />
     );
   }
 
   if (effectType === SkillType.Accel) {
     return (
-      <polygon
-        points={`0,-${size} ${size},${size} -${size},${size}`}
-        fill={color.fill}
-        stroke={color.stroke}
-        strokeDasharray={strokeDasharray}
-        strokeWidth="1.2"
-      />
+      <>
+        <polyline
+          points={`${-size},-${size - 1} 0,0 ${-size},${size - 1}`}
+          fill="none"
+          stroke={color.stroke}
+          strokeDasharray={strokeDasharray}
+          strokeWidth="1"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <polyline
+          points={`0,-${size - 1} ${size},0 0,${size - 1}`}
+          fill="none"
+          stroke={color.stroke}
+          strokeDasharray={strokeDasharray}
+          strokeWidth="1"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </>
     );
   }
 
   if (effectType === SkillType.LaneMovementSpeed || effectType === SkillType.ChangeLane) {
     return (
       <>
-        <rect
-          x={-size}
-          y={-size + 1}
-          width={size * 2}
-          height={(size - 1) * 2}
-          fill={color.fill}
-          stroke={color.stroke}
-          strokeDasharray={strokeDasharray}
-          strokeWidth="1.1"
-          rx="1"
-          ry="1"
-        />
+        {/* Horizontal Line */}
         <line
-          x1={-size + 1}
-          y1={size - 1}
-          x2={size - 1}
-          y2={-size + 1}
+          x1={-size + 0.5}
+          y1="0"
+          x2={size - 0.5}
+          y2="0"
           stroke={color.stroke}
-          strokeWidth="1"
           strokeDasharray={strokeDasharray}
+          strokeWidth="1"
+          strokeLinecap="round"
+        />
+
+        {/* Left Arrow */}
+        <polyline
+          points={`${-size + 3},-${size - 2} ${-size + 1},0 ${-size + 3},${size - 2}`}
+          fill="none"
+          stroke={color.stroke}
+          strokeDasharray={strokeDasharray}
+          strokeWidth="1"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+
+        {/* Right Arrow */}
+        <polyline
+          points={`${size - 3},-${size - 2} ${size - 1},0 ${size - 3},${size - 2}`}
+          fill="none"
+          stroke={color.stroke}
+          strokeDasharray={strokeDasharray}
+          strokeWidth="1"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
       </>
     );
@@ -69,26 +94,13 @@ export const EffectSymbol = (props: EffectSymbolProps) => {
     effectType === SkillType.CurrentSpeedWithNaturalDeceleration
   ) {
     return (
-      <>
-        <polyline
-          points={`${-size},-${size - 1} 0,0 ${-size},${size - 1}`}
-          fill="none"
-          stroke={color.stroke}
-          strokeDasharray={strokeDasharray}
-          strokeWidth="1.4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <polyline
-          points={`0,-${size - 1} ${size},0 0,${size - 1}`}
-          fill="none"
-          stroke={color.stroke}
-          strokeDasharray={strokeDasharray}
-          strokeWidth="1.4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </>
+      <polygon
+        points={`0,-${size - 1} ${size - 1},${size - 1} -${size - 1},${size - 1}`}
+        fill={color.fill}
+        stroke={color.stroke}
+        strokeDasharray={strokeDasharray}
+        strokeWidth="1"
+      />
     );
   }
 
@@ -96,11 +108,11 @@ export const EffectSymbol = (props: EffectSymbolProps) => {
     <circle
       cx="0"
       cy="0"
-      r={size - 1}
+      r={size}
       fill={color.fill}
       stroke={color.stroke}
       strokeDasharray={strokeDasharray}
-      strokeWidth="1.2"
+      strokeWidth="1"
     />
   );
 };

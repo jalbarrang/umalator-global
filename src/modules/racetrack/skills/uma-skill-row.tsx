@@ -1,12 +1,12 @@
 import React, { useMemo } from 'react';
 import { useForcedPositions } from '@/modules/simulation/stores/forced-positions.store';
-import { RaceTrackDimensions, RegionDisplayType } from '../types';
+import { DragStartHandler, RegionDisplayType } from '../types';
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';
-import { CompactSkillMarker } from './compact-skill-marker';
 import { RegionData } from '../hooks/useVisualizationData';
 
-const COMPACT_BAR_HEIGHT = 10;
-const COMPACT_LANES = 3;
+import { COMPACT_LANES, MARKER_START_PCT, MARKER_RUNG_STEP_PCT } from './definitions';
+import { ImmediateLayout, ImmediateMarker } from './immediate-marker';
+import { DurationLayout, DurationMarker } from './duration-marker';
 
 const findAvailableRung = (
   start: number,
@@ -20,128 +20,132 @@ const findAvailableRung = (
   return 0;
 };
 
+// --- Main component ---
+
 export type UmaSkillRowProps = {
   course: CourseData;
   skillActivations: Array<RegionData>;
   rushedIndicators: Array<RegionData>;
+  debuffIndicators: Array<RegionData>;
   umaIndex: 0 | 1;
   label: string;
   visible: boolean;
-  onDragStart: (
-    e: React.MouseEvent,
-    skillId: string,
-    umaIndex: number,
-    start: number,
-    end: number,
-    markerType?: 'skill' | 'debuff',
-    debuffId?: string,
-  ) => void;
+  onDragStart: DragStartHandler;
 };
 
 export const UmaSkillRow = React.memo<UmaSkillRowProps>((props) => {
-  const { umaIndex, course, skillActivations, rushedIndicators, label, visible, onDragStart } =
-    props;
+  const {
+    umaIndex,
+    course,
+    skillActivations,
+    rushedIndicators,
+    debuffIndicators,
+    label,
+    visible,
+    onDragStart,
+  } = props;
 
   const forcedPositions = useForcedPositions();
 
-  const rowY = useMemo(
-    () => (umaIndex === 0 ? 0 : RaceTrackDimensions.UmaSkillSectionRowHeight),
-    [umaIndex],
-  );
+  const rowY = useMemo(() => (umaIndex === 0 ? 0 : '50%'), [umaIndex]);
 
   const umaRegions = useMemo(
     () => [
       ...skillActivations.filter((r) => r.umaIndex === umaIndex),
       ...rushedIndicators.filter((r) => r.umaIndex === umaIndex),
+      ...debuffIndicators.filter((r) => r.umaIndex === umaIndex),
     ],
-    [skillActivations, rushedIndicators, umaIndex],
+    [skillActivations, rushedIndicators, debuffIndicators, umaIndex],
   );
+
+  const positionsMap = useMemo(
+    () => (umaIndex === 0 ? forcedPositions.uma1 : forcedPositions.uma2),
+    [forcedPositions, umaIndex],
+  );
+
+  const { immediates, durations } = useMemo(() => {
+    const rungs: Array<Array<{ start: number; end: number }>> = Array.from(
+      { length: COMPACT_LANES },
+      () => [],
+    );
+    const seenX = new Set<number>();
+    const immOut: Array<ImmediateLayout> = [];
+    const durOut: Array<DurationLayout> = [];
+
+    for (let i = 0; i < umaRegions.length; i++) {
+      const desc = umaRegions[i];
+
+      if (desc.type === RegionDisplayType.Immediate && desc.regions.length > 0) {
+        let position = desc.regions[0].start;
+
+        if (desc.skillId && positionsMap[desc.skillId] !== undefined) {
+          position = positionsMap[desc.skillId];
+        }
+
+        let xPct = (position / course.distance) * 100;
+        while (seenX.has(xPct)) xPct += 0.3;
+        seenX.add(xPct);
+
+        immOut.push({
+          key: `imm-${i}`,
+          xPct,
+          effectType: desc.effectType ?? 0,
+          color: desc.color,
+          isDebuff: !!desc.debuffId,
+          text: desc.text,
+          skillId: desc.skillId,
+          umaIndex: desc.umaIndex,
+          position,
+          debuffId: desc.debuffId,
+        });
+        continue;
+      }
+
+      if (desc.type === RegionDisplayType.Textbox) {
+        for (let rIndex = 0; rIndex < desc.regions.length; rIndex++) {
+          const region = desc.regions[rIndex];
+          const duration = region.end - region.start;
+
+          let start = region.start;
+          let end = region.end;
+
+          if (desc.skillId && positionsMap[desc.skillId] !== undefined) {
+            start = positionsMap[desc.skillId];
+            end = start + duration;
+          }
+
+          const xPct = (start / course.distance) * 100;
+          const wPct = ((end - start) / course.distance) * 100;
+
+          const rungIndex = findAvailableRung(start, end, rungs);
+          rungs[rungIndex % COMPACT_LANES].push({ start, end });
+
+          durOut.push({
+            key: `c-${i}-${rIndex}-${desc.skillId ?? 'n'}`,
+            xPct,
+            wPct,
+            markerY: MARKER_START_PCT + MARKER_RUNG_STEP_PCT * rungIndex,
+            color: desc.color,
+            text: desc.text,
+            effectType: desc.effectType,
+            skillId: desc.skillId,
+            umaIndex: desc.umaIndex,
+            start,
+            end,
+            isDebuff: !!desc.debuffId,
+            debuffId: desc.debuffId,
+          });
+        }
+      }
+    }
+
+    return { immediates: immOut, durations: durOut };
+  }, [umaRegions, course.distance, positionsMap]);
 
   if (!visible) return null;
 
-  const rungs: Array<Array<{ start: number; end: number }>> = Array.from(
-    { length: COMPACT_LANES },
-    () => [],
-  );
-  const seen = new Set<number>();
-
-  const immediateLines: Array<React.ReactElement> = [];
-  const markers: Array<React.ReactElement> = [];
-
-  for (let descIndex = 0; descIndex < umaRegions.length; descIndex++) {
-    const desc = umaRegions[descIndex];
-
-    if (desc.type === RegionDisplayType.Immediate && desc.regions.length > 0) {
-      let xPct = (desc.regions[0].start / course.distance) * 100;
-      const COLLISION_OFFSET = 0.3;
-      while (seen.has(xPct)) {
-        xPct += COLLISION_OFFSET;
-      }
-      seen.add(xPct);
-      immediateLines.push(
-        <line
-          key={`imm-${descIndex}`}
-          x1={`${xPct}%`}
-          y1="0"
-          x2={`${xPct}%`}
-          y2="100%"
-          stroke={desc.color.stroke}
-          strokeWidth={xPct === 0 ? 3 : 1.5}
-        />,
-      );
-      continue;
-    }
-
-    if (desc.type === RegionDisplayType.Textbox) {
-      for (let rIndex = 0; rIndex < desc.regions.length; rIndex++) {
-        const r = desc.regions[rIndex];
-        let start = r.start;
-        let end = r.end;
-
-        if (desc.skillId && desc.umaIndex !== undefined) {
-          const positions = desc.umaIndex === 0 ? forcedPositions.uma1 : forcedPositions.uma2;
-          const forcedPos = positions?.[desc.skillId];
-          if (forcedPos !== undefined) {
-            start = forcedPos;
-            end = forcedPos + (r.end - r.start);
-          }
-        }
-
-        const xPct = (start / course.distance) * 100;
-        const wPct = ((end - start) / course.distance) * 100;
-
-        const rungIndex = findAvailableRung(start, end, rungs);
-        rungs[rungIndex % COMPACT_LANES].push({ start, end });
-
-        const markerY = rowY + COMPACT_BAR_HEIGHT + 2 + (COMPACT_BAR_HEIGHT + 1) * rungIndex;
-
-        const handleOnDragStart = (e: React.MouseEvent) => {
-          if (!desc.skillId || desc.umaIndex === undefined) return;
-          onDragStart(e, desc.skillId, desc.umaIndex, start, end);
-        };
-
-        markers.push(
-          <CompactSkillMarker
-            key={`c-${descIndex}-${rIndex}-${desc.skillId ?? 'n'}`}
-            x={xPct}
-            y={markerY}
-            width={wPct}
-            barHeight={COMPACT_BAR_HEIGHT}
-            color={desc.color}
-            text={desc.text}
-            effectType={desc.effectType}
-            skillId={desc.skillId}
-            onDragStart={handleOnDragStart}
-          />,
-        );
-      }
-    }
-  }
-
   return (
-    <svg x="0" y={rowY} width="100%" height={RaceTrackDimensions.UmaSkillSectionRowHeight}>
-      <rect x="0" y="0" width="100%" height="100%" fill="transparent" />
-
+    <svg x="0" y={rowY} width="100%" height="50%" overflow="visible">
       <text
         x="4"
         y="50%"
@@ -154,8 +158,13 @@ export const UmaSkillRow = React.memo<UmaSkillRowProps>((props) => {
         {label}
       </text>
 
-      {immediateLines}
-      {markers}
+      {durations.map(({ key, ...d }) => (
+        <DurationMarker key={key} {...d} onDragStart={onDragStart} />
+      ))}
+
+      {immediates.map(({ key, ...d }) => (
+        <ImmediateMarker key={key} {...d} onDragStart={onDragStart} />
+      ))}
     </svg>
   );
 });

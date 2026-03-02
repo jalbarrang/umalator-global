@@ -5,9 +5,10 @@ import type { PosKeepLabel } from '@/utils/races';
 import { RegionDisplayType } from '@/modules/racetrack/types';
 import { getSkillNameById } from '@/modules/skills/utils';
 import { useSettingsStore } from '@/store/settings.store';
-import { colors, posKeepColors, rushedColors } from '@/utils/colors';
+import { colors, debuffColors, posKeepColors, recoveryColors, rushedColors } from '@/utils/colors';
 import { SkillPerspective, SkillType } from '@/lib/sunday-tools/skills/definitions';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { useDebuffs } from '@/modules/simulation/stores/compare.store';
 
 export type RegionData = {
   type: RegionDisplayType;
@@ -26,30 +27,59 @@ export type RegionData = {
   skillId?: string;
   umaIndex?: number;
   effectType?: number;
+  debuffId?: string;
 };
 
-const getSkillActivation = (
+const INSTANT_DURATION_THRESHOLD = 1;
+
+const getSkillActivations = (
   skillId: string,
   activations: Array<SkillEffectLog>,
   umaIndex: number,
-) => {
-  const validActivation = activations.find(
-    (activation) =>
-      activation.effectType !== SkillType.Recovery &&
-      activation.perspective === SkillPerspective.Self,
-  );
+): Array<RegionData> => {
+  const selfEffects = activations.filter((a) => a.perspective === SkillPerspective.Self);
+  if (selfEffects.length === 0) return [];
 
-  if (!validActivation) return null;
+  const grouped = new Map<number, Array<SkillEffectLog>>();
+  for (const effect of selfEffects) {
+    const key = effect.start;
+    const group = grouped.get(key);
+    if (group) group.push(effect);
+    else grouped.set(key, [effect]);
+  }
 
-  return {
-    type: RegionDisplayType.Textbox,
-    color: colors[umaIndex],
-    text: getSkillNameById(skillId),
-    skillId: skillId,
-    umaIndex: umaIndex,
-    effectType: validActivation.effectType,
-    regions: [{ start: validActivation.start, end: validActivation.end }],
-  };
+  const results: Array<RegionData> = [];
+
+  for (const effects of grouped.values()) {
+    const durationEffect = effects.find((e) => e.end - e.start > INSTANT_DURATION_THRESHOLD);
+
+    if (durationEffect) {
+      const isRecovery = durationEffect.effectType === SkillType.Recovery;
+      results.push({
+        type: RegionDisplayType.Textbox,
+        color: isRecovery ? recoveryColors[umaIndex] : colors[umaIndex],
+        text: getSkillNameById(skillId),
+        skillId,
+        umaIndex,
+        effectType: durationEffect.effectType,
+        regions: [{ start: durationEffect.start, end: durationEffect.end }],
+      });
+    } else {
+      const repr = effects[0];
+      const isRecovery = repr.effectType === SkillType.Recovery;
+      results.push({
+        type: RegionDisplayType.Immediate,
+        color: isRecovery ? recoveryColors[umaIndex] : colors[umaIndex],
+        text: getSkillNameById(skillId),
+        skillId,
+        umaIndex,
+        effectType: repr.effectType,
+        regions: [{ start: repr.start, end: repr.end }],
+      });
+    }
+  }
+
+  return results;
 };
 
 type UseVisualizationDataProps = {
@@ -58,6 +88,7 @@ type UseVisualizationDataProps = {
 
 export const useVisualizationData = (props: UseVisualizationDataProps) => {
   const { chartData } = props;
+  const debuffs = useDebuffs();
 
   const { courseId } = useSettingsStore(
     useShallow((state) => ({
@@ -73,22 +104,14 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
     const runnerASkills = chartData.skillActivations[0];
     const runnerBSkills = chartData.skillActivations[1];
 
-    const skills = [];
+    const skills: Array<RegionData> = [];
 
     for (const [skillId, activations] of Object.entries(runnerASkills)) {
-      const skillActivation = getSkillActivation(skillId, activations, 0);
-
-      if (skillActivation) {
-        skills.push(skillActivation);
-      }
+      skills.push(...getSkillActivations(skillId, activations, 0));
     }
 
     for (const [skillId, activations] of Object.entries(runnerBSkills)) {
-      const skillActivation = getSkillActivation(skillId, activations, 1);
-
-      if (skillActivation) {
-        skills.push(skillActivation);
-      }
+      skills.push(...getSkillActivations(skillId, activations, 1));
     }
 
     return skills;
@@ -98,7 +121,7 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
     if (!chartData) return [];
     if (!chartData.rushed) return [];
 
-    const results = [];
+    const results: Array<RegionData> = [];
 
     for (const [umaIndex, rushArray] of chartData.rushed.entries()) {
       for (const rush of rushArray) {
@@ -114,6 +137,30 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
 
     return results;
   }, [chartData]);
+
+  const debuffIndicators: Array<RegionData> = useMemo(() => {
+    const results: Array<RegionData> = [];
+    const entries: Array<[number, typeof debuffs.uma1]> = [
+      [0, debuffs.uma1],
+      [1, debuffs.uma2],
+    ];
+
+    for (const [umaIndex, umaDebuffs] of entries) {
+      for (const debuff of umaDebuffs) {
+        results.push({
+          type: RegionDisplayType.Immediate,
+          color: debuffColors[umaIndex],
+          text: getSkillNameById(debuff.skillId),
+          skillId: debuff.skillId,
+          umaIndex,
+          debuffId: debuff.id,
+          regions: [{ start: debuff.position, end: debuff.position }],
+        });
+      }
+    }
+
+    return results;
+  }, [debuffs]);
 
   const posKeepData: Array<PosKeepLabel> = useMemo(() => {
     return [];
@@ -221,6 +268,7 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
   return {
     skillActivations,
     rushedIndicators,
+    debuffIndicators,
     posKeepLabels,
   };
 };

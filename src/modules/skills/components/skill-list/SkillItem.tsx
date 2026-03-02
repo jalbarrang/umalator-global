@@ -46,6 +46,7 @@ export const SkillItem = memo((props: SkillItemProps) => {
   return (
     <div
       data-skillid={skillId}
+      data-event="select-skill"
       style={props.style}
       onMouseEnter={props.onMouseEnter}
       onMouseLeave={props.onMouseLeave}

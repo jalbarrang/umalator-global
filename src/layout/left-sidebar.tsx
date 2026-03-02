@@ -1,4 +1,10 @@
-import { BookmarkIcon, CrosshairIcon, ShieldAlertIcon, SlidersHorizontalIcon, UsersIcon } from 'lucide-react';
+import {
+  BookmarkIcon,
+  CircleAlert,
+  CrosshairIcon,
+  SlidersHorizontalIcon,
+  UsersIcon,
+} from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router';
 import { Button } from '@/components/ui/button';
@@ -13,6 +19,14 @@ import { useDebuffs } from '@/modules/simulation/stores/compare.store';
 import { useForcedPositions } from '@/modules/simulation/stores/forced-positions.store';
 import { setLeftSidebar, useLeftSidebar } from '@/store/ui.store';
 
+type Panel = {
+  id: string;
+  label: string;
+  icon: React.ElementType;
+  content: React.ReactNode;
+  hasBadge: boolean;
+};
+
 export const LeftSidebar = () => {
   const { activePanel, hidden } = useLeftSidebar();
   const { uma1, uma2 } = useForcedPositions();
@@ -24,7 +38,7 @@ export const LeftSidebar = () => {
   const isCompareRunnersView = location.pathname === '/';
 
   const panels = useMemo(() => {
-    const basePanels = [
+    const basePanels: Panel[] = [
       {
         id: 'runners',
         label: 'Runners',
@@ -59,7 +73,7 @@ export const LeftSidebar = () => {
       basePanels.push({
         id: 'debuffs',
         label: 'Debuffs',
-        icon: ShieldAlertIcon,
+        icon: CircleAlert,
         content: <DebuffsPanel />,
         hasBadge: hasDebuffs,
       });

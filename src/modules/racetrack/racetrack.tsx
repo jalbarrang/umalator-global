@@ -51,9 +51,10 @@ export const RaceTrack = (props: RaceTrackProps) => {
   const mouseLineRef = useRef<SVGLineElement>(null);
   const mouseTextRef = useRef<SVGTextElement>(null);
 
-  const { skillActivations, rushedIndicators, posKeepLabels } = useVisualizationData({
-    chartData,
-  });
+  const { skillActivations, rushedIndicators, debuffIndicators, posKeepLabels } =
+    useVisualizationData({
+      chartData,
+    });
 
   const handleSkillDrag = (
     skillId: string,
@@ -75,7 +76,7 @@ export const RaceTrack = (props: RaceTrackProps) => {
   };
 
   const { draggedSkill, handleDragStart, handleDragMove, handleDragEnd } = useDragSkill({
-    xOffset: 0,
+    xOffset: RaceTrackDimensions.xOffset,
     courseDistance: course.distance,
     viewBoxWidth: RaceTrackDimensions.RenderWidth,
     onSkillDrag: handleSkillDrag,
@@ -140,7 +141,7 @@ export const RaceTrack = (props: RaceTrackProps) => {
 
   return (
     <div className="flex flex-col gap-2 justify-center items-center">
-      <div className="flex flex-col gap-2 w-full max-w-[1300px]">
+      <div className="flex flex-col gap-2 w-full max-w-[1600px]">
         <TrackHeader course={course} courseId={courseId} racedef={racedef} />
 
         <div className="w-full">
@@ -164,11 +165,21 @@ export const RaceTrack = (props: RaceTrackProps) => {
             <PhaseBar course={course} />
             <SectionNumbersBar />
 
+            <YAxis chartData={chartData} />
+            <XAxis courseDistance={course.distance} />
+
+            <VelocityPaths chartData={chartData} course={course} />
+            <ThresholdMarkers courseDistance={course.distance} />
+            <PosKeepLabels posKeepLabels={posKeepLabels} />
+            <RaceTrackTooltip tooltipData={tooltipData} tooltipVisible={tooltipVisible} />
+            <MouseLine mouseLineRef={mouseLineRef} mouseTextRef={mouseTextRef} />
+
             <svg
               x={RaceTrackDimensions.xOffset}
               y={RaceTrackDimensions.SectionNumbersBarY}
               width={RaceTrackDimensions.RenderWidth}
               height={RaceTrackDimensions.UmaSkillSectionHeight}
+              overflow="visible"
             >
               <UmaSkillRow
                 course={course}
@@ -177,6 +188,7 @@ export const RaceTrack = (props: RaceTrackProps) => {
                 visible={showUma1}
                 skillActivations={skillActivations}
                 rushedIndicators={rushedIndicators}
+                debuffIndicators={debuffIndicators}
                 onDragStart={handleDragStart}
               />
 
@@ -187,20 +199,10 @@ export const RaceTrack = (props: RaceTrackProps) => {
                 visible={showUma2}
                 skillActivations={skillActivations}
                 rushedIndicators={rushedIndicators}
+                debuffIndicators={debuffIndicators}
                 onDragStart={handleDragStart}
               />
             </svg>
-
-            <YAxis chartData={chartData} />
-            <XAxis courseDistance={course.distance} />
-
-            <VelocityPaths chartData={chartData} course={course} />
-
-            <ThresholdMarkers courseDistance={course.distance} />
-
-            <PosKeepLabels posKeepLabels={posKeepLabels} />
-            <RaceTrackTooltip tooltipData={tooltipData} tooltipVisible={tooltipVisible} />
-            <MouseLine mouseLineRef={mouseLineRef} mouseTextRef={mouseTextRef} />
           </svg>
         </div>
 

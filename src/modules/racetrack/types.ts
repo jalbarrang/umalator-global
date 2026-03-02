@@ -50,3 +50,13 @@ export const slopeConversionValue = 10000;
 export const slopeValueToPercentage = (value: number) => {
   return value / slopeConversionValue;
 };
+
+export type DragStartHandler = (
+  e: React.MouseEvent,
+  skillId: string,
+  umaIndex: number,
+  start: number,
+  end: number,
+  markerType?: 'skill' | 'debuff',
+  debuffId?: string,
+) => void;
