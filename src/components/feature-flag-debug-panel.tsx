@@ -5,6 +5,8 @@ import { Card } from './ui/card';
 import { Badge } from './ui/badge';
 import { getAllFeatureFlags } from '@/lib/feature-flags';
 
+const showFeatureFlagPanel = import.meta.env.VITE_DEBUG_MODE === 'true';
+
 /**
  * Development panel to display all feature flags and their states
  * This component demonstrates the feature flag system
@@ -14,7 +16,7 @@ export function FeatureFlagDebugPanel() {
   const flags = getAllFeatureFlags();
 
   // Only show in development mode
-  if (!import.meta.env.DEV) {
+  if (!showFeatureFlagPanel) {
     return null;
   }
 

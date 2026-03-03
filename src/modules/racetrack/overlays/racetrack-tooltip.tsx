@@ -86,17 +86,25 @@ export function RaceTrackTooltip(props: RaceTrackTooltipProps) {
   return (
     <svg
       id="racetrack-tooltip"
-      x={RaceTrackDimensions.xOffset}
-      y={RaceTrackDimensions.marginTop}
+      x={RaceTrackDimensions.xOffset + 10}
+      y={6}
       width={RaceTrackDimensions.RenderWidth}
       height={RaceTrackDimensions.yAxisHeight}
       overflow="visible"
     >
-      <rect x={0} y={0} width={200} height={20} fill="var(--background)" />
-      <text x={5} y={0} fill="#2a77c5" fontSize="10px">
+      <rect
+        x={0}
+        y={0}
+        width={160}
+        height={30}
+        fill="var(--background)"
+        stroke="var(--border)"
+        strokeWidth="1"
+      />
+      <text x={5} y={12} fill="#2a77c5" fontSize="8px">
         {tooltipData?.v1Text ?? ''}
       </text>
-      <text x={5} y={15} fill="#c52a2a" fontSize="10px">
+      <text x={5} y={23} fill="#c52a2a" fontSize="8px">
         {tooltipData?.v2Text ?? ''}
       </text>
     </svg>

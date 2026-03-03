@@ -22,30 +22,20 @@ import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip
 import { ScrollTextIcon, UsersIcon } from 'lucide-react';
 import { setShowChangelogModal, setShowCreditsModal } from '@/store/ui.store';
 
-import { useScan } from 'react-scan';
-import { useMemo } from 'react';
-
-const isReactScanEnabled = import.meta.env.VITE_REACT_SCAN === 'true';
-
-console.log('isReactScanEnabled', isReactScanEnabled);
-console.log('VITE_REACT_SCAN', import.meta.env.VITE_REACT_SCAN);
+import { useCallback, useMemo } from 'react';
 
 export function RootComponent() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  useScan({
-    enabled: isReactScanEnabled,
-  });
-
-  const getCurrentTab = () => {
+  const getCurrentTab = useCallback(() => {
     if (location.pathname.startsWith('/runners')) return 'runners';
     if (location.pathname === '/skill-planner') return 'skill-planner';
     if (location.pathname === '/race-sim') return 'race-sim';
     return 'simulation';
-  };
+  }, [location.pathname]);
 
-  const currentTab = useMemo(() => getCurrentTab(), [location.pathname]);
+  const currentTab = useMemo(() => getCurrentTab(), [getCurrentTab]);
 
   return (
     <TutorialProvider>
