@@ -28,7 +28,15 @@ const findAvailableRung = (
     const hasOverlap = rungs[i].some((b) => !(end <= b.start || start >= b.end));
     if (!hasOverlap) return i;
   }
-  return 0;
+  rungs.push([]);
+  return rungs.length - 1;
+};
+
+const rungToYPct = (rungIndex: number): number => {
+  if (rungIndex < COMPACT_LANES) {
+    return MARKER_START_PCT + MARKER_RUNG_STEP_PCT * rungIndex;
+  }
+  return MARKER_START_PCT - MARKER_RUNG_STEP_PCT * (rungIndex - COMPACT_LANES + 1);
 };
 
 // --- Main component ---
@@ -65,11 +73,12 @@ export const UmaSkillRow = React.memo<UmaSkillRowProps>((props) => {
   const rowY = useMemo(() => (umaIndex === 0 ? 0 : '50%'), [umaIndex]);
 
   const umaRegions = useMemo(
-    () => [
-      ...skillActivations.filter((r) => r.umaIndex === umaIndex),
-      ...rushedIndicators.filter((r) => r.umaIndex === umaIndex),
-      ...debuffIndicators.filter((r) => r.umaIndex === umaIndex),
-    ],
+    () =>
+      [
+        ...skillActivations.filter((r) => r.umaIndex === umaIndex),
+        ...rushedIndicators.filter((r) => r.umaIndex === umaIndex),
+        ...debuffIndicators.filter((r) => r.umaIndex === umaIndex),
+      ].sort((a, b) => (a.regions[0]?.start ?? 0) - (b.regions[0]?.start ?? 0)),
     [skillActivations, rushedIndicators, debuffIndicators, umaIndex],
   );
 
@@ -113,14 +122,14 @@ export const UmaSkillRow = React.memo<UmaSkillRowProps>((props) => {
         const immediateEnd = Math.min(course.distance, position + immediateHalfWindowMeters);
 
         const rungIndex = findAvailableRung(immediateStart, immediateEnd, rungs);
-        rungs[rungIndex % COMPACT_LANES].push({ start: immediateStart, end: immediateEnd });
+        rungs[rungIndex].push({ start: immediateStart, end: immediateEnd });
 
         const xPct = (position / course.distance) * 100;
 
         immOut.push({
           key: `imm-${i}`,
           xPct,
-          markerY: MARKER_START_PCT + MARKER_RUNG_STEP_PCT * rungIndex + immediateCenterOffsetPct,
+          markerY: rungToYPct(rungIndex) + immediateCenterOffsetPct,
           effectType: desc.effectType ?? 0,
           color: desc.color,
           isDebuff,
@@ -165,13 +174,13 @@ export const UmaSkillRow = React.memo<UmaSkillRowProps>((props) => {
           const wPct = ((end - start) / course.distance) * 100;
 
           const rungIndex = findAvailableRung(start, end, rungs);
-          rungs[rungIndex % COMPACT_LANES].push({ start, end });
+          rungs[rungIndex].push({ start, end });
 
           durOut.push({
             key: `c-${i}-${rIndex}-${desc.skillId ?? 'n'}`,
             xPct,
             wPct,
-            markerY: MARKER_START_PCT + MARKER_RUNG_STEP_PCT * rungIndex,
+            markerY: rungToYPct(rungIndex),
             color: desc.color,
             text: desc.text,
             effectType: desc.effectType,
