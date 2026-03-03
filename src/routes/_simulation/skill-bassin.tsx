@@ -84,7 +84,9 @@ export function SkillBassin() {
 
   return (
     <div className="flex flex-col gap-4 flex-1">
-      <div data-tutorial="skill-bassin-controls" className="flex items-center gap-2">
+      <RaceSettingsPanel />
+
+      <div data-tutorial="skill-bassin-controls" className="flex flex-wrap items-center gap-2">
         {!isSimulationRunning && (
           <Button variant="default" onClick={handleRunSimulation}>
             Run Skill Simulations
@@ -136,8 +138,6 @@ export function SkillBassin() {
       </div>
 
       <Activity mode={!isSimulationRunning ? 'visible' : 'hidden'}>
-        <RaceSettingsPanel />
-
         <div data-tutorial="skill-bassin-table">
           <BasinnChart
             data={Object.values(skillBasinResults)}

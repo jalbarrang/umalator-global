@@ -1,33 +1,32 @@
-import { Activity, useCallback, useState } from "react";
+import { Activity, useCallback, useState } from 'react';
 import {
   createNewSeed,
   resetResults,
   setSeed,
   useRaceStore,
-} from "@/modules/simulation/stores/compare.store";
-import { Button } from "@/components/ui/button";
-import { CompareLoadingOverlay } from "@/components/compare-loading-overlay";
-import { useSimulationRunner } from "@/modules/simulation/hooks/compare/useSimulationRunner";
-import { SimulationResultTabs } from "@/modules/simulation/tabs/simulation-result-tabs";
-import { ResultButtonGroups } from "@/modules/simulation/tabs/summary-tab";
-import { useSettingsStore } from "@/store/settings.store";
-import { RaceSettingsPanel } from "@/modules/skill-planner/components/RaceSettingsPanel";
-import { Separator } from "@/components/ui/separator";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { parseSeed } from "@/utils/crypto";
-import { HelpButton } from "@/components/ui/help-button";
-import { umalatorSteps } from "@/modules/tutorial/steps/umalator-steps";
-import { RaceTrack } from "@/modules/racetrack/racetrack";
+} from '@/modules/simulation/stores/compare.store';
+import { Button } from '@/components/ui/button';
+import { CompareLoadingOverlay } from '@/components/compare-loading-overlay';
+import { useSimulationRunner } from '@/modules/simulation/hooks/compare/useSimulationRunner';
+import { SimulationResultTabs } from '@/modules/simulation/tabs/simulation-result-tabs';
+import { ResultButtonGroups } from '@/modules/simulation/tabs/summary-tab';
+import { useSettingsStore } from '@/store/settings.store';
+import { RaceSettingsPanel } from '@/modules/skill-planner/components/RaceSettingsPanel';
+import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { parseSeed } from '@/utils/crypto';
+import { HelpButton } from '@/components/ui/help-button';
+import { umalatorSteps } from '@/modules/tutorial/steps/umalator-steps';
+import { RaceTrack } from '@/modules/racetrack/racetrack';
 
 export function SimulationHome() {
-  const { chartData, results, isSimulationRunning, simulationProgress, seed } =
-    useRaceStore();
+  const { chartData, results, isSimulationRunning, simulationProgress, seed } = useRaceStore();
   const { courseId } = useSettingsStore();
   const { handleRunCompare, handleRunOnce } = useSimulationRunner();
 
   const [seedInput, setSeedInput] = useState<string>(() => {
-    if (seed === null) return "";
+    if (seed === null) return '';
     return seed.toString();
   });
 
@@ -61,10 +60,11 @@ export function SimulationHome() {
 
   return (
     <div className="flex flex-col flex-1 gap-4">
-      <div
-        data-tutorial="simulation-controls"
-        className="flex items-center gap-2"
-      >
+      <div data-tutorial="race-settings">
+        <RaceSettingsPanel />
+      </div>
+
+      <div data-tutorial="simulation-controls" className="flex flex-wrap items-center gap-2">
         <Button
           data-tutorial="run-all-samples"
           onClick={handleRunAllSamples}
@@ -73,19 +73,11 @@ export function SimulationHome() {
         >
           Run all samples
         </Button>
-        <Button
-          onClick={handleRunOneSample}
-          disabled={isSimulationRunning}
-          variant="outline"
-        >
+        <Button onClick={handleRunOneSample} disabled={isSimulationRunning} variant="outline">
           Run one sample
         </Button>
 
-        <HelpButton
-          tutorialId="umalator"
-          steps={umalatorSteps}
-          tooltipText="Show tutorial"
-        />
+        <HelpButton tutorialId="umalator" steps={umalatorSteps} tooltipText="Show tutorial" />
 
         <div className="flex items-center gap-2">
           <Label htmlFor="seed-input" className="text-sm text-muted-foreground">
@@ -105,7 +97,7 @@ export function SimulationHome() {
             variant="secondary"
             size="sm"
             onClick={handleReplayAllSamples}
-            disabled={isSimulationRunning || seedInput.trim() === ""}
+            disabled={isSimulationRunning || seedInput.trim() === ''}
           >
             Replay All
           </Button>
@@ -113,7 +105,7 @@ export function SimulationHome() {
             variant="secondary"
             size="sm"
             onClick={handleReplayOneSample}
-            disabled={isSimulationRunning || seedInput.trim() === ""}
+            disabled={isSimulationRunning || seedInput.trim() === ''}
           >
             Replay One
           </Button>
@@ -128,13 +120,9 @@ export function SimulationHome() {
         </Button>
       </div>
 
-      <Activity mode={!isSimulationRunning ? "visible" : "hidden"}>
+      <Activity mode={!isSimulationRunning ? 'visible' : 'hidden'}>
         <div data-tutorial="race-visualization">
           <RaceTrack courseId={courseId} chartData={chartData} />
-        </div>
-
-        <div data-tutorial="race-settings">
-          <RaceSettingsPanel />
         </div>
 
         {results.length > 0 && <ResultButtonGroups />}
@@ -146,7 +134,7 @@ export function SimulationHome() {
         </div>
       </Activity>
 
-      <Activity mode={isSimulationRunning ? "visible" : "hidden"}>
+      <Activity mode={isSimulationRunning ? 'visible' : 'hidden'}>
         <CompareLoadingOverlay
           currentSamples={simulationProgress?.current}
           totalSamples={simulationProgress?.total}

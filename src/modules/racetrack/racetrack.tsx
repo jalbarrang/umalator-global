@@ -6,7 +6,6 @@ import { useSettingsStore } from '@/store/settings.store';
 import { useVisualizationData } from './hooks/useVisualizationData';
 import { updateDebuffPosition } from '../simulation/stores/compare.store';
 import { setForcedPosition } from '../simulation/stores/forced-positions.store';
-import { TrackHeader } from './chrome/track-header';
 
 import { VelocityPaths } from './overlays/velocity-paths';
 import { ThresholdMarkers } from './overlays/threshold-markers';
@@ -24,7 +23,7 @@ import { SlopeLabelBar } from './layers/slope-label-bar';
 import { SlopeVisualization } from './layers/slope-visualization';
 import { PhaseBar } from './layers/phase-bar';
 import { RaceTrackDimensions } from './types';
-import { UmaSkillRow } from './skills/uma-skill-row';
+import { UmaSkillSection } from './skills/uma-skill-row';
 
 import './components/RaceTrack.css';
 
@@ -41,7 +40,7 @@ export const RaceTrack = (props: RaceTrackProps) => {
   }, [incomingChartData]);
 
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
-  const { racedef, showUma1, showUma2 } = useSettingsStore();
+  const { showUma1, showUma2 } = useSettingsStore();
 
   const mouseLineRef = useRef<SVGLineElement>(null);
   const mouseTextRef = useRef<SVGTextElement>(null);
@@ -150,9 +149,8 @@ export const RaceTrack = (props: RaceTrackProps) => {
   return (
     <div className="flex flex-col gap-2 justify-center items-center">
       <div className="flex flex-col gap-2 w-full max-w-[1600px]">
-        <TrackHeader course={course} courseId={courseId} racedef={racedef} />
-
         <TrackLegend />
+        <TrackControls />
         <div className="w-full">
           <svg
             version="1.1"
@@ -180,8 +178,8 @@ export const RaceTrack = (props: RaceTrackProps) => {
             <VelocityPaths chartData={chartData} course={course} />
             <ThresholdMarkers courseDistance={course.distance} />
             <PosKeepLabels posKeepLabels={posKeepLabels} />
-            <RaceTrackTooltip ref={tooltipRef} chartData={chartData} course={course} />
             <MouseLine mouseLineRef={mouseLineRef} mouseTextRef={mouseTextRef} />
+            <RaceTrackTooltip ref={tooltipRef} chartData={chartData} course={course} />
 
             <svg
               x={RaceTrackDimensions.xOffset}
@@ -190,22 +188,10 @@ export const RaceTrack = (props: RaceTrackProps) => {
               height={RaceTrackDimensions.UmaSkillSectionHeight}
               overflow="visible"
             >
-              <UmaSkillRow
+              <UmaSkillSection
                 course={course}
-                umaIndex={0}
-                label="Uma 1"
-                visible={showUma1}
-                skillActivations={skillActivations}
-                rushedIndicators={rushedIndicators}
-                debuffIndicators={debuffIndicators}
-                onDragStart={handleDragStart}
-              />
-
-              <UmaSkillRow
-                course={course}
-                umaIndex={1}
-                label="Uma 2"
-                visible={showUma2}
+                showUma1={showUma1}
+                showUma2={showUma2}
                 skillActivations={skillActivations}
                 rushedIndicators={rushedIndicators}
                 debuffIndicators={debuffIndicators}
@@ -214,8 +200,6 @@ export const RaceTrack = (props: RaceTrackProps) => {
             </svg>
           </svg>
         </div>
-
-        <TrackControls />
       </div>
     </div>
   );

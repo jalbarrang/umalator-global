@@ -19,12 +19,12 @@ export namespace RaceTrackDimensions {
   export const xOffset = 20;
   export const RenderWidth = ViewWidth - marginLeft - marginRight;
 
-  export const xAxisHeight = 24;
+  export const xAxisHeight = 20;
   export const xAxisY = ViewHeight - xAxisHeight - marginBottom;
 
   export const yAxisHeight = ViewHeight - xAxisHeight - marginBottom - marginTop;
 
-  export const SectionNumbersBarHeight = 60;
+  export const SectionNumbersBarHeight = 80;
   export const SectionNumbersBarY = xAxisY - SectionNumbersBarHeight;
 
   export const PhaseBarHeight = 40;

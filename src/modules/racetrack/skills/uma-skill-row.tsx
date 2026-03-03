@@ -1,8 +1,5 @@
 import React, { useMemo } from 'react';
-import {
-  type CompareRunnerId,
-  useForcedPositionMap,
-} from '@/modules/simulation/stores/forced-positions.store';
+import { useForcedPositionMap } from '@/modules/simulation/stores/forced-positions.store';
 import { DragStartHandler, RegionDisplayType } from '../types';
 import { RaceTrackDimensions } from '../types';
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';
@@ -33,53 +30,59 @@ const findAvailableRung = (
 };
 
 const rungToYPct = (rungIndex: number): number => {
-  if (rungIndex < COMPACT_LANES) {
-    return MARKER_START_PCT + MARKER_RUNG_STEP_PCT * rungIndex;
-  }
-  return MARKER_START_PCT - MARKER_RUNG_STEP_PCT * (rungIndex - COMPACT_LANES + 1);
+  return 100 - MARKER_START_PCT - MARKER_RUNG_STEP_PCT * rungIndex;
 };
 
-// --- Main component ---
+const normalizeUmaIndex = (value?: number): 0 | 1 | null => {
+  if (value === 0 || value === 1) return value;
+  return null;
+};
 
-export type UmaSkillRowProps = {
+export type UmaSkillSectionProps = {
   course: CourseData;
   skillActivations: Array<RegionData>;
   rushedIndicators: Array<RegionData>;
   debuffIndicators: Array<RegionData>;
-  umaIndex: 0 | 1;
-  label: string;
-  visible: boolean;
+  showUma1: boolean;
+  showUma2: boolean;
   onDragStart: DragStartHandler;
 };
 
-export const UmaSkillRow = React.memo<UmaSkillRowProps>((props) => {
+export const UmaSkillSection = React.memo<UmaSkillSectionProps>((props) => {
   const {
-    umaIndex,
     course,
     skillActivations,
     rushedIndicators,
     debuffIndicators,
-    label,
-    visible,
+    showUma1,
+    showUma2,
     onDragStart,
   } = props;
 
-  const runnerId: CompareRunnerId = umaIndex === 0 ? 'uma1' : 'uma2';
-  const positionsMap = useForcedPositionMap(runnerId);
-  const dragPreview = useDragPreviewForUma(umaIndex);
+  const positionsMapUma1 = useForcedPositionMap('uma1');
+  const positionsMapUma2 = useForcedPositionMap('uma2');
+  const dragPreviewUma1 = useDragPreviewForUma(0);
+  const dragPreviewUma2 = useDragPreviewForUma(1);
   const immediateCenterOffsetPct =
-    (COMPACT_BAR_HEIGHT / 2 / RaceTrackDimensions.UmaSkillSectionRowHeight) * 100;
+    (COMPACT_BAR_HEIGHT / 2 / RaceTrackDimensions.UmaSkillSectionHeight) * 100;
 
-  const rowY = useMemo(() => (umaIndex === 0 ? 0 : '50%'), [umaIndex]);
-
-  const umaRegions = useMemo(
+  const visibleRegions = useMemo(
     () =>
-      [
-        ...skillActivations.filter((r) => r.umaIndex === umaIndex),
-        ...rushedIndicators.filter((r) => r.umaIndex === umaIndex),
-        ...debuffIndicators.filter((r) => r.umaIndex === umaIndex),
-      ].sort((a, b) => (a.regions[0]?.start ?? 0) - (b.regions[0]?.start ?? 0)),
-    [skillActivations, rushedIndicators, debuffIndicators, umaIndex],
+      [...skillActivations, ...rushedIndicators, ...debuffIndicators]
+        .filter((region) => {
+          const regionUmaIndex = normalizeUmaIndex(region.umaIndex);
+          if (regionUmaIndex === null) return false;
+          return regionUmaIndex === 0 ? showUma1 : showUma2;
+        })
+        .sort((a, b) => {
+          const umaA = a.umaIndex ?? 0;
+          const umaB = b.umaIndex ?? 0;
+
+          if (umaA !== umaB) return umaB - umaA;
+
+          return (b.regions[0]?.start ?? 0) - (a.regions[0]?.start ?? 0);
+        }),
+    [skillActivations, rushedIndicators, debuffIndicators, showUma1, showUma2],
   );
 
   const { immediates, durations } = useMemo(() => {
@@ -92,8 +95,13 @@ export const UmaSkillRow = React.memo<UmaSkillRowProps>((props) => {
     const metersPerSvgUnit = course.distance / RaceTrackDimensions.RenderWidth;
     const immediateHalfWindowMeters = Math.max(1, IMMEDIATE_HIT_PADDING * metersPerSvgUnit);
 
-    for (let i = 0; i < umaRegions.length; i++) {
-      const desc = umaRegions[i];
+    for (let i = 0; i < visibleRegions.length; i++) {
+      const desc = visibleRegions[i];
+      const umaIndex = normalizeUmaIndex(desc.umaIndex);
+      if (umaIndex === null) continue;
+
+      const positionsMap = umaIndex === 0 ? positionsMapUma1 : positionsMapUma2;
+      const dragPreview = umaIndex === 0 ? dragPreviewUma1 : dragPreviewUma2;
       const isDebuff = desc.isDebuff ?? !!desc.debuffId;
       const markerType = desc.debuffId ? 'debuff' : 'skill';
       const dragSkillId = isDebuff && !desc.debuffId ? undefined : desc.skillId;
@@ -127,7 +135,7 @@ export const UmaSkillRow = React.memo<UmaSkillRowProps>((props) => {
         const xPct = (position / course.distance) * 100;
 
         immOut.push({
-          key: `imm-${i}`,
+          key: `imm-${umaIndex}-${i}`,
           xPct,
           markerY: rungToYPct(rungIndex) + immediateCenterOffsetPct,
           effectType: desc.effectType ?? 0,
@@ -135,7 +143,7 @@ export const UmaSkillRow = React.memo<UmaSkillRowProps>((props) => {
           isDebuff,
           text: desc.text,
           skillId: dragSkillId,
-          umaIndex: desc.umaIndex,
+          umaIndex,
           position,
           debuffId: desc.debuffId,
           isDragging: matchesPreview,
@@ -177,7 +185,7 @@ export const UmaSkillRow = React.memo<UmaSkillRowProps>((props) => {
           rungs[rungIndex].push({ start, end });
 
           durOut.push({
-            key: `c-${i}-${rIndex}-${desc.skillId ?? 'n'}`,
+            key: `c-${umaIndex}-${i}-${rIndex}-${desc.skillId ?? 'n'}`,
             xPct,
             wPct,
             markerY: rungToYPct(rungIndex),
@@ -185,7 +193,7 @@ export const UmaSkillRow = React.memo<UmaSkillRowProps>((props) => {
             text: desc.text,
             effectType: desc.effectType,
             skillId: dragSkillId,
-            umaIndex: desc.umaIndex,
+            umaIndex,
             start,
             end,
             isDebuff,
@@ -197,24 +205,18 @@ export const UmaSkillRow = React.memo<UmaSkillRowProps>((props) => {
     }
 
     return { immediates: immOut, durations: durOut };
-  }, [umaRegions, course.distance, positionsMap, dragPreview, umaIndex, immediateCenterOffsetPct]);
-
-  if (!visible) return null;
+  }, [
+    visibleRegions,
+    course.distance,
+    positionsMapUma1,
+    positionsMapUma2,
+    dragPreviewUma1,
+    dragPreviewUma2,
+    immediateCenterOffsetPct,
+  ]);
 
   return (
-    <svg x="0" y={rowY} width="100%" height="50%" overflow="visible">
-      <text
-        x="4"
-        y="50%"
-        fill="var(--muted-foreground)"
-        fontSize="9px"
-        fontWeight="600"
-        dominantBaseline="central"
-        opacity="0.7"
-      >
-        {label}
-      </text>
-
+    <svg x="0" y="0" width="100%" height="100%" overflow="visible">
       {durations.map(({ key, ...d }) => (
         <DurationMarker key={key} {...d} onDragStart={onDragStart} />
       ))}

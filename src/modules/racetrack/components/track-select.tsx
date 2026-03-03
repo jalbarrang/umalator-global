@@ -52,7 +52,7 @@ export function TrackSelect(props: TrackSelectProps) {
   return (
     <div className={className} {...rest}>
       <Select value={trackid.toString()} onValueChange={handleChangeTrack}>
-        <SelectTrigger className="w-full">
+        <SelectTrigger className="w-40">
           <SelectValue>{getTrackName(trackid)}</SelectValue>
         </SelectTrigger>
         <SelectContent>
@@ -65,7 +65,7 @@ export function TrackSelect(props: TrackSelectProps) {
       </Select>
 
       <Select value={courseId.toString()} onValueChange={handleChangeCourse}>
-        <SelectTrigger className="w-full">
+        <SelectTrigger className="w-40">
           <SelectValue>{trackDescription({ courseid: courseId })}</SelectValue>
         </SelectTrigger>
         <SelectContent>

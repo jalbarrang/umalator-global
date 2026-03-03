@@ -22,7 +22,7 @@ export const GroundSelect = () => {
 
   return (
     <Select value={racedef.ground.toString()} onValueChange={handleChangeGround}>
-      <SelectTrigger className="w-full">
+      <SelectTrigger className="w-28">
         <SelectValue
           render={(_, value) => {
             if (value.value) {
