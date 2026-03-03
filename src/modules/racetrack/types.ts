@@ -33,7 +33,7 @@ export namespace RaceTrackDimensions {
   export const SectionTypesBarHeight = 40;
   export const SectionTypesBarY = PhaseBarY - SectionTypesBarHeight;
 
-  export const SlopeLabelBarHeight = 50;
+  export const SlopeLabelBarHeight = 40;
   export const SlopeLabelBarY = SectionTypesBarY - SlopeLabelBarHeight;
 
   // Slope visualization (background terrain)

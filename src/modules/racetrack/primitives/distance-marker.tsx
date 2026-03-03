@@ -12,7 +12,8 @@ export const DistanceMarker: React.FC<DistanceMarkerProps> = (props) => {
 
   const textY = useMemo(() => {
     if (up) {
-      return y - y + 10;
+      const baseY = y - y - 5;
+      return baseY + 10;
     }
 
     return y - 10;
@@ -20,9 +21,9 @@ export const DistanceMarker: React.FC<DistanceMarkerProps> = (props) => {
 
   const lineY = useMemo(() => {
     if (up) {
-      const baseY = y - y;
+      const baseY = y - y - 5;
       return {
-        start: baseY - 2,
+        start: baseY,
         end: baseY + 8,
       };
     }

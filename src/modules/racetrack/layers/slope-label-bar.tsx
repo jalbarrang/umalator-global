@@ -54,7 +54,7 @@ export const SlopeLabelBar = React.memo<SlopeLabelBarProps>((props) => {
           height="100%"
         >
           <rect x="0" y="0" height="100%" width="100%" fill={colors.main[colorIndex % 2]} />
-          <rect x="0" y="45" height="5" width="100%" fill={colors.accent[colorIndex % 2]} />
+          <rect x="0" y="35" height="5" width="100%" fill={colors.accent[colorIndex % 2]} />
 
           <SectionText id={isUphill ? 'uphill' : 'downhill'} w={width} />
         </svg>
@@ -106,11 +106,12 @@ export const SlopeLabelBar = React.memo<SlopeLabelBarProps>((props) => {
       y={RaceTrackDimensions.SlopeLabelBarY}
       width={RaceTrackDimensions.RenderWidth}
       height={RaceTrackDimensions.SlopeLabelBarHeight}
+      overflow="visible"
     >
       {/* Background bar */}
       <svg id="slope-label-bar-background" x="0" y="0" width="100%" height="100%">
         <rect x="0" y="0" height="100%" width="100%" fill="rgb(239,229,241)" />
-        <rect x="0" y="45" height="5" width="100%" fill="rgb(163,106,175)" />
+        <rect x="0" y="35" height="5" width="100%" fill="rgb(163,106,175)" />
       </svg>
 
       <g id="slope-label-bar-boxes">{elements.slopeBoxes}</g>
