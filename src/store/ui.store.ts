@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
 import { useShallow } from 'zustand/shallow';
 
 type ISidebar = {
@@ -19,17 +20,28 @@ export type IUIStore = {
   leftSide: ISidebar;
 };
 
-export const useUIStore = create<IUIStore>()((_) => ({
-  runOnceCounter: 0,
-  isPacemakerDropdownOpen: false,
-  showVirtualPacemakerOnGraph: false,
-  showCreditsModal: false,
-  showChangelogModal: false,
-  leftSide: {
-    activePanel: 'runners',
-    hidden: false,
-  },
-}));
+export const useUIStore = create<IUIStore>()(
+  persist(
+    (_) => ({
+      runOnceCounter: 0,
+      isPacemakerDropdownOpen: false,
+      showVirtualPacemakerOnGraph: false,
+      showCreditsModal: false,
+      showChangelogModal: false,
+      leftSide: {
+        activePanel: 'runners',
+        hidden: false,
+      },
+    }),
+    {
+      name: 'umalator-ui',
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        leftSide: state.leftSide,
+      }),
+    },
+  ),
+);
 
 export const setRunOnceCounter = (runOnceCounter: number) => {
   useUIStore.setState({ runOnceCounter });

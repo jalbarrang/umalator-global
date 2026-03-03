@@ -92,7 +92,8 @@ export function UmaBassin() {
 
   return (
     <div className="flex flex-col flex-1 gap-4">
-      <div data-tutorial="uma-bassin-controls" className="flex items-center gap-2">
+      <RaceSettingsPanel />
+      <div data-tutorial="uma-bassin-controls" className="flex flex-wrap items-center gap-2">
         {!isSimulationRunning && (
           <Button variant="default" onClick={handleRunSimulation}>
             Run Skill Simulations
@@ -145,20 +146,6 @@ export function UmaBassin() {
       </div>
 
       <Activity mode={!isSimulationRunning ? 'visible' : 'hidden'}>
-        {/* <RaceTrack courseid={courseId} chartData={chartData} xOffset={35} yOffset={35} yExtra={20}>
-          <VelocityLines
-            data={chartData}
-            courseDistance={course.distance}
-            xOffset={35}
-            yOffset={25}
-            horseLane={course.horseLane}
-            showVirtualPacemaker={false}
-            selectedPacemakers={[]}
-          />
-        </RaceTrack> */}
-
-        <RaceSettingsPanel />
-
         <div data-tutorial="uma-bassin-chart" className="grid grid-cols-1 gap-4">
           <BasinnChart
             data={Object.values(umaBasinResults)}

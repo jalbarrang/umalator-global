@@ -16,6 +16,7 @@ const definitions = {
         inner: 'Inner',
         outer: 'Outer',
         outin: 'Outer → Inner',
+        outinshort: 'outer to inner',
         orientation: ['', 'Right', 'Left', '', 'Stretch'],
         turf: 'Turf',
         dirt: 'Dirt',

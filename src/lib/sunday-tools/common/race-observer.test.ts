@@ -8,7 +8,7 @@ import {
   Weather,
 } from '@/lib/sunday-tools/course/definitions';
 import { Aptitude, Mood, Strategy } from '@/lib/sunday-tools/runner/definitions';
-import { SkillTarget, SkillType } from '@/lib/sunday-tools/skills/definitions';
+import { SkillPerspective, SkillTarget, SkillType } from '@/lib/sunday-tools/skills/definitions';
 import type { CreateRunner } from './runner';
 import type { RaceLifecycleObserver, RaceParameters, SimulationSettings } from './race';
 import { Race } from './race';
@@ -232,5 +232,54 @@ describe('SkillCompareDataCollector fallback path', () => {
     expect(trackedMeta).toHaveLength(1);
     expect(trackedMeta[0].horseLength).toBe(1.5);
     expect(trackedMeta[0].positions).toEqual([875]);
+  });
+});
+
+describe('targeted skill observation', () => {
+  it('collects targeted effects with PERSPECTIVE_OTHER', () => {
+    const collector = new VacuumCompareDataCollector();
+    const race = createRaceWithCollector(collector, {
+      runner: {
+        ...({
+          injectedDebuffs: [{ skillId: '201082', position: 120 }],
+        } as any),
+      },
+    });
+
+    race.prepareRound(9090);
+    race.run();
+
+    const roundData = collector.getPrimaryRunnerRoundData();
+    expect(roundData).not.toBeNull();
+    if (!roundData) return;
+
+    const logs = roundData.skillActivations['201082'] ?? [];
+    expect(logs.length).toBeGreaterThan(0);
+    expect(logs.some((log) => log.perspective === SkillPerspective.Other)).toBe(true);
+  });
+
+  it('records targeted effect start and end positions', () => {
+    const collector = new VacuumCompareDataCollector();
+    const race = createRaceWithCollector(collector, {
+      runner: {
+        ...({
+          injectedDebuffs: [{ skillId: '201082', position: 150 }],
+        } as any),
+      },
+    });
+
+    race.prepareRound(9091);
+    race.run();
+
+    const roundData = collector.getPrimaryRunnerRoundData();
+    expect(roundData).not.toBeNull();
+    if (!roundData) return;
+
+    const logs = roundData.skillActivations['201082'] ?? [];
+    expect(logs.length).toBeGreaterThan(0);
+    for (const log of logs) {
+      expect(log.start).toBeGreaterThanOrEqual(120);
+      expect(log.end).toBeGreaterThanOrEqual(log.start);
+    }
   });
 });

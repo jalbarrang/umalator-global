@@ -1,0 +1,88 @@
+import { SkillType } from '@/lib/sunday-tools/skills/definitions';
+import { colors, debuffColors } from '@/utils/colors';
+import { EffectSymbol } from '../primitives/effect-symbol';
+import React from 'react';
+import { Separator } from '@/components/ui/separator';
+
+const EFFECT_ITEMS = [
+  { label: 'Speed', type: SkillType.TargetSpeed },
+  { label: 'Accel', type: SkillType.Accel },
+  { label: 'Recovery / drain', type: SkillType.Recovery },
+  { label: 'Lane', type: SkillType.LaneMovementSpeed },
+] as const;
+
+const RUNNER_PAIRS = [
+  {
+    label: 'Uma 1',
+    skill: colors[0],
+    debuff: debuffColors[0],
+  },
+  {
+    label: 'Uma 2',
+    skill: colors[1],
+    debuff: debuffColors[1],
+  },
+] as const;
+
+export const TrackLegend = React.memo(() => {
+  return (
+    <div className="flex flex-wrap items-center gap-3 rounded-md border border-border/70 bg-linear-to-r from-card via-card to-card/80 px-4 py-2 text-xs text-foreground/90">
+      <span className="pr-2 font-semibold tracking-wide text-foreground">Legend</span>
+
+      <Separator orientation="vertical" />
+
+      <div className="flex flex-wrap items-center gap-3">
+        {EFFECT_ITEMS.map((item) => (
+          <div key={item.label} className="flex items-center gap-2">
+            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+              <g transform="translate(8 8)">
+                <EffectSymbol
+                  effectType={item.type}
+                  color={{ fill: 'currentColor', stroke: 'currentColor' }}
+                  size={5.5}
+                />
+              </g>
+            </svg>
+            <span className="text-foreground/90">{item.label}</span>
+          </div>
+        ))}
+      </div>
+
+      <Separator orientation="vertical" />
+
+      <div className="flex flex-wrap items-center gap-2">
+        {RUNNER_PAIRS.map((pair) => (
+          <div
+            key={pair.label}
+            className="inline-flex items-center gap-1.5 rounded-md border border-border/70 bg-zinc-100/70 px-1.5 py-1 dark:bg-zinc-900/45"
+          >
+            <span className="text-[11px] font-medium text-foreground/95">{pair.label}</span>
+            <span className="mx-0.5 h-3 w-px bg-border/70" aria-hidden="true" />
+            <span className="inline-flex items-center gap-1 rounded-sm border border-zinc-300 bg-zinc-50 px-1.5 py-0.5 text-[10px] text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800/70 dark:text-zinc-200">
+              <span
+                className="inline-flex h-2.5 w-2.5 rounded-full border"
+                style={{
+                  backgroundColor: pair.skill.fill,
+                  borderColor: pair.skill.stroke,
+                }}
+                aria-hidden="true"
+              />
+              Skill
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-sm border border-zinc-300 bg-zinc-50 px-1.5 py-0.5 text-[10px] text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800/70 dark:text-zinc-200">
+              <span
+                className="inline-flex h-2.5 w-2.5 rounded-full border"
+                style={{
+                  backgroundColor: pair.debuff.fill,
+                  borderColor: pair.debuff.stroke,
+                }}
+                aria-hidden="true"
+              />
+              Debuff Hit
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+});

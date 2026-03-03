@@ -17,8 +17,6 @@ db/
 
 # AI tools
 .cursor/
-.claude/
-.opencode/
 
 CLAUDE.md
 AGENTS.md

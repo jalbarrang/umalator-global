@@ -22,18 +22,20 @@ import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip
 import { ScrollTextIcon, UsersIcon } from 'lucide-react';
 import { setShowChangelogModal, setShowCreditsModal } from '@/store/ui.store';
 
+import { useCallback, useMemo } from 'react';
+
 export function RootComponent() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const getCurrentTab = () => {
+  const getCurrentTab = useCallback(() => {
     if (location.pathname.startsWith('/runners')) return 'runners';
     if (location.pathname === '/skill-planner') return 'skill-planner';
     if (location.pathname === '/race-sim') return 'race-sim';
     return 'simulation';
-  };
+  }, [location.pathname]);
 
-  const currentTab = getCurrentTab();
+  const currentTab = useMemo(() => getCurrentTab(), [getCurrentTab]);
 
   return (
     <TutorialProvider>

@@ -1,7 +1,10 @@
 {
-  "plugins": null,
+  "plugins": ["react", "typescript"],
   "categories": {},
-  "rules": {},
+  "rules": {
+    "@typescript-eslint/no-unused-vars": "warn",
+    "react/rules-of-hooks": "error"
+  },
   "settings": {
     "jsx-a11y": {
       "polymorphicPropName": null,

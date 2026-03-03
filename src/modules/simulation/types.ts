@@ -74,6 +74,17 @@ export type ForcedPositionsMap = {
   uma2: Record<string, number>;
 };
 
+export type InjectedDebuff = {
+  id: string;
+  skillId: string;
+  position: number;
+};
+
+export type InjectedDebuffsMap = {
+  uma1: Array<InjectedDebuff>;
+  uma2: Array<InjectedDebuff>;
+};
+
 export type CompareParams = {
   nsamples: number;
   course: CourseData;
@@ -82,6 +93,7 @@ export type CompareParams = {
   uma2: RunnerState;
   options: SimulationOptions;
   forcedPositions?: ForcedPositionsMap;
+  injectedDebuffs?: InjectedDebuffsMap;
 };
 
 export type Run1RoundParams = {

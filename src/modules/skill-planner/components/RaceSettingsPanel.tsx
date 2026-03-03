@@ -10,49 +10,43 @@ import { TrackSelect } from '@/modules/racetrack/components/track-select';
 
 export function RaceSettingsPanel() {
   return (
-    <div className="flex flex-col gap-4 bg-secondary p-4 rounded-md">
-      <div className="flex flex-col md:flex-row md:items-center gap-4">
-        <div className="flex items-end md:items-center gap-2">
-          <RacePresets className="flex flex-col md:flex-row md:items-center gap-2" />
-          <SavePresetModal />
-        </div>
-
-        <Separator orientation="vertical" className="hidden md:block" />
-
-        <div className="flex flex-col md:flex-row md:items-center gap-2">
-          <Label className="text-xs font-medium">Track</Label>
-          <TrackSelect className="flex flex-col md:flex-row md:items-center gap-2" />
-        </div>
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 bg-card py-2 px-4 rounded-md">
+      <div className="flex items-center gap-2">
+        <RacePresets className="flex items-center gap-2" />
+        <SavePresetModal />
       </div>
 
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="flex flex-col md:flex-row md:items-center gap-4">
-          <div className="flex flex-col gap-2">
-            <Label className="text-xs font-medium">Time of Day</Label>
-            <TimeOfDaySelect />
-          </div>
+      <Separator orientation="vertical" className="hidden md:block" />
 
-          <Separator orientation="vertical" className="hidden md:block" />
+      <div className="flex items-center gap-2">
+        <Label className="text-xs font-medium">Track</Label>
+        <TrackSelect className="flex items-center gap-2" />
+      </div>
 
-          <div className="flex flex-col gap-2">
-            <Label className="text-xs font-medium">Season</Label>
-            <SeasonSelect />
-          </div>
+      <div className="flex items-center gap-2">
+        <Label className="text-xs font-medium">Time</Label>
+        <TimeOfDaySelect />
+      </div>
 
-          <Separator orientation="vertical" className="hidden md:block" />
+      <Separator orientation="vertical" className="hidden md:block" />
 
-          <div className="flex flex-col gap-2">
-            <Label className="text-xs font-medium">Weather</Label>
-            <WeatherSelect />
-          </div>
+      <div className="flex items-center gap-2">
+        <Label className="text-xs font-medium">Season</Label>
+        <SeasonSelect />
+      </div>
 
-          <Separator orientation="vertical" className="hidden md:block" />
+      <Separator orientation="vertical" className="hidden md:block" />
 
-          <div className="flex flex-col gap-2">
-            <Label className="text-xs font-medium">Ground</Label>
-            <GroundSelect />
-          </div>
-        </div>
+      <div className="flex items-center gap-2">
+        <Label className="text-xs font-medium">Weather</Label>
+        <WeatherSelect />
+      </div>
+
+      <Separator orientation="vertical" className="hidden md:block" />
+
+      <div className="flex items-center gap-2">
+        <Label className="text-xs font-medium">Ground</Label>
+        <GroundSelect />
       </div>
     </div>
   );

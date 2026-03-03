@@ -3,12 +3,13 @@ import { useShallow } from 'zustand/shallow';
 import type { SimulationRun, SkillEffectLog } from '@/modules/simulation/compare.types';
 import type { PosKeepLabel } from '@/utils/races';
 import { RegionDisplayType } from '@/modules/racetrack/types';
-import { getSkillNameById } from '@/modules/skills/utils';
-import { useForcedPositions } from '@/modules/simulation/stores/forced-positions.store';
+import { getSkillById, getSkillNameById } from '@/modules/skills/utils';
 import { useSettingsStore } from '@/store/settings.store';
-import { colors, posKeepColors, recoveryColors, rushedColors } from '@/utils/colors';
-import { SkillType } from '@/lib/sunday-tools/skills/definitions';
+import { colors, debuffColors, posKeepColors, recoveryColors, rushedColors } from '@/utils/colors';
+import { SkillPerspective, SkillTarget, SkillType } from '@/lib/sunday-tools/skills/definitions';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { isExternalDebuffEffect } from '@/lib/sunday-tools/skills/external-debuffs';
+import { useDebuffs } from '@/modules/simulation/stores/compare.store';
 
 export type RegionData = {
   type: RegionDisplayType;
@@ -26,41 +27,128 @@ export type RegionData = {
   height?: number;
   skillId?: string;
   umaIndex?: number;
+  effectType?: number;
+  debuffId?: string;
+  isDebuff?: boolean;
 };
 
-export type RecoveryMarkerData = {
+const INSTANT_DURATION_THRESHOLD = 1;
+type InjectedDebuffRegionRef = {
+  id: string;
   skillId: string;
-  text: string;
   position: number;
-  umaIndex: number;
-  rung: number;
-  color: {
-    fill: string;
-    stroke: string;
-  };
 };
 
-const RECOVERY_STACK_PROXIMITY_METERS = 55;
+const getDebuffIndicatorEffectType = (skillId: string): number => {
+  try {
+    const skillData = getSkillById(skillId);
 
-const getSkillActivation = (
+    for (const alternative of skillData.alternatives) {
+      for (const effect of alternative.effects) {
+        const type = effect.type ?? SkillType.Noop;
+        const target = effect.target ?? SkillTarget.Self;
+        const modifier = effect.modifier ?? 0;
+
+        if (isExternalDebuffEffect({ type, target, modifier })) {
+          return type;
+        }
+      }
+    }
+
+    return skillData.alternatives[0]?.effects[0]?.type ?? SkillType.Noop;
+  } catch {
+    return SkillType.Noop;
+  }
+};
+
+const getSkillActivations = (
   skillId: string,
   activations: Array<SkillEffectLog>,
   umaIndex: number,
-) => {
-  const validActivation = activations.find(
-    (activation) => activation.effectType !== SkillType.Recovery,
-  );
+  injectedDebuffsForUma: Array<InjectedDebuffRegionRef>,
+): Array<RegionData> => {
+  if (activations.length === 0) return [];
 
-  if (!validActivation) return null;
+  const buildRegions = (
+    effects: Array<SkillEffectLog>,
+    isDebuff: boolean,
+    resolveDebuffId?: (start: number) => string | undefined,
+  ): Array<RegionData> => {
+    if (effects.length === 0) return [];
 
-  return {
-    type: RegionDisplayType.Textbox,
-    color: colors[umaIndex],
-    text: getSkillNameById(skillId),
-    skillId: skillId,
-    umaIndex: umaIndex,
-    regions: [{ start: validActivation.start, end: validActivation.end }],
+    const grouped = new Map<number, Array<SkillEffectLog>>();
+    for (const effect of effects) {
+      const key = effect.start;
+      const group = grouped.get(key);
+      if (group) group.push(effect);
+      else grouped.set(key, [effect]);
+    }
+
+    const result: Array<RegionData> = [];
+    for (const groupedEffects of grouped.values()) {
+      const durationEffect = groupedEffects.find((e) => e.end - e.start > INSTANT_DURATION_THRESHOLD);
+      const repr = durationEffect ?? groupedEffects[0];
+      const isRecovery = repr.effectType === SkillType.Recovery;
+      const color = isDebuff
+        ? debuffColors[umaIndex]
+        : isRecovery
+          ? recoveryColors[umaIndex]
+          : colors[umaIndex];
+
+      result.push({
+        type: durationEffect ? RegionDisplayType.Textbox : RegionDisplayType.Immediate,
+        color,
+        text: getSkillNameById(skillId),
+        skillId,
+        umaIndex,
+        effectType: repr.effectType,
+        regions: [{ start: repr.start, end: repr.end }],
+        debuffId: isDebuff ? resolveDebuffId?.(repr.start) : undefined,
+        isDebuff,
+      });
+    }
+
+    return result;
   };
+
+  const selfEffects = activations.filter((a) => a.perspective === SkillPerspective.Self);
+  const injectedSkillDebuffs = injectedDebuffsForUma.filter((debuff) => debuff.skillId === skillId);
+  const targetedEffects =
+    injectedSkillDebuffs.length > 0
+      ? activations.filter((a) => a.perspective === SkillPerspective.Other)
+      : [];
+
+  const resolveInjectedDebuffId = (() => {
+    if (injectedSkillDebuffs.length === 0) {
+      return undefined;
+    }
+
+    const availableDebuffs = [...injectedSkillDebuffs];
+    return (start: number): string | undefined => {
+      if (availableDebuffs.length === 0) {
+        return undefined;
+      }
+
+      let nearestIndex = 0;
+      let nearestDistance = Math.abs(availableDebuffs[0].position - start);
+
+      for (let i = 1; i < availableDebuffs.length; i++) {
+        const distance = Math.abs(availableDebuffs[i].position - start);
+        if (distance < nearestDistance) {
+          nearestDistance = distance;
+          nearestIndex = i;
+        }
+      }
+
+      const matched = availableDebuffs.splice(nearestIndex, 1)[0];
+      return matched?.id;
+    };
+  })();
+
+  return [
+    ...buildRegions(selfEffects, false),
+    ...buildRegions(targetedEffects, true, resolveInjectedDebuffId),
+  ];
 };
 
 type UseVisualizationDataProps = {
@@ -69,7 +157,13 @@ type UseVisualizationDataProps = {
 
 export const useVisualizationData = (props: UseVisualizationDataProps) => {
   const { chartData } = props;
-  const forcedPositions = useForcedPositions();
+  const debuffs = useDebuffs();
+  const hasSimulationData = useMemo(() => {
+    return (
+      chartData.position.some((runnerPositions) => runnerPositions.length > 0) ||
+      chartData.time.some((runnerTimes) => runnerTimes.length > 0)
+    );
+  }, [chartData]);
 
   const { courseId } = useSettingsStore(
     useShallow((state) => ({
@@ -85,32 +179,24 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
     const runnerASkills = chartData.skillActivations[0];
     const runnerBSkills = chartData.skillActivations[1];
 
-    const skills = [];
+    const skills: Array<RegionData> = [];
 
     for (const [skillId, activations] of Object.entries(runnerASkills)) {
-      const skillActivation = getSkillActivation(skillId, activations, 0);
-
-      if (skillActivation) {
-        skills.push(skillActivation);
-      }
+      skills.push(...getSkillActivations(skillId, activations, 0, debuffs.uma1));
     }
 
     for (const [skillId, activations] of Object.entries(runnerBSkills)) {
-      const skillActivation = getSkillActivation(skillId, activations, 1);
-
-      if (skillActivation) {
-        skills.push(skillActivation);
-      }
+      skills.push(...getSkillActivations(skillId, activations, 1, debuffs.uma2));
     }
 
     return skills;
-  }, [chartData]);
+  }, [chartData, debuffs]);
 
   const rushedIndicators: Array<RegionData> = useMemo(() => {
     if (!chartData) return [];
     if (!chartData.rushed) return [];
 
-    const results = [];
+    const results: Array<RegionData> = [];
 
     for (const [umaIndex, rushArray] of chartData.rushed.entries()) {
       for (const rush of rushArray) {
@@ -118,6 +204,7 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
           type: RegionDisplayType.Textbox,
           color: rushedColors[umaIndex],
           text: 'Rushed',
+          umaIndex,
           regions: [{ start: rush[0], end: rush[1] }],
         });
       }
@@ -126,55 +213,35 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
     return results;
   }, [chartData]);
 
-  const recoveryMarkers: Array<RecoveryMarkerData> = useMemo(() => {
-    if (!chartData?.skillActivations) return [];
+  const debuffIndicators: Array<RegionData> = useMemo(() => {
+    if (hasSimulationData) {
+      return [];
+    }
 
-    const rawMarkers: Array<Omit<RecoveryMarkerData, 'rung'>> = [];
-    const skillMaps = [chartData.skillActivations[0], chartData.skillActivations[1]] as const;
+    const results: Array<RegionData> = [];
+    const entries: Array<[number, typeof debuffs.uma1]> = [
+      [0, debuffs.uma1],
+      [1, debuffs.uma2],
+    ];
 
-    for (const [umaIndex, skillMap] of skillMaps.entries()) {
-      for (const [skillId, activations] of Object.entries(skillMap)) {
-        for (const activation of activations) {
-          if (activation.effectType !== SkillType.Recovery) continue;
-
-          const forcedPosition =
-            umaIndex === 0 ? forcedPositions.uma1[skillId] : forcedPositions.uma2[skillId];
-
-          rawMarkers.push({
-            skillId,
-            text: getSkillNameById(skillId),
-            position: forcedPosition ?? activation.start,
-            umaIndex,
-            color: recoveryColors[umaIndex],
-          });
-        }
+    for (const [umaIndex, umaDebuffs] of entries) {
+      for (const debuff of umaDebuffs) {
+        results.push({
+          type: RegionDisplayType.Immediate,
+          color: debuffColors[umaIndex],
+          text: getSkillNameById(debuff.skillId),
+          skillId: debuff.skillId,
+          umaIndex,
+          effectType: getDebuffIndicatorEffectType(debuff.skillId),
+          debuffId: debuff.id,
+          regions: [{ start: debuff.position, end: debuff.position }],
+          isDebuff: true,
+        });
       }
     }
 
-    const sortedMarkers = rawMarkers.toSorted((a, b) => a.position - b.position);
-    const stackedMarkers: Array<RecoveryMarkerData> = [];
-    const rungHighWater: Array<number> = [];
-
-    for (const marker of sortedMarkers) {
-      let rung = 0;
-
-      while (true) {
-        const lastPosition = rungHighWater[rung];
-        const hasSpacing =
-          lastPosition == null || marker.position - lastPosition >= RECOVERY_STACK_PROXIMITY_METERS;
-
-        if (hasSpacing) {
-          rungHighWater[rung] = marker.position;
-          stackedMarkers.push({ ...marker, rung });
-          break;
-        }
-
-        rung += 1;
-      }
-    }
-
-    return stackedMarkers;
-  }, [chartData, forcedPositions]);
+    return results;
+  }, [debuffs, hasSimulationData]);
 
   const posKeepData: Array<PosKeepLabel> = useMemo(() => {
     return [];
@@ -282,7 +349,7 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
   return {
     skillActivations,
     rushedIndicators,
-    recoveryMarkers,
+    debuffIndicators,
     posKeepLabels,
   };
 };

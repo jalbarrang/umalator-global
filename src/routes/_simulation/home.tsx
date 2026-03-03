@@ -1,4 +1,4 @@
-import { Activity, useCallback, useMemo, useState } from 'react';
+import { Activity, useCallback, useState } from 'react';
 import {
   createNewSeed,
   resetResults,
@@ -7,9 +7,6 @@ import {
 } from '@/modules/simulation/stores/compare.store';
 import { Button } from '@/components/ui/button';
 import { CompareLoadingOverlay } from '@/components/compare-loading-overlay';
-import { VelocityLines } from '@/components/VelocityLines';
-import { RaceTrack } from '@/modules/racetrack/components/RaceTrack';
-import { initializeSimulationRun } from '@/modules/simulation/compare.types';
 import { useSimulationRunner } from '@/modules/simulation/hooks/compare/useSimulationRunner';
 import { SimulationResultTabs } from '@/modules/simulation/tabs/simulation-result-tabs';
 import { ResultButtonGroups } from '@/modules/simulation/tabs/summary-tab';
@@ -21,14 +18,12 @@ import { Label } from '@/components/ui/label';
 import { parseSeed } from '@/utils/crypto';
 import { HelpButton } from '@/components/ui/help-button';
 import { umalatorSteps } from '@/modules/tutorial/steps/umalator-steps';
-import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { RaceTrack } from '@/modules/racetrack/racetrack';
 
 export function SimulationHome() {
   const { chartData, results, isSimulationRunning, simulationProgress, seed } = useRaceStore();
   const { courseId } = useSettingsStore();
   const { handleRunCompare, handleRunOnce } = useSimulationRunner();
-
-  const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
 
   const [seedInput, setSeedInput] = useState<string>(() => {
     if (seed === null) return '';
@@ -65,7 +60,11 @@ export function SimulationHome() {
 
   return (
     <div className="flex flex-col flex-1 gap-4">
-      <div data-tutorial="simulation-controls" className="flex items-center gap-2">
+      <div data-tutorial="race-settings">
+        <RaceSettingsPanel />
+      </div>
+
+      <div data-tutorial="simulation-controls" className="flex flex-wrap items-center gap-2">
         <Button
           data-tutorial="run-all-samples"
           onClick={handleRunAllSamples}
@@ -123,25 +122,7 @@ export function SimulationHome() {
 
       <Activity mode={!isSimulationRunning ? 'visible' : 'hidden'}>
         <div data-tutorial="race-visualization">
-          <RaceTrack
-            courseid={courseId}
-            chartData={chartData ?? initializeSimulationRun()}
-            xOffset={35}
-            yOffset={35}
-            yExtra={20}
-          >
-            <VelocityLines
-              data={chartData}
-              courseDistance={course.distance}
-              xOffset={35}
-              yOffset={25}
-              horseLane={course.horseLane}
-            />
-          </RaceTrack>
-        </div>
-
-        <div data-tutorial="race-settings">
-          <RaceSettingsPanel />
+          <RaceTrack courseId={courseId} chartData={chartData} />
         </div>
 
         {results.length > 0 && <ResultButtonGroups />}

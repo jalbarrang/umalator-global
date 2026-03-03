@@ -6,6 +6,7 @@ import type {
 } from '@/modules/simulation/compare.types';
 import { isSameSkill, getSkillEffectMetadata } from '@/modules/simulation/simulators/shared';
 import {
+  SkillPerspective,
   SkillTarget,
   SkillType,
   type ISkillPerspective,
@@ -16,9 +17,12 @@ import type { ActiveSkill } from '../skills/skill.types';
 import type { Race, RaceLifecycleObserver } from './race';
 import type { Runner } from './runner';
 
-type ActiveEffectLike = Pick<ActiveSkill, 'skillId' | 'effectType' | 'effectTarget' | 'modifier'>;
+type ActiveEffectLike = Pick<ActiveSkill, 'skillId' | 'effectType' | 'effectTarget' | 'modifier'> & {
+  perspective: ISkillPerspective;
+};
 
-const PERSPECTIVE_SELF: ISkillPerspective = 1;
+const PERSPECTIVE_SELF: ISkillPerspective = SkillPerspective.Self;
+const PERSPECTIVE_OTHER: ISkillPerspective = SkillPerspective.Other;
 const ACTIVE_EFFECT_TYPES = new Set<ISkillType>([
   SkillType.TargetSpeed,
   SkillType.Accel,
@@ -195,7 +199,7 @@ export class VacuumCompareDataCollector implements RaceLifecycleObserver {
 
   private collectActiveEffects(runner: Runner): Array<ActiveEffectLike> {
     const all: Array<ActiveEffectLike> = [];
-    const buckets: Array<Array<ActiveEffectLike>> = [
+    const selfBuckets: Array<Array<Pick<ActiveSkill, 'skillId' | 'effectType' | 'effectTarget' | 'modifier'>>> = [
       runner.targetSpeedSkillsActive,
       runner.currentSpeedSkillsActive,
       runner.accelerationSkillsActive,
@@ -203,9 +207,25 @@ export class VacuumCompareDataCollector implements RaceLifecycleObserver {
       runner.changeLaneSkillsActive,
     ];
 
-    for (const bucket of buckets) {
+    for (const bucket of selfBuckets) {
       for (const effect of bucket) {
-        all.push(effect);
+        all.push({ ...effect, perspective: PERSPECTIVE_SELF });
+      }
+    }
+
+    const targetedBuckets: Array<
+      Array<Pick<ActiveSkill, 'skillId' | 'effectType' | 'effectTarget' | 'modifier'>>
+    > = [
+      runner.targetedTargetSpeedActive,
+      runner.targetedCurrentSpeedActive,
+      runner.targetedAccelerationActive,
+      runner.targetedLaneMovementSkillsActive,
+      runner.targetedChangeLaneSkillsActive,
+    ];
+
+    for (const bucket of targetedBuckets) {
+      for (const effect of bucket) {
+        all.push({ ...effect, perspective: PERSPECTIVE_OTHER });
       }
     }
 
@@ -217,11 +237,17 @@ export class VacuumCompareDataCollector implements RaceLifecycleObserver {
     const effects = this.collectActiveEffects(runner);
     const counts = new Map<
       string,
-      { count: number; skillId: string; effectType: ISkillType; effectTarget: ISkillTarget }
+      {
+        count: number;
+        skillId: string;
+        effectType: ISkillType;
+        effectTarget: ISkillTarget;
+        perspective: ISkillPerspective;
+      }
     >();
 
     for (const effect of effects) {
-      const key = `${effect.skillId}:${effect.effectType}:${effect.effectTarget}:${effect.modifier.toFixed(6)}`;
+      const key = `${effect.skillId}:${effect.effectType}:${effect.effectTarget}:${effect.modifier.toFixed(6)}:${effect.perspective}`;
       const existing = counts.get(key);
       if (existing) {
         existing.count += 1;
@@ -231,6 +257,7 @@ export class VacuumCompareDataCollector implements RaceLifecycleObserver {
           skillId: effect.skillId,
           effectType: effect.effectType,
           effectTarget: effect.effectTarget,
+          perspective: effect.perspective,
         });
       }
     }
@@ -245,7 +272,7 @@ export class VacuumCompareDataCollector implements RaceLifecycleObserver {
           skillId,
           start: currentPosition,
           end: currentPosition,
-          perspective: PERSPECTIVE_SELF,
+          perspective: current.perspective,
           effectType: current.effectType,
           effectTarget: current.effectTarget,
         };

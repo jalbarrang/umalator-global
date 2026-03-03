@@ -4,6 +4,7 @@ interface SkillMarkerProps {
   x: number;
   y: number;
   width: number;
+  markerHeight?: number;
   color: {
     fill: string;
     stroke: string;
@@ -18,7 +19,7 @@ interface SkillMarkerProps {
  * Renders a draggable skill marker on the race track.
  */
 export const SkillMarker = React.memo<SkillMarkerProps>(
-  ({ x, y, width, color, text, skillId, onDragStart }) => {
+  ({ x, y, width, markerHeight = 10, color, text, skillId, onDragStart }) => {
     const isDraggable = !!skillId && !!onDragStart;
 
     return (
@@ -27,7 +28,7 @@ export const SkillMarker = React.memo<SkillMarkerProps>(
         x={`${x}%`}
         y={`${y}%`}
         width={`${width}%`}
-        height="10%"
+        height={`${markerHeight}%`}
         onMouseDown={onDragStart}
         style={{ cursor: isDraggable ? 'grab' : 'default' }}
       >

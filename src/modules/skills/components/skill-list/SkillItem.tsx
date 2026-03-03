@@ -27,7 +27,6 @@ export const SkillItem = memo((props: SkillItemProps) => {
     skillId,
     selected = false,
     dismissable = false,
-    withDetails = false,
     distanceFactor = 0,
     isHovered = false,
     isFocused = false,
@@ -44,61 +43,10 @@ export const SkillItem = memo((props: SkillItemProps) => {
     [skillId, skill],
   );
 
-  if (!withDetails) {
-    return (
-      <div
-        className={cn(
-          'rounded-md bg-background border-2 flex h-[44px]',
-          {
-            selected: selected,
-            'bg-yellow-200/70 dark:bg-yellow-800/40': isHovered || isFocused,
-          },
-          props.className,
-        )}
-        style={props.style}
-        data-event="select-skill"
-        data-skillid={skillId}
-        onMouseEnter={props.onMouseEnter}
-        onMouseLeave={props.onMouseLeave}
-      >
-        <div
-          className={cn('flex w-6 border rounded-l', {
-            'skill-white': isWhiteSkill(skillContext.rarity),
-            'skill-gold': isGoldSkill(skillContext.rarity),
-            'skill-unique': isUniqueSkill(skillContext.rarity),
-            'skill-pink': isEvolutionSkill(skillContext.rarity),
-          })}
-        ></div>
-
-        <div className="flex flex-1 items-center gap-2 p-2">
-          <Activity mode={skillContext.iconId ? 'visible' : 'hidden'}>
-            <SkillIcon iconId={skillContext.iconId} />
-          </Activity>
-
-          <span className={cn('text-sm text-foreground')}>
-            {i18n.t(`skillnames.${skillContext.id}`)}
-          </span>
-        </div>
-
-        {dismissable && (
-          <Button
-            variant="ghost"
-            size="icon"
-            type="button"
-            data-event="remove-skill"
-            data-skillid={skillId}
-            className="h-full"
-          >
-            <X className="w-4 h-4" />
-          </Button>
-        )}
-      </div>
-    );
-  }
-
   return (
     <div
       data-skillid={skillId}
+      data-event="select-skill"
       style={props.style}
       onMouseEnter={props.onMouseEnter}
       onMouseLeave={props.onMouseLeave}
@@ -144,12 +92,7 @@ export const SkillItem = memo((props: SkillItemProps) => {
           }
         />
         <PopoverContent align="start" side="right" className="w-[420px] p-0">
-          <ExpandedSkillDetails
-            id={skillId}
-            skill={skill}
-            dismissable={dismissable}
-            distanceFactor={distanceFactor}
-          />
+          <ExpandedSkillDetails id={skillId} skill={skill} distanceFactor={distanceFactor} />
         </PopoverContent>
       </Popover>
 

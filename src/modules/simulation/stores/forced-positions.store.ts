@@ -19,20 +19,31 @@ export const setForcedPosition = (
   position: number,
 ) => {
   const normalizedSkillId = String(skillId);
+  const normalizedPosition = Math.round(position);
 
-  useForcedPositionsStore.setState((prev) => ({
-    ...prev,
-    [runnerId]: {
-      ...prev[runnerId],
-      [normalizedSkillId]: position,
-    },
-  }));
+  useForcedPositionsStore.setState((prev) => {
+    if (prev[runnerId][normalizedSkillId] === normalizedPosition) {
+      return prev;
+    }
+
+    return {
+      ...prev,
+      [runnerId]: {
+        ...prev[runnerId],
+        [normalizedSkillId]: normalizedPosition,
+      },
+    };
+  });
 };
 
 export const clearForcedPosition = (runnerId: CompareRunnerId, skillId: string | number) => {
   const normalizedSkillId = String(skillId);
 
   useForcedPositionsStore.setState((prev) => {
+    if (!(normalizedSkillId in prev[runnerId])) {
+      return prev;
+    }
+
     const { [normalizedSkillId]: _removed, ...rest } = prev[runnerId];
 
     return {
@@ -53,4 +64,8 @@ export const useForcedPositions = () => {
       uma2: state.uma2,
     })),
   );
+};
+
+export const useForcedPositionMap = (runnerId: CompareRunnerId) => {
+  return useForcedPositionsStore((state) => state[runnerId]);
 };
