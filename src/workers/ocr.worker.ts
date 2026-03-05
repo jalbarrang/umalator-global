@@ -2,6 +2,7 @@
  * Web Worker for OCR processing using Tesseract.js
  */
 
+import '../polyfills';
 import Tesseract from 'tesseract.js';
 import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
 import { parseOcrResult } from '@/modules/runners/ocr/parser';

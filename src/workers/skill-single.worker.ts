@@ -3,6 +3,7 @@
  * Used when user wants to run more samples on a specific skill from ActivationDetails
  */
 
+import '../polyfills';
 import { clone, cloneDeepWith } from 'es-toolkit';
 import type { SkillComparisonResponse } from '@/modules/simulation/types';
 import type { SimulationParams } from './pool/types';

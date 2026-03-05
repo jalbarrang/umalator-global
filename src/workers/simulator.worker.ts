@@ -2,6 +2,7 @@
  * Web Worker for running simulations
  */
 
+import '../polyfills';
 import { cloneDeep } from 'es-toolkit';
 import type { CompareParams } from '@/modules/simulation/types';
 import { runComparison } from '@/modules/simulation/simulators/vacuum-compare';

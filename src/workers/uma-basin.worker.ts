@@ -2,6 +2,7 @@
  * Web Worker for running simulations
  */
 
+import '../polyfills';
 import { clone, cloneDeepWith } from 'es-toolkit';
 import { mergeResultSets } from './utils';
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';
