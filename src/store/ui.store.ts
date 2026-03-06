@@ -4,7 +4,6 @@ import { useShallow } from 'zustand/shallow';
 
 type ISidebar = {
   activePanel: string | null;
-  hidden: boolean;
 };
 
 export type IUIStore = {
@@ -30,7 +29,6 @@ export const useUIStore = create<IUIStore>()(
       showChangelogModal: false,
       leftSide: {
         activePanel: 'runners',
-        hidden: false,
       },
     }),
     {

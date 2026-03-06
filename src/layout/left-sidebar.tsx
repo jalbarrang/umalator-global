@@ -9,6 +9,7 @@ import { useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Sidebar, SidebarContent, SidebarGroup, SidebarHeader } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
 import { RunnersPanel } from '@/modules/runners/components/runners-panel';
 import { AdvancedSettingsPanel } from '@/components/advanced-settings-panel';
@@ -28,7 +29,7 @@ type Panel = {
 };
 
 export const LeftSidebar = () => {
-  const { activePanel, hidden } = useLeftSidebar();
+  const { activePanel } = useLeftSidebar();
   const { uma1, uma2 } = useForcedPositions();
   const { uma1: uma1Debuffs, uma2: uma2Debuffs } = useDebuffs();
   const location = useLocation();
@@ -94,10 +95,13 @@ export const LeftSidebar = () => {
   }, [activePanel, panels]);
 
   return (
-    <div className="flex">
-      {/* Activity Bar */}
-      <div className="flex flex-col w-12 bg-muted/50 border-r">
-        <div className="flex flex-col gap-1 p-1">
+    <Sidebar
+      side="left"
+      collapsible="offcanvas"
+      className="md:inset-y-auto! md:top-(--simulation-top-offset)! md:h-[calc(100svh-var(--simulation-top-offset))]!"
+    >
+      <SidebarHeader className="border-b p-1">
+        <div className="flex flex-row items-center gap-1">
           {panels.map((panel) => (
             <Tooltip key={panel.id}>
               <TooltipTrigger
@@ -105,13 +109,10 @@ export const LeftSidebar = () => {
                   <Button
                     variant={activePanel === panel.id ? 'secondary' : 'ghost'}
                     size="icon"
-                    className={cn('relative h-9 w-9', activePanel === panel.id && 'bg-accent')}
+                    className={cn('relative size-11', activePanel === panel.id && 'bg-accent')}
+                    aria-label={panel.label}
                     onClick={() => {
-                      if (activePanel === panel.id && !hidden) {
-                        setLeftSidebar({ hidden: true });
-                      } else {
-                        setLeftSidebar({ activePanel: panel.id, hidden: false });
-                      }
+                      setLeftSidebar({ activePanel: panel.id });
                     }}
                   >
                     <panel.icon className="h-4 w-4" />
@@ -121,30 +122,19 @@ export const LeftSidebar = () => {
                   </Button>
                 }
               />
-              <TooltipContent side="right">
+              <TooltipContent side="bottom">
                 <p>{panel.label}</p>
               </TooltipContent>
             </Tooltip>
           ))}
         </div>
-      </div>
+      </SidebarHeader>
 
-      {/* Side Panel */}
-      <div
-        className={cn(
-          // Base styles
-          'flex flex-col border-r bg-background',
-          {
-            'w-[calc(100dvw-3rem)] md:w-[450px]': !hidden,
-            'w-0 overflow-hidden': hidden,
-          },
-        )}
-      >
-        <div className="flex flex-col h-full">
-          {/* Panel Content */}
-          <div className="flex-1 min-h-0">{activePanelContent}</div>
-        </div>
-      </div>
-    </div>
+      <SidebarContent>
+        <SidebarGroup className="h-full p-0">
+          <div className="min-h-0 flex-1">{activePanelContent}</div>
+        </SidebarGroup>
+      </SidebarContent>
+    </Sidebar>
   );
 };
