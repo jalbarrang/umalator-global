@@ -8,15 +8,7 @@ import {
 } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 
-import {
-  ArrowDown,
-  ArrowLeft,
-  ArrowUp,
-  ArrowUpDown,
-  ChevronDown,
-  ChevronRight,
-  Loader2,
-} from 'lucide-react';
+import { ArrowDown, ArrowLeft, ArrowUp, ArrowUpDown, Loader2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import './BasinnChart.css';
 import {
@@ -38,18 +30,84 @@ import i18n from '@/i18n';
 import { cn } from '@/lib/utils';
 import { BassinTableBody } from './bassin-table-body';
 import { skillNameCell } from './skill-name-cell';
+import React from 'react';
 
-const formatBasinn = (props: CellContext<SkillComparisonRoundResult, unknown>) => {
-  const value = props.getValue() as number;
+export const formatBasinn = React.memo(
+  (props: CellContext<SkillComparisonRoundResult, unknown>) => {
+    const value = props.getValue() as number;
 
-  return value.toFixed(2).replace('-0.00', '0.00') + ' L';
+    return value.toFixed(2).replace('-0.00', '0.00') + ' L';
+  },
+);
+
+type ActionsCellProps = {
+  skillId: string;
+  onAddSkill: (id: string) => void;
+  onReplaceOutfit?: (id: string) => void;
 };
+
+const ActionsCell = React.memo(({ skillId, onAddSkill, onReplaceOutfit }: ActionsCellProps) => {
+  const handleClick = () => {
+    onAddSkill(skillId);
+  };
+
+  const handleReplaceOutfit = () => {
+    onReplaceOutfit?.(skillId);
+  };
+
+  if (!onReplaceOutfit) {
+    return (
+      <Button variant="outline" size="sm" onClick={handleClick} className="h-8 w-8 p-0">
+        <ArrowLeft className="h-4 w-4" />
+      </Button>
+    );
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+        }
+      />
+      <DropdownMenuContent align="start">
+        <DropdownMenuItem onClick={handleClick}>Add Skill to Runner</DropdownMenuItem>
+        <DropdownMenuItem onClick={handleReplaceOutfit}>Replace Runner Outfit</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+});
 
 type IconTypeFilterKey = keyof typeof iconIdPrefixes;
 
-const sortableHeader =
-  (name: string, _key: string) =>
-  ({ column }: { column: Column<SkillComparisonRoundResult> }) => {
+type IconTypeFilterBarProps = {
+  iconTypeFilters: Record<IconTypeFilterKey, boolean>;
+  onToggle: (iconType: IconTypeFilterKey) => void;
+};
+
+const IconTypeFilterBar = React.memo(({ iconTypeFilters, onToggle }: IconTypeFilterBarProps) => (
+  <div className="flex flex-wrap items-center gap-1.5">
+    {groups_filters.icontype.map((iconType) => (
+      <Button
+        key={iconType}
+        variant="ghost"
+        size="icon"
+        className={cn('border rounded-none', {
+          'border-primary': iconTypeFilters[iconType as IconTypeFilterKey],
+        })}
+        onClick={() => onToggle(iconType as IconTypeFilterKey)}
+        title={`Filter by icon type ${iconType}`}
+      >
+        <img src={`/icons/${iconType}1.png`} className="w-6 h-6" />
+      </Button>
+    ))}
+  </div>
+));
+
+const sortableHeader = (name: string, _key: string) => {
+  return React.memo(({ column }: { column: Column<SkillComparisonRoundResult> }) => {
     const isSorted = column.getIsSorted();
 
     const handleClick = () => {
@@ -71,7 +129,8 @@ const sortableHeader =
         {isSorted === false && <ArrowUpDown />}
       </Button>
     );
-  };
+  });
+};
 
 type BasinnChartProps = {
   data: Array<SkillComparisonRoundResult>;
@@ -87,11 +146,12 @@ type BasinnChartProps = {
   onSelectionChange: (id: string) => void;
   onReplaceOutfit?: (id: string) => void;
   onRunAdditionalSamples?: (skillId: string, additionalSamples: number) => void;
+  className?: string;
 };
 
 export const gridClass = 'grid grid-cols-[50px_50px_1fr_100px_100px_100px_100px] w-full';
 
-export const BasinnChart = (props: BasinnChartProps) => {
+export const BasinnChart = React.memo((props: BasinnChartProps) => {
   const {
     selectedSkills,
     onAddSkill,
@@ -102,6 +162,7 @@ export const BasinnChart = (props: BasinnChartProps) => {
     currentSeed = null,
     skillLoadingStates = {},
     onRunAdditionalSamples,
+    className,
   } = props;
 
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
@@ -189,39 +250,12 @@ export const BasinnChart = (props: BasinnChartProps) => {
         header: '',
         cell: (info: CellContext<SkillComparisonRoundResult, unknown>) => {
           const skillId: string = info.row.getValue('id');
-
-          const handleClick = () => {
-            onAddSkill(skillId);
-          };
-
-          const handleReplaceOutfit = () => {
-            onReplaceOutfit?.(skillId);
-          };
-
-          if (!onReplaceOutfit) {
-            return (
-              <Button variant="outline" size="sm" onClick={handleClick} className="h-8 w-8 p-0">
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-            );
-          }
-
           return (
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                render={
-                  <Button variant="outline" size="sm" className="h-8 w-8 p-0">
-                    <ArrowLeft className="h-4 w-4" />
-                  </Button>
-                }
-              />
-              <DropdownMenuContent align="start">
-                <DropdownMenuItem onClick={handleClick}>Add Skill to Runner</DropdownMenuItem>
-                <DropdownMenuItem onClick={handleReplaceOutfit}>
-                  Replace Runner Outfit
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <ActionsCell
+              skillId={skillId}
+              onAddSkill={onAddSkill}
+              onReplaceOutfit={onReplaceOutfit}
+            />
           );
         },
         enableSorting: false,
@@ -229,34 +263,7 @@ export const BasinnChart = (props: BasinnChartProps) => {
       {
         id: 'expand',
         header: '',
-        cell: (info: CellContext<SkillComparisonRoundResult, unknown>) => {
-          const row = info.row.original;
-          const skillId = row.id;
-          const hasRunData = row.runData != null;
-          const isExpanded = expandedRows.has(skillId);
-
-          if (!hasRunData) {
-            return <div className="w-8" />;
-          }
-
-          return (
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleToggleRow(skillId);
-              }}
-              title={isExpanded ? 'Collapse details' : 'Show activation details'}
-            >
-              {isExpanded ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
-            </Button>
-          );
-        },
+        cell: () => null,
         enableSorting: false,
       },
       {
@@ -302,8 +309,14 @@ export const BasinnChart = (props: BasinnChartProps) => {
         sortDescFirst: true,
       },
     ];
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showUmaIcons, showSkillIds, skillMetadataById, expandedRows, selectedSkills]);
+  }, [
+    showUmaIcons,
+    showSkillIds,
+    skillMetadataById,
+    onAddSkill,
+    onReplaceOutfit,
+    props.courseDistance,
+  ]);
 
   const [sorting, setSorting] = useState<SortingState>([{ id: 'mean', desc: true }]);
   const [rowSelection, setRowSelection] = useState({});
@@ -353,10 +366,15 @@ export const BasinnChart = (props: BasinnChartProps) => {
     }),
     [rows, virtualizer],
   );
+
   const search = useTableSearch(searchOptions);
 
+  const handleToggleSkillIds = useCallback(() => {
+    setShowSkillIds((prev) => !prev);
+  }, []);
+
   return (
-    <div className="relative">
+    <div className={cn('relative', className)}>
       {/* Loading Overlay */}
       {isSimulationRunning && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/60">
@@ -384,24 +402,12 @@ export const BasinnChart = (props: BasinnChartProps) => {
       )}
 
       <div className="mb-3 flex flex-wrap items-center gap-2">
-        <div className="flex items-center gap-1.5">
-          {groups_filters.icontype.map((iconType) => (
-            <Button
-              key={iconType}
-              variant="ghost"
-              size="icon"
-              className={cn('border rounded-none', {
-                'border-primary': iconTypeFilters[iconType as IconTypeFilterKey],
-              })}
-              onClick={() => handleToggleIconTypeFilter(iconType as IconTypeFilterKey)}
-              title={`Filter by icon type ${iconType}`}
-            >
-              <img src={`/icons/${iconType}1.png`} className="w-6 h-6" />
-            </Button>
-          ))}
-        </div>
+        <IconTypeFilterBar
+          iconTypeFilters={iconTypeFilters}
+          onToggle={handleToggleIconTypeFilter}
+        />
 
-        <Button variant="outline" size="sm" onClick={() => setShowSkillIds((prev) => !prev)}>
+        <Button variant="outline" size="sm" onClick={handleToggleSkillIds}>
           {showSkillIds ? 'Hide IDs' : 'Show IDs'}
         </Button>
 
@@ -427,9 +433,9 @@ export const BasinnChart = (props: BasinnChartProps) => {
       />
 
       {/* Table Container */}
-      <div ref={parentRef} className="overflow-auto relative h-[600px]">
+      <div ref={parentRef} className="overflow-auto relative min-h-[600px] max-h-[700px]">
         {/* Table */}
-        <div className="w-full text-sm">
+        <div className="min-w-[900px] w-full text-sm">
           {/* Table Header */}
           <div className="sticky top-0 z-30">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -456,6 +462,7 @@ export const BasinnChart = (props: BasinnChartProps) => {
             rows={rows}
             selectedSkills={selectedSkills}
             expandedRows={expandedRows}
+            onToggleRow={handleToggleRow}
             search={search}
             hiddenSkills={props.hiddenSkills}
             courseDistance={props.courseDistance}
@@ -468,4 +475,4 @@ export const BasinnChart = (props: BasinnChartProps) => {
       </div>
     </div>
   );
-};
+});

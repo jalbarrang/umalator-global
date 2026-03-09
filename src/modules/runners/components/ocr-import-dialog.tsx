@@ -30,7 +30,7 @@ import {
 } from '@/components/ui/command';
 
 import { useOcrImport } from '@/modules/runners/hooks/useOcrImport';
-import { umasForSearch } from '@/modules/runners/utils';
+import { useUmasForSearch } from '@/modules/runners/utils';
 import { getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import { SkillItem } from '@/modules/skills/components/skill-list/SkillItem';
 
@@ -41,6 +41,7 @@ interface OcrImportDialogProps {
 }
 
 export function OcrImportDialog({ open, onOpenChange, onApply }: OcrImportDialogProps) {
+  const umasForSearch = useUmasForSearch();
   const {
     files,
     addFiles,

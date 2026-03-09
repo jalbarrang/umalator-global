@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import {
-  getCourseByTrackId,
   getCourseIdByTrackIdAndIndex,
   getDefaultTrackIdForCourse,
+  useCoursesByTrack,
 } from '../courses';
 import { trackDescription } from '../labels';
 import { trackIds } from '@/i18n/lang/tracknames';
@@ -28,9 +28,10 @@ export function TrackSelect(props: TrackSelectProps) {
   const { className, ...rest } = props;
 
   const { courseId } = useSettingsStore();
+  const coursesByTrack = useCoursesByTrack();
 
   // Derive trackid from courseId instead of storing it as state
-  const trackid = useMemo(() => getDefaultTrackIdForCourse(courseId), [courseId]);
+  const trackid = useMemo(() => getDefaultTrackIdForCourse(courseId), [courseId, coursesByTrack]);
 
   const handleChangeCourse = (value: string | null) => {
     if (!value) {
@@ -69,7 +70,7 @@ export function TrackSelect(props: TrackSelectProps) {
           <SelectValue>{trackDescription({ courseid: courseId })}</SelectValue>
         </SelectTrigger>
         <SelectContent>
-          {getCourseByTrackId(trackid).map((cid) => (
+          {(coursesByTrack[trackid] ?? []).map((cid) => (
             <SelectItem value={cid.toString()} key={cid}>
               {trackDescription({ courseid: +cid })}
             </SelectItem>

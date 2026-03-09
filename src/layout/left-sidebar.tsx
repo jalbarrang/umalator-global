@@ -2,10 +2,12 @@ import {
   BookmarkIcon,
   CircleAlert,
   CrosshairIcon,
+  DatabaseIcon,
+  SidebarClose,
   SlidersHorizontalIcon,
   UsersIcon,
 } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -13,6 +15,7 @@ import { cn } from '@/lib/utils';
 import { RunnersPanel } from '@/modules/runners/components/runners-panel';
 import { AdvancedSettingsPanel } from '@/components/advanced-settings-panel';
 import { PresetsPanel } from '@/components/presets-panel';
+import { MasterDbStatusPanel } from '@/components/master-db-status-panel';
 import { DebuffsPanel } from '@/modules/simulation/components/DebuffsPanel';
 import { ForcedPositionsPanel } from '@/modules/simulation/components/ForcedPositionsPanel';
 import { useDebuffs } from '@/modules/simulation/stores/compare.store';
@@ -79,8 +82,20 @@ export const LeftSidebar = () => {
       });
     }
 
+    basePanels.push({
+      id: 'master-db',
+      label: 'Game Database',
+      icon: DatabaseIcon,
+      content: <MasterDbStatusPanel />,
+      hasBadge: false,
+    });
+
     return basePanels;
   }, [hasDebuffs, hasForcedPositions, isCompareRunnersView]);
+
+  const handleCloseSidebar = useCallback(() => {
+    setLeftSidebar({ hidden: true });
+  }, []);
 
   useEffect(() => {
     const panelIsValid = panels.some((panel) => panel.id === activePanel);
@@ -94,10 +109,15 @@ export const LeftSidebar = () => {
   }, [activePanel, panels]);
 
   return (
-    <div className="flex">
+    <div
+      className={cn('flex flex-col border-r shrink-0 overflow-hidden', {
+        'w-dvw md:w-[450px]': !hidden,
+        'w-0': hidden,
+      })}
+    >
       {/* Activity Bar */}
-      <div className="flex flex-col w-12 bg-muted/50 border-r">
-        <div className="flex flex-col gap-1 p-1">
+      <div className="flex w-full justify-between bg-muted/50">
+        <div className="flex flex-1 min-w-0 items-center justify-center gap-1 p-1">
           {panels.map((panel) => (
             <Tooltip key={panel.id}>
               <TooltipTrigger
@@ -121,29 +141,35 @@ export const LeftSidebar = () => {
                   </Button>
                 }
               />
-              <TooltipContent side="right">
+              <TooltipContent>
                 <p>{panel.label}</p>
               </TooltipContent>
             </Tooltip>
           ))}
         </div>
+
+        <div className="flex items-center justify-center">
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9"
+                  onClick={handleCloseSidebar}
+                >
+                  <SidebarClose className="h-4 w-4" />
+                </Button>
+              }
+            />
+            <TooltipContent>Close</TooltipContent>
+          </Tooltip>
+        </div>
       </div>
 
       {/* Side Panel */}
-      <div
-        className={cn(
-          // Base styles
-          'flex flex-col border-r bg-background',
-          {
-            'w-[calc(100dvw-3rem)] md:w-[450px]': !hidden,
-            'w-0 overflow-hidden': hidden,
-          },
-        )}
-      >
-        <div className="flex flex-col h-full">
-          {/* Panel Content */}
-          <div className="flex-1 min-h-0">{activePanelContent}</div>
-        </div>
+      <div className="flex flex-col flex-1 min-h-0 min-w-0 bg-background">
+        <div className="flex flex-1 min-h-0 min-w-0 overflow-auto">{activePanelContent}</div>
       </div>
     </div>
   );

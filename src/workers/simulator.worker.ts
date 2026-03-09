@@ -5,7 +5,34 @@
 import '../polyfills';
 import { cloneDeep } from 'es-toolkit';
 import type { CompareParams } from '@/modules/simulation/types';
+import { syncRuntimeMasterDbData } from '@/modules/data/runtime-data-sync';
 import { runComparison } from '@/modules/simulation/simulators/vacuum-compare';
+import type {
+  WorkerSyncErrorMessage,
+  WorkerSyncInMessage,
+  WorkerSyncReadyMessage,
+} from './runtime-data-protocol';
+
+type CompareWorkerInMessage = WorkerSyncInMessage | { type: 'compare'; data: CompareParams };
+type CompareWorkerOutMessage =
+  | WorkerSyncReadyMessage
+  | WorkerSyncErrorMessage
+  | { type: 'compare-progress'; currentSamples: number; totalSamples: number }
+  | { type: 'compare'; results: ReturnType<typeof runComparison> }
+  | { type: 'compare-complete' };
+
+let activeResourceVersion: string | null = null;
+
+function sendMessage(message: CompareWorkerOutMessage): void {
+  postMessage(message);
+}
+
+function sendWorkerError(error: unknown): void {
+  sendMessage({
+    type: 'worker-error',
+    error: error instanceof Error ? error.message : 'Unknown worker error',
+  });
+}
 
 function* progressiveSampleSizes(targetSamples: number) {
   let n = Math.min(20, targetSamples);
@@ -41,7 +68,7 @@ const runRunnersComparison = (params: CompareParams) => {
       injectedDebuffs,
     });
 
-    postMessage({
+    sendMessage({
       type: 'compare-progress',
       currentSamples: n,
       totalSamples: nsamples,
@@ -60,16 +87,33 @@ const runRunnersComparison = (params: CompareParams) => {
   });
 
   // Always post final results
-  postMessage({ type: 'compare', results });
-  postMessage({ type: 'compare-complete' });
+  sendMessage({ type: 'compare', results });
+  sendMessage({ type: 'compare-complete' });
 };
 
-self.addEventListener('message', (e: MessageEvent) => {
-  const { msg, data } = e.data;
+self.addEventListener('message', (event: MessageEvent<CompareWorkerInMessage>) => {
+  const message = event.data;
 
-  switch (msg) {
-    case 'compare':
-      runRunnersComparison(data);
-      break;
+  try {
+    switch (message.type) {
+      case 'init-data':
+        activeResourceVersion = null;
+        syncRuntimeMasterDbData(message.payload);
+        activeResourceVersion = message.payload.resourceVersion;
+        sendMessage({
+          type: 'data-ready',
+          resourceVersion: activeResourceVersion,
+        });
+        break;
+      case 'compare':
+        if (!activeResourceVersion) {
+          sendWorkerError('Worker runtime data has not been initialized');
+          return;
+        }
+        runRunnersComparison(message.data);
+        break;
+    }
+  } catch (error) {
+    sendWorkerError(error);
   }
 });

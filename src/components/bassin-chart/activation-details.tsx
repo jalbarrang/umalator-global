@@ -10,6 +10,7 @@ import type {
   SkillTrackedMetaCollection,
 } from '@/modules/simulation/compare.types';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import React from 'react';
 
 type ActivationDetailsProps = {
   skillId: string;
@@ -23,7 +24,7 @@ type ActivationDetailsProps = {
 };
 
 // Component to show detailed activation info in expanded row
-export function ActivationDetails(props: ActivationDetailsProps) {
+export const ActivationDetails = React.memo((props: ActivationDetailsProps) => {
   const {
     skillId,
     skillActivations,
@@ -212,4 +213,4 @@ export function ActivationDetails(props: ActivationDetailsProps) {
       </CardContent>
     </Card>
   );
-}
+});

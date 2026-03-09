@@ -6,11 +6,18 @@
 import '../polyfills';
 import { clone, cloneDeepWith } from 'es-toolkit';
 import type { SkillComparisonResponse } from '@/modules/simulation/types';
+import { syncRuntimeMasterDbData } from '@/modules/data/runtime-data-sync';
 import type { SimulationParams } from './pool/types';
 import { runSampling } from '@/modules/simulation/simulators/skill-compare';
+import type {
+  WorkerSyncErrorMessage,
+  WorkerSyncInMessage,
+  WorkerSyncReadyMessage,
+} from './runtime-data-protocol';
 
 // Messages from main thread to worker
 export type SingleSkillWorkerInMessage =
+  | WorkerSyncInMessage
   | {
       type: 'run';
       skillId: string;
@@ -22,8 +29,12 @@ export type SingleSkillWorkerInMessage =
 
 // Messages from worker to main thread
 export type SingleSkillWorkerOutMessage =
+  | WorkerSyncReadyMessage
+  | WorkerSyncErrorMessage
   | { type: 'complete'; skillId: string; results: SkillComparisonResponse }
   | { type: 'error'; skillId: string; error: string };
+
+let activeResourceVersion: string | null = null;
 
 function sendMessage(message: SingleSkillWorkerOutMessage): void {
   postMessage(message);
@@ -33,7 +44,25 @@ self.addEventListener('message', (event: MessageEvent<SingleSkillWorkerInMessage
   const message = event.data;
 
   switch (message.type) {
+    case 'init-data': {
+      activeResourceVersion = null;
+      syncRuntimeMasterDbData(message.payload);
+      activeResourceVersion = message.payload.resourceVersion;
+      sendMessage({
+        type: 'data-ready',
+        resourceVersion: activeResourceVersion,
+      });
+      break;
+    }
     case 'run': {
+      if (!activeResourceVersion) {
+        sendMessage({
+          type: 'worker-error',
+          error: 'Worker runtime data has not been initialized',
+        });
+        return;
+      }
+
       try {
         const { skillId, nsamples, seed, params } = message;
         const { course, racedef, uma, options } = params;

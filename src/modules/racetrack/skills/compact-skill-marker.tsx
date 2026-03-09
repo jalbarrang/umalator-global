@@ -15,7 +15,7 @@ export type CompactSkillMarkerProps = {
   start?: number;
   end?: number;
   isDragging?: boolean;
-  onDragStart?: (e: React.MouseEvent) => void;
+  onDragStart?: (e: React.PointerEvent) => void;
 };
 
 export const CompactSkillMarker = memo<CompactSkillMarkerProps>(
@@ -35,7 +35,7 @@ export const CompactSkillMarker = memo<CompactSkillMarkerProps>(
   }) => {
     const isDraggable = useMemo(() => !!skillId && !!onDragStart, [skillId, onDragStart]);
     const markerStyle = useMemo(
-      () => ({ cursor: isDraggable ? 'grab' : 'default' }),
+      () => ({ cursor: isDraggable ? 'grab' : 'default', touchAction: 'none' as const }),
       [isDraggable],
     );
 
@@ -78,7 +78,7 @@ export const CompactSkillMarker = memo<CompactSkillMarkerProps>(
         width={`${width}%`}
         height={barHeight}
         overflow="visible"
-        onMouseDown={onDragStart}
+        onPointerDown={onDragStart}
         onPointerEnter={show}
         onPointerLeave={handlePointerLeave}
         style={markerStyle}

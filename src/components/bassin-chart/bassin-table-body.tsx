@@ -1,15 +1,48 @@
 import { Virtualizer } from '@tanstack/react-virtual';
 import { flexRender, type Row } from '@tanstack/react-table';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 import { SkillComparisonRoundResult } from '@/modules/simulation/types';
 import { cn } from '@/lib/utils';
 import { gridClass } from './BasinnChart';
 import { ActivationDetails } from './activation-details';
+import { Button } from '../ui/button';
+import React from 'react';
+
+type ExpandCellProps = {
+  skillId: string;
+  hasRunData: boolean;
+  isExpanded: boolean;
+  onToggleRow: (skillId: string) => void;
+};
+
+const ExpandCell = React.memo(({ skillId, hasRunData, isExpanded, onToggleRow }: ExpandCellProps) => {
+  if (!hasRunData) return null;
+
+  return (
+    <Button
+      variant="ghost"
+      size="icon-sm"
+      onClick={(e) => {
+        e.stopPropagation();
+        onToggleRow(skillId);
+      }}
+      title={isExpanded ? 'Collapse details' : 'Show activation details'}
+    >
+      {isExpanded ? (
+        <ChevronDown className="h-4 w-4" />
+      ) : (
+        <ChevronRight className="h-4 w-4" />
+      )}
+    </Button>
+  );
+});
 
 export type BassinTableBodyProps = {
   virtualizer: Virtualizer<HTMLDivElement, Element>;
   rows: Row<SkillComparisonRoundResult>[];
   selectedSkills: string[];
   expandedRows: Set<string>;
+  onToggleRow: (skillId: string) => void;
   search: {
     matches: number[];
     currentMatchIndex: number;
@@ -22,12 +55,13 @@ export type BassinTableBodyProps = {
   onRunAdditionalSamples?: (skillId: string, additionalSamples: number) => void;
 };
 
-export const BassinTableBody = (props: BassinTableBodyProps) => {
+export const BassinTableBody = React.memo((props: BassinTableBodyProps) => {
   const {
     virtualizer,
     rows,
     selectedSkills,
     expandedRows,
+    onToggleRow,
     search,
     hiddenSkills,
     courseDistance,
@@ -77,14 +111,26 @@ export const BassinTableBody = (props: BassinTableBodyProps) => {
           >
             <div className={gridClass}>
               {row.getVisibleCells().map((cell) => {
-                const column = cell.column;
-                const columnId = column.id;
+                const columnId = cell.column.id;
                 const cellValue = cell.getValue();
                 const extraProps: Record<string, unknown> = {};
 
                 if (columnId === 'id') {
                   extraProps['data-itemtype'] = 'skill';
                   extraProps['data-itemid'] = cellValue;
+                }
+
+                if (columnId === 'expand') {
+                  return (
+                    <div key={cell.id} className="flex items-center gap-2">
+                      <ExpandCell
+                        skillId={id}
+                        hasRunData={hasRunData}
+                        isExpanded={isExpanded}
+                        onToggleRow={onToggleRow}
+                      />
+                    </div>
+                  );
                 }
 
                 return (
@@ -112,4 +158,4 @@ export const BassinTableBody = (props: BassinTableBodyProps) => {
       })}
     </div>
   );
-};
+});

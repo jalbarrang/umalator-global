@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { create } from 'zustand';
 
 // Helper to convert client coords to SVG space
@@ -44,7 +44,10 @@ const useDragPreviewStore = create<DragPreviewState>(() => ({
   preview: null,
 }));
 
-const previewMatchesDraggedSkill = (preview: DragPreview | null, draggedSkill: DraggedSkill | null) => {
+const previewMatchesDraggedSkill = (
+  preview: DragPreview | null,
+  draggedSkill: DraggedSkill | null,
+) => {
   if (!preview || !draggedSkill) return false;
 
   return (
@@ -126,10 +129,12 @@ export function useDragSkill({
 }: UseDragSkillParams) {
   const [draggedSkill, setDraggedSkill] = useState<DraggedSkill | null>(null);
   const [dragOffset, setDragOffset] = useState<DragOffset>({ x: 0 });
+  const capturedPointerIdRef = useRef<number | null>(null);
+  const pointerCaptureTargetRef = useRef<SVGSVGElement | null>(null);
 
   const handleDragStart = useCallback(
     (
-      e: React.MouseEvent,
+      e: React.PointerEvent,
       skillId: string,
       umaIndex: number,
       start: number,
@@ -161,12 +166,18 @@ export function useDragSkill({
         debuffId,
       });
       setDragOffset({ x: dragX - start });
+
+      if (typeof mainSvg.setPointerCapture === 'function') {
+        mainSvg.setPointerCapture(e.pointerId);
+        capturedPointerIdRef.current = e.pointerId;
+        pointerCaptureTargetRef.current = mainSvg;
+      }
     },
     [xOffset, courseDistance, viewBoxWidth],
   );
 
   const handleDragMove = useCallback(
-    (e: React.MouseEvent<SVGSVGElement>) => {
+    (e: React.PointerEvent<SVGSVGElement>) => {
       if (!draggedSkill) return;
 
       const svg = e.currentTarget;
@@ -212,6 +223,19 @@ export function useDragSkill({
 
     clearDragPreview();
     setDraggedSkill(null);
+
+    const pointerId = capturedPointerIdRef.current;
+    const captureTarget = pointerCaptureTargetRef.current;
+    if (
+      pointerId != null &&
+      captureTarget &&
+      typeof captureTarget.hasPointerCapture === 'function' &&
+      captureTarget.hasPointerCapture(pointerId)
+    ) {
+      captureTarget.releasePointerCapture(pointerId);
+    }
+    capturedPointerIdRef.current = null;
+    pointerCaptureTargetRef.current = null;
   }, [draggedSkill, onSkillDrag]);
 
   return {

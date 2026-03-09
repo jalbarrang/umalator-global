@@ -50,8 +50,8 @@ export const ImmediateMarker = React.memo<ImmediateLayout & { onDragStart: DragS
       }
     }, [isDragging, hide]);
 
-    const handleMouseDown = useCallback(
-      (e: React.MouseEvent) => {
+    const handlePointerDown = useCallback(
+      (e: React.PointerEvent) => {
         if (!skillId || umaIndex === undefined) return;
         onDragStart(
           e,
@@ -81,8 +81,8 @@ export const ImmediateMarker = React.memo<ImmediateLayout & { onDragStart: DragS
         width="0"
         height="0"
         overflow="visible"
-        style={{ cursor: skillId ? 'grab' : 'default' }}
-        onMouseDown={handleMouseDown}
+        style={{ cursor: skillId ? 'grab' : 'default', touchAction: 'none' }}
+        onPointerDown={handlePointerDown}
         onPointerEnter={show}
         onPointerLeave={handlePointerLeave}
       >
@@ -94,11 +94,7 @@ export const ImmediateMarker = React.memo<ImmediateLayout & { onDragStart: DragS
           fill="transparent"
         />
 
-        <EffectSymbol
-          effectType={effectType}
-          color={color}
-          size={IMMEDIATE_SYMBOL_SIZE}
-        />
+        <EffectSymbol effectType={effectType} color={color} size={IMMEDIATE_SYMBOL_SIZE} />
 
         <SkillTooltip
           label={label}

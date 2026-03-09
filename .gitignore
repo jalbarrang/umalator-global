@@ -7,7 +7,7 @@ dist/
 .cache/
 results/
 .env
-db/
+/db
 
 # Netlify
 .netlify

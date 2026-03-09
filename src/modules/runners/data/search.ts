@@ -4,7 +4,7 @@
 
 import type { ISkill } from '@/modules/skills/types';
 import type { SkillLookupEntry, SkillMatch, UmaData, UmaLookupEntry, UmaMatch } from './types';
-import umas from '@/modules/data/umas.json';
+import { useMasterDbStore } from '@/modules/data/master-db.store';
 import GametoraSkills from '@/modules/data/gametora/skills.json';
 
 // =============================================================================
@@ -102,9 +102,16 @@ export function getSkillLookup(): Map<string, SkillLookupEntry> {
 // =============================================================================
 
 const umaLookup = new Map<string, UmaLookupEntry>();
+let lastUmaSource: Record<string, UmaData> | null = null;
+
+const getUmasData = () => useMasterDbStore.getState().umas as Record<string, UmaData>;
 
 function buildUmaLookup() {
-  if (umaLookup.size > 0) return;
+  const umas = getUmasData();
+  if (umaLookup.size > 0 && lastUmaSource === umas) return;
+
+  umaLookup.clear();
+  lastUmaSource = umas;
 
   for (const [_baseId, uma] of Object.entries(umas) as Array<[string, UmaData]>) {
     const umaName = uma.name[1] || '';

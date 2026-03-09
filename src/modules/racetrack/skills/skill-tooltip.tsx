@@ -60,13 +60,7 @@ export const SkillTooltip = React.memo<SkillTooltipProps>(
   ({ label, tooltipRef, bgRef, offsetY }) => (
     <g ref={tooltipRef} style={{ display: 'none', pointerEvents: 'none' }}>
       <rect ref={bgRef} rx="3" ry="3" fill="rgba(0,0,0,0.8)" />
-      <text
-        y={offsetY}
-        textAnchor="middle"
-        fill="#fff"
-        fontSize="8px"
-        fontWeight="500"
-      >
+      <text y={offsetY} textAnchor="middle" fill="#fff" fontSize="8px" fontWeight="500">
         {label}
       </text>
     </g>

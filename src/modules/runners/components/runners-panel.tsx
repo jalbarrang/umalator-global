@@ -16,7 +16,7 @@ import { useSettingsStore } from '@/store/settings.store';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/ui/panel';
+import { Panel, PanelContent, PanelHeader } from '@/components/ui/panel';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
@@ -79,13 +79,13 @@ export const RunnersPanel = () => {
 
   return (
     <Panel>
-      <PanelHeader>
-        <PanelTitle className="flex justify-between items-center gap-4">
-          <div className="flex items-center border rounded-lg overflow-hidden">
+      <PanelHeader className="p-0 h-[48px]">
+        <div className="flex h-full w-full items-center justify-between">
+          <div className="grid grid-cols-2 h-full flex-1 items-center">
             <button
               type="button"
               className={cn(
-                'px-3 py-1.5 text-sm font-medium transition-colors',
+                'px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer h-full',
                 runnerId === 'uma1'
                   ? 'bg-[#2a77c5] text-white'
                   : 'bg-background text-muted-foreground hover:bg-muted',
@@ -94,10 +94,11 @@ export const RunnersPanel = () => {
             >
               Uma 1
             </button>
+
             <button
               type="button"
               className={cn(
-                'px-3 py-1.5 text-sm font-medium transition-colors',
+                'px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer h-full',
                 runnerId === 'uma2'
                   ? 'bg-[#c52a2a] text-white'
                   : 'bg-background text-muted-foreground hover:bg-muted',
@@ -108,14 +109,16 @@ export const RunnersPanel = () => {
             </button>
           </div>
 
-          <Button
-            onClick={resetAllRunners}
-            title="Reset all runners to default stats and skills"
-            size="sm"
-          >
-            Reset all runners
-          </Button>
-        </PanelTitle>
+          <div className="flex items-center px-2 py-2">
+            <Button
+              onClick={resetAllRunners}
+              title="Reset all runners to default stats and skills"
+              size="sm"
+            >
+              Reset all runners
+            </Button>
+          </div>
+        </div>
       </PanelHeader>
 
       <PanelContent className="p-0">

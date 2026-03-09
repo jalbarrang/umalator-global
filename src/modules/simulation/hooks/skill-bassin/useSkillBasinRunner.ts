@@ -19,15 +19,15 @@ import { racedefToParams } from '@/utils/races';
 import { useSettingsStore } from '@/store/settings.store';
 import { useRunner } from '@/store/runners.store';
 import { getBaseSkillsToTest } from '@/modules/skills/utils';
-
-const baseSkillsToTest = getBaseSkillsToTest();
+import { syncWorkerRuntimeData } from '@/modules/data/worker-sync';
 
 const createSkillBasinWorker = () => new SkillBasinWorker();
 
-type WorkerMessage<T> = {
-  type: 'skill-bassin' | 'skill-bassin-done';
-  results: T;
-};
+type WorkerMessage<T> =
+  | { type: 'data-ready'; resourceVersion: string }
+  | { type: 'worker-error'; error: string }
+  | { type: 'skill-bassin'; results: T }
+  | { type: 'skill-bassin-done' };
 
 const WORKER_COUNT = 2;
 // Total samples per skill: 5 + 20 + 50 + 200 = 275 (for skills that pass all filters)
@@ -45,16 +45,20 @@ export function useSkillBasinRunner() {
 
   const handleWorkerMessage = useCallback(
     (event: MessageEvent<WorkerMessage<SkillComparisonResponse>>) => {
-      const { type, results } = event.data;
+      const { type } = event.data;
 
       console.log('skill-bassin:handleWorkerMessage', {
         type,
-        results,
+        data: event.data,
       });
 
       switch (type) {
+        case 'worker-error':
+          console.error('Skill basin worker error:', event.data.error);
+          setIsSimulationRunning(false);
+          break;
         case 'skill-bassin':
-          appendResultsToTable(results);
+          appendResultsToTable(event.data.results);
           break;
         case 'skill-bassin-done':
           chartWorkersCompletedRef.current += 1;
@@ -118,6 +122,7 @@ export function useSkillBasinRunner() {
 
     chartWorkersCompletedRef.current = 0;
     const params = racedefToParams(racedef, runner.strategy);
+    const baseSkillsToTest = getBaseSkillsToTest();
 
     const skills = getActivateableSkills(
       baseSkillsToTest.filter(
@@ -146,33 +151,47 @@ export function useSkillBasinRunner() {
     // Generate random seed
     const seed = Math.floor(Math.random() * 1000000);
 
-    worker1Ref.current?.postMessage({
-      msg: 'chart',
-      data: {
-        skills: skills1,
-        course,
-        racedef: params,
-        uma,
-        options: {
-          ...defaultSimulationOptions,
-          seed,
-        },
-      },
-    });
+    const worker1 = worker1Ref.current;
+    const worker2 = worker2Ref.current;
+    if (!worker1 || !worker2) {
+      setIsSimulationRunning(false);
+      return;
+    }
 
-    worker2Ref.current?.postMessage({
-      msg: 'chart',
-      data: {
-        skills: skills2,
-        course,
-        racedef: params,
-        uma,
-        options: {
-          ...defaultSimulationOptions,
-          seed,
-        },
-      },
-    });
+    void Promise.all([syncWorkerRuntimeData(worker1), syncWorkerRuntimeData(worker2)])
+      .then(() => {
+        worker1.postMessage({
+          type: 'chart',
+          data: {
+            skills: skills1,
+            course,
+            racedef: params,
+            uma,
+            options: {
+              ...defaultSimulationOptions,
+              seed,
+            },
+          },
+        });
+
+        worker2.postMessage({
+          type: 'chart',
+          data: {
+            skills: skills2,
+            course,
+            racedef: params,
+            uma,
+            options: {
+              ...defaultSimulationOptions,
+              seed,
+            },
+          },
+        });
+      })
+      .catch((error: unknown) => {
+        console.error('Failed to sync skill basin workers:', error);
+        setIsSimulationRunning(false);
+      });
   };
 
   return { doBasinnChart };

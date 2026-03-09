@@ -155,15 +155,15 @@ export const getAllSkills = (): Array<Skill> => {
   }));
 };
 
-export const allSkills = getAllSkills();
-export const skillsById: Map<string, Skill> = new Map();
+export let allSkills: Array<Skill> = [];
+export let skillsById: Map<string, Skill> = new Map();
 
 export const getRunnerSkills = (skillIds: Array<string>): Array<Skill> => {
   return allSkills.filter((skill) => skillIds.includes(skill.originalId));
 };
 
-export const nonUniqueSkills: Array<Skill> = [];
-export const nonUniqueSkillIds: Array<string> = [];
+export let nonUniqueSkills: Array<Skill> = [];
+export let nonUniqueSkillIds: Array<string> = [];
 
 export const getSelectableSkillsForUma = (umaId: UmaAltId) => {
   const ids: Array<string> = [];
@@ -263,14 +263,14 @@ export const conditionFilterMap = {
   ],
 };
 
-const generateSkillFilterLookUp = () => {
+const generateSkillFilterLookUp = (skillsToMatch: Array<Skill>) => {
   const filterLookup: Record<string, Set<string>> = {};
   const filterMapEntries = Object.entries(conditionFilterMap);
 
   for (const [filterKey, ops] of filterMapEntries) {
     filterLookup[filterKey] = new Set();
 
-    for (const skill of allSkills) {
+    for (const skill of skillsToMatch) {
       const conditions = tokenizedConditions[skill.id];
       if (!conditions) continue;
 
@@ -285,7 +285,7 @@ const generateSkillFilterLookUp = () => {
   return filterLookup;
 };
 
-export const skillFilterLookUp = generateSkillFilterLookUp();
+export let skillFilterLookUp: Record<string, Set<string>> = {};
 
 /**
  * Estimate skill activation phase from skill condition
@@ -362,21 +362,37 @@ export const getUmaForUniqueSkill = (skillId: string): string => {
   return outfitId.toString();
 };
 
-export const uniqueSkillIds: Array<string> = [];
+export let uniqueSkillIds: Array<string> = [];
 
-// Setup every value for module variables
-for (const skill of allSkills) {
-  skillsById.set(skill.id, skill);
+export function rebuildSkillDerivedCaches(): void {
+  const nextAllSkills = getAllSkills();
+  const nextSkillsById: Map<string, Skill> = new Map();
+  const nextNonUniqueSkills: Array<Skill> = [];
+  const nextNonUniqueSkillIds: Array<string> = [];
+  const nextUniqueSkillIds: Array<string> = [];
 
-  const isNotUniqueSkill = skill.rarity < SkillRarity.Unique;
-  const isEvolvedSkill = skill.rarity === SkillRarity.Evolution;
+  for (const skill of nextAllSkills) {
+    nextSkillsById.set(skill.id, skill);
 
-  if (isNotUniqueSkill || isEvolvedSkill) {
-    nonUniqueSkills.push(skill);
-    nonUniqueSkillIds.push(skill.id);
+    const isNotUniqueSkill = skill.rarity < SkillRarity.Unique;
+    const isEvolvedSkill = skill.rarity === SkillRarity.Evolution;
+
+    if (isNotUniqueSkill || isEvolvedSkill) {
+      nextNonUniqueSkills.push(skill);
+      nextNonUniqueSkillIds.push(skill.id);
+    }
+
+    if (skill.rarity >= 4 && skill.id.startsWith('1')) {
+      nextUniqueSkillIds.push(skill.id);
+    }
   }
 
-  if (skill.rarity >= 4 && skill.id.startsWith('1')) {
-    uniqueSkillIds.push(skill.id);
-  }
+  allSkills = nextAllSkills;
+  skillsById = nextSkillsById;
+  nonUniqueSkills = nextNonUniqueSkills;
+  nonUniqueSkillIds = nextNonUniqueSkillIds;
+  uniqueSkillIds = nextUniqueSkillIds;
+  skillFilterLookUp = generateSkillFilterLookUp(nextAllSkills);
 }
+
+rebuildSkillDerivedCaches();

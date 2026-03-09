@@ -52,7 +52,7 @@ export const slopeValueToPercentage = (value: number) => {
 };
 
 export type DragStartHandler = (
-  e: React.MouseEvent,
+  e: React.PointerEvent,
   skillId: string,
   umaIndex: number,
   start: number,
