@@ -3,7 +3,9 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 
 function Panel({ className, ...props }: React.ComponentProps<'div'>) {
-  return <div data-slot="panel" className={cn('flex flex-col h-full', className)} {...props} />;
+  return (
+    <div data-slot="panel" className={cn('flex flex-col w-full h-full', className)} {...props} />
+  );
 }
 
 function PanelHeader({ className, ...props }: React.ComponentProps<'div'>) {

@@ -28,8 +28,14 @@ import type { RunnerState } from '@/modules/runners/components/runner-card/types
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import type { RaceParameters } from '@/lib/sunday-tools/common/race';
 import type { SimulationOptions } from '@/modules/simulation/types';
+import { syncRuntimeMasterDbData } from '@/modules/data/runtime-data-sync';
 import { runAdaptiveOptimization } from '@/modules/skill-planner/optimization-engine';
 import { getNetCost } from '@/modules/skill-planner/cost-calculator';
+import type {
+  WorkerSyncErrorMessage,
+  WorkerSyncInMessage,
+  WorkerSyncReadyMessage,
+} from './runtime-data-protocol';
 
 interface OptimizeParams {
   candidates: Record<string, CandidateSkill>;
@@ -40,6 +46,21 @@ interface OptimizeParams {
   course: CourseData;
   racedef: RaceParameters;
   options: SimulationOptions;
+}
+
+type SkillPlannerWorkerInMessage = WorkerSyncInMessage | { type: 'optimize'; data: OptimizeParams };
+type SkillPlannerWorkerOutMessage =
+  | WorkerSyncReadyMessage
+  | WorkerSyncErrorMessage
+  | { type: 'skill-planner-progress'; progress: unknown }
+  | { type: 'skill-planner-result'; result: ReturnType<typeof runAdaptiveOptimization> }
+  | { type: 'skill-planner-done' }
+  | { type: 'skill-planner-error'; error: string };
+
+let activeResourceVersion: string | null = null;
+
+function sendMessage(message: SkillPlannerWorkerOutMessage): void {
+  postMessage(message);
 }
 
 /**
@@ -67,19 +88,19 @@ function runOptimization(params: OptimizeParams) {
     racedef,
     options,
     onProgress: (progress) => {
-      postMessage({
+      sendMessage({
         type: 'skill-planner-progress',
         progress,
       });
     },
   });
 
-  postMessage({
+  sendMessage({
     type: 'skill-planner-result',
     result,
   });
 
-  postMessage({
+  sendMessage({
     type: 'skill-planner-done',
   });
 }
@@ -88,19 +109,35 @@ function runOptimization(params: OptimizeParams) {
 // Worker Message Handler
 // ============================================================
 
-self.addEventListener('message', (e: MessageEvent) => {
-  const { msg, data } = e.data;
+self.addEventListener('message', (event: MessageEvent<SkillPlannerWorkerInMessage>) => {
+  const message = event.data;
 
-  switch (msg) {
-    case 'optimize':
-      try {
-        runOptimization(data);
-      } catch (error) {
-        postMessage({
-          type: 'skill-planner-error',
-          error: error instanceof Error ? error.message : 'Unknown error',
+  try {
+    switch (message.type) {
+      case 'init-data':
+        activeResourceVersion = null;
+        syncRuntimeMasterDbData(message.payload);
+        activeResourceVersion = message.payload.resourceVersion;
+        sendMessage({
+          type: 'data-ready',
+          resourceVersion: activeResourceVersion,
         });
-      }
-      break;
+        break;
+      case 'optimize':
+        if (!activeResourceVersion) {
+          sendMessage({
+            type: 'worker-error',
+            error: 'Worker runtime data has not been initialized',
+          });
+          return;
+        }
+        runOptimization(message.data);
+        break;
+    }
+  } catch (error) {
+    sendMessage({
+      type: 'skill-planner-error',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
   }
 });

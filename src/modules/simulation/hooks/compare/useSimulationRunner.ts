@@ -13,10 +13,19 @@ import { useRunnersStore } from '@/store/runners.store';
 import { useDebuffs } from '@/modules/simulation/stores/compare.store';
 import { useForcedPositions } from '@/modules/simulation/stores/forced-positions.store';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { syncWorkerRuntimeData } from '@/modules/data/worker-sync';
 
 const createCompareWorker = () => new CompareWorker();
 
 type WorkerMessage<T> =
+  | {
+      type: 'data-ready';
+      resourceVersion: string;
+    }
+  | {
+      type: 'worker-error';
+      error: string;
+    }
   | {
       type: 'compare';
       results: T;
@@ -74,6 +83,11 @@ export function useSimulationRunner() {
         setIsSimulationRunning(false);
         setSimulationProgress(null);
         break;
+      case 'worker-error':
+        console.error('Compare worker error:', event.data.error);
+        setIsSimulationRunning(false);
+        setSimulationProgress(null);
+        break;
     }
   };
 
@@ -128,10 +142,24 @@ export function useSimulationRunner() {
       injectedDebuffs: hasDebuffs ? { uma1: debuffsUma1, uma2: debuffsUma2 } : undefined,
     };
 
-    webWorkerRef.current?.postMessage({
-      msg: 'compare',
-      data: params,
-    });
+    const worker = webWorkerRef.current;
+    if (!worker) {
+      setIsSimulationRunning(false);
+      return;
+    }
+
+    void syncWorkerRuntimeData(worker)
+      .then(() => {
+        worker.postMessage({
+          type: 'compare',
+          data: params,
+        });
+      })
+      .catch((error: unknown) => {
+        console.error('Failed to sync compare worker data:', error);
+        setIsSimulationRunning(false);
+        setSimulationProgress(null);
+      });
   };
 
   function handleRunOnce(seed?: number) {
@@ -170,10 +198,24 @@ export function useSimulationRunner() {
       injectedDebuffs: hasDebuffs ? { uma1: debuffsUma1, uma2: debuffsUma2 } : undefined,
     };
 
-    webWorkerRef.current?.postMessage({
-      msg: 'compare',
-      data: params,
-    });
+    const worker = webWorkerRef.current;
+    if (!worker) {
+      setIsSimulationRunning(false);
+      return;
+    }
+
+    void syncWorkerRuntimeData(worker)
+      .then(() => {
+        worker.postMessage({
+          type: 'compare',
+          data: params,
+        });
+      })
+      .catch((error: unknown) => {
+        console.error('Failed to sync compare worker data:', error);
+        setIsSimulationRunning(false);
+        setSimulationProgress(null);
+      });
   }
 
   return { handleRunCompare, handleRunOnce };

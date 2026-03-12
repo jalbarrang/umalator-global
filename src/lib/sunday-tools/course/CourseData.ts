@@ -110,6 +110,7 @@ export class CourseHelpers {
 
     const course2: CourseData = {
       ...course,
+      slopes,
       courseWidth,
       horseLane,
       laneChangeAcceleration,

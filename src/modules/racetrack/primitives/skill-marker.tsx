@@ -12,7 +12,7 @@ interface SkillMarkerProps {
   text: string;
   skillId?: string;
   umaIndex?: number;
-  onDragStart?: (e: React.MouseEvent) => void;
+  onDragStart?: (e: React.PointerEvent) => void;
 }
 
 /**
@@ -29,8 +29,8 @@ export const SkillMarker = React.memo<SkillMarkerProps>(
         y={`${y}%`}
         width={`${width}%`}
         height={`${markerHeight}%`}
-        onMouseDown={onDragStart}
-        style={{ cursor: isDraggable ? 'grab' : 'default' }}
+        onPointerDown={onDragStart}
+        style={{ cursor: isDraggable ? 'grab' : 'default', touchAction: 'none' }}
       >
         <rect x="0" y="0" width="100%" height="100%" fill={color.fill} stroke={color.stroke} />
 

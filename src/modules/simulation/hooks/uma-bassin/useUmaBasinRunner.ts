@@ -19,13 +19,15 @@ import { useRunner } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
 import { racedefToParams } from '@/utils/races';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { syncWorkerRuntimeData } from '@/modules/data/worker-sync';
 
 const createUmaBasinWorker = () => new UmaBasinWorker();
 
-type WorkerMessage<T> = {
-  type: 'uma-bassin' | 'uma-bassin-done';
-  results: T;
-};
+type WorkerMessage<T> =
+  | { type: 'data-ready'; resourceVersion: string }
+  | { type: 'worker-error'; error: string }
+  | { type: 'uma-bassin'; results: T }
+  | { type: 'uma-bassin-done' };
 
 const WORKER_COUNT = 2;
 // Total samples per skill: 5 + 20 + 50 + 200 = 275 (for skills that pass all filters)
@@ -49,16 +51,20 @@ export function useUmaBasinRunner() {
 
   const handleWorkerMessage = useCallback(
     (event: MessageEvent<WorkerMessage<SkillComparisonResponse>>) => {
-      const { type, results } = event.data;
+      const { type } = event.data;
 
       console.log('uma-bassin:handleWorkerMessage', {
         type,
-        results,
+        data: event.data,
       });
 
       switch (type) {
+        case 'worker-error':
+          console.error('Uma basin worker error:', event.data.error);
+          setIsSimulationRunning(false);
+          break;
         case 'uma-bassin':
-          appendResultsToTable(results);
+          appendResultsToTable(event.data.results);
           break;
         case 'uma-bassin-done':
           chartWorkersCompletedRef.current += 1;
@@ -142,33 +148,47 @@ export function useUmaBasinRunner() {
     // Generate random seed
     const seed = Math.floor(Math.random() * 1000000);
 
-    worker1Ref.current?.postMessage({
-      msg: 'chart',
-      data: {
-        skills: skills1,
-        course,
-        racedef: params,
-        uma,
-        options: {
-          ...defaultSimulationOptions,
-          seed,
-        },
-      },
-    });
+    const worker1 = worker1Ref.current;
+    const worker2 = worker2Ref.current;
+    if (!worker1 || !worker2) {
+      setIsSimulationRunning(false);
+      return;
+    }
 
-    worker2Ref.current?.postMessage({
-      msg: 'chart',
-      data: {
-        skills: skills2,
-        course,
-        racedef: params,
-        uma,
-        options: {
-          ...defaultSimulationOptions,
-          seed,
-        },
-      },
-    });
+    void Promise.all([syncWorkerRuntimeData(worker1), syncWorkerRuntimeData(worker2)])
+      .then(() => {
+        worker1.postMessage({
+          type: 'chart',
+          data: {
+            skills: skills1,
+            course,
+            racedef: params,
+            uma,
+            options: {
+              ...defaultSimulationOptions,
+              seed,
+            },
+          },
+        });
+
+        worker2.postMessage({
+          type: 'chart',
+          data: {
+            skills: skills2,
+            course,
+            racedef: params,
+            uma,
+            options: {
+              ...defaultSimulationOptions,
+              seed,
+            },
+          },
+        });
+      })
+      .catch((error: unknown) => {
+        console.error('Failed to sync uma basin workers:', error);
+        setIsSimulationRunning(false);
+      });
   }
 
   return { doBasinnChart };

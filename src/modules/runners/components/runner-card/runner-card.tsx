@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { CopyPlus, PlusIcon, TrashIcon, Upload } from 'lucide-react';
 import { StatsTable } from './stats-table';
@@ -47,14 +47,17 @@ export const RunnerCard = (props: RunnerCardProps) => {
   // OCR Import dialog state
   const [importDialogOpen, setImportDialogOpen] = useState(false);
 
-  const handleSetSkills = (skills: Array<string>) => {
-    onChange({ ...state, skills: skills });
-    updateCurrentSkills(skills);
+  const handleSetSkills = useCallback(
+    (skills: Array<string>) => {
+      onChange({ ...state, skills: skills });
+      updateCurrentSkills(skills);
 
-    if (skills.includes(runawaySkillId) && state.strategy !== 'Runaway') {
-      onChange({ ...state, strategy: 'Runaway' });
-    }
-  };
+      if (skills.includes(runawaySkillId) && state.strategy !== 'Runaway') {
+        onChange({ ...state, strategy: 'Runaway' });
+      }
+    },
+    [onChange, state],
+  );
 
   // Handle OCR import apply
   const handleOcrImportApply = (data: ExtractedUmaData) => {
@@ -124,7 +127,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
     handleSetSkills(state.skills.filter((id) => id !== skillId));
   };
 
-  const handleOpenSkillPicker = () => {
+  const handleOpenSkillPicker = useCallback(() => {
     const selectableSkills = getSelectableSkillsForUma(umaId);
 
     openSkillPicker({
@@ -134,7 +137,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
       currentSkills: state.skills,
       onSelect: handleSetSkills,
     });
-  };
+  }, [umaId, state.skills, handleSetSkills]);
 
   const handleSkillClick: React.MouseEventHandler<HTMLDivElement> = (e) => {
     e.stopPropagation();
@@ -201,7 +204,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
         onApply={handleOcrImportApply}
       />
 
-      <div data-tutorial="runner-stats">
+      <div className="flex flex-col gap-2" data-tutorial="runner-stats">
         <StatsTable value={state} onChange={handleUpdateStat} />
 
         <AptitudesTable
@@ -227,7 +230,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
 
       {hideSkillButton && <div className="text-sm font-semibold">Skills</div>}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2" onClick={handleSkillClick}>
+      <div className="grid grid-cols-1 gap-2" onClick={handleSkillClick}>
         {state.skills.map((id: string) => {
           return (
             <SkillItem

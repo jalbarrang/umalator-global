@@ -12,7 +12,7 @@ function parseCost(text: string | null): number {
 test('skill planner optimization uses hinted net cost', async ({ page }) => {
   await page.goto('/');
 
-  await page.getByRole('tab', { name: 'Skill Planner' }).click();
+  await page.getByRole('link', { name: 'Skill Planner' }).click();
   await expect(page).toHaveURL(/#\/skill-planner/);
 
   const optimizeButton = page.getByRole('button', { name: 'Optimize' });

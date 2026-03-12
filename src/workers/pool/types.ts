@@ -2,6 +2,7 @@ import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import type { RaceParameters } from '@/lib/sunday-tools/common/race';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import type { SimulationOptions, SkillComparisonResponse } from '@/modules/simulation/types';
+import type { WorkerSyncPayload } from '@/workers/runtime-data-protocol';
 
 export type WorkerState = 'idle' | 'busy' | 'terminated';
 
@@ -28,13 +29,13 @@ export type SimulationParams = {
 
 // Messages from main thread to worker
 export type WorkerInMessage =
-  | { type: 'init'; workerId: number; params: SimulationParams }
+  | { type: 'init'; workerId: number; params: SimulationParams; syncPayload: WorkerSyncPayload }
   | { type: 'work-batch'; batch: WorkBatch }
   | { type: 'terminate' };
 
 // Messages from worker to main thread
 export type WorkerOutMessage =
-  | { type: 'worker-ready'; workerId: number }
+  | { type: 'worker-ready'; workerId: number; resourceVersion: string }
   | {
       type: 'batch-complete';
       workerId: number;

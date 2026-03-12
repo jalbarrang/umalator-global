@@ -1,2 +1,15 @@
 [build]
 command = "pnpm run build"
+
+[[redirects]]
+  from = "/api/cdn/*"
+  to = "https://assets-umamusume-en.akamaized.net/:splat"
+  status = 200
+  force = true
+  headers = { "User-Agent" = "UnityPlayer/2022.3.46f1 (UnityWebRequest/1.0, libcurl/8.5.0-DEV)" }
+
+[[redirects]]
+  from = "/api/ver"
+  to = "https://uma.moe/api/ver"
+  status = 200
+  force = true

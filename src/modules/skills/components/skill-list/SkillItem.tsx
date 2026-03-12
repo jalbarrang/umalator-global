@@ -51,7 +51,7 @@ export const SkillItem = memo((props: SkillItemProps) => {
       onMouseEnter={props.onMouseEnter}
       onMouseLeave={props.onMouseLeave}
       className={cn(
-        'rounded-md bg-background border-2 flex h-[44px]',
+        'rounded-md bg-background border-2 flex h-auto',
         {
           selected: selected,
           'bg-yellow-200/70 dark:bg-yellow-800/40': isHovered || isFocused,
@@ -84,8 +84,9 @@ export const SkillItem = memo((props: SkillItemProps) => {
             <Button
               variant="ghost"
               size="icon"
-              className="h-full shrink-0 text-muted-foreground"
+              className="h-full shrink-0 text-muted-foreground rounded-none"
               title="Show skill details"
+              onClick={(e) => e.stopPropagation()}
             >
               <CircleHelp className="h-4 w-4" />
             </Button>
@@ -103,7 +104,7 @@ export const SkillItem = memo((props: SkillItemProps) => {
           type="button"
           data-event="remove-skill"
           data-skillid={skillId}
-          className="h-full"
+          className="h-full rounded-none"
         >
           <X className="w-4 h-4" />
         </Button>

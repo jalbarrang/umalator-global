@@ -59,7 +59,7 @@ export function SimulationHome() {
   };
 
   return (
-    <div className="flex flex-col flex-1 gap-4">
+    <div className="flex flex-col flex-1 min-w-0 gap-4">
       <div data-tutorial="race-settings">
         <RaceSettingsPanel />
       </div>

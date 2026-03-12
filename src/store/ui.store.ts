@@ -30,7 +30,7 @@ export const useUIStore = create<IUIStore>()(
       showChangelogModal: false,
       leftSide: {
         activePanel: 'runners',
-        hidden: false,
+        hidden: true,
       },
     }),
     {

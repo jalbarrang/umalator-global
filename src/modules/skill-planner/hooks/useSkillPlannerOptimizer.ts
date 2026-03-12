@@ -25,10 +25,19 @@ import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 import { racedefToParams } from '@/utils/races';
 import { useSettingsStore } from '@/store/settings.store';
 import { defaultSimulationOptions } from '@/components/bassin-chart/utils';
+import { syncWorkerRuntimeData } from '@/modules/data/worker-sync';
 
 const createSkillPlannerWorker = () => new SkillPlannerWorker();
 
 type WorkerMessage =
+  | {
+      type: 'data-ready';
+      resourceVersion: string;
+    }
+  | {
+      type: 'worker-error';
+      error: string;
+    }
   | {
       type: 'skill-planner-progress';
       progress: OptimizationProgress;
@@ -82,6 +91,12 @@ export function useSkillPlannerOptimizer() {
         setProgress(null);
         setResult(null);
         break;
+      case 'worker-error':
+        console.error('Skill planner worker error:', event.data.error);
+        setIsOptimizing(false);
+        setProgress(null);
+        setResult(null);
+        break;
     }
   };
 
@@ -110,22 +125,30 @@ export function useSkillPlannerOptimizer() {
     setProgress(null);
     setIsOptimizing(true);
 
-    webWorkerRef.current.postMessage({
-      msg: 'optimize',
-      data: {
-        candidates,
-        obtainedSkills,
-        budget,
-        hasFastLearner,
-        runner,
-        course,
-        racedef: raceParams,
-        options: {
-          ...defaultSimulationOptions,
-          seed: seedValue,
-        },
-      },
-    });
+    void syncWorkerRuntimeData(webWorkerRef.current)
+      .then(() => {
+        webWorkerRef.current?.postMessage({
+          type: 'optimize',
+          data: {
+            candidates,
+            obtainedSkills,
+            budget,
+            hasFastLearner,
+            runner,
+            course,
+            racedef: raceParams,
+            options: {
+              ...defaultSimulationOptions,
+              seed: seedValue,
+            },
+          },
+        });
+      })
+      .catch((error: unknown) => {
+        console.error('Failed to sync skill planner worker:', error);
+        setIsOptimizing(false);
+        setProgress(null);
+      });
   };
 
   const handleOptimize = () => {

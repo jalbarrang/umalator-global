@@ -81,7 +81,7 @@ export const RaceTrack = (props: RaceTrackProps) => {
     onSkillDrag: handleSkillDrag,
   });
 
-  const doMouseMove: React.MouseEventHandler<SVGSVGElement> = useCallback(
+  const doPointerMove: React.PointerEventHandler<SVGSVGElement> = useCallback(
     (e) => {
       const svg = e.currentTarget;
 
@@ -131,7 +131,7 @@ export const RaceTrack = (props: RaceTrackProps) => {
     [handleDragMove, draggedSkill, course.distance],
   );
 
-  const doMouseLeave = useCallback(() => {
+  const doPointerLeave = useCallback(() => {
     if (mouseLineRef.current) {
       mouseLineRef.current.setAttribute('x1', '-5');
       mouseLineRef.current.setAttribute('x2', '-5');
@@ -147,11 +147,10 @@ export const RaceTrack = (props: RaceTrackProps) => {
   }, [handleDragEnd]);
 
   return (
-    <div className="flex flex-col gap-2 justify-center items-center">
-      <div className="flex flex-col gap-2 w-full max-w-[1600px]">
-        <TrackLegend />
-        <TrackControls />
-        <div className="w-full">
+    <div className="flex flex-col gap-2 bg-card rounded-md border px-1 py-2 max-w-[1600px] mx-auto w-full">
+      <TrackLegend />
+      <div className="overflow-x-auto border-t border-b">
+        <div className="min-w-[1200px]">
           <svg
             version="1.1"
             xmlns="http://www.w3.org/2000/svg"
@@ -159,9 +158,9 @@ export const RaceTrack = (props: RaceTrackProps) => {
             preserveAspectRatio="xMidYMid meet"
             className="racetrackView w-full flex-1"
             data-courseid={courseId}
-            onMouseMove={doMouseMove}
-            onMouseLeave={doMouseLeave}
-            onMouseUp={handleDragEnd}
+            onPointerMove={doPointerMove}
+            onPointerLeave={doPointerLeave}
+            onPointerUp={handleDragEnd}
           >
             {/* Background for Slope */}
             <SlopeVisualization course={course} />
@@ -201,6 +200,7 @@ export const RaceTrack = (props: RaceTrackProps) => {
           </svg>
         </div>
       </div>
+      <TrackControls />
     </div>
   );
 };

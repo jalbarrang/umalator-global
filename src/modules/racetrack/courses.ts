@@ -1,40 +1,53 @@
+import { useMemo } from 'react';
 import type { Courses } from '@/lib/sunday-tools/course/definitions';
-import courses from '@/modules/data/course_data.json';
+import { useCourses, useMasterDbStore } from '@/modules/data/master-db.store';
 
 export type CourseByTrack = Record<number, Array<number>>;
 
-export const getCoursesByTrack = () => {
-  const newObject: CourseByTrack = {};
+const getCoursesMap = () => useMasterDbStore.getState().courses as Courses;
 
-  for (const cid in courses as Courses) {
-    const tid = (courses as Courses)[cid].raceTrackId;
+function buildCoursesByTrack(courses: Courses): CourseByTrack {
+  const byTrack: CourseByTrack = {};
 
-    if (tid in newObject) {
-      newObject[tid].push(+cid);
+  for (const [cid, course] of Object.entries(courses)) {
+    const tid = course.raceTrackId;
+    if (tid in byTrack) {
+      byTrack[tid].push(+cid);
     } else {
-      newObject[tid] = [+cid];
+      byTrack[tid] = [+cid];
     }
   }
 
-  return newObject;
+  return byTrack;
+}
+
+export const getCoursesByTrack = () => {
+  return buildCoursesByTrack(getCoursesMap());
 };
 
-export const coursesByTrack = getCoursesByTrack();
+export function useCoursesByTrack(): CourseByTrack {
+  const courses = useCourses() as Courses;
+  return useMemo(() => buildCoursesByTrack(courses), [courses]);
+}
 
 export const getDefaultTrackIdForCourse = (courseId: number) => {
-  return (courses as Courses)[courseId].raceTrackId;
+  return getCourseById(courseId).raceTrackId;
 };
 
 export const getCourseByTrackId = (trackId: number) => {
-  return coursesByTrack[trackId];
+  return getCoursesByTrack()[trackId] ?? [];
 };
 
 export const getCourseIdByTrackIdAndIndex = (trackId: number, index: number) => {
-  return coursesByTrack[trackId][index];
+  return getCourseByTrackId(trackId)[index];
 };
 
 export const getCourseById = (courseId: number): Courses[number] => {
-  return (courses as Courses)[courseId];
+  const course = getCoursesMap()[courseId];
+  if (!course) {
+    throw new Error(`Course with id ${courseId} not found`);
+  }
+  return course;
 };
 
 export const inoutKey = ['', 'none', 'inner', 'outer', 'outin'] as const;

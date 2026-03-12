@@ -1,4 +1,4 @@
-import { Activity, useCallback, useMemo, useState } from 'react';
+import { Activity, useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { useSkillBasinPoolRunner } from '@/modules/simulation/hooks/pool/useSkillBasinPoolRunner';
 import {
@@ -10,17 +10,14 @@ import {
 } from '@/modules/simulation/stores/skill-basin.store';
 import { BasinnChart } from '@/components/bassin-chart/BasinnChart';
 import { LoadingOverlay } from '@/components/loading-overlay';
-import { Button } from '@/components/ui/button';
+import { SimulationControlBar } from '@/components/simulation-control-bar';
 import { setSkillToRunner, useRunner } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
 import { RaceSettingsPanel } from '@/modules/skill-planner/components/RaceSettingsPanel';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { parseSeed } from '@/utils/crypto';
 import { useSkillSingleRunner } from '@/modules/simulation/hooks/skill-bassin/useSkillSingleRunner';
-import { HelpButton } from '@/components/ui/help-button';
 import { skillBassinSteps } from '@/modules/tutorial/steps/skill-bassin-steps';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { TutorialId } from '@/components/tutorial/types';
 
 export function SkillBassin() {
   const { selectedSkills, setSelectedSkills } = useChartData();
@@ -36,18 +33,7 @@ export function SkillBassin() {
 
   const { runnerId, runner } = useRunner();
 
-  const [seedInput, setSeedInput] = useState<string>(() => {
-    if (seed === null) return '';
-    return seed.toString();
-  });
-
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
-
-  const handleSeedInputBlur = useCallback(() => {
-    const parsedSeed = parseSeed(seedInput);
-    if (parsedSeed === null) return;
-    setSeed(parsedSeed);
-  }, [seedInput]);
 
   const basinnChartSelection = (skillId: string) => {
     const results = skillBasinResults[skillId];
@@ -63,6 +49,14 @@ export function SkillBassin() {
     }
   };
 
+  const arrayResults = useMemo(() => {
+    return Object.values(skillBasinResults);
+  }, [skillBasinResults]);
+
+  const resultCount = useMemo(() => {
+    return arrayResults.length;
+  }, [arrayResults]);
+
   const addSkillFromTable = (skillId: string) => {
     setSkillToRunner(runnerId, skillId);
   };
@@ -70,77 +64,36 @@ export function SkillBassin() {
   const { doBasinnChart, cancelSimulation } = useSkillBasinPoolRunner();
   const { runAdditionalSamples } = useSkillSingleRunner();
 
-  const handleRunSimulation = () => {
-    const newSeed = createNewSeed();
-    setSeedInput(newSeed.toString());
-    doBasinnChart(newSeed);
-  };
-
-  const handleReplay = () => {
-    if (seed === null) return;
-
-    doBasinnChart(seed);
-  };
+  const tutorialSettings = useMemo(() => {
+    return {
+      id: 'skill-bassin' as TutorialId,
+      steps: skillBassinSteps,
+      tooltip: 'How to use Skill Chart',
+    };
+  }, []);
 
   return (
-    <div className="flex flex-col gap-4 flex-1">
+    <div className="flex flex-col gap-4 flex-1 min-w-0">
       <RaceSettingsPanel />
 
-      <div data-tutorial="skill-bassin-controls" className="flex flex-wrap items-center gap-2">
-        {!isSimulationRunning && (
-          <Button variant="default" onClick={handleRunSimulation}>
-            Run Skill Simulations
-          </Button>
-        )}
-
-        {isSimulationRunning && (
-          <Button variant="destructive" onClick={cancelSimulation}>
-            Cancel Simulation
-          </Button>
-        )}
-
-        <HelpButton
-          tutorialId="skill-bassin"
-          steps={skillBassinSteps}
-          tooltipText="How to use Skill Chart"
-        />
-
-        <div className="flex items-center gap-2">
-          <Label htmlFor="seed-input" className="text-sm text-muted-foreground">
-            Seed:
-          </Label>
-          <Input
-            id="seed-input"
-            type="number"
-            value={seedInput}
-            onChange={(e) => setSeedInput(e.target.value)}
-            onBlur={handleSeedInputBlur}
-            placeholder="Run to generate"
-            className="w-40"
-            disabled={isSimulationRunning}
-          />
-          <Button
-            variant="outline"
-            onClick={handleReplay}
-            disabled={isSimulationRunning || seedInput.trim() === ''}
-          >
-            Replay
-          </Button>
-        </div>
-
-        <Button
-          variant="outline"
-          onClick={resetTable}
-          disabled={Object.keys(skillBasinResults).length === 0}
-        >
-          Clear
-        </Button>
-      </div>
+      <SimulationControlBar
+        isRunning={isSimulationRunning}
+        seed={seed}
+        onRun={doBasinnChart}
+        onCancel={cancelSimulation}
+        onReplay={doBasinnChart}
+        onClear={resetTable}
+        clearDisabled={resultCount === 0}
+        createSeed={createNewSeed}
+        setSeed={setSeed}
+        tutorial={tutorialSettings}
+        dataTutorial="skill-bassin-controls"
+      />
 
       <Activity mode={!isSimulationRunning ? 'visible' : 'hidden'}>
-        <div data-tutorial="skill-bassin-table">
+        <div data-tutorial="skill-bassin-table" className="min-w-0">
           <BasinnChart
-            data={Object.values(skillBasinResults)}
+            data={arrayResults}
             hiddenSkills={runner.skills}
             metrics={metrics}
             onSelectionChange={basinnChartSelection}
@@ -151,6 +104,7 @@ export function SkillBassin() {
             currentSeed={seed}
             skillLoadingStates={skillLoadingStates}
             onRunAdditionalSamples={runAdditionalSamples}
+            className="min-w-0"
           />
         </div>
       </Activity>

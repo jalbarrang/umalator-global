@@ -1,16 +1,80 @@
-import umas from '@/modules/data/umas.json';
+import { useMemo, useSyncExternalStore } from 'react';
 import icons from '@/modules/data/icons.json';
+import {
+  getRuntimeUmas,
+  subscribeRuntimeMasterDbData,
+} from '@/modules/data/runtime-data-context';
+import type { UmasMap } from '@/workers/db/storage';
 
-export type UmaData = typeof umas;
-export type UmaDataKey = keyof UmaData;
+export type UmaData = UmasMap;
+export type UmaDataKey = keyof UmaData & string;
 export type UmaEntry = UmaData[UmaDataKey];
-export type UmaOutfitKey = keyof UmaEntry['outfits'];
+export type UmaOutfitKey = keyof UmaEntry['outfits'] & string;
 export type UmaOutfit = UmaEntry['outfits'][UmaOutfitKey];
+export type UmaSearchEntry = {
+  id: string;
+  name: string;
+  outfit: string;
+};
 
 export type Uma = {
   name: Array<string>;
   outfits: Record<string, string>;
 };
+
+const getUmasData = () => getRuntimeUmas();
+
+function useRuntimeUmas(): UmasMap {
+  return useSyncExternalStore(subscribeRuntimeMasterDbData, getRuntimeUmas, getRuntimeUmas);
+}
+
+function buildUmaSearchData(umas: UmasMap): {
+  altIds: Array<string>;
+  namesForSearch: Record<string, string>;
+  umasForSearch: Array<UmaSearchEntry>;
+} {
+  const altIds = Object.keys(umas).flatMap((id) => {
+    const uma = umas[id];
+    if (!uma) {
+      return [];
+    }
+    return Object.keys(uma.outfits);
+  });
+
+  const namesForSearch = Object.fromEntries(
+    altIds.map((id) => {
+      const baseId = getUmaBaseId(id);
+      const uma = umas[baseId];
+      if (!uma) {
+        return [id, ''];
+      }
+
+      return [id, (uma.outfits[id] + ' ' + uma.name[1]).toUpperCase().replace(/\./g, '')];
+    }),
+  );
+
+  const umasForSearch = altIds
+    .map((id) => {
+      const baseId = getUmaBaseId(id);
+      const uma = umas[baseId];
+      if (!uma) {
+        return null;
+      }
+
+      return {
+        id,
+        name: uma.name[1],
+        outfit: uma.outfits[id],
+      };
+    })
+    .filter((entry): entry is UmaSearchEntry => entry !== null);
+
+  return {
+    altIds,
+    namesForSearch,
+    umasForSearch,
+  };
+}
 
 // Base Functions
 
@@ -24,8 +88,9 @@ export const getUmaBaseId = (id: string) => {
 
 export const getUmaById = (id: string) => {
   const baseId = getUmaBaseId(id);
+  const umas = getUmasData();
 
-  const uma = umas[baseId as UmaDataKey];
+  const uma = umas[baseId];
 
   if (!uma) {
     throw new Error(`Uma with id ${id} not found`);
@@ -34,36 +99,18 @@ export const getUmaById = (id: string) => {
   return uma;
 };
 
-export type UmaAltId = (typeof umaAltIds)[number];
-
-export const umaAltIds = Object.keys(umas).flatMap((id) => {
-  const uma = getUmaById(id);
-
-  return Object.keys(uma.outfits);
-});
+export type UmaAltId = string;
+export const getUmaAltIds = () => buildUmaSearchData(getUmasData()).altIds;
 
 // Lookup Functions
 
-export const umaNamesForSearch = Object.fromEntries(
-  umaAltIds.map((id) => {
-    const uma = getUmaById(id);
+export const getUmaNamesForSearch = () => buildUmaSearchData(getUmasData()).namesForSearch;
+export const getUmasForSearch = () => buildUmaSearchData(getUmasData()).umasForSearch;
 
-    return [
-      id,
-      (uma.outfits[id as UmaOutfitKey] + ' ' + uma.name[1]).toUpperCase().replace(/\./g, ''),
-    ];
-  }),
-);
-
-export const umasForSearch = umaAltIds.map((id) => {
-  const uma = getUmaById(id);
-
-  return {
-    id,
-    name: uma.name[1],
-    outfit: uma.outfits[id as UmaOutfitKey],
-  };
-});
+export function useUmasForSearch(): Array<UmaSearchEntry> {
+  const umas = useRuntimeUmas();
+  return useMemo(() => buildUmaSearchData(umas).umasForSearch, [umas]);
+}
 
 export function rankForStat(x: number) {
   if (x > 1200) {
@@ -83,7 +130,8 @@ export function rankForStat(x: number) {
 }
 export function searchNames(query: string) {
   const q = query.toUpperCase().replace(/\./g, '');
-  return umaAltIds.filter((oid) => umaNamesForSearch[oid].indexOf(q) > -1);
+  const namesForSearch = getUmaNamesForSearch();
+  return getUmaAltIds().filter((oid) => namesForSearch[oid]?.indexOf(q) > -1);
 }
 
 // Image URL Utilities
@@ -114,7 +162,7 @@ export const getMobImageUrl = (randomMobId?: number): string => {
 export const getUmaOutfitName = (outfitId: string): string | null => {
   try {
     const uma = getUmaById(outfitId);
-    return uma.outfits[outfitId as UmaOutfitKey] || null;
+    return uma.outfits[outfitId] || null;
   } catch {
     return null;
   }
@@ -129,7 +177,7 @@ export const getUmaDisplayInfo = (outfitId: string): { name: string; outfit: str
 
     return {
       name: uma.name[1],
-      outfit: uma.outfits[outfitId as UmaOutfitKey],
+      outfit: uma.outfits[outfitId],
     };
   } catch {
     return null;

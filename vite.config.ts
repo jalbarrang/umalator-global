@@ -17,11 +17,28 @@ export default defineConfig({
       projects: ['./tsconfig.json'],
     }),
   ],
+  assetsInclude: ['**/*.wasm'],
   worker: {
     plugins: () => [
       viteTsconfigPaths({
         projects: ['./tsconfig.json'],
       }),
     ],
+  },
+  server: {
+    proxy: {
+      '/api/cdn': {
+        target: 'https://assets-umamusume-en.akamaized.net',
+        changeOrigin: true,
+        headers: {
+          'User-Agent': 'UnityPlayer/2022.3.46f1 (UnityWebRequest/1.0, libcurl/8.5.0-DEV)',
+        },
+        rewrite: (path) => path.replace(/^\/api\/cdn/, ''),
+      },
+      '/api/ver': {
+        target: 'https://uma.moe',
+        changeOrigin: true,
+      },
+    },
   },
 });

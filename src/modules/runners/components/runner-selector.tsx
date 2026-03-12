@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 
-import { getUmaImageUrl, umasForSearch } from '@/modules/runners/utils';
+import { getUmaImageUrl, useUmasForSearch } from '@/modules/runners/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Command,
@@ -22,6 +22,7 @@ type UmaSelectorProps = {
 export const UmaSelector = (props: UmaSelectorProps) => {
   const [open, setOpen] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
+  const umasForSearch = useUmasForSearch();
 
   const imageUrl = useMemo(
     () => getUmaImageUrl(props.value, props.randomMobId),
@@ -37,7 +38,7 @@ export const UmaSelector = (props: UmaSelectorProps) => {
       outfit: uma.outfit,
       name: uma.name,
     };
-  }, [props.value]);
+  }, [props.value, umasForSearch]);
 
   const handleSelectedItem = (outfitId: string) => {
     props.select(outfitId);

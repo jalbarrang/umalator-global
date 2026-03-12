@@ -15,7 +15,7 @@ export const TrackControls = React.memo(() => {
   const { showHp, showLanes, showUma1, showUma2, showThresholds } = useSettingsStore();
 
   return (
-    <div className="flex flex-col md:flex-row gap-4 bg-card text-xs px-4 py-2 rounded-md">
+    <div className="flex flex-col md:flex-row gap-4 text-xs px-2 py-1">
       <div className="flex items-center gap-2">
         <Checkbox id="showhp" checked={showHp} onCheckedChange={toggleShowHp} />
         <Label htmlFor="showhp" className="text-sm font-normal cursor-pointer">

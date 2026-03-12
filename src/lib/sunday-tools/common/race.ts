@@ -362,10 +362,9 @@ export class Race {
     // Select furthest-forward front runner
     for (const strategy of [Strategy.Runaway, Strategy.FrontRunner]) {
       // ! NOTE: might revise this.
-      const frontRunners = this.runners
-        .values()
-        .filter((runner) => runner.positionKeepStrategy === strategy)
-        .toArray();
+      const frontRunners = Array.from(this.runners.values()).filter(
+        (runner) => runner.positionKeepStrategy === strategy,
+      );
 
       const firstRunner = frontRunners[0];
 
@@ -388,10 +387,9 @@ export class Race {
     // Otherwise, lucky pace (set pacerOverride)
     for (const strategy of [Strategy.PaceChaser, Strategy.LateSurger, Strategy.EndCloser]) {
       // ! NOTE: might revise this.
-      const runnersWithStrat = this.runners
-        .values()
-        .filter((runner) => StrategyHelpers.strategyMatches(runner.positionKeepStrategy, strategy))
-        .toArray();
+      const runnersWithStrat = Array.from(this.runners.values()).filter((runner) =>
+        StrategyHelpers.strategyMatches(runner.positionKeepStrategy, strategy),
+      );
 
       const firstRunner = runnersWithStrat[0];
 

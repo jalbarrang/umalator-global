@@ -7,10 +7,15 @@ import { clone, cloneDeepWith } from 'es-toolkit';
 import { mergeResultSets } from './utils';
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import type { RaceParameters } from '@/lib/sunday-tools/common/race';
-
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import type { Run1RoundParams, SimulationOptions } from '@/modules/simulation/types';
+import { syncRuntimeMasterDbData } from '@/modules/data/runtime-data-sync';
 import { runSampling } from '@/modules/simulation/simulators/skill-compare';
+import type {
+  WorkerSyncErrorMessage,
+  WorkerSyncInMessage,
+  WorkerSyncReadyMessage,
+} from './runtime-data-protocol';
 
 type PrepareRoundParams = {
   courseData: CourseData;
@@ -43,6 +48,26 @@ type RunChartParams = {
   options: SimulationOptions;
 };
 
+type UmaBasinWorkerInMessage = WorkerSyncInMessage | { type: 'chart'; data: RunChartParams };
+type UmaBasinWorkerOutMessage =
+  | WorkerSyncReadyMessage
+  | WorkerSyncErrorMessage
+  | { type: 'uma-bassin'; results: ReturnType<typeof runSampling> }
+  | { type: 'uma-bassin-done' };
+
+let activeResourceVersion: string | null = null;
+
+function sendMessage(message: UmaBasinWorkerOutMessage): void {
+  postMessage(message);
+}
+
+function sendWorkerError(error: unknown): void {
+  sendMessage({
+    type: 'worker-error',
+    error: error instanceof Error ? error.message : 'Unknown worker error',
+  });
+}
+
 function runChart(params: RunChartParams) {
   const { skills, course, racedef, uma, options } = params;
 
@@ -62,7 +87,7 @@ function runChart(params: RunChartParams) {
   });
 
   const results = runSampling(roundParamGenerator(5, newSkills));
-  postMessage({ type: 'uma-bassin', results: results });
+  sendMessage({ type: 'uma-bassin', results: results });
 
   // Stage 1 filter: mark skills with negligible effect
   newSkills = newSkills.filter((skillId) => {
@@ -78,7 +103,7 @@ function runChart(params: RunChartParams) {
 
   const firstUpdate = runSampling(roundParamGenerator(20, newSkills));
   mergeResultSets(results, firstUpdate);
-  postMessage({ type: 'uma-bassin', results: results });
+  sendMessage({ type: 'uma-bassin', results: results });
 
   // Stage 2 filter: mark skills with low variance
   newSkills = newSkills.filter((skillId) => {
@@ -93,23 +118,40 @@ function runChart(params: RunChartParams) {
 
   const secondUpdate = runSampling(roundParamGenerator(50, newSkills));
   mergeResultSets(results, secondUpdate);
-  postMessage({ type: 'uma-bassin', results: results });
+  sendMessage({ type: 'uma-bassin', results: results });
 
   // Final update
   const finalUpdate = runSampling(roundParamGenerator(200, newSkills));
   mergeResultSets(results, finalUpdate);
-  postMessage({ type: 'uma-bassin', results: results });
+  sendMessage({ type: 'uma-bassin', results: results });
 
   // Done
-  postMessage({ type: 'uma-bassin-done' });
+  sendMessage({ type: 'uma-bassin-done' });
 }
 
-self.addEventListener('message', (e: MessageEvent) => {
-  const { msg, data } = e.data;
+self.addEventListener('message', (event: MessageEvent<UmaBasinWorkerInMessage>) => {
+  const message = event.data;
 
-  switch (msg) {
-    case 'chart':
-      runChart(data);
-      break;
+  try {
+    switch (message.type) {
+      case 'init-data':
+        activeResourceVersion = null;
+        syncRuntimeMasterDbData(message.payload);
+        activeResourceVersion = message.payload.resourceVersion;
+        sendMessage({
+          type: 'data-ready',
+          resourceVersion: activeResourceVersion,
+        });
+        break;
+      case 'chart':
+        if (!activeResourceVersion) {
+          sendWorkerError('Worker runtime data has not been initialized');
+          return;
+        }
+        runChart(message.data);
+        break;
+    }
+  } catch (error) {
+    sendWorkerError(error);
   }
 });

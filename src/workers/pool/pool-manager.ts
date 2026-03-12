@@ -7,6 +7,7 @@ import type {
   WorkerOutMessage,
   WorkerState,
 } from './types';
+import type { WorkerSyncPayload } from '@/workers/runtime-data-protocol';
 
 export type PoolManagerCallbacks = {
   onProgress?: (results: SkillComparisonResponse, progress: SimulationProgress) => void;
@@ -29,6 +30,7 @@ export class PoolManager {
   private workerGenerator: (options: { name: string }) => Worker;
   private poolSize: number;
   private isRunning = false;
+  private expectedResourceVersion: string | null = null;
 
   constructor(
     workerGenerator: (options: { name: string }) => Worker,
@@ -59,7 +61,7 @@ export class PoolManager {
         this.callbacks.onError?.(new Error(`Worker ${id} crashed: ${event.message}`));
       });
 
-      this.workerStates.set(id, 'idle');
+      this.workerStates.set(id, 'busy');
       return worker;
     });
   }
@@ -70,6 +72,19 @@ export class PoolManager {
   private handleWorkerMessage(workerId: number, message: WorkerOutMessage): void {
     switch (message.type) {
       case 'worker-ready':
+        if (
+          this.expectedResourceVersion &&
+          message.resourceVersion !== this.expectedResourceVersion
+        ) {
+          this.workerStates.set(workerId, 'terminated');
+          this.callbacks.onError?.(
+            new Error(
+              `Worker ${workerId} synced wrong resource version: expected ${this.expectedResourceVersion}, received ${message.resourceVersion}`,
+            ),
+          );
+          this.workers[workerId]?.terminate();
+          return;
+        }
         this.workerStates.set(workerId, 'idle');
         this.assignWorkToWorker(workerId);
         break;
@@ -189,7 +204,12 @@ export class PoolManager {
   /**
    * Run simulation with given skills and parameters
    */
-  run(skills: Array<string>, params: SimulationParams, callbacks: PoolManagerCallbacks): void {
+  run(
+    skills: Array<string>,
+    params: SimulationParams,
+    syncPayload: WorkerSyncPayload,
+    callbacks: PoolManagerCallbacks,
+  ): void {
     if (this.isRunning) {
       throw new Error('Simulation already running');
     }
@@ -198,6 +218,7 @@ export class PoolManager {
     this.callbacks = callbacks;
     this.startTime = performance.now();
     this.totalSkills = skills.length;
+    this.expectedResourceVersion = syncPayload.resourceVersion;
 
     // Calculate batch size based on skill count and worker count
     const approximateSkillsBatchSize = Math.ceil(skills.length / (this.poolSize * 4));
@@ -215,6 +236,7 @@ export class PoolManager {
         type: 'init',
         workerId: id,
         params,
+        syncPayload,
       } as WorkerInMessage);
     });
   }
@@ -229,6 +251,7 @@ export class PoolManager {
     });
     this.workers = [];
     this.isRunning = false;
+    this.expectedResourceVersion = null;
   }
 
   /**

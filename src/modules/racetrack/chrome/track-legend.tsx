@@ -26,7 +26,7 @@ const RUNNER_PAIRS = [
 
 export const TrackLegend = React.memo(() => {
   return (
-    <div className="flex flex-wrap items-center gap-3 rounded-md border border-border/70 bg-linear-to-r from-card via-card to-card/80 px-4 py-2 text-xs text-foreground/90">
+    <div className="flex flex-wrap items-center gap-3 px-2 text-xs text-foreground">
       <span className="pr-2 font-semibold tracking-wide text-foreground">Legend</span>
 
       <Separator orientation="vertical" />

@@ -2,15 +2,16 @@ import i18n from '@/i18n';
 import { SkillComparisonRoundResult } from '@/modules/simulation/types';
 import { CellContext } from '@tanstack/react-table';
 
-// TODO: Use a proper typescript module for this
-import umas from '@/modules/data/umas.json';
 import icons from '@/modules/data/icons.json';
+import { useUmas } from '@/modules/data/master-db.store';
+import type { UmasMap } from '@/workers/db/storage';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Button } from '../ui/button';
 import { CircleHelp } from 'lucide-react';
 import { ExpandedSkillDetails } from '@/modules/skills/components/ExpandedSkillDetails';
 import { useMemo } from 'react';
 import { SkillEntry } from '@/modules/data/skill-types';
+import React from 'react';
 
 type SkillNameTableCellProps = {
   id: string;
@@ -60,14 +61,14 @@ type SkillNameCellProps = {
   courseDistance?: number;
 };
 
-export const skillNameCell =
-  ({
-    showUmaIcons = false,
-    showSkillIds = true,
-    skillMetadataById,
-    courseDistance,
-  }: SkillNameCellProps) =>
-  (props: CellContext<SkillComparisonRoundResult, unknown>) => {
+export const skillNameCell = ({
+  showUmaIcons = false,
+  showSkillIds = true,
+  skillMetadataById,
+  courseDistance,
+}: SkillNameCellProps) => {
+  return React.memo((props: CellContext<SkillComparisonRoundResult, unknown>) => {
+    const umas = useUmas();
     const id = props.getValue() as string;
     const skill = skillMetadataById.get(id);
 
@@ -75,12 +76,12 @@ export const skillNameCell =
 
     const displayedName = useMemo(() => {
       return showSkillIds ? `${translatedName} (${id})` : translatedName;
-    }, [showSkillIds]);
+    }, [id, translatedName]);
 
     const iconSrc = useMemo(() => {
       if (!skill) return { src: null, className: 'w-4 h-4' };
       if (showUmaIcons) {
-        const umaId = umaForUniqueSkill(id);
+        const umaId = umaForUniqueSkill(id, umas);
         if (umaId && icons[umaId as keyof typeof icons]) {
           return {
             src: icons[umaId as keyof typeof icons],
@@ -93,7 +94,7 @@ export const skillNameCell =
         src: `/icons/${skill.iconId}.png`,
         className: 'w-4 h-4',
       };
-    }, [skill]);
+    }, [id, skill, umas]);
 
     if (!skill) {
       return (
@@ -113,9 +114,10 @@ export const skillNameCell =
         courseDistance={courseDistance}
       />
     );
-  };
+  });
+};
 
-function umaForUniqueSkill(skillId: string): string | null {
+function umaForUniqueSkill(skillId: string, umas: UmasMap): string | null {
   const sid = parseInt(skillId);
   if (sid < 100000 || sid >= 200000) return null;
 
@@ -128,9 +130,9 @@ function umaForUniqueSkill(skillId: string): string | null {
   const umaId = i.toString().padStart(3, '0');
   const baseUmaId = `1${umaId}`;
   const outfitId = `${baseUmaId}${v.toString().padStart(2, '0')}`;
-  const uma = umas[baseUmaId as keyof typeof umas];
+  const uma = umas[baseUmaId];
 
-  if (uma?.outfits[outfitId as keyof typeof uma.outfits]) {
+  if (uma?.outfits[outfitId]) {
     return outfitId;
   }
 

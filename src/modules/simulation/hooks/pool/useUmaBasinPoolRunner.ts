@@ -20,6 +20,7 @@ import { useRunner } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
 import { racedefToParams } from '@/utils/races';
 import { PoolManager } from '@/workers/pool/pool-manager';
+import { getMasterDbWorkerSyncPayload } from '@/modules/data/master-db.store';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 
 const createUmaBasinPoolWorker = (options: { name: string }) => new UmaBasinPoolWorker(options);
@@ -75,6 +76,7 @@ export function useUmaBasinPoolRunner() {
     const simulationSeed = seed ?? Math.floor(Math.random() * 1000000);
 
     // Run simulation using pool manager
+    const syncPayload = getMasterDbWorkerSyncPayload();
     poolManagerRef.current.run(
       skills,
       {
@@ -86,6 +88,7 @@ export function useUmaBasinPoolRunner() {
           seed: simulationSeed,
         },
       },
+      syncPayload,
       {
         onProgress: (results, progress) => {
           appendResultsToTable(results);
