@@ -2,9 +2,13 @@ import { expect, test, type Page } from '@playwright/test';
 
 const navigateToHome = async (page: Page) => {
   await page.goto('/');
-  await expect(page.getByRole('button', { name: 'Save', exact: true })).toBeVisible({
-    timeout: 10_000,
-  });
+  const saveButton = page.getByRole('button', { name: 'Save', exact: true });
+  if ((await saveButton.count()) === 0) {
+    const raceSettingsToggle = page.getByRole('button', { name: /·/ }).first();
+    await expect(raceSettingsToggle).toBeVisible({ timeout: 10_000 });
+    await raceSettingsToggle.click();
+  }
+  await expect(saveButton).toBeVisible({ timeout: 10_000 });
 };
 
 const selectPreset = async (page: Page, name: string) => {

@@ -11,7 +11,7 @@ async function mockMasterDbNetwork(page: Page): Promise<void> {
 }
 
 async function selectSpecialWeekForUma1(page: Page): Promise<void> {
-  const runnerSelector = page.getByText('Click me to select a runner').first();
+  const runnerSelector = page.getByRole('button', { name: /Click me to select a runner/ }).first();
   await expect(runnerSelector).toBeVisible({ timeout: 10_000 });
   await runnerSelector.click();
 
@@ -27,6 +27,8 @@ async function selectSpecialWeekForUma1(page: Page): Promise<void> {
 test('runner selector renders synced uma entries', async ({ page }) => {
   await mockMasterDbNetwork(page);
   await page.goto('/');
+  await page.getByRole('link', { name: 'Skill Planner' }).click();
+  await expect(page).toHaveURL(/#\/skill-planner/);
   await selectSpecialWeekForUma1(page);
 
   await expect(page.getByText('Click me to select a runner')).toBeHidden();
@@ -38,7 +40,7 @@ test('skill planner flow completes after worker hydration', async ({ page }) => 
   test.setTimeout(90_000);
 
   await page.goto('/');
-  await page.getByRole('tab', { name: 'Skill Planner' }).click();
+  await page.getByRole('link', { name: 'Skill Planner' }).click();
   await expect(page).toHaveURL(/#\/skill-planner/);
 
   const optimizeButton = page.getByRole('button', { name: 'Optimize' });
@@ -59,6 +61,12 @@ test('skill planner flow completes after worker hydration', async ({ page }) => 
   await expect(page.getByRole('heading', { name: 'Add Skill to Runner' })).toBeHidden();
 
   const presetSelect = page.getByRole('combobox', { name: 'Preset:' });
+  if ((await presetSelect.count()) === 0) {
+    const raceSettingsToggle = page.getByRole('button', { name: /·/ }).first();
+    await expect(raceSettingsToggle).toBeVisible({ timeout: 10_000 });
+    await raceSettingsToggle.click();
+  }
+  await expect(presetSelect).toBeVisible({ timeout: 10_000 });
   await presetSelect.click();
   await page.getByRole('option', { name: 'Aquarius Cup' }).click();
 

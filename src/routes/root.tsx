@@ -17,6 +17,7 @@ import { ChangelogModal } from '@/components/changelog-modal';
 import { CreditsModal } from '@/components/credits-modal';
 import { FeatureFlagDebugPanel } from '@/components/feature-flag-debug-panel';
 import { initializeMasterDbStore } from '@/modules/data/master-db.store';
+import { isFeatureEnabled } from '@/lib/feature-flags';
 import { TutorialProvider, TutorialRoot } from '@/components/tutorial';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Drawer, DrawerTrigger, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
@@ -28,10 +29,14 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 export function RootComponent() {
   const location = useLocation();
+  const isMasterDbEnabled = isFeatureEnabled('MASTER_DB_ENABLED');
 
   useEffect(() => {
+    if (!isMasterDbEnabled) {
+      return;
+    }
     initializeMasterDbStore();
-  }, []);
+  }, [isMasterDbEnabled]);
 
   const getCurrentTab = useCallback(() => {
     if (location.pathname.startsWith('/runners')) return 'runners';

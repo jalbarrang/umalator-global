@@ -6,6 +6,7 @@ import { useMemo } from 'react';
  */
 export const FeatureFlags: Record<string, string> = {
   SKILL_PLANNER_ENABLED: 'VITE_FEATURE_SKILL_PLANNER',
+  MASTER_DB_ENABLED: 'VITE_FEATURE_MASTER_DB',
 };
 
 export type FeatureFlagKey = keyof typeof FeatureFlags;

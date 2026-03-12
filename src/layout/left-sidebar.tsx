@@ -12,6 +12,7 @@ import { useLocation } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import { isFeatureEnabled } from '@/lib/feature-flags';
 import { RunnersPanel } from '@/modules/runners/components/runners-panel';
 import { AdvancedSettingsPanel } from '@/components/advanced-settings-panel';
 import { PresetsPanel } from '@/components/presets-panel';
@@ -39,6 +40,7 @@ export const LeftSidebar = () => {
   const hasDebuffs = uma1Debuffs.length > 0 || uma2Debuffs.length > 0;
 
   const isCompareRunnersView = location.pathname === '/';
+  const isMasterDbEnabled = isFeatureEnabled('MASTER_DB_ENABLED');
 
   const panels = useMemo(() => {
     const basePanels: Panel[] = [
@@ -82,16 +84,18 @@ export const LeftSidebar = () => {
       });
     }
 
-    basePanels.push({
-      id: 'master-db',
-      label: 'Game Database',
-      icon: DatabaseIcon,
-      content: <MasterDbStatusPanel />,
-      hasBadge: false,
-    });
+    if (isMasterDbEnabled) {
+      basePanels.push({
+        id: 'master-db',
+        label: 'Game Database',
+        icon: DatabaseIcon,
+        content: <MasterDbStatusPanel />,
+        hasBadge: false,
+      });
+    }
 
     return basePanels;
-  }, [hasDebuffs, hasForcedPositions, isCompareRunnersView]);
+  }, [hasDebuffs, hasForcedPositions, isCompareRunnersView, isMasterDbEnabled]);
 
   const handleCloseSidebar = useCallback(() => {
     setLeftSidebar({ hidden: true });

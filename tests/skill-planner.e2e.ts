@@ -4,7 +4,7 @@ test('skill planner optimizes a candidate skill combination', async ({ page }) =
   await page.goto('/');
 
   // Navigate to Skill Planner tab
-  await page.getByRole('tab', { name: 'Skill Planner' }).click();
+  await page.getByRole('link', { name: 'Skill Planner' }).click();
   await expect(page).toHaveURL(/#\/skill-planner/);
 
   // Wait for Skill Planner to fully render
@@ -43,6 +43,12 @@ test('skill planner optimizes a candidate skill combination', async ({ page }) =
 
   // Change preset to "Aquarius Cup"
   const presetSelect = page.getByRole('combobox', { name: 'Preset:' });
+  if ((await presetSelect.count()) === 0) {
+    const raceSettingsToggle = page.getByRole('button', { name: /·/ }).first();
+    await expect(raceSettingsToggle).toBeVisible({ timeout: 10_000 });
+    await raceSettingsToggle.click();
+  }
+  await expect(presetSelect).toBeVisible({ timeout: 10_000 });
   await presetSelect.click();
   await page.getByRole('option', { name: 'Aquarius Cup' }).click();
 
