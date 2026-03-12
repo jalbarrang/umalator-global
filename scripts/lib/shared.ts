@@ -4,7 +4,6 @@
 
 import { access, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { getUniqueSkillForByUmaId as getUniqueSkillForByUmaIdFromUtils } from '@/modules/skills/utils';
 
 /**
  * Sort an object by numeric keys
@@ -24,9 +23,13 @@ export function sortByNumericKey<T>(obj: Record<string, T>): Record<string, T> {
 
 /**
  * Calculate unique skill ID from outfit ID
- * Re-export from skills/utils for convenience
+ * Keep this helper local so CLI extraction stays Node-only.
  */
-export const getUniqueSkillForOutfit = getUniqueSkillForByUmaIdFromUtils;
+export function getUniqueSkillForOutfit(outfitId: string): string {
+  const umaId = +outfitId.slice(1, -2);
+  const altId = +outfitId.slice(-2);
+  return (100000 + 10000 * (altId - 1) + umaId * 10 + 1).toString();
+}
 
 /**
  * Write JSON data to file with minified format and trailing newline
