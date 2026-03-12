@@ -200,6 +200,7 @@ function bindWorkerEvents(target: Worker): void {
           skills: message.skills,
           umas: message.umas,
           courses: message.courses,
+          source: message.source,
           resourceVersion: message.resourceVersion,
           appVersion: message.appVersion,
           isReady: true,

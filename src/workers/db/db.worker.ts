@@ -25,6 +25,7 @@ type DbWorkerOutMessage =
       type: 'data-ready';
       resourceVersion: string;
       appVersion: string | null;
+      source: 'cache' | 'fresh';
       skills: SkillsMap;
       umas: UmasMap;
       courses: CoursesMap;
@@ -302,6 +303,7 @@ async function runInitOrRefresh(forceRefresh: boolean): Promise<void> {
     type: 'data-ready',
     resourceVersion: pipelineResult.meta.resourceVersion,
     appVersion: pipelineResult.meta.appVersion,
+    source: pipelineResult.source,
     skills: pipelineResult.data.skills,
     umas: pipelineResult.data.umas,
     courses: pipelineResult.data.courses,
