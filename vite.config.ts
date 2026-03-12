@@ -19,6 +19,7 @@ export default defineConfig({
   ],
   assetsInclude: ['**/*.wasm'],
   worker: {
+    format: 'es',
     plugins: () => [
       viteTsconfigPaths({
         projects: ['./tsconfig.json'],
