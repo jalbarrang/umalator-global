@@ -1,4 +1,3 @@
-import { Activity } from 'react';
 import type { SkillEntry } from '@/modules/data/skills';
 import type { SkillAlternative } from '@/lib/sunday-tools/skills/skill.types';
 import { FormatParser, formatEffect } from '@/modules/skills/components/formatters';
@@ -118,9 +117,7 @@ export function ExpandedSkillDetails(props: ExpandedSkillDetailsProps) {
       <div className="text-sm p-2">
         <div className="flex flex-col gap-1 mb-1">
           <div className="flex items-center gap-2">
-            <Activity mode="visible">
-              <SkillIcon iconId={skillData.iconId} />
-            </Activity>
+            <SkillIcon iconId={skillData.iconId} />
             <div className="text-sm font-medium">{skillData.name}</div>
           </div>
           <div className="text-xs text-muted-foreground">

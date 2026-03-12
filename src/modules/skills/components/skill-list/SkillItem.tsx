@@ -7,6 +7,7 @@ import i18n from '@/i18n';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { isEvolutionSkill, isGoldSkill, isUniqueSkill, isWhiteSkill } from '@/store/runners.store';
+import { SkillCostDetails } from '../cost-details';
 
 export const SkillIcon = (props: { iconId: string }) => {
   return <img className="w-6 h-6" src={`/icons/${props.iconId}.png`} />;
@@ -20,6 +21,8 @@ type SkillItemProps = React.HTMLAttributes<HTMLDivElement> & {
   distanceFactor?: number;
   isHovered?: boolean;
   isFocused?: boolean;
+  spCost?: number;
+  runnerId?: string;
 };
 
 export const SkillItem = memo((props: SkillItemProps) => {
@@ -30,6 +33,8 @@ export const SkillItem = memo((props: SkillItemProps) => {
     distanceFactor = 0,
     isHovered = false,
     isFocused = false,
+    spCost,
+    runnerId,
   } = props;
 
   const skill = useMemo(() => getSkillById(skillId), [skillId]);
@@ -42,6 +47,10 @@ export const SkillItem = memo((props: SkillItemProps) => {
     }),
     [skillId, skill],
   );
+
+  const hasCost = useMemo(() => {
+    return typeof spCost === 'number' && !isUniqueSkill(skillContext.rarity);
+  }, [spCost, skillContext.rarity]);
 
   return (
     <div
@@ -78,13 +87,34 @@ export const SkillItem = memo((props: SkillItemProps) => {
         </span>
       </div>
 
+      {hasCost && (
+        <Popover>
+          <PopoverTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-full shrink-0 text-muted-foreground rounded-none whitespace-nowrap cursor-pointer"
+                title="Show skill cost details"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {spCost} SP
+              </Button>
+            }
+          />
+          <PopoverContent align="start" side="right" className="w-[420px] p-0">
+            <SkillCostDetails id={skillId} skill={skill} runnerId={runnerId} />
+          </PopoverContent>
+        </Popover>
+      )}
+
       <Popover>
         <PopoverTrigger
           render={
             <Button
               variant="ghost"
               size="icon"
-              className="h-full shrink-0 text-muted-foreground rounded-none"
+              className="h-full shrink-0 text-muted-foreground rounded-none cursor-pointer"
               title="Show skill details"
               onClick={(e) => e.stopPropagation()}
             >
@@ -104,7 +134,7 @@ export const SkillItem = memo((props: SkillItemProps) => {
           type="button"
           data-event="remove-skill"
           data-skillid={skillId}
-          className="h-full rounded-none"
+          className="h-full rounded-none cursor-pointer"
         >
           <X className="w-4 h-4" />
         </Button>

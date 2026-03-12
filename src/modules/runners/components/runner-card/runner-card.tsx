@@ -10,6 +10,7 @@ import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
 import { SkillItem } from '@/modules/skills/components/skill-list/SkillItem';
 
 import {
+  getSkillById,
   getSelectableSkillsForUma,
   getUniqueSkillForByUmaId,
   skillsById,
@@ -19,8 +20,16 @@ import { OcrImportDialog } from '@/modules/runners/components/ocr-import-dialog'
 import { UmaSelector } from '@/modules/runners/components/runner-selector';
 
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { useIsMobile } from '@/hooks/useBreakpoint';
 import { openSkillPicker, updateCurrentSkills } from '@/modules/skills/store';
+import {
+  setFastLearner,
+  useSkillCostMetaStore,
+  useRunnerHasFastLearner,
+  computeTotalNetCost,
+} from '@/modules/skills/stores/skill-cost-meta.store';
 
 type RunnerCardProps = {
   value: RunnerState;
@@ -35,10 +44,18 @@ type RunnerCardProps = {
 
   // Options
   hideSkillButton?: boolean;
+  showSkillSpCosts?: boolean;
 };
 
 export const RunnerCard = (props: RunnerCardProps) => {
-  const { value: state, onChange, onReset, onCopy, hideSkillButton = false } = props;
+  const {
+    value: state,
+    onChange,
+    onReset,
+    onCopy,
+    hideSkillButton = false,
+    showSkillSpCosts = false,
+  } = props;
 
   const isMobile = useIsMobile();
 
@@ -94,23 +111,26 @@ export const RunnerCard = (props: RunnerCardProps) => {
     onChange({ ...state, ...newState });
   };
 
-  function handleChangeRunner(outfitId: string) {
-    const newSkills: Array<string> = [];
+  const handleChangeRunner = useCallback(
+    (outfitId: string) => {
+      const newSkills: Array<string> = [];
 
-    for (const skillId of state.skills) {
-      const skillData = skillsById.get(skillId);
+      for (const skillId of state.skills) {
+        const skillData = skillsById.get(skillId);
 
-      if (skillData?.rarity && skillData.rarity < 3) {
-        newSkills.push(skillId);
+        if (skillData?.rarity && skillData.rarity < 3) {
+          newSkills.push(skillId);
+        }
       }
-    }
 
-    if (outfitId) {
-      newSkills.push(getUniqueSkillForByUmaId(outfitId));
-    }
+      if (outfitId) {
+        newSkills.push(getUniqueSkillForByUmaId(outfitId));
+      }
 
-    onChange({ ...state, outfitId: outfitId, skills: newSkills });
-  }
+      onChange({ ...state, outfitId: outfitId, skills: newSkills });
+    },
+    [onChange, state],
+  );
 
   const handleUpdateStat = (prop: StatsKey) => (value: number) => {
     onChange({ ...state, [prop]: value });
@@ -122,6 +142,51 @@ export const RunnerCard = (props: RunnerCardProps) => {
   };
 
   const umaUniqueSkillId = useMemo(() => getUniqueSkillForByUmaId(umaId), [umaId]);
+  const skillsWithBaseCost = useMemo(() => {
+    return state.skills.map((skillId) => {
+      const skill = getSkillById(skillId);
+
+      return {
+        skillId,
+        baseCost: skill.baseCost,
+      };
+    });
+  }, [state.skills]);
+
+  const hasFastLearner = useRunnerHasFastLearner(
+    showSkillSpCosts && props.runnerId !== 'pacer' ? props.runnerId : '',
+  );
+
+  const skillMetaByKey = useSkillCostMetaStore((s) => s.skillMetaByKey);
+
+  const netCostBySkillId = useMemo(() => {
+    if (!showSkillSpCosts || props.runnerId === 'pacer') return {};
+    const map: Record<string, number> = {};
+    for (const skillId of state.skills) {
+      map[skillId] = computeTotalNetCost(skillId, props.runnerId, skillMetaByKey, hasFastLearner);
+    }
+    return map;
+  }, [props.runnerId, state.skills, showSkillSpCosts, skillMetaByKey, hasFastLearner]);
+
+  const totalSkillSp = useMemo(() => {
+    if (!showSkillSpCosts || props.runnerId === 'pacer') {
+      return null;
+    }
+
+    return Object.values(netCostBySkillId).reduce((sum, cost) => sum + cost, 0);
+  }, [showSkillSpCosts, props.runnerId, netCostBySkillId]);
+
+  const fastLearnerCheckboxId = `${props.runnerId}-fast-learner`;
+  const handleFastLearnerChange = useCallback(
+    (checked: boolean) => {
+      if (!showSkillSpCosts || props.runnerId === 'pacer') {
+        return;
+      }
+
+      setFastLearner(props.runnerId, checked);
+    },
+    [props.runnerId, showSkillSpCosts],
+  );
 
   const handleRemoveSkill = (skillId: string) => {
     handleSetSkills(state.skills.filter((id) => id !== skillId));
@@ -217,8 +282,26 @@ export const RunnerCard = (props: RunnerCardProps) => {
 
       {!hideSkillButton && (
         <div data-tutorial="skills-section" className="flex items-center gap-2">
-          <div className="bg-card py-1 border font-bold rounded-lg flex-1 text-center h-auto">
-            Skills
+          <div className="bg-card py-1 px-2 border font-bold rounded-lg flex-1 text-center h-auto flex items-center gap-4">
+            <span>Skills</span>
+
+            {showSkillSpCosts && totalSkillSp !== null && (
+              <>
+                <span className="text-xs font-semibold text-muted-foreground">
+                  {totalSkillSp} SP needed
+                </span>
+                <div className="flex items-center gap-1.5 font-normal">
+                  <Checkbox
+                    id={fastLearnerCheckboxId}
+                    checked={hasFastLearner}
+                    onCheckedChange={(checked) => handleFastLearnerChange(checked === true)}
+                  />
+                  <Label htmlFor={fastLearnerCheckboxId} className="text-xs text-muted-foreground">
+                    Fast Learner
+                  </Label>
+                </div>
+              </>
+            )}
           </div>
 
           <Button variant="default" onClick={handleOpenSkillPicker} className="cursor-pointer">
@@ -228,17 +311,40 @@ export const RunnerCard = (props: RunnerCardProps) => {
         </div>
       )}
 
-      {hideSkillButton && <div className="text-sm font-semibold">Skills</div>}
+      {hideSkillButton && (
+        <div className="text-sm font-semibold flex items-center gap-2">
+          <span>Skills</span>
+
+          {showSkillSpCosts && totalSkillSp !== null && (
+            <>
+              <span className="text-xs text-muted-foreground">{totalSkillSp} SP</span>
+
+              <div className="flex items-center gap-1.5 font-normal">
+                <Checkbox
+                  id={fastLearnerCheckboxId}
+                  checked={hasFastLearner}
+                  onCheckedChange={(checked) => handleFastLearnerChange(checked === true)}
+                />
+                <Label htmlFor={fastLearnerCheckboxId} className="text-xs text-muted-foreground">
+                  Fast Learner
+                </Label>
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-2" onClick={handleSkillClick}>
-        {state.skills.map((id: string) => {
+        {skillsWithBaseCost.map(({ skillId }) => {
           return (
             <SkillItem
-              key={id}
-              skillId={id}
-              dismissable={id !== umaUniqueSkillId}
+              key={skillId}
+              skillId={skillId}
+              dismissable={skillId !== umaUniqueSkillId}
               withDetails
               distanceFactor={props.courseDistance}
+              spCost={showSkillSpCosts ? netCostBySkillId[skillId] : undefined}
+              runnerId={showSkillSpCosts ? props.runnerId : undefined}
             />
           );
         })}

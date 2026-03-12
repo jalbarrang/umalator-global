@@ -139,6 +139,21 @@ function hasPositiveEffects(skill: ISkill): boolean {
 }
 
 /**
+ * Check whether a skill has any positive effect values.
+ * Useful for identifying self-debuff skills even when icon metadata is inconsistent.
+ */
+export function hasPositiveSkillEffects(skillId: string): boolean {
+  const numId = toNumberId(skillId);
+  const skill = getSkill(numId);
+
+  if (!skill) {
+    return false;
+  }
+
+  return hasPositiveEffects(skill);
+}
+
+/**
  * Get all white (rarity=1) skills from a family, excluding debuffs
  */
 function getWhiteSkillsInFamily(familyIds: Array<number>): Array<ISkill> {

@@ -176,6 +176,7 @@ export const RunnersPanel = () => {
             onReset={resetRunner}
             onCopy={handleCopyRunner}
             onSwap={handleSwapRunners}
+            showSkillSpCosts
           />
         </div>
       </PanelContent>
