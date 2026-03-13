@@ -55,6 +55,11 @@ export type SimulationSettings = {
    * - false: Wit checks are disabled so skills always pass.
    */
   witChecks: boolean;
+  /**
+   * Optional per-skill stamina drain overrides.
+   * Key: base skill ID, value: drain fraction (0 to 1).
+   */
+  staminaDrainOverrides?: Record<string, number>;
 };
 
 export interface RaceLifecycleObserver {

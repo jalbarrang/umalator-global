@@ -1,10 +1,16 @@
+import { useMemo } from 'react';
 import type { WitVarianceSettings } from '@/store/settings.store';
 import {
+  setStaminaDrainOverride,
   setSamples,
   setWitVariance,
   useSettingsStore,
+  useStaminaDrainOverrides,
   useWitVariance,
 } from '@/store/settings.store';
+import { useRunnersStore } from '@/store/runners.store';
+import { getSkillById } from '@/modules/skills/utils';
+import { SkillType } from '@/lib/sunday-tools/skills/definitions';
 
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -12,6 +18,14 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/ui/panel';
 import { Separator } from '@/components/ui/separator';
+
+type DrainSkillMeta = {
+  skillId: string;
+  name: string;
+  drainPercent: number;
+};
+
+const FALLBACK_OVERRIDE_PERCENT = 45;
 
 const WitVarianceSettingRow = ({
   label,
@@ -65,7 +79,9 @@ const WitVarianceSettingRow = ({
 
 export const AdvancedSettingsPanel = () => {
   const { nsamples } = useSettingsStore();
+  const { uma1, uma2 } = useRunnersStore();
   const witVarianceSettings = useWitVariance();
+  const staminaDrainOverrides = useStaminaDrainOverrides();
 
   const handleSimWitVarianceToggle = () => {
     setWitVariance({ simWitVariance: !witVarianceSettings.simWitVariance });
@@ -73,6 +89,70 @@ export const AdvancedSettingsPanel = () => {
 
   const toggleWitVarianceSetting = (setting: keyof WitVarianceSettings) => {
     setWitVariance({ [setting]: !witVarianceSettings[setting] });
+  };
+
+  const drainSkills = useMemo<Array<DrainSkillMeta>>(() => {
+    const uniqueSkillIds = new Set<string>();
+    const rows: Array<DrainSkillMeta> = [];
+    const equippedSkills = [...uma1.skills, ...uma2.skills];
+
+    for (const equippedSkillId of equippedSkills) {
+      const baseSkillId = equippedSkillId.split('-')[0] ?? equippedSkillId;
+      if (uniqueSkillIds.has(baseSkillId)) {
+        continue;
+      }
+
+      uniqueSkillIds.add(baseSkillId);
+
+      try {
+        const skill = getSkillById(baseSkillId);
+        let maxDrainPercent = 0;
+
+        for (const alternative of skill.alternatives) {
+          for (const effect of alternative.effects) {
+            if (effect.type !== SkillType.Recovery || effect.modifier >= 0) {
+              continue;
+            }
+
+            maxDrainPercent = Math.max(maxDrainPercent, Math.abs(effect.modifier) / 100);
+          }
+        }
+
+        if (maxDrainPercent <= 0) {
+          continue;
+        }
+
+        rows.push({
+          skillId: baseSkillId,
+          name: skill.name,
+          drainPercent: maxDrainPercent,
+        });
+      } catch {
+        // Ignore unknown skill IDs in persisted runner data.
+      }
+    }
+
+    return rows.toSorted((a, b) => b.drainPercent - a.drainPercent || a.name.localeCompare(b.name));
+  }, [uma1.skills, uma2.skills]);
+
+  const toggleDrainOverride = (skillId: string, enabled: boolean) => {
+    if (!enabled) {
+      setStaminaDrainOverride(skillId, null);
+      return;
+    }
+
+    const nextValue = staminaDrainOverrides[skillId] ?? FALLBACK_OVERRIDE_PERCENT / 100;
+    setStaminaDrainOverride(skillId, nextValue);
+  };
+
+  const updateDrainOverride = (skillId: string, value: string) => {
+    const parsed = Number(value);
+    if (Number.isNaN(parsed)) {
+      return;
+    }
+
+    const clampedPercent = Math.min(Math.max(parsed, 0), 100);
+    setStaminaDrainOverride(skillId, clampedPercent / 100);
   };
 
   return (
@@ -147,6 +227,64 @@ export const AdvancedSettingsPanel = () => {
               disabled={!witVarianceSettings.simWitVariance}
             />
           </div>
+        </div>
+
+        <Separator />
+
+        {/* Stamina Drain Overrides */}
+        <div className="flex flex-col gap-2">
+          <Label className="text-sm font-semibold">Stamina Drain Overrides</Label>
+          {drainSkills.length === 0 ? (
+            <span className="text-sm text-muted-foreground">No drain skills equipped</span>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {drainSkills.map((skill) => {
+                const overrideValue = staminaDrainOverrides[skill.skillId];
+                const isEnabled = overrideValue != null;
+                const overridePercent = (overrideValue ?? FALLBACK_OVERRIDE_PERCENT / 100) * 100;
+
+                return (
+                  <div
+                    key={skill.skillId}
+                    className="flex flex-col gap-2 rounded-md border border-border p-3"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-sm font-medium leading-tight">{skill.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          Original drain: {skill.drainPercent.toFixed(2)}%
+                        </span>
+                      </div>
+                      <Checkbox
+                        checked={isEnabled}
+                        onCheckedChange={(checked) =>
+                          toggleDrainOverride(skill.skillId, checked === true)
+                        }
+                      />
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Label htmlFor={`drain-override-${skill.skillId}`} className="w-28 text-xs">
+                        Override (%):
+                      </Label>
+                      <Input
+                        id={`drain-override-${skill.skillId}`}
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        disabled={!isEnabled}
+                        value={overridePercent}
+                        onInput={(event) =>
+                          updateDrainOverride(skill.skillId, event.currentTarget.value)
+                        }
+                        className="max-w-32"
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </PanelContent>
     </Panel>

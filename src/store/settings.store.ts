@@ -19,6 +19,8 @@ export type WitVarianceSettings = {
   simWitVariance: boolean;
 };
 
+export type StaminaDrainOverrides = Record<string, number>;
+
 type ISettingsStore = {
   courseId: number;
   nsamples: number;
@@ -26,6 +28,7 @@ type ISettingsStore = {
   uma1: RunnerState;
   uma2: RunnerState;
   witVarianceSettings: WitVarianceSettings;
+  staminaDrainOverrides: StaminaDrainOverrides;
   selectedPresetId: string | null;
 
   // Race Track UI settings
@@ -55,6 +58,7 @@ export const useSettingsStore = create<ISettingsStore>()(
         allowSkillCheckChanceUma2: true,
         simWitVariance: true,
       },
+      staminaDrainOverrides: {},
       selectedPresetId: null,
 
       // Race Track UI settings
@@ -83,6 +87,24 @@ export const setWitVariance = (witVarianceSettings: Partial<WitVarianceSettings>
       ...witVarianceSettings,
     },
   }));
+};
+
+export const useStaminaDrainOverrides = () =>
+  useSettingsStore(useShallow((state) => state.staminaDrainOverrides));
+
+export const setStaminaDrainOverride = (skillId: string, value: number | null) => {
+  const normalizedSkillId = skillId.split('-')[0] ?? skillId;
+  useSettingsStore.setState((state) => {
+    const nextOverrides = { ...state.staminaDrainOverrides };
+
+    if (value === null) {
+      delete nextOverrides[normalizedSkillId];
+    } else {
+      nextOverrides[normalizedSkillId] = value;
+    }
+
+    return { staminaDrainOverrides: nextOverrides };
+  });
 };
 
 export const setSamples = (samples: number) => {

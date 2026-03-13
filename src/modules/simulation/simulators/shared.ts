@@ -144,6 +144,7 @@ export function createCompareSettings(
     spotStruggle: false,
     dueling: false,
     witChecks: false,
+    staminaDrainOverrides: {},
     ...overrides,
   };
 }
