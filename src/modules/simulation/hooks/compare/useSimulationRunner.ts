@@ -42,7 +42,7 @@ type WorkerMessage<T> =
 export function useSimulationRunner() {
   const { uma1, uma2 } = useRunnersStore();
 
-  const { racedef, nsamples, courseId } = useSettingsStore();
+  const { racedef, nsamples, courseId, staminaDrainOverrides } = useSettingsStore();
 
   const {
     simWitVariance,
@@ -135,6 +135,7 @@ export function useSimulationRunner() {
         accuracyMode: false,
         skillCheckChanceUma1: simWitVariance ? allowSkillCheckChanceUma1 : false,
         skillCheckChanceUma2: simWitVariance ? allowSkillCheckChanceUma2 : false,
+        staminaDrainOverrides,
       },
       forcedPositions: hasForcedPositions
         ? { uma1: forcedUma1, uma2: forcedUma2 }
@@ -191,6 +192,7 @@ export function useSimulationRunner() {
         accuracyMode: false,
         skillCheckChanceUma1: simWitVariance ? allowSkillCheckChanceUma1 : false,
         skillCheckChanceUma2: simWitVariance ? allowSkillCheckChanceUma2 : false,
+        staminaDrainOverrides,
       },
       forcedPositions: hasForcedPositions
         ? { uma1: forcedUma1, uma2: forcedUma2 }

@@ -58,6 +58,7 @@ export interface SimulationOptions {
   allowSectionModifierUma2: boolean;
   skillCheckChanceUma1: boolean;
   skillCheckChanceUma2: boolean;
+  staminaDrainOverrides?: Record<string, number>;
 }
 
 export type RunComparisonParams = {

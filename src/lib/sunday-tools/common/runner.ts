@@ -668,7 +668,9 @@ export class Runner {
           });
           break;
         case SkillType.Recovery:
-          this.healthPolicy.recover(skillEffect.modifier);
+          this.healthPolicy.recover(
+            this.getRecoveryModifierForSkill(skill.skillId, skillEffect.modifier),
+          );
 
           if (this.phase >= 2 && !this.isLastSpurt) {
             this.updateLastSpurtState(true);
@@ -811,7 +813,9 @@ export class Runner {
           this.healsActivatedCount += 1;
 
           // Apply health modifier to health policy
-          this.healthPolicy.recover(skillEffect.modifier);
+          this.healthPolicy.recover(
+            this.getRecoveryModifierForSkill(skill.skillId, skillEffect.modifier),
+          );
 
           if (this.phase >= 2 && !this.isLastSpurt) {
             this.updateLastSpurtState(true);
@@ -1265,6 +1269,26 @@ export class Runner {
     const witCheckThreshold = Math.max(100 - 9000 / witStat, 20) * 0.01;
 
     return rngRoll <= witCheckThreshold;
+  }
+
+  private getRecoveryModifierForSkill(skillId: string, modifier: number): number {
+    if (modifier >= 0) {
+      return modifier;
+    }
+
+    const overrides = this.race.settings.staminaDrainOverrides;
+    if (!overrides) {
+      return modifier;
+    }
+
+    const baseSkillId = skillId.split('-')[0] ?? skillId;
+    const override = overrides[baseSkillId];
+    if (override == null || !Number.isFinite(override)) {
+      return modifier;
+    }
+
+    const clampedOverride = Math.min(Math.max(override, 0), 1);
+    return -clampedOverride;
   }
 
   // ===================
