@@ -31,3 +31,6 @@ scripts/skill-lists/*.json
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+
+docs/reports/

@@ -2,6 +2,7 @@ import { withDefaultCond } from '../definitions';
 import { kTrue } from './utils';
 import type { RegionList } from '@/lib/sunday-tools/shared/region';
 import type { ActivationSamplePolicy } from '@/lib/sunday-tools/skills/policies/ActivationSamplePolicy';
+import { CornerRandomPolicy } from '@/lib/sunday-tools/skills/policies/ActivationSamplePolicy';
 import type {
   ApplyParams,
   ConditionFilterParams,
@@ -171,9 +172,22 @@ export class OrOperator implements Operator {
     this.samplePolicy = left.samplePolicy.reconcile(right.samplePolicy);
   }
 
-  apply(params: ApplyParams) {
+  apply(params: ApplyParams): [RegionList, DynamicCondition] {
     const [leftval, leftcond] = this.left.apply(params);
     const [rightval, rightcond] = this.right.apply(params);
+
+    // corner_random branches are order-sensitive. For cases like
+    // corner_random==1@corner_random==2, game behavior resolves to the first
+    // satisfiable branch rather than sampling from the union of both corners.
+    if (
+      this.left.samplePolicy === CornerRandomPolicy &&
+      this.right.samplePolicy === CornerRandomPolicy &&
+      leftcond === kTrue &&
+      rightcond === kTrue
+    ) {
+      const branchRegions = leftval.length > 0 ? leftval : rightval;
+      return [branchRegions, kTrue];
+    }
 
     // FIXME this is, technically, completely broken. really the correct way to do this is to tie dynamic conditions to regions
     // and propagate them during union and intersection. however, that's really annoying, and it turns out in practice that
@@ -186,10 +200,7 @@ export class OrOperator implements Operator {
     // unfortunately, there's not really a way here to assert that leftcond and rightcond are the same.
     // this is rather risky. i don't like it.
     // TODO actually, it's perfectly possible to just inspect the tree to make sure the above limitations are satisfied.
-    return [leftval.union(rightval), (s) => leftcond(s) || rightcond(s)] as [
-      RegionList,
-      DynamicCondition,
-    ];
+    return [leftval.union(rightval), (s) => leftcond(s) || rightcond(s)];
   }
 }
 

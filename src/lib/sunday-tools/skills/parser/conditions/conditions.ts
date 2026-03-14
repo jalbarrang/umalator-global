@@ -18,6 +18,7 @@
 
 import {
   AllCornerRandomPolicy,
+  CornerRandomPolicy,
   ImmediatePolicy,
   StraightRandomPolicy,
 } from '../../policies/ActivationSamplePolicy';
@@ -223,13 +224,10 @@ export const defaultConditions: ConditionsMap<ICondition> = {
     },
   }),
   corner_count: valueFilter(({ course }) => course.corners.length),
-  // FIXME this shouldn't actually be random, since in cases like corner_random==1@corner_random==2 it should sample
-  // only from the first corner and not from the combined regions, so it needs its own sample policy
-  // actually, that's slightly annoying to handle since corners come in back-to-back pairs, so their regions will
-  // get merged by the union operation.
-  // the real way to fix this is to finally allow placing multiple triggers, then each branch of an @ can simply
-  // place its own trigger and the problem goes away.
   corner_random: random({
+    // Keep this policy distinct from generic RandomPolicy so OrOperator can preserve
+    // branch priority for patterns like corner_random==1@corner_random==2.
+    samplePolicy: CornerRandomPolicy,
     filterEq({ regions, arg: cornerNum, course }: ConditionFilterParams) {
       if (!CourseHelpers.isSortedByStart(course.corners)) {
         throw new Error('course corners must be sorted by start');
