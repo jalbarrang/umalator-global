@@ -210,8 +210,10 @@ describe('vacuum-compare simulator', () => {
     });
 
     const mean = result.results.reduce((sum, value) => sum + value, 0) / result.results.length;
-    const meanRunUma1Time = result.runData.meanrun.time[0][result.runData.meanrun.time[0].length - 1];
-    const meanRunUma2Time = result.runData.meanrun.time[1][result.runData.meanrun.time[1].length - 1];
+    const meanRunUma1Time =
+      result.runData.meanrun.time[0][result.runData.meanrun.time[0].length - 1];
+    const meanRunUma2Time =
+      result.runData.meanrun.time[1][result.runData.meanrun.time[1].length - 1];
 
     expect(meanRunUma1Time).toBeLessThan(meanRunUma2Time);
     expect(mean).toBeLessThan(0);
@@ -282,9 +284,7 @@ describe('forced skill positions', () => {
       skills: skillIds,
     });
 
-    const sortedSkills = runner.skills.toSorted(
-      createSkillSorterByGroup(runner.skills),
-    );
+    const sortedSkills = runner.skills.toSorted(createSkillSorterByGroup(runner.skills));
 
     const collector = new BassinCollector();
     const createRunnerObj = toCreateRunner(runner, sortedSkills, forcedPositions);
@@ -316,11 +316,7 @@ describe('forced skill positions', () => {
     });
 
     const forcedPositions = { [TEST_SKILL_ID]: 500 };
-    const createRunnerObj = toCreateRunner(
-      runner,
-      runner.skills,
-      forcedPositions,
-    );
+    const createRunnerObj = toCreateRunner(runner, runner.skills, forcedPositions);
 
     expect(createRunnerObj.forcedPositions).toEqual(forcedPositions);
   });
@@ -343,9 +339,7 @@ describe('forced skill positions', () => {
       strategy: 'Front Runner',
       skills: [skillId],
     });
-    const sortedSkills = runner.skills.toSorted(
-      createSkillSorterByGroup(runner.skills),
-    );
+    const sortedSkills = runner.skills.toSorted(createSkillSorterByGroup(runner.skills));
 
     const withoutForced = toCreateRunner(runner, sortedSkills);
     const withForced = toCreateRunner(runner, sortedSkills, {
@@ -370,9 +364,7 @@ describe('forced skill positions', () => {
       skills: [skillId],
     });
 
-    const sortedSkills = runner.skills.toSorted(
-      createSkillSorterByGroup(runner.skills),
-    );
+    const sortedSkills = runner.skills.toSorted(createSkillSorterByGroup(runner.skills));
 
     const collector = new BassinCollector();
     const race = createInitializedRace({
@@ -401,17 +393,9 @@ describe('forced skill positions', () => {
   it('should activate skill at forced position changing race outcome', () => {
     const skillId = runawaySkillId;
 
-    const withoutForced = runRaceAndCollectActivations(
-      undefined,
-      [skillId],
-      42,
-    );
+    const withoutForced = runRaceAndCollectActivations(undefined, [skillId], 42);
 
-    const withForced = runRaceAndCollectActivations(
-      { [skillId]: 800 },
-      [skillId],
-      42,
-    );
+    const withForced = runRaceAndCollectActivations({ [skillId]: 800 }, [skillId], 42);
 
     expect(withoutForced.createRunnerObj.forcedPositions).toBeUndefined();
     expect(withForced.createRunnerObj.forcedPositions).toEqual({ [skillId]: 800 });
@@ -525,6 +509,76 @@ describe('forced skill positions', () => {
     expect(forcedStarts.every((start) => start === 2000)).toBe(true);
     expect(naturalStarts.some((start) => start !== 2000)).toBe(true);
   });
+
+  it('samples Swinging Maestro trigger from first eligible corner branch', () => {
+    // CM: Pisces Cup
+    const course = CourseHelpers.getCourse(10914); // Hanshin Turf 3200m
+    const racedef = racedefToParams(
+      createRaceConditions({
+        mood: 0, // Not applied
+        ground: 4, // Heavy Conditions
+        weather: 3, // Rainy
+        season: 1, // Spring
+        time: 2, // Daytime
+        grade: 100, // Grade 1 Race
+      }),
+    );
+    const raceParameters = toSundayRaceParameters(racedef);
+    const skillId = '200351'; // Swinging Maestro
+    const baseSeed = 268010; // Seed from reported issue
+
+    const runnerPreset = createRunnerState({
+      outfitId: '100602', // [Ashen Miracle] Oguri Cap
+      speed: 1200,
+      stamina: 1100,
+      power: 1100,
+      guts: 600,
+      wisdom: 1000,
+      strategy: 'Pace Chaser',
+      distanceAptitude: 'S',
+      surfaceAptitude: 'A',
+      strategyAptitude: 'A',
+      mood: 2, // Great Mood
+      skills: ['110061', skillId], // [Festive Miracle, Swinging Maestro]
+      randomMobId: 8123,
+    });
+
+    const sortedSkills = runnerPreset.skills.toSorted(
+      createSkillSorterByGroup(runnerPreset.skills),
+    );
+    const race = createInitializedRace({
+      course,
+      raceParameters,
+      settings: createCompareSettings(),
+      duelingRates: DEFAULT_DUELING_RATES,
+      skillSamples: 1,
+      runner: toCreateRunner(runnerPreset, sortedSkills),
+    });
+
+    const starts: Array<number> = [];
+    for (let i = 0; i < 120; i++) {
+      race.prepareRound(baseSeed + i);
+      const raceRunner = race.runners.values().toArray()[0];
+      const pendingForSkill = raceRunner.pendingSkills.filter(
+        (ps) => ps.skillId === skillId || ps.skillId.startsWith(skillId),
+      );
+      expect(pendingForSkill).toHaveLength(1);
+      starts.push(pendingForSkill[0].trigger.start);
+    }
+
+    const buckets = { c1: 0, c2: 0, c3: 0, c4: 0, other: 0 };
+    for (const start of starts) {
+      if (start >= 1520 && start < 1710) buckets.c1++;
+      else if (start >= 1710 && start < 1900) buckets.c2++;
+      else if (start >= 2250 && start < 2550) buckets.c3++;
+      else if (start >= 2550 && start < 2850) buckets.c4++;
+      else buckets.other++;
+    }
+
+    expect(buckets.c2 + buckets.c3 + buckets.c4 + buckets.other).toBe(0);
+    expect(buckets.c1).toBe(starts.length);
+    expect(new Set(starts).size).toBeGreaterThan(1);
+  });
 });
 
 describe('injected debuffs', () => {
@@ -537,7 +591,12 @@ describe('injected debuffs', () => {
     });
 
     const injectedDebuffs = [{ skillId: TEST_DEBUFF_SKILL_ID, position: 700 }];
-    const createRunnerObj = (toCreateRunner as any)(runner, runner.skills, undefined, injectedDebuffs);
+    const createRunnerObj = (toCreateRunner as any)(
+      runner,
+      runner.skills,
+      undefined,
+      injectedDebuffs,
+    );
 
     expect(createRunnerObj.injectedDebuffs).toEqual(injectedDebuffs);
   });
@@ -623,8 +682,10 @@ describe('injected debuffs', () => {
       },
     } as any);
 
-    const meanWithout = withoutDebuff.results.reduce((sum, value) => sum + value, 0) / withoutDebuff.results.length;
-    const meanWith = withDebuff.results.reduce((sum, value) => sum + value, 0) / withDebuff.results.length;
+    const meanWithout =
+      withoutDebuff.results.reduce((sum, value) => sum + value, 0) / withoutDebuff.results.length;
+    const meanWith =
+      withDebuff.results.reduce((sum, value) => sum + value, 0) / withDebuff.results.length;
 
     expect(meanWith).toBeGreaterThan(meanWithout);
   });
