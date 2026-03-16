@@ -27,11 +27,7 @@ import { racedefToParams } from '@/utils/races';
 import { useSettingsStore } from '@/store/settings.store';
 import { defaultSimulationOptions } from '@/components/bassin-chart/utils';
 import { skillCollection } from '@/modules/data/skills';
-import {
-  getBaseTier,
-  getUpgradeTier,
-  getWhiteVersion,
-} from '@/modules/skills/skill-relationships';
+import { getBaseTier, getUpgradeTier, getWhiteVersion } from '@/modules/skills/skill-relationships';
 
 const createSkillPlannerWorker = () => new SkillPlannerWorker();
 

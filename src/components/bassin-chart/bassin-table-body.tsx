@@ -15,27 +15,25 @@ type ExpandCellProps = {
   onToggleRow: (skillId: string) => void;
 };
 
-const ExpandCell = React.memo(({ skillId, hasRunData, isExpanded, onToggleRow }: ExpandCellProps) => {
-  if (!hasRunData) return null;
+const ExpandCell = React.memo(
+  ({ skillId, hasRunData, isExpanded, onToggleRow }: ExpandCellProps) => {
+    if (!hasRunData) return null;
 
-  return (
-    <Button
-      variant="ghost"
-      size="icon-sm"
-      onClick={(e) => {
-        e.stopPropagation();
-        onToggleRow(skillId);
-      }}
-      title={isExpanded ? 'Collapse details' : 'Show activation details'}
-    >
-      {isExpanded ? (
-        <ChevronDown className="h-4 w-4" />
-      ) : (
-        <ChevronRight className="h-4 w-4" />
-      )}
-    </Button>
-  );
-});
+    return (
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggleRow(skillId);
+        }}
+        title={isExpanded ? 'Collapse details' : 'Show activation details'}
+      >
+        {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+      </Button>
+    );
+  },
+);
 
 export type BassinTableBodyProps = {
   virtualizer: Virtualizer<HTMLDivElement, Element>;

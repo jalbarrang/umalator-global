@@ -115,13 +115,14 @@ const PrereqItem = memo((props: PrereqItemProps) => {
  * so it works identically in compare mode and the skill planner.
  */
 export const SkillCostDetails = () => {
-  const { skill, hasFastLearner, getSkillMeta, onHintLevelChange } = useSkillItem();
+  const { skill, hasFastLearner, getSkillMeta, onHintLevelChange, onBoughtChange } = useSkillItem();
 
   const id = skill.id;
   const baseSkillId = useMemo(() => id.split('-')[0] ?? id, [id]);
 
   const selfMeta = useMemo(() => getSkillMeta(id), [getSkillMeta, id]);
   const hintLevel = selfMeta.hintLevel as HintLevel;
+  const isObtained = selfMeta.bought ?? false;
 
   const isSimpleWhiteSkill = skill.rarity === 1;
   const isGold = skill.rarity === 2;
@@ -166,20 +167,36 @@ export const SkillCostDetails = () => {
     return { baseCost, netCost: netCost + prereqNetCost };
   }, [goldPrereqIds, hasFastLearner, isGold, netCost, getSkillMeta, skill.baseCost]);
 
+  const obtainedCheckboxId = `cost-details-${id}-obtained`;
+
   return (
     <div className={cn('bg-background border-2 rounded-b-sm flex flex-col')}>
       <div className="text-sm p-2">
-        <div className="flex flex-col gap-1 mb-1">
-          <div className="flex items-center gap-2">
-            <div className="text-sm font-medium">Cost details</div>
-          </div>
+        <div className="flex items-center justify-between">
+          <div className="text-sm font-medium">Cost details</div>
+          {onBoughtChange && (
+            <div className="flex items-center gap-1.5">
+              <Checkbox
+                id={obtainedCheckboxId}
+                checked={isObtained}
+                onCheckedChange={(checked) => onBoughtChange(id, checked === true)}
+              />
+              <Label htmlFor={obtainedCheckboxId} className="text-xs cursor-pointer font-normal">
+                Obtained
+              </Label>
+            </div>
+          )}
         </div>
       </div>
 
       <Separator />
 
       <div className="p-2 text-xs">
-        {isSimpleWhiteSkill ? (
+        {isObtained ? (
+          <div className="text-center text-muted-foreground py-2">
+            Skill already obtained — no cost.
+          </div>
+        ) : isSimpleWhiteSkill ? (
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2 min-w-0">
               <SkillIcon iconId={skill.iconId} />

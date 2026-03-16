@@ -17,7 +17,10 @@ import type { ActiveSkill } from '../skills/skill.types';
 import type { Race, RaceLifecycleObserver } from './race';
 import type { Runner } from './runner';
 
-type ActiveEffectLike = Pick<ActiveSkill, 'skillId' | 'effectType' | 'effectTarget' | 'modifier'> & {
+type ActiveEffectLike = Pick<
+  ActiveSkill,
+  'skillId' | 'effectType' | 'effectTarget' | 'modifier'
+> & {
   perspective: ISkillPerspective;
 };
 
@@ -199,7 +202,9 @@ export class VacuumCompareDataCollector implements RaceLifecycleObserver {
 
   private collectActiveEffects(runner: Runner): Array<ActiveEffectLike> {
     const all: Array<ActiveEffectLike> = [];
-    const selfBuckets: Array<Array<Pick<ActiveSkill, 'skillId' | 'effectType' | 'effectTarget' | 'modifier'>>> = [
+    const selfBuckets: Array<
+      Array<Pick<ActiveSkill, 'skillId' | 'effectType' | 'effectTarget' | 'modifier'>>
+    > = [
       runner.targetSpeedSkillsActive,
       runner.currentSpeedSkillsActive,
       runner.accelerationSkillsActive,

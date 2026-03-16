@@ -95,14 +95,5 @@ export const EffectSymbol = (props: EffectSymbolProps) => {
     );
   }
 
-  return (
-    <circle
-      cx="0"
-      cy="0"
-      r={size}
-      fill={color.fill}
-      stroke={color.stroke}
-      strokeWidth="1"
-    />
-  );
+  return <circle cx="0" cy="0" r={size} fill={color.fill} stroke={color.stroke} strokeWidth="1" />;
 };

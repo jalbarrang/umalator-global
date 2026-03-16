@@ -53,7 +53,10 @@ test('skill planner flow completes after worker hydration', async ({ page }) => 
   const searchInput = page.getByPlaceholder('Search skill by name');
   await searchInput.fill('Corner Adept');
 
-  const option = page.locator('[data-event="select-skill"]').filter({ hasText: 'Corner Adept' }).first();
+  const option = page
+    .locator('[data-event="select-skill"]')
+    .filter({ hasText: 'Corner Adept' })
+    .first();
   await expect(option).toBeVisible();
   await option.click();
 
