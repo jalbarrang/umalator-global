@@ -14,17 +14,24 @@
 import { useEffect, useMemo, useRef } from 'react';
 import SkillPlannerWorker from '@workers/skill-planner.worker.ts?worker';
 import {
+  createCandidate,
   createNewSeed,
   setIsOptimizing,
   setProgress,
   setResult,
   useSkillPlannerStore,
 } from '../skill-planner.store';
-import type { OptimizationProgress, OptimizationResult } from '../types';
+import type { CandidateSkill, OptimizationProgress, OptimizationResult } from '../types';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 import { racedefToParams } from '@/utils/races';
 import { useSettingsStore } from '@/store/settings.store';
 import { defaultSimulationOptions } from '@/components/bassin-chart/utils';
+import { skillCollection } from '@/modules/data/skills';
+import {
+  getBaseTier,
+  getUpgradeTier,
+  getWhiteVersion,
+} from '@/modules/skills/skill-relationships';
 
 const createSkillPlannerWorker = () => new SkillPlannerWorker();
 
@@ -120,10 +127,12 @@ export function useSkillPlannerOptimizer() {
     setProgress(null);
     setIsOptimizing(true);
 
+    const expandedCandidates = expandPrerequisites(candidates, obtainedSkills);
+
     webWorkerRef.current?.postMessage({
       type: 'optimize',
       data: {
-        candidates,
+        candidates: expandedCandidates,
         obtainedSkills,
         budget,
         hasFastLearner,
@@ -171,4 +180,50 @@ export function useSkillPlannerOptimizer() {
     handleReplay,
     handleCancel,
   };
+}
+
+/**
+ * Expand candidates with their prerequisite tiers (downward only).
+ *
+ * - Gold → adds white base ○ and upgrade ◎
+ * - Upgrade ◎ → adds base ○
+ * - Base ○ → no expansion
+ *
+ * Prerequisites are added with default hint level 0.
+ * Already-present candidates and obtained skills are skipped.
+ */
+function expandPrerequisites(
+  candidates: Record<string, CandidateSkill>,
+  obtainedSkills: Array<string>,
+): Record<string, CandidateSkill> {
+  const expanded: Record<string, CandidateSkill> = { ...candidates };
+  const obtainedSet = new Set(obtainedSkills);
+
+  for (const candidate of Object.values(candidates)) {
+    const skill = skillCollection[candidate.skillId];
+    if (!skill) continue;
+
+    if (skill.rarity === 2) {
+      // Gold → add white base ○ and upgrade ◎
+      const whiteId = getWhiteVersion(candidate.skillId);
+      if (!whiteId) continue;
+
+      const baseId = getBaseTier(whiteId);
+      const upgradeId = getUpgradeTier(baseId);
+
+      for (const prereqId of [baseId, upgradeId]) {
+        if (prereqId && !expanded[prereqId] && !obtainedSet.has(prereqId)) {
+          expanded[prereqId] = createCandidate({ skillId: prereqId });
+        }
+      }
+    } else if (candidate.isStackable && candidate.tierLevel === 2 && candidate.previousTierId) {
+      // Upgrade ◎ → add base ○
+      const baseId = candidate.previousTierId;
+      if (!expanded[baseId] && !obtainedSet.has(baseId)) {
+        expanded[baseId] = createCandidate({ skillId: baseId });
+      }
+    }
+  }
+
+  return expanded;
 }

@@ -17,7 +17,12 @@ import type { RunnerState } from '../runners/components/runner-card/types';
 import type { CandidateSkill, CombinationResult } from './types';
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import type { RaceParameters } from '@/lib/sunday-tools/common/race';
-import { getGoldVersion, getUpgradeTier } from '@/modules/skills/skill-relationships';
+import {
+  getBaseTier,
+  getGoldVersion,
+  getUpgradeTier,
+  getWhiteVersion,
+} from '@/modules/skills/skill-relationships';
 
 /**
  * Input parameters for skill optimization
@@ -75,96 +80,89 @@ export function resolveActiveSkills(skillIds: Array<string>): Array<string> {
   return Array.from(resolved);
 }
 
+const MAX_COMBINATIONS = 500;
+
 /**
- * Generate skill combinations within budget using greedy approach
+ * Generate all skill combinations that fit within budget.
  *
- * Strategy:
- * 1. Test each skill individually (baseline)
- * 2. Test pairs of high-impact skills
- * 3. Test larger combinations prioritizing high performers
+ * Uses recursive enumeration with cost-based pruning: candidates are sorted
+ * by cost ascending so we can break early when adding the cheapest remaining
+ * candidate would exceed the budget.
  *
- * @param candidates Available candidate skills
- * @param budget Maximum cost allowed
- * @returns List of skill ID combinations to test
+ * Capped at MAX_COMBINATIONS to keep simulation time bounded.
  */
 export function generateCombinations(
   candidates: Array<CandidateSkill>,
   budget: number,
 ): Array<Array<string>> {
-  const combinations: Array<Array<string>> = [];
+  const combinations: Array<Array<string>> = [[]];
+  const sorted = candidates.toSorted((a, b) => a.netCost - b.netCost);
 
-  // Always test baseline (no additional skills)
-  combinations.push([]);
+  let capped = false;
 
-  // Sort candidates by display cost (cheapest first for better coverage)
-  const sortedCandidates = candidates.toSorted((a, b) => a.netCost - b.netCost);
+  function enumerate(start: number, current: Array<string>, currentCost: number) {
+    for (let i = start; i < sorted.length; i++) {
+      const newCost = currentCost + sorted[i].netCost;
+      if (newCost > budget) break;
 
-  // Test individual skills
-  for (const candidate of sortedCandidates) {
-    const cost = candidate.netCost;
-    if (cost <= budget) {
-      combinations.push([candidate.skillId]);
-    }
-  }
+      const combo = [...current, sorted[i].skillId];
+      combinations.push(combo);
 
-  // Test pairs (limited to avoid combinatorial explosion)
-  for (let i = 0; i < Math.min(sortedCandidates.length, 10); i++) {
-    for (let j = i + 1; j < Math.min(sortedCandidates.length, 10); j++) {
-      const costI = sortedCandidates[i].netCost;
-      const costJ = sortedCandidates[j].netCost;
-      const cost = costI + costJ;
-
-      if (cost <= budget) {
-        combinations.push([sortedCandidates[i].skillId, sortedCandidates[j].skillId]);
+      if (combinations.length >= MAX_COMBINATIONS) {
+        capped = true;
+        return;
       }
+
+      enumerate(i + 1, combo, newCost);
+      if (capped) return;
     }
   }
 
-  // Test triples (even more limited)
-  for (let i = 0; i < Math.min(sortedCandidates.length, 5); i++) {
-    for (let j = i + 1; j < Math.min(sortedCandidates.length, 5); j++) {
-      for (let k = j + 1; k < Math.min(sortedCandidates.length, 5); k++) {
-        const costI = sortedCandidates[i].netCost;
-        const costJ = sortedCandidates[j].netCost;
-        const costK = sortedCandidates[k].netCost;
-        const cost = costI + costJ + costK;
-
-        if (cost <= budget) {
-          combinations.push([
-            sortedCandidates[i].skillId,
-            sortedCandidates[j].skillId,
-            sortedCandidates[k].skillId,
-          ]);
-        }
-      }
-    }
-  }
+  enumerate(0, [], 0);
 
   return enforcePrerequisites(combinations, candidates, budget);
 }
 
 /**
- * Enforce prerequisite skills in generated combinations.
+ * Enforce prerequisite purchase chains in generated combinations.
  *
- * Gold skills require their white counterpart unless that white skill
- * is already obtained (and therefore absent from candidate pool).
+ * Purchase chain: base ○ → upgrade ◎ → gold
+ *  - Gold requires both white tiers (base ○ and upgrade ◎)
+ *  - Upgrade ◎ requires base ○
+ *
+ * Prerequisites that are already obtained (not in candidate pool) are skipped.
  */
 function enforcePrerequisites(
   combinations: Array<Array<string>>,
   candidates: Array<CandidateSkill>,
   budget: number,
 ): Array<Array<string>> {
-  const candidateMap = new Map(candidates.map((candidate) => [candidate.skillId, candidate]));
-  const prerequisites = new Map<string, string>();
+  const candidateMap = new Map(candidates.map((c) => [c.skillId, c]));
+
+  // Build prerequisite map: skillId → list of required skill IDs
+  const prerequisites = new Map<string, Array<string>>();
 
   for (const candidate of candidates) {
-    if (!candidate.isGold || !candidate.whiteSkillId) {
-      continue;
+    const prereqs: Array<string> = [];
+
+    if (candidate.isGold) {
+      // Gold → needs base ○ and upgrade ◎
+      const whiteId = getWhiteVersion(candidate.skillId);
+      if (whiteId) {
+        const baseId = getBaseTier(whiteId);
+        const upgradeId = getUpgradeTier(baseId);
+        if (baseId && candidateMap.has(baseId)) prereqs.push(baseId);
+        if (upgradeId && candidateMap.has(upgradeId)) prereqs.push(upgradeId);
+      }
+    } else if (candidate.isStackable && candidate.tierLevel === 2 && candidate.previousTierId) {
+      // Upgrade ◎ → needs base ○
+      if (candidateMap.has(candidate.previousTierId)) {
+        prereqs.push(candidate.previousTierId);
+      }
     }
 
-    // Only enforce when the white prerequisite is still purchasable.
-    if (candidateMap.has(candidate.whiteSkillId)) {
-      prerequisites.set(candidate.skillId, candidate.whiteSkillId);
+    if (prereqs.length > 0) {
+      prerequisites.set(candidate.skillId, prereqs);
     }
   }
 
@@ -179,23 +177,21 @@ function enforcePrerequisites(
     const withPrerequisites = new Set(combination);
 
     for (const skillId of combination) {
-      const whitePrerequisite = prerequisites.get(skillId);
-      if (whitePrerequisite) {
-        withPrerequisites.add(whitePrerequisite);
+      const prereqs = prerequisites.get(skillId);
+      if (prereqs) {
+        for (const prereqId of prereqs) {
+          withPrerequisites.add(prereqId);
+        }
       }
     }
 
     const normalized = Array.from(withPrerequisites);
     const key = normalized.toSorted().join(',');
 
-    if (uniqueKeys.has(key)) {
-      continue;
-    }
+    if (uniqueKeys.has(key)) continue;
 
     const cost = calculateCombinationCost(normalized, candidates);
-    if (cost > budget) {
-      continue;
-    }
+    if (cost > budget) continue;
 
     uniqueKeys.add(key);
     filtered.push(normalized);

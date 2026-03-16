@@ -197,3 +197,15 @@ export const getSkillNameById = (id: string): string => {
 export const getSkillNames = (): Array<string> => {
   return Object.values(skillCollection).map((skill) => skill.name);
 };
+
+export const findVersionOfSkill = (id: string, existingIds: Array<string>): string | undefined => {
+  const skill = skillCollection[id];
+
+  if (skill === undefined) {
+    return undefined;
+  }
+
+  return skill.versions
+    .map(String)
+    .find((versionId) => versionId !== id && existingIds.includes(versionId));
+};
