@@ -3,15 +3,14 @@ import { SkillComparisonRoundResult } from '@/modules/simulation/types';
 import { CellContext } from '@tanstack/react-table';
 
 import icons from '@/modules/data/icons.json';
-import { useUmas } from '@/modules/data/master-db.store';
-import type { UmasMap } from '@/workers/db/storage';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Button } from '../ui/button';
 import { CircleHelp } from 'lucide-react';
 import { ExpandedSkillDetails } from '@/modules/skills/components/ExpandedSkillDetails';
 import { useMemo } from 'react';
-import { SkillEntry } from '@/modules/data/skill-types';
+import { SkillEntry, skills } from '@/modules/data/skills';
 import React from 'react';
+import { umaForUniqueSkill } from '@/modules/data/umas';
 
 type SkillNameTableCellProps = {
   id: string;
@@ -64,13 +63,11 @@ type SkillNameCellProps = {
 export const skillNameCell = ({
   showUmaIcons = false,
   showSkillIds = true,
-  skillMetadataById,
   courseDistance,
 }: SkillNameCellProps) => {
   return React.memo((props: CellContext<SkillComparisonRoundResult, unknown>) => {
-    const umas = useUmas();
     const id = props.getValue() as string;
-    const skill = skillMetadataById.get(id);
+    const skill = skills[id];
 
     const translatedName = i18n.t(`skillnames.${id}`);
 
@@ -80,8 +77,9 @@ export const skillNameCell = ({
 
     const iconSrc = useMemo(() => {
       if (!skill) return { src: null, className: 'w-4 h-4' };
+
       if (showUmaIcons) {
-        const umaId = umaForUniqueSkill(id, umas);
+        const umaId = umaForUniqueSkill(id);
         if (umaId && icons[umaId as keyof typeof icons]) {
           return {
             src: icons[umaId as keyof typeof icons],
@@ -94,7 +92,7 @@ export const skillNameCell = ({
         src: `/icons/${skill.iconId}.png`,
         className: 'w-4 h-4',
       };
-    }, [id, skill, umas]);
+    }, [id, skill]);
 
     if (!skill) {
       return (
@@ -116,25 +114,3 @@ export const skillNameCell = ({
     );
   });
 };
-
-function umaForUniqueSkill(skillId: string, umas: UmasMap): string | null {
-  const sid = parseInt(skillId);
-  if (sid < 100000 || sid >= 200000) return null;
-
-  const remainder = sid - 100001;
-  if (remainder < 0) return null;
-
-  const i = Math.floor(remainder / 10) % 1000;
-  const v = Math.floor(remainder / 10 / 1000) + 1;
-
-  const umaId = i.toString().padStart(3, '0');
-  const baseUmaId = `1${umaId}`;
-  const outfitId = `${baseUmaId}${v.toString().padStart(2, '0')}`;
-  const uma = umas[baseUmaId];
-
-  if (uma?.outfits[outfitId]) {
-    return outfitId;
-  }
-
-  return null;
-}

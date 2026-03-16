@@ -1,31 +1,13 @@
 import { parseSkillCondition, tokenizedConditions } from './conditions';
-import type { ISkill } from './types';
 import type { UmaAltId } from '@/modules/runners/utils';
-import type { ISkillRarity } from '@/lib/sunday-tools/skills/definitions';
 import { SkillRarity } from '@/lib/sunday-tools/skills/definitions';
-import { skills } from '@/modules/data/skills';
-import type { SkillEntry } from '@/modules/data/skills';
-
-// ===== Data =====
-
-import GametoraSkills from '@/modules/data/gametora/skills.json';
+import { getSkills, skills, SkillsMap } from '@/modules/data/skills';
 
 // ===== Utils =====
 
 import { treeMatch } from '@/lib/sunday-tools/skills/parser/ConditionMatcher';
 
 // Types
-
-export type TranslatedSkillNames = Record<string, string>;
-
-export type SkillData = Pick<SkillEntry, 'alternatives' | 'rarity'>;
-
-export type SkillMeta = Pick<SkillEntry, 'groupId' | 'iconId' | 'baseCost' | 'order'>;
-
-export type Skill = SkillEntry & {
-  id: string; // The ID of the skill, e.g. "100011-1"
-  originalId: string; // The original ID of the skill, e.g. "100011"
-};
 
 // Methods
 
@@ -37,33 +19,6 @@ export const getBaseSkillId = (id: string): string => {
   }
 
   return skillId;
-};
-
-export const getSkillById = (id: string): SkillEntry => {
-  const baseId = getBaseSkillId(id);
-  const skill = skills[baseId];
-  if (!skill) {
-    throw new Error(`Skill not found for ID: ${id}`);
-  }
-  return skill;
-};
-
-export const getSkillDataById = (id: string): SkillData => {
-  const skill = getSkillById(id);
-  return {
-    alternatives: skill.alternatives,
-    rarity: skill.rarity as ISkillRarity,
-  };
-};
-
-export const getSkillMetaById = (id: string): SkillMeta => {
-  const skill = getSkillById(id);
-  return {
-    groupId: skill.groupId,
-    iconId: skill.iconId,
-    baseCost: skill.baseCost,
-    order: skill.order,
-  };
 };
 
 export const getSkillNameById = (id: string): string => {
@@ -94,21 +49,6 @@ export function getUniqueSkillForByUmaId(outfitId: UmaAltId): string {
   return skillId;
 }
 
-export function skillComparator(a: string, b: string) {
-  const x = getSkillMetaById(a).order;
-  const y = getSkillMetaById(b).order;
-
-  return +(y < x) - +(x < y) || +(b < a) - +(a < b);
-}
-
-export function sortSkills(skills: Array<string>): Array<string> {
-  return skills.toSorted(skillComparator);
-}
-
-export function SkillSet(iterable: Array<string>): Set<string> {
-  return new Set<string>(sortSkills(iterable));
-}
-
 /**
  * Skills that are never acquired through training, so we don't need to test them.
  */
@@ -137,46 +77,19 @@ export const getBaseSkillsToTest = () => {
   return skillsToTest;
 };
 
-export const translateSkillNamesForLang = (lang: 'en' | 'ja'): TranslatedSkillNames => {
-  return Object.entries(skills).reduce((acc, [key, value]) => {
-    // Names from master are currently English-only; for now JA falls back to EN.
-    if (lang === 'en' || lang === 'ja') {
-      acc[key] = value.name;
-    }
-    return acc;
-  }, {} as TranslatedSkillNames);
-};
-
-export const getAllSkills = (): Array<Skill> => {
-  return Object.entries(skills).map(([id, entry]) => ({
-    ...entry,
-    id,
-    originalId: getBaseSkillId(id),
-  }));
-};
-
-export let allSkills: Array<Skill> = [];
-export let skillsById: Map<string, Skill> = new Map();
-
-export const getRunnerSkills = (skillIds: Array<string>): Array<Skill> => {
-  return allSkills.filter((skill) => skillIds.includes(skill.originalId));
-};
-
-export let nonUniqueSkills: Array<Skill> = [];
-export let nonUniqueSkillIds: Array<string> = [];
-
 export const getSelectableSkillsForUma = (umaId: UmaAltId) => {
   const ids: Array<string> = [];
 
   // White, Gold, Upgraded Unique (2* Umas), Unique (3* Umas)
   const allowedRarities = [1, 2, 4, 5];
 
-  for (const skill of GametoraSkills as Array<ISkill>) {
+  for (const skill of getSkills()) {
     if (!allowedRarities.includes(skill.rarity)) continue;
+
     if (
       ![1, 2].includes(skill.rarity) &&
-      skill.char?.length === 1 &&
-      skill.char?.includes(parseInt(umaId))
+      skill.character?.length === 1 &&
+      skill.character?.includes(parseInt(umaId))
     )
       continue;
 
@@ -192,10 +105,10 @@ export const getSelectableSkillsForUma = (umaId: UmaAltId) => {
 };
 
 export const matchRarity = (skillId: string, rarityB: string) => {
-  const skillData = getSkillDataById(skillId);
-  if (!skillData) return false;
+  const skill = skills[skillId];
+  if (!skill) return false;
 
-  const rarity = skillData.rarity;
+  const rarity = skill.rarity;
 
   switch (rarityB) {
     case 'white':
@@ -263,21 +176,21 @@ export const conditionFilterMap = {
   ],
 };
 
-const generateSkillFilterLookUp = (skillsToMatch: Array<Skill>) => {
+export const generateSkillFilterLookUp = (skillsToMatch: SkillsMap) => {
   const filterLookup: Record<string, Set<string>> = {};
   const filterMapEntries = Object.entries(conditionFilterMap);
 
   for (const [filterKey, ops] of filterMapEntries) {
     filterLookup[filterKey] = new Set();
 
-    for (const skill of skillsToMatch) {
-      const conditions = tokenizedConditions[skill.id];
+    for (const id of Object.keys(skillsToMatch)) {
+      const conditions = tokenizedConditions[id];
       if (!conditions) continue;
 
       const matches = ops.some((op) => conditions.some((alt) => treeMatch(op, alt)));
 
       if (matches) {
-        filterLookup[filterKey].add(skill.id);
+        filterLookup[filterKey].add(id);
       }
     }
   }
@@ -298,7 +211,7 @@ export let skillFilterLookUp: Record<string, Set<string>> = {};
  * - Phase 3 (Last Spurt): Sections 21-24 (~83.3% to 100%)
  */
 export function estimateSkillActivationPhase(skillId: string): number | null {
-  const data = getSkillDataById(skillId);
+  const data = skills[skillId];
   if (!data?.alternatives?.[0]?.condition) return null;
 
   const condition = data.alternatives[0].condition;
@@ -337,7 +250,7 @@ export function estimateSkillActivationPhase(skillId: string): number | null {
 
 export const getGeneVersionSkillId = (skillId: string): string => {
   const baseSkillId = getBaseSkillId(skillId);
-  const skill: ISkill = GametoraSkills.find((s) => s.id === parseInt(baseSkillId));
+  const skill = skills[baseSkillId];
   if (!skill) return skillId;
 
   const geneVersionId = skill.gene_version?.id;
@@ -349,50 +262,15 @@ export const getGeneVersionSkillId = (skillId: string): string => {
 
 export const getUmaForUniqueSkill = (skillId: string): string => {
   const baseSkillId = getBaseSkillId(skillId);
-  const skill: ISkill = GametoraSkills.find((s) => s.id === parseInt(baseSkillId));
+  const skill = skills[baseSkillId];
   if (!skill) {
     throw new Error(`Skill not found: ${skillId}`);
   }
 
-  const outfitId = skill.char?.[0];
+  const outfitId = skill.character?.[0];
   if (!outfitId) {
     throw new Error(`Uma ID not found for skill: ${skillId}`);
   }
 
   return outfitId.toString();
 };
-
-export let uniqueSkillIds: Array<string> = [];
-
-export function rebuildSkillDerivedCaches(): void {
-  const nextAllSkills = getAllSkills();
-  const nextSkillsById: Map<string, Skill> = new Map();
-  const nextNonUniqueSkills: Array<Skill> = [];
-  const nextNonUniqueSkillIds: Array<string> = [];
-  const nextUniqueSkillIds: Array<string> = [];
-
-  for (const skill of nextAllSkills) {
-    nextSkillsById.set(skill.id, skill);
-
-    const isNotUniqueSkill = skill.rarity < SkillRarity.Unique;
-    const isEvolvedSkill = skill.rarity === SkillRarity.Evolution;
-
-    if (isNotUniqueSkill || isEvolvedSkill) {
-      nextNonUniqueSkills.push(skill);
-      nextNonUniqueSkillIds.push(skill.id);
-    }
-
-    if (skill.rarity >= 4 && skill.id.startsWith('1')) {
-      nextUniqueSkillIds.push(skill.id);
-    }
-  }
-
-  allSkills = nextAllSkills;
-  skillsById = nextSkillsById;
-  nonUniqueSkills = nextNonUniqueSkills;
-  nonUniqueSkillIds = nextNonUniqueSkillIds;
-  uniqueSkillIds = nextUniqueSkillIds;
-  skillFilterLookUp = generateSkillFilterLookUp(nextAllSkills);
-}
-
-rebuildSkillDerivedCaches();

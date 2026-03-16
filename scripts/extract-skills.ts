@@ -13,7 +13,7 @@ import {
   sortByNumericKey,
   writeJsonFile,
 } from './lib/shared';
-import type { SkillEntry } from '@/modules/data/skill-types';
+import type { SkillEntry } from '../src/modules/data/skills';
 import type { ISkillTarget } from '@/lib/sunday-tools/skills/definitions';
 
 interface SkillRow {
@@ -52,6 +52,11 @@ interface SkillRow {
 interface SkillNameRow {
   index: number;
   text: string;
+}
+
+interface UniqueSkillOwnerRow {
+  skillId: number;
+  outfitId: number;
 }
 
 type SkillEffect = {
@@ -202,6 +207,31 @@ function buildAlternatives(row: SkillRow): Array<SkillAlternative> {
   return alternatives;
 }
 
+function isConcreteOutfitId(outfitId: number): boolean {
+  return outfitId >= 100000;
+}
+
+function reduceUniqueSkillOwners(rows: Array<UniqueSkillOwnerRow>): Map<string, number> {
+  const owners = new Map<string, number>();
+
+  for (const row of rows) {
+    // Base rarity uniques sometimes point at placeholder dress ids like 101.
+    // Only keep concrete outfit ids because runtime ownership checks use full outfit ids.
+    if (!isConcreteOutfitId(row.outfitId)) {
+      continue;
+    }
+
+    const skillId = row.skillId.toString();
+    const currentOwner = owners.get(skillId);
+
+    if (currentOwner === undefined || row.outfitId < currentOwner) {
+      owners.set(skillId, row.outfitId);
+    }
+  }
+
+  return owners;
+}
+
 async function extractSkills(options: ExtractSkillsOptions = { replaceMode: false }) {
   console.log('📖 Extracting unified skills...\n');
 
@@ -257,6 +287,7 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
       const alternatives = buildAlternatives(row);
       const name = namesById[row.id.toString()] ?? '';
       const baseEntry: Omit<SkillEntry, 'alternatives'> = {
+        id: row.id.toString(),
         rarity: row.rarity,
         groupId: row.group_id,
         iconId: row.icon_id.toString(),
@@ -264,6 +295,7 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
         order: row.disp_order,
         name,
         source: 'master',
+        character: [],
       };
 
       if (SPLIT_ALTERNATIVES.has(row.id)) {
@@ -282,6 +314,48 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
         };
       }
     }
+
+    const uniqueSkillOwnerRows = queryAll<UniqueSkillOwnerRow>(
+      db,
+      `WITH skill_slots AS (
+         SELECT id AS skill_set_id, skill_id1 AS skill_id FROM skill_set WHERE skill_id1 <> 0
+         UNION ALL SELECT id, skill_id2 FROM skill_set WHERE skill_id2 <> 0
+         UNION ALL SELECT id, skill_id3 FROM skill_set WHERE skill_id3 <> 0
+         UNION ALL SELECT id, skill_id4 FROM skill_set WHERE skill_id4 <> 0
+         UNION ALL SELECT id, skill_id5 FROM skill_set WHERE skill_id5 <> 0
+         UNION ALL SELECT id, skill_id6 FROM skill_set WHERE skill_id6 <> 0
+         UNION ALL SELECT id, skill_id7 FROM skill_set WHERE skill_id7 <> 0
+         UNION ALL SELECT id, skill_id8 FROM skill_set WHERE skill_id8 <> 0
+         UNION ALL SELECT id, skill_id9 FROM skill_set WHERE skill_id9 <> 0
+         UNION ALL SELECT id, skill_id10 FROM skill_set WHERE skill_id10 <> 0
+       )
+       SELECT DISTINCT
+         sd.id AS skillId,
+         crd.race_dress_id AS outfitId
+       FROM card_rarity_data crd
+       JOIN card_data cd
+         ON cd.id = crd.card_id
+       JOIN skill_slots ss
+         ON ss.skill_set_id = crd.skill_set
+       JOIN skill_data sd
+         ON sd.id = ss.skill_id
+       WHERE sd.rarity >= 3`,
+    );
+    const uniqueSkillOwners = reduceUniqueSkillOwners(uniqueSkillOwnerRows);
+    let ownerCount = 0;
+
+    for (const [skillId, outfitId] of uniqueSkillOwners) {
+      const skill = extractedSkills[skillId];
+      if (!skill) {
+        continue;
+      }
+
+      // Only unique skills are safe to tie to a single uma outfit.
+      skill.character = [outfitId];
+      ownerCount++;
+    }
+
+    console.log(`Mapped ${ownerCount} unique skills to owning outfits`);
 
     const outputPath = path.join(process.cwd(), 'src/modules/data/skills.json');
 

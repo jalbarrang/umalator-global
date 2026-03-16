@@ -1,6 +1,3 @@
-import type { ISkill } from './types';
-import GametoraSkills from '@/modules/data/gametora/skills.json';
-
 /**
  * Skill Relationship Parser
  *
@@ -49,15 +46,14 @@ import GametoraSkills from '@/modules/data/gametora/skills.json';
  * - 4 = Gold (in Pattern 1)
  */
 
+import { skills } from '../data/skills';
+
 // ============================================================================
 // Internal Data Structures
 // ============================================================================
 
 /** Map of skill ID to all family member IDs (including self) */
 const skillFamilyMap = new Map<number, Array<number>>();
-
-/** Map of skill ID to skill data for quick lookup */
-const skillById = new Map<number, ISkill>();
 
 // ============================================================================
 // Module Initialization
@@ -67,9 +63,7 @@ const skillById = new Map<number, ISkill>();
  * Build skill family maps at module load time.
  * Processes all skills once to create lookup tables.
  */
-function buildSkillFamilyMaps(): void {
-  const skills = GametoraSkills as Array<ISkill>;
-
+export function buildSkillFamilyMaps(): void {
   // First pass: Build skillById map
   for (const skill of skills) {
     skillById.set(skill.id, skill);
@@ -91,9 +85,6 @@ function buildSkillFamilyMaps(): void {
     skillFamilyMap.set(skill.id, uniqueFamily);
   }
 }
-
-// Initialize maps when module loads
-buildSkillFamilyMaps();
 
 // ============================================================================
 // Helper Functions
