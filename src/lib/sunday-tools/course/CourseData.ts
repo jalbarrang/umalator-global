@@ -108,7 +108,7 @@ export class CourseHelpers {
     const maxLaneDistance = (courseWidth * course.laneMax) / 10000.0;
     const moveLanePoint = course.corners.length > 0 ? course.corners[0].start : 30.0;
 
-    const course2: CourseData = {
+    const course2 = {
       ...course,
       slopes,
       courseWidth,
@@ -119,6 +119,6 @@ export class CourseHelpers {
       moveLanePoint,
     };
 
-    return course2;
+    return course2 as CourseData;
   }
 }

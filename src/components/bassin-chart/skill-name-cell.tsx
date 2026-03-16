@@ -8,7 +8,7 @@ import { Button } from '../ui/button';
 import { CircleHelp } from 'lucide-react';
 import { ExpandedSkillDetails } from '@/modules/skills/components/ExpandedSkillDetails';
 import { useMemo } from 'react';
-import { SkillEntry, skills } from '@/modules/data/skills';
+import { SkillEntry, skillCollection } from '@/modules/data/skills';
 import React from 'react';
 import { umaForUniqueSkill } from '@/modules/data/umas';
 
@@ -67,7 +67,7 @@ export const skillNameCell = ({
 }: SkillNameCellProps) => {
   return React.memo((props: CellContext<SkillComparisonRoundResult, unknown>) => {
     const id = props.getValue() as string;
-    const skill = skills[id];
+    const skill = skillCollection[id];
 
     const translatedName = i18n.t(`skillnames.${id}`);
 

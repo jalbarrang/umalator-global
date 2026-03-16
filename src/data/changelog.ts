@@ -24,7 +24,7 @@ export function parseChangelog(markdown: string): Array<ChangelogEntry> {
       continue;
     }
 
-    const itemMatch = line.match(/^\-\s+(.+)$/);
+    const itemMatch = line.match(/^-\s+(.+)$/);
     if (!itemMatch || !currentEntry) continue;
 
     currentEntry.changes.push(itemMatch[1].trim());

@@ -6,16 +6,17 @@ type TrackNameList = {
   [key in TrackIds]: [string, string];
 };
 
-const extractTrackNamesForLanguage = (language: 'ja' | 'en') => {
-  return Object.fromEntries(
-    Object.entries(trackNameList as TrackNameList).map(([key, value]) => [
-      key,
-      value[language === 'ja' ? 0 : 1],
-    ]),
-  );
+const extractTrackNamesForLanguage = () => {
+  const result: Record<string, string> = {};
+  const entries = Object.entries(trackNameList as TrackNameList);
+
+  for (let i = 0; i < entries.length; i++) {
+    const [key, value] = entries[i];
+    result[key] = value[1];
+  }
+
+  return result;
 };
 
-export const TRACKNAMES_ja = extractTrackNamesForLanguage('ja');
-export const TRACKNAMES_en = extractTrackNamesForLanguage('en');
-
+export const TRACKNAMES_en = extractTrackNamesForLanguage();
 export const trackIds = Object.keys(trackNameList);

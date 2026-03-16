@@ -1,16 +1,7 @@
-import { useMemo, useSyncExternalStore } from 'react';
+import { useMemo } from 'react';
 import icons from '@/modules/data/icons.json';
-import {
-  getRuntimeUmas,
-  subscribeRuntimeMasterDbData,
-} from '@/modules/data/runtime-data-context';
-import type { UmasMap } from '@/workers/db/storage';
+import { umas, type UmasMap } from '@/modules/data/umas';
 
-export type UmaData = UmasMap;
-export type UmaDataKey = keyof UmaData & string;
-export type UmaEntry = UmaData[UmaDataKey];
-export type UmaOutfitKey = keyof UmaEntry['outfits'] & string;
-export type UmaOutfit = UmaEntry['outfits'][UmaOutfitKey];
 export type UmaSearchEntry = {
   id: string;
   name: string;
@@ -21,12 +12,6 @@ export type Uma = {
   name: Array<string>;
   outfits: Record<string, string>;
 };
-
-const getUmasData = () => getRuntimeUmas();
-
-function useRuntimeUmas(): UmasMap {
-  return useSyncExternalStore(subscribeRuntimeMasterDbData, getRuntimeUmas, getRuntimeUmas);
-}
 
 function buildUmaSearchData(umas: UmasMap): {
   altIds: Array<string>;
@@ -88,7 +73,6 @@ export const getUmaBaseId = (id: string) => {
 
 export const getUmaById = (id: string) => {
   const baseId = getUmaBaseId(id);
-  const umas = getUmasData();
 
   const uma = umas[baseId];
 
@@ -100,16 +84,15 @@ export const getUmaById = (id: string) => {
 };
 
 export type UmaAltId = string;
-export const getUmaAltIds = () => buildUmaSearchData(getUmasData()).altIds;
+export const getUmaAltIds = () => buildUmaSearchData(umas).altIds;
 
 // Lookup Functions
 
-export const getUmaNamesForSearch = () => buildUmaSearchData(getUmasData()).namesForSearch;
-export const getUmasForSearch = () => buildUmaSearchData(getUmasData()).umasForSearch;
+export const getUmaNamesForSearch = () => buildUmaSearchData(umas).namesForSearch;
+export const getUmasForSearch = () => buildUmaSearchData(umas).umasForSearch;
 
 export function useUmasForSearch(): Array<UmaSearchEntry> {
-  const umas = useRuntimeUmas();
-  return useMemo(() => buildUmaSearchData(umas).umasForSearch, [umas]);
+  return useMemo(() => buildUmaSearchData(umas).umasForSearch, []);
 }
 
 export function rankForStat(x: number) {

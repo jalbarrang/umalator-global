@@ -19,9 +19,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { getSkillById, getSkillNameById, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
+import { getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import { Separator } from '@/components/ui/separator';
 import { SkillIcon } from '@/modules/skills/components/skill-list/SkillItem';
+import { skillCollection } from '@/modules/data/skills';
 
 export function CandidateSkillList() {
   const { candidates, runner, obtainedSkills } = useSkillPlannerStore();
@@ -87,7 +88,7 @@ function CandidateSkillItem(props: CandidateSkillItemProps) {
   const { candidate, isUnique, isObtained } = props;
   const { hasFastLearner } = useSkillPlannerStore();
 
-  const skillName = useMemo(() => getSkillNameById(candidate.skillId), [candidate.skillId]);
+  const skillName = useMemo(() => skillCollection[candidate.skillId].name, [candidate.skillId]);
 
   const handleHintLevelChange = (value: HintLevel | null) => {
     if (value !== null) {
@@ -124,8 +125,7 @@ function CandidateSkillItem(props: CandidateSkillItemProps) {
   }, [candidate.hintLevel]);
 
   const skillIconId = useMemo(() => {
-    const skill = getSkillById(candidate.skillId);
-    return skill.iconId;
+    return skillCollection[candidate.skillId].iconId;
   }, [candidate.skillId]);
 
   const effectiveCost = useMemo(() => {

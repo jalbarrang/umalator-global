@@ -25,15 +25,10 @@ import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 import { racedefToParams } from '@/utils/races';
 import { useSettingsStore } from '@/store/settings.store';
 import { defaultSimulationOptions } from '@/components/bassin-chart/utils';
-import { syncWorkerRuntimeData } from '@/modules/data/worker-sync';
 
 const createSkillPlannerWorker = () => new SkillPlannerWorker();
 
 type WorkerMessage =
-  | {
-      type: 'data-ready';
-      resourceVersion: string;
-    }
   | {
       type: 'worker-error';
       error: string;
@@ -125,30 +120,22 @@ export function useSkillPlannerOptimizer() {
     setProgress(null);
     setIsOptimizing(true);
 
-    void syncWorkerRuntimeData(webWorkerRef.current)
-      .then(() => {
-        webWorkerRef.current?.postMessage({
-          type: 'optimize',
-          data: {
-            candidates,
-            obtainedSkills,
-            budget,
-            hasFastLearner,
-            runner,
-            course,
-            racedef: raceParams,
-            options: {
-              ...defaultSimulationOptions,
-              seed: seedValue,
-            },
-          },
-        });
-      })
-      .catch((error: unknown) => {
-        console.error('Failed to sync skill planner worker:', error);
-        setIsOptimizing(false);
-        setProgress(null);
-      });
+    webWorkerRef.current?.postMessage({
+      type: 'optimize',
+      data: {
+        candidates,
+        obtainedSkills,
+        budget,
+        hasFastLearner,
+        runner,
+        course,
+        racedef: raceParams,
+        options: {
+          ...defaultSimulationOptions,
+          seed: seedValue,
+        },
+      },
+    });
   };
 
   const handleOptimize = () => {

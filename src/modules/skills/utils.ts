@@ -1,7 +1,7 @@
 import { parseSkillCondition, tokenizedConditions } from './conditions';
 import type { UmaAltId } from '@/modules/runners/utils';
 import { SkillRarity } from '@/lib/sunday-tools/skills/definitions';
-import { getSkills, skills, SkillsMap } from '@/modules/data/skills';
+import { getSkills, skillCollection, SkillsMap } from '@/modules/data/skills';
 
 // ===== Utils =====
 
@@ -23,7 +23,7 @@ export const getBaseSkillId = (id: string): string => {
 
 export const getSkillNameById = (id: string): string => {
   const baseId = getBaseSkillId(id);
-  const skill = skills[baseId];
+  const skill = skillCollection[baseId];
   if (skill?.name) {
     return skill.name;
   }
@@ -31,7 +31,7 @@ export const getSkillNameById = (id: string): string => {
   // Master data doesn't always include inherited aliases. Resolve those from their original unique.
   if (baseId.startsWith('9')) {
     const originalId = `1${baseId.slice(1)}`;
-    const originalSkill = skills[originalId];
+    const originalSkill = skillCollection[originalId];
     if (originalSkill?.name) {
       return `${originalSkill.name} (inherited)`;
     }
@@ -55,13 +55,13 @@ export function getUniqueSkillForByUmaId(outfitId: UmaAltId): string {
 const nonMeasurableSkills = ['300051', '300061'];
 
 export const getBaseSkillsToTest = () => {
-  const skillIds = Object.keys(skills);
+  const skillIds = Object.keys(skillCollection);
   const skillsToTest = [];
 
   for (const id of skillIds) {
     if (nonMeasurableSkills.includes(id)) continue;
 
-    const skillData = skills[id];
+    const skillData = skillCollection[id];
 
     if (!skillData) continue;
 
@@ -105,7 +105,7 @@ export const getSelectableSkillsForUma = (umaId: UmaAltId) => {
 };
 
 export const matchRarity = (skillId: string, rarityB: string) => {
-  const skill = skills[skillId];
+  const skill = skillCollection[skillId];
   if (!skill) return false;
 
   const rarity = skill.rarity;
@@ -211,7 +211,7 @@ export let skillFilterLookUp: Record<string, Set<string>> = {};
  * - Phase 3 (Last Spurt): Sections 21-24 (~83.3% to 100%)
  */
 export function estimateSkillActivationPhase(skillId: string): number | null {
-  const data = skills[skillId];
+  const data = skillCollection[skillId];
   if (!data?.alternatives?.[0]?.condition) return null;
 
   const condition = data.alternatives[0].condition;
@@ -250,7 +250,7 @@ export function estimateSkillActivationPhase(skillId: string): number | null {
 
 export const getGeneVersionSkillId = (skillId: string): string => {
   const baseSkillId = getBaseSkillId(skillId);
-  const skill = skills[baseSkillId];
+  const skill = skillCollection[baseSkillId];
   if (!skill) return skillId;
 
   const geneVersionId = skill.gene_version?.id;
@@ -262,7 +262,7 @@ export const getGeneVersionSkillId = (skillId: string): string => {
 
 export const getUmaForUniqueSkill = (skillId: string): string => {
   const baseSkillId = getBaseSkillId(skillId);
-  const skill = skills[baseSkillId];
+  const skill = skillCollection[baseSkillId];
   if (!skill) {
     throw new Error(`Skill not found: ${skillId}`);
   }

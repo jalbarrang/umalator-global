@@ -3,13 +3,14 @@ import { useShallow } from 'zustand/shallow';
 import type { SimulationRun, SkillEffectLog } from '@/modules/simulation/compare.types';
 import type { PosKeepLabel } from '@/utils/races';
 import { RegionDisplayType } from '@/modules/racetrack/types';
-import { getSkillById, getSkillNameById } from '@/modules/skills/utils';
+import { getSkillNameById } from '@/modules/skills/utils';
 import { useSettingsStore } from '@/store/settings.store';
 import { colors, debuffColors, posKeepColors, recoveryColors, rushedColors } from '@/utils/colors';
 import { SkillPerspective, SkillTarget, SkillType } from '@/lib/sunday-tools/skills/definitions';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 import { isExternalDebuffEffect } from '@/lib/sunday-tools/skills/external-debuffs';
 import { useDebuffs } from '@/modules/simulation/stores/compare.store';
+import { skillCollection } from '@/modules/data/skills';
 
 export type RegionData = {
   type: RegionDisplayType;
@@ -41,7 +42,7 @@ type InjectedDebuffRegionRef = {
 
 const getDebuffIndicatorEffectType = (skillId: string): number => {
   try {
-    const skillData = getSkillById(skillId);
+    const skillData = skillCollection[skillId];
 
     for (const alternative of skillData.alternatives) {
       for (const effect of alternative.effects) {
@@ -86,7 +87,9 @@ const getSkillActivations = (
 
     const result: Array<RegionData> = [];
     for (const groupedEffects of grouped.values()) {
-      const durationEffect = groupedEffects.find((e) => e.end - e.start > INSTANT_DURATION_THRESHOLD);
+      const durationEffect = groupedEffects.find(
+        (e) => e.end - e.start > INSTANT_DURATION_THRESHOLD,
+      );
       const repr = durationEffect ?? groupedEffects[0];
       const isRecovery = repr.effectType === SkillType.Recovery;
       const color = isDebuff

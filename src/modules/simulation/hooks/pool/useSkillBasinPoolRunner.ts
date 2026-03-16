@@ -10,7 +10,7 @@ import {
   setTable,
 } from '@/modules/simulation/stores/skill-basin.store';
 import { getBaseSkillsToTest } from '@/modules/skills/utils';
-import { useRunner, useRunnersStore } from '@/store/runners.store';
+import { useRunner } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
 import { racedefToParams } from '@/utils/races';
 import {
@@ -19,7 +19,6 @@ import {
   getNullSkillComparisonRow,
 } from '@/components/bassin-chart/utils';
 import { PoolManager } from '@/workers/pool/pool-manager';
-import { getMasterDbWorkerSyncPayload } from '@/modules/data/master-db.store';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 
 const createSkillBasinPoolWorker = (options: { name: string }) => new SkillBasinPoolWorker(options);
@@ -78,7 +77,6 @@ export function useSkillBasinPoolRunner() {
     const simulationSeed = seed ?? Math.floor(Math.random() * 1000000);
 
     // Run simulation using pool manager
-    const syncPayload = getMasterDbWorkerSyncPayload();
     poolManagerRef.current.run(
       skills,
       {
@@ -90,7 +88,6 @@ export function useSkillBasinPoolRunner() {
           seed: simulationSeed,
         },
       },
-      syncPayload,
       {
         onProgress: (results, progress) => {
           appendResultsToTable(results);

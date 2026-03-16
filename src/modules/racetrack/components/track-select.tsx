@@ -31,7 +31,7 @@ export function TrackSelect(props: TrackSelectProps) {
   const coursesByTrack = useCoursesByTrack();
 
   // Derive trackid from courseId instead of storing it as state
-  const trackid = useMemo(() => getDefaultTrackIdForCourse(courseId), [courseId, coursesByTrack]);
+  const trackid = useMemo(() => getDefaultTrackIdForCourse(courseId), [courseId]);
 
   const handleChangeCourse = (value: string | null) => {
     if (!value) {

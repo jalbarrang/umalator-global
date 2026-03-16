@@ -1,5 +1,6 @@
 import { SearchIcon, XIcon } from 'lucide-react';
 import {
+  useCallback,
   useDeferredValue,
   useImperativeHandle,
   useMemo,
@@ -25,7 +26,8 @@ import { cn } from '@/lib/utils';
 import { groups_filters } from '@/modules/skills/filters';
 import { iconIdPrefixes } from '@/modules/skills/icons';
 import { SkillQuery } from '@/modules/skills/query';
-import { getAllSkills, getUniqueSkillForByUmaId, matchRarity } from '@/modules/skills/utils';
+import { getUniqueSkillForByUmaId, matchRarity } from '@/modules/skills/utils';
+import { getManySkills } from '@/modules/data/skills';
 
 type IconFilterButtonProps = {
   type: string;
@@ -190,7 +192,9 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
 
   const [filterState, dispatch] = useReducer(filterReducer, null, createInitialFilterState);
 
-  const skills = getAllSkills().filter((skill) => options.includes(skill.id));
+  const skills = useMemo(() => {
+    return getManySkills(options);
+  }, [options]);
 
   const filteredSkills = (() => {
     const activeRarities = getActiveFilters(filterState, 'rarity');
@@ -226,12 +230,12 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
     return count;
   }, [filterState]);
 
-  const handleClearFilters = () => {
+  const handleClearFilters = useCallback(() => {
     dispatch({ type: 'CLEAR_FILTERS' });
     setSearchText('');
     searchRef.current?.focus();
     searchRef.current?.select();
-  };
+  }, []);
 
   // Create a lookup map from skill ID to Skill object
   const skillsById = new Map(skills.map((skill) => [skill.id, skill]));

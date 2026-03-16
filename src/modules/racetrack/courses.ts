@@ -1,12 +1,9 @@
 import { useMemo } from 'react';
-import type { Courses } from '@/lib/sunday-tools/course/definitions';
-import { useCourses, useMasterDbStore } from '@/modules/data/master-db.store';
+import { courseCollection, CourseEntry, CoursesMap } from '../data/courses';
 
 export type CourseByTrack = Record<number, Array<number>>;
 
-const getCoursesMap = () => useMasterDbStore.getState().courses as Courses;
-
-function buildCoursesByTrack(courses: Courses): CourseByTrack {
+function buildCoursesByTrack(courses: CoursesMap): CourseByTrack {
   const byTrack: CourseByTrack = {};
 
   for (const [cid, course] of Object.entries(courses)) {
@@ -22,12 +19,11 @@ function buildCoursesByTrack(courses: Courses): CourseByTrack {
 }
 
 export const getCoursesByTrack = () => {
-  return buildCoursesByTrack(getCoursesMap());
+  return buildCoursesByTrack(courseCollection);
 };
 
 export function useCoursesByTrack(): CourseByTrack {
-  const courses = useCourses() as Courses;
-  return useMemo(() => buildCoursesByTrack(courses), [courses]);
+  return useMemo(() => buildCoursesByTrack(courseCollection), []);
 }
 
 export const getDefaultTrackIdForCourse = (courseId: number) => {
@@ -42,11 +38,13 @@ export const getCourseIdByTrackIdAndIndex = (trackId: number, index: number) => 
   return getCourseByTrackId(trackId)[index];
 };
 
-export const getCourseById = (courseId: number): Courses[number] => {
-  const course = getCoursesMap()[courseId];
+export const getCourseById = (courseId: number): CourseEntry => {
+  const course = courseCollection[courseId];
+
   if (!course) {
     throw new Error(`Course with id ${courseId} not found`);
   }
+
   return course;
 };
 

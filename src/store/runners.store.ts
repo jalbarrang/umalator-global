@@ -5,14 +5,10 @@ import { useShallow } from 'zustand/shallow';
 import { toast } from 'sonner';
 import { cloneDeep } from 'es-toolkit';
 import { useMemo } from 'react';
-import { useSettingsStore } from './settings.store';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { createRunnerState, runawaySkillId } from '@/modules/runners/components/runner-card/types';
-import {
-  getGeneVersionSkillId,
-  getUniqueSkillForByUmaId,
-  skillsById,
-} from '@/modules/skills/utils';
+import { getGeneVersionSkillId, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
+import { skillCollection } from '@/modules/data/skills';
 
 type RunnerType = 'uma1' | 'uma2';
 
@@ -55,8 +51,8 @@ export const useRunner = () => {
   };
 
   const handleAddSkill = (skillId: string) => {
-    const skill = skillsById.get(skillId);
-    const skillRarity = skill?.rarity;
+    const skill = skillCollection[skillId];
+    const skillRarity = skill.rarity;
     let newSkillId = skillId;
 
     // If Runner has outfit, it means it has a unique skill.
@@ -160,7 +156,7 @@ export const replaceRunnerOutfit = (
   const newSkills: Array<string> = [];
 
   for (const skillId of currentSkills) {
-    const skillData = skillsById.get(skillId);
+    const skillData = skillCollection[skillId];
 
     // Clean up skills that are not 3* or lower
     if (skillData?.rarity && skillData.rarity < 3) {

@@ -19,7 +19,6 @@ import { racedefToParams } from '@/utils/races';
 import { useSettingsStore } from '@/store/settings.store';
 import { useRunner } from '@/store/runners.store';
 import { getBaseSkillsToTest } from '@/modules/skills/utils';
-import { syncWorkerRuntimeData } from '@/modules/data/worker-sync';
 
 const createSkillBasinWorker = () => new SkillBasinWorker();
 
@@ -158,40 +157,33 @@ export function useSkillBasinRunner() {
       return;
     }
 
-    void Promise.all([syncWorkerRuntimeData(worker1), syncWorkerRuntimeData(worker2)])
-      .then(() => {
-        worker1.postMessage({
-          type: 'chart',
-          data: {
-            skills: skills1,
-            course,
-            racedef: params,
-            uma,
-            options: {
-              ...defaultSimulationOptions,
-              seed,
-            },
-          },
-        });
+    worker1.postMessage({
+      type: 'chart',
+      data: {
+        skills: skills1,
+        course,
+        racedef: params,
+        uma,
+        options: {
+          ...defaultSimulationOptions,
+          seed,
+        },
+      },
+    });
 
-        worker2.postMessage({
-          type: 'chart',
-          data: {
-            skills: skills2,
-            course,
-            racedef: params,
-            uma,
-            options: {
-              ...defaultSimulationOptions,
-              seed,
-            },
-          },
-        });
-      })
-      .catch((error: unknown) => {
-        console.error('Failed to sync skill basin workers:', error);
-        setIsSimulationRunning(false);
-      });
+    worker2.postMessage({
+      type: 'chart',
+      data: {
+        skills: skills2,
+        course,
+        racedef: params,
+        uma,
+        options: {
+          ...defaultSimulationOptions,
+          seed,
+        },
+      },
+    });
   };
 
   return { doBasinnChart };

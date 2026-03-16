@@ -1,7 +1,13 @@
 import { PlusIcon, Trash2Icon, XIcon } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -13,7 +19,7 @@ import {
 } from '@/components/ui/panel';
 import i18n from '@/i18n';
 import { SkillPickerContent } from '@/modules/skills/components/skill-picker-content';
-import { getAllSkills } from '@/modules/skills/utils';
+import { getSkills } from '@/modules/data/skills';
 import { isInjectableExternalDebuffSkill } from '@/lib/sunday-tools/skills/external-debuffs';
 import {
   addDebuff,
@@ -117,9 +123,18 @@ export function DebuffsPanel() {
   const hasDebuffs = uma1.length > 0 || uma2.length > 0;
 
   const debuffSkillOptions = useMemo(() => {
-    return getAllSkills()
-      .filter((skill) => isInjectableExternalDebuffSkill(skill))
-      .map((skill) => skill.id);
+    const result: string[] = [];
+    const skills = getSkills();
+
+    for (let i = 0; i < skills.length; i++) {
+      const skill = skills[i];
+
+      if (isInjectableExternalDebuffSkill(skill)) {
+        result.push(skill.id);
+      }
+    }
+
+    return result;
   }, []);
 
   const handleOpenPicker = (runnerId: CompareRunnerId) => {

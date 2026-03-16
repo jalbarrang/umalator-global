@@ -3,12 +3,8 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import { calculateSkillCost } from '@/modules/skill-planner/cost-calculator';
 import type { HintLevel } from '@/modules/skill-planner/types';
 import { useShallow } from 'zustand/shallow';
-import { getSkillById } from '@/modules/skills/utils';
-import {
-  getBaseTier,
-  getUpgradeTier,
-  getWhiteVersion,
-} from '@/modules/skills/skill-relationships';
+import { getBaseTier, getUpgradeTier, getWhiteVersion } from '@/modules/skills/skill-relationships';
+import { skillCollection } from '@/modules/data/skills';
 
 const SKILL_COST_META_STORE_NAME = 'umalator-skill-cost-meta';
 
@@ -154,7 +150,7 @@ export function computeTotalNetCost(
   hasFastLearner: boolean,
 ): number {
   const baseSkillId = skillId.split('-')[0] ?? skillId;
-  const skill = getSkillById(skillId);
+  const skill = skillCollection[skillId];
   const key = `${runnerId}:${skillId}`;
   const selfMeta = skillMetaMap[key];
 
@@ -167,8 +163,8 @@ export function computeTotalNetCost(
     if (whiteVersionId) {
       const baseTierId = getBaseTier(whiteVersionId);
       const upgradeTierId = getUpgradeTier(baseTierId);
-      const prereqIds = [baseTierId, upgradeTierId].filter(
-        (pid): pid is string => Boolean(pid && pid !== baseSkillId),
+      const prereqIds = [baseTierId, upgradeTierId].filter((pid): pid is string =>
+        Boolean(pid && pid !== baseSkillId),
       );
 
       let prereqNet = 0;

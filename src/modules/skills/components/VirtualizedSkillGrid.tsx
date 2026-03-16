@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { SkillItem } from './skill-list/SkillItem';
 import type { CSSProperties } from 'react';
-import type { Skill } from '@/modules/skills/utils';
+import type { SkillEntry } from '@/modules/data/skills';
 
 type VirtualizedSkillGridProps = {
-  items: Array<Skill>;
+  items: Array<SkillEntry>;
   selectedMap: Map<string, string>;
   onClick: React.MouseEventHandler<HTMLDivElement>;
   className?: string;

@@ -9,15 +9,14 @@ import {
   useWitVariance,
 } from '@/store/settings.store';
 import { useRunnersStore } from '@/store/runners.store';
-import { getSkillById } from '@/modules/skills/utils';
 import { SkillType } from '@/lib/sunday-tools/skills/definitions';
 
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Button } from '@/components/ui/button';
 import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/ui/panel';
 import { Separator } from '@/components/ui/separator';
+import { skillCollection } from '@/modules/data/skills';
 
 type DrainSkillMeta = {
   skillId: string;
@@ -105,7 +104,7 @@ export const AdvancedSettingsPanel = () => {
       uniqueSkillIds.add(baseSkillId);
 
       try {
-        const skill = getSkillById(baseSkillId);
+        const skill = skillCollection[baseSkillId];
         let maxDrainPercent = 0;
 
         for (const alternative of skill.alternatives) {

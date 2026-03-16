@@ -17,12 +17,9 @@ import { CostModifiersPanel } from './CostModifiersPanel';
 import { RaceSettingsPanel } from './RaceSettingsPanel';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { Button } from '@/components/ui/button';
-import {
-  getSelectableSkillsForUma,
-  getUniqueSkillForByUmaId,
-  nonUniqueSkillIds,
-} from '@/modules/skills/utils';
+import { getSelectableSkillsForUma, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import { SkillPickerDrawer } from '@/modules/skills/components/skill-list/SkillPickerDrawer';
+import { getNonUniqueSkillIds } from '@/modules/data/skills';
 
 export function SkillPlannerLayout() {
   const { open: helpOpen, setOpen: setHelpOpen } = useHelpDialog();
@@ -52,7 +49,7 @@ export function SkillPlannerLayout() {
       return getSelectableSkillsForUma(umaId);
     }
 
-    return nonUniqueSkillIds;
+    return getNonUniqueSkillIds();
   }, [umaId]);
 
   const handleUpdateRunner = (updates: Partial<RunnerState>) => {

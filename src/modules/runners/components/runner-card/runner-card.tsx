@@ -9,13 +9,7 @@ import type { StatsKey } from './stats-table';
 import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
 import { SkillItem } from '@/modules/skills/components/skill-list/SkillItem';
 
-import {
-  getSkillById,
-  getSelectableSkillsForUma,
-  getUniqueSkillForByUmaId,
-  skillsById,
-} from '@/modules/skills/utils';
-
+import { getSelectableSkillsForUma, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import { OcrImportDialog } from '@/modules/runners/components/ocr-import-dialog';
 import { UmaSelector } from '@/modules/runners/components/runner-selector';
 
@@ -30,6 +24,7 @@ import {
   useRunnerHasFastLearner,
   computeTotalNetCost,
 } from '@/modules/skills/stores/skill-cost-meta.store';
+import { skillCollection } from '@/modules/data/skills';
 
 type RunnerCardProps = {
   value: RunnerState;
@@ -116,7 +111,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
       const newSkills: Array<string> = [];
 
       for (const skillId of state.skills) {
-        const skillData = skillsById.get(skillId);
+        const skillData = skillCollection[skillId];
 
         if (skillData?.rarity && skillData.rarity < 3) {
           newSkills.push(skillId);
@@ -144,7 +139,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
   const umaUniqueSkillId = useMemo(() => getUniqueSkillForByUmaId(umaId), [umaId]);
   const skillsWithBaseCost = useMemo(() => {
     return state.skills.map((skillId) => {
-      const skill = getSkillById(skillId);
+      const skill = skillCollection[skillId];
 
       return {
         skillId,

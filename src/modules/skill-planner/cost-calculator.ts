@@ -1,5 +1,5 @@
 import type { CandidateSkill, CostBreakdown, HintLevel } from './types';
-import { getSkillById } from '@/modules/skills/utils';
+import { skillCollection } from '@/modules/data/skills';
 import { getBaseTier, getUpgradeTier } from '@/modules/skills/skill-relationships';
 
 // Hint level discount mapping (as shown in game screenshots)
@@ -21,7 +21,7 @@ export function calculateSkillCost(
   hintLevel: HintLevel,
   hasFastLearner: boolean,
 ): number {
-  const skill = getSkillById(skillId);
+  const skill = skillCollection[skillId];
   const baseCost = skill.baseCost;
 
   const hintDiscount = HINT_DISCOUNTS[hintLevel] ?? 0;
@@ -42,7 +42,7 @@ export function getNetCost(candidate: CandidateSkill, hasFastLearner: boolean): 
  * Get the base cost of a skill without any discounts
  */
 export function getBaseCost(skillId: string): number {
-  const skill = getSkillById(skillId);
+  const skill = skillCollection[skillId];
   return skill.baseCost;
 }
 

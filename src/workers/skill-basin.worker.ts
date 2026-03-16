@@ -9,13 +9,7 @@ import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import type { RaceParameters } from '@/lib/sunday-tools/common/race';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import type { Run1RoundParams, SimulationOptions } from '@/modules/simulation/types';
-import { syncRuntimeMasterDbData } from '@/modules/data/runtime-data-sync';
 import { runSampling } from '@/modules/simulation/simulators/skill-compare';
-import type {
-  WorkerSyncErrorMessage,
-  WorkerSyncInMessage,
-  WorkerSyncReadyMessage,
-} from './runtime-data-protocol';
 
 type PrepareRoundParams = {
   courseData: CourseData;
@@ -45,24 +39,13 @@ type RunChartParams = {
   options: SimulationOptions;
 };
 
-type SkillBasinWorkerInMessage = WorkerSyncInMessage | { type: 'chart'; data: RunChartParams };
+type SkillBasinWorkerInMessage = { type: 'chart'; data: RunChartParams };
 type SkillBasinWorkerOutMessage =
-  | WorkerSyncReadyMessage
-  | WorkerSyncErrorMessage
   | { type: 'skill-bassin'; results: ReturnType<typeof runSampling> }
   | { type: 'skill-bassin-done' };
 
-let activeResourceVersion: string | null = null;
-
 function sendMessage(message: SkillBasinWorkerOutMessage): void {
   postMessage(message);
-}
-
-function sendWorkerError(error: unknown): void {
-  sendMessage({
-    type: 'worker-error',
-    error: error instanceof Error ? error.message : 'Unknown worker error',
-  });
 }
 
 function runChart(params: RunChartParams) {
@@ -129,26 +112,9 @@ function runChart(params: RunChartParams) {
 self.addEventListener('message', (event: MessageEvent<SkillBasinWorkerInMessage>) => {
   const message = event.data;
 
-  try {
-    switch (message.type) {
-      case 'init-data':
-        activeResourceVersion = null;
-        syncRuntimeMasterDbData(message.payload);
-        activeResourceVersion = message.payload.resourceVersion;
-        sendMessage({
-          type: 'data-ready',
-          resourceVersion: activeResourceVersion,
-        });
-        break;
-      case 'chart':
-        if (!activeResourceVersion) {
-          sendWorkerError('Worker runtime data has not been initialized');
-          return;
-        }
-        runChart(message.data);
-        break;
-    }
-  } catch (error) {
-    sendWorkerError(error);
+  switch (message.type) {
+    case 'chart':
+      runChart(message.data);
+      break;
   }
 });

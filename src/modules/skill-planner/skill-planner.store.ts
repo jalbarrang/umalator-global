@@ -5,7 +5,6 @@ import { generateSeed } from '@/utils/crypto';
 import { createRunnerState } from '../runners/components/runner-card/types';
 import type { RunnerState } from '../runners/components/runner-card/types';
 import type { CandidateSkill, OptimizationProgress, OptimizationResult } from './types';
-import type { ISkill } from '@/modules/skills/types';
 import {
   getBaseTier,
   getGoldVersion,
@@ -13,8 +12,8 @@ import {
   getWhiteVersion,
   isStackableSkill,
 } from '@/modules/skills/skill-relationships';
-import { getSkillById, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
-import GametoraSkills from '@/modules/data/gametora/skills.json';
+import { getUniqueSkillForByUmaId } from '@/modules/skills/utils';
+import { skillCollection } from '@/modules/data/skills';
 
 interface SkillPlannerState {
   runner: RunnerState;
@@ -93,12 +92,10 @@ type CreateCandidateParams = {
 export const createCandidate = (params: CreateCandidateParams): CandidateSkill => {
   const { skillId, hintLevel = 0 } = params;
 
-  const skill = getSkillById(skillId);
+  const skill = skillCollection[skillId];
 
   // Get skill data for rarity check
-  const skills = GametoraSkills as Array<ISkill>;
-  const skillData = skills.find((s) => s.id === parseInt(skillId, 10));
-  const isGold = skillData?.rarity === 2;
+  const isGold = skill.rarity === 2;
 
   // Check stackable status
   const isStackable = isStackableSkill(skillId);

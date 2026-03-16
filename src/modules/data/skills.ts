@@ -37,15 +37,15 @@ export type SkillsMap = Record<string, SkillEntry>;
 // Data
 // =======
 
-export const skills = skillsJson as SkillsMap;
+export const skillCollection = skillsJson as SkillsMap;
 
 // ============
 // Utils
 // ===========
 
 export const skillComparator = (a: string, b: string): number => {
-  const x = skills[a].order;
-  const y = skills[b].order;
+  const x = skillCollection[a].order;
+  const y = skillCollection[b].order;
 
   return +(y < x) - +(x < y) || +(b < a) - +(a < b);
 };
@@ -67,17 +67,18 @@ export const translateSkillNamesForLang = (lang: 'en' | 'ja'): Record<string, st
 // Query Methods
 // =====
 
-export const getSkills = (): Array<SkillEntry> => Object.values(skills);
+export const getSkills = (): Array<SkillEntry> => Object.values(skillCollection);
 
 export const getSkillById = (id: string): SkillEntry | undefined => {
-  const skill = skills[id];
+  const skill = skillCollection[id];
 
   return skill;
 };
+
 export const getManySkills = (ids: Array<string>): Array<SkillEntry> => {
   const result: Array<SkillEntry> = [];
   for (let i = 0; i < ids.length; i++) {
-    const skill = skills[ids[i]];
+    const skill = skillCollection[ids[i]];
 
     if (skill !== undefined) {
       result.push(skill);
@@ -86,8 +87,9 @@ export const getManySkills = (ids: Array<string>): Array<SkillEntry> => {
 
   return result;
 };
+
 export const getSkillAlternativesById = (id: string): Array<SkillAlternative> => {
-  const skill = skills[id];
+  const skill = skillCollection[id];
 
   if (skill === undefined) {
     return [];
@@ -155,4 +157,45 @@ export const getSkillsByEffectType = (effectType: ISkillType): Array<SkillEntry>
   }
 
   return result;
+};
+
+// ============
+// Helper Methods
+// ============
+
+const uniqueSkillRarities = [4, 5];
+export const getUniqueSkillIds = (): Array<string> => {
+  const result: Array<string> = [];
+  const skillsArray = getSkills();
+
+  for (let i = 0; i < skillsArray.length; i++) {
+    const skill = skillsArray[i];
+    if (skill.character?.length === 1 && uniqueSkillRarities.includes(skill.rarity)) {
+      result.push(skill.id);
+    }
+  }
+
+  return result;
+};
+
+export const getNonUniqueSkillIds = (): Array<string> => {
+  const result: Array<string> = [];
+  const skillsArray = getSkills();
+
+  for (let i = 0; i < skillsArray.length; i++) {
+    const skill = skillsArray[i];
+    if (skill.rarity < 3 || skill.rarity > 4) {
+      result.push(skill.id);
+    }
+  }
+
+  return result;
+};
+
+export const getSkillNameById = (id: string): string => {
+  return skillCollection[id].name;
+};
+
+export const getSkillNames = (): Array<string> => {
+  return Object.values(skillCollection).map((skill) => skill.name);
 };

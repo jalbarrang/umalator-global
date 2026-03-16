@@ -23,12 +23,8 @@ import {
   useSkillCostMeta,
 } from '@/modules/skills/stores/skill-cost-meta.store';
 import type { SkillCostMeta } from '@/modules/skills/stores/skill-cost-meta.store';
-import {
-  getBaseTier,
-  getUpgradeTier,
-  getWhiteVersion,
-} from '@/modules/skills/skill-relationships';
-import { getSkillById } from '@/modules/skills/utils';
+import { getBaseTier, getUpgradeTier, getWhiteVersion } from '@/modules/skills/skill-relationships';
+import { skillCollection } from '@/modules/data/skills';
 
 type SkillCostDetailsProps = {
   id: string;
@@ -160,7 +156,7 @@ export const SkillCostDetails = (props: SkillCostDetailsProps) => {
   const goldPrereqSkills = useMemo(() => {
     return goldPrereqSkillIds.map((skillId) => ({
       id: skillId,
-      skill: getSkillById(skillId),
+      skill: skillCollection[skillId],
     }));
   }, [goldPrereqSkillIds]);
 
@@ -203,14 +199,7 @@ export const SkillCostDetails = (props: SkillCostDetailsProps) => {
       baseCost,
       netCost: netCost + prereqNetCost,
     };
-  }, [
-    goldPrereqSkills,
-    hasFastLearner,
-    isGoldSkill,
-    netCost,
-    prereqMetaBySkillId,
-    skill.baseCost,
-  ]);
+  }, [goldPrereqSkills, hasFastLearner, isGoldSkill, netCost, prereqMetaBySkillId, skill.baseCost]);
 
   const handleHintLevelChange = useCallback(
     (skillId: string, value: HintLevel) => {

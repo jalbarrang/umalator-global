@@ -14,14 +14,14 @@ import {
   getActivateableSkills,
   getNullSkillComparisonRow,
 } from '@/components/bassin-chart/utils';
-import { uniqueSkillIds } from '@/modules/skills/utils';
+import { getUniqueSkillIds } from '@/modules/data/skills';
 import { useRunner } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
 import { racedefToParams } from '@/utils/races';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
-import { syncWorkerRuntimeData } from '@/modules/data/worker-sync';
 
 const createUmaBasinWorker = () => new UmaBasinWorker();
+const uniqueSkillIds = getUniqueSkillIds();
 
 type WorkerMessage<T> =
   | { type: 'data-ready'; resourceVersion: string }
@@ -155,40 +155,33 @@ export function useUmaBasinRunner() {
       return;
     }
 
-    void Promise.all([syncWorkerRuntimeData(worker1), syncWorkerRuntimeData(worker2)])
-      .then(() => {
-        worker1.postMessage({
-          type: 'chart',
-          data: {
-            skills: skills1,
-            course,
-            racedef: params,
-            uma,
-            options: {
-              ...defaultSimulationOptions,
-              seed,
-            },
-          },
-        });
+    worker1.postMessage({
+      type: 'chart',
+      data: {
+        skills: skills1,
+        course,
+        racedef: params,
+        uma,
+        options: {
+          ...defaultSimulationOptions,
+          seed,
+        },
+      },
+    });
 
-        worker2.postMessage({
-          type: 'chart',
-          data: {
-            skills: skills2,
-            course,
-            racedef: params,
-            uma,
-            options: {
-              ...defaultSimulationOptions,
-              seed,
-            },
-          },
-        });
-      })
-      .catch((error: unknown) => {
-        console.error('Failed to sync uma basin workers:', error);
-        setIsSimulationRunning(false);
-      });
+    worker2.postMessage({
+      type: 'chart',
+      data: {
+        skills: skills2,
+        course,
+        racedef: params,
+        uma,
+        options: {
+          ...defaultSimulationOptions,
+          seed,
+        },
+      },
+    });
   }
 
   return { doBasinnChart };

@@ -38,28 +38,28 @@ export type CoursesMap = Record<string, CourseEntry>;
 // Data
 // =======
 
-export const courses = coursesJson as CoursesMap;
+export const courseCollection = coursesJson as CoursesMap;
 
 // =============
 // Query Methods: Courses
 // =============
 
-export const getCourses = (): Array<CourseEntry> => Object.values(courses);
-export const getCourseById = (id: string): CourseEntry | undefined => courses[id];
+export const getCourses = (): Array<CourseEntry> => Object.values(courseCollection);
+export const getCourseById = (id: string): CourseEntry | undefined => courseCollection[id];
 export const getCoursesByDistance = (distance: number): Array<CourseEntry> => {
-  return Object.values(courses).filter((course) => course.distance === distance);
+  return Object.values(courseCollection).filter((course) => course.distance === distance);
 };
 export const getCoursesByDistanceType = (distanceType: number): Array<CourseEntry> => {
-  return Object.values(courses).filter((course) => course.distanceType === distanceType);
+  return Object.values(courseCollection).filter((course) => course.distanceType === distanceType);
 };
 export const getCoursesBySurface = (surface: number): Array<CourseEntry> => {
-  return Object.values(courses).filter((course) => course.surface === surface);
+  return Object.values(courseCollection).filter((course) => course.surface === surface);
 };
 export const getCoursesByTurn = (turn: number): Array<CourseEntry> => {
-  return Object.values(courses).filter((course) => course.turn === turn);
+  return Object.values(courseCollection).filter((course) => course.turn === turn);
 };
 export const getCoursesByTrackId = (trackId: number): Array<CourseEntry> => {
-  return Object.values(courses).filter((course) => course.raceTrackId === trackId);
+  return Object.values(courseCollection).filter((course) => course.raceTrackId === trackId);
 };
 
 // =============

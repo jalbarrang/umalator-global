@@ -13,15 +13,10 @@ import { useRunnersStore } from '@/store/runners.store';
 import { useDebuffs } from '@/modules/simulation/stores/compare.store';
 import { useForcedPositions } from '@/modules/simulation/stores/forced-positions.store';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
-import { syncWorkerRuntimeData } from '@/modules/data/worker-sync';
 
 const createCompareWorker = () => new CompareWorker();
 
 type WorkerMessage<T> =
-  | {
-      type: 'data-ready';
-      resourceVersion: string;
-    }
   | {
       type: 'worker-error';
       error: string;
@@ -137,9 +132,7 @@ export function useSimulationRunner() {
         skillCheckChanceUma2: simWitVariance ? allowSkillCheckChanceUma2 : false,
         staminaDrainOverrides,
       },
-      forcedPositions: hasForcedPositions
-        ? { uma1: forcedUma1, uma2: forcedUma2 }
-        : undefined,
+      forcedPositions: hasForcedPositions ? { uma1: forcedUma1, uma2: forcedUma2 } : undefined,
       injectedDebuffs: hasDebuffs ? { uma1: debuffsUma1, uma2: debuffsUma2 } : undefined,
     };
 
@@ -149,18 +142,10 @@ export function useSimulationRunner() {
       return;
     }
 
-    void syncWorkerRuntimeData(worker)
-      .then(() => {
-        worker.postMessage({
-          type: 'compare',
-          data: params,
-        });
-      })
-      .catch((error: unknown) => {
-        console.error('Failed to sync compare worker data:', error);
-        setIsSimulationRunning(false);
-        setSimulationProgress(null);
-      });
+    worker.postMessage({
+      type: 'compare',
+      data: params,
+    });
   };
 
   function handleRunOnce(seed?: number) {
@@ -194,9 +179,7 @@ export function useSimulationRunner() {
         skillCheckChanceUma2: simWitVariance ? allowSkillCheckChanceUma2 : false,
         staminaDrainOverrides,
       },
-      forcedPositions: hasForcedPositions
-        ? { uma1: forcedUma1, uma2: forcedUma2 }
-        : undefined,
+      forcedPositions: hasForcedPositions ? { uma1: forcedUma1, uma2: forcedUma2 } : undefined,
       injectedDebuffs: hasDebuffs ? { uma1: debuffsUma1, uma2: debuffsUma2 } : undefined,
     };
 
@@ -206,18 +189,10 @@ export function useSimulationRunner() {
       return;
     }
 
-    void syncWorkerRuntimeData(worker)
-      .then(() => {
-        worker.postMessage({
-          type: 'compare',
-          data: params,
-        });
-      })
-      .catch((error: unknown) => {
-        console.error('Failed to sync compare worker data:', error);
-        setIsSimulationRunning(false);
-        setSimulationProgress(null);
-      });
+    worker.postMessage({
+      type: 'compare',
+      data: params,
+    });
   }
 
   return { handleRunCompare, handleRunOnce };

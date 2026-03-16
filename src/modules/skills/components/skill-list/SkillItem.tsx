@@ -1,13 +1,13 @@
 import { Activity, memo, useMemo } from 'react';
 import { CircleHelp, X } from 'lucide-react';
 import { ExpandedSkillDetails } from '../ExpandedSkillDetails';
-import { getSkillById } from '@/modules/skills/utils';
 import { cn } from '@/lib/utils';
 import i18n from '@/i18n';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { isEvolutionSkill, isGoldSkill, isUniqueSkill, isWhiteSkill } from '@/store/runners.store';
 import { SkillCostDetails } from '../cost-details';
+import { skillCollection } from '@/modules/data/skills';
 
 export const SkillIcon = (props: { iconId: string }) => {
   return <img className="w-6 h-6" src={`/icons/${props.iconId}.png`} />;
@@ -37,7 +37,7 @@ export const SkillItem = memo((props: SkillItemProps) => {
     runnerId,
   } = props;
 
-  const skill = useMemo(() => getSkillById(skillId), [skillId]);
+  const skill = useMemo(() => skillCollection[skillId], [skillId]);
 
   const skillContext = useMemo(
     () => ({

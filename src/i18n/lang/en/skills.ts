@@ -1,7 +1,7 @@
-import { translateSkillNamesForLang } from '@/modules/skills/utils';
+import { getSkillNames } from '@/modules/data/skills';
 
 export default {
-  skillnames: translateSkillNamesForLang('en'),
+  skillnames: getSkillNames(),
   skillfilters: {
     search: 'Search by skill name or conditions',
     // Skills ratities
