@@ -1,5 +1,5 @@
 {
-  "plugins": ["react", "typescript"],
+  "plugins": ["react", "typescript", "oxc"],
   "categories": {},
   "rules": {
     "@typescript-eslint/no-unused-vars": "warn",

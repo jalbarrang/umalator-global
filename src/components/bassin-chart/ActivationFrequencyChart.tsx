@@ -38,7 +38,6 @@ export function ActivationFrequencyChart({
   skillId,
   runData,
   courseDistance,
-  umaIndex = 0,
 }: ActivationFrequencyChartProps) {
   const chartData = useMemo(() => {
     // Collect all activation positions for this skill across all run types
@@ -106,7 +105,7 @@ export function ActivationFrequencyChart({
     ];
 
     return { bins, totalActivations, phaseStarts };
-  }, [skillId, runData, courseDistance, umaIndex]);
+  }, [skillId, runData, courseDistance]);
 
   if (chartData.totalActivations === 0) {
     return (

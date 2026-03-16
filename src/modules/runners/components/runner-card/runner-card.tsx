@@ -9,13 +9,7 @@ import type { StatsKey } from './stats-table';
 import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
 import { SkillItem } from '@/modules/skills/components/skill-list/SkillItem';
 
-import {
-  getSkillById,
-  getSelectableSkillsForUma,
-  getUniqueSkillForByUmaId,
-  skillsById,
-} from '@/modules/skills/utils';
-
+import { getSelectableSkillsForUma, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import { OcrImportDialog } from '@/modules/runners/components/ocr-import-dialog';
 import { UmaSelector } from '@/modules/runners/components/runner-selector';
 
@@ -26,10 +20,16 @@ import { useIsMobile } from '@/hooks/useBreakpoint';
 import { openSkillPicker, updateCurrentSkills } from '@/modules/skills/store';
 import {
   setFastLearner,
+  setHintLevel,
+  setBought,
   useSkillCostMetaStore,
   useRunnerHasFastLearner,
+  getSkillCostMeta,
   computeTotalNetCost,
 } from '@/modules/skills/stores/skill-cost-meta.store';
+import { skillCollection } from '@/modules/data/skills';
+import type { SkillMeta } from '@/modules/skills/components/skill-list/skill-item.context';
+import type { HintLevel } from '@/modules/skill-planner/types';
 
 type RunnerCardProps = {
   value: RunnerState;
@@ -116,7 +116,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
       const newSkills: Array<string> = [];
 
       for (const skillId of state.skills) {
-        const skillData = skillsById.get(skillId);
+        const skillData = skillCollection[skillId];
 
         if (skillData?.rarity && skillData.rarity < 3) {
           newSkills.push(skillId);
@@ -144,7 +144,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
   const umaUniqueSkillId = useMemo(() => getUniqueSkillForByUmaId(umaId), [umaId]);
   const skillsWithBaseCost = useMemo(() => {
     return state.skills.map((skillId) => {
-      const skill = getSkillById(skillId);
+      const skill = skillCollection[skillId];
 
       return {
         skillId,
@@ -188,9 +188,12 @@ export const RunnerCard = (props: RunnerCardProps) => {
     [props.runnerId, showSkillSpCosts],
   );
 
-  const handleRemoveSkill = (skillId: string) => {
-    handleSetSkills(state.skills.filter((id) => id !== skillId));
-  };
+  const handleRemoveSkill = useCallback(
+    (skillId: string) => {
+      handleSetSkills(state.skills.filter((id) => id !== skillId));
+    },
+    [handleSetSkills, state.skills],
+  );
 
   const handleOpenSkillPicker = useCallback(() => {
     const selectableSkills = getSelectableSkillsForUma(umaId);
@@ -204,26 +207,30 @@ export const RunnerCard = (props: RunnerCardProps) => {
     });
   }, [umaId, state.skills, handleSetSkills]);
 
-  const handleSkillClick: React.MouseEventHandler<HTMLDivElement> = (e) => {
-    e.stopPropagation();
-    const target = e.target as HTMLElement;
+  const handleHintLevelChange = useCallback(
+    (skillId: string, level: number) => {
+      if (!showSkillSpCosts || props.runnerId === 'pacer') return;
+      setHintLevel(props.runnerId, skillId, level as HintLevel);
+    },
+    [props.runnerId, showSkillSpCosts],
+  );
 
-    const eventElement = target.closest('[data-event]') as HTMLElement;
-    if (!eventElement) return;
+  const handleBoughtChange = useCallback(
+    (skillId: string, bought: boolean) => {
+      if (!showSkillSpCosts || props.runnerId === 'pacer') return;
+      setBought(props.runnerId, skillId, bought);
+    },
+    [props.runnerId, showSkillSpCosts],
+  );
 
-    const eventType = eventElement.dataset.event;
-    if (!eventType) return;
-
-    const skillId = eventElement.dataset.skillid;
-
-    switch (eventType) {
-      case 'remove-skill':
-        handleRemoveSkill(skillId!);
-        break;
-      default:
-        break;
-    }
-  };
+  const getSkillMetaForRunner = useCallback(
+    (skillId: string): SkillMeta => {
+      if (!showSkillSpCosts || props.runnerId === 'pacer') return { hintLevel: 0 };
+      return getSkillCostMeta(props.runnerId, skillId);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- skillMetaByKey triggers new ref so cost-details re-reads fresh data
+    [props.runnerId, showSkillSpCosts, skillMetaByKey],
+  );
 
   return (
     <div className="runner-card flex flex-col gap-4 p-2">
@@ -334,17 +341,21 @@ export const RunnerCard = (props: RunnerCardProps) => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-2" onClick={handleSkillClick}>
+      <div className="grid grid-cols-1 gap-2">
         {skillsWithBaseCost.map(({ skillId }) => {
           return (
             <SkillItem
               key={skillId}
               skillId={skillId}
               dismissable={skillId !== umaUniqueSkillId}
-              withDetails
               distanceFactor={props.courseDistance}
               spCost={showSkillSpCosts ? netCostBySkillId[skillId] : undefined}
               runnerId={showSkillSpCosts ? props.runnerId : undefined}
+              hasFastLearner={showSkillSpCosts ? hasFastLearner : undefined}
+              onRemove={handleRemoveSkill}
+              onHintLevelChange={showSkillSpCosts ? handleHintLevelChange : undefined}
+              onBoughtChange={showSkillSpCosts ? handleBoughtChange : undefined}
+              getSkillMeta={showSkillSpCosts ? getSkillMetaForRunner : undefined}
             />
           );
         })}

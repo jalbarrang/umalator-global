@@ -16,8 +16,6 @@ import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { ChangelogModal } from '@/components/changelog-modal';
 import { CreditsModal } from '@/components/credits-modal';
 import { FeatureFlagDebugPanel } from '@/components/feature-flag-debug-panel';
-import { initializeMasterDbStore, useMasterDbStatus } from '@/modules/data/master-db.store';
-import { isFeatureEnabled } from '@/lib/feature-flags';
 import { TutorialProvider, TutorialRoot } from '@/components/tutorial';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Drawer, DrawerTrigger, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
@@ -25,21 +23,10 @@ import { ScrollTextIcon, UsersIcon, MenuIcon } from 'lucide-react';
 import { setShowChangelogModal, setShowCreditsModal } from '@/store/ui.store';
 import { cn } from '@/lib/utils';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 export function RootComponent() {
   const location = useLocation();
-  const isMasterDbEnabled = isFeatureEnabled('MASTER_DB_ENABLED');
-  const { resourceVersion, error, progressStep, progressPercent } = useMasterDbStatus();
-
-  useEffect(() => {
-    if (!isMasterDbEnabled) {
-      return;
-    }
-    initializeMasterDbStore();
-  }, [isMasterDbEnabled]);
-
-  const isMasterDbLoading = isMasterDbEnabled && resourceVersion === 'static' && !error;
 
   const getCurrentTab = useCallback(() => {
     if (location.pathname.startsWith('/runners')) return 'runners';
@@ -65,29 +52,6 @@ export function RootComponent() {
   const handleNavClick = useCallback(() => {
     setMobileMenuOpen(false);
   }, []);
-
-  if (isMasterDbLoading) {
-    return (
-      <TutorialProvider>
-        <div className="flex min-h-screen items-center justify-center p-6">
-          <div className="flex w-full max-w-sm flex-col items-center gap-3 text-center">
-            <h1 className="text-lg font-semibold">Preparing game data</h1>
-            <p className="text-sm text-muted-foreground">
-              {progressStep ?? 'Loading MasterDB data...'}
-            </p>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-              <div
-                className="h-full rounded-full bg-foreground transition-all duration-300"
-                style={{ width: `${progressPercent ?? 0}%` }}
-              />
-            </div>
-            <p className="text-xs text-muted-foreground">{Math.max(0, progressPercent ?? 0)}%</p>
-          </div>
-        </div>
-        <Toaster />
-      </TutorialProvider>
-    );
-  }
 
   return (
     <TutorialProvider>
@@ -145,27 +109,6 @@ export function RootComponent() {
           </nav>
 
           <div className="flex items-center gap-2">
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <Button variant="outline" className="flex h-9 w-9 items-center justify-center">
-                    <a
-                      href="https://github.com/jalbarrang/umalator-global"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label="Open repository"
-                    >
-                      <img
-                        src="/svg/github.svg"
-                        alt="GitHub Repository"
-                        className="h-4 w-4 dark:invert"
-                      />
-                    </a>
-                  </Button>
-                }
-              ></TooltipTrigger>
-              <TooltipContent>Repository</TooltipContent>
-            </Tooltip>
             <Tooltip>
               <TooltipTrigger
                 render={

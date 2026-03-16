@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { useSkillPlannerStore } from '../skill-planner.store';
 import { Progress } from '@/components/ui/progress';
-import { getSkillById, getSkillNameById } from '@/modules/skills/utils';
 import { cn } from '@/lib/utils';
+import { SkillItem } from '@/modules/skills/components/skill-list/SkillItem';
 
 type SkillPlannerResultsProps = React.HTMLAttributes<HTMLDivElement>;
 
@@ -21,7 +21,6 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
     return progress ? (progress.completed / progress.total) * 100 : 0;
   }, [progress]);
 
-  // Sort combinations by bashin gain (highest to lowest)
   const rankedCombinations = useMemo(() => {
     if (!result?.allResults) return [];
 
@@ -54,7 +53,7 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
       {/* Results Display */}
       {!isOptimizing && result && (
         <div className="border rounded-lg bg-card overflow-hidden">
-          {/* Header - Sticky Summary */}
+          {/* Header */}
           <div className="border-b bg-primary/10 px-4 py-4 sticky top-0 z-10">
             <div className="flex items-center justify-between">
               <div className="font-semibold text-sm flex items-center gap-2">
@@ -86,45 +85,25 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
                     key={`combo-${index}-${combination.skills.join('-')}`}
                     className="border rounded-lg p-3 bg-background"
                   >
-                    {/* Skills List */}
-                    <div className="mb-2">
+                    <div className="mb-2 space-y-1">
                       {combination.skills.length === 0 && (
                         <p className="text-sm text-muted-foreground italic">
                           No additional skills (baseline)
                         </p>
                       )}
 
-                      {
-                        <div className="space-y-1">
-                          {combination.skills.map((skillId, skillIndex) => {
-                            const skillName = getSkillNameById(skillId);
-                            const skill = getSkillById(skillId);
-                            const skillIconPath = skill.iconId ? `/icons/${skill.iconId}.png` : '';
-                            const skillCost = combination.skillCosts[skillId] ?? 0;
+                      {combination.skills.map((skillId) => {
+                        const skillCost = combination.skillCosts[skillId] ?? 0;
 
-                            return (
-                              <div
-                                key={`${skillId}-${skillIndex}`}
-                                className="flex items-center justify-between text-sm"
-                              >
-                                <div className="flex items-center gap-2">
-                                  {skillIconPath && (
-                                    <img
-                                      src={skillIconPath}
-                                      alt=""
-                                      className="w-5 h-5 object-contain"
-                                    />
-                                  )}
-                                  <span>{skillName}</span>
-                                </div>
-                                <span className="text-xs text-muted-foreground">
-                                  {`${skillCost} pts`}
-                                </span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      }
+                        return (
+                          <div key={skillId} className="flex items-center gap-2">
+                            <SkillItem skillId={skillId} className="flex-1 border" />
+                            <span className="text-xs text-muted-foreground whitespace-nowrap">
+                              {skillCost} SP
+                            </span>
+                          </div>
+                        );
+                      })}
                     </div>
 
                     {/* Cost Summary and Lengths */}

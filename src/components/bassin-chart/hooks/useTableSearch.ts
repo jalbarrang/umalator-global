@@ -62,6 +62,7 @@ export function useTableSearch<T>({
     if (matches.length > 0) {
       onScrollToRow(matches[0]);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery, matches.length]); // Intentionally not including onScrollToRow to avoid loop
 
   // Handle Ctrl+F (or Cmd+F on Mac)

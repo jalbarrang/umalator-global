@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { skills } from '@/modules/data/skills';
+import { skillCollection } from '@/modules/data/skills';
 import {
   getExternalDebuffEffects,
   isExternalDebuffEffect,
@@ -26,14 +26,14 @@ describe('external debuff predicates', () => {
   });
 
   it('includes non-icon debuff skills when they have external harmful effects', () => {
-    const keenEye = skills['200691'];
+    const keenEye = skillCollection['200691'];
     expect(keenEye).toBeDefined();
     expect(isInjectableExternalDebuffSkill(keenEye)).toBe(true);
   });
 
   it('excludes self-curse skills and unsupported effect types', () => {
-    const selfCurse = skills['200013'];
-    const unsupported = skills['201231'];
+    const selfCurse = skillCollection['200013'];
+    const unsupported = skillCollection['201231'];
 
     expect(selfCurse).toBeDefined();
     expect(unsupported).toBeDefined();
@@ -42,7 +42,7 @@ describe('external debuff predicates', () => {
   });
 
   it('filters mixed effects down to only external harmful ones', () => {
-    const speedEater = skills['201082'];
+    const speedEater = skillCollection['201082'];
     const effects = speedEater.alternatives.flatMap((alternative) => alternative.effects);
     const filtered = getExternalDebuffEffects(effects);
 

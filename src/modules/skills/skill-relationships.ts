@@ -1,6 +1,3 @@
-import type { ISkill } from './types';
-import GametoraSkills from '@/modules/data/gametora/skills.json';
-
 /**
  * Skill Relationship Parser
  *
@@ -49,87 +46,39 @@ import GametoraSkills from '@/modules/data/gametora/skills.json';
  * - 4 = Gold (in Pattern 1)
  */
 
+import { skillCollection, skillComparator, SkillEntry } from '@/modules/data/skills';
+
 // ============================================================================
 // Internal Data Structures
 // ============================================================================
 
 /** Map of skill ID to all family member IDs (including self) */
-const skillFamilyMap = new Map<number, Array<number>>();
+const skillFamilyMap = new Map<string, Array<string>>();
 
-/** Map of skill ID to skill data for quick lookup */
-const skillById = new Map<number, ISkill>();
-
-// ============================================================================
-// Module Initialization
-// ============================================================================
-
-/**
- * Build skill family maps at module load time.
- * Processes all skills once to create lookup tables.
- */
-function buildSkillFamilyMaps(): void {
-  const skills = GametoraSkills as Array<ISkill>;
-
-  // First pass: Build skillById map
-  for (const skill of skills) {
-    skillById.set(skill.id, skill);
-  }
-
-  // Second pass: Build family map from versions field
-  for (const skill of skills) {
-    if (!skill.versions || skill.versions.length === 0) {
-      // Skill has no family - it's a singleton
-      skillFamilyMap.set(skill.id, [skill.id]);
-      continue;
-    }
-
-    // Build complete family by combining skill ID with all versions
-    const family = [skill.id, ...skill.versions];
-    // Remove duplicates and sort
-    const uniqueFamily = Array.from(new Set(family)).sort((a, b) => a - b);
-
-    skillFamilyMap.set(skill.id, uniqueFamily);
+for (const [id, skill] of Object.entries(skillCollection)) {
+  if (skill.versions && skill.versions.length > 0) {
+    const family = [id, ...skill.versions.map(String)];
+    skillFamilyMap.set(id, family);
   }
 }
-
-// Initialize maps when module loads
-buildSkillFamilyMaps();
 
 // ============================================================================
 // Helper Functions
 // ============================================================================
 
 /**
- * Convert string skill ID to number
- */
-function toNumberId(skillId: string): number {
-  const id = parseInt(skillId, 10);
-  if (isNaN(id)) {
-    throw new Error(`Invalid skill ID: ${skillId}`);
-  }
-  return id;
-}
-
-/**
- * Get skill data by ID
- */
-function getSkill(skillId: number): ISkill | undefined {
-  return skillById.get(skillId);
-}
-
-/**
  * Check if a skill has positive effects (not a debuff)
  */
-function hasPositiveEffects(skill: ISkill): boolean {
-  if (!skill.condition_groups || skill.condition_groups.length === 0) {
+function hasPositiveEffects(skill: SkillEntry): boolean {
+  if (!skill.alternatives || skill.alternatives.length === 0) {
     return false;
   }
 
   // Check if any effect has a positive value
-  for (const group of skill.condition_groups) {
+  for (const group of skill.alternatives) {
     for (const effect of group.effects) {
       // Positive value means buff, negative means debuff
-      if (effect.value > 0) {
+      if (effect.modifier > 0) {
         return true;
       }
     }
@@ -143,8 +92,7 @@ function hasPositiveEffects(skill: ISkill): boolean {
  * Useful for identifying self-debuff skills even when icon metadata is inconsistent.
  */
 export function hasPositiveSkillEffects(skillId: string): boolean {
-  const numId = toNumberId(skillId);
-  const skill = getSkill(numId);
+  const skill = skillCollection[skillId];
 
   if (!skill) {
     return false;
@@ -156,11 +104,11 @@ export function hasPositiveSkillEffects(skillId: string): boolean {
 /**
  * Get all white (rarity=1) skills from a family, excluding debuffs
  */
-function getWhiteSkillsInFamily(familyIds: Array<number>): Array<ISkill> {
-  const whiteSkills: Array<ISkill> = [];
+function getWhiteSkillsInFamily(familyIds: Array<string>): Array<SkillEntry> {
+  const whiteSkills: Array<SkillEntry> = [];
 
   for (const id of familyIds) {
-    const skill = getSkill(id);
+    const skill = skillCollection[id];
     if (skill && skill.rarity === 1 && hasPositiveEffects(skill)) {
       whiteSkills.push(skill);
     }
@@ -172,9 +120,9 @@ function getWhiteSkillsInFamily(familyIds: Array<number>): Array<ISkill> {
 /**
  * Get gold (rarity=2) skill from a family
  */
-function getGoldSkillInFamily(familyIds: Array<number>): ISkill | undefined {
+function getGoldSkillInFamily(familyIds: Array<string>): SkillEntry | undefined {
   for (const id of familyIds) {
-    const skill = getSkill(id);
+    const skill = skillCollection[id];
     if (skill && skill.rarity === 2) {
       return skill;
     }
@@ -197,8 +145,7 @@ function getGoldSkillInFamily(familyIds: Array<number>): ISkill | undefined {
  * getSkillFamily("200011") // returns ["200011", "200012", "200013", "200014"]
  */
 export function getSkillFamily(skillId: string): Array<string> {
-  const numId = toNumberId(skillId);
-  const family = skillFamilyMap.get(numId);
+  const family = skillFamilyMap.get(skillId);
 
   if (!family) {
     // Skill not found - return just the ID itself
@@ -225,8 +172,7 @@ export function getSkillFamily(skillId: string): Array<string> {
  * isStackableSkill("200332") // false (Corner Adept ○ has no ◎ version)
  */
 export function isStackableSkill(skillId: string): boolean {
-  const numId = toNumberId(skillId);
-  const skill = getSkill(numId);
+  const skill = skillCollection[skillId];
 
   if (!skill || skill.rarity !== 1) {
     return false;
@@ -237,7 +183,7 @@ export function isStackableSkill(skillId: string): boolean {
     return false;
   }
 
-  const family = skillFamilyMap.get(numId);
+  const family = skillFamilyMap.get(skillId);
   if (!family) {
     return false;
   }
@@ -258,14 +204,13 @@ export function isStackableSkill(skillId: string): boolean {
  * getGoldVersion("200332") // "200331" (gold version of Corner Adept)
  */
 export function getGoldVersion(whiteSkillId: string): string | undefined {
-  const numId = toNumberId(whiteSkillId);
-  const skill = getSkill(numId);
+  const skill = skillCollection[whiteSkillId];
 
   if (!skill || skill.rarity !== 1) {
     return undefined;
   }
 
-  const family = skillFamilyMap.get(numId);
+  const family = skillFamilyMap.get(whiteSkillId);
   if (!family) {
     return undefined;
   }
@@ -285,14 +230,13 @@ export function getGoldVersion(whiteSkillId: string): string | undefined {
  * getWhiteVersion("200331") // "200332" (white ○ version of Archline Professor)
  */
 export function getWhiteVersion(goldSkillId: string): string | undefined {
-  const numId = toNumberId(goldSkillId);
-  const skill = getSkill(numId);
+  const skill = skillCollection[goldSkillId];
 
   if (!skill || skill.rarity !== 2) {
     return undefined;
   }
 
-  const family = skillFamilyMap.get(numId);
+  const family = skillFamilyMap.get(goldSkillId);
   if (!family) {
     return undefined;
   }
@@ -305,8 +249,8 @@ export function getWhiteVersion(goldSkillId: string): string | undefined {
 
   // Return the base tier (lowest cost)
   const baseTier = whiteSkills.sort((a, b) => {
-    const costA = a.cost ?? Infinity;
-    const costB = b.cost ?? Infinity;
+    const costA = a.baseCost ?? Infinity;
+    const costB = b.baseCost ?? Infinity;
     return costA - costB;
   })[0];
 
@@ -325,14 +269,13 @@ export function getWhiteVersion(goldSkillId: string): string | undefined {
  * getBaseTier("200333") // "200332" (base tier of the upgrade)
  */
 export function getBaseTier(skillId: string): string {
-  const numId = toNumberId(skillId);
-  const skill = getSkill(numId);
+  const skill = skillCollection[skillId];
 
   if (!skill || skill.rarity !== 1) {
     return skillId;
   }
 
-  const family = skillFamilyMap.get(numId);
+  const family = skillFamilyMap.get(skillId);
   if (!family) {
     return skillId;
   }
@@ -346,8 +289,8 @@ export function getBaseTier(skillId: string): string {
 
   // Sort by cost ascending - lowest cost is base tier
   const sorted = whiteSkills.sort((a, b) => {
-    const costA = a.cost ?? Infinity;
-    const costB = b.cost ?? Infinity;
+    const costA = a.baseCost ?? Infinity;
+    const costB = b.baseCost ?? Infinity;
     return costA - costB;
   });
 
@@ -365,14 +308,13 @@ export function getBaseTier(skillId: string): string {
  * getUpgradeTier("200011") // undefined (no upgrade tier)
  */
 export function getUpgradeTier(skillId: string): string | undefined {
-  const numId = toNumberId(skillId);
-  const skill = getSkill(numId);
+  const skill = skillCollection[skillId];
 
   if (!skill || skill.rarity !== 1) {
     return undefined;
   }
 
-  const family = skillFamilyMap.get(numId);
+  const family = skillFamilyMap.get(skillId);
   if (!family) {
     return undefined;
   }
@@ -380,10 +322,10 @@ export function getUpgradeTier(skillId: string): string | undefined {
   const whiteSkills = getWhiteSkillsInFamily(family);
 
   // Sort by ID (Lowest is upgrade, highest is base / debuff)
-  const sorted = whiteSkills.toSorted((a, b) => a.id - b.id);
+  const sorted = whiteSkills.toSorted((a, b) => skillComparator(a.id, b.id));
 
   // Find current skill in sorted list
-  const currentIndex = sorted.findIndex((s) => s.id === numId);
+  const currentIndex = sorted.findIndex((s) => s.id === skillId);
 
   if (currentIndex === -1) {
     // Skill not found or already at highest tier

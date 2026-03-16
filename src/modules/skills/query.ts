@@ -1,9 +1,9 @@
-import type { Skill } from '@/modules/skills/utils';
+import type { SkillEntry } from '@/modules/data/skills';
 import { SkillRarity } from '@/lib/sunday-tools/skills/definitions';
 import { skillFilterLookUp } from '@/modules/skills/utils';
 
 // A predicate that takes a skill and returns whether it passes
-type SkillPredicate = (skill: Skill) => boolean;
+type SkillPredicate = (skill: SkillEntry) => boolean;
 
 /**
  * Simple fuzzy match - checks if all chars in pattern appear in order in target
@@ -45,15 +45,15 @@ function fuzzyMatch(pattern: string, target: string): number {
  *     .execute();
  */
 export class SkillQuery {
-  private skills: Array<Skill>;
+  private skills: Array<SkillEntry>;
   private predicates: Array<SkillPredicate> = [];
   private textSearchState = { allowConditionSearch: true };
 
-  private constructor(skills: Array<Skill>) {
+  private constructor(skills: Array<SkillEntry>) {
     this.skills = skills;
   }
 
-  static from(skills: Array<Skill>): SkillQuery {
+  static from(skills: Array<SkillEntry>): SkillQuery {
     return new SkillQuery(skills);
   }
 
@@ -89,7 +89,7 @@ export class SkillQuery {
    * WHERE skill matches ANY of the provided values (OR within group)
    * Skips if no values are active (no filter applied)
    */
-  whereAny<T>(activeValues: Array<T>, matchFn: (skill: Skill, value: T) => boolean): this {
+  whereAny<T>(activeValues: Array<T>, matchFn: (skill: SkillEntry, value: T) => boolean): this {
     if (activeValues.length === 0) return this;
 
     this.predicates.push((skill) => activeValues.some((value) => matchFn(skill, value)));
@@ -123,7 +123,7 @@ export class SkillQuery {
    * Execute the query and return filtered skills
    * All predicates are ANDed together
    */
-  execute(): Array<Skill> {
+  execute(): Array<SkillEntry> {
     // Reset text search state for each execution
     this.textSearchState.allowConditionSearch = true;
 
@@ -135,7 +135,7 @@ export class SkillQuery {
 export const SkillMatchers = {
   rarity:
     (rarityKey: string) =>
-    (skill: Skill): boolean => {
+    (skill: SkillEntry): boolean => {
       const rarity = skill.rarity;
 
       switch (rarityKey) {
@@ -157,7 +157,7 @@ export const SkillMatchers = {
   iconType:
     (iconPrefixes: Record<string, Array<string>>) =>
     (iconKey: string) =>
-    (skill: Skill): boolean => {
+    (skill: SkillEntry): boolean => {
       return iconPrefixes[iconKey]?.some((p) => skill.iconId.startsWith(p)) ?? false;
     },
 };

@@ -1,13 +1,14 @@
-import { Activity, memo, useMemo } from 'react';
+import { Activity, memo } from 'react';
 import { CircleHelp, X } from 'lucide-react';
 import { ExpandedSkillDetails } from '../ExpandedSkillDetails';
-import { getSkillById } from '@/modules/skills/utils';
 import { cn } from '@/lib/utils';
 import i18n from '@/i18n';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { isEvolutionSkill, isGoldSkill, isUniqueSkill, isWhiteSkill } from '@/store/runners.store';
 import { SkillCostDetails } from '../cost-details';
+import { SkillItemProvider } from './skill-item.provider';
+import { useSkillItem, type SkillMeta } from './skill-item.context';
 
 export const SkillIcon = (props: { iconId: string }) => {
   return <img className="w-6 h-6" src={`/icons/${props.iconId}.png`} />;
@@ -17,50 +18,70 @@ type SkillItemProps = React.HTMLAttributes<HTMLDivElement> & {
   skillId: string;
   selected?: boolean;
   dismissable?: boolean;
-  withDetails?: boolean;
   distanceFactor?: number;
   isHovered?: boolean;
   isFocused?: boolean;
   spCost?: number;
   runnerId?: string;
+  hasFastLearner?: boolean;
+  onHintLevelChange?: (skillId: string, level: number) => void;
+  onBoughtChange?: (skillId: string, bought: boolean) => void;
+  onRemove?: (skillId: string) => void;
+  getSkillMeta?: (skillId: string) => SkillMeta;
 };
 
 export const SkillItem = memo((props: SkillItemProps) => {
   const {
     skillId,
-    selected = false,
-    dismissable = false,
-    distanceFactor = 0,
-    isHovered = false,
-    isFocused = false,
+    hasFastLearner,
+    distanceFactor,
     spCost,
     runnerId,
+    onHintLevelChange,
+    onBoughtChange,
+    onRemove,
+    getSkillMeta,
+    ...rest
   } = props;
 
-  const skill = useMemo(() => getSkillById(skillId), [skillId]);
-
-  const skillContext = useMemo(
-    () => ({
-      id: skillId.split('-')[0],
-      rarity: skill.rarity,
-      iconId: skill.iconId,
-    }),
-    [skillId, skill],
+  return (
+    <SkillItemProvider
+      skillId={skillId}
+      hasFastLearner={hasFastLearner}
+      distanceFactor={distanceFactor}
+      spCost={spCost}
+      runnerId={runnerId}
+      onHintLevelChange={onHintLevelChange}
+      onBoughtChange={onBoughtChange}
+      onRemove={onRemove}
+      getSkillMeta={getSkillMeta}
+    >
+      <SkillItemContent {...rest} />
+    </SkillItemProvider>
   );
+});
 
-  const hasCost = useMemo(() => {
-    return typeof spCost === 'number' && !isUniqueSkill(skillContext.rarity);
-  }, [spCost, skillContext.rarity]);
+type SkillItemContentProps = React.HTMLAttributes<HTMLDivElement> & {
+  selected?: boolean;
+  isHovered?: boolean;
+  isFocused?: boolean;
+  dismissable?: boolean;
+};
+
+const SkillItemContent = (props: SkillItemContentProps) => {
+  const { selected = false, isHovered = false, isFocused = false, dismissable = false } = props;
+
+  const { skill, hasCost, distanceFactor, spCost, onRemove } = useSkillItem();
 
   return (
     <div
-      data-skillid={skillId}
+      data-skillid={skill.id}
       data-event="select-skill"
       style={props.style}
       onMouseEnter={props.onMouseEnter}
       onMouseLeave={props.onMouseLeave}
       className={cn(
-        'rounded-md bg-background border-2 flex h-auto',
+        'rounded-md bg-background border-2 flex h-auto min-h-[48px]',
         {
           selected: selected,
           'bg-yellow-200/70 dark:bg-yellow-800/40': isHovered || isFocused,
@@ -70,75 +91,83 @@ export const SkillItem = memo((props: SkillItemProps) => {
     >
       <div
         className={cn('flex w-6 border rounded-l', {
-          'skill-white': isWhiteSkill(skillContext.rarity),
-          'skill-gold': isGoldSkill(skillContext.rarity),
-          'skill-unique': isUniqueSkill(skillContext.rarity),
-          'skill-pink': isEvolutionSkill(skillContext.rarity),
+          'skill-white': isWhiteSkill(skill.rarity),
+          'skill-gold': isGoldSkill(skill.rarity),
+          'skill-unique': isUniqueSkill(skill.rarity),
+          'skill-pink': isEvolutionSkill(skill.rarity),
         })}
       ></div>
 
       <div className="flex flex-1 items-center gap-2 p-2">
-        <Activity mode={skillContext.iconId ? 'visible' : 'hidden'}>
-          <SkillIcon iconId={skillContext.iconId} />
+        <Activity mode={skill.iconId ? 'visible' : 'hidden'}>
+          <SkillIcon iconId={skill.iconId} />
         </Activity>
 
-        <span className={cn('text-sm text-foreground')}>
-          {i18n.t(`skillnames.${skillContext.id}`)}
-        </span>
+        <span className={cn('text-sm text-foreground')}>{i18n.t(`skillnames.${skill.id}`)}</span>
       </div>
 
-      {hasCost && (
+      <div className="flex h-full items-center">
+        {hasCost && (
+          <Popover>
+            <PopoverTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-full text-muted-foreground rounded-none whitespace-nowrap cursor-pointer"
+                  title="Show skill cost details"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {spCost} SP
+                </Button>
+              }
+            />
+            <PopoverContent align="start" side="right" className="w-[420px] p-0">
+              <SkillCostDetails />
+            </PopoverContent>
+          </Popover>
+        )}
+
         <Popover>
           <PopoverTrigger
             render={
               <Button
                 variant="ghost"
-                size="sm"
-                className="h-full shrink-0 text-muted-foreground rounded-none whitespace-nowrap cursor-pointer"
-                title="Show skill cost details"
+                size="icon"
+                className="h-full text-muted-foreground rounded-none cursor-pointer"
+                title="Show skill details"
                 onClick={(e) => e.stopPropagation()}
               >
-                {spCost} SP
+                <CircleHelp className="h-4 w-4" />
               </Button>
             }
           />
           <PopoverContent align="start" side="right" className="w-[420px] p-0">
-            <SkillCostDetails id={skillId} skill={skill} runnerId={runnerId} />
+            <ExpandedSkillDetails id={skill.id} skill={skill} distanceFactor={distanceFactor} />
           </PopoverContent>
         </Popover>
-      )}
 
-      <Popover>
-        <PopoverTrigger
-          render={
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-full shrink-0 text-muted-foreground rounded-none cursor-pointer"
-              title="Show skill details"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <CircleHelp className="h-4 w-4" />
-            </Button>
-          }
-        />
-        <PopoverContent align="start" side="right" className="w-[420px] p-0">
-          <ExpandedSkillDetails id={skillId} skill={skill} distanceFactor={distanceFactor} />
-        </PopoverContent>
-      </Popover>
-
-      {dismissable && (
-        <Button
-          variant="ghost"
-          size="icon"
-          type="button"
-          data-event="remove-skill"
-          data-skillid={skillId}
-          className="h-full rounded-none cursor-pointer"
-        >
-          <X className="w-4 h-4" />
-        </Button>
-      )}
+        {dismissable && (
+          <Button
+            variant="ghost"
+            size="icon"
+            type="button"
+            data-event="remove-skill"
+            data-skillid={skill.id}
+            className="h-full rounded-none cursor-pointer"
+            onClick={
+              onRemove
+                ? (e) => {
+                    e.stopPropagation();
+                    onRemove(skill.id);
+                  }
+                : undefined
+            }
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        )}
+      </div>
     </div>
   );
-});
+};

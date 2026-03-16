@@ -13,7 +13,7 @@ import {
   sortByNumericKey,
   writeJsonFile,
 } from './lib/shared';
-import type { SkillEntry } from '@/modules/data/skill-types';
+import type { SkillEntry } from '../src/modules/data/skills';
 import type { ISkillTarget } from '@/lib/sunday-tools/skills/definitions';
 
 interface SkillRow {
@@ -54,6 +54,16 @@ interface SkillNameRow {
   text: string;
 }
 
+interface UniqueSkillOwnerRow {
+  skillId: number;
+  outfitId: number;
+}
+
+interface GeneVersionRow {
+  unique_id: number;
+  gene_id: number;
+}
+
 type SkillEffect = {
   type: number;
   modifier: number;
@@ -91,6 +101,13 @@ const SCENARIO_SKILLS = new Set([
   210281,
   210282, // Grand Masters
   210291, // RFTS (white version)
+]);
+
+const EXCLUDED_SKILLS = new Set([
+  // Narita Brian's Story
+  300011, 300021,
+  // Silence Suzuka's Story
+  300031, 300041, 300051, 300061, 300071, 300081, 300091, 300101,
 ]);
 
 const SPLIT_ALTERNATIVES = new Set([100701, 900701]);
@@ -202,6 +219,31 @@ function buildAlternatives(row: SkillRow): Array<SkillAlternative> {
   return alternatives;
 }
 
+function isConcreteOutfitId(outfitId: number): boolean {
+  return outfitId >= 100000;
+}
+
+function reduceUniqueSkillOwners(rows: Array<UniqueSkillOwnerRow>): Map<string, number> {
+  const owners = new Map<string, number>();
+
+  for (const row of rows) {
+    // Base rarity uniques sometimes point at placeholder dress ids like 101.
+    // Only keep concrete outfit ids because runtime ownership checks use full outfit ids.
+    if (!isConcreteOutfitId(row.outfitId)) {
+      continue;
+    }
+
+    const skillId = row.skillId.toString();
+    const currentOwner = owners.get(skillId);
+
+    if (currentOwner === undefined || row.outfitId < currentOwner) {
+      owners.set(skillId, row.outfitId);
+    }
+  }
+
+  return owners;
+}
+
 async function extractSkills(options: ExtractSkillsOptions = { replaceMode: false }) {
   console.log('📖 Extracting unified skills...\n');
 
@@ -254,16 +296,22 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
     const extractedSkills: Record<string, SkillEntry> = {};
 
     for (const row of rows) {
+      if (EXCLUDED_SKILLS.has(row.id)) {
+        continue;
+      }
+
       const alternatives = buildAlternatives(row);
       const name = namesById[row.id.toString()] ?? '';
       const baseEntry: Omit<SkillEntry, 'alternatives'> = {
+        id: row.id.toString(),
         rarity: row.rarity,
         groupId: row.group_id,
+        versions: [],
         iconId: row.icon_id.toString(),
         baseCost: row.need_skill_point,
         order: row.disp_order,
         name,
-        source: 'master',
+        character: [],
       };
 
       if (SPLIT_ALTERNATIVES.has(row.id)) {
@@ -282,6 +330,97 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
         };
       }
     }
+
+    const uniqueSkillOwnerRows = queryAll<UniqueSkillOwnerRow>(
+      db,
+      `WITH skill_slots AS (
+         SELECT id AS skill_set_id, skill_id1 AS skill_id FROM skill_set WHERE skill_id1 <> 0
+         UNION ALL SELECT id, skill_id2 FROM skill_set WHERE skill_id2 <> 0
+         UNION ALL SELECT id, skill_id3 FROM skill_set WHERE skill_id3 <> 0
+         UNION ALL SELECT id, skill_id4 FROM skill_set WHERE skill_id4 <> 0
+         UNION ALL SELECT id, skill_id5 FROM skill_set WHERE skill_id5 <> 0
+         UNION ALL SELECT id, skill_id6 FROM skill_set WHERE skill_id6 <> 0
+         UNION ALL SELECT id, skill_id7 FROM skill_set WHERE skill_id7 <> 0
+         UNION ALL SELECT id, skill_id8 FROM skill_set WHERE skill_id8 <> 0
+         UNION ALL SELECT id, skill_id9 FROM skill_set WHERE skill_id9 <> 0
+         UNION ALL SELECT id, skill_id10 FROM skill_set WHERE skill_id10 <> 0
+       )
+       SELECT DISTINCT
+         sd.id AS skillId,
+         crd.card_id AS outfitId
+       FROM card_rarity_data crd
+       JOIN card_data cd
+         ON cd.id = crd.card_id
+       JOIN skill_slots ss
+         ON ss.skill_set_id = crd.skill_set
+       JOIN skill_data sd
+         ON sd.id = ss.skill_id
+       WHERE sd.rarity = 5`,
+    );
+    const uniqueSkillOwners = reduceUniqueSkillOwners(uniqueSkillOwnerRows);
+    let ownerCount = 0;
+
+    for (const [skillId, outfitId] of uniqueSkillOwners) {
+      const skill = extractedSkills[skillId];
+      if (!skill) {
+        continue;
+      }
+
+      // Only unique skills are safe to tie to a single uma outfit.
+      skill.character = [outfitId];
+      ownerCount++;
+    }
+
+    console.log(`Mapped ${ownerCount} unique skills to owning outfits`);
+
+    const geneVersionRows = queryAll<GeneVersionRow>(
+      db,
+      `SELECT u.id AS unique_id, g.id AS gene_id
+       FROM skill_data u
+       JOIN skill_data g ON g.id = u.id + 800000
+       WHERE u.rarity IN (4, 5)
+         AND g.rarity = 1`,
+    );
+
+    for (const row of geneVersionRows) {
+      const uniqueSkill = extractedSkills[row.unique_id.toString()];
+      const geneSkill = extractedSkills[row.gene_id.toString()];
+      if (uniqueSkill) {
+        uniqueSkill.gene_version = { id: row.gene_id };
+      }
+      if (geneSkill && uniqueSkill) {
+        geneSkill.character = [...uniqueSkill.character];
+      }
+    }
+
+    console.log(`Mapped ${geneVersionRows.length} gene versions to unique skills`);
+
+    const groupMap = new Map<number, Set<string>>();
+    for (const skill of Object.values(extractedSkills)) {
+      const members = groupMap.get(skill.groupId) ?? new Set<string>();
+      members.add(skill.id);
+      groupMap.set(skill.groupId, members);
+    }
+
+    let familyCount = 0;
+    let versionCount = 0;
+    for (const membersSet of groupMap.values()) {
+      const members = Array.from(membersSet);
+      if (members.length < 2) {
+        continue;
+      }
+      familyCount++;
+
+      for (const id of members) {
+        const skill = extractedSkills[id];
+        if (skill) {
+          skill.versions = members.filter((memberId) => memberId !== id).map(Number);
+          versionCount++;
+        }
+      }
+    }
+
+    console.log(`Initialized ${familyCount} multi-member families (${versionCount} linked skills)`);
 
     const outputPath = path.join(process.cwd(), 'src/modules/data/skills.json');
 
@@ -306,6 +445,12 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
       } else {
         finalSkills = extractedSkills;
         console.log('\n✓ No existing file found, using master.mdb data only');
+      }
+    }
+
+    for (const skill of Object.values(finalSkills)) {
+      if (!Array.isArray(skill.versions)) {
+        skill.versions = [];
       }
     }
 

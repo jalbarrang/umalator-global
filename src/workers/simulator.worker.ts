@@ -5,33 +5,16 @@
 import '../polyfills';
 import { cloneDeep } from 'es-toolkit';
 import type { CompareParams } from '@/modules/simulation/types';
-import { syncRuntimeMasterDbData } from '@/modules/data/runtime-data-sync';
 import { runComparison } from '@/modules/simulation/simulators/vacuum-compare';
-import type {
-  WorkerSyncErrorMessage,
-  WorkerSyncInMessage,
-  WorkerSyncReadyMessage,
-} from './runtime-data-protocol';
 
-type CompareWorkerInMessage = WorkerSyncInMessage | { type: 'compare'; data: CompareParams };
+type CompareWorkerInMessage = { type: 'compare'; data: CompareParams };
 type CompareWorkerOutMessage =
-  | WorkerSyncReadyMessage
-  | WorkerSyncErrorMessage
   | { type: 'compare-progress'; currentSamples: number; totalSamples: number }
   | { type: 'compare'; results: ReturnType<typeof runComparison> }
   | { type: 'compare-complete' };
 
-let activeResourceVersion: string | null = null;
-
 function sendMessage(message: CompareWorkerOutMessage): void {
   postMessage(message);
-}
-
-function sendWorkerError(error: unknown): void {
-  sendMessage({
-    type: 'worker-error',
-    error: error instanceof Error ? error.message : 'Unknown worker error',
-  });
 }
 
 function* progressiveSampleSizes(targetSamples: number) {
@@ -94,26 +77,9 @@ const runRunnersComparison = (params: CompareParams) => {
 self.addEventListener('message', (event: MessageEvent<CompareWorkerInMessage>) => {
   const message = event.data;
 
-  try {
-    switch (message.type) {
-      case 'init-data':
-        activeResourceVersion = null;
-        syncRuntimeMasterDbData(message.payload);
-        activeResourceVersion = message.payload.resourceVersion;
-        sendMessage({
-          type: 'data-ready',
-          resourceVersion: activeResourceVersion,
-        });
-        break;
-      case 'compare':
-        if (!activeResourceVersion) {
-          sendWorkerError('Worker runtime data has not been initialized');
-          return;
-        }
-        runRunnersComparison(message.data);
-        break;
-    }
-  } catch (error) {
-    sendWorkerError(error);
+  switch (message.type) {
+    case 'compare':
+      runRunnersComparison(message.data);
+      break;
   }
 });

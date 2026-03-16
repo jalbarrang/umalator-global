@@ -5,20 +5,18 @@
 
 import { clone, cloneDeepWith } from 'es-toolkit';
 import type { SkillComparisonResponse } from '@/modules/simulation/types';
-import { syncRuntimeMasterDbData } from '@/modules/data/runtime-data-sync';
 import type { SimulationParams, WorkBatch, WorkerInMessage, WorkerOutMessage } from '../types';
 import { runSampling } from '@/modules/simulation/simulators/skill-compare';
 
 let workerId = -1;
 let simulationParams: SimulationParams | null = null;
-let activeResourceVersion: string | null = null;
 
 function sendMessage(message: WorkerOutMessage): void {
   postMessage(message);
 }
 
 function processBatch(batch: WorkBatch): void {
-  if (!simulationParams || !activeResourceVersion) {
+  if (!simulationParams) {
     sendMessage({
       type: 'worker-error',
       workerId,
@@ -64,21 +62,18 @@ self.addEventListener('message', (event: MessageEvent<WorkerInMessage>) => {
       try {
         workerId = message.workerId;
         simulationParams = message.params;
-        activeResourceVersion = null;
-        syncRuntimeMasterDbData(message.syncPayload);
-        activeResourceVersion = message.syncPayload.resourceVersion;
 
         // Signal ready for work
         sendMessage({
           type: 'worker-ready',
           workerId,
-          resourceVersion: activeResourceVersion,
         });
       } catch (error) {
         sendMessage({
           type: 'worker-error',
           workerId,
-          error: error instanceof Error ? error.message : 'Failed to initialize worker runtime data',
+          error:
+            error instanceof Error ? error.message : 'Failed to initialize worker runtime data',
         });
       }
       break;

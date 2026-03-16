@@ -28,14 +28,8 @@ import type { RunnerState } from '@/modules/runners/components/runner-card/types
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import type { RaceParameters } from '@/lib/sunday-tools/common/race';
 import type { SimulationOptions } from '@/modules/simulation/types';
-import { syncRuntimeMasterDbData } from '@/modules/data/runtime-data-sync';
 import { runAdaptiveOptimization } from '@/modules/skill-planner/optimization-engine';
 import { getNetCost } from '@/modules/skill-planner/cost-calculator';
-import type {
-  WorkerSyncErrorMessage,
-  WorkerSyncInMessage,
-  WorkerSyncReadyMessage,
-} from './runtime-data-protocol';
 
 interface OptimizeParams {
   candidates: Record<string, CandidateSkill>;
@@ -48,16 +42,12 @@ interface OptimizeParams {
   options: SimulationOptions;
 }
 
-type SkillPlannerWorkerInMessage = WorkerSyncInMessage | { type: 'optimize'; data: OptimizeParams };
+type SkillPlannerWorkerInMessage = { type: 'optimize'; data: OptimizeParams };
 type SkillPlannerWorkerOutMessage =
-  | WorkerSyncReadyMessage
-  | WorkerSyncErrorMessage
   | { type: 'skill-planner-progress'; progress: unknown }
   | { type: 'skill-planner-result'; result: ReturnType<typeof runAdaptiveOptimization> }
   | { type: 'skill-planner-done' }
   | { type: 'skill-planner-error'; error: string };
-
-let activeResourceVersion: string | null = null;
 
 function sendMessage(message: SkillPlannerWorkerOutMessage): void {
   postMessage(message);
@@ -114,23 +104,7 @@ self.addEventListener('message', (event: MessageEvent<SkillPlannerWorkerInMessag
 
   try {
     switch (message.type) {
-      case 'init-data':
-        activeResourceVersion = null;
-        syncRuntimeMasterDbData(message.payload);
-        activeResourceVersion = message.payload.resourceVersion;
-        sendMessage({
-          type: 'data-ready',
-          resourceVersion: activeResourceVersion,
-        });
-        break;
       case 'optimize':
-        if (!activeResourceVersion) {
-          sendMessage({
-            type: 'worker-error',
-            error: 'Worker runtime data has not been initialized',
-          });
-          return;
-        }
         runOptimization(message.data);
         break;
     }

@@ -5,7 +5,6 @@ import { generateSeed } from '@/utils/crypto';
 import { createRunnerState } from '../runners/components/runner-card/types';
 import type { RunnerState } from '../runners/components/runner-card/types';
 import type { CandidateSkill, OptimizationProgress, OptimizationResult } from './types';
-import type { ISkill } from '@/modules/skills/types';
 import {
   getBaseTier,
   getGoldVersion,
@@ -13,8 +12,8 @@ import {
   getWhiteVersion,
   isStackableSkill,
 } from '@/modules/skills/skill-relationships';
-import { getSkillById, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
-import GametoraSkills from '@/modules/data/gametora/skills.json';
+import { getUniqueSkillForByUmaId } from '@/modules/skills/utils';
+import { findVersionOfSkill, skillCollection } from '@/modules/data/skills';
 
 interface SkillPlannerState {
   runner: RunnerState;
@@ -93,12 +92,10 @@ type CreateCandidateParams = {
 export const createCandidate = (params: CreateCandidateParams): CandidateSkill => {
   const { skillId, hintLevel = 0 } = params;
 
-  const skill = getSkillById(skillId);
+  const skill = skillCollection[skillId];
 
   // Get skill data for rarity check
-  const skills = GametoraSkills as Array<ISkill>;
-  const skillData = skills.find((s) => s.id === parseInt(skillId, 10));
-  const isGold = skillData?.rarity === 2;
+  const isGold = skill.rarity === 2;
 
   // Check stackable status
   const isStackable = isStackableSkill(skillId);
@@ -211,55 +208,39 @@ export const getAddableUpgrades = (): Array<string> => {
  * - This mirrors the game requirement: must own both white tiers before buying gold
  */
 export const addCandidate = (skillId: string, hintLevel: number = 0) => {
+  // If the skill is already in the candidate pool, do nothing
   if (hasCandidate(skillId)) {
     return;
   }
 
-  const candidate: CandidateSkill = createCandidate({ skillId, hintLevel });
+  const candidates = useSkillPlannerStore.getState().candidates;
 
-  // Gold skill auto-add logic: add BOTH white tiers (○ and ◎)
-  if (candidate.isGold && candidate.whiteSkillId) {
-    const whiteTiersToAdd: Array<string> = [];
+  // If instead they choose any of the other versions, replace it with that one
+  const otherVersion = findVersionOfSkill(skillId, Object.keys(candidates));
 
-    // Get base tier (○)
-    const baseTier = getBaseTier(candidate.whiteSkillId);
-    if (baseTier && !hasCandidate(baseTier)) {
-      whiteTiersToAdd.push(baseTier);
-    }
-
-    // Get upgrade tier (◎) if it exists
-    const upgradeTier = getUpgradeTier(baseTier || candidate.whiteSkillId);
-    if (upgradeTier && !hasCandidate(upgradeTier)) {
-      whiteTiersToAdd.push(upgradeTier);
-    }
-
-    // Add all missing white tiers + gold
-    if (whiteTiersToAdd.length > 0) {
-      const newCandidates: Record<string, CandidateSkill> = {};
-
-      for (const tierId of whiteTiersToAdd) {
-        newCandidates[tierId] = createCandidate({ skillId: tierId, hintLevel });
-      }
-      newCandidates[skillId] = candidate;
-
-      useSkillPlannerStore.setState((state) => ({
-        candidates: {
-          ...state.candidates,
-          ...newCandidates,
-        },
-      }));
+  if (otherVersion) {
+    const otherSkill = skillCollection[otherVersion];
+    const thisSkill = skillCollection[skillId];
+    if (!confirm(`This will replace "${otherSkill.name}" with "${thisSkill.name}", continue?`)) {
+      // Cancel the operation
       return;
     }
   }
 
-  // Standard add (no gold auto-add needed)
+  const candidate: CandidateSkill = createCandidate({ skillId, hintLevel });
+
   useSkillPlannerStore.setState((state) => {
-    return {
-      candidates: {
-        ...state.candidates,
-        [skillId]: candidate,
-      },
-    };
+    const newCandidates = { ...state.candidates };
+
+    if (otherVersion) {
+      // Remove current version, so the selected one replaces it.
+      console.log('Removing other version', otherVersion);
+      delete newCandidates[otherVersion];
+    }
+
+    newCandidates[skillId] = candidate;
+
+    return { candidates: newCandidates };
   });
 };
 

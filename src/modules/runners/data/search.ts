@@ -2,10 +2,9 @@
  * Search and lookup utilities for uma and skill data
  */
 
-import type { ISkill } from '@/modules/skills/types';
+import { umas } from '@/modules/data/umas';
 import type { SkillLookupEntry, SkillMatch, UmaData, UmaLookupEntry, UmaMatch } from './types';
-import { useMasterDbStore } from '@/modules/data/master-db.store';
-import GametoraSkills from '@/modules/data/gametora/skills.json';
+import { skillCollection } from '@/modules/data/skills';
 
 // =============================================================================
 // Text Normalization & Similarity
@@ -73,17 +72,17 @@ const skillLookup = new Map<string, SkillLookupEntry>();
 function buildSkillLookup() {
   if (skillLookup.size > 0) return;
 
-  for (const skill of GametoraSkills as Array<ISkill>) {
+  for (const skill of Object.values(skillCollection)) {
     const id = String(skill.id);
 
-    // Add main skill name_en
-    if (skill.name_en) {
-      const key = normalize(skill.name_en);
+    // Add main skill name
+    if (skill.name) {
+      const key = normalize(skill.name);
       if (key && !skillLookup.has(key)) {
         skillLookup.set(key, {
           id,
           geneId: skill.gene_version?.id ? `${skill.gene_version.id}` : undefined,
-          name: skill.name_en,
+          name: skill.name,
           rarity: skill.rarity,
         });
       }
@@ -102,17 +101,11 @@ export function getSkillLookup(): Map<string, SkillLookupEntry> {
 // =============================================================================
 
 const umaLookup = new Map<string, UmaLookupEntry>();
-let lastUmaSource: Record<string, UmaData> | null = null;
-
-const getUmasData = () => useMasterDbStore.getState().umas as Record<string, UmaData>;
 
 function buildUmaLookup() {
-  const umas = getUmasData();
-  if (umaLookup.size > 0 && lastUmaSource === umas) return;
+  if (umaLookup.size > 0) return;
 
   umaLookup.clear();
-  lastUmaSource = umas;
-
   for (const [_baseId, uma] of Object.entries(umas) as Array<[string, UmaData]>) {
     const umaName = uma.name[1] || '';
 
@@ -256,7 +249,3 @@ export function getSearchDebugInfo() {
     umaLookupSize: getUmaLookup().size,
   };
 }
-
-// Initialize lookups on module load
-buildSkillLookup();
-buildUmaLookup();

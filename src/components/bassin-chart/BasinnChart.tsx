@@ -22,7 +22,7 @@ import { useTableSearch } from './hooks/useTableSearch';
 import type { CellContext, Column, ColumnDef, Row, SortingState } from '@tanstack/react-table';
 import type { PoolMetrics, SkillComparisonRoundResult } from '@/modules/simulation/types';
 
-import { getSkillById, getSkillNameById } from '@/modules/skills/utils';
+import { getSkillNameById, skillCollection } from '@/modules/data/skills';
 import { groups_filters } from '@/modules/skills/filters';
 import { iconIdPrefixes } from '@/modules/skills/icons';
 import { formatMs } from '@/utils/time';
@@ -176,7 +176,7 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
   });
 
   const skillMetadataById = useMemo(() => {
-    return new Map(props.data.map((row) => [row.id, getSkillById(row.id)]));
+    return new Map(props.data.map((row) => [row.id, skillCollection[row.id]]));
   }, [props.data]);
 
   const activeIconTypeFilters = useMemo(() => {

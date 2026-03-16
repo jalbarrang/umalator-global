@@ -12,7 +12,7 @@ import type { InjectedDebuff, RunComparisonParams } from '@/modules/simulation/t
 import { Race } from '@/lib/sunday-tools/common/race';
 import { parseAptitudeName, parseStrategyName } from '@/lib/sunday-tools/runner/runner.types';
 import { SkillTarget, SkillType } from '@/lib/sunday-tools/skills/definitions';
-import { getSkillById, getSkillMetaById } from '@/modules/skills/utils';
+import { skillCollection } from '@/modules/data/skills';
 
 export type EffectMeta = {
   effectType: ISkillType;
@@ -39,7 +39,7 @@ export function getSkillEffectMetadata(skillId: string): Array<EffectMeta> {
   const baseSkillId = normalizeSkillId(skillId);
   let effects: Array<{ type: number; target?: number }> = [];
   try {
-    const skillData = getSkillById(baseSkillId);
+    const skillData = skillCollection[baseSkillId];
     effects = skillData.alternatives?.[0]?.effects ?? [];
   } catch {
     effects = [];
@@ -65,10 +65,12 @@ export function createSkillSorterByGroup(allSkills: Array<string>) {
   const getCommonGroupIndex = (id: string) => {
     try {
       const baseId = normalizeSkillId(id);
-      const groupId = getSkillMetaById(baseId).groupId;
+      const skill = skillCollection[baseId];
+      const groupId = skill.groupId;
+
       const index = commonSkills.findIndex((skillId) => {
         const commonBaseId = normalizeSkillId(skillId);
-        return getSkillMetaById(commonBaseId).groupId === groupId;
+        return skillCollection[commonBaseId].groupId === groupId;
       });
       return index > -1 ? index : commonSkills.length;
     } catch {

@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { calculateSkillCost, getNetCost } from './cost-calculator';
 import type { CandidateSkill } from './types';
-import { getSkillById } from '@/modules/skills/utils';
+import { skillCollection } from '@/modules/data/skills';
 import { runawaySkillId } from '@/modules/runners/components/runner-card/types';
 
 describe('cost-calculator', () => {
   const skillId = runawaySkillId;
-  const baseCost = getSkillById(skillId).baseCost;
+  const baseCost = skillCollection[skillId].baseCost;
 
   it('applies hint discount levels from 0 to 5', () => {
     expect(calculateSkillCost(skillId, 0, false)).toBe(baseCost);

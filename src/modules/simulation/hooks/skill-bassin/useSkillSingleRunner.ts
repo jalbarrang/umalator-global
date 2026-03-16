@@ -16,7 +16,6 @@ import { useSettingsStore } from '@/store/settings.store';
 import { racedefToParams } from '@/utils/races';
 import { defaultSimulationOptions } from '@/components/bassin-chart/utils';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
-import { syncWorkerRuntimeData } from '@/modules/data/worker-sync';
 
 /**
  * Hook for running additional samples for a single skill
@@ -128,19 +127,10 @@ export function useSkillSingleRunner() {
         params: simulationParams,
       };
 
-      void syncWorkerRuntimeData(worker)
-        .then(() => {
-          worker.postMessage(runMessage);
-          console.log(
-            `Started ${additionalSamples} additional samples for skill ${skillId} with seed ${newSeed}`,
-          );
-        })
-        .catch((error: unknown) => {
-          console.error(`Failed to sync single-skill worker for ${skillId}:`, error);
-          setSkillLoading(skillId, false);
-          worker.terminate();
-          workerRef.current = null;
-        });
+      worker.postMessage(runMessage);
+      console.log(
+        `Started ${additionalSamples} additional samples for skill ${skillId} with seed ${newSeed}`,
+      );
     },
     [currentSeed, results, course, racedef, runner],
   );
