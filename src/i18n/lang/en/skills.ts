@@ -1,7 +1,12 @@
-import { getSkillNames } from '@/modules/data/skills';
+import { skillCollection } from '@/modules/data/skills';
+
+const skillNames: Record<string, string> = {};
+for (const [key, skill] of Object.entries(skillCollection)) {
+  skillNames[key] = skill.name;
+}
 
 export default {
-  skillnames: getSkillNames(),
+  skillnames: skillNames,
   skillfilters: {
     search: 'Search by skill name or conditions',
     // Skills ratities
