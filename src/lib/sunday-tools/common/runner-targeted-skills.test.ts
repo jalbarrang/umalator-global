@@ -147,9 +147,9 @@ describe('targeted skill initialization', () => {
     race.prepareRound(1003);
     const raceRunner = race.runners.values().toArray()[0] as any;
 
-    expect(raceRunner.pendingSkills.some((skill: { skillId: string }) => skill.skillId === '110061')).toBe(
-      true,
-    );
+    expect(
+      raceRunner.pendingSkills.some((skill: { skillId: string }) => skill.skillId === '110061'),
+    ).toBe(true);
     expect(
       raceRunner.pendingSkills.some(
         (skill: { skillId: string }) => skill.skillId.split('-')[0] === TEST_DEBUFF_SKILL_ID,

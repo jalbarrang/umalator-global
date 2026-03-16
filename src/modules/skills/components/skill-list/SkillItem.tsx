@@ -71,7 +71,8 @@ type SkillItemContentProps = React.HTMLAttributes<HTMLDivElement> & {
 const SkillItemContent = (props: SkillItemContentProps) => {
   const { selected = false, isHovered = false, isFocused = false, dismissable = false } = props;
 
-  const { skill, hasCost, distanceFactor, spCost, onRemove } = useSkillItem();
+  const { skill, hasCost, distanceFactor, spCost, onRemove, getSkillMeta } = useSkillItem();
+  const isObtained = getSkillMeta(skill.id).bought ?? false;
 
   return (
     <div
@@ -114,11 +115,14 @@ const SkillItemContent = (props: SkillItemContentProps) => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-full text-muted-foreground rounded-none whitespace-nowrap cursor-pointer"
+                  className={cn(
+                    'h-full rounded-none whitespace-nowrap cursor-pointer',
+                    isObtained ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground',
+                  )}
                   title="Show skill cost details"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  {spCost} SP
+                  {isObtained ? 'Obtained' : `${spCost} SP`}
                 </Button>
               }
             />

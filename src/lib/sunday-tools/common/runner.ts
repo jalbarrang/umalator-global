@@ -202,9 +202,7 @@ export class Runner {
   public laneMovementSkillsActive!: Array<ActiveSkill>;
   public changeLaneSkillsActive!: Array<ActiveSkill>;
   public targetedTargetSpeedActive!: Array<ActiveTargetedSkill>;
-  public targetedCurrentSpeedActive!: Array<
-    ActiveTargetedSkill & { naturalDeceleration: boolean }
-  >;
+  public targetedCurrentSpeedActive!: Array<ActiveTargetedSkill & { naturalDeceleration: boolean }>;
   public targetedAccelerationActive!: Array<ActiveTargetedSkill>;
   public targetedLaneMovementSkillsActive!: Array<ActiveTargetedSkill>;
   public targetedChangeLaneSkillsActive!: Array<ActiveTargetedSkill>;
@@ -691,7 +689,11 @@ export class Runner {
     }
   }
 
-  public receiveTargetedEffect(skillId: string, effects: Array<SkillEffect>, sourceRunnerId: number) {
+  public receiveTargetedEffect(
+    skillId: string,
+    effects: Array<SkillEffect>,
+    sourceRunnerId: number,
+  ) {
     this.applyTargetedEffect({
       skillId,
       origin: 'runner',
@@ -1621,7 +1623,11 @@ export class Runner {
         }
 
         const fixedPolicy = createFixedPositionPolicy(injectedDebuff.position);
-        const triggers = fixedPolicy.sample(skillTrigger.regions, this.race.skillSamples, this.skillRng);
+        const triggers = fixedPolicy.sample(
+          skillTrigger.regions,
+          this.race.skillSamples,
+          this.skillRng,
+        );
         const trigger = triggers[roundIteration % triggers.length];
 
         this.pendingTargetedSkills.push({

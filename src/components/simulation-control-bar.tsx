@@ -62,10 +62,7 @@ export function SimulationControlBar(props: SimulationControlBarProps) {
   };
 
   return (
-    <div
-      data-tutorial={dataTutorial}
-      className="flex flex-wrap items-center gap-2"
-    >
+    <div data-tutorial={dataTutorial} className="flex flex-wrap items-center gap-2">
       {!isRunning ? (
         <Button variant="default" onClick={handleRun}>
           Run Skill Simulations
@@ -76,11 +73,7 @@ export function SimulationControlBar(props: SimulationControlBarProps) {
         </Button>
       )}
 
-      <HelpButton
-        tutorialId={tutorial.id}
-        steps={tutorial.steps}
-        tooltipText={tutorial.tooltip}
-      />
+      <HelpButton tutorialId={tutorial.id} steps={tutorial.steps} tooltipText={tutorial.tooltip} />
 
       <div className="flex items-center gap-2">
         <Label htmlFor="seed-input" className="text-sm text-muted-foreground">

@@ -65,12 +65,7 @@ export function runComparison(params: CompareParams): CompareResult {
     }),
     duelingRates: DEFAULT_DUELING_RATES,
     skillSamples: nsamples,
-    runner: toCreateRunner(
-      uma1,
-      runnerASortedSkills,
-      forcedPositions?.uma1,
-      injectedDebuffs?.uma1,
-    ),
+    runner: toCreateRunner(uma1, runnerASortedSkills, forcedPositions?.uma1, injectedDebuffs?.uma1),
     collector: collectorA,
   });
 
@@ -88,12 +83,7 @@ export function runComparison(params: CompareParams): CompareResult {
     }),
     duelingRates: DEFAULT_DUELING_RATES,
     skillSamples: nsamples,
-    runner: toCreateRunner(
-      uma2,
-      runnerBSortedSkills,
-      forcedPositions?.uma2,
-      injectedDebuffs?.uma2,
-    ),
+    runner: toCreateRunner(uma2, runnerBSortedSkills, forcedPositions?.uma2, injectedDebuffs?.uma2),
     collector: collectorB,
   });
 

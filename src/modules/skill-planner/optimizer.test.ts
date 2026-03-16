@@ -4,11 +4,7 @@ import type { CandidateSkill } from './types';
 
 type CandidateWithNet = CandidateSkill & { netCost: number };
 
-function createCandidate(
-  skillId: string,
-  cost: number,
-  netCost: number,
-): CandidateWithNet {
+function createCandidate(skillId: string, cost: number, netCost: number): CandidateWithNet {
   return {
     skillId,
     cost,
