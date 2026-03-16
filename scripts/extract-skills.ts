@@ -59,6 +59,11 @@ interface UniqueSkillOwnerRow {
   outfitId: number;
 }
 
+interface GeneVersionRow {
+  unique_id: number;
+  gene_id: number;
+}
+
 type SkillEffect = {
   type: number;
   modifier: number;
@@ -96,6 +101,13 @@ const SCENARIO_SKILLS = new Set([
   210281,
   210282, // Grand Masters
   210291, // RFTS (white version)
+]);
+
+const EXCLUDED_SKILLS = new Set([
+  // Narita Brian's Story
+  300011, 300021,
+  // Silence Suzuka's Story
+  300031, 300041, 300051, 300061, 300071, 300081, 300091, 300101,
 ]);
 
 const SPLIT_ALTERNATIVES = new Set([100701, 900701]);
@@ -284,17 +296,21 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
     const extractedSkills: Record<string, SkillEntry> = {};
 
     for (const row of rows) {
+      if (EXCLUDED_SKILLS.has(row.id)) {
+        continue;
+      }
+
       const alternatives = buildAlternatives(row);
       const name = namesById[row.id.toString()] ?? '';
       const baseEntry: Omit<SkillEntry, 'alternatives'> = {
         id: row.id.toString(),
         rarity: row.rarity,
         groupId: row.group_id,
+        versions: [],
         iconId: row.icon_id.toString(),
         baseCost: row.need_skill_point,
         order: row.disp_order,
         name,
-        source: 'master',
         character: [],
       };
 
@@ -331,7 +347,7 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
        )
        SELECT DISTINCT
          sd.id AS skillId,
-         crd.race_dress_id AS outfitId
+         crd.card_id AS outfitId
        FROM card_rarity_data crd
        JOIN card_data cd
          ON cd.id = crd.card_id
@@ -339,7 +355,7 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
          ON ss.skill_set_id = crd.skill_set
        JOIN skill_data sd
          ON sd.id = ss.skill_id
-       WHERE sd.rarity >= 3`,
+       WHERE sd.rarity = 5`,
     );
     const uniqueSkillOwners = reduceUniqueSkillOwners(uniqueSkillOwnerRows);
     let ownerCount = 0;
@@ -356,6 +372,55 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
     }
 
     console.log(`Mapped ${ownerCount} unique skills to owning outfits`);
+
+    const geneVersionRows = queryAll<GeneVersionRow>(
+      db,
+      `SELECT u.id AS unique_id, g.id AS gene_id
+       FROM skill_data u
+       JOIN skill_data g ON g.id = u.id + 800000
+       WHERE u.rarity IN (4, 5)
+         AND g.rarity = 1`,
+    );
+
+    for (const row of geneVersionRows) {
+      const uniqueSkill = extractedSkills[row.unique_id.toString()];
+      const geneSkill = extractedSkills[row.gene_id.toString()];
+      if (uniqueSkill) {
+        uniqueSkill.gene_version = { id: row.gene_id };
+      }
+      if (geneSkill && uniqueSkill) {
+        geneSkill.character = [...uniqueSkill.character];
+      }
+    }
+
+    console.log(`Mapped ${geneVersionRows.length} gene versions to unique skills`);
+
+    const groupMap = new Map<number, Set<string>>();
+    for (const skill of Object.values(extractedSkills)) {
+      const members = groupMap.get(skill.groupId) ?? new Set<string>();
+      members.add(skill.id);
+      groupMap.set(skill.groupId, members);
+    }
+
+    let familyCount = 0;
+    let versionCount = 0;
+    for (const membersSet of groupMap.values()) {
+      const members = Array.from(membersSet);
+      if (members.length < 2) {
+        continue;
+      }
+      familyCount++;
+
+      for (const id of members) {
+        const skill = extractedSkills[id];
+        if (skill) {
+          skill.versions = members.filter((memberId) => memberId !== id).map(Number);
+          versionCount++;
+        }
+      }
+    }
+
+    console.log(`Initialized ${familyCount} multi-member families (${versionCount} linked skills)`);
 
     const outputPath = path.join(process.cwd(), 'src/modules/data/skills.json');
 
@@ -380,6 +445,12 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
       } else {
         finalSkills = extractedSkills;
         console.log('\n✓ No existing file found, using master.mdb data only');
+      }
+    }
+
+    for (const skill of Object.values(finalSkills)) {
+      if (!Array.isArray(skill.versions)) {
+        skill.versions = [];
       }
     }
 

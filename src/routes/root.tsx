@@ -112,27 +112,6 @@ export function RootComponent() {
             <Tooltip>
               <TooltipTrigger
                 render={
-                  <Button variant="outline" className="flex h-9 w-9 items-center justify-center">
-                    <a
-                      href="https://github.com/jalbarrang/umalator-global"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label="Open repository"
-                    >
-                      <img
-                        src="/svg/github.svg"
-                        alt="GitHub Repository"
-                        className="h-4 w-4 dark:invert"
-                      />
-                    </a>
-                  </Button>
-                }
-              ></TooltipTrigger>
-              <TooltipContent>Repository</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger
-                render={
                   <Button
                     variant="outline"
                     className="flex h-9 w-9 items-center justify-center"

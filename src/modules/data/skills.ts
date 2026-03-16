@@ -6,8 +6,6 @@ import type { SkillAlternative } from '@/lib/sunday-tools/skills/skill.types';
 // Types
 // =======
 
-export type SkillSource = 'master' | 'gametora';
-
 export type SkillGeneVersionEntry = {
   id: number;
 };
@@ -17,11 +15,11 @@ export type SkillEntry = {
   rarity: number;
   alternatives: Array<SkillAlternative>;
   groupId: number;
+  versions: Array<number>;
   iconId: string;
   baseCost: number;
   order: number;
   name: string;
-  source?: SkillSource;
   /**
    * Associated character source ids for this skill.
    * Unique skills use owning uma outfit ids; other skills default to an empty array until

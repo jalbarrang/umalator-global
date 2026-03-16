@@ -55,6 +55,13 @@ import { skillCollection, skillComparator, SkillEntry } from '@/modules/data/ski
 /** Map of skill ID to all family member IDs (including self) */
 const skillFamilyMap = new Map<string, Array<string>>();
 
+for (const [id, skill] of Object.entries(skillCollection)) {
+  if (skill.versions && skill.versions.length > 0) {
+    const family = [id, ...skill.versions.map(String)];
+    skillFamilyMap.set(id, family);
+  }
+}
+
 // ============================================================================
 // Helper Functions
 // ============================================================================

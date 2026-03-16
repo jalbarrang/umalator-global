@@ -86,19 +86,22 @@ export const getSelectableSkillsForUma = (umaId: UmaAltId) => {
   for (const skill of getSkills()) {
     if (!allowedRarities.includes(skill.rarity)) continue;
 
-    if (
-      ![1, 2].includes(skill.rarity) &&
-      skill.character?.length === 1 &&
-      skill.character?.includes(parseInt(umaId))
-    )
+    // Inherited uniques (9xxxxx) are added via the gene_version redirect
+    // on their parent unique skill — skip them to avoid duplicates.
+    if (skill.id.startsWith('9')) continue;
+
+    const character = skill.character;
+
+    if (character.length === 1 && character.includes(parseInt(umaId))) {
       continue;
+    }
 
     if (skill.gene_version?.id) {
       ids.push(`${skill.gene_version.id}`);
       continue;
     }
 
-    ids.push(`${skill.id}`);
+    ids.push(skill.id);
   }
 
   return ids;
