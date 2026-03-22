@@ -1,0 +1,85 @@
+name: Update Game Data
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Game version number (e.g., 10005200)'
+        required: true
+        type: string
+
+jobs:
+  update-data:
+    name: Fetch and Update Data
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.DATA_UPDATE_PAT }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Fetch database
+        run: pnpm run db:fetch ${{ inputs.version }}
+
+      - name: Extract data
+        run: pnpm run extract:all
+
+      - name: Check for changes
+        id: changes
+        run: |
+          if git diff --quiet src/modules/data/; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            echo "No data changes detected."
+          else
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+            echo "Data changes detected."
+          fi
+
+      - name: Create branch and commit
+        if: steps.changes.outputs.has_changes == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b chore/update-data-v${{ inputs.version }}
+          git add src/modules/data/skills.json src/modules/data/umas.json src/modules/data/course_data.json
+          git commit -m "chore: update game data to version ${{ inputs.version }}"
+          git push -u origin chore/update-data-v${{ inputs.version }}
+
+      - name: Create Pull Request
+        if: steps.changes.outputs.has_changes == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.DATA_UPDATE_PAT }}
+        run: |
+          gh pr create \
+            --title "chore: update game data to v${{ inputs.version }}" \
+            --body "$(cat <<'EOF'
+          Automated data update to game version `${{ inputs.version }}`.
+
+          Updated files:
+          - `src/modules/data/skills.json`
+          - `src/modules/data/umas.json`
+          - `src/modules/data/course_data.json`
+
+          Triggered by: @${{ github.actor }} via workflow_dispatch
+          EOF
+          )" \
+            --base main
+
+      - name: Enable auto-merge
+        if: steps.changes.outputs.has_changes == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.DATA_UPDATE_PAT }}
+        run: gh pr merge --auto --squash
