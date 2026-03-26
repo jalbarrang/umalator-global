@@ -1,4 +1,4 @@
-import { Activity, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
 import {
   createNewSeed,
@@ -13,7 +13,6 @@ import { replaceRunnerOutfit, useRunner } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
 import { useUmaBasinPoolRunner } from '@/modules/simulation/hooks/pool/useUmaBasinPoolRunner';
 import { getUmaForUniqueSkill } from '@/modules/skills/utils';
-import { LoadingOverlay } from '@/components/loading-overlay';
 import { SimulationControlBar } from '@/components/simulation-control-bar';
 import { RaceSettingsPanel } from '@/modules/skill-planner/components/RaceSettingsPanel';
 import { useUmaSingleRunner } from '@/modules/simulation/hooks/uma-bassin/useUmaSingleRunner';
@@ -97,30 +96,25 @@ export function UmaBassin() {
         dataTutorial="uma-bassin-controls"
       />
 
-      <Activity mode={!isSimulationRunning ? 'visible' : 'hidden'}>
-        <div data-tutorial="uma-bassin-chart" className="flex gap-4 h-full min-w-0">
-          <BasinnChart
-            data={arrayResults}
-            hiddenSkills={[]}
-            selectedSkills={selectedSkills}
-            metrics={metrics}
-            onSelectionChange={handleSkillSelected}
-            onAddSkill={handleAddSkill}
-            onReplaceOutfit={handleReplaceRunnerOutfit}
-            showUmaIcons
-            isSimulationRunning={isSimulationRunning}
-            courseDistance={course.distance}
-            currentSeed={seed}
-            skillLoadingStates={skillLoadingStates}
-            onRunAdditionalSamples={runAdditionalSamples}
-            className="min-w-0 flex-1"
-          />
-        </div>
-      </Activity>
-
-      <Activity mode={isSimulationRunning ? 'visible' : 'hidden'}>
-        <LoadingOverlay progress={progress} />
-      </Activity>
+      <div data-tutorial="uma-bassin-chart" className="flex gap-4 h-full min-w-0">
+        <BasinnChart
+          data={arrayResults}
+          hiddenSkills={[]}
+          selectedSkills={selectedSkills}
+          metrics={metrics}
+          progress={progress}
+          onSelectionChange={handleSkillSelected}
+          onAddSkill={handleAddSkill}
+          onReplaceOutfit={handleReplaceRunnerOutfit}
+          showUmaIcons
+          isSimulationRunning={isSimulationRunning}
+          courseDistance={course.distance}
+          currentSeed={seed}
+          skillLoadingStates={skillLoadingStates}
+          onRunAdditionalSamples={runAdditionalSamples}
+          className="min-w-0 flex-1"
+        />
+      </div>
     </div>
   );
 }

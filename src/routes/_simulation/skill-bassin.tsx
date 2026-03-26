@@ -1,4 +1,4 @@
-import { Activity, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { useSkillBasinPoolRunner } from '@/modules/simulation/hooks/pool/useSkillBasinPoolRunner';
 import {
@@ -9,7 +9,6 @@ import {
   useSkillBasinStore,
 } from '@/modules/simulation/stores/skill-basin.store';
 import { BasinnChart } from '@/components/bassin-chart/BasinnChart';
-import { LoadingOverlay } from '@/components/loading-overlay';
 import { SimulationControlBar } from '@/components/simulation-control-bar';
 import { setSkillToRunner, useRunner } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
@@ -90,28 +89,23 @@ export function SkillBassin() {
         dataTutorial="skill-bassin-controls"
       />
 
-      <Activity mode={!isSimulationRunning ? 'visible' : 'hidden'}>
-        <div data-tutorial="skill-bassin-table" className="min-w-0">
-          <BasinnChart
-            data={arrayResults}
-            hiddenSkills={runner.skills}
-            metrics={metrics}
-            onSelectionChange={basinnChartSelection}
-            onAddSkill={addSkillFromTable}
-            selectedSkills={selectedSkills}
-            isSimulationRunning={isSimulationRunning}
-            courseDistance={course.distance}
-            currentSeed={seed}
-            skillLoadingStates={skillLoadingStates}
-            onRunAdditionalSamples={runAdditionalSamples}
-            className="min-w-0"
-          />
-        </div>
-      </Activity>
-
-      <Activity mode={isSimulationRunning ? 'visible' : 'hidden'}>
-        <LoadingOverlay progress={progress} />
-      </Activity>
+      <div data-tutorial="skill-bassin-table" className="min-w-0">
+        <BasinnChart
+          data={arrayResults}
+          hiddenSkills={runner.skills}
+          metrics={metrics}
+          progress={progress}
+          onSelectionChange={basinnChartSelection}
+          onAddSkill={addSkillFromTable}
+          selectedSkills={selectedSkills}
+          isSimulationRunning={isSimulationRunning}
+          courseDistance={course.distance}
+          currentSeed={seed}
+          skillLoadingStates={skillLoadingStates}
+          onRunAdditionalSamples={runAdditionalSamples}
+          className="min-w-0"
+        />
+      </div>
     </div>
   );
 }

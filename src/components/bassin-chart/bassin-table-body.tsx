@@ -86,6 +86,7 @@ export const BassinTableBody = React.memo((props: BassinTableBodyProps) => {
         const hasRunData = rowData?.runData != null;
         const isSearchMatch = search.matches.includes(virtualRow.index);
         const isCurrentMatch = search.matches[search.currentMatchIndex] === virtualRow.index;
+        const isPending = isSimulationRunning && rowData.results.length === 0;
 
         return (
           <div
@@ -94,12 +95,13 @@ export const BassinTableBody = React.memo((props: BassinTableBodyProps) => {
             ref={(node) => virtualizer.measureElement(node)}
             className={cn(
               'w-full bg-background hover:bg-muted p-2 border-b last-of-type:border-b-0',
-              'flex flex-col gap-2',
+              'flex flex-col gap-2 transition-opacity duration-300',
               {
                 hidden: hiddenSkills.includes(id),
                 'bg-primary/5': isSelected && !isSearchMatch,
                 'bg-yellow-100/50 dark:bg-yellow-900/20': isSearchMatch && !isCurrentMatch,
                 'bg-yellow-200/70 dark:bg-yellow-800/40': isCurrentMatch,
+                'opacity-40': isPending,
               },
             )}
             style={{

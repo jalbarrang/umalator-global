@@ -8,7 +8,7 @@ import {
 } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 
-import { ArrowDown, ArrowLeft, ArrowUp, ArrowUpDown, Loader2 } from 'lucide-react';
+import { ArrowDown, ArrowLeft, ArrowUp, ArrowUpDown, Loader2, Activity } from 'lucide-react';
 import { Button } from '../ui/button';
 import './BasinnChart.css';
 import {
@@ -21,6 +21,7 @@ import { TableSearchBar } from './TableSearchBar';
 import { useTableSearch } from './hooks/useTableSearch';
 import type { CellContext, Column, ColumnDef, Row, SortingState } from '@tanstack/react-table';
 import type { PoolMetrics, SkillComparisonRoundResult } from '@/modules/simulation/types';
+import type { SimulationProgress } from '@/workers/pool/types';
 
 import { getSkillNameById, skillCollection } from '@/modules/data/skills';
 import { groups_filters } from '@/modules/skills/filters';
@@ -137,6 +138,7 @@ type BasinnChartProps = {
   hiddenSkills: Array<string>;
   showUmaIcons?: boolean;
   metrics?: PoolMetrics | null;
+  progress?: SimulationProgress | null;
   selectedSkills: Array<string>;
   isSimulationRunning: boolean;
   courseDistance?: number;
@@ -156,6 +158,7 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
     selectedSkills,
     onAddSkill,
     metrics,
+    progress = null,
     showUmaIcons = false,
     onReplaceOutfit,
     isSimulationRunning,
@@ -375,14 +378,34 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
 
   return (
     <div className={cn('relative', className)}>
-      {/* Loading Overlay */}
-      {isSimulationRunning && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/60">
-          <div className="flex flex-col items-center gap-4 p-8 bg-card border rounded-lg shadow-lg min-w-[300px]">
-            <div className="flex items-center gap-2">
-              <div className="text-lg font-semibold">Simulating Skills</div>
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      {/* Simulation Progress Banner */}
+      {isSimulationRunning && progress && (
+        <div className="mb-4 p-3 bg-primary/5 rounded-md border border-primary/20">
+          <div className="flex items-center gap-4 text-sm">
+            <Loader2 className="w-4 h-4 animate-spin text-primary shrink-0" />
+            <span className="font-medium">
+              Stage {progress.currentStage}/{progress.totalStages}
+            </span>
+            <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+              <div
+                className="h-full bg-primary rounded-full transition-all duration-300"
+                style={{
+                  width: `${Math.round((progress.skillsCompletedInStage / progress.totalSkillsInStage) * 100)}%`,
+                }}
+              />
             </div>
+            <span className="text-muted-foreground tabular-nums shrink-0">
+              {progress.skillsCompletedInStage}/{progress.totalSkillsInStage} skills
+            </span>
+          </div>
+        </div>
+      )}
+
+      {isSimulationRunning && !progress && (
+        <div className="mb-4 p-3 bg-primary/5 rounded-md border border-primary/20">
+          <div className="flex items-center gap-4 text-sm">
+            <Activity className="w-4 h-4 text-primary shrink-0" />
+            <span className="font-medium text-muted-foreground">Preparing simulation…</span>
           </div>
         </div>
       )}
