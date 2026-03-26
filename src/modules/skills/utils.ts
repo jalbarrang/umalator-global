@@ -201,7 +201,9 @@ export const generateSkillFilterLookUp = (skillsToMatch: SkillsMap) => {
   return filterLookup;
 };
 
-export let skillFilterLookUp: Record<string, Set<string>> = {};
+export let skillFilterLookUp: Record<string, Set<string>> = generateSkillFilterLookUp(
+  skillCollection,
+);
 
 /**
  * Estimate skill activation phase from skill condition

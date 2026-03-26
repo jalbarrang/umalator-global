@@ -20,15 +20,12 @@ export function parseSkillCondition(skillCondition: string) {
 }
 
 function tokenizeSkillsConditions() {
-  const conditionEntries = Object.entries(getSkills());
-
+  const skills = getSkills();
   const acc: Record<string, Array<Operator>> = {};
 
-  for (const [id, skillData] of conditionEntries) {
-    const alternatives = skillData.alternatives;
-
+  for (const skillData of skills) {
     const operators: Array<Operator> = [];
-    for (const alternative of alternatives) {
+    for (const alternative of skillData.alternatives) {
       const condition = alternative.condition;
 
       if (condition === '' || condition === undefined) {
@@ -39,7 +36,7 @@ function tokenizeSkillsConditions() {
       operators.push(operator);
     }
 
-    acc[id] = operators;
+    acc[skillData.id] = operators;
   }
 
   return acc;

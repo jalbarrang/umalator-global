@@ -71,6 +71,15 @@ export const useSettingsStore = create<ISettingsStore>()(
     {
       name: 'umalator-settings',
       storage: createJSONStorage(() => localStorage),
+      onRehydrateStorage: () => () => {
+        // Dynamic import avoids a circular dependency (preset.store already imports settings.store).
+        // queueMicrotask defers execution so the preset store's own hydration + merge finishes first.
+        queueMicrotask(() => {
+          void import('@/store/race/preset.store').then(({ syncSelectedPresetWithCatalog }) => {
+            syncSelectedPresetWithCatalog();
+          });
+        });
+      },
     },
   ),
 );

@@ -1,153 +1,85 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import type { RacePreset } from '@/utils/races';
-import {
-  EventType,
-  GroundCondition,
-  Season,
-  TimeOfDay,
-  Weather,
-} from '@/lib/sunday-tools/course/definitions';
+import { useSettingsStore } from '@/store/settings.store';
+import cmPresets from './cm-presets.json';
 
 const PRESET_STORE_NAME = 'umalator-presets';
 
-type IPresetStore = {
+const defaultPresets: Record<string, RacePreset> = Object.fromEntries(
+  cmPresets.map((p) => [p.id, p as RacePreset]),
+);
+const defaultPresetOrder = cmPresets.map((p) => p.id);
+const bundledPresetIds = new Set(defaultPresetOrder);
+
+export type IPresetStore = {
   presets: Record<string, RacePreset>;
   presetOrder: string[];
 };
 
-const DEFAULT_PRESET_IDS = [
-  '550e8400-e29b-41d4-a716-446655440001',
-  '550e8400-e29b-41d4-a716-446655440002',
-  '550e8400-e29b-41d4-a716-446655440003',
-  '550e8400-e29b-41d4-a716-446655440004',
-  '550e8400-e29b-41d4-a716-446655440005',
-  '550e8400-e29b-41d4-a716-446655440006',
-  '550e8400-e29b-41d4-a716-446655440007',
-  '550e8400-e29b-41d4-a716-446655440008',
-  '550e8400-e29b-41d4-a716-446655440009',
-];
+function mergePresetsWithBundled(
+  persisted: IPresetStore | undefined,
+  current: IPresetStore,
+): IPresetStore {
+  if (!persisted?.presets) {
+    return current;
+  }
+
+  const mergedPresets: Record<string, RacePreset> = { ...defaultPresets };
+  for (const [id, preset] of Object.entries(persisted.presets)) {
+    if (!bundledPresetIds.has(id)) {
+      mergedPresets[id] = preset;
+    }
+  }
+
+  const seen = new Set<string>(defaultPresetOrder);
+  const presetOrder: string[] = [...defaultPresetOrder];
+  for (const id of persisted.presetOrder ?? []) {
+    if (!seen.has(id) && mergedPresets[id]) {
+      presetOrder.push(id);
+      seen.add(id);
+    }
+  }
+  for (const id of Object.keys(mergedPresets)) {
+    if (!seen.has(id)) {
+      presetOrder.push(id);
+      seen.add(id);
+    }
+  }
+
+  return { presets: mergedPresets, presetOrder };
+}
+
+function clearSelectedPresetIfInvalid(presets: Record<string, RacePreset>) {
+  const sid = useSettingsStore.getState().selectedPresetId;
+  if (sid && !presets[sid]) {
+    useSettingsStore.setState({ selectedPresetId: null });
+  }
+}
+
+/** Call after preset hydration (or from settings) if selectedPresetId may reference a removed preset. */
+export function syncSelectedPresetWithCatalog() {
+  clearSelectedPresetIfInvalid(usePresetStore.getState().presets);
+}
 
 export const usePresetStore = create<IPresetStore>()(
   persist(
     (_) => ({
-      presetOrder: DEFAULT_PRESET_IDS,
-      presets: {
-        '550e8400-e29b-41d4-a716-446655440001': {
-          id: '550e8400-e29b-41d4-a716-446655440001',
-          name: 'Cancer Cup',
-          type: EventType.CM,
-          date: '2025-10',
-          courseId: 10602,
-          season: Season.Summer,
-          ground: GroundCondition.Firm,
-          weather: Weather.Sunny,
-          time: TimeOfDay.Midday,
-        },
-        '550e8400-e29b-41d4-a716-446655440002': {
-          id: '550e8400-e29b-41d4-a716-446655440002',
-          name: 'Leo Cup',
-          type: EventType.CM,
-          date: '2025-09',
-          courseId: 10811,
-          season: Season.Spring,
-          ground: GroundCondition.Good,
-          weather: Weather.Sunny,
-          time: TimeOfDay.Midday,
-        },
-        '550e8400-e29b-41d4-a716-446655440003': {
-          id: '550e8400-e29b-41d4-a716-446655440003',
-          name: 'Virgo Cup',
-          type: EventType.CM,
-          date: '2025-08',
-          courseId: 10606,
-          season: Season.Spring,
-          ground: GroundCondition.Good,
-          weather: Weather.Sunny,
-          time: TimeOfDay.Midday,
-        },
-        '550e8400-e29b-41d4-a716-446655440004': {
-          id: '550e8400-e29b-41d4-a716-446655440004',
-          name: 'Libra Cup',
-          type: EventType.CM,
-          date: '2025-12-08',
-          courseId: 10810,
-          season: Season.Autumn,
-          ground: GroundCondition.Good,
-          weather: Weather.Sunny,
-          time: TimeOfDay.Midday,
-        },
-        '550e8400-e29b-41d4-a716-446655440005': {
-          id: '550e8400-e29b-41d4-a716-446655440005',
-          name: 'Scorpio Cup',
-          type: EventType.CM,
-          date: '2025-12-28',
-          courseId: 10604,
-          season: Season.Autumn,
-          ground: GroundCondition.Soft,
-          weather: Weather.Rainy,
-          time: TimeOfDay.Midday,
-        },
-        '550e8400-e29b-41d4-a716-446655440006': {
-          id: '550e8400-e29b-41d4-a716-446655440006',
-          name: 'Sagittarius Cup',
-          type: EventType.CM,
-          date: '2026-01-17',
-          courseId: 10506,
-          season: Season.Winter,
-          ground: GroundCondition.Firm,
-          weather: Weather.Sunny,
-          time: TimeOfDay.Midday,
-        },
-        '550e8400-e29b-41d4-a716-446655440007': {
-          id: '550e8400-e29b-41d4-a716-446655440007',
-          name: 'Capricorn Cup',
-          type: EventType.CM,
-          date: '2026-02-09',
-          courseId: 10701,
-          season: Season.Winter,
-          ground: GroundCondition.Soft,
-          weather: Weather.Snowy,
-          time: TimeOfDay.Midday,
-        },
-        '550e8400-e29b-41d4-a716-446655440008': {
-          id: '550e8400-e29b-41d4-a716-446655440008',
-          name: 'Aquarius Cup',
-          type: EventType.CM,
-          date: '2026-03-01',
-          courseId: 10611,
-          season: Season.Winter,
-          ground: GroundCondition.Firm,
-          weather: Weather.Sunny,
-          time: TimeOfDay.Midday,
-        },
-        '550e8400-e29b-41d4-a716-446655440009': {
-          id: '550e8400-e29b-41d4-a716-446655440009',
-          name: 'Pisces Cup',
-          type: EventType.CM,
-          date: '2026-03-24',
-          courseId: 10914,
-          season: Season.Spring,
-          ground: GroundCondition.Heavy,
-          weather: Weather.Rainy,
-          time: TimeOfDay.Midday,
-        },
-      },
+      presetOrder: defaultPresetOrder,
+      presets: defaultPresets,
     }),
     {
       name: PRESET_STORE_NAME,
       storage: createJSONStorage(() => localStorage),
       merge: (persisted, current) => {
-        const state = persisted as IPresetStore;
+        const state = persisted as IPresetStore | null | undefined;
         if (!state) return current;
-
-        const presetIds = Object.keys(state.presets);
-        const order = state.presetOrder?.length
-          ? state.presetOrder.filter((id) => presetIds.includes(id))
-          : presetIds;
-        const missing = presetIds.filter((id) => !order.includes(id));
-
-        return { ...current, ...state, presetOrder: [...order, ...missing] };
+        return mergePresetsWithBundled(state, current);
+      },
+      onRehydrateStorage: () => (state, error) => {
+        if (error) return;
+        const presets = state?.presets ?? usePresetStore.getState().presets;
+        clearSelectedPresetIfInvalid(presets);
       },
     },
   ),
@@ -192,4 +124,9 @@ export const deletePresets = (ids: string[]) => {
 
 export const reorderPresets = (newOrder: string[]) => {
   usePresetStore.setState({ presetOrder: newOrder });
+};
+
+export const resetPresets = () => {
+  usePresetStore.setState({ presets: defaultPresets, presetOrder: defaultPresetOrder });
+  useSettingsStore.setState({ selectedPresetId: null });
 };

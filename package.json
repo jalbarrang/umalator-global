@@ -23,6 +23,7 @@
     "extract:course-data": "tsx scripts/extract-course-data.ts",
     "extract:all": "tsx scripts/extract-all.ts",
     "course:extract": "tsx scripts/extract-course-entry.ts",
+    "transform:cm-presets": "tsx scripts/transform-cm-presets.ts",
     "skill:compare": "tsx scripts/run-skill-compare.ts",
     "runner:compare": "tsx scripts/run-runner-compare.ts"
   },
