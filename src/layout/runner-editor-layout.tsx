@@ -147,7 +147,6 @@ export const RunnerEditorLayout = ({
                 options={selectableSkills}
                 currentSkills={runnerState.skills}
                 onSelect={handleSetSkills}
-                hideSelected
                 className="flex-1 min-h-0"
               />
             </div>

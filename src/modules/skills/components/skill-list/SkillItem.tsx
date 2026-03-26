@@ -84,7 +84,7 @@ const SkillItemContent = (props: SkillItemContentProps) => {
       className={cn(
         'rounded-md bg-background border-2 flex h-auto min-h-[48px]',
         {
-          selected: selected,
+          'ring-2 ring-primary': selected,
           'bg-yellow-200/70 dark:bg-yellow-800/40': isHovered || isFocused,
         },
         props.className,

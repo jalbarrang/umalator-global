@@ -9,7 +9,7 @@ import {
   useState,
 } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { SkillIcon, SkillItem } from './skill-list/SkillItem';
+import { SkillIcon } from './skill-list/SkillItem';
 import { VirtualizedSkillGrid } from './VirtualizedSkillGrid';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -20,7 +20,6 @@ import {
   InputGroupText,
 } from '@/components/ui/input-group';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
 import i18n from '@/i18n';
 import { cn } from '@/lib/utils';
 import { groups_filters } from '@/modules/skills/filters';
@@ -165,7 +164,6 @@ export type SkillPickerContentProps = {
   currentSkills: Array<string>;
   onSelect: (skills: Array<string>) => void;
   className?: string;
-  hideSelected?: boolean;
   isMobile?: boolean;
   allowDuplicateSkills?: boolean;
 };
@@ -178,7 +176,6 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
     currentSkills,
     onSelect,
     className,
-    hideSelected = false,
     isMobile = false,
     allowDuplicateSkills = false,
   } = props;
@@ -279,12 +276,16 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
     const groupId = `${skill.groupId}`;
     const newSelected = new Set(currentSkills);
 
-    // Remove skill from same group if exists (for non-debuffs)
     const selectedId = selectedMap.get(groupId);
+    if (selectedId && selectedId === id && id !== umaUniqueSkillId) {
+      newSelected.delete(selectedId);
+      onSelect(Array.from(newSelected));
+      return;
+    }
+
     if (selectedId) {
       newSelected.delete(selectedId);
     } else if (shouldAllowDuplicateSkill(skill)) {
-      // For debuffs, find the next available suffix
       let count = 0;
 
       for (const newSelectedId of newSelected) {
@@ -325,18 +326,6 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
 
   const handleLocationChecked = (filter: string) => {
     dispatch({ type: 'SET_EXCLUSIVE_FILTER', group: 'location', filter });
-  };
-
-  const handleRemoveSkill: React.MouseEventHandler<HTMLDivElement> = (e) => {
-    const target = e.target as HTMLElement;
-    const eventElement = target.closest('[data-event="remove-skill"]') as HTMLElement;
-    if (!eventElement) return;
-
-    const skillId = eventElement.dataset.skillid;
-    if (!skillId) return;
-
-    const newSkills = currentSkills.filter((id) => id !== skillId);
-    onSelect(newSkills);
   };
 
   useHotkeys('f', (event) => {
@@ -384,29 +373,31 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
       const focusedSkill = filteredSkills[focusedSkillIndex];
       if (!focusedSkill) return;
 
-      // Simulate the click event to select the skill
       const groupId = `${focusedSkill.groupId}`;
       const newSelected = new Set(currentSkills);
 
-      // Remove skill from same group if exists (for non-debuffs)
       const selectedId = selectedMap.get(groupId);
-      if (selectedId) {
+      if (selectedId === focusedSkill.id && focusedSkill.id !== umaUniqueSkillId) {
         newSelected.delete(selectedId);
-      } else if (shouldAllowDuplicateSkill(focusedSkill)) {
-        // For debuffs, find the next available suffix
-        let count = 0;
-        for (const newSelectedId of newSelected) {
-          if (newSelectedId.split('-')[0] === focusedSkill.id) {
-            count++;
-          }
-        }
-        const skillIdWithSuffix = count > 0 ? `${focusedSkill.id}-${count}` : focusedSkill.id;
-        newSelected.add(skillIdWithSuffix);
+        onSelect(Array.from(newSelected));
       } else {
-        newSelected.add(focusedSkill.id);
-      }
+        if (selectedId) {
+          newSelected.delete(selectedId);
+        } else if (shouldAllowDuplicateSkill(focusedSkill)) {
+          let count = 0;
+          for (const newSelectedId of newSelected) {
+            if (newSelectedId.split('-')[0] === focusedSkill.id) {
+              count++;
+            }
+          }
+          const skillIdWithSuffix = count > 0 ? `${focusedSkill.id}-${count}` : focusedSkill.id;
+          newSelected.add(skillIdWithSuffix);
+        } else {
+          newSelected.add(focusedSkill.id);
+        }
 
-      onSelect(Array.from(newSelected));
+        onSelect(Array.from(newSelected));
+      }
 
       // Reset focus index and return focus to search input
       setFocusedSkillIndex(-1);
@@ -636,30 +627,6 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
         </div>
 
         <div className="flex flex-col gap-2 flex-1 min-h-0">
-          {!hideSelected && isMobile && (
-            <>
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-1">
-                  <span className="text-sm font-bold">Skills selected</span>
-                  <span className="text-xs text-muted-foreground">({currentSkills.length})</span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2" onClick={handleRemoveSkill}>
-                  {currentSkills.map((skillId) => (
-                    <SkillItem
-                      key={skillId}
-                      skillId={skillId}
-                      dismissable={skillId !== umaUniqueSkillId}
-                      className="cursor-pointer"
-                    />
-                  ))}
-                </div>
-              </div>
-
-              <Separator className="my-2" />
-            </>
-          )}
-
           <div className={cn('flex flex-col gap-2', isMobile ? 'h-[400px]' : 'flex-1 min-h-0')}>
             <div className="flex items-center gap-1">
               <span className="text-sm font-bold">Skills available</span>
@@ -670,6 +637,7 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
               items={filteredSkills}
               selectedMap={selectedMap}
               onClick={toggleSelected}
+              className="p-1"
               focusedSkillId={
                 focusedSkillIndex >= 0 && focusedSkillIndex < filteredSkills.length
                   ? filteredSkills[focusedSkillIndex].id
