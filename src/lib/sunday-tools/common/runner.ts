@@ -1086,6 +1086,7 @@ export class Runner {
 
       if (this.healthPolicy.isMaxSpurt()) {
         this.hasAchievedFullSpurt = true;
+        this.isLastSpurt = true;
 
         return;
       }

@@ -16,7 +16,10 @@ import {
   toCreateRunner,
   toSundayRaceParameters,
 } from './shared';
-import { BassinCollector } from '@/lib/sunday-tools/common/race-observer';
+import {
+  BassinCollector,
+  VacuumCompareDataCollector,
+} from '@/lib/sunday-tools/common/race-observer';
 
 const TEST_COURSE_ID = 10101;
 
@@ -688,6 +691,212 @@ describe('injected debuffs', () => {
       withDebuff.results.reduce((sum, value) => sum + value, 0) / withDebuff.results.length;
 
     expect(meanWith).toBeGreaterThan(meanWithout);
+  });
+});
+
+describe('last spurt activation', () => {
+  const LATE_SURGER_COURSE_ID = 10504; // Nakayama Turf 2000m (Medium)
+
+  function createLateSurgerRunner() {
+    return createRunnerState({
+      outfitId: '103701',
+      speed: 1200,
+      stamina: 800,
+      power: 1100,
+      guts: 550,
+      wisdom: 1200,
+      strategy: 'Late Surger',
+      distanceAptitude: 'S',
+      surfaceAptitude: 'A',
+      strategyAptitude: 'A',
+      mood: 2,
+      skills: ['100371', '210061', '200331', '900271', '200362', '900061'],
+      randomMobId: 8361,
+    });
+  }
+
+  function createLateSurgerRace(seed: number) {
+    const course = CourseHelpers.getCourse(LATE_SURGER_COURSE_ID);
+    const racedef = racedefToParams(
+      createRaceConditions({
+        ground: 1,
+        weather: 1,
+        season: 1,
+        time: 2,
+        grade: 100,
+      }),
+    );
+    const raceParameters = toSundayRaceParameters(racedef);
+    const runner = createLateSurgerRunner();
+    const sortedSkills = runner.skills.toSorted(createSkillSorterByGroup(runner.skills));
+
+    const collector = new VacuumCompareDataCollector();
+    const race = createInitializedRace({
+      course,
+      raceParameters,
+      settings: createCompareSettings({ healthSystem: true }),
+      duelingRates: DEFAULT_DUELING_RATES,
+      skillSamples: 1,
+      runner: toCreateRunner(runner, sortedSkills),
+      collector,
+    });
+
+    return { race, collector, course };
+  }
+
+  it('activates isLastSpurt immediately for max-spurt horse on entering phase 2', () => {
+    const { race, course } = createLateSurgerRace(425546);
+    race.prepareRound(425546);
+    race.run();
+
+    const raceRunner = race.runners.values().toArray()[0];
+    const lateRaceStart = (course.distance * 2) / 3;
+
+    expect(raceRunner.hasAchievedFullSpurt).toBe(true);
+    expect(raceRunner.isLastSpurt).toBe(true);
+    expect(raceRunner.lastSpurtTransition).toBe(-1);
+    expect(raceRunner.lastSpurtSpeed).toBeGreaterThan(raceRunner.baseTargetSpeedPerPhase[2]);
+    expect(raceRunner.position).toBeGreaterThan(lateRaceStart);
+  });
+
+  it('does not flatten velocity at late-race base target speed', () => {
+    const { race, collector, course } = createLateSurgerRace(425546);
+    race.prepareRound(425546);
+    race.run();
+
+    const raceRunner = race.runners.values().toArray()[0];
+    const data = collector.getPrimaryRunnerRoundData()!;
+    expect(data).not.toBeNull();
+
+    const lateRaceStart = (course.distance * 2) / 3;
+    const lateRaceBaseTarget = raceRunner.baseTargetSpeedPerPhase[2];
+
+    const lateRaceFrames: Array<{ position: number; velocity: number }> = [];
+    for (let i = 0; i < data.position.length; i++) {
+      if (data.position[i] >= lateRaceStart) {
+        lateRaceFrames.push({ position: data.position[i], velocity: data.velocity[i] });
+      }
+    }
+
+    expect(lateRaceFrames.length).toBeGreaterThan(0);
+
+    // With the fix, the runner should accelerate above lateRaceBaseTarget during late race.
+    // If the bug were present, velocity would plateau at lateRaceBaseTarget.
+    const maxVelocityInLateRace = Math.max(...lateRaceFrames.map((f) => f.velocity));
+    expect(maxVelocityInLateRace).toBeGreaterThan(lateRaceBaseTarget + 0.5);
+
+    // Verify the runner reaches near lastSpurtSpeed
+    expect(maxVelocityInLateRace).toBeGreaterThan(raceRunner.lastSpurtSpeed * 0.95);
+  });
+
+  it('achieves full spurt at a plausible rate across multiple seeds', () => {
+    const course = CourseHelpers.getCourse(LATE_SURGER_COURSE_ID);
+    const racedef = racedefToParams(
+      createRaceConditions({
+        ground: 1,
+        weather: 1,
+        season: 1,
+        time: 2,
+        grade: 100,
+      }),
+    );
+    const raceParameters = toSundayRaceParameters(racedef);
+    const runner = createLateSurgerRunner();
+    const sortedSkills = runner.skills.toSorted(createSkillSorterByGroup(runner.skills));
+
+    const collector = new VacuumCompareDataCollector();
+    const race = createInitializedRace({
+      course,
+      raceParameters,
+      settings: createCompareSettings({ healthSystem: true }),
+      duelingRates: DEFAULT_DUELING_RATES,
+      skillSamples: 1,
+      runner: toCreateRunner(runner, sortedSkills),
+      collector,
+    });
+
+    let fullSpurtCount = 0;
+    const nsamples = 64;
+    const baseSeed = 100000;
+
+    for (let i = 0; i < nsamples; i++) {
+      race.prepareRound(baseSeed + i);
+      race.run();
+
+      const raceRunner = race.runners.values().toArray()[0];
+      if (raceRunner.hasAchievedFullSpurt) {
+        fullSpurtCount++;
+      }
+    }
+
+    const fullSpurtRate = fullSpurtCount / nsamples;
+    // A Late Surger with 800 stamina on 2000m should achieve full spurt frequently
+    expect(fullSpurtRate).toBeGreaterThan(0.3);
+  });
+
+  it('recalculates spurt correctly via forceState for non-max-spurt horse with HP recovery', () => {
+    const course = CourseHelpers.getCourse(LATE_SURGER_COURSE_ID);
+    const racedef = racedefToParams(
+      createRaceConditions({
+        ground: 1,
+        weather: 1,
+        season: 1,
+        time: 2,
+        grade: 100,
+      }),
+    );
+    const raceParameters = toSundayRaceParameters(racedef);
+
+    // Low stamina runner that is unlikely to achieve max spurt
+    const lowStaminaRunner = createRunnerState({
+      outfitId: '103701',
+      speed: 1200,
+      stamina: 300,
+      power: 1100,
+      guts: 550,
+      wisdom: 1200,
+      strategy: 'Late Surger',
+      distanceAptitude: 'S',
+      surfaceAptitude: 'A',
+      strategyAptitude: 'A',
+      mood: 2,
+      skills: ['100371', '900061'],
+      randomMobId: 8361,
+    });
+
+    const sortedSkills = lowStaminaRunner.skills.toSorted(
+      createSkillSorterByGroup(lowStaminaRunner.skills),
+    );
+
+    const collector = new VacuumCompareDataCollector();
+    const race = createInitializedRace({
+      course,
+      raceParameters,
+      settings: createCompareSettings({ healthSystem: true }),
+      duelingRates: DEFAULT_DUELING_RATES,
+      skillSamples: 1,
+      runner: toCreateRunner(lowStaminaRunner, sortedSkills),
+      collector,
+    });
+
+    race.prepareRound(425546);
+    race.run();
+
+    const raceRunner = race.runners.values().toArray()[0];
+
+    // Low stamina runner should NOT achieve max spurt
+    expect(raceRunner.hasAchievedFullSpurt).toBe(false);
+
+    // But should still eventually enter last spurt (at the computed transition)
+    expect(raceRunner.isLastSpurt).toBe(true);
+
+    // The non-full-spurt bookkeeping should have been set
+    expect(raceRunner.nonFullSpurtVelocityDiff).not.toBeNull();
+    expect(raceRunner.nonFullSpurtDelayDistance).not.toBeNull();
+
+    // Last spurt speed should be less than or equal to the max possible spurt speed
+    expect(raceRunner.lastSpurtSpeed).toBeLessThanOrEqual(raceRunner.baseTargetSpeedPerPhase[2] + 5);
+    expect(raceRunner.lastSpurtTransition).toBeGreaterThan(0);
   });
 });
 
