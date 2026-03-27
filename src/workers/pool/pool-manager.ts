@@ -29,7 +29,6 @@ export class PoolManager {
   private workerGenerator: (options: { name: string }) => Worker;
   private poolSize: number;
   private isRunning = false;
-  private expectedResourceVersion: string | null = null;
 
   constructor(
     workerGenerator: (options: { name: string }) => Worker,
@@ -230,7 +229,6 @@ export class PoolManager {
     });
     this.workers = [];
     this.isRunning = false;
-    this.expectedResourceVersion = null;
   }
 
   /**

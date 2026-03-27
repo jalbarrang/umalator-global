@@ -4,7 +4,7 @@ import type { SkillComparisonResponse } from '@/modules/simulation/types';
 import type { SimulationProgress, WorkBatch } from './types';
 
 export type StageConfig = {
-  stage: 1 | 2 | 3 | 4;
+  stage: 1 | 2 | 3;
   nsamples: number;
 };
 
@@ -12,7 +12,6 @@ export const STAGE_CONFIGS: Array<StageConfig> = [
   { stage: 1, nsamples: 5 },
   { stage: 2, nsamples: 20 },
   { stage: 3, nsamples: 50 },
-  { stage: 4, nsamples: 200 },
 ];
 
 export class WorkQueue {
@@ -200,7 +199,7 @@ export class WorkQueue {
   getProgress(): SimulationProgress {
     return {
       currentStage: STAGE_CONFIGS[this.currentStageIndex].stage,
-      totalStages: 4,
+      totalStages: 3,
       skillsCompletedInStage: this.completedSkillsInCurrentStage,
       totalSkillsInStage: this.totalSkillsInCurrentStage,
     };
