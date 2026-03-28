@@ -1,12 +1,15 @@
 import { Virtualizer } from '@tanstack/react-virtual';
 import { flexRender, type Row } from '@tanstack/react-table';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ArrowLeft, ChartBar } from 'lucide-react';
 import { SkillComparisonRoundResult } from '@/modules/simulation/types';
 import { cn } from '@/lib/utils';
 import { gridClass } from './BasinnChart';
-import { ActivationDetails } from './activation-details';
+import { BASSIN_DATA_EVENT_TOGGLE_ACTIVATION_DETAILS } from './skill-activation-details-dialog';
 import { Button } from '../ui/button';
-import React from 'react';
+import React, { useMemo } from 'react';
+
+/** `data-event` value on the skill actions control; must match delegated handler in BasinnChart. */
+export const BASSIN_DATA_EVENT_OPEN_SKILL_ACTIONS = 'open-skill-actions';
 
 type BassinVirtualItem = ReturnType<
   Virtualizer<HTMLDivElement, Element>['getVirtualItems']
@@ -15,29 +18,89 @@ type BassinVirtualItem = ReturnType<
 type ExpandCellProps = {
   skillId: string;
   hasRunData: boolean;
-  isExpanded: boolean;
-  onToggleRow: (skillId: string) => void;
 };
 
-const ExpandCell = React.memo(
-  ({ skillId, hasRunData, isExpanded, onToggleRow }: ExpandCellProps) => {
-    if (!hasRunData) return null;
+const ExpandCell = React.memo(({ skillId, hasRunData }: ExpandCellProps) => {
+  if (!hasRunData) return null;
 
-    return (
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        onClick={(e) => {
-          e.stopPropagation();
-          onToggleRow(skillId);
-        }}
-        title={isExpanded ? 'Collapse details' : 'Show activation details'}
-      >
-        {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-      </Button>
-    );
-  },
-);
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon-sm"
+      data-event={BASSIN_DATA_EVENT_TOGGLE_ACTIVATION_DETAILS}
+      data-skill-id={skillId}
+      className="cursor-pointer"
+    >
+      <ChartBar className="h-4 w-4" />
+    </Button>
+  );
+});
+
+type ActionsCellProps = {
+  skillId: string;
+};
+
+const ActionsCell = React.memo(({ skillId }: ActionsCellProps) => {
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      className="h-8 w-8 p-0"
+      data-event={BASSIN_DATA_EVENT_OPEN_SKILL_ACTIONS}
+      data-skill-id={skillId}
+      title="Skill actions"
+    >
+      <ArrowLeft className="h-4 w-4" />
+    </Button>
+  );
+});
+
+type BassinVirtualTableRowCellsProps = {
+  row: Row<SkillComparisonRoundResult>;
+  hasRunData: boolean;
+};
+
+const BassinVirtualTableRowCells = React.memo(function BassinVirtualTableRowCells(
+  props: BassinVirtualTableRowCellsProps,
+) {
+  const { row, hasRunData } = props;
+  const id = row.getValue('id') as string;
+
+  return (
+    <>
+      {row.getVisibleCells().map((cell) => {
+        const columnId = cell.column.id;
+        const cellValue = cell.getValue();
+        const extraProps: Record<string, unknown> = {};
+
+        if (columnId === 'id') {
+          extraProps['data-itemtype'] = 'skill';
+          extraProps['data-itemid'] = cellValue;
+        }
+
+        if (columnId === 'actions') {
+          return <ActionsCell key={cell.id} skillId={id} />;
+        }
+
+        if (columnId === 'expand') {
+          return (
+            <div key={cell.id} className="flex items-center gap-2">
+              <ExpandCell skillId={id} hasRunData={hasRunData} />
+            </div>
+          );
+        }
+
+        return (
+          <div key={cell.id} className="flex items-center gap-2" {...extraProps}>
+            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+          </div>
+        );
+      })}
+    </>
+  );
+});
 
 type BassinVirtualTableRowProps = {
   virtualRow: BassinVirtualItem;
@@ -50,12 +113,6 @@ type BassinVirtualTableRowProps = {
   isCurrentMatch: boolean;
   isPending: boolean;
   isHidden: boolean;
-  courseDistance?: number;
-  currentSeed: number | null;
-  isSimulationRunning: boolean;
-  skillLoading: boolean;
-  onToggleRow: (skillId: string) => void;
-  onRunAdditionalSamples?: (skillId: string, additionalSamples: number) => void;
 };
 
 const BassinVirtualTableRow = React.memo(function BassinVirtualTableRow(
@@ -66,87 +123,44 @@ const BassinVirtualTableRow = React.memo(function BassinVirtualTableRow(
     row,
     measureElement,
     isSelected,
-    isExpanded,
     hasRunData,
     isSearchMatch,
     isCurrentMatch,
     isPending,
     isHidden,
-    courseDistance,
-    currentSeed,
-    isSimulationRunning,
-    skillLoading,
-    onToggleRow,
-    onRunAdditionalSamples,
   } = props;
 
-  const id: string = row.getValue('id');
-  const rowData = row.original;
+  const classNameObject = useMemo(() => {
+    return cn(
+      'w-full bg-background hover:bg-muted p-2 border-b last-of-type:border-b-0',
+      'flex flex-col gap-2 transition-opacity duration-300',
+      {
+        hidden: isHidden,
+        'bg-primary/5': isSelected && !isSearchMatch,
+        'bg-yellow-100/50 dark:bg-yellow-900/20': isSearchMatch && !isCurrentMatch,
+        'bg-yellow-200/70 dark:bg-yellow-800/40': isCurrentMatch,
+        'opacity-40': isPending,
+      },
+    );
+  }, [isHidden, isSelected, isSearchMatch, isCurrentMatch, isPending]);
+
+  const styleObject = useMemo(() => {
+    return {
+      position: 'absolute',
+      transform: `translateY(${virtualRow.start}px)`,
+    } satisfies React.CSSProperties;
+  }, [virtualRow.start]);
 
   return (
     <div
       data-index={virtualRow.index}
       ref={measureElement}
-      className={cn(
-        'w-full bg-background hover:bg-muted p-2 border-b last-of-type:border-b-0',
-        'flex flex-col gap-2 transition-opacity duration-300',
-        {
-          hidden: isHidden,
-          'bg-primary/5': isSelected && !isSearchMatch,
-          'bg-yellow-100/50 dark:bg-yellow-900/20': isSearchMatch && !isCurrentMatch,
-          'bg-yellow-200/70 dark:bg-yellow-800/40': isCurrentMatch,
-          'opacity-40': isPending,
-        },
-      )}
-      style={{
-        position: 'absolute',
-        transform: `translateY(${virtualRow.start}px)`,
-      }}
+      className={classNameObject}
+      style={styleObject}
     >
       <div className={gridClass}>
-        {row.getVisibleCells().map((cell) => {
-          const columnId = cell.column.id;
-          const cellValue = cell.getValue();
-          const extraProps: Record<string, unknown> = {};
-
-          if (columnId === 'id') {
-            extraProps['data-itemtype'] = 'skill';
-            extraProps['data-itemid'] = cellValue;
-          }
-
-          if (columnId === 'expand') {
-            return (
-              <div key={cell.id} className="flex items-center gap-2">
-                <ExpandCell
-                  skillId={id}
-                  hasRunData={hasRunData}
-                  isExpanded={isExpanded}
-                  onToggleRow={onToggleRow}
-                />
-              </div>
-            );
-          }
-
-          return (
-            <div key={cell.id} className="flex items-center gap-2" {...extraProps}>
-              {flexRender(cell.column.columnDef.cell, cell.getContext())}
-            </div>
-          );
-        })}
+        <BassinVirtualTableRowCells row={row} hasRunData={hasRunData} />
       </div>
-
-      {isExpanded && hasRunData && rowData?.runData && (
-        <ActivationDetails
-          skillId={id}
-          runData={rowData.runData}
-          skillActivations={rowData.skillActivations}
-          courseDistance={courseDistance ?? 1400}
-          currentSeed={currentSeed}
-          isGlobalSimulationRunning={isSimulationRunning}
-          isSkillLoading={skillLoading}
-          onRunAdditionalSamples={onRunAdditionalSamples}
-        />
-      )}
     </div>
   );
 });
@@ -155,18 +169,13 @@ export type BassinTableBodyProps = {
   virtualizer: Virtualizer<HTMLDivElement, Element>;
   rows: Row<SkillComparisonRoundResult>[];
   selectedSkills: string[];
-  expandedRows: Set<string>;
-  onToggleRow: (skillId: string) => void;
+  expandedSkillId: string | null;
   search: {
     matches: number[];
     currentMatchIndex: number;
   };
   hiddenSkills: string[];
-  courseDistance?: number;
-  currentSeed: number | null;
   isSimulationRunning: boolean;
-  skillLoadingStates: Record<string, boolean>;
-  onRunAdditionalSamples?: (skillId: string, additionalSamples: number) => void;
 };
 
 export const BassinTableBody = React.memo((props: BassinTableBodyProps) => {
@@ -174,15 +183,10 @@ export const BassinTableBody = React.memo((props: BassinTableBodyProps) => {
     virtualizer,
     rows,
     selectedSkills,
-    expandedRows,
-    onToggleRow,
+    expandedSkillId,
     search,
     hiddenSkills,
-    courseDistance,
-    currentSeed,
     isSimulationRunning,
-    skillLoadingStates,
-    onRunAdditionalSamples,
   } = props;
 
   return (
@@ -196,7 +200,7 @@ export const BassinTableBody = React.memo((props: BassinTableBodyProps) => {
         const row = rows[virtualRow.index];
         const id: string = row.getValue('id');
         const isSelected = selectedSkills.includes(id);
-        const isExpanded = expandedRows.has(id);
+        const isExpanded = expandedSkillId === id;
         const rowData = row.original;
         const hasRunData = rowData?.runData != null;
         const isSearchMatch = search.matches.includes(virtualRow.index);
@@ -216,12 +220,6 @@ export const BassinTableBody = React.memo((props: BassinTableBodyProps) => {
             isCurrentMatch={isCurrentMatch}
             isPending={isPending}
             isHidden={hiddenSkills.includes(id)}
-            courseDistance={courseDistance}
-            currentSeed={currentSeed}
-            isSimulationRunning={isSimulationRunning}
-            skillLoading={skillLoadingStates[id] ?? false}
-            onToggleRow={onToggleRow}
-            onRunAdditionalSamples={onRunAdditionalSamples}
           />
         );
       })}

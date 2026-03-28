@@ -104,7 +104,7 @@ export function UmaBassin() {
         dataTutorial="uma-bassin-controls"
       />
 
-      <div data-tutorial="uma-bassin-chart" className="flex gap-4 h-full min-w-0">
+      <div data-tutorial="uma-bassin-chart" className="flex flex-col gap-4 h-full min-w-0">
         <SimulationProgressBanner useStore={useUniqueSkillBasinStore} />
 
         <BasinnChart

@@ -21,7 +21,7 @@ type SkillNameTableCellProps = {
   courseDistance?: number;
 };
 
-const SkillNameTableCell = (props: SkillNameTableCellProps) => {
+const SkillNameTableCell = React.memo((props: SkillNameTableCellProps) => {
   const { id, skill, displayedName, iconSrc, iconClassName, courseDistance } = props;
 
   return (
@@ -51,7 +51,7 @@ const SkillNameTableCell = (props: SkillNameTableCellProps) => {
       </Popover>
     </div>
   );
-};
+});
 
 type SkillNameCellProps = {
   showUmaIcons?: boolean;
