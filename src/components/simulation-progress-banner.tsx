@@ -1,12 +1,19 @@
 import { Activity, Loader2 } from 'lucide-react';
 import { formatMs } from '@/utils/time';
-import type { BasinStoreState } from '@/modules/simulation/stores/create-basin-store';
+import { PoolMetrics } from '@/modules/simulation/types';
+import { SimulationProgress } from '@/workers/pool/types';
+
+type BasinStoreState = {
+  progress: SimulationProgress | null;
+  isSimulationRunning: boolean;
+  metrics: PoolMetrics | null;
+};
 
 type SimulationProgressBannerProps = {
   useStore: <T>(selector: (state: BasinStoreState) => T) => T;
 };
 
-export function SimulationProgressBanner({ useStore }: SimulationProgressBannerProps) {
+export function SimulationProgressBanner({ useStore }: Readonly<SimulationProgressBannerProps>) {
   const progress = useStore((s) => s.progress);
   const isSimulationRunning = useStore((s) => s.isSimulationRunning);
   const metrics = useStore((s) => s.metrics);

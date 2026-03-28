@@ -1,6 +1,12 @@
 import { Copy, Edit, MoreVertical, PlayCircle, Trash2, Code, Download, Camera } from 'lucide-react';
 import { useMemo, useRef } from 'react';
-import { ShareCard, copyRosterViewCode, downloadJson, copyScreenshot, getSkillsForShareCard } from '@/modules/runners/share';
+import {
+  ShareCard,
+  copyRosterViewCode,
+  downloadJson,
+  copyScreenshot,
+  getSkillsForShareCard,
+} from '@/modules/runners/share';
 import { getUmaDisplayInfo, getUmaImageUrl } from '../utils';
 import { StatImage } from './StatInput';
 import type { SavedRunner } from '@/store/runner-library.store';
@@ -93,13 +99,23 @@ export const SavedRunnerCard = (props: SavedRunnerCardProps) => {
                   <Code className="h-4 w-4 mr-2" />
                   Copy RosterView Code
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => downloadJson(runner, `runner-${umaInfo?.name ?? 'unknown'}.json`, runner.createdAt)}>
+                <DropdownMenuItem
+                  onClick={() =>
+                    downloadJson(
+                      runner,
+                      `runner-${umaInfo?.name ?? 'unknown'}.json`,
+                      runner.createdAt,
+                    )
+                  }
+                >
                   <Download className="h-4 w-4 mr-2" />
                   Download JSON
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => {
-                  if (shareCardRef.current) copyScreenshot(shareCardRef.current);
-                }}>
+                <DropdownMenuItem
+                  onClick={() => {
+                    if (shareCardRef.current) copyScreenshot(shareCardRef.current);
+                  }}
+                >
                   <Camera className="h-4 w-4 mr-2" />
                   Copy Screenshot
                 </DropdownMenuItem>

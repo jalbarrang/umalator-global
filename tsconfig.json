@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "tsBuildInfoFile": "./.cache/tsconfig.tsbuildinfo",
+    "incremental": true,
     // Environment setup & latest features
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "types": ["vite/client"],
@@ -27,7 +28,6 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false,
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
       "@scripts/*": ["./scripts/*"],
@@ -35,6 +35,6 @@
       "@cli/*": ["./cli/*"]
     }
   },
-  "include": ["./**/*.ts", "./**/*.tsx"],
+  "include": ["src", "tests", "scripts", ".cursor", "vite.config.ts", "playwright.config.ts"],
   "exclude": ["node_modules", "dist"]
 }

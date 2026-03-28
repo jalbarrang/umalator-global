@@ -126,9 +126,7 @@ export function parseSnapshotJson(raw: string): SimulationSnapshot | null {
   if (!fpNums(fp.uma1) || !fpNums(fp.uma2)) return null;
   if (!isInjectedDebuffsMap(parsed.injectedDebuffs)) return null;
 
-  const uma2Resolved = isRunnerState(parsed.uma2)
-    ? parsed.uma2
-    : createRunnerState();
+  const uma2Resolved = isRunnerState(parsed.uma2) ? parsed.uma2 : createRunnerState();
 
   return {
     version: SIMULATION_SNAPSHOT_VERSION,
@@ -140,7 +138,8 @@ export function parseSnapshotJson(raw: string): SimulationSnapshot | null {
     seed: parsed.seed,
     nsamples: parsed.nsamples,
     witVarianceSettings: parsed.witVarianceSettings as SimulationSnapshot['witVarianceSettings'],
-    staminaDrainOverrides: parsed.staminaDrainOverrides as SimulationSnapshot['staminaDrainOverrides'],
+    staminaDrainOverrides:
+      parsed.staminaDrainOverrides as SimulationSnapshot['staminaDrainOverrides'],
     forcedPositions: {
       uma1: parsed.forcedPositions.uma1 as Record<string, number>,
       uma2: parsed.forcedPositions.uma2 as Record<string, number>,

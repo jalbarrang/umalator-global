@@ -11,4 +11,6 @@ export {
 } from './share-actions';
 export { ShareCard } from './share-card';
 export { ImportCodeDialog } from './import-code-dialog';
+export { RosterImportDialog } from './roster-import-dialog';
+export { decodeRoster } from './roster-encoding';
 export { useRoosterImport } from './use-rooster-import';

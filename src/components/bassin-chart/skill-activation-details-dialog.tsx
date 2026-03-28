@@ -1,9 +1,4 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { getSkillNameById } from '@/modules/data/skills';
 import type { SkillComparisonRoundResult } from '@/modules/simulation/types';
 import React from 'react';
@@ -49,9 +44,7 @@ export const SkillActivationDetailsDialog = React.memo(function SkillActivationD
         {skillId && runData && (
           <>
             <DialogHeader className="border-b px-4 py-3">
-              <DialogTitle className="text-base">
-                {getSkillNameById(skillId)}
-              </DialogTitle>
+              <DialogTitle className="text-base">{getSkillNameById(skillId)}</DialogTitle>
             </DialogHeader>
             <div className="max-h-[min(80vh,calc(90vh-4rem))] overflow-y-auto p-4">
               <ActivationDetails
