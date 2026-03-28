@@ -24,7 +24,11 @@ const groundConditions: Record<number, string> = {
   4: 'Heavy',
 };
 
-export const RaceSettingsPanel = React.memo(() => {
+type RaceSettingsPanelProps = {
+  open?: boolean;
+};
+
+export const RaceSettingsPanel = React.memo(({ open }: RaceSettingsPanelProps) => {
   const { courseId, racedef } = useSettingsStore();
 
   const summary = useMemo(() => {
@@ -38,8 +42,16 @@ export const RaceSettingsPanel = React.memo(() => {
     return `${trackName} · ${courseDesc} · ${ground} · ${season} · ${weather}`;
   }, [courseId, racedef.ground, racedef.season, racedef.weather]);
 
+  const collapsibleProps = useMemo(() => {
+    if (open !== undefined) {
+      return { open };
+    }
+
+    return { defaultOpen: false };
+  }, [open]);
+
   return (
-    <Collapsible defaultOpen={false}>
+    <Collapsible {...collapsibleProps}>
       <CollapsibleTrigger className="group flex w-full items-center gap-2 bg-card px-4 py-2 text-sm hover:bg-accent/50 cursor-pointer">
         <Settings className="h-4 w-4 shrink-0" />
         <span className="truncate">{summary}</span>

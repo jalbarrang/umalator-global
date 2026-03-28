@@ -5,6 +5,8 @@ import { Rule30CARng } from '../shared/random';
 import { GameHpPolicy } from '../health/game.policy';
 import { NoopHpPolicy } from '../health/health-policy';
 import { StrategyHelpers } from '../runner/runner.types';
+import { registerAllDynamicConditions } from '../full-sim/register-all';
+import { RaceEventBus } from './race-events';
 import { Runner } from './runner';
 import type { CreateRunner } from './runner';
 import type { PRNG } from '../shared/random';
@@ -20,6 +22,12 @@ import type {
 } from '../course/definitions';
 
 export type RunnerMap = Map<number, Runner>;
+
+export type RunnerSnapshot = {
+  position: number;
+  currentLane: number;
+  currentSpeed: number;
+};
 
 export type SimulationSettings = {
   mode: 'compare' | 'normal';
@@ -55,6 +63,14 @@ export type SimulationSettings = {
    * - false: Wit checks are disabled so skills always pass.
    */
   witChecks: boolean;
+  /**
+   * Position keep simulation mode.
+   *
+   * Values:
+   * - 0: position keep off
+   * - 2: virtual position keep
+   */
+  positionKeepMode: number;
   /**
    * Optional per-skill stamina drain overrides.
    * Key: base skill ID, value: drain fraction (0 to 1).
@@ -93,6 +109,9 @@ export type RaceParameters = {
   season: ISeason;
   timeOfDay: ITimeOfDay;
   grade: IGrade;
+  strategyCounts?: Map<IStrategy, number>;
+  commonSkills?: Map<string, number>;
+  numUmas?: number;
 
   [key: string]: any;
 };
@@ -118,8 +137,6 @@ export type RaceSimulatorProps = {
   skillSamples: number;
 
   duelingRates: DuelingRates;
-
-  collector?: RaceLifecycleObserver;
 };
 
 export class Race {
@@ -132,7 +149,7 @@ export class Race {
   public lastRunnerId!: number;
   public settings: SimulationSettings;
   public duelingRates: DuelingRates;
-  public collector?: RaceLifecycleObserver;
+  public events: RaceEventBus;
 
   // ===================
   // Public
@@ -141,6 +158,8 @@ export class Race {
   declare public pacer: Runner;
   declare public commonSkills: Map<string, number>;
   declare public strategyCounts: Map<IStrategy, number>;
+  declare public runnerOrder: Map<number, number>;
+  declare public previousRunnerOrder: Map<number, number>;
   declare public runnersPerStrategy: Map<IStrategy, Array<Runner>>;
   declare public accumulatedTime: number;
 
@@ -158,8 +177,9 @@ export class Race {
 
   public runners: Map<number, Runner>;
   public finishedRunners: Array<number>;
+  public runnerSnapshots: Map<number, RunnerSnapshot>;
 
-  constructor(props: RaceSimulatorProps) {
+  constructor(props: RaceSimulatorProps & { collector?: RaceLifecycleObserver }) {
     this.course = props.course;
 
     this.ground = props.parameters.ground;
@@ -170,13 +190,28 @@ export class Race {
 
     this.runners = new Map();
     this.finishedRunners = [];
+    this.runnerSnapshots = new Map();
 
     this.settings = props.settings;
     this.duelingRates = props.duelingRates;
-    this.collector = props.collector;
+    this.events = new RaceEventBus();
+
+    // Temporary backward compatibility while callsites move to event subscriptions.
+    const observer = props.collector;
+    if (observer) {
+      this.events.on('round-start', (race, seed) => observer.onRoundStart(race, seed));
+      this.events.on('before-tick', (race, dt) => observer.onBeforeTick(race, dt));
+      this.events.on('after-runner-tick', (race, runner, dt) =>
+        observer.onAfterRunnerTick(race, runner, dt),
+      );
+      this.events.on('runner-finished', (race, runner) => observer.onRunnerFinished(race, runner));
+      this.events.on('round-end', (race) => observer.onRoundEnd(race));
+    }
   }
 
   public onInitialize(): void {
+    registerAllDynamicConditions();
+
     // Default values
     this.seed = -1;
     this.lastRunnerId = 0;
@@ -193,7 +228,10 @@ export class Race {
 
     this.commonSkills = new Map();
     this.strategyCounts = new Map();
+    this.runnerOrder = new Map();
+    this.previousRunnerOrder = new Map();
     this.runnersPerStrategy = new Map();
+    this.runnerSnapshots.clear();
   }
 
   // ===================
@@ -279,6 +317,8 @@ export class Race {
     this.commonSkills = commonSkills;
     this.strategyCounts = strategyCounts;
     this.runnersPerStrategy = runnersPerStrategy;
+    this.runnerOrder = new Map();
+    this.previousRunnerOrder = new Map();
 
     this.accumulatedTime = 0;
     this.roundIteration = 0;
@@ -312,7 +352,7 @@ export class Race {
     // Increment the round iteration as setup is complete, so this value should not be used until the next round.
     this.roundIteration++;
 
-    this.collector?.onRoundStart(this, masterSeed);
+    this.events.emit('round-start', this, masterSeed);
   }
 
   /**
@@ -322,9 +362,31 @@ export class Race {
    * @param runners The runners to step.
    */
   public onUpdate(dt: number): void {
-    this.collector?.onBeforeTick(this, dt);
+    this.events.emit('before-tick', this, dt);
 
     this.accumulatedTime += dt;
+
+    if (this.settings.mode === 'normal') {
+      const sortedRunners = Array.from(this.runners.values())
+        .filter((runner) => !this.finishedRunners.includes(runner.id))
+        .sort((a, b) => b.position - a.position);
+
+      this.previousRunnerOrder = new Map(this.runnerOrder);
+      this.runnerOrder.clear();
+      for (let i = 0; i < sortedRunners.length; i += 1) {
+        this.runnerOrder.set(sortedRunners[i].id, i + 1);
+      }
+    }
+
+    this.runnerSnapshots.clear();
+    for (const runner of this.runners.values()) {
+      if (this.finishedRunners.includes(runner.id)) continue;
+      this.runnerSnapshots.set(runner.id, {
+        position: runner.position,
+        currentLane: runner.currentLane,
+        currentSpeed: runner.currentSpeed,
+      });
+    }
 
     // Internally set the pacer.
     // ? Should this be done every frame?
@@ -337,11 +399,11 @@ export class Race {
       if (this.finishedRunners.includes(runner.id)) continue;
 
       runner.onUpdate(dt);
-      this.collector?.onAfterRunnerTick(this, runner, dt);
+      this.events.emit('after-runner-tick', this, runner, dt);
 
       if (runner.finished) {
         this.finishedRunners.push(runner.id);
-        this.collector?.onRunnerFinished(this, runner);
+        this.events.emit('runner-finished', this, runner);
       }
     }
   }
@@ -360,7 +422,7 @@ export class Race {
       this.onUpdate(1 / 15);
     }
 
-    this.collector?.onRoundEnd(this);
+    this.events.emit('round-end', this);
   }
 
   private getPacer() {

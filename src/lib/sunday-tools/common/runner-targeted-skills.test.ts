@@ -25,6 +25,7 @@ const TEST_SETTINGS: SimulationSettings = {
   spotStruggle: false,
   dueling: false,
   witChecks: false,
+  positionKeepMode: 0,
 };
 
 const TEST_RACE_PARAMS: RaceParameters = {

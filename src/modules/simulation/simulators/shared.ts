@@ -10,6 +10,7 @@ import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import type { ISkillTarget, ISkillType } from '@/lib/sunday-tools/skills/definitions';
 import type { InjectedDebuff, RunComparisonParams } from '@/modules/simulation/types';
 import { Race } from '@/lib/sunday-tools/common/race';
+import { subscribeObserver } from '@/lib/sunday-tools/common/race-events';
 import { parseAptitudeName, parseStrategyName } from '@/lib/sunday-tools/runner/runner.types';
 import { SkillTarget, SkillType } from '@/lib/sunday-tools/skills/definitions';
 import { skillCollection } from '@/modules/data/skills';
@@ -146,6 +147,7 @@ export function createCompareSettings(
     spotStruggle: false,
     dueling: false,
     witChecks: false,
+    positionKeepMode: 0,
     staminaDrainOverrides: {},
     ...overrides,
   };
@@ -158,7 +160,7 @@ export function createInitializedRace(params: {
   duelingRates: DuelingRates;
   skillSamples: number;
   runner: CreateRunner;
-  collector?: RaceLifecycleObserver;
+  observer?: RaceLifecycleObserver;
 }): Race {
   const race = new Race({
     course: params.course,
@@ -166,8 +168,11 @@ export function createInitializedRace(params: {
     settings: params.settings,
     skillSamples: params.skillSamples,
     duelingRates: params.duelingRates,
-    collector: params.collector,
   });
+
+  if (params.observer) {
+    subscribeObserver(race.events, params.observer);
+  }
 
   race.onInitialize();
   race.skillSamples = params.skillSamples;

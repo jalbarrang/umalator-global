@@ -76,7 +76,7 @@ export function runSkillComparison(params: SkillCompareParams): SkillComparisonR
     duelingRates: DEFAULT_DUELING_RATES,
     skillSamples: nsamples,
     runner: toCreateRunner(runnerA, runnerASortedSkills),
-    collector: collectorA,
+    observer: collectorA,
   });
 
   const raceB = createInitializedRace({
@@ -86,7 +86,7 @@ export function runSkillComparison(params: SkillCompareParams): SkillComparisonR
     duelingRates: DEFAULT_DUELING_RATES,
     skillSamples: nsamples,
     runner: toCreateRunner(runnerB, runnerBSortedSkills),
-    collector: collectorB,
+    observer: collectorB,
   });
 
   const sign = 1;
