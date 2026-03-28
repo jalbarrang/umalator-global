@@ -3,26 +3,25 @@ import { SkillComparisonRoundResult } from '@/modules/simulation/types';
 import { CellContext } from '@tanstack/react-table';
 
 import icons from '@/modules/data/icons.json';
-import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Button } from '../ui/button';
 import { CircleHelp } from 'lucide-react';
-import { ExpandedSkillDetails } from '@/modules/skills/components/ExpandedSkillDetails';
 import { useMemo } from 'react';
 import { SkillEntry, skillCollection } from '@/modules/data/skills';
 import React from 'react';
 import { umaForUniqueSkill } from '@/modules/data/umas';
 
+/** `data-event` value on the skill details help control; must match delegated handler in BasinnChart. */
+export const BASSIN_DATA_EVENT_TOGGLE_SKILL_DETAILS = 'toggle-skill-details';
+
 type SkillNameTableCellProps = {
   id: string;
-  skill: SkillEntry;
   displayedName: string;
   iconSrc: string | null;
   iconClassName: string;
-  courseDistance?: number;
 };
 
 const SkillNameTableCell = React.memo((props: SkillNameTableCellProps) => {
-  const { id, skill, displayedName, iconSrc, iconClassName, courseDistance } = props;
+  const { id, displayedName, iconSrc, iconClassName } = props;
 
   return (
     <div className="flex items-center gap-2 min-w-0">
@@ -32,23 +31,17 @@ const SkillNameTableCell = React.memo((props: SkillNameTableCellProps) => {
         {displayedName}
       </span>
 
-      <Popover>
-        <PopoverTrigger
-          render={
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              className="h-6 w-6 shrink-0 text-muted-foreground"
-              title="Show skill details"
-            >
-              <CircleHelp className="h-3.5 w-3.5" />
-            </Button>
-          }
-        />
-        <PopoverContent align="start" side="right" className="w-[420px] p-0">
-          <ExpandedSkillDetails id={id} skill={skill} distanceFactor={courseDistance} />
-        </PopoverContent>
-      </Popover>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-sm"
+        className="h-6 w-6 shrink-0 text-muted-foreground"
+        title="Show skill details"
+        data-event={BASSIN_DATA_EVENT_TOGGLE_SKILL_DETAILS}
+        data-skill-id={id}
+      >
+        <CircleHelp className="h-3.5 w-3.5" />
+      </Button>
     </div>
   );
 });
@@ -57,13 +50,11 @@ type SkillNameCellProps = {
   showUmaIcons?: boolean;
   showSkillIds?: boolean;
   skillMetadataById: Map<string, SkillEntry>;
-  courseDistance?: number;
 };
 
 export const skillNameCell = ({
   showUmaIcons = false,
   showSkillIds = true,
-  courseDistance,
 }: SkillNameCellProps) => {
   return React.memo((props: CellContext<SkillComparisonRoundResult, unknown>) => {
     const id = props.getValue() as string;
@@ -105,11 +96,9 @@ export const skillNameCell = ({
     return (
       <SkillNameTableCell
         id={id}
-        skill={skill}
         displayedName={displayedName}
         iconSrc={iconSrc.src}
         iconClassName={iconSrc.className}
-        courseDistance={courseDistance}
       />
     );
   });

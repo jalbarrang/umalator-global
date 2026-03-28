@@ -13,7 +13,15 @@ import { Button } from '../ui/button';
 import './BasinnChart.css';
 import { TableSearchBar } from './TableSearchBar';
 import { useTableSearch } from './hooks/useTableSearch';
-import type { CellContext, Column, ColumnDef, Row, SortingState } from '@tanstack/react-table';
+import type {
+  CellContext,
+  Column,
+  ColumnDef,
+  HeaderGroup,
+  Row,
+  SortingState,
+  Table,
+} from '@tanstack/react-table';
 import type { SkillComparisonRoundResult } from '@/modules/simulation/types';
 
 import { getSkillNameById, skillCollection } from '@/modules/data/skills';
@@ -21,21 +29,16 @@ import { groups_filters } from '@/modules/skills/filters';
 import { iconIdPrefixes } from '@/modules/skills/icons';
 import i18n from '@/i18n';
 import { cn } from '@/lib/utils';
-import {
-  BassinTableBody,
-  BASSIN_DATA_EVENT_OPEN_SKILL_ACTIONS,
-} from './bassin-table-body';
+import { BassinTableBody, BASSIN_DATA_EVENT_OPEN_SKILL_ACTIONS } from './bassin-table-body';
 import { Menu as MenuPrimitive } from '@base-ui/react/menu';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from '../ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from '../ui/dropdown-menu';
 import {
   BASSIN_DATA_EVENT_TOGGLE_ACTIVATION_DETAILS,
   SkillActivationDetailsDialog,
 } from './skill-activation-details-dialog';
-import { skillNameCell } from './skill-name-cell';
+import { BASSIN_DATA_EVENT_TOGGLE_SKILL_DETAILS, skillNameCell } from './skill-name-cell';
+import { Popover, PopoverContent } from '../ui/popover';
+import { ExpandedSkillDetails } from '@/modules/skills/components/ExpandedSkillDetails';
 import React from 'react';
 
 export const formatBasinn = React.memo(
@@ -149,6 +152,45 @@ type BasinnChartProps = {
 
 export const gridClass = 'grid grid-cols-[50px_50px_1fr_100px_100px_100px_100px] w-full';
 
+const SORTABLE_HEADER_IDS = new Set(['min', 'max', 'mean', 'median']);
+
+type BassinTableHeaderRowProps = {
+  headerGroup: HeaderGroup<SkillComparisonRoundResult>;
+};
+
+const BassinTableHeaderRow = React.memo(({ headerGroup }: BassinTableHeaderRowProps) => {
+  return (
+    <div className={cn('bg-card hover:bg-muted p-2', gridClass)}>
+      {headerGroup.headers.map((header) => (
+        <div
+          key={header.id}
+          className={cn('flex items-center gap-2', {
+            'cursor-pointer': SORTABLE_HEADER_IDS.has(header.id),
+          })}
+        >
+          {header.isPlaceholder
+            ? null
+            : flexRender(header.column.columnDef.header, header.getContext())}
+        </div>
+      ))}
+    </div>
+  );
+});
+
+type BassinTableHeaderProps = {
+  table: Table<SkillComparisonRoundResult>;
+};
+
+function BassinTableHeader({ table }: BassinTableHeaderProps) {
+  return (
+    <>
+      {table.getHeaderGroups().map((headerGroup) => (
+        <BassinTableHeaderRow key={headerGroup.id} headerGroup={headerGroup} />
+      ))}
+    </>
+  );
+}
+
 function isSkillActionsMenuAllowedCloseReason(
   reason: MenuPrimitive.Root.ChangeEventDetails['reason'],
 ): boolean {
@@ -170,6 +212,10 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
 
   const [expandedSkillId, setExpandedSkillId] = useState<string | null>(null);
   const [skillActionsAnchor, setSkillActionsAnchor] = useState<{
+    skillId: string;
+    element: Element;
+  } | null>(null);
+  const [skillDetailsAnchor, setSkillDetailsAnchor] = useState<{
     skillId: string;
     element: Element;
   } | null>(null);
@@ -220,6 +266,19 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
           return;
         }
         setSkillActionsAnchor({ skillId, element: actionsEl });
+        return;
+      }
+
+      const detailsEl = (e.target as HTMLElement).closest(
+        `[data-event="${BASSIN_DATA_EVENT_TOGGLE_SKILL_DETAILS}"]`,
+      );
+      if (detailsEl) {
+        const skillId = detailsEl.getAttribute('data-skill-id');
+        if (!skillId) return;
+        setSkillDetailsAnchor((prev) => {
+          if (prev?.skillId === skillId) return null;
+          return { skillId, element: detailsEl };
+        });
         return;
       }
 
@@ -298,7 +357,6 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
           showUmaIcons,
           showSkillIds,
           skillMetadataById,
-          courseDistance: props.courseDistance,
         }),
         sortingFn: (a, b, _) => {
           const skillIdA = a.getValue('id');
@@ -334,7 +392,7 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
         sortDescFirst: true,
       },
     ];
-  }, [showUmaIcons, showSkillIds, skillMetadataById, props.courseDistance]);
+  }, [showUmaIcons, showSkillIds, skillMetadataById]);
 
   const [sorting, setSorting] = useState<SortingState>([{ id: 'mean', desc: true }]);
   const [rowSelection, setRowSelection] = useState({});
@@ -447,22 +505,7 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
         <div className="min-w-[900px] w-full text-sm">
           {/* Table Header */}
           <div className="sticky top-0 z-30">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <div key={headerGroup.id} className={cn('bg-card hover:bg-muted p-2', gridClass)}>
-                {headerGroup.headers.map((header) => (
-                  <div
-                    key={header.id}
-                    className={cn('flex items-center gap-2', {
-                      'cursor-pointer': ['min', 'max', 'mean', 'median'].includes(header.id),
-                    })}
-                  >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
-                  </div>
-                ))}
-              </div>
-            ))}
+            <BassinTableHeader table={table} />
           </div>
 
           {/* Table Body */}
@@ -493,15 +536,45 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
         onRunAdditionalSamples={onRunAdditionalSamples}
       />
 
+      <Popover
+        open={skillDetailsAnchor !== null}
+        onOpenChange={(open) => {
+          if (!open) setSkillDetailsAnchor(null);
+        }}
+      >
+        <PopoverContent
+          align="start"
+          side="right"
+          className="w-[420px] p-0"
+          anchor={skillDetailsAnchor?.element ?? null}
+        >
+          {skillDetailsAnchor &&
+            (() => {
+              const skill = skillCollection[skillDetailsAnchor.skillId];
+              if (!skill) {
+                return (
+                  <div className="p-3 text-sm text-muted-foreground">
+                    Unknown skill {skillDetailsAnchor.skillId}
+                  </div>
+                );
+              }
+              return (
+                <ExpandedSkillDetails
+                  id={skillDetailsAnchor.skillId}
+                  skill={skill}
+                  distanceFactor={props.courseDistance}
+                />
+              );
+            })()}
+        </PopoverContent>
+      </Popover>
+
       {onReplaceOutfit && (
         <DropdownMenu
           open={skillActionsAnchor !== null}
           onOpenChange={handleSkillActionsMenuOpenChange}
         >
-          <DropdownMenuContent
-            align="start"
-            anchor={skillActionsAnchor?.element ?? null}
-          >
+          <DropdownMenuContent align="start" anchor={skillActionsAnchor?.element ?? null}>
             <DropdownMenuItem
               onClick={() => {
                 if (!skillActionsAnchor) return;
