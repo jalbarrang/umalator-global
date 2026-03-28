@@ -12,7 +12,10 @@ import { PlaybackBar } from '@/modules/race-sim/components/PlaybackBar';
 import { SwimLanesView } from '@/modules/race-sim/components/SwimLanesView.tsx';
 import { TrackGraphView } from '@/modules/race-sim/components/TrackGraphView.tsx';
 import { useRaceSimContext } from '@/modules/race-sim/context';
-import { getRunnerPositionsAtTick, usePlaybackStore } from '@/modules/race-sim/stores/playback.store';
+import {
+  getRunnerPositionsAtTick,
+  usePlaybackStore,
+} from '@/modules/race-sim/stores/playback.store';
 import { computeViewport } from '@/modules/race-sim/utils/viewport';
 import { getUmaDisplayInfo } from '@/modules/runners/utils';
 import { setZoomWindowMeters, useRaceSimStore } from '@/modules/simulation/stores/race-sim.store';
@@ -22,8 +25,13 @@ type ReplayView = 'graph' | 'lanes';
 type ZoomMode = 'full' | 'zoom';
 
 function PlaybackTimeDisplay() {
-  const currentTimeDisplay = usePlaybackStore((s) => s.currentTimeDisplay);
-  const totalTimeDisplay = usePlaybackStore((s) => s.totalTimeDisplay);
+  const { currentTimeDisplay, totalTimeDisplay } = usePlaybackStore(
+    useShallow((state) => ({
+      currentTimeDisplay: state.currentTimeDisplay,
+      totalTimeDisplay: state.totalTimeDisplay,
+    })),
+  );
+
   return (
     <p className="text-xs text-muted-foreground">
       {currentTimeDisplay} / {totalTimeDisplay}
@@ -32,9 +40,13 @@ function PlaybackTimeDisplay() {
 }
 
 function SamplePicker() {
-  const roundCount = usePlaybackStore((s) => s.roundCount);
-  const selectedRound = usePlaybackStore((s) => s.selectedRound);
-  const setRound = usePlaybackStore((s) => s.setRound);
+  const { roundCount, selectedRound, setRound } = usePlaybackStore(
+    useShallow((s) => ({
+      roundCount: s.roundCount,
+      selectedRound: s.selectedRound,
+      setRound: s.setRound,
+    })),
+  );
 
   return (
     <div className="flex items-center gap-2">
@@ -56,24 +68,25 @@ function SamplePicker() {
   );
 }
 
-const VisualizationPanel = memo(function VisualizationPanel({
-  view,
-  courseData,
-  runnerNames,
-  trackedRunnerIds,
-  zoomMode,
-  zoomWindowMeters,
-}: {
+type VisualizationPanelProps = {
   view: ReplayView;
   courseData: CourseData;
   runnerNames: Record<number, string>;
   trackedRunnerIds: number[];
   zoomMode: ZoomMode;
   zoomWindowMeters: number;
-}) {
-  const currentTick = usePlaybackStore((s) => s.currentTick);
-  const results = usePlaybackStore((s) => s.results);
-  const selectedRound = usePlaybackStore((s) => s.selectedRound);
+};
+
+const VisualizationPanel = memo(function VisualizationPanel(props: VisualizationPanelProps) {
+  const { view, courseData, runnerNames, trackedRunnerIds, zoomMode, zoomWindowMeters } = props;
+
+  const { currentTick, results, selectedRound } = usePlaybackStore(
+    useShallow((s) => ({
+      currentTick: s.currentTick,
+      results: s.results,
+      selectedRound: s.selectedRound,
+    })),
+  );
 
   const viewport = useMemo(() => {
     if (zoomMode === 'full') {
@@ -119,7 +132,7 @@ export function RaceSimRun() {
     })),
   );
 
-  const courseId = useSettingsStore((state) => state.courseId);
+  const { courseId } = useSettingsStore(useShallow((state) => ({ courseId: state.courseId })));
   const courseData = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
 
   const [view, setView] = useState<ReplayView>('graph');

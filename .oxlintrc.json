@@ -1,9 +1,12 @@
 {
   "plugins": ["react", "typescript", "oxc"],
+  "jsPlugins": ["./oxlint-rules/plugin.js"],
   "categories": {},
   "rules": {
     "@typescript-eslint/no-unused-vars": "warn",
-    "react/rules-of-hooks": "error"
+    "react/rules-of-hooks": "error",
+    "react-props/destructure-props": "error",
+    "react-props/require-use-shallow": "error"
   },
   "settings": {
     "jsx-a11y": {

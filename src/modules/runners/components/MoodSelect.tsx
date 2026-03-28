@@ -7,7 +7,9 @@ type MoodSelectProps = {
   onChange: (value: IMood) => void;
 };
 
-export function MoodSelect(props: MoodSelectProps) {
+export function MoodSelect(props: Readonly<MoodSelectProps>) {
+  const { value, onChange } = props;
+
   const moodValues: Array<{ value: IMood; icon: string; label: string }> = [
     { value: Mood.Great, icon: 'utx_ico_motivation_m_04', label: 'Great' },
     { value: Mood.Good, icon: 'utx_ico_motivation_m_03', label: 'Good' },
@@ -21,11 +23,11 @@ export function MoodSelect(props: MoodSelectProps) {
       return;
     }
 
-    props.onChange(+value as IMood);
+    onChange(+value as IMood);
   };
 
   return (
-    <Select value={props.value.toString()} onValueChange={handleChange}>
+    <Select value={value.toString()} onValueChange={handleChange}>
       <SelectTrigger className="border-none rounded-none shadow-none">
         <img
           src={`/icons/global/${moodValues.find((m) => m.value === props.value)?.icon}.png`}

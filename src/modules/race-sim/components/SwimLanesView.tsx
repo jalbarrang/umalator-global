@@ -3,7 +3,11 @@ import { cn } from '@/lib/utils';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import { PHASE_STYLES, RUNNER_COLORS } from '@/modules/race-sim/constants';
-import { getRunnerPositionsAtTick, usePlaybackStore } from '@/modules/race-sim/stores/playback.store';
+import {
+  getRunnerPositionsAtTick,
+  usePlaybackStore,
+} from '@/modules/race-sim/stores/playback.store';
+import { useShallow } from 'zustand/shallow';
 
 type SwimLanesViewProps = {
   courseData: CourseData;
@@ -75,15 +79,20 @@ export const SwimLanesView = memo<SwimLanesViewProps>(function SwimLanesView(pro
     viewEnd,
     className,
   } = props;
-  const { results, selectedRound, currentTick } = usePlaybackStore((s) => ({
-    results: s.results,
-    selectedRound: s.selectedRound,
-    currentTick: s.currentTick,
-  }));
+
+  const { results, selectedRound, currentTick } = usePlaybackStore(
+    useShallow((s) => ({
+      results: s.results,
+      selectedRound: s.selectedRound,
+      currentTick: s.currentTick,
+    })),
+  );
+
   const runnerPositions = useMemo(
     () => getRunnerPositionsAtTick(results, selectedRound, currentTick),
     [results, selectedRound, currentTick],
   );
+
   const courseDistance = Math.max(courseData.distance, 1);
   const clampedViewStart = clamp(viewStart ?? 0, 0, courseDistance);
   const requestedViewEnd = viewEnd ?? courseDistance;
@@ -116,7 +125,11 @@ export const SwimLanesView = memo<SwimLanesViewProps>(function SwimLanesView(pro
 
   const lanes = useMemo(() => {
     const base = runnerIds.map((runnerId) => {
-      const position = clamp(runnerPositions[runnerId] ?? clampedViewStart, clampedViewStart, clampedViewEnd);
+      const position = clamp(
+        runnerPositions[runnerId] ?? clampedViewStart,
+        clampedViewStart,
+        clampedViewEnd,
+      );
       return {
         runnerId,
         name: runnerNames[runnerId] ?? `Runner ${runnerId + 1}`,
@@ -178,13 +191,17 @@ export const SwimLanesView = memo<SwimLanesViewProps>(function SwimLanesView(pro
                   }}
                 >
                   {widthPercent > 11 && (
-                    <span className="text-[10px] font-medium text-muted-foreground">{phase.label}</span>
+                    <span className="text-[10px] font-medium text-muted-foreground">
+                      {phase.label}
+                    </span>
                   )}
                 </div>
               );
             })}
           </div>
-          <div className="text-right text-[10px] uppercase tracking-wide text-muted-foreground">Gap</div>
+          <div className="text-right text-[10px] uppercase tracking-wide text-muted-foreground">
+            Gap
+          </div>
         </div>
 
         {lanes.map((lane) => {

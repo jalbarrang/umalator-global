@@ -11,7 +11,9 @@ import { SkillItemProvider } from './skill-item.provider';
 import { useSkillItem, type SkillMeta } from './skill-item.context';
 
 export const SkillIcon = (props: { iconId: string }) => {
-  return <img className="w-6 h-6" src={`/icons/${props.iconId}.png`} />;
+  const { iconId } = props;
+
+  return <img className="w-6 h-6" src={`/icons/${iconId}.png`} />;
 };
 
 type SkillItemProps = React.HTMLAttributes<HTMLDivElement> & {
@@ -76,6 +78,8 @@ const SkillItemContent = (props: SkillItemContentProps) => {
 
   return (
     <div
+      role="button"
+      tabIndex={0}
       data-skillid={skill.id}
       data-event="select-skill"
       style={props.style}
