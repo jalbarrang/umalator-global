@@ -62,9 +62,7 @@ export function RootComponent() {
       const fullRunner = createRunnerState(partialRunner);
       setRunner(slot, fullRunner);
       setDialogOpen(false);
-      toast.success(
-        `Runner loaded to ${slot === 'uma1' ? 'Uma 1' : 'Uma 2'}`,
-      );
+      toast.success(`Runner loaded to ${slot === 'uma1' ? 'Uma 1' : 'Uma 2'}`);
     },
     [setDialogOpen],
   );
@@ -75,7 +73,7 @@ export function RootComponent() {
 
   return (
     <TutorialProvider>
-      <div className="flex flex-col min-h-screen">
+      <div className="flex flex-col h-dvh">
         <header className="flex py-2 justify-between items-center border-b px-4 shrink-0">
           {/* Mobile hamburger */}
           <div className="md:hidden">

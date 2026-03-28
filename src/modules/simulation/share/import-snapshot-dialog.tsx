@@ -81,12 +81,12 @@ export function ImportSnapshotDialog({ open, onOpenChange }: ImportSnapshotDialo
 
   const uma1Name = preview
     ? preview.uma1.outfitId
-      ? getUmaDisplayInfo(preview.uma1.outfitId)?.name ?? preview.uma1.outfitId
+      ? (getUmaDisplayInfo(preview.uma1.outfitId)?.name ?? preview.uma1.outfitId)
       : '(no uma)'
     : '';
   const uma2Name = preview
     ? preview.uma2.outfitId
-      ? getUmaDisplayInfo(preview.uma2.outfitId)?.name ?? preview.uma2.outfitId
+      ? (getUmaDisplayInfo(preview.uma2.outfitId)?.name ?? preview.uma2.outfitId)
       : '(no uma)'
     : '';
 
@@ -96,8 +96,8 @@ export function ImportSnapshotDialog({ open, onOpenChange }: ImportSnapshotDialo
         <DialogHeader>
           <DialogTitle>Import simulation settings</DialogTitle>
           <DialogDescription>
-            Paste JSON or drop a file exported from Umalator. This replaces runners, race
-            settings, seed, forced positions, and injected debuffs.
+            Paste JSON or drop a file exported from Umalator. This replaces runners, race settings,
+            seed, forced positions, and injected debuffs.
           </DialogDescription>
         </DialogHeader>
 
@@ -117,7 +117,9 @@ export function ImportSnapshotDialog({ open, onOpenChange }: ImportSnapshotDialo
           onClick={() => document.getElementById('snapshot-file-input')?.click()}
         >
           <Upload className="w-8 h-8 text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">Drop a .json file or click to browse</span>
+          <span className="text-sm text-muted-foreground">
+            Drop a .json file or click to browse
+          </span>
           <input
             id="snapshot-file-input"
             type="file"
@@ -150,9 +152,7 @@ export function ImportSnapshotDialog({ open, onOpenChange }: ImportSnapshotDialo
             </div>
             <div>
               <span className="text-muted-foreground">Seed: </span>
-              <span className="font-medium">
-                {preview.seed === null ? '(none)' : preview.seed}
-              </span>
+              <span className="font-medium">{preview.seed === null ? '(none)' : preview.seed}</span>
             </div>
             <div>
               <span className="text-muted-foreground">Uma 1: </span>

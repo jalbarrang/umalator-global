@@ -1,13 +1,31 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 
-import { CopyPlus, PlusIcon, TrashIcon, Upload, Share2, Code, Download, Camera, ChevronDown, ClipboardPaste } from 'lucide-react';
+import {
+  CopyPlus,
+  PlusIcon,
+  TrashIcon,
+  Upload,
+  Share2,
+  Code,
+  Download,
+  Camera,
+  ChevronDown,
+  ClipboardPaste,
+} from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { ShareCard, copyRosterViewCode, downloadJson, copyScreenshot, getSkillsForShareCard, ImportCodeDialog } from '@/modules/runners/share';
+import {
+  ShareCard,
+  copyRosterViewCode,
+  downloadJson,
+  copyScreenshot,
+  getSkillsForShareCard,
+  ImportCodeDialog,
+} from '@/modules/runners/share';
 import { getUmaDisplayInfo, getUmaImageUrl } from '@/modules/runners/utils';
 import { StatsTable } from './stats-table';
 import { AptitudesTable } from './aptitudes-table';
@@ -313,13 +331,17 @@ export const RunnerCard = (props: RunnerCardProps) => {
                 <Code className="h-4 w-4 mr-2" />
                 Copy RosterView Code
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => downloadJson(state, `runner-${umaInfo?.name ?? 'unknown'}.json`)}>
+              <DropdownMenuItem
+                onClick={() => downloadJson(state, `runner-${umaInfo?.name ?? 'unknown'}.json`)}
+              >
                 <Download className="h-4 w-4 mr-2" />
                 Download JSON
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => {
-                if (shareCardRef.current) copyScreenshot(shareCardRef.current);
-              }}>
+              <DropdownMenuItem
+                onClick={() => {
+                  if (shareCardRef.current) copyScreenshot(shareCardRef.current);
+                }}
+              >
                 <Camera className="h-4 w-4 mr-2" />
                 Copy Screenshot
               </DropdownMenuItem>

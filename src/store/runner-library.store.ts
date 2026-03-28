@@ -16,6 +16,7 @@ type RunnerLibraryStore = {
   addRunner: (runner: Omit<SavedRunner, 'id' | 'createdAt' | 'updatedAt'>) => string;
   updateRunner: (id: string, updates: Partial<SavedRunner>) => void;
   deleteRunner: (id: string) => void;
+  deleteRunners: (ids: Set<string>) => void;
   getRunner: (id: string) => SavedRunner | undefined;
   duplicateRunner: (id: string) => void;
 };
@@ -66,6 +67,17 @@ export const useRunnerLibraryStore = create<RunnerLibraryStore>()(
         }));
 
         toast.success(`Runner "${runner?.notes || 'Unknown'}" deleted`);
+      },
+
+      deleteRunners: (ids) => {
+        const count = ids.size;
+        if (count === 0) return;
+
+        set((state) => ({
+          runners: state.runners.filter((r) => !ids.has(r.id)),
+        }));
+
+        toast.success(`Deleted ${count} runner${count === 1 ? '' : 's'}`);
       },
 
       getRunner: (id) => {

@@ -44,7 +44,7 @@ export function encodeSingleUma(data: SingleExportData): string {
   bv.write(clampApt(data.proper_running_style_oikomi), 4);
 
   const ms = parseUtcTimestamp(data.create_time);
-  bv.write((Math.floor(ms / 1000)) >>> 0, 32);
+  bv.write(Math.floor(ms / 1000) >>> 0, 32);
 
   if (data.rank_score != null) {
     bv.write(1, 1);

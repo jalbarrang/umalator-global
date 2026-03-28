@@ -895,7 +895,9 @@ describe('last spurt activation', () => {
     expect(raceRunner.nonFullSpurtDelayDistance).not.toBeNull();
 
     // Last spurt speed should be less than or equal to the max possible spurt speed
-    expect(raceRunner.lastSpurtSpeed).toBeLessThanOrEqual(raceRunner.baseTargetSpeedPerPhase[2] + 5);
+    expect(raceRunner.lastSpurtSpeed).toBeLessThanOrEqual(
+      raceRunner.baseTargetSpeedPerPhase[2] + 5,
+    );
     expect(raceRunner.lastSpurtTransition).toBeGreaterThan(0);
   });
 });

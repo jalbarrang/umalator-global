@@ -58,19 +58,14 @@ export function runnerStateToSingleExport(
   };
 }
 
-export function singleExportToRunnerState(
-  data: SingleExportData,
-): Partial<RunnerState> {
+export function singleExportToRunnerState(data: SingleExportData): Partial<RunnerState> {
   const distanceMax = Math.max(
     data.proper_distance_short,
     data.proper_distance_mile,
     data.proper_distance_middle,
     data.proper_distance_long,
   );
-  const surfaceMax = Math.max(
-    data.proper_ground_turf,
-    data.proper_ground_dirt,
-  );
+  const surfaceMax = Math.max(data.proper_ground_turf, data.proper_ground_dirt);
   const strategyMax = Math.max(
     data.proper_running_style_nige,
     data.proper_running_style_senko,

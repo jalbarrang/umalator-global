@@ -55,9 +55,7 @@ function imageToDataUri(img: HTMLImageElement): Promise<string> {
       return;
     }
 
-    const url = img.src.startsWith('/')
-      ? window.location.origin + img.src
-      : img.src;
+    const url = img.src.startsWith('/') ? window.location.origin + img.src : img.src;
 
     const loader = new Image();
     loader.crossOrigin = 'anonymous';
@@ -109,9 +107,7 @@ export async function copyScreenshot(element: HTMLElement) {
       return;
     }
 
-    await navigator.clipboard.write([
-      new ClipboardItem({ 'image/png': blob }),
-    ]);
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
     toast.success('Screenshot copied to clipboard');
   } catch (err) {
     console.error('[share] copyScreenshot failed:', err);
