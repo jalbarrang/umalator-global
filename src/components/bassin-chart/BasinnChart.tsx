@@ -20,7 +20,7 @@ import {
 import { TableSearchBar } from './TableSearchBar';
 import { useTableSearch } from './hooks/useTableSearch';
 import type { CellContext, Column, ColumnDef, Row, SortingState } from '@tanstack/react-table';
-import type { PoolMetrics, SkillComparisonRoundResult } from '@/modules/simulation/types';
+import type { SkillComparisonRoundResult } from '@/modules/simulation/types';
 
 import { getSkillNameById, skillCollection } from '@/modules/data/skills';
 import { groups_filters } from '@/modules/skills/filters';
@@ -135,7 +135,6 @@ type BasinnChartProps = {
   data: Array<SkillComparisonRoundResult>;
   hiddenSkills: Array<string>;
   showUmaIcons?: boolean;
-  metrics?: PoolMetrics | null;
   selectedSkills: Array<string>;
   isSimulationRunning: boolean;
   courseDistance?: number;

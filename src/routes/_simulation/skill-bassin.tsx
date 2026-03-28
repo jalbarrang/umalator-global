@@ -17,19 +17,26 @@ import { useSkillSingleRunner } from '@/modules/simulation/hooks/skill-bassin/us
 import { skillBassinSteps } from '@/modules/tutorial/steps/skill-bassin-steps';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 import { TutorialId } from '@/components/tutorial/types';
-import { Activity, Loader2 } from 'lucide-react';
-import { formatMs } from '@/utils/time';
+import { SimulationProgressBanner } from '@/components/simulation-progress-banner';
 
 export function SkillBassin() {
   const { selectedSkills, setSelectedSkills } = useChartData();
   const {
     results: skillBasinResults,
-    metrics,
-    progress,
     isSimulationRunning,
     seed,
     skillLoadingStates,
-  } = useSkillBasinStore();
+  } = useSkillBasinStore(
+    useShallow((state) => {
+      return {
+        results: state.results,
+        isSimulationRunning: state.isSimulationRunning,
+        seed: state.seed,
+        skillLoadingStates: state.skillLoadingStates,
+      };
+    }),
+  );
+
   const courseId = useSettingsStore(useShallow((state) => state.courseId));
 
   const { runnerId, runner } = useRunner();
@@ -92,56 +99,11 @@ export function SkillBassin() {
       />
 
       <div data-tutorial="skill-bassin-table" className="min-w-0">
-        {isSimulationRunning && !progress && (
-          <div className="mb-4 p-3 bg-primary/5 rounded-md border border-primary/20">
-            <div className="flex items-center gap-4 text-sm">
-              <Activity className="w-4 h-4 text-primary shrink-0" />
-              <span className="font-medium text-muted-foreground">Preparing simulation…</span>
-            </div>
-          </div>
-        )}
-
-        {/* Metrics Display */}
-        {!isSimulationRunning && metrics && (
-          <div className="mb-4 p-3 bg-muted/50 rounded-md border">
-            <div className="flex items-center gap-6 text-sm text-muted-foreground">
-              <span>
-                <strong>Time:</strong> {formatMs(metrics.timeTaken)}s
-              </span>
-              <span>
-                <strong>Skills Processed:</strong> {metrics.skillsProcessed}
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* Simulation Progress Banner */}
-        {isSimulationRunning && progress && (
-          <div className="mb-4 p-3 bg-primary/5 rounded-md border border-primary/20">
-            <div className="flex items-center gap-4 text-sm">
-              <Loader2 className="w-4 h-4 animate-spin text-primary shrink-0" />
-              <span className="font-medium">
-                Stage {progress.currentStage}/{progress.totalStages}
-              </span>
-              <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-primary rounded-full transition-all duration-300"
-                  style={{
-                    width: `${Math.round((progress.skillsCompletedInStage / progress.totalSkillsInStage) * 100)}%`,
-                  }}
-                />
-              </div>
-              <span className="text-muted-foreground tabular-nums shrink-0">
-                {progress.skillsCompletedInStage}/{progress.totalSkillsInStage} skills
-              </span>
-            </div>
-          </div>
-        )}
+        <SimulationProgressBanner useStore={useSkillBasinStore} />
 
         <BasinnChart
           data={arrayResults}
           hiddenSkills={runner.skills}
-          metrics={metrics}
           onSelectionChange={basinnChartSelection}
           onAddSkill={addSkillFromTable}
           selectedSkills={selectedSkills}

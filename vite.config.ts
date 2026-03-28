@@ -1,7 +1,8 @@
 /// <reference types="vitest/config" />
 import tailwindcss from '@tailwindcss/vite';
-import react from '@vitejs/plugin-react';
+import react, { reactCompilerPreset } from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
+import babel from '@rolldown/plugin-babel';
 
 // Feature Flags:
 // Vite automatically loads environment variables from .env files
@@ -12,7 +13,13 @@ export default defineConfig({
   resolve: {
     tsconfigPaths: true,
   },
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    babel({
+      presets: [reactCompilerPreset()],
+    }),
+    tailwindcss(),
+  ],
   assetsInclude: ['**/*.wasm'],
   worker: {
     format: 'es',
