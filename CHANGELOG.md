@@ -2,6 +2,42 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.4.3 - 2026-03-28
+
+- Added automated game data update workflow via GitHub Actions.
+- Added more CM presets (credits to gametora).
+- Fixed runner not spurting properly.
+- Fixed skill lookup map.
+- Removed selected skills list panel.
+- Show preview of simulation results without waiting for full load.
+- Re-render optimizations across multiple components.
+- Updated dependencies and removed unused ones.
+
+## 0.4.2 - 2026-03-16
+
+- Refactored skill management: removed master-mdb sync, skills data is now the source of truth.
+- Added skill versions and skill owners.
+- Fixed corner-random OR behavior for Swinging Maestro skill activation.
+- Fixed surface skill not being set as obtained.
+- Fixed skill planner combinations.
+
+## 0.4.1 - 2026-03-12
+
+- Added automatic database updater with feature flag to disable it.
+- Added SP costs display on runner cards.
+- Added stamina drain overrides in advanced settings panel.
+- Fixed course data not adding slopes on course 2.
+- Fixed Vite worker format to ES for code-splitting build.
+- Fixed database fetching with a guard to prevent errors.
+
+## 0.4.0 - 2026-03-05
+
+- Refactored racetrack rendering with improved slope rendering, position markers, and skill activation display.
+- Improved tooltip tracking and positioning on the race track.
+- Better skill overlap rendering on race track lanes.
+- Added polyfills and PostHog analytics for browser compatibility.
+- Fixed color format compatibility (downgraded to hex).
+
 ## 0.3.1 - 2026-02-28
 
 - Fixed an UI issue on Skill activation list.
