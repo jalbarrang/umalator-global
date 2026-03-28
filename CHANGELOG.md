@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.4.4 - 2026-03-28
+
+- Added compare result share card: copy a screenshot of the active runner alongside simulation stats (finish time, top speed, spurt/survival rates, etc.).
+- Added share runner card.
+- Added copy json button to compatible format to RosterView and Kachi's Umalator.
+
 ## 0.4.3 - 2026-03-28
 
 - Added automated game data update workflow via GitHub Actions.

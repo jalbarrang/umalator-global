@@ -1,5 +1,6 @@
-import { Copy, Edit, MoreVertical, PlayCircle, Trash2 } from 'lucide-react';
-import { useMemo } from 'react';
+import { Copy, Edit, MoreVertical, PlayCircle, Trash2, Code, Download, Camera } from 'lucide-react';
+import { useMemo, useRef } from 'react';
+import { ShareCard, copyRosterViewCode, downloadJson, copyScreenshot, getSkillsForShareCard } from '@/modules/runners/share';
 import { getUmaDisplayInfo, getUmaImageUrl } from '../utils';
 import { StatImage } from './StatInput';
 import type { SavedRunner } from '@/store/runner-library.store';
@@ -32,6 +33,12 @@ export const SavedRunnerCard = (props: SavedRunnerCardProps) => {
   const imageUrl = useMemo(() => {
     return getUmaImageUrl(runner.outfitId, runner.randomMobId);
   }, [runner.outfitId, runner.randomMobId]);
+
+  const shareCardRef = useRef<HTMLDivElement>(null);
+
+  const shareSkills = useMemo(() => {
+    return getSkillsForShareCard(runner.skills);
+  }, [runner.skills]);
 
   return (
     <div className="transition-shadow hover:shadow-lg rounded-lg border bg-card">
@@ -80,6 +87,21 @@ export const SavedRunnerCard = (props: SavedRunnerCardProps) => {
                 <DropdownMenuItem onClick={() => onDuplicate(runner.id)}>
                   <Copy className="h-4 w-4 mr-2" />
                   Duplicate
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => copyRosterViewCode(runner, runner.createdAt)}>
+                  <Code className="h-4 w-4 mr-2" />
+                  Copy RosterView Code
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => downloadJson(runner, `runner-${umaInfo?.name ?? 'unknown'}.json`, runner.createdAt)}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Download JSON
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => {
+                  if (shareCardRef.current) copyScreenshot(shareCardRef.current);
+                }}>
+                  <Camera className="h-4 w-4 mr-2" />
+                  Copy Screenshot
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => onDelete(runner.id)} className="text-destructive">
@@ -175,6 +197,16 @@ export const SavedRunnerCard = (props: SavedRunnerCardProps) => {
             </div>
           </div>
         </div>
+      </div>
+
+      <div style={{ position: 'absolute', left: -9999, top: 0 }}>
+        <ShareCard
+          ref={shareCardRef}
+          runner={runner}
+          umaInfo={umaInfo}
+          imageUrl={imageUrl}
+          skills={shareSkills}
+        />
       </div>
     </div>
   );

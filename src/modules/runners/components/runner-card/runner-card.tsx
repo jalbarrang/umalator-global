@@ -1,6 +1,14 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
-import { CopyPlus, PlusIcon, TrashIcon, Upload } from 'lucide-react';
+import { CopyPlus, PlusIcon, TrashIcon, Upload, Share2, Code, Download, Camera, ChevronDown, ClipboardPaste } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { ShareCard, copyRosterViewCode, downloadJson, copyScreenshot, getSkillsForShareCard, ImportCodeDialog } from '@/modules/runners/share';
+import { getUmaDisplayInfo, getUmaImageUrl } from '@/modules/runners/utils';
 import { StatsTable } from './stats-table';
 import { AptitudesTable } from './aptitudes-table';
 import { runawaySkillId } from './types';
@@ -61,8 +69,23 @@ export const RunnerCard = (props: RunnerCardProps) => {
 
   const umaId = state.outfitId;
 
-  // OCR Import dialog state
   const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [codeImportDialogOpen, setCodeImportDialogOpen] = useState(false);
+
+  const shareCardRef = useRef<HTMLDivElement>(null);
+
+  const umaInfo = useMemo(() => {
+    if (!umaId) return null;
+    return getUmaDisplayInfo(umaId);
+  }, [umaId]);
+
+  const shareImageUrl = useMemo(() => {
+    return getUmaImageUrl(umaId, state.randomMobId);
+  }, [umaId, state.randomMobId]);
+
+  const shareSkills = useMemo(() => {
+    return getSkillsForShareCard(state.skills);
+  }, [state.skills]);
 
   const handleSetSkills = useCallback(
     (skills: Array<string>) => {
@@ -245,15 +268,27 @@ export const RunnerCard = (props: RunnerCardProps) => {
 
         <div className="grid grid-cols-2 gap-2">
           {!isMobile && (
-            <Button
-              onClick={() => setImportDialogOpen(true)}
-              size="sm"
-              variant="outline"
-              disabled={isMobile}
-            >
-              <Upload className="w-4 h-4" />
-              <span className="hidden md:inline!">Import</span>
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button size="sm" variant="outline">
+                    <Upload className="w-4 h-4" />
+                    <span className="hidden md:inline!">Import</span>
+                    <ChevronDown className="w-3 h-3" />
+                  </Button>
+                }
+              />
+              <DropdownMenuContent align="start">
+                <DropdownMenuItem onClick={() => setImportDialogOpen(true)}>
+                  <Upload className="h-4 w-4 mr-2" />
+                  From Screenshot (OCR)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setCodeImportDialogOpen(true)}>
+                  <ClipboardPaste className="h-4 w-4 mr-2" />
+                  From Code
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
 
           {props.runnerId !== 'pacer' && (
@@ -262,6 +297,34 @@ export const RunnerCard = (props: RunnerCardProps) => {
               <span className="hidden md:inline!">Duplicate</span>
             </Button>
           )}
+
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button size="sm" variant="outline" title="Share runner">
+                  <Share2 className="w-4 h-4" />
+                  <span className="hidden md:inline!">Share</span>
+                  <ChevronDown className="w-3 h-3" />
+                </Button>
+              }
+            />
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => copyRosterViewCode(state)}>
+                <Code className="h-4 w-4 mr-2" />
+                Copy RosterView Code
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => downloadJson(state, `runner-${umaInfo?.name ?? 'unknown'}.json`)}>
+                <Download className="h-4 w-4 mr-2" />
+                Download JSON
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => {
+                if (shareCardRef.current) copyScreenshot(shareCardRef.current);
+              }}>
+                <Camera className="h-4 w-4 mr-2" />
+                Copy Screenshot
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           <Button onClick={onReset} title="Reset runner" size="sm">
             <span className="hidden md:inline!">Reset</span>
@@ -274,6 +337,16 @@ export const RunnerCard = (props: RunnerCardProps) => {
         open={importDialogOpen}
         onOpenChange={setImportDialogOpen}
         onApply={handleOcrImportApply}
+      />
+
+      <ImportCodeDialog
+        open={codeImportDialogOpen}
+        onOpenChange={setCodeImportDialogOpen}
+        mode="direct-import"
+        onDirectImport={(partialRunner) => {
+          onChange({ ...state, ...partialRunner } as RunnerState);
+          setCodeImportDialogOpen(false);
+        }}
       />
 
       <div className="flex flex-col gap-2" data-tutorial="runner-stats">
@@ -359,6 +432,16 @@ export const RunnerCard = (props: RunnerCardProps) => {
             />
           );
         })}
+      </div>
+
+      <div style={{ position: 'absolute', left: -9999, top: 0 }}>
+        <ShareCard
+          ref={shareCardRef}
+          runner={state}
+          umaInfo={umaInfo}
+          imageUrl={shareImageUrl}
+          skills={shareSkills}
+        />
       </div>
     </div>
   );

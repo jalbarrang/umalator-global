@@ -43,6 +43,7 @@
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.19",
     "es-toolkit": "^1.42.0",
+    "html-to-image": "^1.11.13",
     "i18next": "^25.10.10",
     "immer": "^11.0.1",
     "lucide-react": "^0.555.0",

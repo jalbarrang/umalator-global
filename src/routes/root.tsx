@@ -22,6 +22,12 @@ import { Drawer, DrawerTrigger, DrawerContent, DrawerTitle } from '@/components/
 import { ScrollTextIcon, UsersIcon, MenuIcon } from 'lucide-react';
 import { setShowChangelogModal, setShowCreditsModal } from '@/store/ui.store';
 import { cn } from '@/lib/utils';
+import { ImportCodeDialog } from '@/modules/runners/share/import-code-dialog';
+import { useRoosterImport } from '@/modules/runners/share/use-rooster-import';
+import { setRunner } from '@/store/runners.store';
+import { createRunnerState } from '@/modules/runners/components/runner-card/types';
+import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import { toast } from 'sonner';
 
 import { useCallback, useMemo, useState } from 'react';
 
@@ -48,6 +54,20 @@ export function RootComponent() {
   );
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const { importCode, dialogOpen, setDialogOpen } = useRoosterImport();
+
+  const handleRoosterImport = useCallback(
+    (slot: 'uma1' | 'uma2', partialRunner: Partial<RunnerState>) => {
+      const fullRunner = createRunnerState(partialRunner);
+      setRunner(slot, fullRunner);
+      setDialogOpen(false);
+      toast.success(
+        `Runner loaded to ${slot === 'uma1' ? 'Uma 1' : 'Uma 2'}`,
+      );
+    },
+    [setDialogOpen],
+  );
 
   const handleNavClick = useCallback(() => {
     setMobileMenuOpen(false);
@@ -165,6 +185,13 @@ export function RootComponent() {
         <CreditsModal />
         <ChangelogModal />
         <FeatureFlagDebugPanel />
+        <ImportCodeDialog
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          initialCode={importCode}
+          mode="slot-picker"
+          onLoadToSlot={handleRoosterImport}
+        />
       </div>
       <Toaster />
       <TutorialRoot />

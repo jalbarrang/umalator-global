@@ -1,0 +1,172 @@
+import { useMemo } from 'react';
+import { useShallow } from 'zustand/shallow';
+import { copyScreenshot, getSkillsForShareCard } from '@/modules/runners/share/share-actions';
+import { useRaceStore } from '@/modules/simulation/stores/compare.store';
+import { useRunnersStore } from '@/store/runners.store';
+import { useSettingsStore, useWitVariance } from '@/store/settings.store';
+import { getUmaDisplayInfo, getUmaImageUrl } from '@/modules/runners/utils';
+import { getDefaultTrackIdForCourse } from '@/modules/racetrack/courses';
+import { trackDescription } from '@/modules/racetrack/labels';
+import i18n from '@/i18n';
+import strings_en from '@/i18n/lang/en/skills';
+import { formatTime } from '@/utils/time';
+import type { RaceConditions } from '@/utils/races';
+import type { SimulationData, SimulationRun } from '@/modules/simulation/compare.types';
+import type { CompareShareCardProps, CompareShareStatRow } from './compare-share-card';
+
+export function resolveCompareChartData(race: {
+  chartData: SimulationRun | null;
+  runData: SimulationData | null;
+  displaying: string;
+}): SimulationRun | null {
+  if (race.chartData) return race.chartData;
+  if (!race.runData) return null;
+  const key = race.displaying as keyof SimulationData;
+  return race.runData[key] ?? race.runData.meanrun;
+}
+
+const groundConditions: Record<number, string> = {
+  1: 'Firm',
+  2: 'Good',
+  3: 'Soft',
+  4: 'Heavy',
+};
+
+export function getRaceSettingsSummaryLine(courseId: number, racedef: RaceConditions): string {
+  const trackId = getDefaultTrackIdForCourse(courseId);
+  const trackName = i18n.t(`tracknames.${trackId}`);
+  const courseDesc = trackDescription({ courseid: courseId });
+  const ground = groundConditions[racedef.ground] ?? '';
+  const season = strings_en.skilldetails.season[racedef.season] ?? '';
+  const weather = strings_en.skilldetails.weather[racedef.weather] ?? '';
+
+  return `${trackName} · ${courseDesc} · ${ground} · ${season} · ${weather}`;
+}
+
+const RUNNER_TITLE: Record<'uma1' | 'uma2', string> = {
+  uma1: 'Umamusume 1',
+  uma2: 'Umamusume 2',
+};
+
+const RUNNER_ACCENT: Record<'uma1' | 'uma2', string> = {
+  uma1: '#2a77c5',
+  uma2: '#c52a2a',
+};
+
+/**
+ * Hook that subscribes to the stores needed for the compare share card
+ * and returns pre-computed props, or null when there are no results.
+ */
+export function useCompareShareCardProps(): CompareShareCardProps | null {
+  const race = useRaceStore(
+    useShallow((s) => ({
+      results: s.results,
+      chartData: s.chartData,
+      runData: s.runData,
+      displaying: s.displaying,
+      rushedStats: s.rushedStats,
+      leadCompetitionStats: s.leadCompetitionStats,
+      staminaStats: s.staminaStats,
+      seed: s.seed,
+    })),
+  );
+
+  const { runnerId, uma1, uma2 } = useRunnersStore(
+    useShallow((s) => ({ runnerId: s.runnerId, uma1: s.uma1, uma2: s.uma2 })),
+  );
+
+  const courseId = useSettingsStore((s) => s.courseId);
+  const racedef = useSettingsStore((s) => s.racedef);
+  const wit = useWitVariance();
+
+  const runner = runnerId === 'uma1' ? uma1 : uma2;
+
+  return useMemo(() => {
+    if (race.results.length === 0) return null;
+
+    const chartData = resolveCompareChartData(race);
+    if (!chartData) return null;
+
+    const idx = runnerId === 'uma1' ? 0 : 1;
+
+    const timeArr = chartData.time[idx];
+    if (!timeArr || timeArr.length === 0) return null;
+
+    const rushedStats = race.rushedStats?.[runnerId];
+    const leadCompetitionStats = race.leadCompetitionStats?.[runnerId];
+    const staminaStats = race.staminaStats?.[runnerId];
+
+    const topSpeed = chartData.velocity[idx]?.reduce((a, b) => Math.max(a, b), 0) ?? 0;
+    const finishTime = timeArr[timeArr.length - 1] * 1.18;
+    const startDelay = chartData.startDelay[idx] ?? 0;
+
+    const otherRunner = runnerId === 'uma1' ? uma2 : uma1;
+    const hasBothRunners = otherRunner.outfitId !== '';
+
+    const mean = race.results.reduce((a, b) => a + b, 0) / race.results.length;
+    const meanLengths = hasBothRunners ? `${mean >= 0 ? '+' : ''}${mean.toFixed(2)}` : null;
+
+    const umaInfo = getUmaDisplayInfo(runner.outfitId);
+    const imageUrl = getUmaImageUrl(runner.outfitId, runner.randomMobId);
+    const skills = getSkillsForShareCard(runner.skills);
+
+    const raceSummary = getRaceSettingsSummaryLine(courseId, racedef);
+
+    const statRows: CompareShareStatRow[] = [
+      { label: 'Time to finish', value: formatTime(finishTime) },
+      { label: 'Start delay', value: `${startDelay.toFixed(4)} s` },
+      { label: 'Top speed', value: `${topSpeed.toFixed(2)} m/s` },
+    ];
+
+    if (race.rushedStats && wit.allowRushedUma2) {
+      statRows.push({
+        label: 'Rushed frequency',
+        value:
+          rushedStats && rushedStats.frequency > 0
+            ? `${rushedStats.frequency.toFixed(1)}% (${rushedStats.mean.toFixed(1)}m)`
+            : '0%',
+      });
+    }
+
+    if (race.leadCompetitionStats) {
+      statRows.push({
+        label: 'Spot Struggle frequency',
+        value:
+          leadCompetitionStats && leadCompetitionStats.frequency > 0
+            ? `${leadCompetitionStats.frequency.toFixed(1)}%`
+            : '0%',
+      });
+    }
+
+    if (race.staminaStats) {
+      statRows.push(
+        {
+          label: 'Spurt Rate',
+          value: `${(staminaStats?.fullSpurtRate ?? 0).toFixed(1)}%`,
+          highlight: true,
+        },
+        {
+          label: 'Survival Rate',
+          value: `${(staminaStats?.staminaSurvivalRate ?? 0).toFixed(1)}%`,
+          highlight: true,
+        },
+      );
+    }
+
+    return {
+      shareCard: { runner, umaInfo, imageUrl, skills },
+      raceSummary,
+      meanLengths,
+      sampleCount: race.results.length,
+      seedDisplay: race.seed === null ? '—' : String(race.seed),
+      runnerTitle: RUNNER_TITLE[runnerId],
+      runnerPanelAccent: RUNNER_ACCENT[runnerId],
+      statRows,
+    };
+  }, [race, runnerId, runner, courseId, racedef, wit]);
+}
+
+export async function copyCompareScreenshot(element: HTMLElement | null) {
+  if (!element) return;
+  await copyScreenshot(element);
+}

@@ -1,4 +1,4 @@
-import { Activity, useCallback, useState } from 'react';
+import { Activity, useCallback, useRef, useState } from 'react';
 import {
   createNewSeed,
   resetResults,
@@ -19,6 +19,20 @@ import { parseSeed } from '@/utils/crypto';
 import { HelpButton } from '@/components/ui/help-button';
 import { umalatorSteps } from '@/modules/tutorial/steps/umalator-steps';
 import { RaceTrack } from '@/modules/racetrack/racetrack';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  useCompareShareCardProps,
+  CompareShareCard,
+  copyCompareScreenshot,
+  downloadSnapshot,
+  ImportSnapshotDialog,
+} from '@/modules/simulation/share';
+import { Camera, ChevronDown, Download, Share2, Upload } from 'lucide-react';
 
 export function SimulationHome() {
   const { chartData, results, isSimulationRunning, simulationProgress, seed } = useRaceStore();
@@ -29,6 +43,10 @@ export function SimulationHome() {
     if (seed === null) return '';
     return seed.toString();
   });
+
+  const [importSnapshotOpen, setImportSnapshotOpen] = useState(false);
+  const compareShareRef = useRef<HTMLDivElement>(null);
+  const compareShareProps = useCompareShareCardProps();
 
   const handleSeedInputBlur = useCallback(() => {
     const parsedSeed = parseSeed(seedInput);
@@ -59,7 +77,7 @@ export function SimulationHome() {
   };
 
   return (
-    <div className="flex flex-col flex-1 min-w-0 gap-4">
+    <div className="relative flex flex-col flex-1 min-w-0 gap-4">
       <div data-tutorial="race-settings">
         <RaceSettingsPanel />
       </div>
@@ -118,6 +136,56 @@ export function SimulationHome() {
         >
           Clear
         </Button>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button variant="outline" size="sm" disabled={isSimulationRunning}>
+                Share settings
+                <ChevronDown className="w-3 h-3" />
+              </Button>
+            }
+          />
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => downloadSnapshot()}>
+              <Download className="h-4 w-4 mr-2" />
+              Export simulation settings
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setImportSnapshotOpen(true)}>
+              <Upload className="h-4 w-4 mr-2" />
+              Import simulation settings
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={isSimulationRunning || !compareShareProps}
+              >
+                <Share2 className="w-3 h-3 mr-1" />
+                Share compare
+                <ChevronDown className="w-3 h-3" />
+              </Button>
+            }
+          />
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              disabled={!compareShareProps}
+              onClick={() => {
+                if (compareShareRef.current) void copyCompareScreenshot(compareShareRef.current);
+              }}
+            >
+              <Camera className="h-4 w-4 mr-2" />
+              Copy compare screenshot
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <ImportSnapshotDialog open={importSnapshotOpen} onOpenChange={setImportSnapshotOpen} />
       </div>
 
       <Activity mode={!isSimulationRunning ? 'visible' : 'hidden'}>
@@ -140,6 +208,12 @@ export function SimulationHome() {
           totalSamples={simulationProgress?.total}
         />
       </Activity>
+
+      {compareShareProps && (
+        <div style={{ position: 'absolute', left: -9999, top: 0 }}>
+          <CompareShareCard ref={compareShareRef} {...compareShareProps} />
+        </div>
+      )}
     </div>
   );
 }
