@@ -845,8 +845,11 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
     if (!container) return;
     const observer = new ResizeObserver((entries) => {
       const rect = entries[0]?.contentRect;
-      if (!rect || rect.width === 0) return;
-      sizeRef.current = { width: rect.width, height: rect.width * (CANVAS_H / CANVAS_W) };
+      if (!rect || rect.width === 0 || rect.height === 0) return;
+      sizeRef.current = {
+        width: rect.width,
+        height: Math.min(rect.height, rect.width * (CANVAS_H / CANVAS_W)),
+      };
       repaintCurrent.current();
     });
     observer.observe(container);
@@ -927,12 +930,12 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
   }, []);
 
   return (
-    <div className={cn('rounded-lg border bg-card p-3', className)}>
-      <div className="flex min-h-[320px] gap-2">
-        <div ref={containerRef} className="min-w-0 flex-1">
+    <div className={cn('h-[340px] rounded-lg border bg-card p-3', className)}>
+      <div className="flex h-full min-h-0 gap-2 overflow-hidden">
+        <div ref={containerRef} className="flex min-h-0 min-w-0 flex-1 items-center justify-center">
           <canvas
             ref={canvasRef}
-            className="block h-auto w-full touch-none cursor-grab active:cursor-grabbing"
+            className="block h-auto max-h-full w-full touch-none cursor-grab active:cursor-grabbing"
             aria-label="Top-down track view with runner positions and lanes"
           />
         </div>

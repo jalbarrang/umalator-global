@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 import { racedefToParams } from '@/utils/races';
 import { RaceSimContext } from '@/modules/race-sim/context';
-import { usePlaybackStore } from '@/modules/race-sim/stores/playback.store';
+import { loadResults } from '@/modules/race-sim/stores/playback.store';
 import { useRaceSimRunner } from '@/modules/simulation/hooks/race-sim/useRaceSimRunner';
 import {
   setIsRunning,
@@ -43,7 +43,7 @@ export function RaceSimRoot() {
   const { runSimulation, cancelSimulation, isRunning, error } = useRaceSimRunner({
     onResult: (result) => {
       setRaceSimResults(result);
-      usePlaybackStore.getState().loadResults(result);
+      loadResults(result);
     },
     onRunningChange: setIsRunning,
   });

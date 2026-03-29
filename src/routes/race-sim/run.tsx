@@ -14,6 +14,7 @@ import { TrackTopDownView } from '@/modules/race-sim/components/TrackTopDownView
 import { useRaceSimContext } from '@/modules/race-sim/context';
 import {
   getRunnerPositionsAtTick,
+  setRound,
   usePlaybackStore,
 } from '@/modules/race-sim/stores/playback.store';
 import { computeViewport } from '@/modules/race-sim/utils/viewport';
@@ -40,11 +41,10 @@ function PlaybackTimeDisplay() {
 }
 
 function SamplePicker() {
-  const { roundCount, selectedRound, setRound } = usePlaybackStore(
+  const { roundCount, selectedRound } = usePlaybackStore(
     useShallow((s) => ({
       roundCount: s.roundCount,
       selectedRound: s.selectedRound,
-      setRound: s.setRound,
     })),
   );
 
@@ -270,7 +270,7 @@ export function RaceSimRun() {
           </div>
         </div>
 
-        <div className="grid min-h-[340px] gap-3 p-3 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <div className="grid min-h-0 items-start gap-3 p-3 lg:min-h-[340px] lg:grid-cols-[minmax(0,1fr)_20rem]">
           <VisualizationPanel
             view={view}
             courseData={courseData}
@@ -283,7 +283,7 @@ export function RaceSimRun() {
           <EventLogPanel
             trackedRunnerIds={trackedRunnerIds}
             runnerNames={runnerNames}
-            className="h-[340px] lg:h-auto"
+            className="h-[340px]"
           />
         </div>
       </section>

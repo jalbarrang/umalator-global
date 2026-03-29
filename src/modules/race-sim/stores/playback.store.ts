@@ -87,21 +87,6 @@ type PlaybackState = {
   totalTimeDisplay: string;
 };
 
-type PlaybackActions = {
-  loadResults: (results: RaceSimResult | null) => void;
-  setRound: (roundIndex: number) => void;
-  play: () => void;
-  pause: () => void;
-  stepForward: () => void;
-  stepBack: () => void;
-  seekTo: (tick: number) => void;
-  setSpeed: (speed: PlaybackSpeed) => void;
-  tick: (nextTick: number) => void;
-  stopPlaying: () => void;
-};
-
-type PlaybackStore = PlaybackState & PlaybackActions;
-
 function deriveFromRound(
   results: RaceSimResult | null,
   selectedRound: number,
@@ -115,7 +100,7 @@ function deriveFromRound(
   };
 }
 
-export const usePlaybackStore = create<PlaybackStore>()((set, get) => ({
+export const usePlaybackStore = create<PlaybackState>()((_) => ({
   results: null,
   selectedRound: 0,
   roundCount: 0,
@@ -128,81 +113,97 @@ export const usePlaybackStore = create<PlaybackStore>()((set, get) => ({
   roundEvents: [],
   currentTimeDisplay: toTimeDisplay(0),
   totalTimeDisplay: toTimeDisplay(0),
-
-  loadResults: (results) => {
-    const roundCount = getRoundCount(results);
-    const selectedRound = 0;
-    const roundDerived = deriveFromRound(results, selectedRound);
-
-    set({
-      results,
-      roundCount,
-      selectedRound,
-      currentTick: 0,
-      isPlaying: false,
-      currentTimeDisplay: toTimeDisplay(0),
-      ...roundDerived,
-    });
-  },
-
-  setRound: (roundIndex) => {
-    const { results, roundCount } = get();
-    const maxRound = Math.max(0, roundCount - 1);
-    const nextRound = clamp(Math.round(roundIndex), 0, maxRound);
-    const roundDerived = deriveFromRound(results, nextRound);
-
-    set({
-      selectedRound: nextRound,
-      currentTick: 0,
-      isPlaying: false,
-      currentTimeDisplay: toTimeDisplay(0),
-      ...roundDerived,
-    });
-  },
-
-  play: () => {
-    const { totalTicks, currentTick } = get();
-    if (totalTicks <= 0 || currentTick >= totalTicks) return;
-    set({ isPlaying: true });
-  },
-
-  pause: () => {
-    set({ isPlaying: false });
-  },
-
-  stepForward: () => {
-    const { totalTicks, currentTick } = get();
-    const next = clamp(currentTick + 1, 0, totalTicks);
-    set({ isPlaying: false, currentTick: next, currentTimeDisplay: toTimeDisplay(next) });
-  },
-
-  stepBack: () => {
-    const { totalTicks, currentTick } = get();
-    const next = clamp(currentTick - 1, 0, totalTicks);
-    set({ isPlaying: false, currentTick: next, currentTimeDisplay: toTimeDisplay(next) });
-  },
-
-  seekTo: (targetTick) => {
-    const { totalTicks } = get();
-    const next = clamp(Math.round(targetTick), 0, totalTicks);
-    set({ isPlaying: false, currentTick: next, currentTimeDisplay: toTimeDisplay(next) });
-  },
-
-  setSpeed: (speed) => {
-    if (!(PLAYBACK_SPEEDS as readonly number[]).includes(speed)) return;
-    set({ speed });
-  },
-
-  tick: (nextTick) => {
-    set({ currentTick: nextTick, currentTimeDisplay: toTimeDisplay(nextTick) });
-  },
-
-  stopPlaying: () => {
-    set({ isPlaying: false });
-  },
 }));
 
 export const SPEED_OPTIONS = PLAYBACK_SPEEDS;
+
+export function loadResults(results: RaceSimResult | null) {
+  const roundCount = getRoundCount(results);
+  const selectedRound = 0;
+  const roundDerived = deriveFromRound(results, selectedRound);
+
+  usePlaybackStore.setState({
+    results,
+    roundCount,
+    selectedRound,
+    currentTick: 0,
+    isPlaying: false,
+    currentTimeDisplay: toTimeDisplay(0),
+    ...roundDerived,
+  });
+}
+
+export function setRound(roundIndex: number) {
+  const { results, roundCount } = usePlaybackStore.getState();
+  const maxRound = Math.max(0, roundCount - 1);
+  const nextRound = clamp(Math.round(roundIndex), 0, maxRound);
+  const roundDerived = deriveFromRound(results, nextRound);
+
+  usePlaybackStore.setState({
+    selectedRound: nextRound,
+    currentTick: 0,
+    isPlaying: false,
+    currentTimeDisplay: toTimeDisplay(0),
+    ...roundDerived,
+  });
+}
+
+export function play() {
+  const { totalTicks, currentTick } = usePlaybackStore.getState();
+  if (totalTicks <= 0 || currentTick >= totalTicks) return;
+  usePlaybackStore.setState({ isPlaying: true });
+}
+
+export function pause() {
+  usePlaybackStore.setState({ isPlaying: false });
+}
+
+export function stepForward() {
+  const { totalTicks, currentTick } = usePlaybackStore.getState();
+  const next = clamp(currentTick + 1, 0, totalTicks);
+  usePlaybackStore.setState({
+    isPlaying: false,
+    currentTick: next,
+    currentTimeDisplay: toTimeDisplay(next),
+  });
+}
+
+export function stepBack() {
+  const { totalTicks, currentTick } = usePlaybackStore.getState();
+  const next = clamp(currentTick - 1, 0, totalTicks);
+  usePlaybackStore.setState({
+    isPlaying: false,
+    currentTick: next,
+    currentTimeDisplay: toTimeDisplay(next),
+  });
+}
+
+export function seekTo(targetTick: number) {
+  const { totalTicks } = usePlaybackStore.getState();
+  const next = clamp(Math.round(targetTick), 0, totalTicks);
+
+  usePlaybackStore.setState({
+    isPlaying: false,
+    currentTick: next,
+    currentTimeDisplay: toTimeDisplay(next),
+  });
+}
+
+export function setSpeed(speed: PlaybackSpeed) {
+  if (!(PLAYBACK_SPEEDS as readonly number[]).includes(speed)) return;
+  usePlaybackStore.setState({ speed });
+}
+
+export function tick(nextTick: number) {
+  usePlaybackStore.setState({
+    currentTick: nextTick,
+    currentTimeDisplay: toTimeDisplay(nextTick),
+  });
+}
+
+export function stopPlaying() {
+  usePlaybackStore.setState({ isPlaying: false });
+}
 
 let rafId: number | null = null;
 let lastFrameTime: number | null = null;
@@ -230,10 +231,10 @@ function animateLoop(time: number) {
 
   if (wholeTicks > 0) {
     const nextTick = clamp(state.currentTick + wholeTicks, 0, state.totalTicks);
-    state.tick(nextTick);
+    tick(nextTick);
 
     if (nextTick >= state.totalTicks) {
-      state.stopPlaying();
+      stopPlaying();
       cleanup();
       return;
     }

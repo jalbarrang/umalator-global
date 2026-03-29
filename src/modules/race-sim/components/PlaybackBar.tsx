@@ -1,4 +1,4 @@
-import { memo, useCallback, useMemo } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Pause, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,21 +10,38 @@ import {
 } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import {
+  pause,
+  play,
   type PlaybackSpeed,
   SPEED_OPTIONS,
+  seekTo,
+  setSpeed,
+  stepBack,
+  stepForward,
   usePlaybackStore,
 } from '@/modules/race-sim/stores/playback.store';
+import { useShallow } from 'zustand/shallow';
 
 function PlaybackSlider() {
-  const currentTick = usePlaybackStore((s) => s.currentTick);
-  const totalTicks = usePlaybackStore((s) => s.totalTicks);
-  const seekTo = usePlaybackStore((s) => s.seekTo);
-  const currentTimeDisplay = usePlaybackStore((s) => s.currentTimeDisplay);
-  const totalTimeDisplay = usePlaybackStore((s) => s.totalTimeDisplay);
+  const { currentTick, totalTicks, currentTimeDisplay, totalTimeDisplay } = usePlaybackStore(
+    useShallow((state) => ({
+      currentTick: state.currentTick,
+      totalTicks: state.totalTicks,
+      currentTimeDisplay: state.currentTimeDisplay,
+      totalTimeDisplay: state.totalTimeDisplay,
+    })),
+  );
+
+  const [internalTick, setInternalTick] = useState<number[]>(() => {
+    return [currentTick];
+  });
 
   const hasTimeline = totalTicks > 0;
-  const safeTick = Math.min(currentTick, totalTicks);
   const maxTick = Math.max(totalTicks, 1);
+
+  useEffect(() => {
+    setInternalTick([currentTick]);
+  }, [currentTick]);
 
   return (
     <div className="flex items-center justify-between gap-3">
@@ -35,48 +52,53 @@ function PlaybackSlider() {
         <Slider
           min={0}
           max={maxTick}
-          value={[safeTick]}
+          value={internalTick}
           onValueChange={(values) => {
-            if (!Array.isArray(values)) return;
-            seekTo(values[0]);
+            if (!Array.isArray(values)) {
+              // Values is a number
+              const nextTick = values as number;
+              seekTo(nextTick);
+              return;
+            }
+
+            const nextTick = values[0];
+            seekTo(nextTick);
           }}
           disabled={!hasTimeline}
           className="w-full"
           aria-label="Playback position"
         />
       </div>
-      <div className="text-xs font-mono text-muted-foreground tabular-nums">
-        {totalTimeDisplay}
-      </div>
+      <div className="text-xs font-mono text-muted-foreground tabular-nums">{totalTimeDisplay}</div>
     </div>
   );
 }
 
 const PlaybackTransport = memo(function PlaybackTransport() {
-  const totalTicks = usePlaybackStore((s) => s.totalTicks);
-  const isPlaying = usePlaybackStore((s) => s.isPlaying);
-  const speed = usePlaybackStore((s) => s.speed);
-  const play = usePlaybackStore((s) => s.play);
-  const pause = usePlaybackStore((s) => s.pause);
-  const stepForward = usePlaybackStore((s) => s.stepForward);
-  const stepBack = usePlaybackStore((s) => s.stepBack);
-  const seekTo = usePlaybackStore((s) => s.seekTo);
-  const setSpeed = usePlaybackStore((s) => s.setSpeed);
-  const isAtStart = usePlaybackStore((s) => s.currentTick <= 0);
-  const isAtEnd = usePlaybackStore((s) => s.currentTick >= s.totalTicks);
+  const { totalTicks, isPlaying, speed } = usePlaybackStore(
+    useShallow((s) => ({
+      totalTicks: s.totalTicks,
+      isPlaying: s.isPlaying,
+      speed: s.speed,
+    })),
+  );
+
+  const { isAtStart, isAtEnd } = usePlaybackStore(
+    useShallow((s) => ({
+      isAtStart: s.currentTick <= 0,
+      isAtEnd: s.currentTick >= s.totalTicks,
+    })),
+  );
 
   const hasTimeline = totalTicks > 0;
 
-  const handleSpeedChange = useCallback(
-    (value: number | null) => {
-      const parsed = Number(value);
-      if (!Number.isFinite(parsed)) return;
-      const selected = parsed as PlaybackSpeed;
-      if (!(SPEED_OPTIONS as readonly number[]).includes(selected)) return;
-      setSpeed(selected);
-    },
-    [setSpeed],
-  );
+  const handleSpeedChange = (value: number | null) => {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) return;
+    const selected = parsed as PlaybackSpeed;
+    if (!(SPEED_OPTIONS as readonly number[]).includes(selected)) return;
+    setSpeed(selected);
+  };
 
   const speedOptions = useMemo(() => [...SPEED_OPTIONS], []);
 
