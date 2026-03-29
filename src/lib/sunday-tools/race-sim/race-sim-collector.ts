@@ -1,14 +1,12 @@
 import type { RaceEventBus } from '../common/race-events';
 import type { Race } from '../common/race';
 import type { Runner } from '../common/runner';
-import {
-  VacuumCompareDataCollector,
-  type CollectedRunnerRoundData,
-} from '../common/race-observer';
+import { VacuumCompareDataCollector, type CollectedRunnerRoundData } from '../common/race-observer';
 import type { FinishEntry } from './run-race-sim';
 
 type PositionOnlyRoundData = {
   positions: number[];
+  lanes: number[];
 };
 
 export type RaceSimCollectedRound = {
@@ -16,6 +14,7 @@ export type RaceSimCollectedRound = {
   finishOrder: FinishEntry[];
   focusRunnerData: Record<number, CollectedRunnerRoundData>;
   allRunnerPositions: Record<number, number[]>;
+  allRunnerLanes: Record<number, number[]>;
 };
 
 export type RaceSimCollectedResult = {
@@ -86,14 +85,22 @@ function cloneAllRunnerPositionsRecord(record: Record<number, number[]>): Record
   return cloned;
 }
 
+function cloneAllRunnerLanesRecord(record: Record<number, number[]>): Record<number, number[]> {
+  const cloned: Record<number, number[]> = {};
+  for (const [runnerId, lanes] of Object.entries(record)) {
+    cloned[Number(runnerId)] = [...lanes];
+  }
+  return cloned;
+}
+
 export class RaceSimDataCollector {
   private readonly focusRunnerIds: Set<number>;
   private readonly focusCollectors = new Map<number, VacuumCompareDataCollector>();
 
   // Per-round state (reset on round-start)
   private currentRoundSeed = 0;
-  private currentRoundFullData = new Map<number, CollectedRunnerRoundData>();
-  private currentRoundPositionData = new Map<number, PositionOnlyRoundData>();
+  private readonly currentRoundFullData = new Map<number, CollectedRunnerRoundData>();
+  private readonly currentRoundPositionData = new Map<number, PositionOnlyRoundData>();
   private currentRoundFinishOrder: FinishEntry[] = [];
 
   // Accumulated across rounds
@@ -133,6 +140,7 @@ export class RaceSimDataCollector {
         finishOrder: round.finishOrder.map((entry) => ({ ...entry })),
         focusRunnerData: cloneFocusRunnerDataRecord(round.focusRunnerData),
         allRunnerPositions: cloneAllRunnerPositionsRecord(round.allRunnerPositions),
+        allRunnerLanes: cloneAllRunnerLanesRecord(round.allRunnerLanes),
       })),
     };
   }
@@ -158,6 +166,7 @@ export class RaceSimDataCollector {
 
     const positionOnlyData = this.ensurePositionOnlyState(runner.id);
     positionOnlyData.positions.push(runner.position);
+    positionOnlyData.lanes.push(runner.currentLane);
   }
 
   private onRunnerFinished(race: Race, runner: Runner): void {
@@ -177,8 +186,9 @@ export class RaceSimDataCollector {
 
     const positionOnlyData = this.ensurePositionOnlyState(runner.id);
     const finishPosition = Math.min(runner.position, race.course.distance);
-    if (positionOnlyData.positions[positionOnlyData.positions.length - 1] !== finishPosition) {
+    if (positionOnlyData.positions.at(-1) !== finishPosition) {
       positionOnlyData.positions.push(finishPosition);
+      positionOnlyData.lanes.push(runner.currentLane);
     }
   }
 
@@ -218,10 +228,12 @@ export class RaceSimDataCollector {
 
     const focusRunnerData: Record<number, CollectedRunnerRoundData> = {};
     const allRunnerPositions: Record<number, number[]> = {};
+    const allRunnerLanes: Record<number, number[]> = {};
 
     for (const [runnerId, data] of this.currentRoundFullData.entries()) {
       focusRunnerData[runnerId] = cloneCollectedRunnerRoundData(data);
       allRunnerPositions[runnerId] = [...data.position];
+      allRunnerLanes[runnerId] = [...data.currentLane];
     }
 
     for (const [runnerId, positionData] of this.currentRoundPositionData.entries()) {
@@ -232,6 +244,7 @@ export class RaceSimDataCollector {
         continue;
       }
       allRunnerPositions[runnerId] = [...positionData.positions];
+      allRunnerLanes[runnerId] = [...positionData.lanes];
     }
 
     this.rounds.push({
@@ -239,6 +252,7 @@ export class RaceSimDataCollector {
       finishOrder: this.currentRoundFinishOrder.map((entry) => ({ ...entry })),
       focusRunnerData,
       allRunnerPositions,
+      allRunnerLanes,
     });
   }
 
@@ -248,7 +262,7 @@ export class RaceSimDataCollector {
       return existing;
     }
 
-    const created: PositionOnlyRoundData = { positions: [] };
+    const created: PositionOnlyRoundData = { positions: [], lanes: [] };
     this.currentRoundPositionData.set(runnerId, created);
     return created;
   }

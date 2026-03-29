@@ -56,6 +56,22 @@ export function getRunnerPositionsAtTick(
   return snapshot;
 }
 
+export function getRunnerLanesAtTick(
+  results: RaceSimResult | null,
+  selectedRound: number,
+  currentTick: number,
+): Record<number, number> {
+  if (!results) return {};
+  const allLanes = results.collectedData.rounds[selectedRound]?.allRunnerLanes ?? {};
+  const snapshot: Record<number, number> = {};
+  for (const [runnerIdStr, lanes] of Object.entries(allLanes)) {
+    if (lanes.length === 0) continue;
+    const tickIndex = clamp(currentTick, 0, lanes.length - 1);
+    snapshot[Number(runnerIdStr)] = lanes[tickIndex];
+  }
+  return snapshot;
+}
+
 type PlaybackState = {
   results: RaceSimResult | null;
   selectedRound: number;

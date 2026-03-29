@@ -159,9 +159,11 @@ export const SwimLanesView = memo<SwimLanesViewProps>(function SwimLanesView(pro
     const step = getTickStep(viewDistance);
     const firstTick = Math.ceil(clampedViewStart / step) * step;
     const ticks = new Set<number>([Math.round(clampedViewStart), Math.round(clampedViewEnd)]);
+
     for (let tick = firstTick; tick <= clampedViewEnd + 1e-6; tick += step) {
       ticks.add(Math.round(tick));
     }
+
     return [...ticks].sort((left, right) => left - right);
   }, [clampedViewStart, clampedViewEnd, viewDistance]);
 

@@ -9,8 +9,8 @@ import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import { DetailStrip } from '@/modules/race-sim/components/DetailStrip';
 import { EventLogPanel } from '@/modules/race-sim/components/EventLogPanel';
 import { PlaybackBar } from '@/modules/race-sim/components/PlaybackBar';
-import { SwimLanesView } from '@/modules/race-sim/components/SwimLanesView.tsx';
 import { TrackGraphView } from '@/modules/race-sim/components/TrackGraphView.tsx';
+import { TrackTopDownView } from '@/modules/race-sim/components/TrackTopDownView.tsx';
 import { useRaceSimContext } from '@/modules/race-sim/context';
 import {
   getRunnerPositionsAtTick,
@@ -21,7 +21,7 @@ import { getUmaDisplayInfo } from '@/modules/runners/utils';
 import { setZoomWindowMeters, useRaceSimStore } from '@/modules/simulation/stores/race-sim.store';
 import { useSettingsStore } from '@/store/settings.store';
 
-type ReplayView = 'graph' | 'lanes';
+type ReplayView = 'graph' | 'track';
 type ZoomMode = 'full' | 'zoom';
 
 function PlaybackTimeDisplay() {
@@ -92,9 +92,12 @@ const VisualizationPanel = memo(function VisualizationPanel(props: Visualization
     if (zoomMode === 'full') {
       return { viewStart: 0, viewEnd: courseData.distance };
     }
+    if (view !== 'graph') {
+      return { viewStart: 0, viewEnd: courseData.distance };
+    }
     const positions = getRunnerPositionsAtTick(results, selectedRound, currentTick);
     return computeViewport(positions, courseData.distance, zoomWindowMeters);
-  }, [zoomMode, zoomWindowMeters, results, selectedRound, currentTick, courseData.distance]);
+  }, [zoomMode, zoomWindowMeters, results, selectedRound, currentTick, courseData.distance, view]);
 
   if (view === 'graph') {
     return (
@@ -110,12 +113,10 @@ const VisualizationPanel = memo(function VisualizationPanel(props: Visualization
   }
 
   return (
-    <SwimLanesView
+    <TrackTopDownView
       courseData={courseData}
       runnerNames={runnerNames}
       trackedRunnerIds={trackedRunnerIds}
-      viewStart={viewport.viewStart}
-      viewEnd={viewport.viewEnd}
     />
   );
 });
@@ -213,10 +214,10 @@ export function RaceSimRun() {
           <Button
             type="button"
             size="sm"
-            variant={view === 'lanes' ? 'secondary' : 'ghost'}
-            onClick={() => setView('lanes')}
+            variant={view === 'track' ? 'secondary' : 'ghost'}
+            onClick={() => setView('track')}
           >
-            Lanes
+            Track
           </Button>
           <div className="ml-auto flex items-center gap-1">
             <Button
