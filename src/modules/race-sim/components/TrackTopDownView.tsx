@@ -12,7 +12,7 @@ import {
 import {
   buildCourseTrackPath,
   interpolateTrackPoint,
-  outwardFromInnerRail,
+  outwardFromTrackPoint,
   type BuiltTrackPath,
   type TrackPathPoint,
 } from '@/modules/race-sim/utils/track-path';
@@ -56,7 +56,8 @@ function representativeRaceDistanceForLoop(
   loopDist: number,
   courseDistance: number,
 ): number {
-  const { lapLength, raceStartOnTrack } = built;
+  const { lapLength, raceStartOnTrack, wraps } = built;
+  if (!wraps) return clamp(loopDist, 0, courseDistance);
   if (lapLength < 1e-9) return clamp(loopDist, 0, courseDistance);
   const kMin = Math.ceil((-raceStartOnTrack - loopDist) / lapLength);
   const kMax = Math.floor((courseDistance - raceStartOnTrack - loopDist) / lapLength);
@@ -155,7 +156,7 @@ function computeBounds(inner: TrackPathPoint[], courseWidth: number, turnSign: n
   let minY = Infinity;
   let maxY = -Infinity;
   for (const p of inner) {
-    const o = outwardFromInnerRail(p.heading, turnSign);
+    const o = outwardFromTrackPoint(p, turnSign);
     for (const t of [0, 1]) {
       const w = t * courseWidth;
       const x = p.x + w * o.x;
@@ -336,7 +337,7 @@ function paintPhaseDividersStartFinish(p: PhaseDividersSfParams): void {
   for (const db of phaseBoundaries) {
     if (db <= 0 || db >= courseDistance) continue;
     const pt = interpolateTrackPoint(builtTrack, db);
-    const o = outwardFromInnerRail(pt.heading, turnSign);
+    const o = outwardFromTrackPoint(pt, turnSign);
     const c1 = toCanvas(pt.x, pt.y, transform);
     const c2 = toCanvas(pt.x + courseWidth * o.x, pt.y + courseWidth * o.y, transform);
     const ph = phaseIndexAtRaceDistance(db, courseDistance);
@@ -352,7 +353,7 @@ function paintPhaseDividersStartFinish(p: PhaseDividersSfParams): void {
   }
 
   const pStart = interpolateTrackPoint(builtTrack, 0);
-  const oStart = outwardFromInnerRail(pStart.heading, turnSign);
+  const oStart = outwardFromTrackPoint(pStart, turnSign);
   drawStartGateAcrossTrack(
     ctx,
     toCanvas(pStart.x, pStart.y, transform),
@@ -360,7 +361,7 @@ function paintPhaseDividersStartFinish(p: PhaseDividersSfParams): void {
   );
 
   const pFinish = interpolateTrackPoint(builtTrack, courseDistance);
-  const oFinish = outwardFromInnerRail(pFinish.heading, turnSign);
+  const oFinish = outwardFromTrackPoint(pFinish, turnSign);
   drawCheckeredLineAcrossTrack(
     ctx,
     toCanvas(pFinish.x, pFinish.y, transform),
@@ -410,7 +411,7 @@ function buildRunnerMarkers(p: BuildRunnerMarkersParams): RunnerMarker[] {
     const lane = runnerLanes[rid] ?? 0;
     const raceDist = clamp(pos, 0, courseDistance);
     const pt = interpolateTrackPoint(builtTrack, raceDist);
-    const o = outwardFromInnerRail(pt.heading, turnSign);
+    const o = outwardFromTrackPoint(pt, turnSign);
     const wx = pt.x + lane * o.x;
     const wy = pt.y + lane * o.y;
     const { cx, cy } = toCanvas(wx, wy, transform);
@@ -526,7 +527,7 @@ function paintTrackTopDown(params: PaintTrackTopDownParams) {
   const outerPts: Array<{ x: number; y: number }> = [];
   const innerPts: Array<{ x: number; y: number }> = [];
   for (const p of inner) {
-    const o = outwardFromInnerRail(p.heading, turnSign);
+    const o = outwardFromTrackPoint(p, turnSign);
     innerPts.push({ x: p.x, y: p.y });
     outerPts.push({ x: p.x + courseWidth * o.x, y: p.y + courseWidth * o.y });
   }
@@ -579,7 +580,7 @@ function paintTrackTopDown(params: PaintTrackTopDownParams) {
   ctx.fillText(OrientationName[turn as keyof typeof OrientationName] ?? '', PAD, 8);
 
   const { lapLength, numLaps, raceStartOnTrack } = builtTrack;
-  if (numLaps > 1 + 1e-6) {
+  if (builtTrack.wraps && numLaps > 1 + 1e-6) {
     let leaderPos = 0;
     for (const v of Object.values(runnerPositions)) {
       if (v != null) leaderPos = Math.max(leaderPos, v);

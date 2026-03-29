@@ -219,6 +219,7 @@ export type ICourse = {
 export type Courses = Record<number, ICourse>;
 
 export type CourseData = {
+  readonly courseId: number;
   readonly raceTrackId: number;
   readonly distance: number;
   readonly distanceType: IDistanceType;
