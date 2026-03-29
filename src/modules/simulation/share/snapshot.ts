@@ -141,8 +141,8 @@ export function parseSnapshotJson(raw: string): SimulationSnapshot | null {
     staminaDrainOverrides:
       parsed.staminaDrainOverrides as SimulationSnapshot['staminaDrainOverrides'],
     forcedPositions: {
-      uma1: parsed.forcedPositions.uma1 as Record<string, number>,
-      uma2: parsed.forcedPositions.uma2 as Record<string, number>,
+      uma1: fp.uma1 as Record<string, number>,
+      uma2: fp.uma2 as Record<string, number>,
     },
     injectedDebuffs: parsed.injectedDebuffs,
   };

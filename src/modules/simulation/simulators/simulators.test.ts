@@ -298,7 +298,7 @@ describe('forced skill positions', () => {
       duelingRates: DEFAULT_DUELING_RATES,
       skillSamples: 1,
       runner: createRunnerObj,
-      collector,
+      observer: collector,
     });
 
     race.prepareRound(seed);
@@ -377,7 +377,7 @@ describe('forced skill positions', () => {
       duelingRates: DEFAULT_DUELING_RATES,
       skillSamples: 1,
       runner: toCreateRunner(runner, sortedSkills, { [skillId]: forcedPos }),
-      collector,
+      observer: collector,
     });
 
     race.prepareRound(42);
@@ -738,7 +738,7 @@ describe('last spurt activation', () => {
       duelingRates: DEFAULT_DUELING_RATES,
       skillSamples: 1,
       runner: toCreateRunner(runner, sortedSkills),
-      collector,
+      observer: collector,
     });
 
     return { race, collector, course };
@@ -812,7 +812,7 @@ describe('last spurt activation', () => {
       duelingRates: DEFAULT_DUELING_RATES,
       skillSamples: 1,
       runner: toCreateRunner(runner, sortedSkills),
-      collector,
+      observer: collector,
     });
 
     let fullSpurtCount = 0;
@@ -876,7 +876,7 @@ describe('last spurt activation', () => {
       duelingRates: DEFAULT_DUELING_RATES,
       skillSamples: 1,
       runner: toCreateRunner(lowStaminaRunner, sortedSkills),
-      collector,
+      observer: collector,
     });
 
     race.prepareRound(425546);

@@ -9,8 +9,8 @@ import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import { DetailStrip } from '@/modules/race-sim/components/DetailStrip';
 import { EventLogPanel } from '@/modules/race-sim/components/EventLogPanel';
 import { PlaybackBar } from '@/modules/race-sim/components/PlaybackBar';
-import { TrackGraphView } from '@/modules/race-sim/components/TrackGraphView.tsx';
-import { TrackTopDownView } from '@/modules/race-sim/components/TrackTopDownView.tsx';
+import { TrackGraphView } from '@/modules/race-sim/components/track-view/graph-view/TrackGraphView';
+import { TrackTopDownView } from '@/modules/race-sim/components/track-view/top-down/TrackTopDownView';
 import { useRaceSimContext } from '@/modules/race-sim/context';
 import {
   getRunnerPositionsAtTick,

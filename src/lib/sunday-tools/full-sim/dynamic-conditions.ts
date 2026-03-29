@@ -57,7 +57,10 @@ function getDynamicResult(
     return undefined;
   }
 
-  return [params.regions, factory(params.arg, comparator)] as const;
+  return [params.regions, factory(params.arg, comparator)] as [
+    typeof params.regions,
+    ReturnType<typeof factory>,
+  ];
 }
 
 export function dynamicOrStatic(staticCondition: ICondition, conditionName: string): ICondition {

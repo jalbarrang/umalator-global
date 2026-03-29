@@ -29,7 +29,7 @@ function createDefaultRaceParams(): RaceParameters {
     ground: GroundCondition.Good,
     weather: Weather.Sunny,
     season: Season.Spring,
-    timeOfDay: TimeOfDay.Day,
+    timeOfDay: TimeOfDay.Midday,
     grade: Grade.G1,
   };
 }
