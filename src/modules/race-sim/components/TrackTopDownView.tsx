@@ -22,6 +22,8 @@ type TrackTopDownViewProps = {
   courseData: CourseData;
   runnerNames?: Record<number, string>;
   trackedRunnerIds?: number[];
+  viewStart?: number;
+  viewEnd?: number;
   className?: string;
 };
 
@@ -171,6 +173,29 @@ function computeBounds(inner: TrackPathPoint[], courseWidth: number, turnSign: n
     return { minX: 0, maxX: 1, minY: 0, maxY: 1 };
   }
   return { minX, maxX, minY, maxY };
+}
+
+function buildVisibleTrackPoints(
+  builtTrack: BuiltTrackPath,
+  courseDistance: number,
+  viewStart: number,
+  viewEnd: number,
+): TrackPathPoint[] {
+  if (builtTrack.wraps || viewStart <= 0 && viewEnd >= courseDistance) {
+    return builtTrack.points;
+  }
+
+  const start = clamp(viewStart, 0, courseDistance);
+  const end = clamp(viewEnd, start, courseDistance);
+  const visible = builtTrack.points.filter((point) => point.distance >= start && point.distance <= end);
+  const startPoint = interpolateTrackPoint(builtTrack, start);
+  const endPoint = interpolateTrackPoint(builtTrack, end);
+
+  return [
+    { ...startPoint, distance: start },
+    ...visible.filter((point) => point.distance > start && point.distance < end),
+    { ...endPoint, distance: end },
+  ];
 }
 
 function createCanvasTransform(bounds: Bounds, viewport: ViewportState): CanvasTransform {
@@ -483,6 +508,8 @@ type PaintTrackTopDownParams = {
   courseWidth: number;
   turnSign: number;
   courseDistance: number;
+  viewStart: number;
+  viewEnd: number;
   runnerPositions: Record<number, number>;
   runnerLanes: Record<number, number>;
   runnerNames: Record<number, string>;
@@ -501,6 +528,8 @@ function paintTrackTopDown(params: PaintTrackTopDownParams) {
     courseWidth,
     turnSign,
     courseDistance,
+    viewStart,
+    viewEnd,
     runnerPositions,
     runnerLanes,
     runnerNames,
@@ -521,7 +550,8 @@ function paintTrackTopDown(params: PaintTrackTopDownParams) {
   ctx.clearRect(0, 0, measuredWidth * dpr, measuredHeight * dpr);
   ctx.scale(dpr * (measuredWidth / CANVAS_W), dpr * (measuredHeight / CANVAS_H));
 
-  const bounds = computeBounds(inner, courseWidth, turnSign);
+  const visiblePoints = buildVisibleTrackPoints(builtTrack, courseDistance, viewStart, viewEnd);
+  const bounds = computeBounds(visiblePoints.length > 1 ? visiblePoints : inner, courseWidth, turnSign);
   const transform = createCanvasTransform(bounds, viewport);
 
   const outerPts: Array<{ x: number; y: number }> = [];
@@ -699,10 +729,19 @@ const TrackTopDownLegend = memo(function TrackTopDownLegend(props: {
 });
 
 export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDownView(props) {
-  const { courseData, runnerNames = {}, trackedRunnerIds = [], className } = props;
+  const {
+    courseData,
+    runnerNames = {},
+    trackedRunnerIds = [],
+    viewStart,
+    viewEnd,
+    className,
+  } = props;
 
   const courseDistance = Math.max(courseData.distance, 1);
   const courseWidth = courseData.courseWidth;
+  const clampedViewStart = clamp(viewStart ?? 0, 0, courseDistance);
+  const clampedViewEnd = clamp(viewEnd ?? courseDistance, clampedViewStart, courseDistance);
 
   const builtTrack = useMemo(() => buildCourseTrackPath(courseData), [courseData]);
   const { points, turnSign } = builtTrack;
@@ -722,6 +761,8 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
     turnSign,
     courseWidth,
     courseDistance,
+    viewStart: clampedViewStart,
+    viewEnd: clampedViewEnd,
     runnerNames,
     trackedRunnerIds,
     turn: courseData.turn,
@@ -731,6 +772,8 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
     turnSign,
     courseWidth,
     courseDistance,
+    viewStart: clampedViewStart,
+    viewEnd: clampedViewEnd,
     runnerNames,
     trackedRunnerIds,
     turn: courseData.turn,
@@ -757,6 +800,8 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
         courseWidth: cfg.courseWidth,
         turnSign: cfg.turnSign,
         courseDistance: cfg.courseDistance,
+        viewStart: cfg.viewStart,
+        viewEnd: cfg.viewEnd,
         runnerPositions: positions,
         runnerLanes: lanes,
         runnerNames: cfg.runnerNames,
@@ -775,7 +820,16 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
   useEffect(() => {
     viewportRef.current = { zoom: 1, panX: 0, panY: 0 };
     repaintCurrent.current();
-  }, [points, turnSign, courseWidth, courseDistance, runnerNames, trackedRunnerIds]);
+  }, [
+    points,
+    turnSign,
+    courseWidth,
+    courseDistance,
+    clampedViewStart,
+    clampedViewEnd,
+    runnerNames,
+    trackedRunnerIds,
+  ]);
 
   useEffect(() => {
     const unsub = usePlaybackStore.subscribe((state, prev) => {

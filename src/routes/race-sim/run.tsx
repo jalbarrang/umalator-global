@@ -92,12 +92,9 @@ const VisualizationPanel = memo(function VisualizationPanel(props: Visualization
     if (zoomMode === 'full') {
       return { viewStart: 0, viewEnd: courseData.distance };
     }
-    if (view !== 'graph') {
-      return { viewStart: 0, viewEnd: courseData.distance };
-    }
     const positions = getRunnerPositionsAtTick(results, selectedRound, currentTick);
     return computeViewport(positions, courseData.distance, zoomWindowMeters);
-  }, [zoomMode, zoomWindowMeters, results, selectedRound, currentTick, courseData.distance, view]);
+  }, [zoomMode, zoomWindowMeters, results, selectedRound, currentTick, courseData.distance]);
 
   if (view === 'graph') {
     return (
@@ -117,6 +114,8 @@ const VisualizationPanel = memo(function VisualizationPanel(props: Visualization
       courseData={courseData}
       runnerNames={runnerNames}
       trackedRunnerIds={trackedRunnerIds}
+      viewStart={viewport.viewStart}
+      viewEnd={viewport.viewEnd}
     />
   );
 });
