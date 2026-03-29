@@ -6,6 +6,7 @@ import type { RaceEvent, RaceEventKind } from '@/lib/sunday-tools/race-sim/race-
 import { SIM_TO_DISPLAY_SECONDS, TICKS_PER_SECOND } from '@/modules/race-sim/constants';
 import { usePlaybackStore } from '@/modules/race-sim/stores/playback.store';
 import { formatTime } from '@/utils/time';
+import { useShallow } from 'zustand/shallow';
 
 type EventFilter = 'all' | 'skills' | 'combat' | 'state';
 
@@ -114,10 +115,16 @@ function getEventDescription(event: RaceEvent): string {
   }
 }
 
-export function EventLogPanel(props: EventLogPanelProps) {
+export function EventLogPanel(props: Readonly<EventLogPanelProps>) {
   const { trackedRunnerIds = [], runnerNames = {}, className } = props;
-  const events = usePlaybackStore((s) => s.roundEvents);
-  const currentTick = usePlaybackStore((s) => s.currentTick);
+
+  const { roundEvents: events, currentTick } = usePlaybackStore(
+    useShallow((s) => ({
+      roundEvents: s.roundEvents,
+      currentTick: s.currentTick,
+    })),
+  );
+
   const [activeFilter, setActiveFilter] = useState<EventFilter>('all');
   const cursorEventRef = useRef<HTMLDivElement | null>(null);
 
@@ -150,7 +157,8 @@ export function EventLogPanel(props: EventLogPanelProps) {
     if (visibleEvents.length === 0) {
       return null;
     }
-    return visibleEvents[visibleEvents.length - 1].key;
+
+    return visibleEvents?.at(-1)?.key;
   }, [visibleEvents]);
 
   useEffect(() => {
@@ -161,14 +169,13 @@ export function EventLogPanel(props: EventLogPanelProps) {
   }, [cursorEventKey]);
 
   return (
-    <div className={cn('flex max-h-[400px] min-h-0 flex-col rounded-lg border bg-card', className)}>
-      <div className="flex shrink-0 items-center justify-between gap-2 border-b px-3 py-2">
-        <div className="min-w-0">
+    <div className={cn(className)}>
+      <div className="flex items-center justify-between gap-2 px-3 py-2 border-b">
+        <div className="w-full">
           <p className="truncate text-sm font-medium">Event Log</p>
-          <p className="text-[11px] text-muted-foreground">
-            {visibleEvents.length} events
-          </p>
+          <p className="text-xs text-muted-foreground">{visibleEvents.length} events</p>
         </div>
+
         <ButtonGroup className="shrink-0">
           {FILTERS.map((filter) => (
             <Button
@@ -183,13 +190,15 @@ export function EventLogPanel(props: EventLogPanelProps) {
         </ButtonGroup>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 py-2">
-        {visibleEvents.length === 0 ? (
+      <div className="flex min-h-0 flex-1 flex-col px-3 py-2">
+        {visibleEvents.length === 0 && (
           <div className="rounded-md border border-dashed px-3 py-4 text-center text-xs text-muted-foreground">
             No events for this filter.
           </div>
-        ) : (
-          <div className="space-y-1">
+        )}
+
+        {visibleEvents.length > 0 && (
+          <div className="flex flex-col h-full gap-1 min-h-0 overflow-y-auto">
             {visibleEvents.map((item) => {
               const event = item.event;
               const isNearCursor = Math.abs(event.tick - currentTick) <= 2;
@@ -204,19 +213,25 @@ export function EventLogPanel(props: EventLogPanelProps) {
                   ref={item.key === cursorEventKey ? cursorEventRef : null}
                   className={cn(
                     'grid grid-cols-[auto_1fr] items-start gap-2 rounded-md border px-2 py-1.5 text-xs transition-colors',
-                    isNearCursor ? 'border-primary/50 bg-primary/10' : 'border-transparent',
+                    {
+                      'border-primary/50 bg-primary/10': isNearCursor,
+                      'border-transparent': !isNearCursor,
+                    },
                   )}
                 >
                   <span className={cn('mt-1 size-2 rounded-full', style.dotClassName)} />
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
-                      <span className="font-mono text-[11px] text-muted-foreground">
+                      <span className="font-mono text-xs text-muted-foreground">
                         [{Math.max(0, event.position).toFixed(0)}m]
                       </span>
+
                       <span className={cn('font-medium', isTracked && 'text-primary')}>
                         {getRunnerName(event.runnerId, runnerNames)}
                       </span>
+
                       <span>{eventDescription}</span>
+
                       {otherRunnerIds.length > 0 && (
                         <span className="text-muted-foreground">
                           {' '}
@@ -236,10 +251,14 @@ export function EventLogPanel(props: EventLogPanelProps) {
                         </span>
                       )}
                     </div>
-                    <div className="mt-0.5 flex items-center gap-2 text-[10px] text-muted-foreground">
+
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <span>{style.label}</span>
                       <span className="font-mono">t{event.tick}</span>
-                      <span>{formatTime((event.tick / TICKS_PER_SECOND) * SIM_TO_DISPLAY_SECONDS)}</span>
+
+                      <span>
+                        {formatTime((event.tick / TICKS_PER_SECOND) * SIM_TO_DISPLAY_SECONDS)}
+                      </span>
                     </div>
                   </div>
                 </div>

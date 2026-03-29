@@ -25,21 +25,6 @@ import { useSettingsStore } from '@/store/settings.store';
 type ReplayView = 'graph' | 'track';
 type ZoomMode = 'full' | 'zoom';
 
-function PlaybackTimeDisplay() {
-  const { currentTimeDisplay, totalTimeDisplay } = usePlaybackStore(
-    useShallow((state) => ({
-      currentTimeDisplay: state.currentTimeDisplay,
-      totalTimeDisplay: state.totalTimeDisplay,
-    })),
-  );
-
-  return (
-    <p className="text-xs text-muted-foreground">
-      {currentTimeDisplay} / {totalTimeDisplay}
-    </p>
-  );
-}
-
 function SamplePicker() {
   const { roundCount, selectedRound } = usePlaybackStore(
     useShallow((s) => ({
@@ -104,13 +89,14 @@ const VisualizationPanel = memo(function VisualizationPanel(props: Visualization
         trackedRunnerIds={trackedRunnerIds}
         viewStart={viewport.viewStart}
         viewEnd={viewport.viewEnd}
-        className="w-full"
+        className="w-full min-w-0"
       />
     );
   }
 
   return (
     <TrackTopDownView
+      className="min-h-0 min-w-0 flex-1"
       courseData={courseData}
       runnerNames={runnerNames}
       trackedRunnerIds={trackedRunnerIds}
@@ -168,7 +154,7 @@ export function RaceSimRun() {
 
   if (!results) {
     return (
-      <div className="flex flex-1 min-w-0 flex-col gap-4 p-4">
+      <div className="flex flex-col p-4">
         {error && (
           <Alert variant="destructive">
             <AlertTitle>Simulation failed</AlertTitle>
@@ -184,7 +170,7 @@ export function RaceSimRun() {
   }
 
   return (
-    <div className="flex flex-1 min-w-0 flex-col gap-3 p-4">
+    <div className="flex min-h-0 flex-1 flex-col gap-4 p-4">
       {error && (
         <Alert variant="destructive">
           <AlertTitle>Simulation failed</AlertTitle>
@@ -192,16 +178,16 @@ export function RaceSimRun() {
         </Alert>
       )}
 
-      <section className="flex min-h-0 flex-col rounded-lg border bg-card">
-        <header className="flex flex-wrap items-center justify-between gap-2 border-b px-3 py-2">
+      <div className="flex min-h-0 flex-1 flex-col bg-card rounded-lg border">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b px-3 py-2">
           <div className="min-w-0">
             <p className="text-sm font-medium">Sample Replay</p>
-            <PlaybackTimeDisplay />
           </div>
-          <SamplePicker />
-        </header>
 
-        <div className="flex items-center gap-1 border-b px-3 py-2">
+          <SamplePicker />
+        </div>
+
+        <div className="flex items-center gap-1 px-3 py-2 border-b">
           <Button
             type="button"
             size="sm"
@@ -210,6 +196,7 @@ export function RaceSimRun() {
           >
             Graph
           </Button>
+
           <Button
             type="button"
             size="sm"
@@ -218,6 +205,7 @@ export function RaceSimRun() {
           >
             Track
           </Button>
+
           <div className="ml-auto flex items-center gap-1">
             <Button
               type="button"
@@ -230,6 +218,7 @@ export function RaceSimRun() {
             >
               Min
             </Button>
+
             <Button
               type="button"
               variant="outline"
@@ -243,9 +232,11 @@ export function RaceSimRun() {
             >
               <Minus />
             </Button>
+
             <span className="min-w-12 text-center font-mono text-xs tabular-nums text-muted-foreground">
               {zoomMode === 'zoom' ? `${zoomWindowMeters}m` : '100%'}
             </span>
+
             <Button
               type="button"
               variant="outline"
@@ -270,31 +261,36 @@ export function RaceSimRun() {
           </div>
         </div>
 
-        <div className="grid min-h-0 items-start gap-3 p-3 lg:min-h-[340px] lg:grid-cols-[minmax(0,1fr)_20rem]">
-          <VisualizationPanel
-            view={view}
-            courseData={courseData}
-            runnerNames={runnerNames}
-            trackedRunnerIds={trackedRunnerIds}
-            zoomMode={zoomMode}
-            zoomWindowMeters={zoomWindowMeters}
-          />
+        <div className="flex min-h-0 flex-1 flex-col md:flex-row">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col md:overflow-hidden">
+            <VisualizationPanel
+              view={view}
+              courseData={courseData}
+              runnerNames={runnerNames}
+              trackedRunnerIds={trackedRunnerIds}
+              zoomMode={zoomMode}
+              zoomWindowMeters={zoomWindowMeters}
+            />
+          </div>
 
           <EventLogPanel
+            className="flex w-full min-h-0 flex-col border-l md:h-full md:w-[300px] md:shrink-0"
             trackedRunnerIds={trackedRunnerIds}
             runnerNames={runnerNames}
-            className="h-[340px]"
           />
         </div>
-      </section>
+      </div>
 
       <DetailStrip
+        className="shrink-0"
         trackedRunnerIds={trackedRunnerIds}
         runnerNames={runnerNames}
         courseDistance={courseData.distance}
       />
 
-      <PlaybackBar />
+      <div className="shrink-0">
+        <PlaybackBar />
+      </div>
     </div>
   );
 }

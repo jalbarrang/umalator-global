@@ -181,13 +181,15 @@ function buildVisibleTrackPoints(
   viewStart: number,
   viewEnd: number,
 ): TrackPathPoint[] {
-  if (builtTrack.wraps || viewStart <= 0 && viewEnd >= courseDistance) {
+  if (builtTrack.wraps || (viewStart <= 0 && viewEnd >= courseDistance)) {
     return builtTrack.points;
   }
 
   const start = clamp(viewStart, 0, courseDistance);
   const end = clamp(viewEnd, start, courseDistance);
-  const visible = builtTrack.points.filter((point) => point.distance >= start && point.distance <= end);
+  const visible = builtTrack.points.filter(
+    (point) => point.distance >= start && point.distance <= end,
+  );
   const startPoint = interpolateTrackPoint(builtTrack, start);
   const endPoint = interpolateTrackPoint(builtTrack, end);
 
@@ -276,9 +278,11 @@ type PhaseColoredSegmentsParams = {
 
 function paintPhaseColoredSegments(p: PhaseColoredSegmentsParams): void {
   const { ctx, inner, innerPts, outerPts, transform, builtTrack, courseDistance } = p;
+
   for (let i = 0; i < innerPts.length - 1; i++) {
-    const p0 = inner[i]!;
-    const p1 = inner[i + 1]!;
+    const p0 = inner[i];
+    const p1 = inner[i + 1];
+
     const midLoop = (p0.distance + p1.distance) / 2;
     const raceD = representativeRaceDistanceForLoop(builtTrack, midLoop, courseDistance);
     const ph = phaseIndexAtRaceDistance(raceD, courseDistance);
@@ -287,6 +291,8 @@ function paintPhaseColoredSegments(p: PhaseColoredSegmentsParams): void {
     const b = toCanvas(innerPts[i + 1].x, innerPts[i + 1].y, transform);
     const ob = toCanvas(outerPts[i + 1].x, outerPts[i + 1].y, transform);
     const oa = toCanvas(outerPts[i].x, outerPts[i].y, transform);
+
+    // Draw
     ctx.beginPath();
     ctx.moveTo(a.cx, a.cy);
     ctx.lineTo(b.cx, b.cy);
@@ -551,7 +557,11 @@ function paintTrackTopDown(params: PaintTrackTopDownParams) {
   ctx.scale(dpr * (measuredWidth / CANVAS_W), dpr * (measuredHeight / CANVAS_H));
 
   const visiblePoints = buildVisibleTrackPoints(builtTrack, courseDistance, viewStart, viewEnd);
-  const bounds = computeBounds(visiblePoints.length > 1 ? visiblePoints : inner, courseWidth, turnSign);
+  const bounds = computeBounds(
+    visiblePoints.length > 1 ? visiblePoints : inner,
+    courseWidth,
+    turnSign,
+  );
   const transform = createCanvasTransform(bounds, viewport);
 
   const outerPts: Array<{ x: number; y: number }> = [];
@@ -617,19 +627,11 @@ function paintTrackTopDown(params: PaintTrackTopDownParams) {
     }
     leaderPos = clamp(leaderPos, 0, courseDistance);
     const progressed = Math.max(0, leaderPos - raceStartOnTrack);
-    const lapIdx =
-      lapLength > 1e-9 ? Math.floor(progressed / lapLength) + 1 : 1;
-    const currentLap = Math.min(
-      Math.max(1, lapIdx),
-      Math.max(1, Math.ceil(numLaps)),
-    );
+    const lapIdx = lapLength > 1e-9 ? Math.floor(progressed / lapLength) + 1 : 1;
+    const currentLap = Math.min(Math.max(1, lapIdx), Math.max(1, Math.ceil(numLaps)));
     ctx.fillStyle = colorMuted;
     ctx.font = '600 10px system-ui, sans-serif';
-    ctx.fillText(
-      `Lap ${currentLap} / ${formatLapTotal(numLaps)}`,
-      PAD,
-      22,
-    );
+    ctx.fillText(`Lap ${currentLap} / ${formatLapTotal(numLaps)}`, PAD, 22);
   }
 
   ctx.restore();
@@ -694,31 +696,33 @@ const TrackTopDownLegend = memo(function TrackTopDownLegend(props: {
   }, [runnerNames, runnerPositions, runnerLanes, trackedRunnerIds, courseData.distance]);
 
   return (
-    <div className="flex w-52 shrink-0 flex-col gap-1 border-l border-border/60 pl-3">
-      <div className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+    <div className="flex flex-col gap-2 w-full md:w-[200px] border-l">
+      <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground p-3 border-b">
         Order
       </div>
-      <ul className="max-h-[320px] space-y-1 overflow-y-auto text-xs">
+
+      <ul className="flex flex-col gap-1 overflow-y-auto text-xs">
         {rows.map((row) => (
           <li
             key={row.runnerId}
             className={cn(
-              'flex items-baseline justify-between gap-2 rounded-md px-1 py-0.5',
+              'flex items-baseline justify-between gap-2 rounded-md px-2',
               row.isTracked && 'bg-primary/10',
             )}
           >
-            <div className="min-w-0 flex-1">
-              <span className="font-mono text-[10px] text-muted-foreground">{row.rank}.</span>{' '}
+            <div className="flex flex-col flex-1">
+              <span className="font-mono text-xs text-muted-foreground">{row.rank}.</span>{' '}
               <span
                 className={cn('font-medium', row.isTracked ? 'text-primary' : 'text-foreground')}
               >
                 {row.name}
               </span>
-              <div className="mt-0.5 font-mono text-[10px] text-muted-foreground">
+              <div className="mt-0.5 font-mono text-xs text-muted-foreground">
                 inner +{formatLaneMeters(row.lane)}
               </div>
             </div>
-            <div className="shrink-0 font-mono text-[10px] text-muted-foreground tabular-nums">
+
+            <div className="shrink-0 font-mono text-xs text-muted-foreground tabular-nums">
               {formatGap(row.gapFromLeader)}
             </div>
           </li>
@@ -812,7 +816,11 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
   );
   repaintCurrent.current = () => {
     const state = usePlaybackStore.getState();
-    const positions = getRunnerPositionsAtTick(state.results, state.selectedRound, state.currentTick);
+    const positions = getRunnerPositionsAtTick(
+      state.results,
+      state.selectedRound,
+      state.currentTick,
+    );
     const lanes = getRunnerLanesAtTick(state.results, state.selectedRound, state.currentTick);
     paintWithState.current(positions, lanes);
   };
@@ -876,6 +884,7 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
       const rect = canvas.getBoundingClientRect();
       const point = pointerToVirtualCanvas(event.clientX, event.clientY, rect);
       const factor = event.deltaY < 0 ? 1.12 : 1 / 1.12;
+
       viewportRef.current = zoomViewportAroundPoint(viewportRef.current, point, factor);
       repaintCurrent.current();
     };
@@ -930,21 +939,19 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
   }, []);
 
   return (
-    <div className={cn('h-[340px] rounded-lg border bg-card p-3', className)}>
-      <div className="flex h-full min-h-0 gap-2 overflow-hidden">
-        <div ref={containerRef} className="flex min-h-0 min-w-0 flex-1 items-center justify-center">
-          <canvas
-            ref={canvasRef}
-            className="block h-auto max-h-full w-full touch-none cursor-grab active:cursor-grabbing"
-            aria-label="Top-down track view with runner positions and lanes"
-          />
-        </div>
-        <TrackTopDownLegend
-          courseData={courseData}
-          runnerNames={runnerNames}
-          trackedRunnerIds={trackedRunnerIds}
+    <div className={cn('flex flex-col md:flex-row w-full', className)}>
+      <div ref={containerRef} className="flex flex-col">
+        <canvas
+          ref={canvasRef}
+          className="block h-auto max-h-full w-full touch-none cursor-grab active:cursor-grabbing"
         />
       </div>
+
+      <TrackTopDownLegend
+        courseData={courseData}
+        runnerNames={runnerNames}
+        trackedRunnerIds={trackedRunnerIds}
+      />
     </div>
   );
 });

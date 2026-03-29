@@ -9,7 +9,10 @@ import {
   TERRAIN_COLOR,
   TERRAIN_LINE_COLOR,
 } from '@/modules/race-sim/constants';
-import { getRunnerPositionsAtTick, usePlaybackStore } from '@/modules/race-sim/stores/playback.store';
+import {
+  getRunnerPositionsAtTick,
+  usePlaybackStore,
+} from '@/modules/race-sim/stores/playback.store';
 import { slopeValueToPercentage } from '@/modules/racetrack/types';
 
 type TrackGraphViewProps = {
@@ -53,7 +56,11 @@ function buildPhaseRegions(distance: number): PhaseRegion[] {
   }));
 }
 
-function buildSlopePoints(courseData: CourseData, viewStart: number, viewEnd: number): SlopePoint[] {
+function buildSlopePoints(
+  courseData: CourseData,
+  viewStart: number,
+  viewEnd: number,
+): SlopePoint[] {
   const distance = Math.max(courseData.distance, 1);
   const clampedStart = clamp(viewStart, 0, distance);
   const clampedEnd = clamp(viewEnd, clampedStart + 1e-6, distance);
@@ -467,23 +474,38 @@ export const TrackGraphView = memo<TrackGraphViewProps>(function TrackGraphView(
     const cfg = configRef.current;
 
     paintCanvas(
-      ctx, dpr, width, height,
-      cfg.phaseRegions, cfg.slopePoints, positions,
-      cfg.runnerNames, cfg.trackedRunnerIds,
-      cfg.clampedViewStart, cfg.clampedViewEnd,
+      ctx,
+      dpr,
+      width,
+      height,
+      cfg.phaseRegions,
+      cfg.slopePoints,
+      positions,
+      cfg.runnerNames,
+      cfg.trackedRunnerIds,
+      cfg.clampedViewStart,
+      cfg.clampedViewEnd,
     );
   });
 
   useEffect(() => {
     const state = usePlaybackStore.getState();
-    const positions = getRunnerPositionsAtTick(state.results, state.selectedRound, state.currentTick);
+    const positions = getRunnerPositionsAtTick(
+      state.results,
+      state.selectedRound,
+      state.currentTick,
+    );
     paintWithPositions.current(positions);
   }, [phaseRegions, slopePoints, runnerNames, trackedRunnerIds, clampedViewStart, clampedViewEnd]);
 
   useEffect(() => {
     const unsub = usePlaybackStore.subscribe((state, prev) => {
       if (state.currentTick !== prev.currentTick || state.selectedRound !== prev.selectedRound) {
-        const positions = getRunnerPositionsAtTick(state.results, state.selectedRound, state.currentTick);
+        const positions = getRunnerPositionsAtTick(
+          state.results,
+          state.selectedRound,
+          state.currentTick,
+        );
         paintWithPositions.current(positions);
       }
     });
@@ -499,7 +521,11 @@ export const TrackGraphView = memo<TrackGraphViewProps>(function TrackGraphView(
       if (!rect || rect.width === 0) return;
       sizeRef.current = { width: rect.width, height: rect.width * (CANVAS_H / CANVAS_W) };
       const state = usePlaybackStore.getState();
-      const positions = getRunnerPositionsAtTick(state.results, state.selectedRound, state.currentTick);
+      const positions = getRunnerPositionsAtTick(
+        state.results,
+        state.selectedRound,
+        state.currentTick,
+      );
       paintWithPositions.current(positions);
     });
 
@@ -510,7 +536,11 @@ export const TrackGraphView = memo<TrackGraphViewProps>(function TrackGraphView(
   useEffect(() => {
     const observer = new MutationObserver(() => {
       const state = usePlaybackStore.getState();
-      const positions = getRunnerPositionsAtTick(state.results, state.selectedRound, state.currentTick);
+      const positions = getRunnerPositionsAtTick(
+        state.results,
+        state.selectedRound,
+        state.currentTick,
+      );
       paintWithPositions.current(positions);
     });
     observer.observe(document.documentElement, {
@@ -521,8 +551,12 @@ export const TrackGraphView = memo<TrackGraphViewProps>(function TrackGraphView(
   }, []);
 
   return (
-    <div ref={containerRef} className={cn('rounded-lg border bg-card p-2', className)}>
-      <canvas ref={canvasRef} className="block h-auto w-full" aria-label="Track graph playback view" />
+    <div ref={containerRef} className={cn('min-w-0 max-w-full', className)}>
+      <canvas
+        ref={canvasRef}
+        className="block h-auto w-full"
+        aria-label="Track graph playback view"
+      />
     </div>
   );
 });

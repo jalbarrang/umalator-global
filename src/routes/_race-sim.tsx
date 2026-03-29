@@ -74,9 +74,9 @@ export function RaceSimRoot() {
   );
 
   return (
-    <RaceSimContext value={ctx}>
-      <div className="flex flex-col flex-1 min-w-0">
-        <nav className="flex items-center gap-1 border-b border-border px-4">
+    <RaceSimContext.Provider value={ctx}>
+      <div className="flex min-h-0 flex-1 flex-col">
+        <nav className="flex shrink-0 items-center gap-1 border-b border-border px-4">
           {tabs.map((tab) => {
             const active =
               tab.to === '/race-sim'
@@ -101,10 +101,10 @@ export function RaceSimRoot() {
           })}
         </nav>
 
-        <div className="flex flex-1 min-w-0 overflow-auto">
+        <div className="flex min-h-0 flex-1 flex-col overflow-auto md:overflow-hidden">
           <Outlet />
         </div>
       </div>
-    </RaceSimContext>
+    </RaceSimContext.Provider>
   );
 }
