@@ -22,14 +22,9 @@ const statIcons = [
   '/icons/status_04.png',
 ] as const;
 
-export function RunnerListItem({
-  index,
-  runner,
-  isSelected,
-  isFocused,
-  onSelect,
-  onToggleFocus,
-}: RunnerListItemProps) {
+export function RunnerListItem(props: Readonly<RunnerListItemProps>) {
+  const { index, runner, isSelected, isFocused, onSelect, onToggleFocus } = props;
+
   const imageUrl = useMemo(
     () => getUmaImageUrl(runner.outfitId, runner.randomMobId),
     [runner.outfitId, runner.randomMobId],
@@ -49,9 +44,7 @@ export function RunnerListItem({
       className={cn(
         'group relative flex w-full items-start gap-3 rounded-lg p-2.5 text-left transition-all duration-150',
         'hover:bg-accent/60',
-        isSelected
-          ? 'bg-card shadow-sm ring-1 ring-primary/30'
-          : 'bg-transparent',
+        isSelected ? 'bg-card shadow-sm ring-1 ring-primary/30' : 'bg-transparent',
       )}
     >
       {isSelected && (
@@ -83,24 +76,17 @@ export function RunnerListItem({
           <div className="min-w-0">
             {umaInfo ? (
               <>
-                <div className="text-xs font-semibold truncate leading-tight">
-                  {umaInfo.name}
-                </div>
+                <div className="text-xs font-semibold truncate leading-tight">{umaInfo.name}</div>
                 <div className="text-[10px] text-muted-foreground truncate leading-tight">
                   {umaInfo.outfit}
                 </div>
               </>
             ) : (
-              <div className="text-xs text-muted-foreground">
-                Mob Runner
-              </div>
+              <div className="text-xs text-muted-foreground">Mob Runner</div>
             )}
           </div>
 
-          <label
-            className="shrink-0 cursor-pointer"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <label className="shrink-0 cursor-pointer" onClick={(e) => e.stopPropagation()}>
             <Checkbox
               checked={isFocused}
               onCheckedChange={() => onToggleFocus(index)}
@@ -128,7 +114,7 @@ export function RunnerListItem({
           </span>
           {runner.skills.length > 0 && (
             <span className="text-[10px] text-muted-foreground">
-              {runner.skills.length} skill{runner.skills.length !== 1 ? 's' : ''}
+              {runner.skills.length} skill{runner.skills.length === 1 ? '' : 's'}
             </span>
           )}
         </div>

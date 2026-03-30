@@ -1,6 +1,6 @@
 import { OrientationName } from '@/lib/sunday-tools/course/definitions';
 import type { IOrientation } from '@/lib/sunday-tools/course/definitions';
-import type { BuiltTrackPath, TrackPathPoint } from '@/modules/race-sim/utils/track-path';
+import type { BuiltTrackPath } from '@/modules/race-sim/utils/track-path';
 import { outwardFromTrackPoint } from '@/modules/race-sim/utils/track-path';
 import {
   buildVisibleTrackPoints,
@@ -109,7 +109,7 @@ export function resolveTrackSceneColors(): TrackSceneColors {
   return {
     muted: resolvedColor('--muted-foreground'),
     border: resolvedColor('--border'),
-    primary: resolvedColor('--primary'),
+    primary: resolvedColor('--foreground-primary'),
     dot: resolvedColor('--foreground'),
   };
 }
@@ -207,6 +207,7 @@ export function paintTrackOverlayLayer(params: PaintTrackOverlayLayerParams): vo
   const { ctx, dpr, measuredWidth, measuredHeight, scene, colors, runnerPositions, runnerLanes } =
     params;
   setupCanvasLayer(ctx, dpr, measuredWidth, measuredHeight, CANVAS_W, CANVAS_H);
+
   paintMainMapPackIndicator({
     ctx,
     transform: scene.transform,
@@ -218,32 +219,38 @@ export function paintTrackOverlayLayer(params: PaintTrackOverlayLayerParams): vo
     courseDistance: scene.courseDistance,
     turnSign: scene.turnSign,
     colorPrimary: colors.primary,
-    colorDot: colors.dot,
+    colorDot: colors.primary,
   });
+
   ctx.restore();
 }
 
 export function paintTrackHudLayer(params: PaintTrackHudLayerParams): void {
   const { ctx, dpr, measuredWidth, measuredHeight, scene, colors, turn, runnerPositions } = params;
   setupCanvasLayer(ctx, dpr, measuredWidth, measuredHeight, CANVAS_W, CANVAS_H);
+
   ctx.font = '600 10px system-ui, sans-serif';
-  ctx.fillStyle = colors.muted;
+  ctx.fillStyle = colors.primary;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
-  ctx.fillText(OrientationName[turn as keyof typeof OrientationName] ?? '', 28, 8);
+  ctx.fillText(OrientationName[turn as keyof typeof OrientationName] ?? '', 16, 16);
 
   const { lapLength, numLaps, raceStartOnTrack } = scene.builtTrack;
+
   if (scene.builtTrack.wraps && numLaps > 1 + 1e-6) {
     let leaderPos = 0;
+
     for (const v of Object.values(runnerPositions)) {
       if (v != null) leaderPos = Math.max(leaderPos, v);
     }
+
     leaderPos = clamp(leaderPos, 0, scene.courseDistance);
     const progressed = Math.max(0, leaderPos - raceStartOnTrack);
     const lapIdx = lapLength > 1e-9 ? Math.floor(progressed / lapLength) + 1 : 1;
     const currentLap = Math.min(Math.max(1, lapIdx), Math.max(1, Math.ceil(numLaps)));
     ctx.fillText(`Lap ${currentLap} / ${formatLapTotal(numLaps)}`, 28, 22);
   }
+
   ctx.restore();
 }
 

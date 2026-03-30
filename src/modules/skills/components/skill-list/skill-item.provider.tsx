@@ -16,7 +16,10 @@ type SkillItemProviderProps = React.PropsWithChildren<{
 }>;
 
 export const SkillItemProvider = (props: SkillItemProviderProps) => {
-  const skill = useMemo(() => skillCollection[props.skillId], [props.skillId]);
+  const skill = useMemo(() => {
+    const baseId = props.skillId.split('-')[0] ?? props.skillId;
+    return skillCollection[baseId];
+  }, [props.skillId]);
 
   const hasCost = useMemo(() => {
     return typeof props.spCost === 'number' && !isUniqueSkill(skill.rarity);

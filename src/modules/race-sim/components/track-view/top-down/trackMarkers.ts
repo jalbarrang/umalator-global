@@ -8,7 +8,6 @@ import { toCanvas } from './canvasMath';
 import {
   MAIN_MAP_PACK_MARKER,
   type CanvasTransform,
-  type MapPinMarkerGeometry,
   type MapPinMarkerSpec,
   type RunnerMarker,
 } from './shared';
@@ -39,9 +38,11 @@ export function buildRunnerMarkers(p: BuildRunnerMarkersParams): RunnerMarker[] 
     transform,
   } = p;
   const markers: RunnerMarker[] = [];
+
   for (const rid of runnerIds) {
     const pos = runnerPositions[rid];
     if (pos == null) continue;
+
     const lane = runnerLanes[rid] ?? 0;
     const raceDist = clamp(pos, 0, courseDistance);
     const pt = interpolateTrackPoint(builtTrack, raceDist);
@@ -49,6 +50,7 @@ export function buildRunnerMarkers(p: BuildRunnerMarkersParams): RunnerMarker[] 
     const wx = pt.x + lane * o.x;
     const wy = pt.y + lane * o.y;
     const { cx, cy } = toCanvas(wx, wy, transform);
+
     markers.push({
       id: rid,
       cx,
@@ -59,6 +61,7 @@ export function buildRunnerMarkers(p: BuildRunnerMarkersParams): RunnerMarker[] 
       isTracked: tracked.has(rid),
     });
   }
+
   markers.sort((a, b) => a.pos - b.pos);
   const occupancy = new Map<string, number>();
   for (const m of markers) {
@@ -70,38 +73,21 @@ export function buildRunnerMarkers(p: BuildRunnerMarkersParams): RunnerMarker[] 
   return markers;
 }
 
-function createMapPinPath(
+function createArrowPath(
   cx: number,
   cy: number,
-  geometry: Pick<MapPinMarkerGeometry, 'headRadius' | 'headCenterYOffset'>,
+  halfWidth: number,
+  height: number,
+  notchDepth: number,
 ): Path2D {
   const path = new Path2D();
-  const headCy = cy - geometry.headCenterYOffset;
+  const top = cy - height;
   path.moveTo(cx, cy);
-  path.lineTo(cx - geometry.headRadius, headCy);
-  path.arc(cx, headCy, geometry.headRadius, Math.PI, 0, true);
-  path.lineTo(cx, cy);
+  path.lineTo(cx - halfWidth, top);
+  path.lineTo(cx - halfWidth * 0.3, top + notchDepth);
+  path.lineTo(cx + halfWidth * 0.3, top + notchDepth);
+  path.lineTo(cx + halfWidth, top);
   path.closePath();
-  return path;
-}
-
-function createMapPinHighlightPath(
-  cx: number,
-  cy: number,
-  geometry: Pick<
-    MapPinMarkerGeometry,
-    'headCenterYOffset' | 'highlightRadius' | 'highlightOffsetX' | 'highlightOffsetY'
-  >,
-): Path2D {
-  const path = new Path2D();
-  const headCy = cy - geometry.headCenterYOffset;
-  path.arc(
-    cx + geometry.highlightOffsetX,
-    headCy + geometry.highlightOffsetY,
-    geometry.highlightRadius,
-    0,
-    Math.PI * 2,
-  );
   return path;
 }
 
@@ -113,31 +99,37 @@ function renderMapPinMarker(
   tracked: boolean,
 ): void {
   const { geometry, colors } = spec;
-  const pinPath = createMapPinPath(cx, cy, geometry);
-  const highlightPath = createMapPinHighlightPath(cx, cy, geometry);
+  const hw = geometry.headRadius;
+  const h = geometry.headCenterYOffset;
+  const notch = h * 0.25;
 
   ctx.save();
   ctx.lineJoin = 'round';
   ctx.lineCap = 'round';
 
   if (tracked) {
-    const trackedPath = createMapPinPath(cx, cy, {
-      headRadius: geometry.headRadius + geometry.trackedOutlineExtra,
-      headCenterYOffset: geometry.headCenterYOffset,
-    });
+    const extra = geometry.trackedOutlineExtra;
+    const outerPath = createArrowPath(cx, cy + extra * 0.5, hw + extra, h + extra, notch);
     ctx.strokeStyle = colors.trackedStroke;
     ctx.lineWidth = geometry.trackedStrokeWidth;
-    ctx.stroke(trackedPath);
+    ctx.stroke(outerPath);
   }
 
+  const arrowPath = createArrowPath(cx, cy, hw, h, notch);
+
   ctx.fillStyle = colors.fill;
-  ctx.fill(pinPath);
+  ctx.fill(arrowPath);
   ctx.strokeStyle = colors.stroke;
   ctx.lineWidth = geometry.strokeWidth;
-  ctx.stroke(pinPath);
+  ctx.stroke(arrowPath);
 
   ctx.fillStyle = colors.highlight;
-  ctx.fill(highlightPath);
+  const hlR = geometry.highlightRadius;
+  const hlCy = cy - h * 0.55;
+  ctx.beginPath();
+  ctx.arc(cx, hlCy, hlR, 0, Math.PI * 2);
+  ctx.fill();
+
   ctx.restore();
 }
 

@@ -80,8 +80,8 @@ export const MAIN_MAP_PACK_MARKER: MapPinMarkerGeometry = {
   strokeWidth: 1.25,
   trackedStrokeWidth: 2.5,
   highlightRadius: 2.2,
-  highlightOffsetX: -2.5,
-  highlightOffsetY: -4.5,
+  highlightOffsetX: 0, // Centered for downward arrow
+  highlightOffsetY: 8.5, // Move highlight below the head, for downward direction
 };
 
 export type MainTrackLayerId = 'track' | 'overlay' | 'hud';

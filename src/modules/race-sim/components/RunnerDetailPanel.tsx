@@ -20,7 +20,11 @@ type RunnerDetailPanelProps = {
   onNavigate: (index: number) => void;
 };
 
-export function RunnerDetailPanel({ runnerIndex, totalRunners, onNavigate }: Readonly<RunnerDetailPanelProps>) {
+export function RunnerDetailPanel({
+  runnerIndex,
+  totalRunners,
+  onNavigate,
+}: Readonly<RunnerDetailPanelProps>) {
   const runner = useRaceSimStore((state) => {
     if (runnerIndex < 0 || runnerIndex >= state.runners.length) return null;
     return state.runners[runnerIndex];
@@ -149,6 +153,7 @@ export function RunnerDetailPanel({ runnerIndex, totalRunners, onNavigate }: Rea
             {outfitName && (
               <p className="text-xs text-muted-foreground leading-tight">{outfitName}</p>
             )}
+
             {!outfitName && (
               <p className="text-xs text-muted-foreground leading-tight">Gate {runnerIndex + 1}</p>
             )}
@@ -165,9 +170,11 @@ export function RunnerDetailPanel({ runnerIndex, totalRunners, onNavigate }: Rea
           >
             <ChevronLeft className="size-4" />
           </Button>
+
           <span className="text-xs tabular-nums text-muted-foreground min-w-[3ch] text-center">
             {runnerIndex + 1}/{totalRunners}
           </span>
+
           <Button
             variant="ghost"
             size="icon"
@@ -180,9 +187,9 @@ export function RunnerDetailPanel({ runnerIndex, totalRunners, onNavigate }: Rea
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
-        <div className="flex flex-col gap-5 p-4">
-          <Section title="Character">
+      <div className="flex flex-col flex-1 overflow-y-auto p-4 items-center">
+        <div className="flex flex-col gap-4 p-4 border rounded max-w-2xl">
+          <Section title="Runner">
             <UmaSelector
               value={runner.outfitId}
               select={handleChangeRunner}
@@ -221,9 +228,7 @@ export function RunnerDetailPanel({ runnerIndex, totalRunners, onNavigate }: Rea
             {runner.skills.length === 0 && (
               <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed p-6 text-center">
                 <Sparkles className="size-5 text-muted-foreground/50" />
-                <div className="text-sm text-muted-foreground">
-                  No skills assigned yet.
-                </div>
+                <div className="text-sm text-muted-foreground">No skills assigned yet.</div>
                 <Button
                   variant="outline"
                   size="sm"
@@ -237,7 +242,7 @@ export function RunnerDetailPanel({ runnerIndex, totalRunners, onNavigate }: Rea
             )}
 
             {runner.skills.length > 0 && (
-              <div className="grid grid-cols-1 gap-1.5">
+              <div className="flex flex-wrap gap-2">
                 {runner.skills.map((skillId) => (
                   <SkillItem
                     key={skillId}
@@ -267,9 +272,7 @@ function Section({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
-        <h3 className={cn(
-          'text-xs font-semibold uppercase tracking-wider text-muted-foreground',
-        )}>
+        <h3 className={cn('text-xs font-semibold uppercase tracking-wider text-muted-foreground')}>
           {title}
         </h3>
         {action}

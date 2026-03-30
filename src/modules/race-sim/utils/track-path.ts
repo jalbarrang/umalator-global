@@ -1,4 +1,9 @@
-import { Orientation, type CourseData, type ICorner, type IOrientation } from '@/lib/sunday-tools/course/definitions';
+import {
+  Orientation,
+  type CourseData,
+  type ICorner,
+  type IOrientation,
+} from '@/lib/sunday-tools/course/definitions';
 import { getCourseGeometry } from '@/modules/data/course-geometry';
 import { findReferenceCourse } from '@/modules/data/courses';
 
@@ -53,6 +58,7 @@ export function outwardFromTrackPoint(
   if (point.outwardX != null && point.outwardY != null) {
     return { x: point.outwardX, y: point.outwardY };
   }
+
   return outwardFromInnerRail(point.heading, turnSign);
 }
 
@@ -99,7 +105,10 @@ function normalizePlanar(x: number, y: number): { x: number; y: number } | null 
   return { x: x / len, y: y / len };
 }
 
-function buildTrackPointsFromGeometry(course: CourseData, turnSign: number): TrackPathPoint[] | null {
+function buildTrackPointsFromGeometry(
+  course: CourseData,
+  turnSign: number,
+): TrackPathPoint[] | null {
   const geometry = getCourseGeometry(course.courseId);
   if (!geometry) {
     return null;
@@ -128,7 +137,8 @@ function buildTrackPointsFromGeometry(course: CourseData, turnSign: number): Tra
     const outwardLocal = { x: turnSign, y: 0, z: 0 };
     const rotatedOutward = rotateVectorByQuaternion(outwardLocal, rotation);
     const planarOutward =
-      normalizePlanar(rotatedOutward.x, rotatedOutward.z) ?? outwardFromInnerRail(heading, turnSign);
+      normalizePlanar(rotatedOutward.x, rotatedOutward.z) ??
+      outwardFromInnerRail(heading, turnSign);
 
     points.push({
       distance: stepDistance * index,
@@ -343,10 +353,7 @@ export function buildCourseTrackPath(course: CourseData): BuiltTrackPath {
   return buildLegacyOpenTrackPath(course, turnSign);
 }
 
-export function interpolateTrackPoint(
-  built: BuiltTrackPath,
-  raceDistance: number,
-): TrackPathPoint {
+export function interpolateTrackPoint(built: BuiltTrackPath, raceDistance: number): TrackPathPoint {
   const { points, lapLength, raceStartOnTrack, wraps } = built;
   if (points.length === 0) return { distance: 0, x: 0, y: 0, heading: 0 };
 
@@ -373,10 +380,7 @@ export function interpolateTrackPoint(
   }
   const t = (d - a.distance) / (b.distance - a.distance);
   const outward =
-    a.outwardX != null &&
-    a.outwardY != null &&
-    b.outwardX != null &&
-    b.outwardY != null
+    a.outwardX != null && a.outwardY != null && b.outwardX != null && b.outwardY != null
       ? normalizePlanar(
           a.outwardX + t * (b.outwardX - a.outwardX),
           a.outwardY + t * (b.outwardY - a.outwardY),

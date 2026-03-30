@@ -132,6 +132,7 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
         });
       }
     }
+
     if (dirtyLayersRef.current.overlay) {
       const ctx = overlayCanvasRef.current?.getContext('2d');
       if (ctx) {
@@ -170,6 +171,7 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
     for (const layer of layers) {
       dirtyLayersRef.current[layer] = true;
     }
+
     if (frameRef.current != null) return;
     frameRef.current = globalThis.requestAnimationFrame(() => {
       flushLayers.current();
