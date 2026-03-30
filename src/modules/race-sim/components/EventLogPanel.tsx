@@ -45,6 +45,7 @@ const FILTERS: Array<{ id: EventFilter; label: string }> = [
 const EVENT_KIND_STYLES: Record<RaceEventKind, EventKindStyle> = {
   'skill-activated': { label: 'Skill', dotClassName: 'bg-sky-500' },
   rushed: { label: 'Rushed', dotClassName: 'bg-amber-500' },
+  'rushed-end': { label: 'Rush', dotClassName: 'bg-amber-400' },
   'dueling-start': { label: 'Duel', dotClassName: 'bg-rose-500' },
   'dueling-end': { label: 'Duel', dotClassName: 'bg-rose-400' },
   'spot-struggle-start': { label: 'Struggle', dotClassName: 'bg-purple-500' },
@@ -52,6 +53,16 @@ const EVENT_KIND_STYLES: Record<RaceEventKind, EventKindStyle> = {
   'last-spurt': { label: 'Spurt', dotClassName: 'bg-emerald-500' },
   'hp-out': { label: 'HP Out', dotClassName: 'bg-zinc-500' },
   finished: { label: 'Finished', dotClassName: 'bg-green-500' },
+  'pace-down-start': { label: 'Pos keep', dotClassName: 'bg-cyan-600' },
+  'pace-down-end': { label: 'Pos keep', dotClassName: 'bg-cyan-500' },
+  'pace-up-start': { label: 'Pos keep', dotClassName: 'bg-teal-600' },
+  'pace-up-end': { label: 'Pos keep', dotClassName: 'bg-teal-500' },
+  'overtake-start': { label: 'Lane', dotClassName: 'bg-orange-500' },
+  'overtake-end': { label: 'Lane', dotClassName: 'bg-orange-400' },
+  'blocked-side-start': { label: 'Lane', dotClassName: 'bg-slate-500' },
+  'blocked-side-end': { label: 'Lane', dotClassName: 'bg-slate-400' },
+  'mid-race-start': { label: 'Phase', dotClassName: 'bg-indigo-500' },
+  'late-race-start': { label: 'Phase', dotClassName: 'bg-violet-600' },
 };
 
 function toOrdinal(value: number): string {
@@ -88,6 +99,28 @@ function getEventDescription(event: RaceEvent): string {
         : 'activated a skill';
     case 'rushed':
       return 'entered rush';
+    case 'rushed-end':
+      return 'left rush';
+    case 'mid-race-start':
+      return 'entered mid race';
+    case 'late-race-start':
+      return 'entered late race';
+    case 'pace-down-start':
+      return 'started pace down (position keep)';
+    case 'pace-down-end':
+      return 'ended pace down';
+    case 'pace-up-start':
+      return 'started pace up (position keep)';
+    case 'pace-up-end':
+      return 'ended pace up';
+    case 'overtake-start':
+      return 'started overtaking (lane)';
+    case 'overtake-end':
+      return 'stopped overtaking';
+    case 'blocked-side-start':
+      return 'blocked on the side';
+    case 'blocked-side-end':
+      return 'side lane clear';
     case 'dueling-start':
       return 'started dueling';
     case 'dueling-end':

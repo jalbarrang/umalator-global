@@ -14,7 +14,28 @@ import {
 } from '@/modules/simulation/stores/race-sim.store';
 import { createSkillSorterByGroup, toCreateRunner } from '@/modules/simulation/simulators/shared';
 import { useSettingsStore } from '@/store/settings.store';
+import { SkillPickerDrawer } from '@/modules/skills/components/skill-list/SkillPickerDrawer';
+import { useSkillModalStore } from '@/modules/skills/store';
 import type { RaceSimWorkerParams } from '@/workers/race-sim.worker';
+
+function RaceSimSkillPicker() {
+  const { open, umaId, options, currentSkills, onSelect } = useSkillModalStore();
+
+  const handleOpenChange = useCallback((value: boolean) => {
+    useSkillModalStore.setState({ open: value });
+  }, []);
+
+  return (
+    <SkillPickerDrawer
+      open={open}
+      umaId={umaId}
+      options={options}
+      currentSkills={currentSkills}
+      onSelect={onSelect}
+      onOpenChange={handleOpenChange}
+    />
+  );
+}
 
 const tabs = [
   { label: 'Assemble', to: '/race-sim' },
@@ -75,6 +96,7 @@ export function RaceSimRoot() {
 
   return (
     <RaceSimContext.Provider value={ctx}>
+      <RaceSimSkillPicker />
       <div className="flex min-h-0 flex-1 flex-col">
         <nav className="flex shrink-0 items-center gap-1 border-b border-border px-4">
           {tabs.map((tab) => {

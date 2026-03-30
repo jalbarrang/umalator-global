@@ -1,19 +1,31 @@
 import type { Race } from '../common/race';
 import type { RaceEventBus } from '../common/race-events';
 import type { Runner } from '../common/runner';
+import { PositionKeepState } from '../skills/definitions';
 
 const TICKS_PER_SECOND = 15;
 
 export type RaceEventKind =
   | 'skill-activated'
   | 'rushed'
+  | 'rushed-end'
   | 'dueling-start'
   | 'dueling-end'
   | 'spot-struggle-start'
   | 'spot-struggle-end'
   | 'last-spurt'
   | 'hp-out'
-  | 'finished';
+  | 'finished'
+  | 'pace-down-start'
+  | 'pace-down-end'
+  | 'pace-up-start'
+  | 'pace-up-end'
+  | 'overtake-start'
+  | 'overtake-end'
+  | 'blocked-side-start'
+  | 'blocked-side-end'
+  | 'mid-race-start'
+  | 'late-race-start';
 
 export type RaceEventDetail = {
   skillId?: string;
@@ -38,6 +50,10 @@ type RunnerPreviousState = {
   outOfHp: boolean;
   skillsActivatedCount: number;
   seenUsedSkills: Set<string>;
+  positionKeepState: number;
+  phase: number;
+  isOvertaking: boolean;
+  isSideBlocked: boolean;
 };
 
 function cloneEventDetail(detail?: RaceEventDetail): RaceEventDetail | undefined {
@@ -108,6 +124,47 @@ export class RaceEventLogCollector {
 
     if (!previousState.isRushed && runner.isRushed) {
       this.pushEvent({ kind: 'rushed', runnerId: runner.id, position, tick });
+    }
+
+    if (previousState.isRushed && !runner.isRushed) {
+      this.pushEvent({ kind: 'rushed-end', runnerId: runner.id, position, tick });
+    }
+
+    if (previousState.phase === 0 && runner.phase === 1) {
+      this.pushEvent({ kind: 'mid-race-start', runnerId: runner.id, position, tick });
+    }
+
+    if (previousState.phase === 1 && runner.phase === 2) {
+      this.pushEvent({ kind: 'late-race-start', runnerId: runner.id, position, tick });
+    }
+
+    const prevPk = previousState.positionKeepState;
+    const pk = runner.positionKeepState;
+    if (prevPk !== PositionKeepState.PaceDown && pk === PositionKeepState.PaceDown) {
+      this.pushEvent({ kind: 'pace-down-start', runnerId: runner.id, position, tick });
+    }
+    if (prevPk === PositionKeepState.PaceDown && pk !== PositionKeepState.PaceDown) {
+      this.pushEvent({ kind: 'pace-down-end', runnerId: runner.id, position, tick });
+    }
+    if (prevPk !== PositionKeepState.PaceUp && pk === PositionKeepState.PaceUp) {
+      this.pushEvent({ kind: 'pace-up-start', runnerId: runner.id, position, tick });
+    }
+    if (prevPk === PositionKeepState.PaceUp && pk !== PositionKeepState.PaceUp) {
+      this.pushEvent({ kind: 'pace-up-end', runnerId: runner.id, position, tick });
+    }
+
+    if (!previousState.isOvertaking && runner.isOvertaking) {
+      this.pushEvent({ kind: 'overtake-start', runnerId: runner.id, position, tick });
+    }
+    if (previousState.isOvertaking && !runner.isOvertaking) {
+      this.pushEvent({ kind: 'overtake-end', runnerId: runner.id, position, tick });
+    }
+
+    if (!previousState.isSideBlocked && runner.isSideBlocked) {
+      this.pushEvent({ kind: 'blocked-side-start', runnerId: runner.id, position, tick });
+    }
+    if (previousState.isSideBlocked && !runner.isSideBlocked) {
+      this.pushEvent({ kind: 'blocked-side-end', runnerId: runner.id, position, tick });
     }
 
     if (!previousState.isDueling && runner.isDueling) {
@@ -199,6 +256,10 @@ export class RaceEventLogCollector {
     previousState.isLastSpurt = runner.isLastSpurt;
     previousState.outOfHp = runner.outOfHp;
     previousState.skillsActivatedCount = runner.skillsActivatedCount;
+    previousState.positionKeepState = runner.positionKeepState;
+    previousState.phase = runner.phase;
+    previousState.isOvertaking = runner.isOvertaking;
+    previousState.isSideBlocked = runner.isSideBlocked;
 
     for (const usedSkillId of runner.usedSkills) {
       previousState.seenUsedSkills.add(usedSkillId);
@@ -241,6 +302,10 @@ export class RaceEventLogCollector {
       outOfHp: false,
       skillsActivatedCount: 0,
       seenUsedSkills: new Set<string>(),
+      positionKeepState: PositionKeepState.None,
+      phase: 0,
+      isOvertaking: false,
+      isSideBlocked: false,
     };
 
     this.runnerStates.set(runner.id, created);

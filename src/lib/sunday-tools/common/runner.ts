@@ -173,6 +173,10 @@ export class Runner {
   public targetLane!: number;
   public extraMoveLane!: number;
   public laneChangeSpeed!: number;
+  /** Set each tick in {@link applyLaneMovement} for telemetry / event log. */
+  public isSideBlocked = false;
+  /** Set each tick in {@link applyLaneMovement} for telemetry / event log. */
+  public isOvertaking = false;
   public currentSpeed!: number;
   public targetSpeed!: number;
   public forceInSpeed!: number;
@@ -1316,6 +1320,9 @@ export class Runner {
         );
       }
     }
+
+    this.isSideBlocked = sideBlocked;
+    this.isOvertaking = overtake;
   }
 
   private hasSideBlockingRunner(): boolean {
@@ -1732,13 +1739,19 @@ export class Runner {
 
     const roundIteration = this.race.roundIteration;
 
-    this.pendingSkills = skillTrigers.map((skillTrigger, index) => ({
-      skillId: skillTrigger.skillId,
-      rarity: skillTrigger.rarity,
-      trigger: triggers[index][roundIteration % triggers[index].length],
-      extraCondition: skillTrigger.extraCondition,
-      effects: skillTrigger.effects,
-    }));
+    this.pendingSkills = skillTrigers.flatMap((skillTrigger, index) => {
+      const samples = triggers[index];
+      if (samples.length === 0) return [];
+      return [
+        {
+          skillId: skillTrigger.skillId,
+          rarity: skillTrigger.rarity,
+          trigger: samples[roundIteration % samples.length],
+          extraCondition: skillTrigger.extraCondition,
+          effects: skillTrigger.effects,
+        },
+      ];
+    });
 
     this.initializeTargetedSkillTracking(roundIteration);
   }
@@ -1778,6 +1791,7 @@ export class Runner {
           this.race.skillSamples,
           this.skillRng,
         );
+        if (triggers.length === 0) continue;
         const trigger = triggers[roundIteration % triggers.length];
 
         this.pendingTargetedSkills.push({
@@ -2055,6 +2069,8 @@ export class Runner {
     this.laneChangeSpeed = 0.0;
     this.extraMoveLane = -1.0;
     this.forceInSpeed = 0.0;
+    this.isSideBlocked = false;
+    this.isOvertaking = false;
   }
 
   /**
