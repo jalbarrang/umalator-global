@@ -188,32 +188,34 @@ export function SimulationHome() {
         <ImportSnapshotDialog open={importSnapshotOpen} onOpenChange={setImportSnapshotOpen} />
       </div>
 
-      <Activity mode={!isSimulationRunning ? 'visible' : 'hidden'}>
-        <div data-tutorial="race-visualization">
-          <RaceTrack courseId={courseId} chartData={chartData} />
-        </div>
+      <div className="flex flex-col flex-1">
+        <Activity mode={!isSimulationRunning ? 'visible' : 'hidden'}>
+          <div data-tutorial="race-visualization">
+            <RaceTrack courseId={courseId} chartData={chartData} />
+          </div>
 
-        {results.length > 0 && <ResultButtonGroups />}
+          {results.length > 0 && <ResultButtonGroups />}
 
-        <Separator />
+          <Separator />
 
-        <div data-tutorial="results-tabs">
-          <SimulationResultTabs />
-        </div>
-      </Activity>
+          <div data-tutorial="results-tabs">
+            <SimulationResultTabs />
+          </div>
+        </Activity>
 
-      <Activity mode={isSimulationRunning ? 'visible' : 'hidden'}>
-        <CompareLoadingOverlay
-          currentSamples={simulationProgress?.current}
-          totalSamples={simulationProgress?.total}
-        />
-      </Activity>
+        <Activity mode={isSimulationRunning ? 'visible' : 'hidden'}>
+          <CompareLoadingOverlay
+            currentSamples={simulationProgress?.current}
+            totalSamples={simulationProgress?.total}
+          />
+        </Activity>
 
-      {compareShareProps && (
-        <div style={{ position: 'absolute', left: -9999, top: 0 }}>
-          <CompareShareCard ref={compareShareRef} {...compareShareProps} />
-        </div>
-      )}
+        {compareShareProps && (
+          <div style={{ position: 'absolute', left: -9999, top: 0 }}>
+            <CompareShareCard ref={compareShareRef} {...compareShareProps} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

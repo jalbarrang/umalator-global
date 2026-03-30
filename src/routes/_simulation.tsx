@@ -92,7 +92,7 @@ export function SimulationLayout() {
 
       <LeftSidebar />
 
-      <div className="flex flex-col flex-1 min-w-0 p-4 gap-4">
+      <div className="flex flex-col flex-1 min-w-0 overflow-auto p-4 gap-4">
         {!dismissed && <CompareAlert setDismissed={setDismissed} />}
 
         <div className="flex align-center gap-2">

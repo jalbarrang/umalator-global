@@ -31,7 +31,6 @@ scripts/skill-lists/*.json
 
 
 docs/reports/
-
 .mockups
-
 /tests/roster/
+/extracted-data/
