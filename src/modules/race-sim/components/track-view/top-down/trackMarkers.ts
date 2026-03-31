@@ -47,9 +47,7 @@ export function buildRunnerMarkers(p: BuildRunnerMarkersParams): RunnerMarker[] 
     const raceDist = clamp(pos, 0, courseDistance);
     const pt = interpolateTrackPoint(builtTrack, raceDist);
     const o = outwardFromTrackPoint(pt, turnSign);
-    const wx = pt.x + lane * o.x;
-    const wy = pt.y + lane * o.y;
-    const { cx, cy } = toCanvas(wx, wy, transform);
+    const { cx, cy } = toCanvas(pt.x + lane * o.x, pt.y + lane * o.y, transform);
 
     markers.push({
       id: rid,
@@ -62,14 +60,112 @@ export function buildRunnerMarkers(p: BuildRunnerMarkersParams): RunnerMarker[] 
     });
   }
 
-  markers.sort((a, b) => a.pos - b.pos);
-  const occupancy = new Map<string, number>();
-  for (const m of markers) {
-    const key = `${Math.round(m.cx / 10)}_${Math.round(m.cy / 10)}`;
-    const stack = occupancy.get(key) ?? 0;
-    occupancy.set(key, stack + 1);
-    m.cy -= stack * 8;
+  markers.sort((a, b) => {
+    const dp = a.pos - b.pos;
+    return Math.abs(dp) > 0.001 ? dp : a.id - b.id;
+  });
+  return markers;
+}
+
+export type LinearPackViewport = {
+  distMin: number;
+  distMax: number;
+};
+
+export function computeLinearPackViewport(p: {
+  runnerPositions: Record<number, number>;
+  runnerIds: number[];
+  courseWidth: number;
+  courseDistance: number;
+}): LinearPackViewport | null {
+  const { runnerPositions, runnerIds, courseWidth, courseDistance } = p;
+  let minD = Infinity;
+  let maxD = -Infinity;
+  for (const rid of runnerIds) {
+    const pos = runnerPositions[rid];
+    if (pos == null) continue;
+    const d = clamp(pos, 0, courseDistance);
+    minD = Math.min(minD, d);
+    maxD = Math.max(maxD, d);
   }
+  if (!Number.isFinite(minD)) return null;
+
+  const minSpan = Math.max(courseWidth * 3, 30);
+  const dataSpan = Math.max(maxD - minD, 1e-6);
+  let distMin = minD - 0.1 * dataSpan;
+  let distMax = maxD + 0.1 * dataSpan;
+  if (distMax - distMin < minSpan) {
+    const c = (minD + maxD) / 2;
+    distMin = c - minSpan / 2;
+    distMax = c + minSpan / 2;
+  }
+  distMin = clamp(distMin, 0, courseDistance);
+  distMax = clamp(distMax, 0, courseDistance);
+  if (distMax - distMin < 1e-3) {
+    const c = clamp((distMin + distMax) / 2, 0, courseDistance);
+    distMin = clamp(c - minSpan / 2, 0, courseDistance);
+    distMax = clamp(c + minSpan / 2, 0, courseDistance);
+  }
+  return { distMin, distMax };
+}
+
+export function buildLinearRunnerMarkers(p: {
+  runnerIds: number[];
+  runnerPositions: Record<number, number>;
+  runnerLanes: Record<number, number>;
+  runnerNames: Record<number, string>;
+  tracked: Set<number>;
+  courseDistance: number;
+  viewport: LinearPackViewport;
+  canvasWidth: number;
+  canvasHeight: number;
+  pad: number;
+}): RunnerMarker[] {
+  const {
+    runnerIds,
+    runnerPositions,
+    runnerLanes,
+    runnerNames,
+    tracked,
+    courseDistance,
+    viewport,
+    canvasWidth,
+    canvasHeight,
+    pad,
+  } = p;
+  const span = Math.max(viewport.distMax - viewport.distMin, 1e-6);
+  const drawW = canvasWidth - pad * 2;
+  const centerY = canvasHeight * 0.52;
+  const laneScale = 7;
+  const outerR = 7 + 2.5;
+  const minCy = pad + outerR;
+  const maxCy = canvasHeight - pad - outerR;
+
+  const markers: RunnerMarker[] = [];
+  for (const rid of runnerIds) {
+    const pos = runnerPositions[rid];
+    if (pos == null) continue;
+
+    const lane = runnerLanes[rid] ?? 0;
+    const raceDist = clamp(pos, 0, courseDistance);
+    const cx = pad + ((raceDist - viewport.distMin) / span) * drawW;
+    const cy = clamp(centerY - lane * laneScale, minCy, maxCy);
+
+    markers.push({
+      id: rid,
+      cx,
+      cy,
+      pos,
+      color: RUNNER_COLORS[rid % RUNNER_COLORS.length],
+      name: runnerNames[rid] ?? `Runner ${rid + 1}`,
+      isTracked: tracked.has(rid),
+    });
+  }
+
+  markers.sort((a, b) => {
+    const dp = a.pos - b.pos;
+    return Math.abs(dp) > 0.001 ? dp : a.id - b.id;
+  });
   return markers;
 }
 
@@ -241,28 +337,27 @@ export function paintRunnerMarkersOnPackCanvas(
   ctx: CanvasRenderingContext2D,
   markers: RunnerMarker[],
   colorPrimary: string,
-  colorBg: string,
+  _colorBg: string,
 ): void {
   const r = 7;
+  const border = 2.5;
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = '700 10px system-ui, sans-serif';
+
   for (const m of markers) {
-    if (m.isTracked) {
-      ctx.beginPath();
-      ctx.arc(m.cx, m.cy, r + 2.5, 0, Math.PI * 2);
-      ctx.strokeStyle = colorPrimary;
-      ctx.lineWidth = 2;
-      ctx.stroke();
-    }
+    ctx.beginPath();
+    ctx.arc(m.cx, m.cy, r + border, 0, Math.PI * 2);
+    ctx.fillStyle = m.isTracked ? colorPrimary : 'rgba(15,23,42,0.55)';
+    ctx.fill();
+
     ctx.beginPath();
     ctx.arc(m.cx, m.cy, r, 0, Math.PI * 2);
     ctx.fillStyle = m.color;
     ctx.fill();
-    ctx.strokeStyle = colorBg;
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-    ctx.font = '700 10px system-ui, sans-serif';
+
     ctx.fillStyle = '#fff';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
     ctx.fillText(`${m.id + 1}`, m.cx, m.cy + 0.5);
   }
 }

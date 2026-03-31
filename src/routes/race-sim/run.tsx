@@ -1,5 +1,6 @@
 import { memo, useMemo, useState } from 'react';
 import { Minus, Plus } from 'lucide-react';
+import { useHotkeys } from 'react-hotkeys-hook';
 import { useShallow } from 'zustand/shallow';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -9,11 +10,14 @@ import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import { DetailStrip } from '@/modules/race-sim/components/DetailStrip';
 import { EventLogPanel } from '@/modules/race-sim/components/EventLogPanel';
 import { PlaybackBar } from '@/modules/race-sim/components/PlaybackBar';
-import { TrackGraphView } from '@/modules/race-sim/components/track-view/graph-view/TrackGraphView';
 import { TrackTopDownView } from '@/modules/race-sim/components/track-view/top-down/TrackTopDownView';
 import { useRaceSimContext } from '@/modules/race-sim/context';
+import { SIM_TO_DISPLAY_SECONDS, TICKS_PER_SECOND } from '@/modules/race-sim/constants';
 import {
   getRunnerPositionsAtTick,
+  pause,
+  play,
+  seekTo,
   setRound,
   usePlaybackStore,
 } from '@/modules/race-sim/stores/playback.store';
@@ -22,7 +26,6 @@ import { getUmaDisplayInfo } from '@/modules/runners/utils';
 import { setZoomWindowMeters, useRaceSimStore } from '@/modules/simulation/stores/race-sim.store';
 import { useSettingsStore } from '@/store/settings.store';
 
-type ReplayView = 'graph' | 'track';
 type ZoomMode = 'full' | 'zoom';
 
 function SamplePicker() {
@@ -54,7 +57,6 @@ function SamplePicker() {
 }
 
 type VisualizationPanelProps = {
-  view: ReplayView;
   courseData: CourseData;
   runnerNames: Record<number, string>;
   trackedRunnerIds: number[];
@@ -63,7 +65,7 @@ type VisualizationPanelProps = {
 };
 
 const VisualizationPanel = memo(function VisualizationPanel(props: VisualizationPanelProps) {
-  const { view, courseData, runnerNames, trackedRunnerIds, zoomMode, zoomWindowMeters } = props;
+  const { courseData, runnerNames, trackedRunnerIds, zoomMode, zoomWindowMeters } = props;
 
   const { currentTick, results, selectedRound } = usePlaybackStore(
     useShallow((s) => ({
@@ -80,19 +82,6 @@ const VisualizationPanel = memo(function VisualizationPanel(props: Visualization
     const positions = getRunnerPositionsAtTick(results, selectedRound, currentTick);
     return computeViewport(positions, courseData.distance, zoomWindowMeters);
   }, [zoomMode, zoomWindowMeters, results, selectedRound, currentTick, courseData.distance]);
-
-  if (view === 'graph') {
-    return (
-      <TrackGraphView
-        courseData={courseData}
-        runnerNames={runnerNames}
-        trackedRunnerIds={trackedRunnerIds}
-        viewStart={viewport.viewStart}
-        viewEnd={viewport.viewEnd}
-        className="w-full min-w-0"
-      />
-    );
-  }
 
   return (
     <TrackTopDownView
@@ -121,7 +110,6 @@ export function RaceSimRun() {
   const { courseId } = useSettingsStore(useShallow((state) => ({ courseId: state.courseId })));
   const courseData = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
 
-  const [view, setView] = useState<ReplayView>('graph');
   const [zoomMode, setZoomMode] = useState<ZoomMode>('full');
 
   const runnerNames = useMemo<Record<number, string>>(() => {
@@ -150,6 +138,41 @@ export function RaceSimRun() {
   const trackedRunnerIds = useMemo(
     () => focusRunnerIndices.toSorted((left, right) => left - right),
     [focusRunnerIndices],
+  );
+
+  useHotkeys('space', (e) => {
+    e.preventDefault();
+    const { isPlaying } = usePlaybackStore.getState();
+    if (isPlaying) pause();
+    else play();
+  });
+
+  // YouTube-style ±5s in *display* time. Must use SIM_TO_DISPLAY_SECONDS (includes the tick
+  // multiplier); dividing only by SIM_TO_DISPLAY_RATIO would ~double the skip (~10s on the HUD).
+  const playbackSkipDisplaySeconds = 5;
+  const jumpTicks = Math.max(
+    1,
+    Math.round((playbackSkipDisplaySeconds * TICKS_PER_SECOND) / SIM_TO_DISPLAY_SECONDS),
+  );
+
+  useHotkeys(
+    'j',
+    (e) => {
+      e.preventDefault();
+      const { currentTick } = usePlaybackStore.getState();
+      seekTo(currentTick - jumpTicks);
+    },
+    { preventDefault: true },
+  );
+
+  useHotkeys(
+    'l',
+    (e) => {
+      e.preventDefault();
+      const { currentTick } = usePlaybackStore.getState();
+      seekTo(currentTick + jumpTicks);
+    },
+    { preventDefault: true },
   );
 
   if (!results) {
@@ -188,24 +211,6 @@ export function RaceSimRun() {
         </div>
 
         <div className="flex items-center gap-1 px-3 py-2 border-b">
-          <Button
-            type="button"
-            size="sm"
-            variant={view === 'graph' ? 'secondary' : 'ghost'}
-            onClick={() => setView('graph')}
-          >
-            Graph
-          </Button>
-
-          <Button
-            type="button"
-            size="sm"
-            variant={view === 'track' ? 'secondary' : 'ghost'}
-            onClick={() => setView('track')}
-          >
-            Track
-          </Button>
-
           <div className="ml-auto flex items-center gap-1">
             <Button
               type="button"
@@ -264,7 +269,6 @@ export function RaceSimRun() {
         <div className="flex min-h-0 flex-1 flex-col md:flex-row">
           <div className="flex flex-col flex-1 min-h-0 min-w-0 md:overflow-hidden">
             <VisualizationPanel
-              view={view}
               courseData={courseData}
               runnerNames={runnerNames}
               trackedRunnerIds={trackedRunnerIds}

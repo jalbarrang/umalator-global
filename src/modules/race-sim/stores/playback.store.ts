@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import type { RaceEvent } from '@/lib/sunday-tools/race-sim/race-event-log';
 import type { RaceSimResult } from '@/lib/sunday-tools/race-sim/run-race-sim';
 import type { RaceSimCollectedRound } from '@/lib/sunday-tools/race-sim/race-sim-collector';
-import { SIM_TO_DISPLAY_SECONDS, TICKS_PER_SECOND } from '@/modules/race-sim/constants';
+import { TICKS_PER_SECOND, tickToDisplaySeconds } from '@/modules/race-sim/constants';
 import { formatTime } from '@/utils/time';
 
 const PLAYBACK_SPEEDS = [0.5, 1, 2, 4] as const;
@@ -37,7 +37,7 @@ function getRoundMaxTick(results: RaceSimResult | null, roundIndex: number): num
 }
 
 function toTimeDisplay(tick: number): string {
-  return formatTime((tick / TICKS_PER_SECOND) * SIM_TO_DISPLAY_SECONDS);
+  return formatTime(tickToDisplaySeconds(tick));
 }
 
 export function getRunnerPositionsAtTick(

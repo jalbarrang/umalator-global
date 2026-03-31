@@ -9,7 +9,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
-import { SIM_TO_DISPLAY_SECONDS } from '@/modules/race-sim/constants';
+import { simToDisplaySeconds } from '@/modules/race-sim/constants';
 import { useRaceSimStore } from '@/modules/simulation/stores/race-sim.store';
 import { formatBashinWithRaw } from '@/utils/bashin';
 import { formatTime } from '@/utils/time';
@@ -153,7 +153,7 @@ export function RaceResultsSummary() {
                 </TableCell>
                 <TableCell className="text-right font-mono">{row.winRate.toFixed(1)}%</TableCell>
                 <TableCell className="text-right font-mono">
-                  {formatTime(row.averageFinishTime * SIM_TO_DISPLAY_SECONDS)}
+                  {formatTime(simToDisplaySeconds(row.averageFinishTime))}
                 </TableCell>
                 <TableCell className="text-right font-mono">
                   {isFirst ? '--' : formatBashinWithRaw(row.averageGapBashin)}

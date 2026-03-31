@@ -9,6 +9,7 @@ import { getDefaultTrackIdForCourse } from '@/modules/racetrack/courses';
 import { trackDescription } from '@/modules/racetrack/labels';
 import i18n from '@/i18n';
 import strings_en from '@/i18n/lang/en/skills';
+import { simToDisplaySeconds } from '@/modules/race-sim/constants';
 import { formatTime } from '@/utils/time';
 import type { RaceConditions } from '@/utils/races';
 import type { SimulationData, SimulationRun } from '@/modules/simulation/compare.types';
@@ -97,7 +98,7 @@ export function useCompareShareCardProps(): CompareShareCardProps | null {
     const staminaStats = race.staminaStats?.[runnerId];
 
     const topSpeed = chartData.velocity[idx]?.reduce((a, b) => Math.max(a, b), 0) ?? 0;
-    const finishTime = timeArr[timeArr.length - 1] * 1.18;
+    const finishTime = simToDisplaySeconds(timeArr[timeArr.length - 1]);
     const startDelay = chartData.startDelay[idx] ?? 0;
 
     const otherRunner = runnerId === 'uma1' ? uma2 : uma1;

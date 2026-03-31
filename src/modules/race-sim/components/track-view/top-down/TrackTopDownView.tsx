@@ -336,12 +336,11 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
             />
           </div>
         </div>
+
         <TrackRunnerPackZoom
           courseData={courseData}
           runnerNames={runnerNames}
           trackedRunnerIds={trackedRunnerIds}
-          viewStart={clampedViewStart}
-          viewEnd={clampedViewEnd}
         />
       </div>
 

@@ -1,4 +1,5 @@
 import { Activity, useMemo } from 'react';
+import { simToDisplaySeconds } from '@/modules/race-sim/constants';
 import { setDisplaying, useRaceStore } from '@/modules/simulation/stores/compare.store';
 import { cn } from '@/lib/utils';
 import { formatTime } from '@/utils/time';
@@ -124,8 +125,12 @@ export const ResultButtonGroups = () => {
                       </TableCell>
                       <TableCell className="text-right font-mono">
                         {uma1Faster
-                          ? formatTime(chartData.time[0][chartData.time[0].length - 1] * 1.18)
-                          : formatTime(chartData.time[1][chartData.time[1].length - 1] * 1.18)}
+                          ? formatTime(
+                              simToDisplaySeconds(chartData.time[0][chartData.time[0].length - 1]),
+                            )
+                          : formatTime(
+                              simToDisplaySeconds(chartData.time[1][chartData.time[1].length - 1]),
+                            )}
                       </TableCell>
                     </TableRow>
                     <TableRow>

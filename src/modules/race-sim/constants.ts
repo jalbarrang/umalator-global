@@ -1,6 +1,27 @@
 const multiplier = 2;
 export const TICKS_PER_SECOND = 15 * multiplier;
-export const SIM_TO_DISPLAY_SECONDS = 1.18 * multiplier;
+/** Converts sim-seconds to display-seconds. */
+export const SIM_TO_DISPLAY_RATIO = 1.18;
+/**
+ * Tick-rate-adjusted factor: `(tick / TICKS_PER_SECOND) * SIM_TO_DISPLAY_SECONDS`
+ * gives display-seconds. Only use with tick-based formulas.
+ */
+export const SIM_TO_DISPLAY_SECONDS = SIM_TO_DISPLAY_RATIO * multiplier;
+
+/** Convert a playback tick index to display-seconds (matches playback bar / HUD). */
+export function tickToDisplaySeconds(tick: number): number {
+  return (tick / TICKS_PER_SECOND) * SIM_TO_DISPLAY_SECONDS;
+}
+
+/** Convert sim-seconds (e.g. finishTime, accumulatedTime) to display-seconds. */
+export function simToDisplaySeconds(simSeconds: number): number {
+  return simSeconds * SIM_TO_DISPLAY_RATIO;
+}
+
+/** Convert display-seconds to the nearest tick (seek / hotkey jumps). */
+export function displaySecondsToTicks(displaySeconds: number): number {
+  return Math.round((displaySeconds * TICKS_PER_SECOND) / SIM_TO_DISPLAY_SECONDS);
+}
 
 export const RUNNER_COLORS = [
   '#e11d48',

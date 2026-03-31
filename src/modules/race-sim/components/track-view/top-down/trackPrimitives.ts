@@ -295,9 +295,7 @@ export function buildTrackMarkers(courseData: CourseData): TrackMarker[] {
 
   const sortedCorners = [...courseData.corners].sort((a, b) => a.start - b.start);
   const lapPeriod =
-    sortedCorners.length >= 5
-      ? sortedCorners[4].start - sortedCorners[0].start
-      : null;
+    sortedCorners.length >= 5 ? sortedCorners[4].start - sortedCorners[0].start : null;
 
   const sortedSlopes = [...courseData.slopes].sort((a, b) => a.start - b.start);
   const MIN_FLAT_GAP = 40;

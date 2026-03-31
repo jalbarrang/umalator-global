@@ -129,21 +129,21 @@ function buildTrackPointsFromGeometry(
   for (let index = 0; index < sampleCount; index++) {
     const prevIndex = Math.max(0, index - 1);
     const nextIndex = Math.min(sampleCount - 1, index + 1);
-    const dx = geometry.valueX[nextIndex] - geometry.valueX[prevIndex];
-    const dy = geometry.valueZ[nextIndex] - geometry.valueZ[prevIndex];
+    const dx = -(geometry.valueX[nextIndex] - geometry.valueX[prevIndex]);
+    const dy = -(geometry.valueZ[nextIndex] - geometry.valueZ[prevIndex]);
     const tangent = normalizePlanar(dx, dy) ?? { x: 1, y: 0 };
     const heading = Math.atan2(tangent.y, tangent.x);
     const rotation = geometry.rotation[index];
     const outwardLocal = { x: turnSign, y: 0, z: 0 };
     const rotatedOutward = rotateVectorByQuaternion(outwardLocal, rotation);
     const planarOutward =
-      normalizePlanar(rotatedOutward.x, rotatedOutward.z) ??
+      normalizePlanar(-rotatedOutward.x, -rotatedOutward.z) ??
       outwardFromInnerRail(heading, turnSign);
 
     points.push({
       distance: stepDistance * index,
-      x: geometry.valueX[index],
-      y: geometry.valueZ[index],
+      x: -geometry.valueX[index],
+      y: -geometry.valueZ[index],
       heading,
       outwardX: planarOutward.x,
       outwardY: planarOutward.y,

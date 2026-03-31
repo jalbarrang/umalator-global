@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button-group';
 import { cn } from '@/lib/utils';
 import type { RaceEvent, RaceEventKind } from '@/lib/sunday-tools/race-sim/race-event-log';
-import { SIM_TO_DISPLAY_SECONDS, TICKS_PER_SECOND } from '@/modules/race-sim/constants';
+import { simToDisplaySeconds, tickToDisplaySeconds } from '@/modules/race-sim/constants';
 import { usePlaybackStore } from '@/modules/race-sim/stores/playback.store';
 import { skillCollection } from '@/modules/data/skills';
 import { formatTime } from '@/utils/time';
@@ -144,7 +144,7 @@ function getEventDescription(event: RaceEvent): string {
         parts.push(`(${toOrdinal(event.detail.finishPlace)})`);
       }
       if (event.detail?.finishTime !== undefined) {
-        parts.push(`at ${formatTime(event.detail.finishTime * SIM_TO_DISPLAY_SECONDS)}`);
+        parts.push(`at ${formatTime(simToDisplaySeconds(event.detail.finishTime))}`);
       }
       return parts.join(' ');
     }
@@ -295,7 +295,7 @@ export function EventLogPanel(props: Readonly<EventLogPanelProps>) {
                       <span className="font-mono">t{event.tick}</span>
 
                       <span>
-                        {formatTime((event.tick / TICKS_PER_SECOND) * SIM_TO_DISPLAY_SECONDS)}
+                        {formatTime(tickToDisplaySeconds(event.tick))}
                       </span>
                     </div>
                   </div>

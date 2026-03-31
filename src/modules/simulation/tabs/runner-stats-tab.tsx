@@ -2,6 +2,7 @@ import { Activity, useMemo } from 'react';
 import { Timer } from 'lucide-react';
 import { useRaceStore } from '@/modules/simulation/stores/compare.store';
 import { useWitVariance } from '@/store/settings.store';
+import { simToDisplaySeconds } from '@/modules/race-sim/constants';
 import { formatTime } from '@/utils/time';
 import { Table, TableBody, TableCell, TableHead, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
@@ -22,7 +23,7 @@ export const RunnerStatsTab = () => {
 
     return {
       topSpeed: chartData.velocity[0].reduce((a, b) => Math.max(a, b), 0),
-      finishTime: chartData.time[0][chartData.time[0].length - 1] * 1.18,
+      finishTime: simToDisplaySeconds(chartData.time[0][chartData.time[0].length - 1]),
       rushedStats: rushedStats?.uma1,
       leadCompetitionStats: leadCompetitionStats?.uma1,
       staminaStats: staminaStats?.uma1,
@@ -34,7 +35,7 @@ export const RunnerStatsTab = () => {
 
     return {
       topSpeed: chartData.velocity[1].reduce((a, b) => Math.max(a, b), 0),
-      finishTime: chartData.time[1][chartData.time[1].length - 1] * 1.18,
+      finishTime: simToDisplaySeconds(chartData.time[1][chartData.time[1].length - 1]),
       rushedStats: rushedStats?.uma2,
       leadCompetitionStats: leadCompetitionStats?.uma2,
       staminaStats: staminaStats?.uma2,

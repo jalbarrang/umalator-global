@@ -1,7 +1,6 @@
-import { memo, useEffect, useMemo, useRef } from 'react';
+import { memo, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';
-import { buildCourseTrackPath } from '@/modules/race-sim/utils/track-path';
 import {
   getRunnerLanesAtTick,
   getRunnerPositionsAtTick,
@@ -9,23 +8,18 @@ import {
 } from '@/modules/race-sim/stores/playback.store';
 import { PACK_CANVAS_H, PACK_CANVAS_W } from './shared';
 import { paintTrackPackZoom } from './trackLayers';
-import { buildTrackMarkers } from './trackPrimitives';
 
 type TrackRunnerPackZoomProps = {
   courseData: CourseData;
   runnerNames: Record<number, string>;
   trackedRunnerIds: number[];
-  viewStart: number;
-  viewEnd: number;
   className?: string;
 };
 
 export const TrackRunnerPackZoom = memo(function TrackRunnerPackZoom(
   props: TrackRunnerPackZoomProps,
 ) {
-  const { courseData, runnerNames, trackedRunnerIds, viewStart, viewEnd, className } = props;
-  const builtTrack = useMemo(() => buildCourseTrackPath(courseData), [courseData]);
-  const markers = useMemo(() => buildTrackMarkers(courseData), [courseData]);
+  const { courseData, runnerNames, trackedRunnerIds, className } = props;
   const courseDistance = Math.max(courseData.distance, 1);
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -33,26 +27,16 @@ export const TrackRunnerPackZoom = memo(function TrackRunnerPackZoom(
   const sizeRef = useRef({ width: PACK_CANVAS_W, height: PACK_CANVAS_H });
 
   const configRef = useRef({
-    builtTrack,
-    turnSign: builtTrack.turnSign,
     courseWidth: courseData.courseWidth,
     courseDistance,
-    viewStart,
-    viewEnd,
     runnerNames,
     trackedRunnerIds,
-    markers,
   });
   configRef.current = {
-    builtTrack,
-    turnSign: builtTrack.turnSign,
     courseWidth: courseData.courseWidth,
     courseDistance,
-    viewStart,
-    viewEnd,
     runnerNames,
     trackedRunnerIds,
-    markers,
   };
 
   const repaintPack = useRef(() => {});
@@ -71,17 +55,12 @@ export const TrackRunnerPackZoom = memo(function TrackRunnerPackZoom(
         dpr,
         measuredWidth: width,
         measuredHeight: height,
-        builtTrack: cfg.builtTrack,
         courseWidth: cfg.courseWidth,
-        turnSign: cfg.turnSign,
         courseDistance: cfg.courseDistance,
-        viewStart: cfg.viewStart,
-        viewEnd: cfg.viewEnd,
         runnerPositions: positions,
         runnerLanes: lanes,
         runnerNames: cfg.runnerNames,
         trackedRunnerIds: cfg.trackedRunnerIds,
-        markers: cfg.markers,
       });
     },
   );
@@ -99,15 +78,7 @@ export const TrackRunnerPackZoom = memo(function TrackRunnerPackZoom(
 
   useEffect(() => {
     repaintPack.current();
-  }, [
-    builtTrack,
-    courseData.courseWidth,
-    courseDistance,
-    viewStart,
-    viewEnd,
-    runnerNames,
-    trackedRunnerIds,
-  ]);
+  }, [courseData.courseWidth, courseDistance, runnerNames, trackedRunnerIds]);
 
   useEffect(() => {
     const unsub = usePlaybackStore.subscribe((state, prev) => {

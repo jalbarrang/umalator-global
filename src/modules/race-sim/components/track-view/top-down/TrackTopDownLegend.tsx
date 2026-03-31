@@ -7,7 +7,7 @@ import {
   usePlaybackStore,
 } from '@/modules/race-sim/stores/playback.store';
 import { useShallow } from 'zustand/shallow';
-import { buildRunnerOrderRows, formatGap, formatLaneMeters } from './utils';
+import { buildRunnerOrderRows, type FinishRankEntry, formatGap, formatLaneMeters } from './utils';
 
 type TrackTopDownLegendProps = {
   courseData: CourseData;
@@ -15,9 +15,7 @@ type TrackTopDownLegendProps = {
   trackedRunnerIds: number[];
 };
 
-export const TrackTopDownLegend = memo(function TrackTopDownLegend(
-  props: TrackTopDownLegendProps,
-) {
+export const TrackTopDownLegend = memo(function TrackTopDownLegend(props: TrackTopDownLegendProps) {
   const { courseData, runnerNames, trackedRunnerIds } = props;
   const { results, selectedRound, currentTick } = usePlaybackStore(
     useShallow((s) => ({
@@ -36,6 +34,12 @@ export const TrackTopDownLegend = memo(function TrackTopDownLegend(
     [results, selectedRound, currentTick],
   );
 
+  const finishRanks: FinishRankEntry[] = useMemo(() => {
+    const order = results?.collectedData.rounds[selectedRound]?.finishOrder;
+    if (!order) return [];
+    return order.map((entry, i) => ({ runnerId: entry.runnerId, rank: i + 1 }));
+  }, [results, selectedRound]);
+
   const rows = useMemo(
     () =>
       buildRunnerOrderRows(
@@ -44,8 +48,9 @@ export const TrackTopDownLegend = memo(function TrackTopDownLegend(
         runnerPositions,
         runnerLanes,
         trackedRunnerIds,
+        finishRanks,
       ),
-    [runnerNames, runnerPositions, runnerLanes, trackedRunnerIds, courseData.distance],
+    [runnerNames, runnerPositions, runnerLanes, trackedRunnerIds, courseData.distance, finishRanks],
   );
 
   return (
