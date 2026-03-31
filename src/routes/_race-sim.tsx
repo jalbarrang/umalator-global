@@ -1,9 +1,12 @@
 import { useCallback, useMemo } from 'react';
+import { XIcon } from 'lucide-react';
 import { Link, Outlet, useLocation } from 'react-router';
 import { useShallow } from 'zustand/shallow';
 import { cn } from '@/lib/utils';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 import { racedefToParams } from '@/utils/races';
+import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import { RaceSimContext } from '@/modules/race-sim/context';
 import { loadResults } from '@/modules/race-sim/stores/playback.store';
 import { useRaceSimRunner } from '@/modules/simulation/hooks/race-sim/useRaceSimRunner';
@@ -14,6 +17,7 @@ import {
 } from '@/modules/simulation/stores/race-sim.store';
 import { createSkillSorterByGroup, toCreateRunner } from '@/modules/simulation/simulators/shared';
 import { useSettingsStore } from '@/store/settings.store';
+import { setDismissal, useUIStore } from '@/store/ui.store';
 import { SkillPickerDrawer } from '@/modules/skills/components/skill-list/SkillPickerDrawer';
 import { useSkillModalStore } from '@/modules/skills/store';
 import type { RaceSimWorkerParams } from '@/workers/race-sim.worker';
@@ -45,6 +49,7 @@ const tabs = [
 
 export function RaceSimRoot() {
   const location = useLocation();
+  const dismissed = useUIStore((state) => state.dismissals['race-sim-notice']);
 
   const { courseId, racedef } = useSettingsStore(
     useShallow((state) => ({
@@ -124,6 +129,31 @@ export function RaceSimRoot() {
         </nav>
 
         <div className="flex min-h-0 flex-1 flex-col overflow-auto md:overflow-hidden">
+          {!dismissed && (
+            <div className="px-4 pt-3">
+              <Alert className="border-amber-500/50 bg-amber-500/10">
+                <AlertTitle className="text-amber-700 dark:text-amber-300">
+                  Work in progress
+                </AlertTitle>
+                <AlertDescription className="text-amber-700/80 dark:text-amber-400/80">
+                  Race Sim is still being actively developed. Expect bugs and occasional
+                  inconsistencies in results while we stabilize the feature.
+                </AlertDescription>
+                <AlertAction>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Dismiss race sim disclaimer"
+                    onClick={() => {
+                      setDismissal('race-sim-notice', true);
+                    }}
+                  >
+                    <XIcon />
+                  </Button>
+                </AlertAction>
+              </Alert>
+            </div>
+          )}
           <Outlet />
         </div>
       </div>
