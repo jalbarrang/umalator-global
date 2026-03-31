@@ -55,7 +55,7 @@ export function runPlannerComparison(params: PlannerCompareParams): PlannerCompa
     duelingRates: DEFAULT_DUELING_RATES,
     skillSamples: nsamples,
     runner: toCreateRunner(runnerA, runnerASortedSkills),
-    collector: collectorA,
+    observer: collectorA,
   });
 
   const raceB = createInitializedRace({
@@ -65,7 +65,7 @@ export function runPlannerComparison(params: PlannerCompareParams): PlannerCompa
     duelingRates: DEFAULT_DUELING_RATES,
     skillSamples: nsamples,
     runner: toCreateRunner(runnerB, runnerBSortedSkills),
-    collector: collectorB,
+    observer: collectorB,
   });
 
   const diff: Array<number> = [];

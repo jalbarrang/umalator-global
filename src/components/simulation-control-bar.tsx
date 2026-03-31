@@ -16,7 +16,8 @@ type SimulationControlBarProps = {
   clearDisabled: boolean;
   createSeed: () => number;
   setSeed: (seed: number) => void;
-  tutorial: {
+  runLabel?: string;
+  tutorial?: {
     id: TutorialId;
     steps: TutorialStep[];
     tooltip: string;
@@ -35,6 +36,7 @@ export function SimulationControlBar(props: SimulationControlBarProps) {
     clearDisabled,
     createSeed,
     setSeed: setStoreSeed,
+    runLabel = 'Run Skill Simulations',
     tutorial,
     dataTutorial,
   } = props;
@@ -65,7 +67,7 @@ export function SimulationControlBar(props: SimulationControlBarProps) {
     <div data-tutorial={dataTutorial} className="flex flex-wrap items-center gap-2">
       {!isRunning ? (
         <Button variant="default" onClick={handleRun}>
-          Run Skill Simulations
+          {runLabel}
         </Button>
       ) : (
         <Button variant="destructive" onClick={onCancel}>
@@ -73,7 +75,9 @@ export function SimulationControlBar(props: SimulationControlBarProps) {
         </Button>
       )}
 
-      <HelpButton tutorialId={tutorial.id} steps={tutorial.steps} tooltipText={tutorial.tooltip} />
+      {tutorial && (
+        <HelpButton tutorialId={tutorial.id} steps={tutorial.steps} tooltipText={tutorial.tooltip} />
+      )}
 
       <div className="flex items-center gap-2">
         <Label htmlFor="seed-input" className="text-sm text-muted-foreground">

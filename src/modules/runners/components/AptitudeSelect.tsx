@@ -47,13 +47,13 @@ type AptitudeIconProps = {
   className?: string;
 };
 
-export function AptitudeIcon(props: AptitudeIconProps) {
-  const idx = 7 - Aptitude[props.aptitude as keyof typeof Aptitude];
+export function AptitudeIcon({ aptitude, className }: AptitudeIconProps) {
+  const idx = 7 - Aptitude[aptitude as keyof typeof Aptitude];
 
   return (
-    <img
-      src={`/icons/utx_ico_statusrank_${(100 + idx).toString().slice(1)}.png`}
-      className={props.className}
-    />
+      <img
+        src={`/icons/utx_ico_statusrank_${(100 + idx).toString().slice(1)}.png`}
+        className={className}
+      />
   );
 }

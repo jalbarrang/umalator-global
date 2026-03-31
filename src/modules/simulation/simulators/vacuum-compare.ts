@@ -66,7 +66,7 @@ export function runComparison(params: CompareParams): CompareResult {
     duelingRates: DEFAULT_DUELING_RATES,
     skillSamples: nsamples,
     runner: toCreateRunner(uma1, runnerASortedSkills, forcedPositions?.uma1, injectedDebuffs?.uma1),
-    collector: collectorA,
+    observer: collectorA,
   });
 
   const raceB = createInitializedRace({
@@ -84,7 +84,7 @@ export function runComparison(params: CompareParams): CompareResult {
     duelingRates: DEFAULT_DUELING_RATES,
     skillSamples: nsamples,
     runner: toCreateRunner(uma2, runnerBSortedSkills, forcedPositions?.uma2, injectedDebuffs?.uma2),
-    collector: collectorB,
+    observer: collectorB,
   });
 
   const sign = 1;

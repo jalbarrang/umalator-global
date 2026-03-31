@@ -5,7 +5,6 @@ import { SimulationHome } from './_simulation/home';
 import { SkillBassin } from './_simulation/skill-bassin';
 import { UmaBassin } from './_simulation/uma-bassin';
 import { SkillPlanner } from './skill-planner';
-import { RaceSim } from './race-sim';
 import { RunnersLayout } from './runners';
 import { RunnersHome } from './runners/home';
 import { RunnersNew } from './runners/new';
@@ -29,6 +28,11 @@ import { createRunnerState } from '@/modules/runners/components/runner-card/type
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { toast } from 'sonner';
 
+import { RaceSimRoot } from './_race-sim';
+import { RaceSimHome } from './race-sim/home';
+import { RaceSimRun } from './race-sim/run';
+import { RaceSimResults } from './race-sim/results';
+
 import { useCallback, useMemo, useState } from 'react';
 
 export function RootComponent() {
@@ -37,7 +41,7 @@ export function RootComponent() {
   const getCurrentTab = useCallback(() => {
     if (location.pathname.startsWith('/runners')) return 'runners';
     if (location.pathname === '/skill-planner') return 'skill-planner';
-    if (location.pathname === '/race-sim') return 'race-sim';
+    if (location.pathname.startsWith('/race-sim')) return 'race-sim';
     return 'simulation';
   }, [location.pathname]);
 
@@ -175,7 +179,12 @@ export function RootComponent() {
               <Route path="/runners/:runnerId/edit" element={<RunnersEdit />} />
             </Route>
 
-            <Route path="/race-sim" element={<RaceSim />} />
+            <Route path="/race-sim" element={<RaceSimRoot />}>
+              <Route index element={<RaceSimHome />} />
+              <Route path="/race-sim/run" element={<RaceSimRun />} />
+              <Route path="/race-sim/results" element={<RaceSimResults />} />
+            </Route>
+
             <Route path="/skill-planner" element={<SkillPlanner />} />
           </Routes>
         </main>

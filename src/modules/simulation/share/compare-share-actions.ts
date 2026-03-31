@@ -9,6 +9,7 @@ import { getDefaultTrackIdForCourse } from '@/modules/racetrack/courses';
 import { trackDescription } from '@/modules/racetrack/labels';
 import i18n from '@/i18n';
 import strings_en from '@/i18n/lang/en/skills';
+import { simToDisplaySeconds } from '@/modules/race-sim/constants';
 import { formatTime } from '@/utils/time';
 import type { RaceConditions } from '@/utils/races';
 import type { SimulationData, SimulationRun } from '@/modules/simulation/compare.types';
@@ -42,16 +43,6 @@ export function getRaceSettingsSummaryLine(courseId: number, racedef: RaceCondit
 
   return `${trackName} · ${courseDesc} · ${ground} · ${season} · ${weather}`;
 }
-
-const RUNNER_TITLE: Record<'uma1' | 'uma2', string> = {
-  uma1: 'Umamusume 1',
-  uma2: 'Umamusume 2',
-};
-
-const RUNNER_ACCENT: Record<'uma1' | 'uma2', string> = {
-  uma1: '#2a77c5',
-  uma2: '#c52a2a',
-};
 
 /**
  * Hook that subscribes to the stores needed for the compare share card
@@ -97,7 +88,7 @@ export function useCompareShareCardProps(): CompareShareCardProps | null {
     const staminaStats = race.staminaStats?.[runnerId];
 
     const topSpeed = chartData.velocity[idx]?.reduce((a, b) => Math.max(a, b), 0) ?? 0;
-    const finishTime = timeArr[timeArr.length - 1] * 1.18;
+    const finishTime = simToDisplaySeconds(timeArr[timeArr.length - 1]);
     const startDelay = chartData.startDelay[idx] ?? 0;
 
     const otherRunner = runnerId === 'uma1' ? uma2 : uma1;
@@ -159,11 +150,9 @@ export function useCompareShareCardProps(): CompareShareCardProps | null {
       meanLengths,
       sampleCount: race.results.length,
       seedDisplay: race.seed === null ? '—' : String(race.seed),
-      runnerTitle: RUNNER_TITLE[runnerId],
-      runnerPanelAccent: RUNNER_ACCENT[runnerId],
       statRows,
     };
-  }, [race, runnerId, runner, courseId, racedef, wit]);
+  }, [race, runnerId, runner, uma1, uma2, courseId, racedef, wit]);
 }
 
 export async function copyCompareScreenshot(element: HTMLElement | null) {

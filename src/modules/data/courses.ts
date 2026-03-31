@@ -62,6 +62,25 @@ export const getCoursesByTrackId = (trackId: number): Array<CourseEntry> => {
   return Object.values(courseCollection).filter((course) => course.raceTrackId === trackId);
 };
 
+/**
+ * Picks a course on the same track and surface with enough corner data to infer a full oval:
+ * prefers exactly 4 corners, otherwise the course with the most corners (still >= 4).
+ */
+export function findReferenceCourse(raceTrackId: number, surface: number): CourseEntry | null {
+  const candidates = Object.values(courseCollection).filter(
+    (c) => c.raceTrackId === raceTrackId && c.surface === surface && c.corners.length >= 4,
+  );
+  if (candidates.length === 0) return null;
+  const withFour = candidates
+    .filter((c) => c.corners.length === 4)
+    .toSorted((a, b) => a.distance - b.distance);
+  if (withFour.length > 0) return withFour[0];
+  return candidates.reduce(
+    (best, c) => (c.corners.length > best.corners.length ? c : best),
+    candidates[0]!,
+  );
+}
+
 // =============
 // Query Methods: Tracks
 // =============

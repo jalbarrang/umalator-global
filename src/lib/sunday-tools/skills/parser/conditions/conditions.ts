@@ -37,6 +37,7 @@ import {
   uniformRandom,
   valueFilter,
 } from './utils';
+import { dynamicOrStatic } from '../../../full-sim/dynamic-conditions';
 import type { Runner } from '@/lib/sunday-tools/common/runner';
 import type { DynamicCondition } from '@/lib/sunday-tools/skills/skill.types';
 import type { IPhase } from '@/lib/sunday-tools/course/definitions';
@@ -45,6 +46,43 @@ import { StrategyHelpers } from '@/lib/sunday-tools/runner/runner.types';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 import { Region, RegionList } from '@/lib/sunday-tools/shared/region';
 import { Strategy } from '@/lib/sunday-tools/runner/definitions';
+
+function valueFilterOrNoop(
+  getValue: (params: ConditionFilterParams) => number | undefined,
+): ICondition {
+  const applyComparison = (
+    params: ConditionFilterParams,
+    compare: (value: number, arg: number) => boolean,
+  ) => {
+    const value = getValue(params);
+    if (value === undefined) {
+      return params.regions;
+    }
+
+    return compare(value, params.arg) ? params.regions : new RegionList();
+  };
+
+  return immediate({
+    filterEq(params: ConditionFilterParams) {
+      return applyComparison(params, (value, arg) => value == arg);
+    },
+    filterNeq(params: ConditionFilterParams) {
+      return applyComparison(params, (value, arg) => value != arg);
+    },
+    filterLt(params: ConditionFilterParams) {
+      return applyComparison(params, (value, arg) => value < arg);
+    },
+    filterLte(params: ConditionFilterParams) {
+      return applyComparison(params, (value, arg) => value <= arg);
+    },
+    filterGt(params: ConditionFilterParams) {
+      return applyComparison(params, (value, arg) => value > arg);
+    },
+    filterGte(params: ConditionFilterParams) {
+      return applyComparison(params, (value, arg) => value >= arg);
+    },
+  });
+}
 
 export const defaultConditions: ConditionsMap<ICondition> = {
   accumulatetime: immediate({
@@ -124,60 +162,78 @@ export const defaultConditions: ConditionsMap<ICondition> = {
   base_wiz: valueFilter(({ runner }) => runner.baseStats.wit),
 
   // Bashin diff conditions
-  bashin_diff_behind: noopErlangRandom(3, 2.0),
-  bashin_diff_infront: noopErlangRandom(3, 2.0),
-  behind_near_lane_time: noopErlangRandom(3, 2.0),
+  bashin_diff_behind: dynamicOrStatic(noopErlangRandom(3, 2.0), 'bashin_diff_behind'),
+  bashin_diff_infront: dynamicOrStatic(noopErlangRandom(3, 2.0), 'bashin_diff_infront'),
+  behind_near_lane_time: dynamicOrStatic(noopErlangRandom(3, 2.0), 'behind_near_lane_time'),
   // NB. at least in theory _set1 should have a slightly more early-biased distribution since it's technically easier to activate, but I don't
   // really think it makes much of a difference. Same with blocked_front vs blocked_front_continuetime I suppose.
-  behind_near_lane_time_set1: noopErlangRandom(3, 2.0),
-  blocked_all_continuetime: noopErlangRandom(3, 2.0),
-  blocked_front: noopErlangRandom(3, 2.0),
-  blocked_front_continuetime: erlangRandom(3, 2.0, {
-    filterGte: shiftRegionsForwardByMinTime,
-  }),
-  blocked_side_continuetime: erlangRandom(3, 2.0, {
-    filterGte: shiftRegionsForwardByMinTime,
-  }),
-  change_order_onetime: noopErlangRandom(3, 2.0),
-  change_order_up_end_after: erlangRandom(3, 2.0, {
-    filterGte({ regions, course }: ConditionFilterParams) {
-      const bounds = new Region(CourseHelpers.phaseStart(course.distance, 2), course.distance);
-      return regions.rmap((r) => r.intersect(bounds));
-    },
-  }),
-  change_order_up_finalcorner_after: erlangRandom(3, 2.0, {
-    filterGte({ regions, course }: ConditionFilterParams) {
-      if (!CourseHelpers.isSortedByStart(course.corners)) {
-        throw new Error('course corners must be sorted by start');
-      }
+  behind_near_lane_time_set1: dynamicOrStatic(noopErlangRandom(3, 2.0), 'behind_near_lane_time_set1'),
+  blocked_all_continuetime: dynamicOrStatic(noopErlangRandom(3, 2.0), 'blocked_all_continuetime'),
+  blocked_front: dynamicOrStatic(noopErlangRandom(3, 2.0), 'blocked_front'),
+  blocked_front_continuetime: dynamicOrStatic(
+    erlangRandom(3, 2.0, {
+      filterGte: shiftRegionsForwardByMinTime,
+    }),
+    'blocked_front_continuetime',
+  ),
+  blocked_side_continuetime: dynamicOrStatic(
+    erlangRandom(3, 2.0, {
+      filterGte: shiftRegionsForwardByMinTime,
+    }),
+    'blocked_side_continuetime',
+  ),
+  change_order_onetime: dynamicOrStatic(noopErlangRandom(3, 2.0), 'change_order_onetime'),
+  change_order_up_end_after: dynamicOrStatic(
+    erlangRandom(3, 2.0, {
+      filterGte({ regions, course }: ConditionFilterParams) {
+        const bounds = new Region(CourseHelpers.phaseStart(course.distance, 2), course.distance);
+        return regions.rmap((r) => r.intersect(bounds));
+      },
+    }),
+    'change_order_up_end_after',
+  ),
+  change_order_up_finalcorner_after: dynamicOrStatic(
+    erlangRandom(3, 2.0, {
+      filterGte({ regions, course }: ConditionFilterParams) {
+        if (!CourseHelpers.isSortedByStart(course.corners)) {
+          throw new Error('course corners must be sorted by start');
+        }
 
-      if (course.corners.length == 0) {
-        return new RegionList();
-      }
-      const finalCornerStart = course.corners[course.corners.length - 1].start;
-      const bounds = new Region(finalCornerStart, course.distance);
-      return regions.rmap((r) => r.intersect(bounds));
-    },
-  }),
-  change_order_up_middle: erlangRandom(3, 2.0, {
-    filterGte({ regions, course }: ConditionFilterParams) {
-      const bounds = new Region(
-        CourseHelpers.phaseStart(course.distance, 1),
-        CourseHelpers.phaseEnd(course.distance, 1),
-      );
-      return regions.rmap((r) => r.intersect(bounds));
-    },
-  }),
-  compete_fight_count: uniformRandom({
-    filterGt({ regions, course }: ConditionFilterParams) {
-      if (!CourseHelpers.isSortedByStart(course.straights)) {
-        throw new Error('course straights must be sorted by start');
-      }
+        if (course.corners.length == 0) {
+          return new RegionList();
+        }
+        const finalCornerStart = course.corners[course.corners.length - 1].start;
+        const bounds = new Region(finalCornerStart, course.distance);
+        return regions.rmap((r) => r.intersect(bounds));
+      },
+    }),
+    'change_order_up_finalcorner_after',
+  ),
+  change_order_up_middle: dynamicOrStatic(
+    erlangRandom(3, 2.0, {
+      filterGte({ regions, course }: ConditionFilterParams) {
+        const bounds = new Region(
+          CourseHelpers.phaseStart(course.distance, 1),
+          CourseHelpers.phaseEnd(course.distance, 1),
+        );
+        return regions.rmap((r) => r.intersect(bounds));
+      },
+    }),
+    'change_order_up_middle',
+  ),
+  compete_fight_count: dynamicOrStatic(
+    uniformRandom({
+      filterGt({ regions, course }: ConditionFilterParams) {
+        if (!CourseHelpers.isSortedByStart(course.straights)) {
+          throw new Error('course straights must be sorted by start');
+        }
 
-      const lastStraight = course.straights[course.straights.length - 1];
-      return regions.rmap((r) => r.intersect(lastStraight));
-    },
-  }),
+        const lastStraight = course.straights[course.straights.length - 1];
+        return regions.rmap((r) => r.intersect(lastStraight));
+      },
+    }),
+    'compete_fight_count',
+  ),
   corner: immediate({
     filterEq({ regions, arg: cornerNum, course }: ConditionFilterParams) {
       if (!CourseHelpers.isSortedByStart(course.corners)) {
@@ -243,9 +299,9 @@ export const defaultConditions: ConditionsMap<ICondition> = {
     },
   }),
   course_distance: valueFilter(({ course }) => course.distance),
-  distance_diff_rate: noopImmediate,
-  distance_diff_top: noopImmediate,
-  distance_diff_top_float: noopImmediate,
+  distance_diff_rate: dynamicOrStatic(noopImmediate, 'distance_diff_rate'),
+  distance_diff_top: dynamicOrStatic(noopImmediate, 'distance_diff_top'),
+  distance_diff_top_float: dynamicOrStatic(noopImmediate, 'distance_diff_top_float'),
   distance_rate: immediate({
     filterLte({ regions, arg: rate, course }: ConditionFilterParams) {
       const bounds = new Region(0, (course.distance * rate) / 100);
@@ -314,7 +370,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
       ];
     },
   }),
-  infront_near_lane_time: noopErlangRandom(3, 2.0),
+  infront_near_lane_time: dynamicOrStatic(noopErlangRandom(3, 2.0), 'infront_near_lane_time'),
   is_activate_other_skill_detail: immediate({
     filterEq({ regions, arg: one, extra }: ConditionFilterParams) {
       if (one !== 1) {
@@ -349,7 +405,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
       return [regions, filterFunc] as [RegionList, DynamicCondition];
     },
   }),
-  is_behind_in: noopImmediate,
+  is_behind_in: dynamicOrStatic(noopImmediate, 'is_behind_in'),
   is_dirtgrade: immediate({
     filterEq({ regions, arg: flag, course }: ConditionFilterParams) {
       if (flag !== 1) {
@@ -498,10 +554,10 @@ export const defaultConditions: ConditionsMap<ICondition> = {
       return regions.rmap((r) => course.straights.map((s) => r.intersect(s)));
     },
   }),
-  is_move_lane: noopErlangRandom(5, 1.0),
-  is_overtake: noopErlangRandom(1, 2.0),
-  is_surrounded: noopErlangRandom(3, 2.0),
-  is_temptation: noopImmediate,
+  is_move_lane: dynamicOrStatic(noopErlangRandom(5, 1.0), 'is_move_lane'),
+  is_overtake: dynamicOrStatic(noopErlangRandom(1, 2.0), 'is_overtake'),
+  is_surrounded: dynamicOrStatic(noopErlangRandom(3, 2.0), 'is_surrounded'),
+  is_temptation: dynamicOrStatic(noopImmediate, 'is_temptation'),
   is_used_skill_id: immediate({
     filterEq({ regions, arg: skillId }: ConditionFilterParams) {
       return [regions, (runner: Runner) => runner.usedSkills.has('' + skillId)] as [
@@ -533,19 +589,25 @@ export const defaultConditions: ConditionsMap<ICondition> = {
     },
   }),
   motivation: valueFilter(({ runner }) => runner.mood + 3), // go from -2 to 2 to 1-5 scale
-  near_count: noopErlangRandom(3, 2.0),
-  order: orderFilter((pos: number, _: number) => pos),
-  order_rate: orderFilter((rate: number, numUmas: number) => Math.round(numUmas * (rate / 100.0))),
-  order_rate_in20_continue: orderInFilter(0.2),
-  order_rate_in40_continue: orderInFilter(0.4),
-  order_rate_in50_continue: orderInFilter(0.5),
-  order_rate_in80_continue: orderInFilter(0.8),
-  order_rate_out20_continue: orderOutFilter(0.2),
-  order_rate_out40_continue: orderOutFilter(0.4),
-  order_rate_out50_continue: orderOutFilter(0.5),
-  order_rate_out70_continue: orderOutFilter(0.7),
-  overtake_target_no_order_up_time: noopErlangRandom(3, 2.0),
-  overtake_target_time: noopErlangRandom(3, 2.0),
+  near_count: dynamicOrStatic(noopErlangRandom(3, 2.0), 'near_count'),
+  order: dynamicOrStatic(orderFilter((pos: number, _: number) => pos), 'order'),
+  order_rate: dynamicOrStatic(
+    orderFilter((rate: number, numUmas: number) => Math.round(numUmas * (rate / 100.0))),
+    'order_rate',
+  ),
+  order_rate_in20_continue: dynamicOrStatic(orderInFilter(0.2), 'order_rate_in20_continue'),
+  order_rate_in40_continue: dynamicOrStatic(orderInFilter(0.4), 'order_rate_in40_continue'),
+  order_rate_in50_continue: dynamicOrStatic(orderInFilter(0.5), 'order_rate_in50_continue'),
+  order_rate_in80_continue: dynamicOrStatic(orderInFilter(0.8), 'order_rate_in80_continue'),
+  order_rate_out20_continue: dynamicOrStatic(orderOutFilter(0.2), 'order_rate_out20_continue'),
+  order_rate_out40_continue: dynamicOrStatic(orderOutFilter(0.4), 'order_rate_out40_continue'),
+  order_rate_out50_continue: dynamicOrStatic(orderOutFilter(0.5), 'order_rate_out50_continue'),
+  order_rate_out70_continue: dynamicOrStatic(orderOutFilter(0.7), 'order_rate_out70_continue'),
+  overtake_target_no_order_up_time: dynamicOrStatic(
+    noopErlangRandom(3, 2.0),
+    'overtake_target_no_order_up_time',
+  ),
+  overtake_target_time: dynamicOrStatic(noopErlangRandom(3, 2.0), 'overtake_target_time'),
   phase: {
     samplePolicy: ImmediatePolicy,
     filterEq(params: ConditionFilterParams) {
@@ -767,8 +829,21 @@ export const defaultConditions: ConditionsMap<ICondition> = {
       return new RegionList();
     },
   }),
-  running_style_count_same: noopImmediate,
-  running_style_count_same_rate: noopImmediate,
+  running_style_count_same: valueFilterOrNoop(({ runner, extra }) => {
+    if (!extra.strategyCounts) {
+      return undefined;
+    }
+
+    return extra.strategyCounts.get(runner.strategy) ?? 0;
+  }),
+  running_style_count_same_rate: valueFilterOrNoop(({ runner, extra }) => {
+    if (!extra.strategyCounts || !extra.numUmas) {
+      return undefined;
+    }
+
+    const sameStyleCount = extra.strategyCounts.get(runner.strategy) ?? 0;
+    return sameStyleCount / extra.numUmas;
+  }),
   // these are used exclusively on debuffs, in which case they only get added to /us/ from the "other" perspective, in which case
   // we actually want them to active if /our/ strategy matches the condition
   // NB. this seems kind of questionable in general. perhaps a perspective member should be added to RaceParameters.
@@ -785,12 +860,38 @@ export const defaultConditions: ConditionsMap<ICondition> = {
   running_style_count_oikomi_otherself: valueFilter(
     ({ runner }) => +StrategyHelpers.strategyMatches(runner.strategy, Strategy.EndCloser),
   ),
-  running_style_equal_popularity_one: noopImmediate,
-  running_style_temptation_count_nige: noopSectionRandom(2, 9),
-  running_style_temptation_count_senko: noopSectionRandom(2, 9),
-  running_style_temptation_count_sashi: noopSectionRandom(2, 9),
-  running_style_temptation_count_oikomi: noopSectionRandom(2, 9),
-  same_skill_horse_count: noopImmediate,
+  running_style_equal_popularity_one: dynamicOrStatic(
+    noopImmediate,
+    'running_style_equal_popularity_one',
+  ),
+  running_style_temptation_count_nige: dynamicOrStatic(
+    noopSectionRandom(2, 9),
+    'running_style_temptation_count_nige',
+  ),
+  running_style_temptation_count_senko: dynamicOrStatic(
+    noopSectionRandom(2, 9),
+    'running_style_temptation_count_senko',
+  ),
+  running_style_temptation_count_sashi: dynamicOrStatic(
+    noopSectionRandom(2, 9),
+    'running_style_temptation_count_sashi',
+  ),
+  running_style_temptation_count_oikomi: dynamicOrStatic(
+    noopSectionRandom(2, 9),
+    'running_style_temptation_count_oikomi',
+  ),
+  same_skill_horse_count: valueFilterOrNoop(({ extra }) => {
+    if (!extra.commonSkills) {
+      return undefined;
+    }
+
+    const skillId = extra.skillId;
+    if (typeof skillId !== 'string') {
+      return 0;
+    }
+
+    return extra.commonSkills.get(skillId) ?? 0;
+  }),
   season: valueFilter(({ extra }) => extra.season),
   slope: immediate({
     filterEq({ regions, arg: slopeType, course }: ConditionFilterParams) {
@@ -846,9 +947,9 @@ export const defaultConditions: ConditionsMap<ICondition> = {
     filterGt: notSupported,
     filterGte: notSupported,
   },
-  temptation_count: noopImmediate,
-  temptation_count_behind: noopSectionRandom(2, 9),
-  temptation_count_infront: noopSectionRandom(2, 9),
+  temptation_count: dynamicOrStatic(noopImmediate, 'temptation_count'),
+  temptation_count_behind: dynamicOrStatic(noopSectionRandom(2, 9), 'temptation_count_behind'),
+  temptation_count_infront: dynamicOrStatic(noopSectionRandom(2, 9), 'temptation_count_infront'),
   time: valueFilter(({ extra }) => extra.timeOfDay),
   track_id: valueFilter(({ course }) => course.raceTrackId),
   up_slope_random: random({
@@ -862,7 +963,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
       return regions.rmap((r) => slopes.map((s) => r.intersect(s)));
     },
   }),
-  visiblehorse: noopImmediate,
+  visiblehorse: dynamicOrStatic(noopImmediate, 'visiblehorse'),
   weather: valueFilter(({ extra }) => extra.weather),
 
   is_exist_chara_id: noopImmediate,

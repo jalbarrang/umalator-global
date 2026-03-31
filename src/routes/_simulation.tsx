@@ -8,15 +8,14 @@ import { SkillPickerDrawer } from '@/modules/skills/components/skill-list/SkillP
 import { useSkillModalStore } from '@/modules/skills/store';
 import { Alert, AlertTitle, AlertDescription, AlertAction } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { setLeftSidebar, useLeftSidebar } from '@/store/ui.store';
+import { setDismissal, setLeftSidebar, useLeftSidebar, useUIStore } from '@/store/ui.store';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-const DISMISS_KEY = 'compare-mode-notice-dismissed';
 
 type CompareAlertProps = {
-  setDismissed: (dismissed: boolean) => void;
+  onDismiss: () => void;
 };
 
-const CompareAlert = ({ setDismissed }: CompareAlertProps) => {
+const CompareAlert = ({ onDismiss }: CompareAlertProps) => {
   const [showMore, setShowMore] = useState(false);
   return (
     <Alert className="border-amber-500/50 bg-amber-500/10">
@@ -55,8 +54,7 @@ const CompareAlert = ({ setDismissed }: CompareAlertProps) => {
           variant="ghost"
           size="icon"
           onClick={() => {
-            localStorage.setItem(DISMISS_KEY, '1');
-            setDismissed(true);
+            onDismiss();
           }}
         >
           <XIcon />
@@ -68,7 +66,7 @@ const CompareAlert = ({ setDismissed }: CompareAlertProps) => {
 
 export function SimulationLayout() {
   const { hidden } = useLeftSidebar();
-  const [dismissed, setDismissed] = useState(() => localStorage.getItem(DISMISS_KEY) === '1');
+  const dismissed = useUIStore((state) => state.dismissals['compare-notice']);
   const { open, umaId, options, currentSkills, onSelect } = useSkillModalStore();
 
   const handleOpenChange = (value: boolean) => {
@@ -93,7 +91,9 @@ export function SimulationLayout() {
       <LeftSidebar />
 
       <div className="flex flex-col flex-1 min-w-0 overflow-auto p-4 gap-4">
-        {!dismissed && <CompareAlert setDismissed={setDismissed} />}
+        {!dismissed && (
+          <CompareAlert onDismiss={() => setDismissal('compare-notice', true)} />
+        )}
 
         <div className="flex align-center gap-2">
           {hidden && (

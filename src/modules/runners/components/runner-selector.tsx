@@ -20,17 +20,15 @@ type UmaSelectorProps = {
 };
 
 export const UmaSelector = (props: UmaSelectorProps) => {
+  const { value, randomMobId, select } = props;
   const [open, setOpen] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const umasForSearch = useUmasForSearch();
 
-  const imageUrl = useMemo(
-    () => getUmaImageUrl(props.value, props.randomMobId),
-    [props.value, props.randomMobId],
-  );
+  const imageUrl = useMemo(() => getUmaImageUrl(value, randomMobId), [value, randomMobId]);
 
   const selectedUma = useMemo(() => {
-    const uma = umasForSearch.find((uma) => uma.id === props.value);
+    const uma = umasForSearch.find((uma) => uma.id === value);
 
     if (!uma) return null;
 
@@ -38,10 +36,10 @@ export const UmaSelector = (props: UmaSelectorProps) => {
       outfit: uma.outfit,
       name: uma.name,
     };
-  }, [props.value, umasForSearch]);
+  }, [value, umasForSearch]);
 
   const handleSelectedItem = (outfitId: string) => {
-    props.select(outfitId);
+    select(outfitId);
     setOpen(false);
   };
 

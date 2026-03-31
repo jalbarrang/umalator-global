@@ -82,6 +82,7 @@ const DEFAULT_SETTINGS: SimulationSettings = {
   spotStruggle: true,
   dueling: true,
   witChecks: true,
+  positionKeepMode: 0,
 };
 
 const DEFAULT_DUELING_RATES: DuelingRates = {

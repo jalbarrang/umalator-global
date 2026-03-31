@@ -109,6 +109,7 @@ export class CourseHelpers {
     const moveLanePoint = course.corners.length > 0 ? course.corners[0].start : 30.0;
 
     const course2 = {
+      courseId,
       ...course,
       slopes,
       courseWidth,

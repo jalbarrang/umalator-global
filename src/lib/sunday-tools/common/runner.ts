@@ -3,7 +3,8 @@
 // ===================
 
 import { CompensatedAccumulator, Timer } from '../simulator.types';
-import { PositionKeepState, SkillRarity, SkillType } from '../skills/definitions';
+import { SkillRarity, SkillType } from '../skills/definitions';
+import { applyVirtualPositionKeep, initializePositionKeep } from '../poskeep/virtual-position-keep';
 import { Rule30CARng } from '../shared/random';
 import { Strategy } from '../runner/definitions';
 import {
@@ -24,7 +25,9 @@ import {
   createOvertakeCondition,
 } from '../conditions/special-conditions';
 import type { ApproximateCondition, ConditionState } from '../conditions/aproximate-conditions';
+import type { PositionKeepActivation } from '../poskeep/virtual-position-keep';
 import type { IAptitude, IMood, IStrategy } from '../runner/definitions';
+import type { IPositionKeepState } from '../skills/definitions';
 import type { HpPolicy, RaceStateSlice } from '../health/health-policy';
 import type { PRNG } from '../shared/random';
 import type { Race } from './race';
@@ -164,11 +167,16 @@ export class Runner {
   public startDelayAccumulator!: number;
 
   public finished = false;
+  public finishTime = 0;
   public position!: number;
   public currentLane!: number;
   public targetLane!: number;
   public extraMoveLane!: number;
   public laneChangeSpeed!: number;
+  /** Set each tick in {@link applyLaneMovement} for telemetry / event log. */
+  public isSideBlocked = false;
+  /** Set each tick in {@link applyLaneMovement} for telemetry / event log. */
+  public isOvertaking = false;
   public currentSpeed!: number;
   public targetSpeed!: number;
   public forceInSpeed!: number;
@@ -262,6 +270,17 @@ export class Runner {
   public duelingStartPosition!: number;
   public duelingEndPosition!: number;
 
+  // Position Keep
+  public positionKeepState!: IPositionKeepState;
+  public posKeepSpeedCoef!: number;
+  public posKeepNextTimer!: Timer;
+  public posKeepExitDistance!: number;
+  public posKeepExitPosition!: number;
+  public posKeepMinThreshold!: number;
+  public posKeepMaxThreshold!: number;
+  public posKeepEnd!: number;
+  public positionKeepActivations!: Array<PositionKeepActivation>;
+
   // Hills
   public hills!: Array<{ start: number; end: number; slope: number }>;
   public currentHillIndex!: number;
@@ -304,6 +323,7 @@ export class Runner {
   public onPrepare(runnerRng: PRNG): void {
     // ---- hard reset: always deterministic per round ----
     this.firstPositionInLateRace = false;
+    this.finishTime = 0;
 
     this.timers = [];
     this.accumulateTime = this.createTimer(-1.0);
@@ -344,6 +364,7 @@ export class Runner {
     this.initializeDownhillMode();
     this.initializeDueling();
     this.initializeSpotStruggle();
+    initializePositionKeep(this, () => this.createTimer());
     this.initializeHealthPolicy();
 
     // speed/terrain cached values
@@ -379,6 +400,7 @@ export class Runner {
     this.updateDownhillMode();
     this.processSkillActivations();
     this.processTargetedSkillActivations();
+    applyVirtualPositionKeep(this);
     this.updateDueling();
     this.updateSpotStruggle();
     this.updateLastSpurtState();
@@ -435,8 +457,9 @@ export class Runner {
 
     this.updateFirstPositionInLateRace();
 
-    if (this.position >= this.race.course.distance) {
+    if (!this.finished && this.position >= this.race.course.distance) {
       this.finished = true;
+      this.finishTime = this.race.accumulatedTime;
     }
   }
 
@@ -962,7 +985,11 @@ export class Runner {
      * naturally.
      */
 
-    this.artificialDueling();
+    if (this.race.settings.mode === 'normal') {
+      this.proximityDueling();
+    } else {
+      this.artificialDueling();
+    }
   }
 
   private artificialDueling() {
@@ -1004,6 +1031,68 @@ export class Runner {
     }
   }
 
+  private proximityDueling() {
+    const orderByRunnerId = this.race.runnerOrder;
+    const topHalfCutoff = Math.ceil(orderByRunnerId.size / 2);
+
+    const selfOrder = orderByRunnerId.get(this.id);
+
+    if (selfOrder === undefined || selfOrder > topHalfCutoff) {
+      this.canDuel = null;
+      return;
+    }
+
+    const courseWidth = this.race.course.courseWidth;
+    const maxDistanceGap = 3.0;
+    const maxLaneGap = 0.25 * courseWidth;
+    const maxSpeedGap = 0.6;
+    let nearbyRunnerCount = 0;
+    for (const [runnerId, snapshot] of this.race.runnerSnapshots) {
+      if (runnerId === this.id) {
+        continue;
+      }
+
+      const runnerOrder = orderByRunnerId.get(runnerId);
+      if (runnerOrder === undefined || runnerOrder > topHalfCutoff) {
+        continue;
+      }
+
+      const withinDistance = Math.abs(snapshot.position - this.position) <= maxDistanceGap;
+      const laneGap = Math.abs(snapshot.currentLane - this.currentLane) * courseWidth;
+      const withinLaneGap = laneGap <= maxLaneGap;
+      const speedGap = Math.abs(snapshot.currentSpeed - this.currentSpeed);
+      const withinSpeedGap = speedGap < maxSpeedGap;
+
+      if (!withinDistance || !withinLaneGap || !withinSpeedGap) {
+        continue;
+      }
+
+      const otherRunner = this.race.runners.get(runnerId);
+      if (!otherRunner?.isOnFinalStraight) {
+        continue;
+      }
+
+      nearbyRunnerCount += 1;
+    }
+
+    // Include self for the 2-runner minimum check.
+    if (nearbyRunnerCount + 1 < 2) {
+      this.canDuel = null;
+      return;
+    }
+
+    if (this.canDuel !== true) {
+      this.canDuel = true;
+      this.duelingTimer.t = 0;
+      return;
+    }
+
+    if (this.duelingTimer.t >= 2.0) {
+      this.isDueling = true;
+      this.duelingStartPosition = this.position;
+    }
+  }
+
   updateSpotStruggle() {
     if (!this.race.settings.spotStruggle) {
       return;
@@ -1038,8 +1127,13 @@ export class Runner {
       const laneGap = this.positionKeepStrategy === Strategy.FrontRunner ? 0.165 : 0.416;
 
       const umasWithinGap = otherUmas.filter((u) => {
-        const withinDistance = Math.abs(u.position - this.position) <= distanceGap;
-        const withinLane = Math.abs(u.currentLane - this.currentLane) < laneGap;
+        const snapshot = this.race.runnerSnapshots.get(u.id);
+        if (!snapshot) {
+          return false;
+        }
+
+        const withinDistance = Math.abs(snapshot.position - this.position) <= distanceGap;
+        const withinLane = Math.abs(snapshot.currentLane - this.currentLane) < laneGap;
 
         return withinDistance && withinLane;
       });
@@ -1064,7 +1158,7 @@ export class Runner {
 
       const raceState: RaceStateSlice = {
         phase: this.phase,
-        positionKeepState: PositionKeepState.None,
+        positionKeepState: this.positionKeepState,
         pos: this.position,
         currentSpeed: this.currentSpeed,
         inSpotStruggle: this.inSpotStruggle,
@@ -1114,6 +1208,7 @@ export class Runner {
 
       this.targetSpeed = baseTargetSpeed;
       this.targetSpeed += this.sectionModifiers[Math.floor(this.position / this.sectionLength)];
+      this.targetSpeed *= this.posKeepSpeedCoef;
     }
 
     this.targetSpeed += this.modifiers.targetSpeed.acc + this.modifiers.targetSpeed.err;
@@ -1162,8 +1257,16 @@ export class Runner {
     const course = this.race.course;
 
     const currentLane = this.currentLane;
-    const sideBlocked = this.getConditionValue('blocked_side') === 1;
-    const overtake = this.getConditionValue('overtake') === 1;
+    let sideBlocked: boolean;
+    let overtake: boolean;
+
+    if (this.race.settings.mode === 'normal') {
+      sideBlocked = this.hasSideBlockingRunner();
+      overtake = this.isOvertakingRunner();
+    } else {
+      sideBlocked = this.getConditionValue('blocked_side') === 1;
+      overtake = this.getConditionValue('overtake') === 1;
+    }
 
     if (this.extraMoveLane < 0.0 && this.isAfterFinalCornerOrInFinalStraight) {
       this.extraMoveLane =
@@ -1217,7 +1320,51 @@ export class Runner {
         );
       }
     }
+
+    this.isSideBlocked = sideBlocked;
+    this.isOvertaking = overtake;
   }
+
+  private hasSideBlockingRunner(): boolean {
+    const laneThreshold = this.race.course.horseLane;
+
+    for (const [otherId, snapshot] of this.race.runnerSnapshots) {
+      if (otherId === this.id) {
+        continue;
+      }
+
+      const laneDelta = Math.abs(snapshot.currentLane - this.currentLane);
+      const distanceAhead = snapshot.position - this.position;
+      const isAhead = snapshot.position > this.position;
+
+      if (laneDelta <= laneThreshold && isAhead && distanceAhead <= 5.0) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  private isOvertakingRunner(): boolean {
+    const laneThreshold = this.race.course.horseLane * 2;
+
+    for (const [otherId, snapshot] of this.race.runnerSnapshots) {
+      if (otherId === this.id) {
+        continue;
+      }
+
+      const isFaster = this.currentSpeed > snapshot.currentSpeed;
+      const distanceGap = Math.abs(snapshot.position - this.position);
+      const laneDelta = Math.abs(snapshot.currentLane - this.currentLane);
+
+      if (isFaster && distanceGap <= 5.0 && laneDelta <= laneThreshold) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   getConditionValue(name: string): number {
     if (!this.conditionValues.has(name)) {
       if (this.conditions.has(name)) {
@@ -1237,10 +1384,10 @@ export class Runner {
    * This will apply the mood coefficient and adjust the stats based on the course, ground, and strategy.
    */
   public static create(race: Race, id: number, props: CreateRunner): Runner {
-    const umaId = props.outfitId.slice(0, 4);
+    const umaId = props.outfitId ? props.outfitId.slice(0, 4) : '';
 
     const displayInfo = getUmaDisplayInfo(props.outfitId);
-    const name = displayInfo?.name ?? `Mob ${id}`;
+    const name = displayInfo?.name ?? `Runner ${id}`;
 
     const runner = new Runner(race, {
       id: id,
@@ -1560,6 +1707,14 @@ export class Runner {
           weather: this.race.weather,
           grade: this.race.grade,
           season: this.race.season,
+          mode: this.race.settings.mode,
+          ...(this.race.settings.mode === 'normal'
+            ? {
+                strategyCounts: this.race.strategyCounts,
+                commonSkills: this.race.commonSkills,
+                numUmas: this.race.runners.size,
+              }
+            : {}),
         },
         course: this.race.course,
         wholeCourse: this.race.wholeCourse,
@@ -1584,13 +1739,19 @@ export class Runner {
 
     const roundIteration = this.race.roundIteration;
 
-    this.pendingSkills = skillTrigers.map((skillTrigger, index) => ({
-      skillId: skillTrigger.skillId,
-      rarity: skillTrigger.rarity,
-      trigger: triggers[index][roundIteration % triggers[index].length],
-      extraCondition: skillTrigger.extraCondition,
-      effects: skillTrigger.effects,
-    }));
+    this.pendingSkills = skillTrigers.flatMap((skillTrigger, index) => {
+      const samples = triggers[index];
+      if (samples.length === 0) return [];
+      return [
+        {
+          skillId: skillTrigger.skillId,
+          rarity: skillTrigger.rarity,
+          trigger: samples[roundIteration % samples.length],
+          extraCondition: skillTrigger.extraCondition,
+          effects: skillTrigger.effects,
+        },
+      ];
+    });
 
     this.initializeTargetedSkillTracking(roundIteration);
   }
@@ -1609,6 +1770,7 @@ export class Runner {
           weather: this.race.weather,
           grade: this.race.grade,
           season: this.race.season,
+          mode: this.race.settings.mode,
         },
         course: this.race.course,
         wholeCourse: this.race.wholeCourse,
@@ -1629,6 +1791,7 @@ export class Runner {
           this.race.skillSamples,
           this.skillRng,
         );
+        if (triggers.length === 0) continue;
         const trigger = triggers[roundIteration % triggers.length];
 
         this.pendingTargetedSkills.push({
@@ -1906,6 +2069,8 @@ export class Runner {
     this.laneChangeSpeed = 0.0;
     this.extraMoveLane = -1.0;
     this.forceInSpeed = 0.0;
+    this.isSideBlocked = false;
+    this.isOvertaking = false;
   }
 
   /**

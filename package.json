@@ -21,6 +21,7 @@
     "extract:skills": "tsx scripts/extract-skills.ts",
     "extract:uma-info": "tsx scripts/extract-uma-info.ts",
     "extract:course-data": "tsx scripts/extract-course-data.ts",
+    "extract:course-geometry": "tsx scripts/extract-course-geometry.ts",
     "extract:all": "tsx scripts/extract-all.ts",
     "course:extract": "tsx scripts/extract-course-entry.ts",
     "transform:cm-presets": "tsx scripts/transform-cm-presets.ts",

@@ -1,0 +1,310 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { ButtonGroup } from '@/components/ui/button-group';
+import { cn } from '@/lib/utils';
+import type { RaceEvent, RaceEventKind } from '@/lib/sunday-tools/race-sim/race-event-log';
+import { simToDisplaySeconds, tickToDisplaySeconds } from '@/modules/race-sim/constants';
+import { usePlaybackStore } from '@/modules/race-sim/stores/playback.store';
+import { skillCollection } from '@/modules/data/skills';
+import { formatTime } from '@/utils/time';
+import { useShallow } from 'zustand/shallow';
+
+type EventFilter = 'all' | 'skills' | 'combat' | 'state';
+
+type EventKindStyle = {
+  label: string;
+  dotClassName: string;
+};
+
+type EventLogPanelProps = {
+  trackedRunnerIds?: number[];
+  runnerNames?: Record<number, string>;
+  className?: string;
+};
+
+type IndexedEvent = {
+  key: string;
+  index: number;
+  event: RaceEvent;
+};
+
+const SKILL_KINDS = new Set<RaceEventKind>(['skill-activated']);
+const COMBAT_KINDS = new Set<RaceEventKind>([
+  'dueling-start',
+  'dueling-end',
+  'spot-struggle-start',
+  'spot-struggle-end',
+]);
+
+const FILTERS: Array<{ id: EventFilter; label: string }> = [
+  { id: 'all', label: 'All' },
+  { id: 'skills', label: 'Skills' },
+  { id: 'combat', label: 'Combat' },
+  { id: 'state', label: 'State' },
+];
+
+const EVENT_KIND_STYLES: Record<RaceEventKind, EventKindStyle> = {
+  'skill-activated': { label: 'Skill', dotClassName: 'bg-sky-500' },
+  rushed: { label: 'Rushed', dotClassName: 'bg-amber-500' },
+  'rushed-end': { label: 'Rush', dotClassName: 'bg-amber-400' },
+  'dueling-start': { label: 'Duel', dotClassName: 'bg-rose-500' },
+  'dueling-end': { label: 'Duel', dotClassName: 'bg-rose-400' },
+  'spot-struggle-start': { label: 'Struggle', dotClassName: 'bg-purple-500' },
+  'spot-struggle-end': { label: 'Struggle', dotClassName: 'bg-purple-400' },
+  'last-spurt': { label: 'Spurt', dotClassName: 'bg-emerald-500' },
+  'hp-out': { label: 'HP Out', dotClassName: 'bg-zinc-500' },
+  finished: { label: 'Finished', dotClassName: 'bg-green-500' },
+  'pace-down-start': { label: 'Pos keep', dotClassName: 'bg-cyan-600' },
+  'pace-down-end': { label: 'Pos keep', dotClassName: 'bg-cyan-500' },
+  'pace-up-start': { label: 'Pos keep', dotClassName: 'bg-teal-600' },
+  'pace-up-end': { label: 'Pos keep', dotClassName: 'bg-teal-500' },
+  'overtake-start': { label: 'Lane', dotClassName: 'bg-orange-500' },
+  'overtake-end': { label: 'Lane', dotClassName: 'bg-orange-400' },
+  'blocked-side-start': { label: 'Lane', dotClassName: 'bg-slate-500' },
+  'blocked-side-end': { label: 'Lane', dotClassName: 'bg-slate-400' },
+  'mid-race-start': { label: 'Phase', dotClassName: 'bg-indigo-500' },
+  'late-race-start': { label: 'Phase', dotClassName: 'bg-violet-600' },
+};
+
+function toOrdinal(value: number): string {
+  const mod10 = value % 10;
+  const mod100 = value % 100;
+  if (mod10 === 1 && mod100 !== 11) return `${value}st`;
+  if (mod10 === 2 && mod100 !== 12) return `${value}nd`;
+  if (mod10 === 3 && mod100 !== 13) return `${value}rd`;
+  return `${value}th`;
+}
+
+function getRunnerName(runnerId: number, runnerNames: Record<number, string>): string {
+  return runnerNames[runnerId] ?? `Runner ${runnerId + 1}`;
+}
+
+function matchesFilter(kind: RaceEventKind, filter: EventFilter): boolean {
+  if (filter === 'all') {
+    return true;
+  }
+  if (filter === 'skills') {
+    return SKILL_KINDS.has(kind);
+  }
+  if (filter === 'combat') {
+    return COMBAT_KINDS.has(kind);
+  }
+  return !SKILL_KINDS.has(kind) && !COMBAT_KINDS.has(kind);
+}
+
+function getEventDescription(event: RaceEvent): string {
+  switch (event.kind) {
+    case 'skill-activated': {
+      const skillId = event.detail?.skillId;
+      if (!skillId) return 'activated a skill';
+      const skillName = skillCollection[skillId]?.name;
+      return skillName
+        ? `activated ${skillName} (${skillId})`
+        : `activated skill ${skillId}`;
+    }
+    case 'rushed':
+      return 'entered rush';
+    case 'rushed-end':
+      return 'left rush';
+    case 'mid-race-start':
+      return 'entered mid race';
+    case 'late-race-start':
+      return 'entered late race';
+    case 'pace-down-start':
+      return 'started pace down (position keep)';
+    case 'pace-down-end':
+      return 'ended pace down';
+    case 'pace-up-start':
+      return 'started pace up (position keep)';
+    case 'pace-up-end':
+      return 'ended pace up';
+    case 'overtake-start':
+      return 'started overtaking (lane)';
+    case 'overtake-end':
+      return 'stopped overtaking';
+    case 'blocked-side-start':
+      return 'blocked on the side';
+    case 'blocked-side-end':
+      return 'side lane clear';
+    case 'dueling-start':
+      return 'started dueling';
+    case 'dueling-end':
+      return 'ended duel';
+    case 'spot-struggle-start':
+      return 'entered a spot struggle';
+    case 'spot-struggle-end':
+      return 'ended a spot struggle';
+    case 'last-spurt':
+      return 'entered last spurt';
+    case 'hp-out':
+      return 'ran out of HP';
+    case 'finished': {
+      const parts = ['finished'];
+      if (event.detail?.finishPlace) {
+        parts.push(`(${toOrdinal(event.detail.finishPlace)})`);
+      }
+      if (event.detail?.finishTime !== undefined) {
+        parts.push(`at ${formatTime(simToDisplaySeconds(event.detail.finishTime))}`);
+      }
+      return parts.join(' ');
+    }
+    default:
+      return event.kind;
+  }
+}
+
+export function EventLogPanel(props: Readonly<EventLogPanelProps>) {
+  const { trackedRunnerIds = [], runnerNames = {}, className } = props;
+
+  const { roundEvents: events, currentTick } = usePlaybackStore(
+    useShallow((s) => ({
+      roundEvents: s.roundEvents,
+      currentTick: s.currentTick,
+    })),
+  );
+
+  const [activeFilter, setActiveFilter] = useState<EventFilter>('all');
+  const cursorEventRef = useRef<HTMLDivElement | null>(null);
+
+  const trackedRunnerIdSet = useMemo(() => new Set(trackedRunnerIds), [trackedRunnerIds]);
+
+  const indexedEvents = useMemo<Array<IndexedEvent>>(() => {
+    return events
+      .map((event, index) => ({
+        event,
+        index,
+        key: `${index}-${event.tick}-${event.runnerId}-${event.kind}`,
+      }))
+      .sort((left, right) => {
+        if (left.event.tick !== right.event.tick) {
+          return left.event.tick - right.event.tick;
+        }
+        return left.index - right.index;
+      });
+  }, [events]);
+
+  const visibleEvents = useMemo(
+    () =>
+      indexedEvents.filter(
+        (item) => item.event.tick <= currentTick && matchesFilter(item.event.kind, activeFilter),
+      ),
+    [indexedEvents, activeFilter, currentTick],
+  );
+
+  const cursorEventKey = useMemo(() => {
+    if (visibleEvents.length === 0) {
+      return null;
+    }
+
+    return visibleEvents?.at(-1)?.key;
+  }, [visibleEvents]);
+
+  useEffect(() => {
+    cursorEventRef.current?.scrollIntoView({
+      block: 'nearest',
+      inline: 'nearest',
+    });
+  }, [cursorEventKey]);
+
+  return (
+    <div className={cn(className)}>
+      <div className="flex items-center justify-between gap-2 px-3 py-2 border-b">
+        <div className="w-full">
+          <p className="truncate text-sm font-medium">Event Log</p>
+          <p className="text-xs text-muted-foreground">{visibleEvents.length} events</p>
+        </div>
+
+        <ButtonGroup className="shrink-0">
+          {FILTERS.map((filter) => (
+            <Button
+              key={filter.id}
+              size="xs"
+              variant={activeFilter === filter.id ? 'secondary' : 'ghost'}
+              onClick={() => setActiveFilter(filter.id)}
+            >
+              {filter.label}
+            </Button>
+          ))}
+        </ButtonGroup>
+      </div>
+
+      <div className="flex min-h-0 flex-1 flex-col px-3 py-2">
+        {visibleEvents.length === 0 && (
+          <div className="rounded-md border border-dashed px-3 py-4 text-center text-xs text-muted-foreground">
+            No events for this filter.
+          </div>
+        )}
+
+        {visibleEvents.length > 0 && (
+          <div className="flex flex-col h-full gap-1 min-h-0 overflow-y-auto">
+            {visibleEvents.map((item) => {
+              const event = item.event;
+              const isNearCursor = Math.abs(event.tick - currentTick) <= 2;
+              const isTracked = trackedRunnerIdSet.has(event.runnerId);
+              const style = EVENT_KIND_STYLES[event.kind];
+              const otherRunnerIds = event.detail?.otherRunnerIds ?? [];
+              const eventDescription = getEventDescription(event);
+
+              return (
+                <div
+                  key={item.key}
+                  ref={item.key === cursorEventKey ? cursorEventRef : null}
+                  className={cn(
+                    'grid grid-cols-[auto_1fr] items-start gap-2 rounded-md border px-2 py-1.5 text-xs transition-colors',
+                    {
+                      'border-primary/50 bg-primary/10': isNearCursor,
+                      'border-transparent': !isNearCursor,
+                    },
+                  )}
+                >
+                  <span className={cn('mt-1 size-2 rounded-full', style.dotClassName)} />
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+                      <span className="font-mono text-xs text-muted-foreground">
+                        [{Math.max(0, event.position).toFixed(0)}m]
+                      </span>
+
+                      <span className={cn('font-medium', isTracked && 'text-primary')}>
+                        {getRunnerName(event.runnerId, runnerNames)}
+                      </span>
+
+                      <span>{eventDescription}</span>
+
+                      {otherRunnerIds.length > 0 && (
+                        <span className="text-muted-foreground">
+                          {' '}
+                          vs{' '}
+                          {otherRunnerIds.map((runnerId, index) => (
+                            <span key={`${item.key}-other-${runnerId}`}>
+                              {index > 0 && ', '}
+                              <span
+                                className={cn(
+                                  trackedRunnerIdSet.has(runnerId) && 'font-medium text-primary',
+                                )}
+                              >
+                                {getRunnerName(runnerId, runnerNames)}
+                              </span>
+                            </span>
+                          ))}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <span>{style.label}</span>
+                      <span className="font-mono">t{event.tick}</span>
+
+                      <span>
+                        {formatTime(tickToDisplaySeconds(event.tick))}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

@@ -7,15 +7,20 @@ type ISidebar = {
   hidden: boolean;
 };
 
+export type UIDismissalKey = 'compare-notice' | 'race-sim-notice';
+
+type IUIDismissals = Record<UIDismissalKey, boolean>;
+
 export type IUIStore = {
   // UI counter state
   runOnceCounter: number;
 
-  // Dropdown/modal state (ephemeral, not persisted)
+  // Dropdown/modal state (ephemeral)
   isPacemakerDropdownOpen: boolean;
   showVirtualPacemakerOnGraph: boolean;
   showCreditsModal: boolean;
   showChangelogModal: boolean;
+  dismissals: IUIDismissals;
 
   leftSide: ISidebar;
 };
@@ -28,6 +33,10 @@ export const useUIStore = create<IUIStore>()(
       showVirtualPacemakerOnGraph: false,
       showCreditsModal: false,
       showChangelogModal: false,
+      dismissals: {
+        'compare-notice': false,
+        'race-sim-notice': false,
+      },
       leftSide: {
         activePanel: 'runners',
         hidden: true,
@@ -38,6 +47,7 @@ export const useUIStore = create<IUIStore>()(
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         leftSide: state.leftSide,
+        dismissals: state.dismissals,
       }),
     },
   ),
@@ -69,6 +79,15 @@ export const setShowCreditsModal = (showCreditsModal: boolean) => {
 
 export const setShowChangelogModal = (showChangelogModal: boolean) => {
   useUIStore.setState({ showChangelogModal });
+};
+
+export const setDismissal = (key: UIDismissalKey, dismissed: boolean) => {
+  useUIStore.setState((state) => ({
+    dismissals: {
+      ...state.dismissals,
+      [key]: dismissed,
+    },
+  }));
 };
 
 export const setLeftSidebar = (sidebar: Partial<ISidebar>) => {
