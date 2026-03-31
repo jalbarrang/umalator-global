@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.5.0-beta.1 - 2026-03-31
+
+- Introduced the Race Sim Beta experience with a new top-down race view as the primary visualization mode.
+- Added on-track markers and map interactions to inspect runner positions and pacing over time.
+- Added race-sim specific UX polish for beta rollout, including a dismissible "Work in progress" notice.
+- Persisted simulation notices in UI state so compare and race-sim disclaimers stay dismissed across sessions.
+
 ## 0.4.4 - 2026-03-28
 
 - Added compare result share card: copy a screenshot of the active runner alongside simulation stats (finish time, top speed, spurt/survival rates, etc.).
