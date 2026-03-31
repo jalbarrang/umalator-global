@@ -715,7 +715,7 @@ describe('last spurt activation', () => {
     });
   }
 
-  function createLateSurgerRace(seed: number) {
+  function createLateSurgerRace() {
     const course = CourseHelpers.getCourse(LATE_SURGER_COURSE_ID);
     const racedef = racedefToParams(
       createRaceConditions({
@@ -745,7 +745,7 @@ describe('last spurt activation', () => {
   }
 
   it('activates isLastSpurt immediately for max-spurt horse on entering phase 2', () => {
-    const { race, course } = createLateSurgerRace(425546);
+    const { race, course } = createLateSurgerRace();
     race.prepareRound(425546);
     race.run();
 
@@ -760,7 +760,7 @@ describe('last spurt activation', () => {
   });
 
   it('does not flatten velocity at late-race base target speed', () => {
-    const { race, collector, course } = createLateSurgerRace(425546);
+    const { race, collector, course } = createLateSurgerRace();
     race.prepareRound(425546);
     race.run();
 

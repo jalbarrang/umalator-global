@@ -15,43 +15,52 @@ type SkillItemProviderProps = React.PropsWithChildren<{
   getSkillMeta?: (skillId: string) => SkillMeta;
 }>;
 
-export const SkillItemProvider = (props: SkillItemProviderProps) => {
+export const SkillItemProvider = ({
+  children,
+  skillId,
+  hasFastLearner,
+  spCost,
+  runnerId,
+  distanceFactor,
+  onHintLevelChange,
+  onBoughtChange,
+  onRemove,
+  getSkillMeta,
+}: SkillItemProviderProps) => {
   const skill = useMemo(() => {
-    const baseId = props.skillId.split('-')[0] ?? props.skillId;
+    const baseId = skillId.split('-')[0] ?? skillId;
     return skillCollection[baseId];
-  }, [props.skillId]);
+  }, [skillId]);
 
   const hasCost = useMemo(() => {
-    return typeof props.spCost === 'number' && !isUniqueSkill(skill.rarity);
-  }, [props.spCost, skill.rarity]);
+    return typeof spCost === 'number' && !isUniqueSkill(skill.rarity);
+  }, [spCost, skill.rarity]);
 
   const contextValue = useMemo(() => {
     return {
       skill,
-      hasFastLearner: props.hasFastLearner ?? false,
+      hasFastLearner: hasFastLearner ?? false,
       hasCost,
-      runnerId: props.runnerId,
-      distanceFactor: props.distanceFactor,
-      spCost: props.spCost,
-      onHintLevelChange: props.onHintLevelChange,
-      onBoughtChange: props.onBoughtChange,
-      onRemove: props.onRemove,
-      getSkillMeta: props.getSkillMeta ?? defaultGetSkillMeta,
+      runnerId,
+      distanceFactor,
+      spCost,
+      onHintLevelChange,
+      onBoughtChange,
+      onRemove,
+      getSkillMeta: getSkillMeta ?? defaultGetSkillMeta,
     };
   }, [
     skill,
-    props.hasFastLearner,
+    hasFastLearner,
     hasCost,
-    props.runnerId,
-    props.distanceFactor,
-    props.spCost,
-    props.onHintLevelChange,
-    props.onBoughtChange,
-    props.onRemove,
-    props.getSkillMeta,
+    runnerId,
+    distanceFactor,
+    spCost,
+    onHintLevelChange,
+    onBoughtChange,
+    onRemove,
+    getSkillMeta,
   ]);
 
-  return (
-    <SkillItemContext.Provider value={contextValue}>{props.children}</SkillItemContext.Provider>
-  );
+  return <SkillItemContext.Provider value={contextValue}>{children}</SkillItemContext.Provider>;
 };

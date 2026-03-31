@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 function parseCost(text: string | null): number {
   const raw = text ?? '';
-  const match = raw.match(/(\d+)\s*pts/);
+  const match = raw.match(/(\d+)\s*(?:SP|pts)/i);
   if (!match) {
     throw new Error(`Could not parse cost from: "${raw}"`);
   }
@@ -37,21 +37,31 @@ test('skill planner optimization uses hinted net cost', async ({ page }) => {
   await page.keyboard.press('Escape');
   await expect(page.getByRole('heading', { name: 'Add Skill to Runner' })).toBeHidden();
 
-  // Wait for candidate controls to render.
-  const hintSelect = page.locator('[id^="hint-"]').first();
-  await expect(hintSelect).toBeVisible();
-  await expect(page.getByText('Corner Adept', { exact: false }).first()).toBeVisible();
+  // Wait for candidate row to render and read its displayed net cost.
+  const candidateRow = page
+    .locator('[data-event="select-skill"]')
+    .filter({ hasText: 'Corner Adept' })
+    .first();
+  await expect(candidateRow).toBeVisible();
 
-  const currentCostValue = page.getByText('Cost:').locator('xpath=following-sibling::span').first();
-  await expect(currentCostValue).toBeVisible();
-  const grossCost = parseCost(await currentCostValue.textContent());
+  const currentCostButton = candidateRow.getByRole('button', { name: /\d+\s*SP/ }).first();
+  await expect(currentCostButton).toBeVisible();
+  const grossCost = parseCost(await currentCostButton.textContent());
 
-  // Set max hint and verify displayed candidate cost is reduced.
+  // Open cost details, set max hint, and verify candidate cost is reduced.
+  await currentCostButton.click();
+  const costDetailsPopover = page
+    .locator('[data-slot="popover-content"]')
+    .filter({ hasText: 'Cost details' })
+    .first();
+  await expect(costDetailsPopover).toBeVisible();
+
+  const hintSelect = costDetailsPopover.getByRole('combobox').first();
   await hintSelect.click();
-  await page.getByRole('option', { name: 'Lvl Max (40% off)' }).click();
+  await page.getByRole('option', { name: /Lvl Max \(40%\)/ }).click();
 
-  await expect(currentCostValue).toHaveText(/\d+\s*pts/);
-  const netCost = parseCost(await currentCostValue.textContent());
+  await expect.poll(async () => parseCost(await currentCostButton.textContent())).toBeLessThan(grossCost);
+  const netCost = parseCost(await currentCostButton.textContent());
   expect(netCost).toBeLessThan(grossCost);
 
   // Budget exactly at net cost: valid only if optimizer uses net cost.

@@ -44,16 +44,6 @@ export function getRaceSettingsSummaryLine(courseId: number, racedef: RaceCondit
   return `${trackName} · ${courseDesc} · ${ground} · ${season} · ${weather}`;
 }
 
-const RUNNER_TITLE: Record<'uma1' | 'uma2', string> = {
-  uma1: 'Umamusume 1',
-  uma2: 'Umamusume 2',
-};
-
-const RUNNER_ACCENT: Record<'uma1' | 'uma2', string> = {
-  uma1: '#2a77c5',
-  uma2: '#c52a2a',
-};
-
 /**
  * Hook that subscribes to the stores needed for the compare share card
  * and returns pre-computed props, or null when there are no results.
@@ -160,11 +150,9 @@ export function useCompareShareCardProps(): CompareShareCardProps | null {
       meanLengths,
       sampleCount: race.results.length,
       seedDisplay: race.seed === null ? '—' : String(race.seed),
-      runnerTitle: RUNNER_TITLE[runnerId],
-      runnerPanelAccent: RUNNER_ACCENT[runnerId],
       statRows,
     };
-  }, [race, runnerId, runner, courseId, racedef, wit]);
+  }, [race, runnerId, runner, uma1, uma2, courseId, racedef, wit]);
 }
 
 export async function copyCompareScreenshot(element: HTMLElement | null) {

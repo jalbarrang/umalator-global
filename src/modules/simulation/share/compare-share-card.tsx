@@ -25,8 +25,6 @@ export type CompareShareCardProps = {
   meanLengths: string | null;
   sampleCount: number;
   seedDisplay: string;
-  runnerTitle: string;
-  runnerPanelAccent: string;
   statRows: CompareShareStatRow[];
 };
 
@@ -38,8 +36,6 @@ export const CompareShareCard = forwardRef<HTMLDivElement, CompareShareCardProps
       meanLengths,
       sampleCount,
       seedDisplay,
-      runnerTitle,
-      runnerPanelAccent,
       statRows,
     },
     ref,
