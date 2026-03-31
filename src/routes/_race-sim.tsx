@@ -38,7 +38,7 @@ function RaceSimSkillPicker() {
 }
 
 const tabs = [
-  { label: 'Assemble', to: '/race-sim' },
+  { label: 'Configure', to: '/race-sim' },
   { label: 'Run', to: '/race-sim/run' },
   { label: 'Results', to: '/race-sim/results' },
 ] as const;

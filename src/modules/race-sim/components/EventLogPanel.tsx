@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import type { RaceEvent, RaceEventKind } from '@/lib/sunday-tools/race-sim/race-event-log';
 import { SIM_TO_DISPLAY_SECONDS, TICKS_PER_SECOND } from '@/modules/race-sim/constants';
 import { usePlaybackStore } from '@/modules/race-sim/stores/playback.store';
+import { skillCollection } from '@/modules/data/skills';
 import { formatTime } from '@/utils/time';
 import { useShallow } from 'zustand/shallow';
 
@@ -93,10 +94,14 @@ function matchesFilter(kind: RaceEventKind, filter: EventFilter): boolean {
 
 function getEventDescription(event: RaceEvent): string {
   switch (event.kind) {
-    case 'skill-activated':
-      return event.detail?.skillId
-        ? `activated skill ${event.detail.skillId}`
-        : 'activated a skill';
+    case 'skill-activated': {
+      const skillId = event.detail?.skillId;
+      if (!skillId) return 'activated a skill';
+      const skillName = skillCollection[skillId]?.name;
+      return skillName
+        ? `activated ${skillName} (${skillId})`
+        : `activated skill ${skillId}`;
+    }
     case 'rushed':
       return 'entered rush';
     case 'rushed-end':

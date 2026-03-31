@@ -18,6 +18,7 @@ import {
   resolveTrackSceneColors,
 } from './trackLayers';
 import { CANVAS_H, CANVAS_W, type MainTrackLayerId, type ViewportState } from './shared';
+import { buildTrackMarkers } from './trackPrimitives';
 import { clamp } from './utils';
 
 type TrackTopDownViewProps = {
@@ -45,6 +46,7 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
   const clampedViewEnd = clamp(viewEnd ?? courseDistance, clampedViewStart, courseDistance);
 
   const builtTrack = useMemo(() => buildCourseTrackPath(courseData), [courseData]);
+  const markers = useMemo(() => buildTrackMarkers(courseData), [courseData]);
   const { points, turnSign } = builtTrack;
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -70,6 +72,7 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
     runnerNames,
     trackedRunnerIds,
     turn: courseData.turn,
+    markers,
   });
 
   configRef.current = {
@@ -82,6 +85,7 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
     runnerNames,
     trackedRunnerIds,
     turn: courseData.turn,
+    markers,
   };
 
   const dirtyLayersRef = useRef<Record<MainTrackLayerId, boolean>>({
@@ -116,6 +120,7 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
       runnerPositions: positions,
       runnerNames: cfg.runnerNames,
       trackedRunnerIds: cfg.trackedRunnerIds,
+      markers: cfg.markers,
     });
     const colors = resolveTrackSceneColors();
 

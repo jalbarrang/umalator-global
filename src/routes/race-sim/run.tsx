@@ -163,7 +163,7 @@ export function RaceSimRun() {
         )}
 
         <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed px-6 text-center text-sm text-muted-foreground">
-          Run a simulation from the Assemble tab to see the replay here.
+          Run a simulation from the Configure tab to see the replay here.
         </div>
       </div>
     );
@@ -262,7 +262,7 @@ export function RaceSimRun() {
         </div>
 
         <div className="flex min-h-0 flex-1 flex-col md:flex-row">
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col md:overflow-hidden">
+          <div className="flex flex-col flex-1 min-h-0 min-w-0 md:overflow-hidden">
             <VisualizationPanel
               view={view}
               courseData={courseData}

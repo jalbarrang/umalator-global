@@ -93,6 +93,13 @@ export type TrackSceneColors = {
   dot: string;
 };
 
+export type TrackMarker = {
+  distance: number;
+  placement: 'outer' | 'surface';
+  kind: 'corner' | 'straight' | 'slope-up' | 'slope-down' | 'slope-flat';
+  label: string;
+};
+
 export type TrackTopDownScene = {
   builtTrack: BuiltTrackPath;
   courseWidth: number;
@@ -104,4 +111,5 @@ export type TrackTopDownScene = {
   outerPts: Array<{ x: number; y: number }>;
   runnerIds: number[];
   tracked: Set<number>;
+  markers: ReadonlyArray<TrackMarker>;
 };

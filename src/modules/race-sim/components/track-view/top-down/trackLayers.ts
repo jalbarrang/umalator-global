@@ -14,6 +14,7 @@ import {
   PACK_CANVAS_H,
   PACK_CANVAS_W,
   PACK_PAD,
+  type TrackMarker,
   type TrackSceneColors,
   type TrackTopDownScene,
   type ViewportState,
@@ -27,6 +28,7 @@ import {
 import {
   paintPhaseColoredSegments,
   paintPhaseDividersStartFinish,
+  paintTrackMarkers,
   strokeTrackOutlineAndRails,
 } from './trackPrimitives';
 import { clamp, formatLapTotal, resolvedColor } from './utils';
@@ -42,6 +44,7 @@ export type BuildTrackTopDownSceneParams = {
   runnerPositions: Record<number, number>;
   runnerNames: Record<number, string>;
   trackedRunnerIds: number[];
+  markers: ReadonlyArray<TrackMarker>;
 };
 
 type PaintTrackBaseLayerParams = {
@@ -90,6 +93,7 @@ export type PaintTrackPackZoomParams = {
   runnerLanes: Record<number, number>;
   runnerNames: Record<number, string>;
   trackedRunnerIds: number[];
+  markers: ReadonlyArray<TrackMarker>;
 };
 
 function collectVisibleRunnerIds(
@@ -141,6 +145,7 @@ export function buildTrackTopDownScene(params: BuildTrackTopDownSceneParams): Tr
     runnerPositions,
     runnerNames,
     trackedRunnerIds,
+    markers,
   } = params;
   const inner = builtTrack.points;
   const visiblePoints = buildVisibleTrackPoints(builtTrack, courseDistance, viewStart, viewEnd);
@@ -168,6 +173,7 @@ export function buildTrackTopDownScene(params: BuildTrackTopDownSceneParams): Tr
     outerPts,
     runnerIds: collectVisibleRunnerIds(runnerNames, runnerPositions, trackedRunnerIds),
     tracked: new Set(trackedRunnerIds),
+    markers,
   };
 }
 
@@ -199,6 +205,14 @@ export function paintTrackBaseLayer(params: PaintTrackBaseLayerParams): void {
     courseDistance: scene.courseDistance,
     transform: scene.transform,
     colorMuted: colors.muted,
+  });
+  paintTrackMarkers({
+    ctx,
+    markers: scene.markers,
+    builtTrack: scene.builtTrack,
+    courseWidth: scene.courseWidth,
+    turnSign: scene.turnSign,
+    transform: scene.transform,
   });
   ctx.restore();
 }
@@ -270,6 +284,7 @@ export function paintTrackPackZoom(params: PaintTrackPackZoomParams) {
     runnerLanes,
     runnerNames,
     trackedRunnerIds,
+    markers,
   } = params;
 
   const inner = builtTrack.points;
@@ -338,8 +353,16 @@ export function paintTrackPackZoom(params: PaintTrackPackZoomParams) {
     transform,
     colorMuted,
   });
+  paintTrackMarkers({
+    ctx,
+    markers,
+    builtTrack,
+    courseWidth,
+    turnSign,
+    transform,
+  });
 
-  const markers = buildRunnerMarkers({
+  const runnerMarkers = buildRunnerMarkers({
     runnerIds,
     runnerPositions,
     runnerLanes,
@@ -350,7 +373,7 @@ export function paintTrackPackZoom(params: PaintTrackPackZoomParams) {
     turnSign,
     transform,
   });
-  paintRunnerMarkersOnPackCanvas(ctx, markers, colorPrimary, colorBg);
+  paintRunnerMarkersOnPackCanvas(ctx, runnerMarkers, colorPrimary, colorBg);
 
   ctx.restore();
 }

@@ -9,6 +9,7 @@ import {
 } from '@/modules/race-sim/stores/playback.store';
 import { PACK_CANVAS_H, PACK_CANVAS_W } from './shared';
 import { paintTrackPackZoom } from './trackLayers';
+import { buildTrackMarkers } from './trackPrimitives';
 
 type TrackRunnerPackZoomProps = {
   courseData: CourseData;
@@ -24,6 +25,7 @@ export const TrackRunnerPackZoom = memo(function TrackRunnerPackZoom(
 ) {
   const { courseData, runnerNames, trackedRunnerIds, viewStart, viewEnd, className } = props;
   const builtTrack = useMemo(() => buildCourseTrackPath(courseData), [courseData]);
+  const markers = useMemo(() => buildTrackMarkers(courseData), [courseData]);
   const courseDistance = Math.max(courseData.distance, 1);
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -39,6 +41,7 @@ export const TrackRunnerPackZoom = memo(function TrackRunnerPackZoom(
     viewEnd,
     runnerNames,
     trackedRunnerIds,
+    markers,
   });
   configRef.current = {
     builtTrack,
@@ -49,6 +52,7 @@ export const TrackRunnerPackZoom = memo(function TrackRunnerPackZoom(
     viewEnd,
     runnerNames,
     trackedRunnerIds,
+    markers,
   };
 
   const repaintPack = useRef(() => {});
@@ -77,6 +81,7 @@ export const TrackRunnerPackZoom = memo(function TrackRunnerPackZoom(
         runnerLanes: lanes,
         runnerNames: cfg.runnerNames,
         trackedRunnerIds: cfg.trackedRunnerIds,
+        markers: cfg.markers,
       });
     },
   );
