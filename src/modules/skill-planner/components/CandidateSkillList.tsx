@@ -12,11 +12,10 @@ import { getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import { Separator } from '@/components/ui/separator';
 import { SkillItem } from '@/modules/skills/components/skill-list/SkillItem';
 import type { SkillMeta } from '@/modules/skills/components/skill-list/skill-item.context';
-import { getBaseTier, getUpgradeTier, getWhiteVersion } from '@/modules/skills/skill-relationships';
-import { skillCollection } from '@/modules/data/skills';
+import { getRepresentativePrerequisiteIds } from '../skill-family';
 
 export function CandidateSkillList() {
-  const { candidates, runner, obtainedSkills, hasFastLearner } = useSkillPlannerStore();
+  const { candidates, skillMetaById, runner, hasFastLearner } = useSkillPlannerStore();
 
   const candidateList = useMemo(() => Object.values(candidates), [candidates]);
 
@@ -45,27 +44,29 @@ export function CandidateSkillList() {
   const getSkillMeta = useCallback(
     (skillId: string): SkillMeta => {
       const candidate = candidates[skillId];
+      const meta = skillMetaById[skillId];
       return {
-        hintLevel: candidate?.hintLevel ?? 0,
-        bought: obtainedSkills.includes(skillId),
+        hintLevel: meta?.hintLevel ?? candidate?.hintLevel ?? 0,
+        bought: meta?.bought ?? false,
       };
     },
-    [candidates, obtainedSkills],
+    [candidates, skillMetaById],
   );
 
   const totalNetCost = useMemo(() => {
     let total = 0;
     for (const candidate of candidateList) {
-      if (obtainedSkills.includes(candidate.skillId)) continue;
+      const selfMeta = getSkillMeta(candidate.skillId);
+      if (selfMeta.bought) continue;
       total += computeTotalNetCost(
         candidate.skillId,
-        candidate.hintLevel,
+        selfMeta.hintLevel as HintLevel,
         hasFastLearner,
         getSkillMeta,
       );
     }
     return total;
-  }, [candidateList, obtainedSkills, hasFastLearner, getSkillMeta]);
+  }, [candidateList, hasFastLearner, getSkillMeta]);
 
   return (
     <div className="flex flex-col gap-4 h-full">
@@ -132,9 +133,17 @@ function CandidateSkillItem(props: CandidateSkillItemProps) {
     getSkillMeta,
   } = props;
 
+  const selfMeta = getSkillMeta(candidate.skillId);
+
   const netCost = useMemo(
-    () => computeTotalNetCost(candidate.skillId, candidate.hintLevel, hasFastLearner, getSkillMeta),
-    [candidate.skillId, candidate.hintLevel, hasFastLearner, getSkillMeta],
+    () =>
+      computeTotalNetCost(
+        candidate.skillId,
+        selfMeta.hintLevel as HintLevel,
+        hasFastLearner,
+        getSkillMeta,
+      ),
+    [candidate.skillId, selfMeta.hintLevel, hasFastLearner, getSkillMeta],
   );
 
   return (
@@ -158,21 +167,11 @@ export function computeTotalNetCost(
   getSkillMeta: (id: string) => SkillMeta,
 ): number {
   const selfNet = calculateSkillCost(skillId, hintLevel, hasFastLearner);
-  const skill = skillCollection[skillId];
-
-  if (skill.rarity !== 2) return selfNet;
-
-  const whiteVersionId = getWhiteVersion(skillId);
-  if (!whiteVersionId) return selfNet;
-
-  const baseTierId = getBaseTier(whiteVersionId);
-  const upgradeTierId = getUpgradeTier(baseTierId);
-  const prereqIds = [baseTierId, upgradeTierId].filter((pid): pid is string =>
-    Boolean(pid && pid !== skillId),
-  );
+  const prereqIds = getRepresentativePrerequisiteIds(skillId);
+  if (prereqIds.length === 0) return selfNet;
 
   let prereqNet = 0;
-  for (const pid of new Set(prereqIds)) {
+  for (const pid of prereqIds) {
     const meta = getSkillMeta(pid);
     if (meta.bought) continue;
     prereqNet += calculateSkillCost(pid, meta.hintLevel as HintLevel, hasFastLearner);

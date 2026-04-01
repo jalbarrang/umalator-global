@@ -35,7 +35,7 @@ export function SkillPlannerLayout() {
 
   const handleSkillSelect = (skills: Array<string>) => {
     for (const skillId of skills) {
-      addCandidate(skillId, 0);
+      addCandidate(skillId);
     }
   };
 
@@ -62,7 +62,7 @@ export function SkillPlannerLayout() {
       const uniqueSkill = getUniqueSkillForByUmaId(updates.outfitId);
 
       // Add unique skill to candidates if not already there
-      addCandidate(uniqueSkill, 0);
+      addCandidate(uniqueSkill);
 
       // Mark unique skill as obtained
       addObtainedSkill(uniqueSkill);

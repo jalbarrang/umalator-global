@@ -16,18 +16,18 @@ import SkillPlannerWorker from '@workers/skill-planner.worker.ts?worker';
 import {
   createCandidate,
   createNewSeed,
+  getObtainedSkills,
   setIsOptimizing,
   setProgress,
   setResult,
   useSkillPlannerStore,
 } from '../skill-planner.store';
-import type { CandidateSkill, OptimizationProgress, OptimizationResult } from '../types';
+import type { CandidateSkill, OptimizationProgress, OptimizationResult, SkillPlanningMeta } from '../types';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 import { racedefToParams } from '@/utils/races';
 import { useSettingsStore } from '@/store/settings.store';
 import { defaultSimulationOptions } from '@/components/bassin-chart/utils';
-import { skillCollection } from '@/modules/data/skills';
-import { getBaseTier, getUpgradeTier, getWhiteVersion } from '@/modules/skills/skill-relationships';
+import { getRepresentativePrerequisiteIds } from '../skill-family';
 
 const createSkillPlannerWorker = () => new SkillPlannerWorker();
 
@@ -53,8 +53,7 @@ type WorkerMessage =
     };
 
 export function useSkillPlannerOptimizer() {
-  const { runner, candidates, budget, obtainedSkills, hasFastLearner, seed } =
-    useSkillPlannerStore();
+  const { runner, candidates, skillMetaById, budget, hasFastLearner, seed } = useSkillPlannerStore();
   const { courseId, racedef } = useSettingsStore();
 
   const webWorkerRef = useRef<Worker | null>(null);
@@ -123,7 +122,8 @@ export function useSkillPlannerOptimizer() {
     setProgress(null);
     setIsOptimizing(true);
 
-    const expandedCandidates = expandPrerequisites(candidates, obtainedSkills);
+    const obtainedSkills = getObtainedSkills();
+    const expandedCandidates = expandPrerequisites(candidates, skillMetaById, obtainedSkills);
 
     webWorkerRef.current?.postMessage({
       type: 'optimize',
@@ -185,38 +185,29 @@ export function useSkillPlannerOptimizer() {
  * - Upgrade ◎ → adds base ○
  * - Base ○ → no expansion
  *
- * Prerequisites are added with default hint level 0.
+ * Prerequisites are added using stored skill meta (fallback to hint level 0).
  * Already-present candidates and obtained skills are skipped.
  */
 function expandPrerequisites(
   candidates: Record<string, CandidateSkill>,
+  skillMetaById: Record<string, SkillPlanningMeta>,
   obtainedSkills: Array<string>,
 ): Record<string, CandidateSkill> {
-  const expanded: Record<string, CandidateSkill> = { ...candidates };
+  const expanded: Record<string, CandidateSkill> = {};
   const obtainedSet = new Set(obtainedSkills);
 
   for (const candidate of Object.values(candidates)) {
-    const skill = skillCollection[candidate.skillId];
-    if (!skill) continue;
+    expanded[candidate.skillId] = createCandidate({
+      skillId: candidate.skillId,
+      hintLevel: skillMetaById[candidate.skillId]?.hintLevel ?? candidate.hintLevel ?? 0,
+    });
 
-    if (skill.rarity === 2) {
-      // Gold → add white base ○ and upgrade ◎
-      const whiteId = getWhiteVersion(candidate.skillId);
-      if (!whiteId) continue;
-
-      const baseId = getBaseTier(whiteId);
-      const upgradeId = getUpgradeTier(baseId);
-
-      for (const prereqId of [baseId, upgradeId]) {
-        if (prereqId && !expanded[prereqId] && !obtainedSet.has(prereqId)) {
-          expanded[prereqId] = createCandidate({ skillId: prereqId });
-        }
-      }
-    } else if (candidate.isStackable && candidate.tierLevel === 2 && candidate.previousTierId) {
-      // Upgrade ◎ → add base ○
-      const baseId = candidate.previousTierId;
-      if (!expanded[baseId] && !obtainedSet.has(baseId)) {
-        expanded[baseId] = createCandidate({ skillId: baseId });
+    for (const prereqId of getRepresentativePrerequisiteIds(candidate.skillId)) {
+      if (!expanded[prereqId] && !obtainedSet.has(prereqId)) {
+        expanded[prereqId] = createCandidate({
+          skillId: prereqId,
+          hintLevel: skillMetaById[prereqId]?.hintLevel ?? 0,
+        });
       }
     }
   }

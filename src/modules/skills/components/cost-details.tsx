@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/select';
 import type { HintLevel } from '@/modules/skill-planner/types';
 import { calculateSkillCost } from '@/modules/skill-planner/cost-calculator';
-import { getBaseTier, getUpgradeTier, getWhiteVersion } from '@/modules/skills/skill-relationships';
+import { getRepresentativePrerequisiteIds } from '@/modules/skill-planner/skill-family';
 import { skillCollection } from '@/modules/data/skills';
 import { useSkillItem } from './skill-list/skill-item.context';
 
@@ -124,36 +124,24 @@ export const SkillCostDetails = () => {
   const hintLevel = selfMeta.hintLevel as HintLevel;
   const isObtained = selfMeta.bought ?? false;
 
-  const isSimpleWhiteSkill = skill.rarity === 1;
-  const isGold = skill.rarity === 2;
-
-  const goldPrereqIds = useMemo(() => {
-    if (!isGold) return [] as Array<string>;
-
-    const whiteVersionId = getWhiteVersion(baseSkillId);
-    if (!whiteVersionId) return [] as Array<string>;
-
-    const baseTierId = getBaseTier(whiteVersionId);
-    const upgradeTierId = getUpgradeTier(baseTierId);
-    const prereqIds = [baseTierId, upgradeTierId].filter((sid): sid is string =>
-      Boolean(sid && sid !== baseSkillId),
-    );
-
-    return Array.from(new Set(prereqIds));
-  }, [baseSkillId, isGold]);
+  const representativePrereqIds = useMemo(
+    () => getRepresentativePrerequisiteIds(baseSkillId),
+    [baseSkillId],
+  );
+  const hasPrerequisites = representativePrereqIds.length > 0;
 
   const netCost = useMemo(
     () => calculateSkillCost(id, hintLevel, hasFastLearner),
     [hasFastLearner, hintLevel, id],
   );
 
-  const goldTotals = useMemo(() => {
-    if (!isGold) return null;
+  const representativeTotals = useMemo(() => {
+    if (!hasPrerequisites) return null;
 
     let baseCost = skill.baseCost;
     let prereqNetCost = 0;
 
-    for (const prereqId of goldPrereqIds) {
+    for (const prereqId of representativePrereqIds) {
       const prereqSkill = skillCollection[prereqId];
       const meta = getSkillMeta(prereqId);
       const isBought = meta.bought ?? false;
@@ -165,7 +153,7 @@ export const SkillCostDetails = () => {
     }
 
     return { baseCost, netCost: netCost + prereqNetCost };
-  }, [goldPrereqIds, hasFastLearner, isGold, netCost, getSkillMeta, skill.baseCost]);
+  }, [representativePrereqIds, hasFastLearner, hasPrerequisites, netCost, getSkillMeta, skill.baseCost]);
 
   const obtainedCheckboxId = `cost-details-${id}-obtained`;
 
@@ -196,7 +184,7 @@ export const SkillCostDetails = () => {
           <div className="text-center text-muted-foreground py-2">
             Skill already obtained — no cost.
           </div>
-        ) : isSimpleWhiteSkill ? (
+        ) : !hasPrerequisites ? (
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2 min-w-0">
               <SkillIcon iconId={skill.iconId} />
@@ -239,9 +227,9 @@ export const SkillCostDetails = () => {
               <span className="text-sm font-semibold">{netCost} SP</span>
             </div>
           </div>
-        ) : isGold ? (
+        ) : (
           <div className="flex flex-col gap-2">
-            {goldPrereqIds.map((prereqId) => (
+            {representativePrereqIds.map((prereqId) => (
               <PrereqItem key={prereqId} prereqId={prereqId} />
             ))}
 
@@ -287,15 +275,12 @@ export const SkillCostDetails = () => {
             <div className="flex items-center justify-between gap-2 border-t pt-2">
               <span className="text-muted-foreground">Totals</span>
               <span className="font-semibold">
-                {goldTotals?.baseCost ?? skill.baseCost} SP base / {goldTotals?.netCost ?? netCost}{' '}
+                {representativeTotals?.baseCost ?? skill.baseCost} SP base /{' '}
+                {representativeTotals?.netCost ?? netCost}{' '}
                 SP
                 {' net'}
               </span>
             </div>
-          </div>
-        ) : (
-          <div className="text-muted-foreground">
-            More cost detail variants will appear here for this skill type.
           </div>
         )}
       </div>

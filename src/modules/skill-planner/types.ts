@@ -1,5 +1,10 @@
 export type HintLevel = 0 | 1 | 2 | 3 | 4 | 5;
 
+export interface SkillPlanningMeta {
+  hintLevel: HintLevel;
+  bought?: boolean;
+}
+
 // Candidate skill with purchase metadata
 export interface CandidateSkill {
   /**
@@ -16,7 +21,8 @@ export interface CandidateSkill {
    */
   netCost: number;
   /**
-   * Hint level of the skill
+   * Hint level used by optimization payloads.
+   * UI state should prefer skillMeta lookups.
    */
   hintLevel: HintLevel;
 
