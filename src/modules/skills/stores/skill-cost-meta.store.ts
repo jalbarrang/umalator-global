@@ -2,9 +2,9 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { calculateSkillCost } from '@/modules/skill-planner/cost-calculator';
 import type { HintLevel } from '@/modules/skill-planner/types';
+import { getRepresentativePrerequisiteIds } from '@/modules/skill-planner/skill-family';
 import { useShallow } from 'zustand/shallow';
-import { getBaseTier, getUpgradeTier, getWhiteVersion } from '@/modules/skills/skill-relationships';
-import { skillCollection } from '@/modules/data/skills';
+import { getBaseTier, getUpgradeTier } from '@/modules/skills/skill-relationships';
 
 const SKILL_COST_META_STORE_NAME = 'umalator-skill-cost-meta';
 
@@ -108,7 +108,36 @@ export const setHintLevel = (runnerId: string, skillId: string, hintLevel: HintL
 };
 
 export const setBought = (runnerId: string, skillId: string, bought: boolean) => {
-  updateSkillMeta(runnerId, skillId, { bought });
+  useSkillCostMetaStore.setState((state) => {
+    const nextSkillMetaByKey = { ...state.skillMetaByKey };
+
+    const applyBoughtState = (targetSkillId: string, isBought: boolean) => {
+      const key = getSkillKey(runnerId, targetSkillId);
+      const current = resolveMeta({ ...state, skillMetaByKey: nextSkillMetaByKey }, runnerId, targetSkillId);
+      const normalized = normalizeMeta({ ...current, bought: isBought });
+
+      if (!normalized) {
+        delete nextSkillMetaByKey[key];
+        return;
+      }
+
+      nextSkillMetaByKey[key] = normalized;
+    };
+
+    applyBoughtState(skillId, bought);
+
+    const baseTierId = getBaseTier(skillId);
+    const upgradeTierId = getUpgradeTier(baseTierId);
+    if (upgradeTierId && skillId === upgradeTierId && baseTierId && bought) {
+      applyBoughtState(baseTierId, true);
+    }
+
+    if (upgradeTierId && skillId === baseTierId && !bought) {
+      applyBoughtState(upgradeTierId, false);
+    }
+
+    return { skillMetaByKey: nextSkillMetaByKey };
+  });
 };
 
 export const setReceived = (runnerId: string, skillId: string, received: boolean) => {
@@ -149,37 +178,23 @@ export function computeTotalNetCost(
   skillMetaMap: Record<string, SkillCostMeta>,
   hasFastLearner: boolean,
 ): number {
-  const baseSkillId = skillId.split('-')[0] ?? skillId;
-  const skill = skillCollection[skillId];
   const key = `${runnerId}:${skillId}`;
   const selfMeta = skillMetaMap[key];
 
   const selfHint: HintLevel = selfMeta?.hintLevel ?? 0;
   const selfNet = calculateSkillCost(skillId, selfHint, hasFastLearner);
+  const prereqIds = getRepresentativePrerequisiteIds(skillId);
+  if (prereqIds.length === 0) return selfNet;
 
-  if (skill.rarity === 2) {
-    // Gold skill – include un-bought white prerequisites
-    const whiteVersionId = getWhiteVersion(baseSkillId);
-    if (whiteVersionId) {
-      const baseTierId = getBaseTier(whiteVersionId);
-      const upgradeTierId = getUpgradeTier(baseTierId);
-      const prereqIds = [baseTierId, upgradeTierId].filter((pid): pid is string =>
-        Boolean(pid && pid !== baseSkillId),
-      );
-
-      let prereqNet = 0;
-      for (const pid of new Set(prereqIds)) {
-        const pKey = `${runnerId}:${pid}`;
-        const pMeta = skillMetaMap[pKey];
-        if (pMeta?.bought) continue;
-        prereqNet += calculateSkillCost(pid, pMeta?.hintLevel ?? 0, hasFastLearner);
-      }
-      return selfNet + prereqNet;
-    }
-    return selfNet;
+  let prereqNet = 0;
+  for (const pid of prereqIds) {
+    const pKey = `${runnerId}:${pid}`;
+    const pMeta = skillMetaMap[pKey];
+    if (pMeta?.bought) continue;
+    prereqNet += calculateSkillCost(pid, pMeta?.hintLevel ?? 0, hasFastLearner);
   }
 
-  return selfNet;
+  return selfNet + prereqNet;
 }
 
 export const setFastLearner = (runnerId: string, hasFastLearner: boolean) => {
