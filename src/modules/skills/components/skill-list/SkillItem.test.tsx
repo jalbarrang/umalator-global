@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 
+import '@testing-library/jest-dom/vitest';
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 import { SkillCostDetails } from '../cost-details';
@@ -25,8 +26,8 @@ describe('SkillItem cost summary UI', () => {
   it('renders rounded aggregate discount and net cost in the row', () => {
     render(<SkillItem skillId={runawaySkillId} costSummary={createCostSummary()} />);
 
-    expect(screen.getByText('46% off')).toBeTruthy();
-    expect(screen.getByText('120 SP')).toBeTruthy();
+    expect(screen.getByText('46% off')).toBeInTheDocument();
+    expect(screen.getByText('120 SP')).toBeInTheDocument();
   });
 
   it('hides the discount label when rounded discount is zero', () => {
@@ -38,7 +39,7 @@ describe('SkillItem cost summary UI', () => {
     );
 
     expect(screen.queryByText(/% off$/)).toBeNull();
-    expect(screen.getByText('120 SP')).toBeTruthy();
+    expect(screen.getByText('120 SP')).toBeInTheDocument();
   });
 
   it('shows obtained state instead of discount and net cost', () => {
@@ -49,7 +50,7 @@ describe('SkillItem cost summary UI', () => {
       />,
     );
 
-    expect(screen.getByText('Obtained')).toBeTruthy();
+    expect(screen.getByText('Obtained')).toBeInTheDocument();
     expect(screen.queryByText('46% off')).toBeNull();
     expect(screen.queryByText('120 SP')).toBeNull();
   });
@@ -63,10 +64,10 @@ describe('SkillCostDetails aggregate discount UI', () => {
       </SkillItemProvider>,
     );
 
-    expect(screen.getByText('Aggregate Base')).toBeTruthy();
-    expect(screen.getByText('224 SP')).toBeTruthy();
-    expect(screen.getByText('Aggregate Net')).toBeTruthy();
-    expect(screen.getByText('120 SP')).toBeTruthy();
-    expect(screen.getByText('46.4%')).toBeTruthy();
+    expect(screen.getByText('Aggregate Base')).toBeInTheDocument();
+    expect(screen.getByText('224 SP')).toBeInTheDocument();
+    expect(screen.getByText('Aggregate Net')).toBeInTheDocument();
+    expect(screen.getByText('120 SP')).toBeInTheDocument();
+    expect(screen.getByText('46.4%')).toBeInTheDocument();
   });
 });

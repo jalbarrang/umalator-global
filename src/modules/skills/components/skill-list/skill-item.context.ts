@@ -34,7 +34,7 @@ export const useSkillItem = () => {
   const context = useContext(SkillItemContext);
 
   if (!context) {
-    throw new Error('useSkillItem must be used within a SkillItemContext');
+    throw new Error('useSkillItem must be used within a SkillItemProvider');
   }
 
   return context;
