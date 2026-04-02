@@ -2,9 +2,9 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { calculateSkillCost } from '@/modules/skill-planner/cost-calculator';
 import type { HintLevel } from '@/modules/skill-planner/types';
-import { getRepresentativePrerequisiteIds } from '@/modules/skill-planner/skill-family';
 import { useShallow } from 'zustand/shallow';
 import { getBaseTier, getUpgradeTier } from '@/modules/skills/skill-relationships';
+import { buildSkillCostSummary } from '@/modules/skills/skill-cost-summary';
 
 const SKILL_COST_META_STORE_NAME = 'umalator-skill-cost-meta';
 
@@ -168,9 +168,24 @@ export const getNetCostForSkill = (runnerId: string, skillId: string): number =>
   );
 };
 
+export function computeSkillCostSummary(
+  skillId: string,
+  runnerId: string,
+  skillMetaMap: Record<string, SkillCostMeta>,
+  hasFastLearner: boolean,
+) {
+  return buildSkillCostSummary({
+    skillId,
+    hasFastLearner,
+    getSkillMeta: (targetSkillId) => {
+      const key = `${runnerId}:${targetSkillId}`;
+      return skillMetaMap[key] ?? DEFAULT_META;
+    },
+  });
+}
+
 /**
- * Computes the total net cost for a skill, including prerequisite/family costs.
- * Mirrors the "Totals" row from the cost-details popover.
+ * Computes the total net cost for a skill, including representative prerequisite/family costs.
  */
 export function computeTotalNetCost(
   skillId: string,
@@ -178,23 +193,7 @@ export function computeTotalNetCost(
   skillMetaMap: Record<string, SkillCostMeta>,
   hasFastLearner: boolean,
 ): number {
-  const key = `${runnerId}:${skillId}`;
-  const selfMeta = skillMetaMap[key];
-
-  const selfHint: HintLevel = selfMeta?.hintLevel ?? 0;
-  const selfNet = calculateSkillCost(skillId, selfHint, hasFastLearner);
-  const prereqIds = getRepresentativePrerequisiteIds(skillId);
-  if (prereqIds.length === 0) return selfNet;
-
-  let prereqNet = 0;
-  for (const pid of prereqIds) {
-    const pKey = `${runnerId}:${pid}`;
-    const pMeta = skillMetaMap[pKey];
-    if (pMeta?.bought) continue;
-    prereqNet += calculateSkillCost(pid, pMeta?.hintLevel ?? 0, hasFastLearner);
-  }
-
-  return selfNet + prereqNet;
+  return computeSkillCostSummary(skillId, runnerId, skillMetaMap, hasFastLearner).netTotal;
 }
 
 export const setFastLearner = (runnerId: string, hasFastLearner: boolean) => {
