@@ -18,6 +18,7 @@ import {
 import { racedefToParams } from '@/utils/races';
 import { useSettingsStore } from '@/store/settings.store';
 import { useRunner } from '@/store/runners.store';
+import { useSkillPlannerStore } from '@/modules/skill-planner/skill-planner.store';
 import { getBaseSkillsToTest } from '@/modules/skills/utils';
 
 const createSkillBasinWorker = () => new SkillBasinWorker();
@@ -35,6 +36,7 @@ const SAMPLES_PER_STAGE = [5, 20, 50, 200];
 export function useSkillBasinRunner() {
   const { runner } = useRunner();
   const { racedef, courseId } = useSettingsStore();
+  const ignoreStaminaConsumption = useSkillPlannerStore((state) => state.ignoreStaminaConsumption);
 
   const worker1Ref = useRef<Worker | null>(null);
   const worker2Ref = useRef<Worker | null>(null);
@@ -167,6 +169,7 @@ export function useSkillBasinRunner() {
         options: {
           ...defaultSimulationOptions,
           seed,
+          ignoreStaminaConsumption,
         },
       },
     });
@@ -181,6 +184,7 @@ export function useSkillBasinRunner() {
         options: {
           ...defaultSimulationOptions,
           seed,
+          ignoreStaminaConsumption,
         },
       },
     });

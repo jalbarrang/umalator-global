@@ -17,6 +17,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/ui/panel';
 import { Separator } from '@/components/ui/separator';
 import { skillCollection } from '@/modules/data/skills';
+import {
+  setIgnoreStaminaConsumption,
+  useSkillPlannerStore,
+} from '@/modules/skill-planner/skill-planner.store';
 
 type DrainSkillMeta = {
   skillId: string;
@@ -79,6 +83,7 @@ const WitVarianceSettingRow = ({
 export const AdvancedSettingsPanel = () => {
   const { nsamples } = useSettingsStore();
   const { uma1, uma2 } = useRunnersStore();
+  const ignoreStaminaConsumption = useSkillPlannerStore((state) => state.ignoreStaminaConsumption);
   const witVarianceSettings = useWitVariance();
   const staminaDrainOverrides = useStaminaDrainOverrides();
 
@@ -174,6 +179,19 @@ export const AdvancedSettingsPanel = () => {
             value={nsamples}
             onInput={(e) => setSamples(+e.currentTarget.value)}
             className="flex-1"
+          />
+        </div>
+
+        <Separator />
+
+        <div className="flex items-center justify-between">
+          <Label htmlFor="ignoreStaminaConsumption" className="text-sm font-semibold">
+            Ignore stamina consumption
+          </Label>
+          <Checkbox
+            id="ignoreStaminaConsumption"
+            checked={ignoreStaminaConsumption}
+            onCheckedChange={(checked) => setIgnoreStaminaConsumption(checked === true)}
           />
         </div>
 

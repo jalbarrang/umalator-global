@@ -38,7 +38,6 @@ export function SkillBassin() {
   );
 
   const courseId = useSettingsStore(useShallow((state) => state.courseId));
-
   const { runnerId, runner } = useRunner();
 
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);

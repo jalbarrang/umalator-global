@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { getObtainedSkills, useSkillPlannerStore } from '../skill-planner.store';
 import type { CombinationResult } from '../types';
+import { buildOptimizationInputFingerprint } from '../input-fingerprint';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -8,6 +9,7 @@ import { SaveRunnerModal } from '@/modules/runners/components/save-runner-modal'
 import { SkillItem } from '@/modules/skills/components/skill-list/SkillItem';
 import { setRunner } from '@/store/runners.store';
 import { useRunnerLibraryStore } from '@/store/runner-library.store';
+import { useSettingsStore } from '@/store/settings.store';
 import { toast } from 'sonner';
 
 type SkillPlannerResultsProps = React.HTMLAttributes<HTMLDivElement>;
@@ -15,7 +17,19 @@ type SkillPlannerResultsProps = React.HTMLAttributes<HTMLDivElement>;
 export function SkillPlannerResults(props: SkillPlannerResultsProps) {
   const { className, ...rest } = props;
 
-  const { candidates, budget, isOptimizing, progress, result, runner } = useSkillPlannerStore();
+  const {
+    candidates,
+    skillMetaById,
+    budget,
+    hasFastLearner,
+    ignoreStaminaConsumption,
+    isOptimizing,
+    progress,
+    result,
+    runner,
+    lastOptimizationFingerprint,
+  } = useSkillPlannerStore();
+  const { courseId, racedef, staminaDrainOverrides } = useSettingsStore();
   const addRunner = useRunnerLibraryStore((state) => state.addRunner);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
   const [selectedCombination, setSelectedCombination] = useState<CombinationResult | null>(null);
@@ -35,6 +49,38 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
 
     return result.allResults.toSorted((a, b) => b.bashin - a.bashin);
   }, [result]);
+
+  const currentInputFingerprint = useMemo(() => {
+    return buildOptimizationInputFingerprint({
+      budget,
+      hasFastLearner,
+      ignoreStaminaConsumption,
+      courseId,
+      racedef,
+      runner,
+      candidates,
+      skillMetaById,
+      staminaDrainOverrides,
+    });
+  }, [
+    budget,
+    candidates,
+    courseId,
+    hasFastLearner,
+    ignoreStaminaConsumption,
+    racedef,
+    runner,
+    skillMetaById,
+    staminaDrainOverrides,
+  ]);
+
+  const isResultStale = useMemo(() => {
+    if (!result || !lastOptimizationFingerprint) {
+      return false;
+    }
+
+    return currentInputFingerprint !== lastOptimizationFingerprint;
+  }, [currentInputFingerprint, lastOptimizationFingerprint, result]);
 
   const optimizationContext = useMemo(() => {
     if (!result) {
@@ -154,6 +200,13 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
               </div>
             </div>
           </div>
+
+          {isResultStale && (
+            <div className="border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-xs text-amber-900 dark:text-amber-200">
+              Settings changed since this result was generated. Re-run Optimize or Replay to apply
+              current inputs.
+            </div>
+          )}
 
           {/* Ranked Combinations List */}
           <div className="flex flex-col flex-1">

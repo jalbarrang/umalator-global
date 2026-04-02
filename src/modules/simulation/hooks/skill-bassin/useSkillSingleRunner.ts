@@ -13,6 +13,7 @@ import {
 } from '@/modules/simulation/stores/skill-basin.store';
 import { useRunner } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
+import { useSkillPlannerStore } from '@/modules/skill-planner/skill-planner.store';
 import { racedefToParams } from '@/utils/races';
 import { defaultSimulationOptions } from '@/components/bassin-chart/utils';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
@@ -24,6 +25,7 @@ import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 export function useSkillSingleRunner() {
   const { runner } = useRunner();
   const { racedef, courseId } = useSettingsStore();
+  const ignoreStaminaConsumption = useSkillPlannerStore((state) => state.ignoreStaminaConsumption);
   const { seed: currentSeed, results } = useSkillBasinStore(
     useShallow((state) => ({ seed: state.seed, results: state.results })),
   );
@@ -115,7 +117,10 @@ export function useSkillSingleRunner() {
         course,
         racedef: params,
         uma: runner,
-        options: defaultSimulationOptions,
+        options: {
+          ...defaultSimulationOptions,
+          ignoreStaminaConsumption,
+        },
       };
 
       // Send run message to worker
@@ -132,7 +137,7 @@ export function useSkillSingleRunner() {
         `Started ${additionalSamples} additional samples for skill ${skillId} with seed ${newSeed}`,
       );
     },
-    [currentSeed, results, course, racedef, runner],
+    [currentSeed, results, course, racedef, runner, ignoreStaminaConsumption],
   );
 
   /**

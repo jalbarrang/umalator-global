@@ -50,6 +50,14 @@ type SkillCompareParams = RunComparisonParams & {
   trackedSkillId: string;
 };
 
+export function createSkillCompareSettings(options: RunComparisonParams['options']) {
+  const ignoreStaminaConsumption = options.ignoreStaminaConsumption ?? true;
+  return createCompareSettings({
+    healthSystem: !ignoreStaminaConsumption,
+    staminaDrainOverrides: ignoreStaminaConsumption ? {} : options.staminaDrainOverrides,
+  });
+}
+
 export function runSkillComparison(params: SkillCompareParams): SkillComparisonResult {
   const { nsamples, course, racedef, runnerA, runnerB, trackedSkillId, options } = params;
 
@@ -59,7 +67,7 @@ export function runSkillComparison(params: SkillCompareParams): SkillComparisonR
   const runnerBSortedSkills = runnerB.skills.toSorted(skillSorter);
 
   const raceParameters = toSundayRaceParameters(racedef);
-  const settings = createCompareSettings();
+  const settings = createSkillCompareSettings(options);
 
   const fallbackEffectMeta = getFallbackEffectMeta(trackedSkillId);
   const collectorA = new BassinCollector();

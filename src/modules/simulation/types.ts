@@ -48,6 +48,7 @@ export interface SimulationOptions {
   useEnhancedSpurt?: boolean;
   accuracyMode?: boolean;
   mode?: string;
+  ignoreStaminaConsumption?: boolean;
 
   // Wit Variance
   allowRushedUma1: boolean;

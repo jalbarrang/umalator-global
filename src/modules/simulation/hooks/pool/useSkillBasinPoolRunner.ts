@@ -12,6 +12,7 @@ import {
 import { getBaseSkillsToTest } from '@/modules/skills/utils';
 import { useRunner } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
+import { useSkillPlannerStore } from '@/modules/skill-planner/skill-planner.store';
 import { racedefToParams } from '@/utils/races';
 import {
   defaultSimulationOptions,
@@ -26,6 +27,7 @@ const createSkillBasinPoolWorker = (options: { name: string }) => new SkillBasin
 export function useSkillBasinPoolRunner() {
   const { runner } = useRunner();
   const { racedef, courseId } = useSettingsStore();
+  const ignoreStaminaConsumption = useSkillPlannerStore((state) => state.ignoreStaminaConsumption);
 
   const poolManagerRef = useRef<PoolManager | null>(null);
 
@@ -86,6 +88,7 @@ export function useSkillBasinPoolRunner() {
         options: {
           ...defaultSimulationOptions,
           seed: simulationSeed,
+          ignoreStaminaConsumption,
         },
       },
       {

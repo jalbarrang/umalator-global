@@ -3,6 +3,7 @@ import { PlayIcon, RotateCcwIcon, XIcon } from 'lucide-react';
 import {
   setBudget,
   setHasFastLearner,
+  setIgnoreStaminaConsumption,
   setSeed,
   useSkillPlannerStore,
 } from '../skill-planner.store';
@@ -20,7 +21,8 @@ type CostModifiersPanelProps = React.HTMLAttributes<HTMLDivElement>;
 export function CostModifiersPanel(props: CostModifiersPanelProps) {
   const { className, ...rest } = props;
 
-  const { budget, hasFastLearner, candidates, isOptimizing, seed } = useSkillPlannerStore();
+  const { budget, hasFastLearner, ignoreStaminaConsumption, candidates, isOptimizing, seed } =
+    useSkillPlannerStore();
   const { handleOptimize, handleReplay, handleCancel } = useSkillPlannerOptimizer();
 
   const [seedInput, setSeedInput] = useState<string>(() => {
@@ -62,6 +64,10 @@ export function CostModifiersPanel(props: CostModifiersPanelProps) {
     setHasFastLearner(checked);
   };
 
+  const handleIgnoreStaminaConsumptionChange = (checked: boolean) => {
+    setIgnoreStaminaConsumption(checked);
+  };
+
   return (
     <div
       className={cn(
@@ -98,6 +104,22 @@ export function CostModifiersPanel(props: CostModifiersPanelProps) {
           />
           <Label htmlFor="fast-learner" className="cursor-pointer font-normal gap-1">
             Fast Learner
+          </Label>
+        </div>
+      </div>
+
+      <div className="flex gap-2 items-center">
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="ignore-stamina-consumption"
+            checked={ignoreStaminaConsumption}
+            onCheckedChange={handleIgnoreStaminaConsumptionChange}
+          />
+          <Label
+            htmlFor="ignore-stamina-consumption"
+            className="cursor-pointer font-normal whitespace-nowrap"
+          >
+            Ignore stamina consumption
           </Label>
         </div>
       </div>

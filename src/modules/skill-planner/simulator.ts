@@ -21,6 +21,7 @@ interface SkillCombinationComparisonParams {
   racedef: RaceParameters;
   baseRunner: RunnerState;
   candidateSkills: Array<string>;
+  ignoreStaminaConsumption: boolean;
   options: SimulationOptions;
 }
 
@@ -38,7 +39,8 @@ interface SkillCombinationComparisonResult {
 export function runSkillCombinationComparison(
   params: SkillCombinationComparisonParams,
 ): SkillCombinationComparisonResult {
-  const { nsamples, course, racedef, baseRunner, candidateSkills, options } = params;
+  const { nsamples, course, racedef, baseRunner, candidateSkills, ignoreStaminaConsumption, options } =
+    params;
 
   const result = runPlannerComparison({
     nsamples,
@@ -50,6 +52,7 @@ export function runSkillCombinationComparison(
       skills: [...baseRunner.skills, ...candidateSkills],
     },
     candidateSkills,
+    ignoreStaminaConsumption,
     options,
   });
 
@@ -67,6 +70,7 @@ type SkillPlannerSimulationParams = {
   course: CourseData;
   racedef: RaceParameters;
   baseRunner: RunnerState;
+  ignoreStaminaConsumption?: boolean;
   options: SimulationOptions;
   skillCombinations: Array<Array<string>>;
 };
@@ -99,6 +103,7 @@ export function runBatchSkillEvaluation(
       racedef: params.racedef,
       baseRunner: params.baseRunner,
       candidateSkills: combination,
+      ignoreStaminaConsumption: params.ignoreStaminaConsumption ?? false,
       options: params.options,
     });
 

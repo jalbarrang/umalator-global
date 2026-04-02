@@ -918,6 +918,7 @@ describe('skill-planner-compare simulator', () => {
       runnerA,
       runnerB,
       candidateSkills: [runawaySkillId],
+      ignoreStaminaConsumption: false,
       options,
     });
 
@@ -928,6 +929,7 @@ describe('skill-planner-compare simulator', () => {
       runnerA,
       runnerB,
       candidateSkills: [runawaySkillId],
+      ignoreStaminaConsumption: false,
       options,
     });
 
@@ -986,6 +988,7 @@ describe('skill-planner-compare simulator', () => {
       runnerA,
       runnerB,
       candidateSkills: ['110061'],
+      ignoreStaminaConsumption: false,
       options: createSimulationOptions(20260306),
     });
 

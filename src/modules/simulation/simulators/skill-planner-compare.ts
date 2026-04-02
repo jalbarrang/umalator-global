@@ -17,6 +17,7 @@ import {
 
 export type PlannerCompareParams = RunComparisonParams & {
   candidateSkills: Array<string>;
+  ignoreStaminaConsumption: boolean;
 };
 
 export type PlannerCompareResult = {
@@ -28,8 +29,27 @@ export type PlannerCompareResult = {
   median: number;
 };
 
+export function createPlannerCompareSettings(
+  ignoreStaminaConsumption: boolean,
+  staminaDrainOverrides: Record<string, number> | undefined,
+) {
+  return createCompareSettings({
+    healthSystem: !ignoreStaminaConsumption,
+    staminaDrainOverrides: ignoreStaminaConsumption ? {} : staminaDrainOverrides,
+  });
+}
+
 export function runPlannerComparison(params: PlannerCompareParams): PlannerCompareResult {
-  const { nsamples, course, racedef, runnerA, runnerB, candidateSkills, options } = params;
+  const {
+    nsamples,
+    course,
+    racedef,
+    runnerA,
+    runnerB,
+    candidateSkills,
+    ignoreStaminaConsumption,
+    options,
+  } = params;
 
   const seed = options.seed ?? 0;
   const skillSorter = createSkillSorterByGroup([...runnerA.skills, ...runnerB.skills]);
@@ -37,7 +57,7 @@ export function runPlannerComparison(params: PlannerCompareParams): PlannerCompa
   const runnerBSortedSkills = runnerB.skills.toSorted(skillSorter);
 
   const raceParameters = toSundayRaceParameters(racedef);
-  const settings = createCompareSettings();
+  const settings = createPlannerCompareSettings(ignoreStaminaConsumption, options.staminaDrainOverrides);
 
   const trackedSkillId = candidateSkills[0] ?? runnerB.skills[0] ?? runnerA.skills[0] ?? '0';
   const fallbackEffectMeta = getFallbackEffectMeta(trackedSkillId);
