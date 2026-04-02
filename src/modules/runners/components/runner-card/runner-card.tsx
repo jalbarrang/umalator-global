@@ -34,6 +34,7 @@ import type { RunnerState } from './types';
 import type { StatsKey } from './stats-table';
 import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
 import { SkillItem } from '@/modules/skills/components/skill-list/SkillItem';
+import { skillCollection } from '@/modules/data/skills';
 
 import { getSelectableSkillsForUma, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import { OcrImportDialog } from '@/modules/runners/components/ocr-import-dialog';
@@ -51,11 +52,14 @@ import {
   useSkillCostMetaStore,
   useRunnerHasFastLearner,
   getSkillCostMeta,
-  computeTotalNetCost,
+  computeSkillCostSummary,
 } from '@/modules/skills/stores/skill-cost-meta.store';
-import { skillCollection } from '@/modules/data/skills';
 import type { SkillMeta } from '@/modules/skills/components/skill-list/skill-item.context';
 import type { HintLevel } from '@/modules/skill-planner/types';
+import {
+  buildDedupedSkillListNetTotal,
+  type SkillCostSummary,
+} from '@/modules/skills/skill-cost-summary';
 
 type RunnerCardProps = {
   value: RunnerState;
@@ -183,50 +187,48 @@ export const RunnerCard = (props: RunnerCardProps) => {
   };
 
   const umaUniqueSkillId = useMemo(() => getUniqueSkillForByUmaId(umaId), [umaId]);
-  const skillsWithBaseCost = useMemo(() => {
-    return state.skills.map((skillId) => {
-      const skill = skillCollection[skillId];
 
-      return {
-        skillId,
-        baseCost: skill.baseCost,
-      };
-    });
-  }, [state.skills]);
-
-  const hasFastLearner = useRunnerHasFastLearner(
-    showSkillSpCosts && props.runnerId !== 'pacer' ? props.runnerId : '',
-  );
+  const isSkillSpCostEnabled = showSkillSpCosts && props.runnerId !== 'pacer';
+  const hasFastLearner = useRunnerHasFastLearner(isSkillSpCostEnabled ? props.runnerId : '');
 
   const skillMetaByKey = useSkillCostMetaStore((s) => s.skillMetaByKey);
 
-  const netCostBySkillId = useMemo(() => {
-    if (!showSkillSpCosts || props.runnerId === 'pacer') return {};
-    const map: Record<string, number> = {};
+  const costSummaryBySkillId = useMemo<Record<string, SkillCostSummary>>(() => {
+    if (!isSkillSpCostEnabled) return {};
+
+    const map: Record<string, SkillCostSummary> = {};
     for (const skillId of state.skills) {
-      map[skillId] = computeTotalNetCost(skillId, props.runnerId, skillMetaByKey, hasFastLearner);
+      map[skillId] = computeSkillCostSummary(skillId, props.runnerId, skillMetaByKey, hasFastLearner);
     }
+
     return map;
-  }, [props.runnerId, state.skills, showSkillSpCosts, skillMetaByKey, hasFastLearner]);
+  }, [isSkillSpCostEnabled, props.runnerId, state.skills, skillMetaByKey, hasFastLearner]);
 
   const totalSkillSp = useMemo(() => {
-    if (!showSkillSpCosts || props.runnerId === 'pacer') {
+    if (!isSkillSpCostEnabled) {
       return null;
     }
 
-    return Object.values(netCostBySkillId).reduce((sum, cost) => sum + cost, 0);
-  }, [showSkillSpCosts, props.runnerId, netCostBySkillId]);
+    return buildDedupedSkillListNetTotal({
+      visibleSkillIds: state.skills,
+      hasFastLearner,
+      getSkillMeta: (targetSkillId) => {
+        const key = `${props.runnerId}:${targetSkillId}`;
+        return skillMetaByKey[key] ?? { hintLevel: 0 };
+      },
+    });
+  }, [isSkillSpCostEnabled, state.skills, hasFastLearner, props.runnerId, skillMetaByKey]);
 
   const fastLearnerCheckboxId = `${props.runnerId}-fast-learner`;
   const handleFastLearnerChange = useCallback(
     (checked: boolean) => {
-      if (!showSkillSpCosts || props.runnerId === 'pacer') {
+      if (!isSkillSpCostEnabled) {
         return;
       }
 
       setFastLearner(props.runnerId, checked);
     },
-    [props.runnerId, showSkillSpCosts],
+    [isSkillSpCostEnabled, props.runnerId],
   );
 
   const handleRemoveSkill = useCallback(
@@ -250,27 +252,27 @@ export const RunnerCard = (props: RunnerCardProps) => {
 
   const handleHintLevelChange = useCallback(
     (skillId: string, level: number) => {
-      if (!showSkillSpCosts || props.runnerId === 'pacer') return;
+      if (!isSkillSpCostEnabled) return;
       setHintLevel(props.runnerId, skillId, level as HintLevel);
     },
-    [props.runnerId, showSkillSpCosts],
+    [isSkillSpCostEnabled, props.runnerId],
   );
 
   const handleBoughtChange = useCallback(
     (skillId: string, bought: boolean) => {
-      if (!showSkillSpCosts || props.runnerId === 'pacer') return;
+      if (!isSkillSpCostEnabled) return;
       setBought(props.runnerId, skillId, bought);
     },
-    [props.runnerId, showSkillSpCosts],
+    [isSkillSpCostEnabled, props.runnerId],
   );
 
   const getSkillMetaForRunner = useCallback(
     (skillId: string): SkillMeta => {
-      if (!showSkillSpCosts || props.runnerId === 'pacer') return { hintLevel: 0 };
+      if (!isSkillSpCostEnabled) return { hintLevel: 0 };
       return getSkillCostMeta(props.runnerId, skillId);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps -- skillMetaByKey triggers new ref so cost-details re-reads fresh data
-    [props.runnerId, showSkillSpCosts, skillMetaByKey],
+    [isSkillSpCostEnabled, props.runnerId, skillMetaByKey],
   );
 
   return (
@@ -436,22 +438,32 @@ export const RunnerCard = (props: RunnerCardProps) => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-2">
-        {skillsWithBaseCost.map(({ skillId }) => {
-          return (
+      <div className={isSkillSpCostEnabled ? 'flex flex-wrap items-stretch gap-2' : 'grid grid-cols-1 gap-2'}>
+        {state.skills.map((skillId) => {
+          const skillItem = (
             <SkillItem
               key={skillId}
               skillId={skillId}
               dismissable={skillId !== umaUniqueSkillId}
               distanceFactor={props.courseDistance}
-              spCost={showSkillSpCosts ? netCostBySkillId[skillId] : undefined}
-              runnerId={showSkillSpCosts ? props.runnerId : undefined}
-              hasFastLearner={showSkillSpCosts ? hasFastLearner : undefined}
+              costSummary={isSkillSpCostEnabled ? costSummaryBySkillId[skillId] : undefined}
+              runnerId={isSkillSpCostEnabled ? props.runnerId : undefined}
+              hasFastLearner={isSkillSpCostEnabled ? hasFastLearner : undefined}
               onRemove={handleRemoveSkill}
-              onHintLevelChange={showSkillSpCosts ? handleHintLevelChange : undefined}
-              onBoughtChange={showSkillSpCosts ? handleBoughtChange : undefined}
-              getSkillMeta={showSkillSpCosts ? getSkillMetaForRunner : undefined}
+              onHintLevelChange={isSkillSpCostEnabled ? handleHintLevelChange : undefined}
+              onBoughtChange={isSkillSpCostEnabled ? handleBoughtChange : undefined}
+              getSkillMeta={isSkillSpCostEnabled ? getSkillMetaForRunner : undefined}
             />
+          );
+
+          if (!isSkillSpCostEnabled) {
+            return skillItem;
+          }
+
+          return (
+            <div key={skillId} className="basis-full min-w-0 sm:min-w-[280px] sm:basis-[320px] flex-1">
+              {skillItem}
+            </div>
           );
         })}
       </div>

@@ -17,6 +17,7 @@ import { calculateSkillCost } from '@/modules/skill-planner/cost-calculator';
 import { getRepresentativePrerequisiteIds } from '@/modules/skill-planner/skill-family';
 import { skillCollection } from '@/modules/data/skills';
 import { useSkillItem } from './skill-list/skill-item.context';
+import { buildSkillCostSummary } from '@/modules/skills/skill-cost-summary';
 
 const HINT_LEVEL_OPTIONS: Array<{ value: HintLevel; label: string }> = [
   { value: 0, label: 'No hint' },
@@ -115,47 +116,45 @@ const PrereqItem = memo((props: PrereqItemProps) => {
  * so it works identically in compare mode and the skill planner.
  */
 export const SkillCostDetails = () => {
-  const { skill, hasFastLearner, getSkillMeta, onHintLevelChange, onBoughtChange } = useSkillItem();
+  const {
+    skill,
+    skillId,
+    normalizedSkillId,
+    hasFastLearner,
+    getSkillMeta,
+    onHintLevelChange,
+    onBoughtChange,
+    costSummary,
+  } = useSkillItem();
 
-  const id = skill.id;
-  const baseSkillId = useMemo(() => id.split('-')[0] ?? id, [id]);
-
-  const selfMeta = useMemo(() => getSkillMeta(id), [getSkillMeta, id]);
+  const selfMeta = useMemo(() => getSkillMeta(skillId), [getSkillMeta, skillId]);
   const hintLevel = selfMeta.hintLevel as HintLevel;
-  const isObtained = selfMeta.bought ?? false;
 
   const representativePrereqIds = useMemo(
-    () => getRepresentativePrerequisiteIds(baseSkillId),
-    [baseSkillId],
+    () => getRepresentativePrerequisiteIds(normalizedSkillId),
+    [normalizedSkillId],
   );
   const hasPrerequisites = representativePrereqIds.length > 0;
 
   const netCost = useMemo(
-    () => calculateSkillCost(id, hintLevel, hasFastLearner),
-    [hasFastLearner, hintLevel, id],
+    () => calculateSkillCost(normalizedSkillId, hintLevel, hasFastLearner),
+    [hasFastLearner, hintLevel, normalizedSkillId],
   );
 
-  const representativeTotals = useMemo(() => {
-    if (!hasPrerequisites) return null;
-
-    let baseCost = skill.baseCost;
-    let prereqNetCost = 0;
-
-    for (const prereqId of representativePrereqIds) {
-      const prereqSkill = skillCollection[prereqId];
-      const meta = getSkillMeta(prereqId);
-      const isBought = meta.bought ?? false;
-
-      if (!isBought) {
-        baseCost += prereqSkill.baseCost;
-        prereqNetCost += calculateSkillCost(prereqId, meta.hintLevel as HintLevel, hasFastLearner);
-      }
+  const resolvedCostSummary = useMemo(() => {
+    if (costSummary) {
+      return costSummary;
     }
 
-    return { baseCost, netCost: netCost + prereqNetCost };
-  }, [representativePrereqIds, hasFastLearner, hasPrerequisites, netCost, getSkillMeta, skill.baseCost]);
+    return buildSkillCostSummary({
+      skillId,
+      hasFastLearner,
+      getSkillMeta,
+    });
+  }, [costSummary, skillId, hasFastLearner, getSkillMeta]);
 
-  const obtainedCheckboxId = `cost-details-${id}-obtained`;
+  const isObtained = resolvedCostSummary.isObtained;
+  const obtainedCheckboxId = `cost-details-${skillId}-obtained`;
 
   return (
     <div className={cn('bg-background border-2 rounded-b-sm flex flex-col')}>
@@ -167,7 +166,7 @@ export const SkillCostDetails = () => {
               <Checkbox
                 id={obtainedCheckboxId}
                 checked={isObtained}
-                onCheckedChange={(checked) => onBoughtChange(id, checked === true)}
+                onCheckedChange={(checked) => onBoughtChange(skillId, checked === true)}
               />
               <Label htmlFor={obtainedCheckboxId} className="text-xs cursor-pointer font-normal">
                 Obtained
@@ -192,7 +191,7 @@ export const SkillCostDetails = () => {
                 <div className="font-medium leading-tight truncate">{skill.name}</div>
                 <div className="text-[11px] text-muted-foreground">
                   {i18n.t('skilldetails.id')}
-                  {id}
+                  {skillId}
                 </div>
               </div>
             </div>
@@ -206,7 +205,7 @@ export const SkillCostDetails = () => {
               <span className="text-muted-foreground">Hint Lvl</span>
               <Select
                 value={hintLevel}
-                onValueChange={(value) => onHintLevelChange?.(id, value ?? 0)}
+                onValueChange={(value) => onHintLevelChange?.(skillId, value ?? 0)}
                 disabled={!onHintLevelChange}
               >
                 <SelectTrigger className="h-7 w-[148px] text-xs">
@@ -222,9 +221,15 @@ export const SkillCostDetails = () => {
               </Select>
             </div>
 
-            <div className="flex items-center justify-between gap-2 border-t pt-2">
-              <span className="text-muted-foreground">Net Cost</span>
-              <span className="text-sm font-semibold">{netCost} SP</span>
+            <div className="grid grid-cols-[1fr_auto] gap-y-1 gap-x-3 items-center border-t pt-2">
+              <span className="text-muted-foreground">Aggregate Base</span>
+              <span className="font-medium">{resolvedCostSummary.baseTotal} SP</span>
+
+              <span className="text-muted-foreground">Aggregate Net</span>
+              <span className="text-sm font-semibold">{resolvedCostSummary.netTotal} SP</span>
+
+              <span className="text-muted-foreground">Discount</span>
+              <span className="font-medium">{resolvedCostSummary.exactDiscountPct.toFixed(1)}%</span>
             </div>
           </div>
         ) : (
@@ -240,7 +245,7 @@ export const SkillCostDetails = () => {
                   <div className="font-medium leading-tight truncate">{skill.name}</div>
                   <div className="text-[11px] text-muted-foreground">
                     {i18n.t('skilldetails.id')}
-                    {id}
+                    {skillId}
                   </div>
                 </div>
               </div>
@@ -252,7 +257,7 @@ export const SkillCostDetails = () => {
                 <span className="text-muted-foreground">Hint Lvl</span>
                 <Select
                   value={hintLevel}
-                  onValueChange={(value) => onHintLevelChange?.(id, value ?? 0)}
+                  onValueChange={(value) => onHintLevelChange?.(skillId, value ?? 0)}
                   disabled={!onHintLevelChange}
                 >
                   <SelectTrigger className="h-7 w-[148px] text-xs">
@@ -272,14 +277,15 @@ export const SkillCostDetails = () => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between gap-2 border-t pt-2">
-              <span className="text-muted-foreground">Totals</span>
-              <span className="font-semibold">
-                {representativeTotals?.baseCost ?? skill.baseCost} SP base /{' '}
-                {representativeTotals?.netCost ?? netCost}{' '}
-                SP
-                {' net'}
-              </span>
+            <div className="grid grid-cols-[1fr_auto] gap-y-1 gap-x-3 items-center border-t pt-2">
+              <span className="text-muted-foreground">Aggregate Base</span>
+              <span className="font-medium">{resolvedCostSummary.baseTotal} SP</span>
+
+              <span className="text-muted-foreground">Aggregate Net</span>
+              <span className="font-semibold">{resolvedCostSummary.netTotal} SP</span>
+
+              <span className="text-muted-foreground">Discount</span>
+              <span className="font-medium">{resolvedCostSummary.exactDiscountPct.toFixed(1)}%</span>
             </div>
           </div>
         )}
