@@ -1,4 +1,5 @@
 /// <reference types="vitest/config" />
+
 import tailwindcss from '@tailwindcss/vite';
 import react, { reactCompilerPreset } from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
@@ -23,5 +24,8 @@ export default defineConfig({
   assetsInclude: ['**/*.wasm'],
   worker: {
     format: 'es',
+  },
+  test: {
+    globals: true,
   },
 });

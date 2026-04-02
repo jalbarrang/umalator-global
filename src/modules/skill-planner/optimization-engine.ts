@@ -25,6 +25,8 @@ export interface OptimizationParams {
   obtainedSkills: Array<string>;
   /** Available skill points budget */
   budget: number;
+  /** If true, planner ignores stamina depletion effects */
+  ignoreStaminaConsumption: boolean;
   /** Runner configuration (without skills - they'll be set during simulation) */
   runner: RunnerState;
   /** Course data */
@@ -51,8 +53,17 @@ export interface OptimizationStageConfig {
  * 3. Final Winner: High-accuracy evaluation of best combination (high samples)
  */
 export function runAdaptiveOptimization(params: OptimizationParams): OptimizationResult {
-  const { candidates, obtainedSkills, budget, runner, course, racedef, options, onProgress } =
-    params;
+  const {
+    candidates,
+    obtainedSkills,
+    budget,
+    ignoreStaminaConsumption,
+    runner,
+    course,
+    racedef,
+    options,
+    onProgress,
+  } = params;
 
   const startTime = performance.now();
 
@@ -64,7 +75,7 @@ export function runAdaptiveOptimization(params: OptimizationParams): Optimizatio
   }
 
   // ============================================================
-  // Stage 1: Initial Pass (20 samples per combination)
+  // Stage 1: Initial Pass (15 samples per combination)
   // ============================================================
 
   const stage1Results = evaluateCombinations({
@@ -75,14 +86,15 @@ export function runAdaptiveOptimization(params: OptimizationParams): Optimizatio
     course,
     racedef,
     options,
-    samples: 20,
+    samples: 15,
+    ignoreStaminaConsumption,
     progressOffset: 0,
     progressTotal: combinations.length,
     onProgress,
   });
 
   // ============================================================
-  // Stage 2: Top Candidates (50 samples)
+  // Stage 2: Top Candidates (35 samples)
   // ============================================================
 
   // Sort by bashin gain and take top 20%
@@ -100,14 +112,15 @@ export function runAdaptiveOptimization(params: OptimizationParams): Optimizatio
     course,
     racedef,
     options,
-    samples: 50,
+    samples: 35,
+    ignoreStaminaConsumption,
     progressOffset: combinations.length,
     progressTotal: combinations.length + topCombinations.length + 1,
     onProgress,
   });
 
   // ============================================================
-  // Stage 3: Final Winner (200 samples)
+  // Stage 3: Final Winner (120 samples)
   // ============================================================
 
   stage2Results.sort((a, b) => b.bashin - a.bashin);
@@ -126,7 +139,8 @@ export function runAdaptiveOptimization(params: OptimizationParams): Optimizatio
     course,
     racedef,
     options,
-    samples: 200,
+    samples: 120,
+    ignoreStaminaConsumption,
   });
 
   const endTime = performance.now();
@@ -165,6 +179,7 @@ interface EvaluateCombinationsParams {
   racedef: RaceParameters;
   options: SimulationOptions;
   samples: number;
+  ignoreStaminaConsumption: boolean;
   progressOffset: number;
   progressTotal: number;
   onProgress?: (progress: OptimizationProgress) => void;
@@ -183,6 +198,7 @@ function evaluateCombinations(params: EvaluateCombinationsParams): Array<Combina
     racedef,
     options,
     samples,
+    ignoreStaminaConsumption,
     progressOffset,
     progressTotal,
     onProgress,
@@ -202,6 +218,7 @@ function evaluateCombinations(params: EvaluateCombinationsParams): Array<Combina
       racedef,
       options,
       samples,
+      ignoreStaminaConsumption,
     });
 
     results.push(result);
@@ -230,6 +247,7 @@ interface EvaluateCombinationParams {
   racedef: RaceParameters;
   options: SimulationOptions;
   samples: number;
+  ignoreStaminaConsumption: boolean;
 }
 
 interface EvaluationResult {
@@ -253,8 +271,17 @@ interface EvaluationResult {
  * and candidateSkills should contain the combination to test.
  */
 function evaluateCombination(params: EvaluateCombinationParams): EvaluationResult {
-  const { combination, candidates, obtainedSkills, runner, course, racedef, options, samples } =
-    params;
+  const {
+    combination,
+    candidates,
+    obtainedSkills,
+    runner,
+    course,
+    racedef,
+    options,
+    samples,
+    ignoreStaminaConsumption,
+  } = params;
   const candidateMap = new Map(candidates.map((candidate) => [candidate.skillId, candidate]));
   const skillCosts: Record<string, number> = {};
 
@@ -275,6 +302,7 @@ function evaluateCombination(params: EvaluateCombinationParams): EvaluationResul
     racedef,
     baseRunner,
     candidateSkills: combination, // Additional skills to test
+    ignoreStaminaConsumption,
     options,
   });
 

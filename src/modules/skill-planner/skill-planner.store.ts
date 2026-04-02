@@ -26,12 +26,14 @@ interface SkillPlannerState {
   // Budget and modifiers
   budget: number;
   hasFastLearner: boolean;
+  ignoreStaminaConsumption: boolean;
 
   // Optimization state
   seed: number | null;
   isOptimizing: boolean;
   progress: OptimizationProgress | null;
   result: OptimizationResult | null;
+  lastOptimizationFingerprint: string | null;
 
   // Skill UI State
   skillDrawerOpen: boolean;
@@ -45,10 +47,12 @@ export const useSkillPlannerStore = create<SkillPlannerState>()(
       skillMetaById: {},
       budget: 1000,
       hasFastLearner: false,
+      ignoreStaminaConsumption: false,
       seed: null,
       isOptimizing: false,
       progress: null,
       result: null,
+      lastOptimizationFingerprint: null,
       // Skill UI State
       skillDrawerOpen: false,
     }),
@@ -61,6 +65,7 @@ export const useSkillPlannerStore = create<SkillPlannerState>()(
         skillMetaById: state.skillMetaById,
         budget: state.budget,
         hasFastLearner: state.hasFastLearner,
+        ignoreStaminaConsumption: state.ignoreStaminaConsumption,
       }),
     },
   ),
@@ -474,6 +479,12 @@ export const setHasFastLearner = (hasFastLearner: boolean) => {
   });
 };
 
+export const setIgnoreStaminaConsumption = (ignoreStaminaConsumption: boolean) => {
+  useSkillPlannerStore.setState({
+    ignoreStaminaConsumption,
+  });
+};
+
 export const setSeed = (seed: number | null) => {
   useSkillPlannerStore.setState({ seed });
 };
@@ -501,6 +512,10 @@ export const setResult = (result: OptimizationResult | null) => {
   useSkillPlannerStore.setState({ result });
 };
 
+export const setLastOptimizationFingerprint = (lastOptimizationFingerprint: string | null) => {
+  useSkillPlannerStore.setState({ lastOptimizationFingerprint });
+};
+
 export const resetRunner = () => {
   useSkillPlannerStore.setState({
     runner: createRunnerState(),
@@ -514,6 +529,7 @@ export const clearAll = () => {
     candidates: {},
     skillMetaById: {},
     result: null,
+    lastOptimizationFingerprint: null,
     progress: null,
     isOptimizing: false,
   });
@@ -552,5 +568,5 @@ export const clearCandidates = () => {
 };
 
 export const clearResult = () => {
-  useSkillPlannerStore.setState({ result: null });
+  useSkillPlannerStore.setState({ result: null, lastOptimizationFingerprint: null });
 };

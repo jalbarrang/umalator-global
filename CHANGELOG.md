@@ -2,6 +2,20 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.5.0-beta.3 - 2026-04-01
+
+- Added a persisted `Ignore stamina consumption` setting in Advanced Settings and wired Skill Chart to honor it, while leaving Uma Chart behavior unchanged.
+- Updated Skill Planner optimization to account for stamina by default, with an option to temporarily ignore stamina consumption for pure length-gain ranking.
+- Added stale-result detection in Skill Planner so results show an inline rerun warning when optimization inputs change.
+- Updated planner compare settings to support stamina-aware simulation with stamina drain overrides when stamina consumption is enabled.
+- Tuned Skill Planner adaptive sampling to 15 / 35 / 120 for faster runs and added coverage for new stamina/fingerprint behaviors.
+
+## 0.5.0-beta.2 - 2026-04-01
+
+- Added result actions to Skill Planner optimization rows so non-baseline builds can be saved directly to Veterans or sent to Compare slots (Uma 1 / Uma 2).
+- Added Skill Planner to Compare transfer flow that applies a full runner snapshot (stats, aptitudes, outfit, and selected skills) with toast feedback and no forced navigation.
+- Updated the shared save modal to support hiding the link checkbox, and reused it from Skill Planner for notes-required Veterans saves.
+
 ## 0.5.0-beta.1 - 2026-03-31
 
 - Introduced the Race Sim Beta experience with a new top-down race view as the primary visualization mode.

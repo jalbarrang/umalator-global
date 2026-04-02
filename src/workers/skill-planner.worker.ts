@@ -5,9 +5,9 @@
  *
  * ## Adaptive Sampling Strategy
  *
- * 1. **Initial Pass** (20 samples): Quick filtering to eliminate poor combinations
- * 2. **Top Candidates** (50 samples): More accurate evaluation of promising combinations
- * 3. **Final Winner** (200 samples): High-accuracy evaluation of best combination
+ * 1. **Initial Pass** (15 samples): Quick filtering to eliminate poor combinations
+ * 2. **Top Candidates** (35 samples): More accurate evaluation of promising combinations
+ * 3. **Final Winner** (120 samples): High-accuracy evaluation of best combination
  *
  * ## Message Protocol
  *
@@ -36,6 +36,8 @@ interface OptimizeParams {
   obtainedSkills: Array<string>; // Skills already owned (cost=0, always in baseline)
   budget: number;
   hasFastLearner: boolean;
+  ignoreStaminaConsumption: boolean;
+  staminaDrainOverrides: Record<string, number>;
   runner: RunnerState;
   course: CourseData;
   racedef: RaceParameters;
@@ -57,8 +59,18 @@ function sendMessage(message: SkillPlannerWorkerOutMessage): void {
  * Main optimization logic - delegates to optimization engine
  */
 function runOptimization(params: OptimizeParams) {
-  const { candidates, obtainedSkills, budget, hasFastLearner, runner, course, racedef, options } =
-    params;
+  const {
+    candidates,
+    obtainedSkills,
+    budget,
+    hasFastLearner,
+    ignoreStaminaConsumption,
+    staminaDrainOverrides,
+    runner,
+    course,
+    racedef,
+    options,
+  } = params;
 
   // Convert candidates Record to Array, excluding obtained skills
   const candidateArray = Object.values(candidates)
@@ -73,10 +85,14 @@ function runOptimization(params: OptimizeParams) {
     candidates: candidateArray,
     obtainedSkills,
     budget,
+    ignoreStaminaConsumption,
     runner,
     course,
     racedef,
-    options,
+    options: {
+      ...options,
+      staminaDrainOverrides,
+    },
     onProgress: (progress) => {
       sendMessage({
         type: 'skill-planner-progress',

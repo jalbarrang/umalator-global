@@ -1,5 +1,5 @@
 import { BookmarkPlus } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -19,6 +19,7 @@ type SaveRunnerModalProps = {
   onOpenChange: (open: boolean) => void;
   onSave: (name: string, shouldLink: boolean) => void;
   triggerButton?: React.ReactElement;
+  showLinkOption?: boolean;
 };
 
 export const SaveRunnerModal = ({
@@ -26,24 +27,28 @@ export const SaveRunnerModal = ({
   onOpenChange,
   onSave,
   triggerButton,
+  showLinkOption = true,
 }: SaveRunnerModalProps) => {
   const [name, setName] = useState('');
-  const [shouldLink, setShouldLink] = useState(true);
+  const [shouldLink, setShouldLink] = useState(showLinkOption);
+
+  useEffect(() => {
+    if (!open) {
+      setName('');
+      setShouldLink(showLinkOption);
+    }
+  }, [open, showLinkOption]);
 
   const handleSave = () => {
     if (!name.trim()) {
       return;
     }
 
-    onSave(name.trim(), shouldLink);
-    setName('');
-    setShouldLink(true);
+    onSave(name.trim(), showLinkOption ? shouldLink : false);
     onOpenChange(false);
   };
 
   const handleCancel = () => {
-    setName('');
-    setShouldLink(true);
     onOpenChange(false);
   };
 
@@ -80,16 +85,18 @@ export const SaveRunnerModal = ({
             />
           </div>
 
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="link-runner"
-              checked={shouldLink}
-              onCheckedChange={(checked) => setShouldLink(checked === true)}
-            />
-            <Label htmlFor="link-runner" className="cursor-pointer font-normal">
-              Link runner after saving (sync future changes)
-            </Label>
-          </div>
+          {showLinkOption && (
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="link-runner"
+                checked={shouldLink}
+                onCheckedChange={(checked) => setShouldLink(checked === true)}
+              />
+              <Label htmlFor="link-runner" className="cursor-pointer font-normal">
+                Link runner after saving (sync future changes)
+              </Label>
+            </div>
+          )}
         </div>
 
         <DialogFooter>

@@ -18,11 +18,13 @@ import {
   createNewSeed,
   getObtainedSkills,
   setIsOptimizing,
+  setLastOptimizationFingerprint,
   setProgress,
   setResult,
   useSkillPlannerStore,
 } from '../skill-planner.store';
 import type { CandidateSkill, OptimizationProgress, OptimizationResult, SkillPlanningMeta } from '../types';
+import { buildOptimizationInputFingerprint } from '../input-fingerprint';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 import { racedefToParams } from '@/utils/races';
 import { useSettingsStore } from '@/store/settings.store';
@@ -53,10 +55,12 @@ type WorkerMessage =
     };
 
 export function useSkillPlannerOptimizer() {
-  const { runner, candidates, skillMetaById, budget, hasFastLearner, seed } = useSkillPlannerStore();
-  const { courseId, racedef } = useSettingsStore();
+  const { runner, candidates, skillMetaById, budget, hasFastLearner, ignoreStaminaConsumption, seed } =
+    useSkillPlannerStore();
+  const { courseId, racedef, staminaDrainOverrides } = useSettingsStore();
 
   const webWorkerRef = useRef<Worker | null>(null);
+  const runFingerprintRef = useRef<string | null>(null);
 
   // Transform course and race parameters
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
@@ -77,6 +81,7 @@ export function useSkillPlannerOptimizer() {
         break;
       case 'skill-planner-result':
         setResult(event.data.result);
+        setLastOptimizationFingerprint(runFingerprintRef.current);
         break;
       case 'skill-planner-done':
         setIsOptimizing(false);
@@ -125,6 +130,18 @@ export function useSkillPlannerOptimizer() {
     const obtainedSkills = getObtainedSkills();
     const expandedCandidates = expandPrerequisites(candidates, skillMetaById, obtainedSkills);
 
+    runFingerprintRef.current = buildOptimizationInputFingerprint({
+      budget,
+      hasFastLearner,
+      ignoreStaminaConsumption,
+      courseId,
+      racedef,
+      runner,
+      candidates,
+      skillMetaById,
+      staminaDrainOverrides,
+    });
+
     webWorkerRef.current?.postMessage({
       type: 'optimize',
       data: {
@@ -132,6 +149,8 @@ export function useSkillPlannerOptimizer() {
         obtainedSkills,
         budget,
         hasFastLearner,
+        ignoreStaminaConsumption,
+        staminaDrainOverrides,
         runner,
         course,
         racedef: raceParams,

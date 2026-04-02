@@ -1,15 +1,38 @@
-import { useMemo } from 'react';
-import { useSkillPlannerStore } from '../skill-planner.store';
+import { useCallback, useMemo, useState } from 'react';
+import { getObtainedSkills, useSkillPlannerStore } from '../skill-planner.store';
+import type { CombinationResult } from '../types';
+import { buildOptimizationInputFingerprint } from '../input-fingerprint';
 import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { SaveRunnerModal } from '@/modules/runners/components/save-runner-modal';
 import { SkillItem } from '@/modules/skills/components/skill-list/SkillItem';
+import { setRunner } from '@/store/runners.store';
+import { useRunnerLibraryStore } from '@/store/runner-library.store';
+import { useSettingsStore } from '@/store/settings.store';
+import { toast } from 'sonner';
 
 type SkillPlannerResultsProps = React.HTMLAttributes<HTMLDivElement>;
 
 export function SkillPlannerResults(props: SkillPlannerResultsProps) {
   const { className, ...rest } = props;
 
-  const { candidates, budget, isOptimizing, progress, result } = useSkillPlannerStore();
+  const {
+    candidates,
+    skillMetaById,
+    budget,
+    hasFastLearner,
+    ignoreStaminaConsumption,
+    isOptimizing,
+    progress,
+    result,
+    runner,
+    lastOptimizationFingerprint,
+  } = useSkillPlannerStore();
+  const { courseId, racedef, staminaDrainOverrides } = useSettingsStore();
+  const addRunner = useRunnerLibraryStore((state) => state.addRunner);
+  const [saveModalOpen, setSaveModalOpen] = useState(false);
+  const [selectedCombination, setSelectedCombination] = useState<CombinationResult | null>(null);
 
   const candidateList = useMemo(() => Object.values(candidates), [candidates]);
   const canOptimize = useMemo(
@@ -27,8 +50,118 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
     return result.allResults.toSorted((a, b) => b.bashin - a.bashin);
   }, [result]);
 
+  const currentInputFingerprint = useMemo(() => {
+    return buildOptimizationInputFingerprint({
+      budget,
+      hasFastLearner,
+      ignoreStaminaConsumption,
+      courseId,
+      racedef,
+      runner,
+      candidates,
+      skillMetaById,
+      staminaDrainOverrides,
+    });
+  }, [
+    budget,
+    candidates,
+    courseId,
+    hasFastLearner,
+    ignoreStaminaConsumption,
+    racedef,
+    runner,
+    skillMetaById,
+    staminaDrainOverrides,
+  ]);
+
+  const isResultStale = useMemo(() => {
+    if (!result || !lastOptimizationFingerprint) {
+      return false;
+    }
+
+    return currentInputFingerprint !== lastOptimizationFingerprint;
+  }, [currentInputFingerprint, lastOptimizationFingerprint, result]);
+
+  const optimizationContext = useMemo(() => {
+    if (!result) {
+      return null;
+    }
+
+    const state = useSkillPlannerStore.getState();
+
+    return {
+      runner: {
+        ...state.runner,
+        skills: [...state.runner.skills],
+      },
+      obtainedSkills: getObtainedSkills(),
+    };
+  }, [result]);
+
+  const buildSkills = useCallback((combination: CombinationResult): Array<string> => {
+    const obtainedSkills = optimizationContext?.obtainedSkills ?? getObtainedSkills();
+
+    return Array.from(new Set([...obtainedSkills, ...combination.skills]));
+  }, [optimizationContext]);
+
+  const buildRunnerSnapshot = useCallback(
+    (combination: CombinationResult) => {
+      const baseRunner = optimizationContext?.runner ?? runner;
+
+      return {
+        ...baseRunner,
+        skills: buildSkills(combination),
+      };
+    },
+    [optimizationContext, runner, buildSkills],
+  );
+
+  const handleOpenSaveModal = useCallback((combination: CombinationResult) => {
+    setSelectedCombination(combination);
+    setSaveModalOpen(true);
+  }, []);
+
+  const handleSaveModalOpenChange = useCallback((open: boolean) => {
+    setSaveModalOpen(open);
+
+    if (!open) {
+      setSelectedCombination(null);
+    }
+  }, []);
+
+  const handleSaveToVeterans = useCallback(
+    (name: string) => {
+      if (!selectedCombination) {
+        return;
+      }
+
+      addRunner({
+        ...buildRunnerSnapshot(selectedCombination),
+        notes: name,
+      });
+
+      setSelectedCombination(null);
+    },
+    [addRunner, buildRunnerSnapshot, selectedCombination],
+  );
+
+  const handleSendToCompare = useCallback(
+    (slot: 'uma1' | 'uma2', combination: CombinationResult) => {
+      setRunner(slot, buildRunnerSnapshot(combination));
+      toast.success(`Loaded build into ${slot === 'uma1' ? 'Uma 1' : 'Uma 2'}`);
+    },
+    [buildRunnerSnapshot],
+  );
+
   return (
     <div className={cn('space-y-4', className)} {...rest}>
+      <SaveRunnerModal
+        open={saveModalOpen}
+        onOpenChange={handleSaveModalOpenChange}
+        onSave={(name) => handleSaveToVeterans(name)}
+        showLinkOption={false}
+      />
+
       {/* Progress Indicator */}
       {isOptimizing && progress && (
         <div className="space-y-2 border rounded-lg p-4 bg-card">
@@ -68,6 +201,13 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
             </div>
           </div>
 
+          {isResultStale && (
+            <div className="border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-xs text-amber-900 dark:text-amber-200">
+              Settings changed since this result was generated. Re-run Optimize or Replay to apply
+              current inputs.
+            </div>
+          )}
+
           {/* Ranked Combinations List */}
           <div className="flex flex-col flex-1">
             <div className="p-4 space-y-3">
@@ -105,6 +245,34 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
                         );
                       })}
                     </div>
+
+                    {combination.skills.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-2 pt-2 border-t">
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => handleOpenSaveModal(combination)}
+                        >
+                          Save to Veterans
+                        </Button>
+
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleSendToCompare('uma1', combination)}
+                        >
+                          Uma 1
+                        </Button>
+
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleSendToCompare('uma2', combination)}
+                        >
+                          Uma 2
+                        </Button>
+                      </div>
+                    )}
 
                     {/* Cost Summary and Lengths */}
                     <div className="grid grid-cols-2 items-center pt-2 border-t text-xs">
