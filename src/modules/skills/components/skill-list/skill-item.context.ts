@@ -28,7 +28,7 @@ export type ISkillItemContext = {
   getSkillMeta: (skillId: string) => SkillMeta;
 };
 
-export const SkillItemContext = createContext<ISkillItemContext>({} as ISkillItemContext);
+export const SkillItemContext = createContext<ISkillItemContext | null>(null);
 
 export const useSkillItem = () => {
   const context = useContext(SkillItemContext);

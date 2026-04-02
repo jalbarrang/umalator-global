@@ -176,9 +176,9 @@ const SkillItemContent = (props: SkillItemContentProps) => {
                     variant="ghost"
                     size="sm"
                     className={cn(
-                      'h-8 w-full justify-end gap-2 border rounded-sm px-2 cursor-pointer',
+                      'h-8 w-full justify-end gap-2 rounded-sm border border-border/60 bg-muted/20 px-2 cursor-pointer hover:bg-muted/40',
                       isObtained
-                        ? 'text-green-600 dark:text-green-400 border-green-600/30 dark:border-green-400/30'
+                        ? 'border-green-600/30 bg-green-600/5 text-green-600 dark:border-green-400/30 dark:bg-green-400/8 dark:text-green-400'
                         : 'text-muted-foreground',
                     )}
                     title="Show skill cost details"
@@ -188,7 +188,11 @@ const SkillItemContent = (props: SkillItemContentProps) => {
                       'Obtained'
                     ) : (
                       <>
-                        {roundedDiscountPct > 0 && <span>{roundedDiscountPct}% off</span>}
+                        {roundedDiscountPct > 0 && (
+                          <span className="text-[11px] font-medium italic tracking-tight text-muted-foreground">
+                            {roundedDiscountPct}% off
+                          </span>
+                        )}
                         <span className="font-semibold text-foreground">{displayedNetCost} SP</span>
                       </>
                     )}
