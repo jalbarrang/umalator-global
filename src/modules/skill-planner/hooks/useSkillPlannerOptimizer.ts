@@ -29,7 +29,7 @@ import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 import { racedefToParams } from '@/utils/races';
 import { useSettingsStore } from '@/store/settings.store';
 import { defaultSimulationOptions } from '@/components/bassin-chart/utils';
-import { getRepresentativePrerequisiteIds } from '../skill-family';
+import { getUnsatisfiedRepresentativePrerequisiteIds } from '../skill-family';
 
 const createSkillPlannerWorker = () => new SkillPlannerWorker();
 
@@ -213,7 +213,6 @@ function expandPrerequisites(
   obtainedSkills: Array<string>,
 ): Record<string, CandidateSkill> {
   const expanded: Record<string, CandidateSkill> = {};
-  const obtainedSet = new Set(obtainedSkills);
 
   for (const candidate of Object.values(candidates)) {
     expanded[candidate.skillId] = createCandidate({
@@ -221,8 +220,8 @@ function expandPrerequisites(
       hintLevel: skillMetaById[candidate.skillId]?.hintLevel ?? candidate.hintLevel ?? 0,
     });
 
-    for (const prereqId of getRepresentativePrerequisiteIds(candidate.skillId)) {
-      if (!expanded[prereqId] && !obtainedSet.has(prereqId)) {
+    for (const prereqId of getUnsatisfiedRepresentativePrerequisiteIds(candidate.skillId, obtainedSkills)) {
+      if (!expanded[prereqId]) {
         expanded[prereqId] = createCandidate({
           skillId: prereqId,
           hintLevel: skillMetaById[prereqId]?.hintLevel ?? 0,

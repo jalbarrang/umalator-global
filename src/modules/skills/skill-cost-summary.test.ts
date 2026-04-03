@@ -18,6 +18,10 @@ const findSkillId = (predicate: (skillId: string) => boolean, label: string): st
   return skillId;
 };
 
+const findSkillIdByName = (name: string): string => {
+  return findSkillId((skillId) => skillCollection[skillId].name === name, `skill named "${name}"`);
+};
+
 const plainSkillId = findSkillId(
   (skillId) => getRepresentativePrerequisiteIds(skillId).length === 0 && skillCollection[skillId].rarity < 3,
   'a plain non-bundled skill',
@@ -85,13 +89,13 @@ describe('buildSkillCostSummary', () => {
 
   it('computes prerequisite-bundled totals and excludes bought prerequisites', () => {
     const prereqIds = getRepresentativePrerequisiteIds(bundledSkillId);
-    const unpaidPrereqId = prereqIds[0];
-    const boughtPrereqId = prereqIds[1];
+    const boughtPrereqId = prereqIds[0];
+    const unpaidPrereqId = prereqIds[1];
 
     const meta: Record<string, TestMeta> = {
       [bundledSkillId]: { hintLevel: 2 },
-      [unpaidPrereqId]: { hintLevel: 1, bought: false },
       [boughtPrereqId]: { hintLevel: 5, bought: true },
+      [unpaidPrereqId]: { hintLevel: 1, bought: false },
     };
 
     const summary = buildSkillCostSummary({
@@ -106,6 +110,24 @@ describe('buildSkillCostSummary', () => {
 
     expect(summary.baseTotal).toBe(expectedBase);
     expect(summary.netTotal).toBe(expectedNet);
+    expect(summary.isObtained).toBe(false);
+  });
+
+  it('treats covered prerequisite tiers as already owned in aggregate totals', () => {
+    const concentrationId = findSkillIdByName('Concentration');
+    const focusId = findSkillIdByName('Focus');
+
+    const summary = buildSkillCostSummary({
+      skillId: concentrationId,
+      hasFastLearner: false,
+      getSkillMeta: createGetSkillMeta({
+        [concentrationId]: { hintLevel: 0 },
+        [focusId]: { hintLevel: 0, bought: true },
+      }),
+    });
+
+    expect(summary.baseTotal).toBe(skillCollection[concentrationId].baseCost);
+    expect(summary.netTotal).toBe(skillCollection[concentrationId].baseCost);
     expect(summary.isObtained).toBe(false);
   });
 

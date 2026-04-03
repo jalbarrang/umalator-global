@@ -1,8 +1,19 @@
 import { describe, expect, it } from 'vitest';
-import { calculateSkillCost, getNetCost } from './cost-calculator';
+import { calculateDisplayCost, calculateSkillCost, getNetCost } from './cost-calculator';
 import type { CandidateSkill } from './types';
 import { skillCollection } from '@/modules/data/skills';
 import { runawaySkillId } from '@/modules/runners/components/runner-card/types';
+import { getWhiteVersion } from '@/modules/skills/skill-relationships';
+
+const getSkillIdByName = (name: string): string => {
+  const skillId = Object.keys(skillCollection).find((candidateId) => skillCollection[candidateId].name === name);
+
+  if (!skillId) {
+    throw new Error(`Could not find skill named "${name}"`);
+  }
+
+  return skillId;
+};
 
 describe('cost-calculator', () => {
   const skillId = runawaySkillId;
@@ -38,5 +49,28 @@ describe('cost-calculator', () => {
 
     expect(getNetCost(candidate, false)).toBe(Math.floor(baseCost * 0.6));
     expect(getNetCost(candidate, true)).toBe(Math.floor(baseCost * 0.6 * 0.9));
+  });
+
+  it('does not bundle white tiers when a gold-owned family already covers them', () => {
+    const escapeArtistId = getSkillIdByName('Escape Artist');
+    const goldCandidate: CandidateSkill = {
+      skillId: escapeArtistId,
+      cost: skillCollection[escapeArtistId].baseCost,
+      netCost: skillCollection[escapeArtistId].baseCost,
+      hintLevel: 0,
+      isStackable: false,
+      isGold: true,
+      whiteSkillId: getWhiteVersion(escapeArtistId),
+      baseTierIdForGold: getWhiteVersion(escapeArtistId),
+    };
+
+    const displayCost = calculateDisplayCost(
+      escapeArtistId,
+      { [escapeArtistId]: goldCandidate },
+      [escapeArtistId],
+      false,
+    );
+
+    expect(displayCost).toBe(skillCollection[escapeArtistId].baseCost);
   });
 });

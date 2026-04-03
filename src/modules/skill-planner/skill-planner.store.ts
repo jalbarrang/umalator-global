@@ -13,7 +13,11 @@ import {
 } from '@/modules/skills/skill-relationships';
 import { getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import { findVersionOfSkill, skillCollection } from '@/modules/data/skills';
-import { getRelatedSkillIds, getRepresentativePrerequisiteIds } from './skill-family';
+import {
+  getRelatedSkillIds,
+  getRepresentativePrerequisiteIds,
+  isSkillCoveredByOwnedFamily,
+} from './skill-family';
 import { resolveActiveSkills } from './optimizer';
 
 interface SkillPlannerState {
@@ -198,6 +202,9 @@ export const setCandidates = (candidates: Record<string, CandidateSkill>) => {
  */
 export const canAddToPool = (skillId: string): { canAdd: boolean; reason?: string } => {
   const { candidates, skillMetaById } = useSkillPlannerStore.getState();
+  const boughtSkillIds = Object.entries(skillMetaById)
+    .filter(([, meta]) => meta.bought)
+    .map(([ownedSkillId]) => ownedSkillId);
 
   // If already in pool, can't add again
   if (hasCandidate(skillId)) {
@@ -210,8 +217,7 @@ export const canAddToPool = (skillId: string): { canAdd: boolean; reason?: strin
   }
 
   for (const prereqId of prereqIds) {
-    const prereqMeta = resolveSkillMeta(skillMetaById, prereqId);
-    if (!candidates[prereqId] && !prereqMeta.bought) {
+    if (!candidates[prereqId] && !isSkillCoveredByOwnedFamily(prereqId, boughtSkillIds)) {
       if (prereqIds.length === 1) {
         return {
           canAdd: false,
@@ -235,6 +241,9 @@ export const canAddToPool = (skillId: string): { canAdd: boolean; reason?: strin
  */
 export const getAddableUpgrades = (): Array<string> => {
   const { candidates, skillMetaById } = useSkillPlannerStore.getState();
+  const boughtSkillIds = Object.entries(skillMetaById)
+    .filter(([, meta]) => meta.bought)
+    .map(([ownedSkillId]) => ownedSkillId);
   const addableUpgrades: Array<string> = [];
 
   // Check each candidate to see if it's a stackable base tier
@@ -242,7 +251,7 @@ export const getAddableUpgrades = (): Array<string> => {
     if (candidate.isStackable && candidate.tierLevel === 1 && candidate.nextTierId) {
       // This is a base tier with an upgrade tier available
       // If upgrade tier is not already in pool, it's now addable
-      if (!hasCandidate(candidate.nextTierId) && !resolveSkillMeta(skillMetaById, candidate.nextTierId).bought) {
+      if (!hasCandidate(candidate.nextTierId) && !isSkillCoveredByOwnedFamily(candidate.nextTierId, boughtSkillIds)) {
         addableUpgrades.push(candidate.nextTierId);
       }
     }

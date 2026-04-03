@@ -1,6 +1,7 @@
 import type { CandidateSkill, CostBreakdown, HintLevel } from './types';
 import { skillCollection } from '@/modules/data/skills';
 import { getBaseTier, getUpgradeTier } from '@/modules/skills/skill-relationships';
+import { isSkillCoveredByOwnedFamily } from './skill-family';
 
 // Hint level discount mapping (as shown in game screenshots)
 export const HINT_DISCOUNTS: Readonly<Record<HintLevel, number>> = {
@@ -86,8 +87,8 @@ export function calculateDisplayCost(
     throw new Error(`White skill not found for gold skill ID: ${skillId}`);
   }
 
-  // If white skill is in obtainedSkills, return only gold cost
-  if (obtainedSkills.includes(whiteSkillId)) {
+  // If the white family is already covered, return only gold cost.
+  if (isSkillCoveredByOwnedFamily(whiteSkillId, obtainedSkills)) {
     return getNetCost(candidate, hasFastLearner);
   }
 
@@ -176,13 +177,9 @@ export function calculatePoolCost(
     if (candidate.isGold && candidate.whiteSkillId) {
       const whiteSkillId = candidate.whiteSkillId;
 
-      // If ANY white tier is in obtainedSkills, only pay for gold
       const whiteBaseTier = getBaseTier(whiteSkillId);
       const whiteUpgradeTier = getUpgradeTier(whiteBaseTier || whiteSkillId);
-      const hasAnyWhiteTier =
-        obtainedSet.has(whiteSkillId) ||
-        (whiteBaseTier && obtainedSet.has(whiteBaseTier)) ||
-        (whiteUpgradeTier && obtainedSet.has(whiteUpgradeTier));
+      const hasAnyWhiteTier = isSkillCoveredByOwnedFamily(whiteSkillId, obtainedSet);
 
       if (hasAnyWhiteTier) {
         // Gold cost only (white already owned)

@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.5.0-beta.4 - 2026-04-03
+
+- Fixed Skill Planner prerequisite resolution so already owned family members no longer get re-added as hidden purchase candidates during optimization.
+- Fixed planner cost details and aggregate cost summaries to treat gold and upgrade tiers as satisfying their prerequisite families.
+- Added regression coverage for the `Concentration` / `Focus` / `Gatekept` and `Escape Artist` / `Fast-Paced` prerequisite ownership cases.
+
 ## 0.5.0-beta.3 - 2026-04-01
 
 - Added a persisted `Ignore stamina consumption` setting in Advanced Settings and wired Skill Chart to honor it, while leaving Uma Chart behavior unchanged.

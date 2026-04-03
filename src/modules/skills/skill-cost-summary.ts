@@ -1,6 +1,10 @@
 import { skillCollection } from '@/modules/data/skills';
 import { calculateSkillCost } from '@/modules/skill-planner/cost-calculator';
-import { getRepresentativePrerequisiteIds } from '@/modules/skill-planner/skill-family';
+import {
+  getRelatedSkillIds,
+  getRepresentativePrerequisiteIds,
+  isSkillCoveredByOwnedFamily,
+} from '@/modules/skill-planner/skill-family';
 import type { HintLevel } from '@/modules/skill-planner/types';
 import { isUniqueSkill } from '@/store/runners.store';
 
@@ -78,6 +82,13 @@ const upsertCoveredSkill = (
   }
 };
 
+const getBoughtFamilySkillIds = (
+  skillId: string,
+  getSkillMeta: (skillId: string) => SkillSummaryMeta,
+): Array<string> => {
+  return getRelatedSkillIds(skillId).filter((relatedSkillId) => getSkillMeta(relatedSkillId).bought === true);
+};
+
 export const buildSkillCostSummary = ({
   skillId,
   hasFastLearner,
@@ -107,6 +118,7 @@ export const buildSkillCostSummary = ({
   );
 
   const representativePrereqIds = getRepresentativePrerequisiteIds(normalizedSkillId);
+  const boughtFamilySkillIds = getBoughtFamilySkillIds(normalizedSkillId, getSkillMeta);
 
   for (const prereqId of representativePrereqIds) {
     const prereq = skillCollection[prereqId];
@@ -115,7 +127,7 @@ export const buildSkillCostSummary = ({
     }
 
     const prereqMeta = getSkillMeta(prereqId);
-    if (prereqMeta.bought) {
+    if (isSkillCoveredByOwnedFamily(prereqId, boughtFamilySkillIds)) {
       continue;
     }
 
@@ -159,6 +171,7 @@ export const buildDedupedSkillListNetTotal = ({
     }
 
     const selfMeta = resolveSelfSkillMeta(visibleSkillId, normalizedSkillId, getSkillMeta);
+    const boughtFamilySkillIds = getBoughtFamilySkillIds(normalizedSkillId, getSkillMeta);
     if (selfMeta.bought) {
       continue;
     }
@@ -172,7 +185,7 @@ export const buildDedupedSkillListNetTotal = ({
       }
 
       const prereqMeta = getSkillMeta(prereqId);
-      if (prereqMeta.bought) {
+      if (isSkillCoveredByOwnedFamily(prereqId, boughtFamilySkillIds)) {
         continue;
       }
 
