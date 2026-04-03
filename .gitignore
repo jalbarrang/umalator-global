@@ -6,9 +6,6 @@ results/
 .env
 /db
 
-# Netlify
-.netlify
-
 # macOS
 .DS_Store
 

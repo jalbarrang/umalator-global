@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { strategyNames } from '@/lib/sunday-tools/runner/definitions';
+import { getIconUrl } from '@/assets/icons';
 
 type SavedRunnerCardProps = {
   runner: SavedRunner;
@@ -136,25 +137,25 @@ export const SavedRunnerCard = (props: SavedRunnerCardProps) => {
             <div className="grid grid-cols-1 rounded-sm border-2">
               <div className="grid grid-cols-5">
                 <div className="flex items-center justify-center gap-2 bg-primary rounded-tl-sm">
-                  <img src="/icons/status_00.png" className="w-4 h-4" />
+                  <img src={getIconUrl('status_00.png')} className="w-4 h-4" />
                   <span className="text-white text-xs md:text-sm">Speed</span>
                 </div>
                 <div className="flex items-center justify-center gap-2 bg-primary">
-                  <img src="/icons/status_01.png" className="w-4 h-4" />
+                  <img src={getIconUrl('status_01.png')} className="w-4 h-4" />
                   <span className="text-white text-xs md:text-sm">Stamina</span>
                 </div>
                 <div className="flex items-center justify-center gap-2 bg-primary">
-                  <img src="/icons/status_02.png" className="w-4 h-4" />
+                  <img src={getIconUrl('status_02.png')} className="w-4 h-4" />
                   <span className="text-white text-xs md:text-sm">Power</span>
                 </div>
 
                 <div className="flex items-center justify-center gap-2 bg-primary">
-                  <img src="/icons/status_03.png" className="w-4 h-4" />
+                  <img src={getIconUrl('status_03.png')} className="w-4 h-4" />
                   <span className="text-white text-xs md:text-sm">Guts</span>
                 </div>
 
                 <div className="flex items-center justify-center gap-2 bg-primary rounded-tr-sm">
-                  <img src="/icons/status_04.png" className="w-4 h-4" />
+                  <img src={getIconUrl('status_04.png')} className="w-4 h-4" />
                   <span className="text-white text-xs md:text-sm">Wit</span>
                 </div>
               </div>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { rankForStat } from '@/modules/runners/utils';
+import { getIconUrl } from '@/assets/icons';
 
 type StatImageProps = React.HTMLAttributes<HTMLImageElement> & {
   value: number;
@@ -13,7 +14,7 @@ export const StatImage = (props: StatImageProps) => {
 
   const iconId = (100 + rank).toString().slice(1);
 
-  return <img src={`/icons/statusrank/ui_statusrank_${iconId}.png`} {...rest} />;
+  return <img src={getIconUrl(`statusrank/ui_statusrank_${iconId}.png`)} {...rest} />;
 };
 
 type StatInputProps = {

@@ -28,6 +28,7 @@ import { getSkillNameById, skillCollection } from '@/modules/data/skills';
 import { groups_filters } from '@/modules/skills/filters';
 import { iconIdPrefixes } from '@/modules/skills/icons';
 import i18n from '@/i18n';
+import { getIconUrl } from '@/assets/icons';
 import { cn } from '@/lib/utils';
 import { BassinTableBody, BASSIN_DATA_EVENT_OPEN_SKILL_ACTIONS } from './bassin-table-body';
 import { Menu as MenuPrimitive } from '@base-ui/react/menu';
@@ -75,7 +76,7 @@ const IconTypeFilterButton = React.memo(
     }, [iconTypeFilters, iconType]);
 
     const imgSrc = useMemo(() => {
-      return `/icons/${iconType}1.png`;
+      return getIconUrl(`${iconType}1.png`);
     }, [iconType]);
 
     return (

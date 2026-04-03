@@ -1,6 +1,7 @@
 import type { IMood } from '@/lib/sunday-tools/runner/definitions';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
 import { Mood } from '@/lib/sunday-tools/runner/definitions';
+import { getIconUrl } from '@/assets/icons';
 
 type MoodSelectProps = {
   value: IMood;
@@ -30,14 +31,16 @@ export function MoodSelect(props: Readonly<MoodSelectProps>) {
     <Select value={value.toString()} onValueChange={handleChange}>
       <SelectTrigger className="border-none rounded-none shadow-none">
         <img
-          src={`/icons/global/${moodValues.find((m) => m.value === props.value)?.icon}.png`}
+          src={getIconUrl(
+            `global/${moodValues.find((m) => m.value === props.value)?.icon}.png`,
+          )}
           className="w-13 h-5"
         />
       </SelectTrigger>
       <SelectContent>
         {moodValues.map((mood) => (
           <SelectItem key={mood.value} value={mood.value.toString()}>
-            <img src={`/icons/global/${mood.icon}.png`} className="w-13 h-5" />
+            <img src={getIconUrl(`global/${mood.icon}.png`)} className="w-13 h-5" />
           </SelectItem>
         ))}
       </SelectContent>

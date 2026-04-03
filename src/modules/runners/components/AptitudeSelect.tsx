@@ -5,6 +5,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { getIconUrl } from '@/assets/icons';
 import { Aptitude, AptitudeName } from '@/lib/sunday-tools/runner/definitions';
 
 type AptitudeSelectProps = {
@@ -51,9 +52,9 @@ export function AptitudeIcon({ aptitude, className }: AptitudeIconProps) {
   const idx = 7 - Aptitude[aptitude as keyof typeof Aptitude];
 
   return (
-      <img
-        src={`/icons/utx_ico_statusrank_${(100 + idx).toString().slice(1)}.png`}
-        className={className}
-      />
+    <img
+      src={getIconUrl(`utx_ico_statusrank_${(100 + idx).toString().slice(1)}.png`)}
+      className={className}
+    />
   );
 }

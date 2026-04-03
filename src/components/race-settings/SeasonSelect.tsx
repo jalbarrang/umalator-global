@@ -1,6 +1,7 @@
 import type { ISeason } from '@/lib/sunday-tools/course/definitions';
 import strings_en from '@/i18n/lang/en/skills';
 import { setRaceParams, useSettingsStore } from '@/store/settings.store';
+import { getIconUrl } from '@/assets/icons';
 import { cn } from '@/lib/utils';
 
 export const SeasonIcon = (props: { season: number } & React.HTMLAttributes<HTMLImageElement>) => {
@@ -9,7 +10,7 @@ export const SeasonIcon = (props: { season: number } & React.HTMLAttributes<HTML
 
   return (
     <img
-      src={`/icons/global/utx_txt_season_0${season - 1}.png`}
+      src={getIconUrl(`global/utx_txt_season_0${season - 1}.png`)}
       title={strings_en.skilldetails.season[season]}
       className={cn(
         'w-8 h-8 grayscale-100 hover:grayscale-0',

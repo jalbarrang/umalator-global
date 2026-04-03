@@ -3,6 +3,7 @@ import type { KeyboardEvent } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { strategyNames } from '@/lib/sunday-tools/runner/definitions';
+import { getIconUrl } from '@/assets/icons';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { getUmaDisplayInfo, getUmaImageUrl } from '@/modules/runners/utils';
 import { StatImage } from '@/modules/runners/components/StatInput';
@@ -94,23 +95,23 @@ export function RunnerTile({
         <div className="grid grid-cols-1 rounded-sm border-2">
           <div className="grid grid-cols-5">
             <div className="flex items-center justify-center gap-1 bg-primary py-1 rounded-tl-sm">
-              <img src="/icons/status_00.png" className="w-3.5 h-3.5" />
+              <img src={getIconUrl('status_00.png')} className="w-3.5 h-3.5" />
               <span className="text-white text-[10px]">Spd</span>
             </div>
             <div className="flex items-center justify-center gap-1 bg-primary py-1">
-              <img src="/icons/status_01.png" className="w-3.5 h-3.5" />
+              <img src={getIconUrl('status_01.png')} className="w-3.5 h-3.5" />
               <span className="text-white text-[10px]">Sta</span>
             </div>
             <div className="flex items-center justify-center gap-1 bg-primary py-1">
-              <img src="/icons/status_02.png" className="w-3.5 h-3.5" />
+              <img src={getIconUrl('status_02.png')} className="w-3.5 h-3.5" />
               <span className="text-white text-[10px]">Pow</span>
             </div>
             <div className="flex items-center justify-center gap-1 bg-primary py-1">
-              <img src="/icons/status_03.png" className="w-3.5 h-3.5" />
+              <img src={getIconUrl('status_03.png')} className="w-3.5 h-3.5" />
               <span className="text-white text-[10px]">Gut</span>
             </div>
             <div className="flex items-center justify-center gap-1 bg-primary py-1 rounded-tr-sm">
-              <img src="/icons/status_04.png" className="w-3.5 h-3.5" />
+              <img src={getIconUrl('status_04.png')} className="w-3.5 h-3.5" />
               <span className="text-white text-[10px]">Wit</span>
             </div>
           </div>

@@ -1,8 +1,8 @@
-# Contributing to Sunday's Shadow
+# Contributing to Yet Another Umalator
 
 ## Introduction
 
-This guide will help you set up a development environment, understand the codebase structure, and contribute to the Sunday's Shadow project. Whether you're updating game data, fixing bugs, or adding new features, this document provides the information you need.
+This guide will help you set up a development environment, understand the codebase structure, and contribute to the Yet Another Umalator project. Whether you're updating game data, fixing bugs, or adding new features, this document provides the information you need.
 
 ## Prerequisites
 
@@ -211,7 +211,6 @@ umalator-global/
     ├── .editorconfig                 # Editor configuration
     ├── components.json               # shadcn/ui configuration
     ├── playwright.config.ts          # Playwright test configuration
-    ├── netlify.toml                  # Netlify deployment configuration
     └── .env.example                  # Environment variable template
 ```
 
@@ -533,6 +532,7 @@ Runs on pull requests to `main`:
 
 - TypeScript type checking (`pnpm run typecheck`)
 - Linting (`pnpm run lint`)
+- Production build validation (`pnpm run build`)
 
 **Playwright Tests** (`.github/workflows/playwright.yml`):
 
@@ -546,7 +546,11 @@ Both workflows use Node.js 24 and pnpm with frozen lockfile.
 
 ### Deployment
 
-The project deploys to **Netlify** automatically. The build command is `pnpm run build` (configured in `netlify.toml`).
+The project deploys to **GitHub Pages** via `.github/workflows/deploy-pages.yml`.
+
+- Deploys automatically on pushes to `main`
+- Uses Node.js 24 + pnpm
+- Reads `VITE_PUBLIC_POSTHOG_KEY` and `VITE_PUBLIC_POSTHOG_HOST` from repository variables at build time
 
 ## Submitting Contributions
 
@@ -649,4 +653,4 @@ See `README.md` for full acknowledgements.
 
 ---
 
-Thank you for contributing to Sunday's Shadow!
+Thank you for contributing to Yet Another Umalator!

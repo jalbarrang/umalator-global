@@ -1,6 +1,7 @@
 import type { ITimeOfDay } from '@/lib/sunday-tools/course/definitions';
 import strings_en from '@/i18n/lang/en/skills';
 import { setRaceParams, useSettingsStore } from '@/store/settings.store';
+import { getIconUrl } from '@/assets/icons';
 import { cn } from '@/lib/utils';
 
 const TimeOfDayIcon = ({ time, icon: iconIndex }: { time: number; icon: number }) => {
@@ -8,7 +9,7 @@ const TimeOfDayIcon = ({ time, icon: iconIndex }: { time: number; icon: number }
 
   return (
     <img
-      src={`/icons/utx_ico_timezone_0${iconIndex}.png`}
+      src={getIconUrl(`utx_ico_timezone_0${iconIndex}.png`)}
       title={strings_en.skilldetails.time[time]}
       className={cn('w-8 h-8 cursor-pointer grayscale-100 hover:grayscale-0', {
         'grayscale-0': time === racedef.time,

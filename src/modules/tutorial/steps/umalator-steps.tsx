@@ -2,11 +2,11 @@ import type { TutorialStep } from '@/components/tutorial';
 
 export const umalatorSteps: Array<TutorialStep> = [
   {
-    title: "Welcome to Sunday's Shadow",
+    title: 'Welcome to Yet Another Umalator',
     description: (
       <div className="flex flex-col gap-2">
         <p className="text-muted-foreground">
-          Sunday's Shadow is an Umamusume race simulator that helps you optimize runner builds and
+          Yet Another Umalator is an Umamusume race simulator that helps you optimize runner builds and
           compare performance.
         </p>
         <p className="text-muted-foreground">Let's run your first simulation together!</p>

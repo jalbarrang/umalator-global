@@ -4,6 +4,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { strategyNames } from '@/lib/sunday-tools/runner/definitions';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { getUmaDisplayInfo, getUmaImageUrl } from '@/modules/runners/utils';
+import { getIconUrl } from '@/assets/icons';
 
 type RunnerListItemProps = {
   index: number;
@@ -15,11 +16,11 @@ type RunnerListItemProps = {
 };
 
 const statIcons = [
-  '/icons/status_00.png',
-  '/icons/status_01.png',
-  '/icons/status_02.png',
-  '/icons/status_03.png',
-  '/icons/status_04.png',
+  getIconUrl('status_00.png'),
+  getIconUrl('status_01.png'),
+  getIconUrl('status_02.png'),
+  getIconUrl('status_03.png'),
+  getIconUrl('status_04.png'),
 ] as const;
 
 export function RunnerListItem(props: Readonly<RunnerListItemProps>) {

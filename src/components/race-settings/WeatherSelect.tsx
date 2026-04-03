@@ -1,6 +1,7 @@
 import type { IWeather } from '@/lib/sunday-tools/course/definitions';
 import strings_en from '@/i18n/lang/en/skills';
 import { setRaceParams, useSettingsStore } from '@/store/settings.store';
+import { getIconUrl } from '@/assets/icons';
 import { cn } from '@/lib/utils';
 
 export const WeatherIcon = (
@@ -11,7 +12,7 @@ export const WeatherIcon = (
 
   return (
     <img
-      src={`/icons/utx_ico_weather_0${weather - 1}.png`}
+      src={getIconUrl(`utx_ico_weather_0${weather - 1}.png`)}
       title={strings_en.skilldetails.weather[weather]}
       className={cn(
         'w-8 h-8 grayscale-100 hover:grayscale-0',

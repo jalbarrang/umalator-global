@@ -1,5 +1,5 @@
 /**
- * # Skill Comparison for Sunday's Shadow
+ * # Skill Comparison for Yet Another Umalator
  *
  * ## Overview
  *

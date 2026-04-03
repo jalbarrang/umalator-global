@@ -31,3 +31,9 @@ jobs:
 
       - name: Run linter
         run: pnpm run lint
+
+      - name: Validate production build
+        env:
+          VITE_PUBLIC_POSTHOG_KEY: ${{ vars.VITE_PUBLIC_POSTHOG_KEY }}
+          VITE_PUBLIC_POSTHOG_HOST: ${{ vars.VITE_PUBLIC_POSTHOG_HOST }}
+        run: pnpm run build

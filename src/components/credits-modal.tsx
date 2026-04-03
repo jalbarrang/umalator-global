@@ -14,7 +14,7 @@ export function CreditsModal() {
 
         <div className="space-y-4 text-sm">
           <p className="text-muted-foreground">
-            <span className="font-medium text-foreground">Sunday's Shadow</span> - Built by{' '}
+            <span className="font-medium text-foreground">Yet Another Umalator</span> - Built by{' '}
             <span className="font-medium text-foreground">Albhax</span> (@albhax on discord)
           </p>
 

@@ -1,6 +1,7 @@
 import { Activity, memo } from 'react';
 import { CircleHelp, X } from 'lucide-react';
 import { ExpandedSkillDetails } from '../ExpandedSkillDetails';
+import { getIconUrl } from '@/assets/icons';
 import { cn } from '@/lib/utils';
 import i18n from '@/i18n';
 import { Button } from '@/components/ui/button';
@@ -14,7 +15,7 @@ import type { SkillCostSummary } from '@/modules/skills/skill-cost-summary';
 export const SkillIcon = (props: { iconId: string }) => {
   const { iconId } = props;
 
-  return <img className="w-6 h-6" src={`/icons/${iconId}.png`} alt={iconId} />;
+  return <img className="w-6 h-6" src={getIconUrl(`${iconId}.png`)} alt={iconId} />;
 };
 
 type SkillItemProps = React.HTMLAttributes<HTMLDivElement> & {
@@ -80,7 +81,7 @@ const SkillItemContent = (props: SkillItemContentProps) => {
   const { skill, skillId, hasCost, costSummary, distanceFactor, spCost, onRemove, getSkillMeta } =
     useSkillItem();
   const isCostSummaryLayout = hasCost && Boolean(costSummary);
-  const isObtained = costSummary?.isObtained ?? (getSkillMeta(skillId).bought ?? false);
+  const isObtained = costSummary?.isObtained ?? getSkillMeta(skillId).bought ?? false;
   const displayedNetCost = costSummary?.netTotal ?? spCost ?? 0;
   const roundedDiscountPct = costSummary?.roundedDiscountPct ?? 0;
 
@@ -141,7 +142,11 @@ const SkillItemContent = (props: SkillItemContentProps) => {
                   }
                 />
                 <PopoverContent align="start" side="right" className="w-[420px] p-0">
-                  <ExpandedSkillDetails id={skillId} skill={skill} distanceFactor={distanceFactor} />
+                  <ExpandedSkillDetails
+                    id={skillId}
+                    skill={skill}
+                    distanceFactor={distanceFactor}
+                  />
                 </PopoverContent>
               </Popover>
 
@@ -212,7 +217,9 @@ const SkillItemContent = (props: SkillItemContentProps) => {
               <SkillIcon iconId={skill.iconId} />
             </Activity>
 
-            <span className={cn('text-sm text-foreground')}>{i18n.t(`skillnames.${skill.id}`)}</span>
+            <span className={cn('text-sm text-foreground')}>
+              {i18n.t(`skillnames.${skill.id}`)}
+            </span>
           </div>
 
           <div className="flex h-full items-center">

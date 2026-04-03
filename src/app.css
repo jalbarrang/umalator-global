@@ -2,14 +2,14 @@
   font-family: 'Inter';
   src:
     local('Inter'),
-    url('/fonts/Inter-VariableFont_opsz,wght.ttf') format('truetype');
+    url('./assets/fonts/Inter-VariableFont_opsz,wght.ttf') format('truetype');
 }
 
 @font-face {
   font-family: 'Noto Sans JP';
   src:
     local('Noto Sans JP'),
-    url('/fonts/NotoSansJP-VariableFont_wght.ttf') format('truetype');
+    url('./assets/fonts/NotoSansJP-VariableFont_wght.ttf') format('truetype');
 }
 
 body {

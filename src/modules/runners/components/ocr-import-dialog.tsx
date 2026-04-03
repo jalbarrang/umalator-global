@@ -10,7 +10,7 @@ import { AlertCircle, CheckCircle, ImageIcon, Loader2, Upload, X } from 'lucide-
 import { toast } from 'sonner';
 import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
 import type { UploadedFile } from '@/modules/runners/hooks/useOcrImport';
-import icons from '@/modules/data/icons.json';
+import { getIconById } from '@/modules/data/icons';
 import {
   Dialog,
   DialogContent,
@@ -262,7 +262,7 @@ export function OcrImportDialog({ open, onOpenChange, onApply }: OcrImportDialog
                         render={
                           <div className="flex items-center gap-3 p-2 border rounded-md cursor-pointer hover:bg-muted/50 transition-colors">
                             <img
-                              src={icons[results.outfitId as keyof typeof icons]}
+                              src={getIconById(results.outfitId)}
                               alt={results.umaName}
                               className="w-12 h-12 rounded"
                             />
@@ -286,7 +286,7 @@ export function OcrImportDialog({ open, onOpenChange, onApply }: OcrImportDialog
                                   onSelect={() => handleSelectUma(uma.id)}
                                 >
                                   <img
-                                    src={icons[uma.id as keyof typeof icons]}
+                                    src={getIconById(uma.id)}
                                     className="w-10 h-10 rounded mr-2"
                                   />
                                   <div>
@@ -322,7 +322,7 @@ export function OcrImportDialog({ open, onOpenChange, onApply }: OcrImportDialog
                                   onSelect={() => handleSelectUma(uma.id)}
                                 >
                                   <img
-                                    src={icons[uma.id as keyof typeof icons]}
+                                    src={getIconById(uma.id)}
                                     className="w-10 h-10 rounded mr-2"
                                   />
                                   <div>

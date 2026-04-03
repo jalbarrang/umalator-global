@@ -1,5 +1,6 @@
+import { getIconUrl } from '@/assets/icons';
 import { useMemo } from 'react';
-import icons from '@/modules/data/icons.json';
+import { getIconById } from '@/modules/data/icons';
 import { umas, type UmasMap } from '@/modules/data/umas';
 
 export type UmaSearchEntry = {
@@ -125,7 +126,7 @@ export function searchNames(query: string) {
  */
 export const getUmaImageUrl = (outfitId: string | undefined, randomMobId?: number): string => {
   if (outfitId) {
-    return icons[outfitId as keyof typeof icons];
+    return getIconById(outfitId) ?? getMobImageUrl(randomMobId);
   }
 
   return getMobImageUrl(randomMobId);
@@ -136,7 +137,7 @@ export const getUmaImageUrl = (outfitId: string | undefined, randomMobId?: numbe
  */
 export const getMobImageUrl = (randomMobId?: number): string => {
   const mobId = randomMobId || 8000;
-  return `/icons/mob/trained_mob_chr_icon_${mobId}_000001_01.png`;
+  return getIconUrl(`mob/trained_mob_chr_icon_${mobId}_000001_01.png`);
 };
 
 /**

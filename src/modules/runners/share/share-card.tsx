@@ -1,3 +1,4 @@
+import { getIconUrl } from '@/assets/icons';
 import { forwardRef } from 'react';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { Aptitude } from '@/lib/sunday-tools/runner/definitions';
@@ -48,11 +49,11 @@ function rarityBarStyle(rarity: number): React.CSSProperties {
 }
 
 const STAT_DEFS = [
-  { key: 'speed', label: 'Spd', icon: '/icons/status_00.png' },
-  { key: 'stamina', label: 'Sta', icon: '/icons/status_01.png' },
-  { key: 'power', label: 'Pow', icon: '/icons/status_02.png' },
-  { key: 'guts', label: 'Guts', icon: '/icons/status_03.png' },
-  { key: 'wisdom', label: 'Wit', icon: '/icons/status_04.png' },
+  { key: 'speed', label: 'Spd', icon: getIconUrl('status_00.png') },
+  { key: 'stamina', label: 'Sta', icon: getIconUrl('status_01.png') },
+  { key: 'power', label: 'Pow', icon: getIconUrl('status_02.png') },
+  { key: 'guts', label: 'Guts', icon: getIconUrl('status_03.png') },
+  { key: 'wisdom', label: 'Wit', icon: getIconUrl('status_04.png') },
 ] as const;
 
 function rankForStat(x: number): number {
@@ -70,13 +71,13 @@ function rankForStat(x: number): number {
 }
 
 function rankIconPath(rank: number): string {
-  return `/icons/statusrank/ui_statusrank_${(100 + rank).toString().slice(1)}.png`;
+  return getIconUrl(`statusrank/ui_statusrank_${(100 + rank).toString().slice(1)}.png`);
 }
 
 function aptitudeIconPath(grade: string): string {
   const aptVal = Aptitude[grade as keyof typeof Aptitude] ?? 7;
   const idx = 7 - aptVal;
-  return `/icons/utx_ico_statusrank_${(100 + idx).toString().slice(1)}.png`;
+  return getIconUrl(`utx_ico_statusrank_${(100 + idx).toString().slice(1)}.png`);
 }
 
 export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(function ShareCard(
@@ -284,7 +285,7 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(function Sha
               >
                 {skill.iconId && (
                   <img
-                    src={`/icons/${skill.iconId}.png`}
+                    src={getIconUrl(`${skill.iconId}.png`)}
                     alt=""
                     style={{
                       width: 16,

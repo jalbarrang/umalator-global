@@ -2,7 +2,8 @@ import i18n from '@/i18n';
 import { SkillComparisonRoundResult } from '@/modules/simulation/types';
 import { CellContext } from '@tanstack/react-table';
 
-import icons from '@/modules/data/icons.json';
+import { getIconUrl } from '@/assets/icons';
+import { getIconById } from '@/modules/data/icons';
 import { Button } from '../ui/button';
 import { CircleHelp } from 'lucide-react';
 import { useMemo } from 'react';
@@ -71,16 +72,17 @@ export const skillNameCell = ({
 
       if (showUmaIcons) {
         const umaId = umaForUniqueSkill(id);
-        if (umaId && icons[umaId as keyof typeof icons]) {
+        const umaIcon = umaId ? getIconById(umaId) : undefined;
+        if (umaIcon) {
           return {
-            src: icons[umaId as keyof typeof icons],
+            src: umaIcon,
             className: 'w-8 h-8',
           };
         }
       }
 
       return {
-        src: `/icons/${skill.iconId}.png`,
+        src: getIconUrl(`${skill.iconId}.png`),
         className: 'w-4 h-4',
       };
     }, [id, skill]);

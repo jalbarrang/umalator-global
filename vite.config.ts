@@ -10,7 +10,8 @@ import babel from '@rolldown/plugin-babel';
 // Feature flags should be prefixed with VITE_FEATURE_ to be accessible via import.meta.env
 // See docs/feature-flags.md for usage and best practices
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
+  base: command === 'serve' ? '/' : './',
   resolve: {
     tsconfigPaths: true,
   },
@@ -28,4 +29,4 @@ export default defineConfig({
   test: {
     globals: true,
   },
-});
+}));
