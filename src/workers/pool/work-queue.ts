@@ -20,7 +20,6 @@ export class WorkQueue {
   private batchSize: number;
   private nextBatchId = 0;
   private pendingBatches = new Map<number, Array<string>>(); // batchId -> skills
-  private completedBatches = new Map<number, SkillComparisonResponse>();
   private stageResults: SkillComparisonResponse = {};
   private totalSkillsInCurrentStage = 0;
   private completedSkillsInCurrentStage = 0;
@@ -60,12 +59,12 @@ export class WorkQueue {
    */
   completeBatch(batchId: number, results: SkillComparisonResponse): void {
     const batchSkills = this.pendingBatches.get(batchId);
-    if (batchSkills) {
-      this.completedSkillsInCurrentStage += batchSkills.length;
+    if (!batchSkills) {
+      return;
     }
 
+    this.completedSkillsInCurrentStage += batchSkills.length;
     this.pendingBatches.delete(batchId);
-    this.completedBatches.set(batchId, results);
 
     // Merge results into stage results
     const entries = Object.entries(results);
@@ -137,7 +136,6 @@ export class WorkQueue {
     this.skills = nextSkills;
     this.currentStageIndex++;
     this.pendingBatches.clear();
-    this.completedBatches.clear();
     this.totalSkillsInCurrentStage = nextSkills.length;
     this.completedSkillsInCurrentStage = 0;
 

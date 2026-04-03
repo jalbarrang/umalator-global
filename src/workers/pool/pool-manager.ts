@@ -42,7 +42,7 @@ export class PoolManager {
    * Initialize the worker pool
    */
   private initializeWorkers(): void {
-    this.terminateWorkers();
+    this.disposeWorkers();
 
     this.workers = Array.from({ length: this.poolSize }, (_, id) => {
       const worker = this.workerGenerator({
@@ -64,6 +64,23 @@ export class PoolManager {
     });
   }
 
+  private disposeWorkers(): void {
+    this.workers.forEach((worker, id) => {
+      worker.terminate();
+      this.workerStates.set(id, 'terminated');
+    });
+    this.workers = [];
+    this.workerStates.clear();
+  }
+
+  private resetRunState(): void {
+    this.workQueue = null;
+    this.callbacks = {};
+    this.startTime = 0;
+    this.totalSkills = 0;
+    this.isRunning = false;
+  }
+
   /**
    * Handle messages from workers
    */
@@ -81,7 +98,7 @@ export class PoolManager {
         // Send progress update
         if (this.workQueue) {
           const progress = this.workQueue.getProgress();
-          this.callbacks.onProgress?.(this.workQueue.getResults(), progress);
+          this.callbacks.onProgress?.(message.results, progress);
         }
 
         // Check if stage is complete
@@ -173,8 +190,8 @@ export class PoolManager {
       skillsProcessed: this.totalSkills,
     };
 
-    this.isRunning = false;
     this.callbacks.onComplete?.(results, metrics);
+    this.resetRunState();
   }
 
   /**
@@ -223,12 +240,8 @@ export class PoolManager {
    * Terminate all workers
    */
   terminateWorkers(): void {
-    this.workers.forEach((worker, id) => {
-      worker.terminate();
-      this.workerStates.set(id, 'terminated');
-    });
-    this.workers = [];
-    this.isRunning = false;
+    this.disposeWorkers();
+    this.resetRunState();
   }
 
   /**

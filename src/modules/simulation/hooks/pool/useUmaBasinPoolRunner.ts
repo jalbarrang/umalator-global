@@ -93,12 +93,10 @@ export function useUmaBasinPoolRunner() {
           appendResultsToTable(results);
           setProgress(progress);
         },
-        onStageComplete: (stage, results, progress) => {
-          appendResultsToTable(results);
+        onStageComplete: (_stage, _results, progress) => {
           setProgress(progress);
         },
-        onComplete: (results, metrics) => {
-          appendResultsToTable(results);
+        onComplete: (_results, metrics) => {
           setMetrics(metrics);
           setProgress(null);
           setIsSimulationRunning(false);
