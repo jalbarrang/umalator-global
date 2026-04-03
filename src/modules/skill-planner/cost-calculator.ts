@@ -1,7 +1,10 @@
-import type { CandidateSkill, CostBreakdown, HintLevel } from './types';
-import { skillCollection } from '@/modules/data/skills';
-import { getBaseTier, getUpgradeTier } from '@/modules/skills/skill-relationships';
-import { isSkillCoveredByOwnedFamily } from './skill-family';
+import type { CandidateSkill, CostBreakdown, HintLevel } from "./types";
+import { skillCollection } from "@/modules/data/skills";
+import {
+  getBaseTier,
+  getUpgradeTier,
+} from "@/modules/skills/skill-relationships";
+import { isSkillCoveredByOwnedFamily } from "./skill-family";
 
 // Hint level discount mapping (as shown in game screenshots)
 export const HINT_DISCOUNTS: Readonly<Record<HintLevel, number>> = {
@@ -28,15 +31,22 @@ export function calculateSkillCost(
   const hintDiscount = HINT_DISCOUNTS[hintLevel] ?? 0;
   const fastLearnerMultiplier = hasFastLearner ? 0.9 : 1.0;
 
-  // Apply hint discount first, then Fast Learner, then floor the result
-  return Math.floor(baseCost * (1 - hintDiscount) * fastLearnerMultiplier);
+  // Apply hint discount first, then Fast Learner, then ceil the result
+  return Math.ceil(baseCost * (1 - hintDiscount) * fastLearnerMultiplier);
 }
 
 /**
  * Compute discounted net cost for a candidate.
  */
-export function getNetCost(candidate: CandidateSkill, hasFastLearner: boolean): number {
-  return calculateSkillCost(candidate.skillId, candidate.hintLevel, hasFastLearner);
+export function getNetCost(
+  candidate: CandidateSkill,
+  hasFastLearner: boolean,
+): number {
+  return calculateSkillCost(
+    candidate.skillId,
+    candidate.hintLevel,
+    hasFastLearner,
+  );
 }
 
 /**
@@ -123,9 +133,10 @@ export function calculateDisplayCost(
 
   // Sum all costs, then apply Fast Learner discount
   const fastLearnerMultiplier = hasFastLearner ? 0.9 : 1.0;
-  const bundledCost = (goldCostAfterHint + bundledWhiteCost) * fastLearnerMultiplier;
+  const bundledCost =
+    (goldCostAfterHint + bundledWhiteCost) * fastLearnerMultiplier;
 
-  return Math.floor(bundledCost);
+  return Math.ceil(bundledCost);
 }
 
 /**
@@ -179,12 +190,15 @@ export function calculatePoolCost(
 
       const whiteBaseTier = getBaseTier(whiteSkillId);
       const whiteUpgradeTier = getUpgradeTier(whiteBaseTier || whiteSkillId);
-      const hasAnyWhiteTier = isSkillCoveredByOwnedFamily(whiteSkillId, obtainedSet);
+      const hasAnyWhiteTier = isSkillCoveredByOwnedFamily(
+        whiteSkillId,
+        obtainedSet,
+      );
 
       if (hasAnyWhiteTier) {
         // Gold cost only (white already owned)
         const goldCostAfterHint = baseCost * (1 - hintDiscount);
-        finalCost = Math.floor(goldCostAfterHint * fastLearnerMultiplier);
+        finalCost = Math.ceil(goldCostAfterHint * fastLearnerMultiplier);
       } else {
         // White not obtained - calculate bundled cost (ALL white tiers)
         let bundledWhite = 0;
@@ -203,19 +217,22 @@ export function calculatePoolCost(
           const whiteUpgradeCost = getBaseCost(whiteUpgradeTier);
           const whiteUpgradeCandidate = candidates[whiteUpgradeTier];
           const whiteUpgradeHintLevel = whiteUpgradeCandidate?.hintLevel ?? 0;
-          const whiteUpgradeHintDiscount = HINT_DISCOUNTS[whiteUpgradeHintLevel] ?? 0;
+          const whiteUpgradeHintDiscount =
+            HINT_DISCOUNTS[whiteUpgradeHintLevel] ?? 0;
           bundledWhite += whiteUpgradeCost * (1 - whiteUpgradeHintDiscount);
         }
 
         const goldCostAfterHint = baseCost * (1 - hintDiscount);
 
-        bundledWhiteCost = Math.floor(bundledWhite * fastLearnerMultiplier);
-        finalCost = Math.floor((goldCostAfterHint + bundledWhite) * fastLearnerMultiplier);
+        bundledWhiteCost = Math.ceil(bundledWhite * fastLearnerMultiplier);
+        finalCost = Math.ceil(
+          (goldCostAfterHint + bundledWhite) * fastLearnerMultiplier,
+        );
       }
     } else {
       // Regular skill (white or non-gold) or stackable skill
       const costAfterHint = baseCost * (1 - hintDiscount);
-      finalCost = Math.floor(costAfterHint * fastLearnerMultiplier);
+      finalCost = Math.ceil(costAfterHint * fastLearnerMultiplier);
     }
 
     breakdown.push({
