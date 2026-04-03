@@ -17,6 +17,7 @@
     "e2e": "playwright test",
     "e2e:html": "playwright test --reporter=html",
     "e2e:ui": "playwright test --ui",
+    "version:current": "tsx scripts/get-current-resource-version.ts",
     "db:fetch": "tsx ./scripts/fetch-master-db.ts",
     "extract:skills": "tsx scripts/extract-skills.ts",
     "extract:uma-info": "tsx scripts/extract-uma-info.ts",

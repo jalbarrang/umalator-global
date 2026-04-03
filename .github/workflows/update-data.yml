@@ -37,7 +37,7 @@ jobs:
           if [ -n "${{ inputs.version }}" ]; then
             VERSION='${{ inputs.version }}'
           else
-            VERSION=$(node -e "fetch('https://uma.moe/api/ver').then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }).then(d => { if (!d?.current?.resource_version) throw new Error('Missing current.resource_version'); process.stdout.write(String(d.current.resource_version)); })")
+            VERSION=$(pnpm run --silent version:current)
           fi
           echo "value=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Resolved resource version: $VERSION"
