@@ -29,17 +29,18 @@ const ThresholdMarker = React.memo((props: ThresholdMarkerProps) => {
     <g className="threshold-marker">
       <line
         x1={x}
-        y1={-20}
+        y1={20}
         x2={x}
-        y2={height}
+        y2={height - 20}
         stroke={strokeColor}
         strokeWidth="1"
         strokeDasharray="5,5"
       />
+
       <text
         x={x}
-        y={-25}
-        fontSize="10px"
+        y={12}
+        fontSize="8px"
         textAnchor="middle"
         fill="var(--foreground)"
         fontWeight="bold"
@@ -73,6 +74,7 @@ export const ThresholdMarkers = React.memo((props: ThresholdMarkersProps) => {
           text={`Halfway (${courseDistance / 2}m)`}
           strokeColor="var(--color-green-400)"
         />
+
         <ThresholdMarker
           threshold={777}
           strokeColor="var(--color-amber-400)"
@@ -80,6 +82,7 @@ export const ThresholdMarkers = React.memo((props: ThresholdMarkersProps) => {
           width={width}
           height={height}
         />
+
         <ThresholdMarker
           threshold={200}
           strokeColor="var(--color-amber-400)"

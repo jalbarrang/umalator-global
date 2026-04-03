@@ -188,7 +188,7 @@ export function SimulationHome() {
         <ImportSnapshotDialog open={importSnapshotOpen} onOpenChange={setImportSnapshotOpen} />
       </div>
 
-      <div className="flex flex-col flex-1">
+      <div className="flex flex-col flex-1 gap-4">
         <Activity mode={!isSimulationRunning ? 'visible' : 'hidden'}>
           <div data-tutorial="race-visualization">
             <RaceTrack courseId={courseId} chartData={chartData} />
