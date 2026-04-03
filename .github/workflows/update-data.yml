@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Game version number (e.g., 10005200)'
-        required: true
+        description: 'Optional resource version override (defaults to latest current.resource_version from https://uma.moe/api/ver)'
+        required: false
         type: string
 
 jobs:
@@ -31,8 +31,19 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Resolve target version
+        id: version
+        run: |
+          if [ -n "${{ inputs.version }}" ]; then
+            VERSION='${{ inputs.version }}'
+          else
+            VERSION=$(node -e "fetch('https://uma.moe/api/ver').then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }).then(d => { if (!d?.current?.resource_version) throw new Error('Missing current.resource_version'); process.stdout.write(String(d.current.resource_version)); })")
+          fi
+          echo "value=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Resolved resource version: $VERSION"
+
       - name: Fetch database
-        run: pnpm run db:fetch ${{ inputs.version }}
+        run: pnpm run db:fetch ${{ steps.version.outputs.value }}
 
       - name: Extract data
         run: pnpm run extract:all
@@ -42,7 +53,7 @@ jobs:
         run: |
           if git diff --quiet src/modules/data/; then
             echo "has_changes=false" >> "$GITHUB_OUTPUT"
-            echo "No data changes detected."
+            echo "No data changes detected for version ${{ steps.version.outputs.value }}."
           else
             echo "has_changes=true" >> "$GITHUB_OUTPUT"
             echo "Data changes detected."
@@ -53,10 +64,10 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout -b chore/update-data-v${{ inputs.version }}
+          git checkout -b chore/update-data-v${{ steps.version.outputs.value }}
           git add src/modules/data/skills.json src/modules/data/umas.json src/modules/data/course_data.json
-          git commit -m "chore: update game data to version ${{ inputs.version }}"
-          git push -u origin chore/update-data-v${{ inputs.version }}
+          git commit -m "chore: update game data to version ${{ steps.version.outputs.value }}"
+          git push -u origin chore/update-data-v${{ steps.version.outputs.value }}
 
       - name: Create Pull Request
         if: steps.changes.outputs.has_changes == 'true'
@@ -64,9 +75,9 @@ jobs:
           GH_TOKEN: ${{ secrets.DATA_UPDATE_PAT }}
         run: |
           gh pr create \
-            --title "chore: update game data to v${{ inputs.version }}" \
+            --title "chore: update game data to v${{ steps.version.outputs.value }}" \
             --body "$(cat <<'EOF'
-          Automated data update to game version `${{ inputs.version }}`.
+          Automated data update to game version `${{ steps.version.outputs.value }}`.
 
           Updated files:
           - `src/modules/data/skills.json`
@@ -82,4 +93,4 @@ jobs:
         if: steps.changes.outputs.has_changes == 'true'
         env:
           GH_TOKEN: ${{ secrets.DATA_UPDATE_PAT }}
-        run: gh pr merge "chore/update-data-v${{ inputs.version }}" --auto --squash
+        run: gh pr merge "chore/update-data-v${{ steps.version.outputs.value }}" --auto --squash

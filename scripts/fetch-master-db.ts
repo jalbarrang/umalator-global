@@ -34,6 +34,7 @@ const lz4js = lz4jsModule as Lz4JsModule;
 // =============================================================================
 
 const BASE_URL = 'https://assets-umamusume-en.akamaized.net';
+const UMA_MOE_VERSION_URL = 'https://uma.moe/api/ver';
 const PATH_ROOT_MANIFEST = 'dl/vertical/{appVer}/manifests/manifestdat/root.manifest.bsv.lz4';
 const PATH_MANIFEST = 'dl/vertical/resources/Manifest/{prefix}/{hname}';
 const PATH_GENERIC = 'dl/vertical/resources/Generic/{prefix}/{hname}';
@@ -132,6 +133,62 @@ function formatHex64(value: bigint): string {
 
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+interface GameVersionApiRecord {
+  app_version: string;
+  resource_version: string;
+  updated_at: string;
+}
+
+interface UmaApiResponse {
+  current: GameVersionApiRecord;
+  history: Array<GameVersionApiRecord>;
+}
+
+function isGameVersionRecord(value: unknown): value is GameVersionApiRecord {
+  return Boolean(
+    value &&
+      typeof value === 'object' &&
+      typeof (value as Record<string, unknown>).app_version === 'string' &&
+      typeof (value as Record<string, unknown>).resource_version === 'string' &&
+      typeof (value as Record<string, unknown>).updated_at === 'string',
+  );
+}
+
+function isUmaApiResponse(value: unknown): value is UmaApiResponse {
+  return Boolean(
+    value &&
+      typeof value === 'object' &&
+      isGameVersionRecord((value as Record<string, unknown>).current) &&
+      Array.isArray((value as Record<string, unknown>).history) &&
+      ((value as Record<string, unknown>).history as Array<unknown>).every(isGameVersionRecord),
+  );
+}
+
+async function resolveResourceVersion(explicitVersion?: string): Promise<string> {
+  if (explicitVersion && explicitVersion.trim().length > 0) {
+    return explicitVersion.trim();
+  }
+
+  const response = await fetch(UMA_MOE_VERSION_URL, {
+    headers: {
+      Accept: 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `HTTP ${response.status}: ${response.statusText} while fetching latest version from ${UMA_MOE_VERSION_URL}`,
+    );
+  }
+
+  const payload = (await response.json()) as unknown;
+  if (!isUmaApiResponse(payload)) {
+    throw new Error(`Unexpected response shape from ${UMA_MOE_VERSION_URL}`);
+  }
+
+  return payload.current.resource_version;
 }
 
 async function downloadFile(
@@ -561,7 +618,7 @@ async function main(): Promise<number> {
   program
     .name('fetch-master-db')
     .description('Fetch master.mdb from Uma Musume manifest chain')
-    .argument('<appVer>', 'Application version (e.g., 10004010)')
+    .argument('[appVer]', 'Resource version (defaults to latest current.resource_version from https://uma.moe/api/ver)')
     .option(
       '-o, --output <dir>',
       `Output directory (default: ${DEFAULT_OUTPUT_DIR})`,
@@ -577,8 +634,9 @@ async function main(): Promise<number> {
       'after',
       `
 Examples:
+  npx tsx scripts/fetch_master_db.ts
   npx tsx scripts/fetch_master_db.ts 10004010
-  npx tsx scripts/fetch_master_db.ts 10004010 --output ./downloads
+  npx tsx scripts/fetch_master_db.ts --output ./downloads
   npx tsx scripts/fetch_master_db.ts 10004010 --platform Android --quiet
 
 Manifest Chain:
@@ -586,10 +644,19 @@ Manifest Chain:
 `,
     )
     .action(
-      async (appVer: string, options: { output: string; platform: string; quiet: boolean }) => {
+      async (appVer: string | undefined, options: { output: string; platform: string; quiet: boolean }) => {
         try {
+          const resolvedVersion = await resolveResourceVersion(appVer);
+          if (!options.quiet) {
+            console.log(
+              appVer
+                ? `Using explicit resource version: ${resolvedVersion}`
+                : `Resolved latest resource version from ${UMA_MOE_VERSION_URL}: ${resolvedVersion}`,
+            );
+          }
+
           const outputPath = await fetchMasterDb({
-            appVer,
+            appVer: resolvedVersion,
             platform: options.platform,
             outputDir: options.output,
             verbose: !options.quiet,
