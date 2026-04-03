@@ -169,7 +169,8 @@ export const RunnerCard = (props: RunnerCardProps) => {
       }
 
       if (outfitId) {
-        newSkills.push(getUniqueSkillForByUmaId(outfitId));
+        // Add the unique skill for the uma at the beginning of the list
+        newSkills.unshift(getUniqueSkillForByUmaId(outfitId));
       }
 
       onChange({ ...state, outfitId: outfitId, skills: newSkills });
@@ -198,7 +199,12 @@ export const RunnerCard = (props: RunnerCardProps) => {
 
     const map: Record<string, SkillCostSummary> = {};
     for (const skillId of state.skills) {
-      map[skillId] = computeSkillCostSummary(skillId, props.runnerId, skillMetaByKey, hasFastLearner);
+      map[skillId] = computeSkillCostSummary(
+        skillId,
+        props.runnerId,
+        skillMetaByKey,
+        hasFastLearner,
+      );
     }
 
     return map;
@@ -438,7 +444,11 @@ export const RunnerCard = (props: RunnerCardProps) => {
         </div>
       )}
 
-      <div className={isSkillSpCostEnabled ? 'flex flex-wrap items-stretch gap-2' : 'grid grid-cols-1 gap-2'}>
+      <div
+        className={
+          isSkillSpCostEnabled ? 'flex flex-wrap items-stretch gap-2' : 'grid grid-cols-1 gap-2'
+        }
+      >
         {state.skills.map((skillId) => {
           const skillItem = (
             <SkillItem
@@ -461,7 +471,10 @@ export const RunnerCard = (props: RunnerCardProps) => {
           }
 
           return (
-            <div key={skillId} className="basis-full min-w-0 sm:min-w-[280px] sm:basis-[320px] flex-1">
+            <div
+              key={skillId}
+              className="basis-full min-w-0 sm:min-w-[280px] sm:basis-[320px] flex-1"
+            >
               {skillItem}
             </div>
           );
