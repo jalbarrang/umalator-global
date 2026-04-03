@@ -22,6 +22,7 @@ jobs:
     env:
       VITE_PUBLIC_POSTHOG_KEY: ${{ vars.VITE_PUBLIC_POSTHOG_KEY }}
       VITE_PUBLIC_POSTHOG_HOST: ${{ vars.VITE_PUBLIC_POSTHOG_HOST }}
+      VITE_FEATURE_SKILL_PLANNER: ${{ vars.VITE_FEATURE_SKILL_PLANNER }}
 
     steps:
       - name: Checkout code
