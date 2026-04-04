@@ -1,4 +1,4 @@
-import { PlusIcon, XIcon } from 'lucide-react';
+import { XIcon } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -8,8 +8,6 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from '@/components/ui/drawer';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Panel,
   PanelContent,
@@ -17,102 +15,16 @@ import {
   PanelHeader,
   PanelTitle,
 } from '@/components/ui/panel';
-import i18n from '@/i18n';
+import { DebuffGroup, normalizeSkillId } from './DebuffGroup';
 import { SkillPickerContent } from '@/modules/skills/components/skill-picker-content';
-import {
-  SkillItem,
-  SkillItemDefaultLayout,
-  SkillItemRail,
-  SkillItemRoot,
-} from '@/modules/skills/components/skill-list/skill-item';
 import { getSkills } from '@/modules/data/skills';
 import { isInjectableExternalDebuffSkill } from '@/lib/sunday-tools/skills/external-debuffs';
 import {
   addDebuff,
   clearAllDebuffs,
-  removeDebuff,
-  updateDebuffPosition,
   useDebuffs,
   type CompareRunnerId,
 } from '@/modules/simulation/stores/compare.store';
-
-function normalizeSkillId(skillId: string) {
-  return skillId.split('-')[0] ?? skillId;
-}
-
-function getDebuffName(skillId: string) {
-  return i18n.t(`skillnames.${normalizeSkillId(skillId)}`);
-}
-
-function parsePosition(rawValue: string): number | null {
-  const parsed = Number(rawValue.trim());
-  if (!Number.isFinite(parsed) || parsed < 0) {
-    return null;
-  }
-  return Math.round(parsed);
-}
-
-function DebuffGroup({
-  runnerId,
-  title,
-  debuffs,
-  onAdd,
-}: Readonly<{
-  runnerId: CompareRunnerId;
-  title: string;
-  debuffs: Array<{ id: string; skillId: string; position: number }>;
-  onAdd: (runnerId: CompareRunnerId) => void;
-}>) {
-  return (
-    <div className="flex flex-col gap-2 rounded-md border bg-background p-3">
-      <div className="flex items-center justify-between gap-2">
-        <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          {title}
-        </Label>
-        <Button size="sm" variant="outline" onClick={() => onAdd(runnerId)}>
-          <PlusIcon className="mr-1 h-4 w-4" />
-          Add Debuff
-        </Button>
-      </div>
-
-      {debuffs.length === 0 && (
-        <div className="text-xs text-muted-foreground">No injected debuffs configured.</div>
-      )}
-
-      {debuffs.length > 0 && (
-        <div className="flex flex-col gap-2">
-          {debuffs.map((debuff) => (
-            <SkillItem key={debuff.id} skillId={debuff.skillId}>
-              <SkillItemRoot interactive={false}>
-                <SkillItemRail />
-                <SkillItemDefaultLayout
-                  dismissable
-                  onDismiss={() => removeDebuff(runnerId, debuff.id)}
-                  accessory={
-                    <Input
-                      type="number"
-                      min={0}
-                      step={10}
-                      value={debuff.position}
-                      aria-label={`${getDebuffName(debuff.skillId)} position`}
-                      onChange={(event) => {
-                        const nextPosition = parsePosition(event.currentTarget.value);
-                        if (nextPosition == null) {
-                          return;
-                        }
-                        updateDebuffPosition(runnerId, debuff.id, nextPosition);
-                      }}
-                    />
-                  }
-                />
-              </SkillItemRoot>
-            </SkillItem>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 export function DebuffsPanel() {
   const { uma1, uma2 } = useDebuffs();
