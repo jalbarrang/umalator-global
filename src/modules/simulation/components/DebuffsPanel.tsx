@@ -1,4 +1,4 @@
-import { PlusIcon, Trash2Icon, XIcon } from 'lucide-react';
+import { PlusIcon, XIcon } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/panel';
 import i18n from '@/i18n';
 import { SkillPickerContent } from '@/modules/skills/components/skill-picker-content';
+import { SkillItem } from '@/modules/skills/components/skill-list/SkillItem';
 import { getSkills } from '@/modules/data/skills';
 import { isInjectableExternalDebuffSkill } from '@/lib/sunday-tools/skills/external-debuffs';
 import {
@@ -76,36 +77,29 @@ function DebuffGroup({
       {debuffs.length > 0 && (
         <div className="flex flex-col gap-2">
           {debuffs.map((debuff) => (
-            <div
+            <SkillItem
               key={debuff.id}
-              className="grid grid-cols-[minmax(0,1fr)_112px_auto] items-center gap-2"
-            >
-              <div className="truncate text-sm" title={getDebuffName(debuff.skillId)}>
-                {getDebuffName(debuff.skillId)}
-              </div>
-              <Input
-                type="number"
-                min={0}
-                step={10}
-                value={debuff.position}
-                onChange={(event) => {
-                  const nextPosition = parsePosition(event.currentTarget.value);
-                  if (nextPosition == null) {
-                    return;
-                  }
-                  updateDebuffPosition(runnerId, debuff.id, nextPosition);
-                }}
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                aria-label="Remove debuff"
-                onClick={() => removeDebuff(runnerId, debuff.id)}
-              >
-                <Trash2Icon className="h-4 w-4" />
-              </Button>
-            </div>
+              skillId={debuff.skillId}
+              dismissable
+              interactive={false}
+              onDismiss={() => removeDebuff(runnerId, debuff.id)}
+              accessory={
+                <Input
+                  type="number"
+                  min={0}
+                  step={10}
+                  value={debuff.position}
+                  aria-label={`${getDebuffName(debuff.skillId)} position`}
+                  onChange={(event) => {
+                    const nextPosition = parsePosition(event.currentTarget.value);
+                    if (nextPosition == null) {
+                      return;
+                    }
+                    updateDebuffPosition(runnerId, debuff.id, nextPosition);
+                  }}
+                />
+              }
+            />
           ))}
         </div>
       )}

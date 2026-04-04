@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 
 import '@testing-library/jest-dom/vitest';
-import { afterEach, describe, expect, it } from 'vitest';
-import { cleanup, render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { SkillCostDetails } from '../cost-details';
 import { runawaySkillId } from '@/modules/runners/components/runner-card/types';
 import { SkillItem } from './SkillItem';
@@ -53,6 +53,27 @@ describe('SkillItem cost summary UI', () => {
     expect(screen.getByText('Obtained')).toBeInTheDocument();
     expect(screen.queryByText('46% off')).toBeNull();
     expect(screen.queryByText('120 SP')).toBeNull();
+  });
+
+  it('renders inline accessory content and uses a custom dismiss handler', () => {
+    const onDismiss = vi.fn();
+
+    render(
+      <SkillItem
+        skillId={runawaySkillId}
+        dismissable
+        interactive={false}
+        onDismiss={onDismiss}
+        accessory={<input type="number" aria-label="Debuff position" defaultValue={120} />}
+      />,
+    );
+
+    expect(screen.getByRole('spinbutton', { name: 'Debuff position' })).toHaveDisplayValue('120');
+    expect(document.querySelector('[data-event="select-skill"]')).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Remove skill' }));
+
+    expect(onDismiss).toHaveBeenCalledTimes(1);
   });
 });
 

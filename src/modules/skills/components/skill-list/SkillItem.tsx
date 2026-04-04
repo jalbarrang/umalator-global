@@ -25,11 +25,14 @@ type SkillIconNameRowProps = {
   className?: string;
 };
 
-const SkillIconNameRow = (props: SkillIconNameRowProps) => {
+export const SkillItemIdentity = (props: SkillIconNameRowProps) => {
   const { iconId, skillId, className } = props;
 
   return (
-    <div className={cn('flex flex-1 items-center gap-2', className)}>
+    <div
+      data-slot="skill-item-identity"
+      className={cn('flex flex-1 items-center gap-2 min-w-0', className)}
+    >
       <Activity mode={iconId ? 'visible' : 'hidden'}>
         <SkillIcon iconId={iconId} />
       </Activity>
@@ -41,17 +44,128 @@ const SkillIconNameRow = (props: SkillIconNameRowProps) => {
   );
 };
 
+type SkillItemRootProps = React.HTMLAttributes<HTMLDivElement> & {
+  skillId?: string;
+  interactive?: boolean;
+  selected?: boolean;
+  isHovered?: boolean;
+  isFocused?: boolean;
+};
+
+export function SkillItemRoot(props: SkillItemRootProps) {
+  const {
+    skillId,
+    interactive = false,
+    selected = false,
+    isHovered = false,
+    isFocused = false,
+    className,
+    ...rest
+  } = props;
+
+  return (
+    <div
+      data-slot="skill-item"
+      role={interactive ? 'button' : undefined}
+      tabIndex={interactive ? 0 : undefined}
+      data-skillid={interactive ? skillId : undefined}
+      data-event={interactive ? 'select-skill' : undefined}
+      className={cn(
+        'rounded-md bg-background border-2 flex h-auto',
+        {
+          'ring-2 ring-primary': selected,
+          'bg-yellow-200/70 dark:bg-yellow-800/40': isHovered || isFocused,
+        },
+        className,
+      )}
+      {...rest}
+    />
+  );
+}
+
+type SkillItemRailProps = React.ComponentProps<'div'> & {
+  rarity: SkillEntry['rarity'];
+};
+
+export function SkillItemRail(props: SkillItemRailProps) {
+  const { rarity, className, ...rest } = props;
+
+  return (
+    <div
+      data-slot="skill-item-rail"
+      className={cn(
+        'flex w-6 border rounded-l',
+        {
+          'skill-white': isWhiteSkill(rarity),
+          'skill-gold': isGoldSkill(rarity),
+          'skill-unique': isUniqueSkill(rarity),
+          'skill-pink': isEvolutionSkill(rarity),
+        },
+        className,
+      )}
+      {...rest}
+    />
+  );
+}
+
+export function SkillItemBody(props: React.ComponentProps<'div'>) {
+  const { className, ...rest } = props;
+
+  return <div data-slot="skill-item-body" className={cn('flex flex-1 min-w-0', className)} {...rest} />;
+}
+
+export function SkillItemMain(props: React.ComponentProps<'div'>) {
+  const { className, ...rest } = props;
+
+  return (
+    <div
+      data-slot="skill-item-main"
+      className={cn('flex flex-1 min-w-0 items-center gap-2', className)}
+      {...rest}
+    />
+  );
+}
+
+export function SkillItemAccessory(props: React.ComponentProps<'div'>) {
+  const { className, onClick, ...rest } = props;
+
+  return (
+    <div
+      data-slot="skill-item-accessory"
+      className={cn('shrink-0', className)}
+      onClick={(event) => {
+        event.stopPropagation();
+        onClick?.(event);
+      }}
+      {...rest}
+    />
+  );
+}
+
+export function SkillItemActions(props: React.ComponentProps<'div'>) {
+  const { className, ...rest } = props;
+
+  return (
+    <div
+      data-slot="skill-item-actions"
+      className={cn('flex shrink-0 items-center', className)}
+      {...rest}
+    />
+  );
+}
+
 type SkillDetailsPopoverActionsProps = {
   skillId: string;
   skill: SkillEntry;
   distanceFactor?: number;
   dismissable: boolean;
   onRemove?: (skillId: string) => void;
+  onDismiss?: () => void;
   className?: string;
 };
 
 const SkillDetailsPopoverActions = (props: SkillDetailsPopoverActionsProps) => {
-  const { skillId, skill, distanceFactor, dismissable, onRemove, className } = props;
+  const { skillId, skill, distanceFactor, dismissable, onRemove, onDismiss, className } = props;
 
   return (
     <div className={cn('flex items-center gap-1', className)}>
@@ -79,16 +193,18 @@ const SkillDetailsPopoverActions = (props: SkillDetailsPopoverActionsProps) => {
           variant="ghost"
           size="icon-lg"
           type="button"
+          aria-label="Remove skill"
           data-event="remove-skill"
           data-skillid={skillId}
-          onClick={
-            onRemove
-              ? (e) => {
-                  e.stopPropagation();
-                  onRemove(skillId);
-                }
-              : undefined
-          }
+          onClick={(e) => {
+            e.stopPropagation();
+            if (onDismiss) {
+              onDismiss();
+              return;
+            }
+
+            onRemove?.(skillId);
+          }}
         >
           <X className="w-4 h-4" />
         </Button>
@@ -131,16 +247,19 @@ type SkillItemProps = React.HTMLAttributes<HTMLDivElement> & {
   skillId: string;
   selected?: boolean;
   dismissable?: boolean;
+  interactive?: boolean;
   distanceFactor?: number;
   isHovered?: boolean;
   isFocused?: boolean;
   spCost?: number;
   costSummary?: SkillCostSummary;
+  accessory?: ReactNode;
   runnerId?: string;
   hasFastLearner?: boolean;
   onHintLevelChange?: (skillId: string, level: number) => void;
   onBoughtChange?: (skillId: string, bought: boolean) => void;
   onRemove?: (skillId: string) => void;
+  onDismiss?: () => void;
   getSkillMeta?: (skillId: string) => SkillMeta;
 };
 
@@ -151,10 +270,13 @@ export const SkillItem = memo((props: SkillItemProps) => {
     distanceFactor,
     spCost,
     costSummary,
+    interactive = true,
+    accessory,
     runnerId,
     onHintLevelChange,
     onBoughtChange,
     onRemove,
+    onDismiss,
     getSkillMeta,
     ...rest
   } = props;
@@ -172,7 +294,7 @@ export const SkillItem = memo((props: SkillItemProps) => {
       onRemove={onRemove}
       getSkillMeta={getSkillMeta}
     >
-      <SkillItemContent {...rest} />
+      <SkillItemContent interactive={interactive} accessory={accessory} onDismiss={onDismiss} {...rest} />
     </SkillItemProvider>
   );
 });
@@ -182,57 +304,56 @@ type SkillItemContentProps = React.HTMLAttributes<HTMLDivElement> & {
   isHovered?: boolean;
   isFocused?: boolean;
   dismissable?: boolean;
+  interactive?: boolean;
+  accessory?: ReactNode;
+  onDismiss?: () => void;
 };
 
 const SkillItemContent = (props: SkillItemContentProps) => {
-  const { selected = false, isHovered = false, isFocused = false, dismissable = false } = props;
+  const {
+    selected = false,
+    isHovered = false,
+    isFocused = false,
+    dismissable = false,
+    interactive = true,
+    accessory,
+    onDismiss,
+    className,
+    ...rest
+  } = props;
 
   const { skill, skillId, hasCost, costSummary } = useSkillItem();
-  const isCostSummaryLayout = hasCost && Boolean(costSummary);
+  const isCostSummaryLayout = hasCost && Boolean(costSummary) && !accessory;
 
   return (
-    <div
-      role="button"
-      tabIndex={0}
-      data-skillid={skillId}
-      data-event="select-skill"
-      style={props.style}
-      onMouseEnter={props.onMouseEnter}
-      onMouseLeave={props.onMouseLeave}
-      className={cn(
-        'rounded-md bg-background border-2 flex h-auto',
-        {
-          'ring-2 ring-primary': selected,
-          'bg-yellow-200/70 dark:bg-yellow-800/40': isHovered || isFocused,
-        },
-        isCostSummaryLayout ? 'min-h-[64px]' : 'min-h-[48px]',
-        props.className,
-      )}
+    <SkillItemRoot
+      skillId={skillId}
+      interactive={interactive}
+      selected={selected}
+      isHovered={isHovered}
+      isFocused={isFocused}
+      className={cn(isCostSummaryLayout ? 'min-h-[64px]' : 'min-h-[48px]', className)}
+      {...rest}
     >
-      <div
-        className={cn('flex w-6 border rounded-l', {
-          'skill-white': isWhiteSkill(skill.rarity),
-          'skill-gold': isGoldSkill(skill.rarity),
-          'skill-unique': isUniqueSkill(skill.rarity),
-          'skill-pink': isEvolutionSkill(skill.rarity),
-        })}
-      ></div>
+      <SkillItemRail rarity={skill.rarity} />
 
       {isCostSummaryLayout ? (
-        <TwoLineSkillLayout dismissable={dismissable} />
+        <TwoLineSkillLayout dismissable={dismissable} onDismiss={onDismiss} />
       ) : (
-        <DefaultSkillLayout dismissable={dismissable} />
+        <DefaultSkillLayout dismissable={dismissable} accessory={accessory} onDismiss={onDismiss} />
       )}
-    </div>
+    </SkillItemRoot>
   );
 };
 
 type SkillLayoutProps = {
   dismissable: boolean;
+  accessory?: ReactNode;
+  onDismiss?: () => void;
 };
 
 const DefaultSkillLayout = (props: SkillLayoutProps) => {
-  const { dismissable } = props;
+  const { dismissable, accessory, onDismiss } = props;
   const { skill, skillId, hasCost, costSummary, distanceFactor, spCost, onRemove, getSkillMeta } =
     useSkillItem();
 
@@ -249,35 +370,38 @@ const DefaultSkillLayout = (props: SkillLayoutProps) => {
   );
 
   return (
-    <div className="flex flex-1 items-center gap-2 p-1 px-2">
-      <SkillIconNameRow iconId={skill.iconId} skillId={skill.id} />
+    <SkillItemBody className="p-1 px-2">
+      <SkillItemMain>
+        <SkillItemIdentity iconId={skill.iconId} skillId={skill.id} />
+        {accessory ? <SkillItemAccessory className="w-[112px]">{accessory}</SkillItemAccessory> : null}
+        <SkillItemActions>
+          {hasCost && (
+            <SkillCostDetailsPopover
+              triggerClassName={cn(
+                'h-full rounded-none whitespace-nowrap cursor-pointer',
+                isObtained ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground',
+              )}
+            >
+              {isObtained ? 'Obtained' : `${displayedNetCost} SP`}
+            </SkillCostDetailsPopover>
+          )}
 
-      <div className="flex items-center">
-        {hasCost && (
-          <SkillCostDetailsPopover
-            triggerClassName={cn(
-              'h-full rounded-none whitespace-nowrap cursor-pointer',
-              isObtained ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground',
-            )}
-          >
-            {isObtained ? 'Obtained' : `${displayedNetCost} SP`}
-          </SkillCostDetailsPopover>
-        )}
-
-        <SkillDetailsPopoverActions
-          skillId={skillId}
-          skill={skill}
-          distanceFactor={distanceFactor}
-          dismissable={dismissable}
-          onRemove={onRemove}
-        />
-      </div>
-    </div>
+          <SkillDetailsPopoverActions
+            skillId={skillId}
+            skill={skill}
+            distanceFactor={distanceFactor}
+            dismissable={dismissable}
+            onRemove={onRemove}
+            onDismiss={onDismiss}
+          />
+        </SkillItemActions>
+      </SkillItemMain>
+    </SkillItemBody>
   );
 };
 
 const TwoLineSkillLayout = (props: SkillLayoutProps) => {
-  const { dismissable } = props;
+  const { dismissable, onDismiss } = props;
   const { skill, skillId, costSummary, distanceFactor, onRemove, hasCost, getSkillMeta, spCost } =
     useSkillItem();
 
@@ -299,9 +423,9 @@ const TwoLineSkillLayout = (props: SkillLayoutProps) => {
   );
 
   return (
-    <div className="flex flex-1 flex-col gap-2 min-w-0">
-      <div className="flex items-center gap-2 p-1 px-2">
-        <SkillIconNameRow iconId={skill.iconId} skillId={skill.id} />
+    <SkillItemBody className="flex-col gap-2">
+      <SkillItemMain className="p-1 px-2">
+        <SkillItemIdentity iconId={skill.iconId} skillId={skill.id} />
 
         <SkillDetailsPopoverActions
           skillId={skillId}
@@ -309,9 +433,10 @@ const TwoLineSkillLayout = (props: SkillLayoutProps) => {
           distanceFactor={distanceFactor}
           dismissable={dismissable}
           onRemove={onRemove}
+          onDismiss={onDismiss}
           className="shrink-0"
         />
-      </div>
+      </SkillItemMain>
 
       {hasCost && (
         <SkillCostDetailsPopover
@@ -336,6 +461,6 @@ const TwoLineSkillLayout = (props: SkillLayoutProps) => {
           )}
         </SkillCostDetailsPopover>
       )}
-    </div>
+    </SkillItemBody>
   );
 };
