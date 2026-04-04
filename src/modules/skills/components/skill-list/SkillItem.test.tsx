@@ -84,6 +84,30 @@ describe('SkillItem cost summary UI', () => {
     expect(onDismiss).toHaveBeenCalledTimes(1);
   });
 
+  it('lets accessory controls handle clicks without triggering the row', () => {
+    const onRowClick = vi.fn();
+    const onAccessoryClick = vi.fn();
+
+    render(
+      <SkillItem skillId={runawaySkillId}>
+        <SkillItemContent
+          interactive={false}
+          onClick={onRowClick}
+          accessory={
+            <button type="button" onClick={onAccessoryClick}>
+              Accessory action
+            </button>
+          }
+        />
+      </SkillItem>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Accessory action' }));
+
+    expect(onAccessoryClick).toHaveBeenCalledTimes(1);
+    expect(onRowClick).not.toHaveBeenCalled();
+  });
+
   it('provides context to lower-level compound children', () => {
     const onDismiss = vi.fn();
 

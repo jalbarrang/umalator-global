@@ -124,7 +124,7 @@ export function SkillItemAccessory(props: Readonly<React.ComponentProps<'div'>>)
     <div
       data-slot="skill-item-accessory"
       className={cn('shrink-0', className)}
-      onClickCapture={(event) => {
+      onClick={(event) => {
         event.stopPropagation();
       }}
       {...rest}
