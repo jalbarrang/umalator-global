@@ -33,7 +33,18 @@ import { runawaySkillId } from './types';
 import type { RunnerState } from './types';
 import type { StatsKey } from './stats-table';
 import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
-import { SkillItem } from '@/modules/skills/components/skill-list/SkillItem';
+import {
+  SkillItemActions,
+  SkillItemBody,
+  SkillItemCostAction,
+  SkillItemDetailsActions,
+  SkillItemIdentity,
+  SkillItem,
+  SkillItemMain,
+  SkillItemRail,
+  SkillItemRoot,
+  type SkillMeta,
+} from '@/modules/skills/components/skill-list/skill-item';
 import { skillCollection } from '@/modules/data/skills';
 
 import { getSelectableSkillsForUma, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
@@ -54,7 +65,6 @@ import {
   getSkillCostMeta,
   computeSkillCostSummary,
 } from '@/modules/skills/stores/skill-cost-meta.store';
-import type { SkillMeta } from '@/modules/skills/components/skill-list/skill-item.context';
 import type { HintLevel } from '@/modules/skill-planner/types';
 import {
   buildDedupedSkillListNetTotal,
@@ -76,6 +86,44 @@ type RunnerCardProps = {
   hideSkillButton?: boolean;
   showSkillSpCosts?: boolean;
 };
+
+function RunnerCardSkillRow({
+  dismissable,
+  showSummary,
+}: Readonly<{
+  dismissable: boolean;
+  showSummary: boolean;
+}>) {
+  if (showSummary) {
+    return (
+      <SkillItemRoot size="summary">
+        <SkillItemRail />
+        <SkillItemBody className="flex-col gap-2">
+          <SkillItemMain className="p-1 px-2">
+            <SkillItemIdentity />
+            <SkillItemDetailsActions dismissable={dismissable} className="shrink-0" />
+          </SkillItemMain>
+          <SkillItemCostAction layout="summary" />
+        </SkillItemBody>
+      </SkillItemRoot>
+    );
+  }
+
+  return (
+    <SkillItemRoot>
+      <SkillItemRail />
+      <SkillItemBody className="p-1 px-2">
+        <SkillItemMain>
+          <SkillItemIdentity />
+          <SkillItemActions>
+            <SkillItemCostAction layout="inline" />
+            <SkillItemDetailsActions dismissable={dismissable} />
+          </SkillItemActions>
+        </SkillItemMain>
+      </SkillItemBody>
+    </SkillItemRoot>
+  );
+}
 
 export const RunnerCard = (props: RunnerCardProps) => {
   const {
@@ -454,7 +502,6 @@ export const RunnerCard = (props: RunnerCardProps) => {
             <SkillItem
               key={skillId}
               skillId={skillId}
-              dismissable={skillId !== umaUniqueSkillId}
               distanceFactor={props.courseDistance}
               costSummary={isSkillSpCostEnabled ? costSummaryBySkillId[skillId] : undefined}
               runnerId={isSkillSpCostEnabled ? props.runnerId : undefined}
@@ -463,7 +510,12 @@ export const RunnerCard = (props: RunnerCardProps) => {
               onHintLevelChange={isSkillSpCostEnabled ? handleHintLevelChange : undefined}
               onBoughtChange={isSkillSpCostEnabled ? handleBoughtChange : undefined}
               getSkillMeta={isSkillSpCostEnabled ? getSkillMetaForRunner : undefined}
-            />
+            >
+              <RunnerCardSkillRow
+                dismissable={skillId !== umaUniqueSkillId}
+                showSummary={isSkillSpCostEnabled}
+              />
+            </SkillItem>
           );
 
           if (!isSkillSpCostEnabled) {

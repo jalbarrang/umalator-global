@@ -1,6 +1,6 @@
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
-import { SkillIcon } from './skill-list/SkillItem';
+import { SkillIcon, useSkillItem } from './skill-list/skill-item';
 import i18n from '@/i18n';
 import { memo, useMemo } from 'react';
 import { Label } from '@/components/ui/label';
@@ -20,7 +20,6 @@ import {
   isSkillCoveredByOwnedFamily,
 } from '@/modules/skill-planner/skill-family';
 import { skillCollection } from '@/modules/data/skills';
-import { useSkillItem } from './skill-list/skill-item.context';
 import { buildSkillCostSummary } from '@/modules/skills/skill-cost-summary';
 
 const HINT_LEVEL_OPTIONS: Array<{ value: HintLevel; label: string }> = [

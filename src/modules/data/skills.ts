@@ -194,6 +194,10 @@ export const getSkillNameById = (id: string): string => {
   return skillCollection[id].name;
 };
 
+export const normalizeSkillId = (skillId: string): string => {
+  return skillId.split('-')[0] ?? skillId;
+};
+
 export const getSkillNames = (): Array<string> => {
   return Object.values(skillCollection).map((skill) => skill.name);
 };

@@ -1,11 +1,143 @@
+import { gzipSync } from 'node:zlib';
 import { describe, it, expect, beforeAll } from 'vitest';
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { BitVector } from './bit-vector';
 import { decodeRoster } from './roster-encoding';
-import type { SingleExportData } from './types';
+import type { SingleExportData, SingleExportSkill } from './types';
 
-const TEST_ROSTER_PATH = resolve(__dirname, '../../../../tests/roster/roster-test-1');
-const TEST_ROSTER_URL = readFileSync(TEST_ROSTER_PATH, 'utf-8').trim();
+type TestRosterCharacter = Omit<SingleExportData, 'create_time'> & {
+  talent_level?: number;
+};
+
+function toBase64Url(bytes: Uint8Array): string {
+  return Buffer.from(bytes)
+    .toString('base64')
+    .replaceAll('+', '-')
+    .replaceAll('/', '_')
+    .replace(/=+$/g, '');
+}
+
+function fromBase64Url(value: string): Uint8Array {
+  const standard = value.replaceAll('-', '+').replaceAll('_', '/');
+  return Uint8Array.from(Buffer.from(standard, 'base64'));
+}
+
+function encodeRoster(characters: TestRosterCharacter[]): string {
+  const bv = new BitVector();
+  bv.write(4, 8);
+
+  for (const character of characters) {
+    bv.write(character.card_id, 20);
+    bv.write(character.talent_level ?? 0, 3);
+
+    if (character.rank_score != null) {
+      bv.write(1, 1);
+      bv.write(character.rank_score, 15);
+    } else {
+      bv.write(0, 1);
+    }
+
+    bv.write(character.speed, 11);
+    bv.write(character.stamina, 11);
+    bv.write(character.power, 11);
+    bv.write(character.guts, 11);
+    bv.write(character.wiz, 11);
+
+    bv.write(character.proper_distance_short - 1, 3);
+    bv.write(character.proper_distance_mile - 1, 3);
+    bv.write(character.proper_distance_middle - 1, 3);
+    bv.write(character.proper_distance_long - 1, 3);
+    bv.write(character.proper_ground_turf - 1, 3);
+    bv.write(character.proper_ground_dirt - 1, 3);
+    bv.write(character.proper_running_style_nige - 1, 3);
+    bv.write(character.proper_running_style_senko - 1, 3);
+    bv.write(character.proper_running_style_sashi - 1, 3);
+    bv.write(character.proper_running_style_oikomi - 1, 3);
+
+    bv.write(0, 4);
+
+    const skills = character.skill_array.slice(0, 63);
+    bv.write(skills.length, 6);
+    for (const skill of skills) {
+      bv.write(skill.skill_id, 20);
+      bv.write(skill.skill_level === 2 ? 1 : 0, 1);
+    }
+
+    bv.write(0, 2);
+  }
+
+  return bv.toBase64();
+}
+
+function buildTestRoster(): TestRosterCharacter[] {
+  const roster: TestRosterCharacter[] = [
+    {
+      card_id: 105001,
+      talent_level: 4,
+      speed: 1180,
+      stamina: 794,
+      power: 831,
+      guts: 519,
+      wiz: 843,
+      proper_distance_short: 3,
+      proper_distance_mile: 7,
+      proper_distance_middle: 8,
+      proper_distance_long: 4,
+      proper_ground_turf: 8,
+      proper_ground_dirt: 2,
+      proper_running_style_nige: 4,
+      proper_running_style_senko: 8,
+      proper_running_style_sashi: 6,
+      proper_running_style_oikomi: 3,
+      rank_score: 14522,
+      skill_array: [
+        { skill_id: 100101, skill_level: 1 },
+        { skill_id: 100202, skill_level: 2 },
+        { skill_id: 100303, skill_level: 1 },
+      ],
+    },
+  ];
+
+  for (let index = 1; index < 228; index++) {
+    const skills: SingleExportSkill[] = [];
+    const skillCount = (index % 4) + 1;
+
+    for (let skillIndex = 0; skillIndex < skillCount; skillIndex++) {
+      skills.push({
+        skill_id: 200000 + index * 10 + skillIndex,
+        skill_level: ((index + skillIndex) % 2) + 1,
+      });
+    }
+
+    roster.push({
+      card_id: 105001 + index,
+      talent_level: index % 5,
+      speed: 900 + (index % 900),
+      stamina: 700 + ((index * 3) % 700),
+      power: 650 + ((index * 5) % 800),
+      guts: 400 + ((index * 7) % 700),
+      wiz: 600 + ((index * 11) % 900),
+      proper_distance_short: (index % 8) + 1,
+      proper_distance_mile: ((index + 1) % 8) + 1,
+      proper_distance_middle: ((index + 2) % 8) + 1,
+      proper_distance_long: ((index + 3) % 8) + 1,
+      proper_ground_turf: ((index + 4) % 8) + 1,
+      proper_ground_dirt: ((index + 5) % 8) + 1,
+      proper_running_style_nige: ((index + 6) % 8) + 1,
+      proper_running_style_senko: ((index + 7) % 8) + 1,
+      proper_running_style_sashi: (index % 8) + 1,
+      proper_running_style_oikomi: ((index + 2) % 8) + 1,
+      rank_score: index % 3 === 0 ? 1000 + index * 7 : undefined,
+      skill_array: skills,
+    });
+  }
+
+  return roster;
+}
+
+const TEST_ROSTER = buildTestRoster();
+const TEST_ROSTER_BASE64 = encodeRoster(TEST_ROSTER);
+const TEST_ROSTER_HASH = `z${toBase64Url(gzipSync(fromBase64Url(TEST_ROSTER_BASE64)))}`;
+const TEST_ROSTER_URL = `https://example.test/roster#${TEST_ROSTER_HASH}`;
 
 describe('decodeRoster', () => {
   describe('URL extraction', () => {

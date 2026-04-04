@@ -9,8 +9,17 @@ import {
 import type { CandidateSkill, HintLevel } from '../types';
 import { getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import { Separator } from '@/components/ui/separator';
-import { SkillItem } from '@/modules/skills/components/skill-list/SkillItem';
-import type { SkillMeta } from '@/modules/skills/components/skill-list/skill-item.context';
+import {
+  SkillItemBody,
+  SkillItemCostAction,
+  SkillItemDetailsActions,
+  SkillItemIdentity,
+  SkillItem,
+  SkillItemMain,
+  SkillItemRail,
+  SkillItemRoot,
+  type SkillMeta,
+} from '@/modules/skills/components/skill-list/skill-item';
 import {
   buildDedupedSkillListNetTotal,
   buildSkillCostSummary,
@@ -138,6 +147,21 @@ type CandidateSkillItemProps = {
   getSkillMeta: (skillId: string) => SkillMeta;
 };
 
+function CandidateSkillRow({ isUnique }: Readonly<{ isUnique: boolean }>) {
+  return (
+    <SkillItemRoot size="summary">
+      <SkillItemRail />
+      <SkillItemBody className="flex-col gap-2">
+        <SkillItemMain className="p-1 px-2">
+          <SkillItemIdentity />
+          <SkillItemDetailsActions dismissable={!isUnique} className="shrink-0" />
+        </SkillItemMain>
+        <SkillItemCostAction layout="summary" />
+      </SkillItemBody>
+    </SkillItemRoot>
+  );
+}
+
 function CandidateSkillItem(props: Readonly<CandidateSkillItemProps>) {
   const {
     candidate,
@@ -153,13 +177,14 @@ function CandidateSkillItem(props: Readonly<CandidateSkillItemProps>) {
   return (
     <SkillItem
       skillId={candidate.skillId}
-      dismissable={!isUnique}
-      costSummary={costSummary}
       hasFastLearner={hasFastLearner}
+      costSummary={costSummary}
       onHintLevelChange={onHintLevelChange}
       onBoughtChange={onBoughtChange}
       onRemove={onRemove}
       getSkillMeta={getSkillMeta}
-    />
+    >
+      <CandidateSkillRow isUnique={isUnique} />
+    </SkillItem>
   );
 }

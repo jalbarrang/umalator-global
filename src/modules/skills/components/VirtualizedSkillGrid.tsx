@@ -1,5 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { SkillItem } from './skill-list/SkillItem';
+import {
+  SkillItem,
+  SkillItemActions,
+  SkillItemBody,
+  SkillItemDetailsActions,
+  SkillItemIdentity,
+  SkillItemMain,
+  SkillItemRail,
+  SkillItemRoot,
+} from './skill-list/skill-item';
 import type { CSSProperties } from 'react';
 import type { SkillEntry } from '@/modules/data/skills';
 
@@ -15,6 +24,45 @@ const ITEM_HEIGHT = 44; // Height of SkillItem
 const GAP = 8; // Gap between items
 const ROW_HEIGHT = ITEM_HEIGHT + GAP;
 const OVERSCAN_ROWS = 3; // Render 3 extra rows above and below viewport
+
+function VirtualizedSkillRow({
+  selected,
+  isHovered,
+  isFocused,
+  style,
+  onMouseEnter,
+  onMouseLeave,
+}: Readonly<{
+  selected: boolean;
+  isHovered: boolean;
+  isFocused: boolean;
+  style: CSSProperties;
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
+}>) {
+  return (
+    <SkillItemRoot
+      interactive
+      selected={selected}
+      isHovered={isHovered}
+      isFocused={isFocused}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      className="cursor-pointer"
+      style={style}
+    >
+      <SkillItemRail />
+      <SkillItemBody className="p-1 px-2">
+        <SkillItemMain>
+          <SkillItemIdentity />
+          <SkillItemActions>
+            <SkillItemDetailsActions />
+          </SkillItemActions>
+        </SkillItemMain>
+      </SkillItemBody>
+    </SkillItemRoot>
+  );
+}
 
 export function VirtualizedSkillGrid({
   items,
@@ -144,17 +192,16 @@ export function VirtualizedSkillGrid({
           const isFocused = focusedSkillId === skill.id;
 
           return (
-            <SkillItem
-              key={skill.id}
-              skillId={skill.id}
-              selected={selectedMap.get(`${skill.groupId}`) === skill.id}
-              isHovered={isHovered}
-              isFocused={isFocused}
-              onMouseEnter={() => setHoveredSkillId(skill.id)}
-              onMouseLeave={() => setHoveredSkillId(null)}
-              className="cursor-pointer"
-              style={getItemStyle(actualIndex)}
-            />
+            <SkillItem key={skill.id} skillId={skill.id}>
+              <VirtualizedSkillRow
+                selected={selectedMap.get(`${skill.groupId}`) === skill.id}
+                isHovered={isHovered}
+                isFocused={isFocused}
+                onMouseEnter={() => setHoveredSkillId(skill.id)}
+                onMouseLeave={() => setHoveredSkillId(null)}
+                style={getItemStyle(actualIndex)}
+              />
+            </SkillItem>
           );
         })}
       </div>

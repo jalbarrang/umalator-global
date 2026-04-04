@@ -32,12 +32,37 @@ import {
 import { useOcrImport } from '@/modules/runners/hooks/useOcrImport';
 import { useUmasForSearch } from '@/modules/runners/utils';
 import { getUniqueSkillForByUmaId } from '@/modules/skills/utils';
-import { SkillItem } from '@/modules/skills/components/skill-list/SkillItem';
+import {
+  SkillItem,
+  SkillItemActions,
+  SkillItemBody,
+  SkillItemDetailsActions,
+  SkillItemIdentity,
+  SkillItemMain,
+  SkillItemRail,
+  SkillItemRoot,
+} from '@/modules/skills/components/skill-list/skill-item';
 
 interface OcrImportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onApply: (data: ExtractedUmaData) => void;
+}
+
+function OcrDetectedSkillRow({ dismissable }: Readonly<{ dismissable: boolean }>) {
+  return (
+    <SkillItemRoot>
+      <SkillItemRail />
+      <SkillItemBody className="p-1 px-2">
+        <SkillItemMain>
+          <SkillItemIdentity />
+          <SkillItemActions>
+            <SkillItemDetailsActions dismissable={dismissable} />
+          </SkillItemActions>
+        </SkillItemMain>
+      </SkillItemBody>
+    </SkillItemRoot>
+  );
 }
 
 export function OcrImportDialog({ open, onOpenChange, onApply }: OcrImportDialogProps) {
@@ -441,11 +466,9 @@ export function OcrImportDialog({ open, onOpenChange, onApply }: OcrImportDialog
                   >
                     {results?.skills && results.skills.length > 0 ? (
                       results.skills.map((skill, i) => (
-                        <SkillItem
-                          key={`${skill.id}-${i}`}
-                          skillId={skill.id}
-                          dismissable={skill.id !== uniqueSkillId}
-                        />
+                        <SkillItem key={`${skill.id}-${i}`} skillId={skill.id}>
+                          <OcrDetectedSkillRow dismissable={skill.id !== uniqueSkillId} />
+                        </SkillItem>
                       ))
                     ) : (
                       <div className="p-2 border rounded text-muted-foreground text-sm">

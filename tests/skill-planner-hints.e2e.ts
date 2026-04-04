@@ -39,7 +39,7 @@ test('skill planner optimization uses hinted net cost', async ({ page }) => {
 
   // Wait for candidate row to render and read its displayed net cost.
   const candidateRow = page
-    .locator('[data-event="select-skill"]')
+    .locator('[data-slot="skill-item"]')
     .filter({ hasText: 'Corner Adept' })
     .first();
   await expect(candidateRow).toBeVisible();

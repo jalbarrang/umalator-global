@@ -6,13 +6,38 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { SaveRunnerModal } from '@/modules/runners/components/save-runner-modal';
-import { SkillItem } from '@/modules/skills/components/skill-list/SkillItem';
+import {
+  SkillItem,
+  SkillItemActions,
+  SkillItemBody,
+  SkillItemDetailsActions,
+  SkillItemIdentity,
+  SkillItemMain,
+  SkillItemRail,
+  SkillItemRoot,
+} from '@/modules/skills/components/skill-list/skill-item';
 import { setRunner } from '@/store/runners.store';
 import { useRunnerLibraryStore } from '@/store/runner-library.store';
 import { useSettingsStore } from '@/store/settings.store';
 import { toast } from 'sonner';
 
 type SkillPlannerResultsProps = React.HTMLAttributes<HTMLDivElement>;
+
+function ResultSkillRow({ className }: Readonly<{ className?: string }>) {
+  return (
+    <SkillItemRoot className={className}>
+      <SkillItemRail />
+      <SkillItemBody className="p-1 px-2">
+        <SkillItemMain>
+          <SkillItemIdentity />
+          <SkillItemActions>
+            <SkillItemDetailsActions />
+          </SkillItemActions>
+        </SkillItemMain>
+      </SkillItemBody>
+    </SkillItemRoot>
+  );
+}
 
 export function SkillPlannerResults(props: SkillPlannerResultsProps) {
   const { className, ...rest } = props;
@@ -240,7 +265,9 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
 
                         return (
                           <div key={skillId} className="flex items-center gap-2">
-                            <SkillItem skillId={skillId} className="flex-1 border" />
+                            <SkillItem skillId={skillId}>
+                              <ResultSkillRow className="flex-1 border" />
+                            </SkillItem>
                             <span className="text-xs text-muted-foreground whitespace-nowrap">
                               {skillCost} SP
                             </span>

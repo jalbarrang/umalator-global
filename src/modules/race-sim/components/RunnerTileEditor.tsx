@@ -17,7 +17,16 @@ import type { RunnerState } from '@/modules/runners/components/runner-card/types
 import { runawaySkillId } from '@/modules/runners/components/runner-card/types';
 import { UmaSelector } from '@/modules/runners/components/runner-selector';
 import { getUmaDisplayInfo } from '@/modules/runners/utils';
-import { SkillItem } from '@/modules/skills/components/skill-list/SkillItem';
+import {
+  SkillItem,
+  SkillItemActions,
+  SkillItemBody,
+  SkillItemDetailsActions,
+  SkillItemIdentity,
+  SkillItemMain,
+  SkillItemRail,
+  SkillItemRoot,
+} from '@/modules/skills/components/skill-list/skill-item';
 import { openSkillPicker, updateCurrentSkills } from '@/modules/skills/store';
 import { getSelectableSkillsForUma, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import { updateRunner, useRaceSimStore } from '@/modules/simulation/stores/race-sim.store';
@@ -27,6 +36,22 @@ type RunnerTileEditorProps = {
   runnerIndex: number | null;
   onOpenChange: (open: boolean) => void;
 };
+
+function RaceSimTileSkillRow({ dismissable }: Readonly<{ dismissable: boolean }>) {
+  return (
+    <SkillItemRoot>
+      <SkillItemRail />
+      <SkillItemBody className="p-1 px-2">
+        <SkillItemMain>
+          <SkillItemIdentity />
+          <SkillItemActions>
+            <SkillItemDetailsActions dismissable={dismissable} />
+          </SkillItemActions>
+        </SkillItemMain>
+      </SkillItemBody>
+    </SkillItemRoot>
+  );
+}
 
 export function RunnerTileEditor(props: RunnerTileEditorProps) {
   const { open, runnerIndex, onOpenChange } = props;
@@ -219,12 +244,9 @@ export function RunnerTileEditor(props: RunnerTileEditorProps) {
             {runner.skills.length > 0 && (
               <div className="grid grid-cols-1 gap-2">
                 {runner.skills.map((skillId) => (
-                  <SkillItem
-                    key={skillId}
-                    skillId={skillId}
-                    dismissable={skillId !== uniqueSkillId}
-                    onRemove={handleRemoveSkill}
-                  />
+                  <SkillItem key={skillId} skillId={skillId} onRemove={handleRemoveSkill}>
+                    <RaceSimTileSkillRow dismissable={skillId !== uniqueSkillId} />
+                  </SkillItem>
                 ))}
               </div>
             )}
