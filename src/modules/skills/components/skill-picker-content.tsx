@@ -180,7 +180,10 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
     allowDuplicateSkills = false,
   } = props;
 
-  const umaUniqueSkillId = umaId ? getUniqueSkillForByUmaId(umaId) : undefined;
+  const umaUniqueSkillId = useMemo(
+    () => (umaId ? getUniqueSkillForByUmaId(umaId) : undefined),
+    [umaId],
+  );
 
   const searchRef = useRef<HTMLInputElement>(null);
   const [searchText, setSearchText] = useState('');
@@ -193,7 +196,7 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
     return getManySkills(options);
   }, [options]);
 
-  const filteredSkills = (() => {
+  const filteredSkills = useMemo(() => {
     const activeRarities = getActiveFilters(filterState, 'rarity');
     const activeIconTypes = getActiveFilters(filterState, 'icontype');
     const activeStrategies = getActiveFilters(filterState, 'strategy');
@@ -213,7 +216,7 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
       .whereConditionMatch(activeSurfaces)
       .whereConditionMatch(activeLocations)
       .execute();
-  })();
+  }, [deferredSearchText, filterState, skills]);
 
   const selectedOtherFiltersCount = useMemo(() => {
     let count = 0;
@@ -235,12 +238,17 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
   }, []);
 
   // Create a lookup map from skill ID to Skill object
-  const skillsById = new Map(skills.map((skill) => [skill.id, skill]));
-  const shouldAllowDuplicateSkill = (skill: { iconId: string }) =>
-    allowDuplicateSkills || skill.iconId.startsWith('3');
+  const skillsById = useMemo(() => new Map(skills.map((skill) => [skill.id, skill])), [skills]);
+
+  const shouldAllowDuplicateSkill = useCallback(
+    (skill: { iconId: string }) => {
+      return allowDuplicateSkills || skill.iconId.startsWith('3');
+    },
+    [allowDuplicateSkills],
+  );
 
   // Build selected map using the pre-built lookup
-  const selectedMap = (() => {
+  const selectedMap = useMemo(() => {
     const selected: Array<[string, string]> = [];
 
     for (const id of currentSkills) {
@@ -255,78 +263,81 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
     }
 
     return new Map(selected);
-  })();
+  }, [currentSkills, skillsById, shouldAllowDuplicateSkill]);
 
-  const toggleSelected: React.MouseEventHandler<HTMLDivElement> = (e) => {
-    e.stopPropagation();
-    const target = e.target as HTMLElement;
+  const toggleSelected: React.MouseEventHandler<HTMLDivElement> = useCallback(
+    (e) => {
+      e.stopPropagation();
+      const target = e.target as HTMLElement;
 
-    const eventElement = target.closest('[data-event]') as HTMLElement;
-    if (!eventElement) return;
+      const eventElement = target.closest('[data-event]') as HTMLElement;
+      if (!eventElement) return;
 
-    const eventType = eventElement.dataset.event;
-    if (!eventType) return;
+      const eventType = eventElement.dataset.event;
+      if (!eventType) return;
 
-    if (eventType !== 'select-skill') return;
+      if (eventType !== 'select-skill') return;
 
-    let id = eventElement.dataset.skillid;
-    const skill = skills.find((skillItem) => skillItem.id === id);
-    if (!skill) return;
+      let id = eventElement.dataset.skillid;
+      const skill = skills.find((skillItem) => skillItem.id === id);
+      if (!skill) return;
 
-    const groupId = `${skill.groupId}`;
-    const newSelected = new Set(currentSkills);
+      const groupId = `${skill.groupId}`;
+      const newSelected = new Set(currentSkills);
 
-    const selectedId = selectedMap.get(groupId);
-    if (selectedId && selectedId === id && id !== umaUniqueSkillId) {
-      newSelected.delete(selectedId);
-      onSelect(Array.from(newSelected));
-      return;
-    }
-
-    if (selectedId) {
-      newSelected.delete(selectedId);
-    } else if (shouldAllowDuplicateSkill(skill)) {
-      let count = 0;
-
-      for (const newSelectedId of newSelected) {
-        if (newSelectedId.split('-')[0] === id) {
-          count++;
-        }
+      const selectedId = selectedMap.get(groupId);
+      if (selectedId && selectedId === id && id !== umaUniqueSkillId) {
+        newSelected.delete(selectedId);
+        onSelect(Array.from(newSelected));
+        return;
       }
 
-      id = count > 0 ? `${id}-${count}` : id;
-    }
+      if (selectedId) {
+        newSelected.delete(selectedId);
+      } else if (shouldAllowDuplicateSkill(skill)) {
+        let count = 0;
 
-    if (id) {
-      newSelected.add(id);
-    }
+        for (const newSelectedId of newSelected) {
+          if (newSelectedId.split('-')[0] === id) {
+            count++;
+          }
+        }
 
-    onSelect(Array.from(newSelected));
-  };
+        id = count > 0 ? `${id}-${count}` : id;
+      }
 
-  const handleRarityChecked = (filter: string) => {
+      if (id) {
+        newSelected.add(id);
+      }
+
+      onSelect(Array.from(newSelected));
+    },
+    [currentSkills, selectedMap, shouldAllowDuplicateSkill, onSelect, umaUniqueSkillId, skills],
+  );
+
+  const handleRarityChecked = useCallback((filter: string) => {
     dispatch({ type: 'SET_EXCLUSIVE_FILTER', group: 'rarity', filter });
-  };
+  }, []);
 
-  const handleIconTypeChecked = (filter: string) => {
+  const handleIconTypeChecked = useCallback((filter: string) => {
     dispatch({ type: 'TOGGLE_ICON_TYPE', filter });
-  };
+  }, []);
 
-  const handleStrategyChecked = (filter: string) => {
+  const handleStrategyChecked = useCallback((filter: string) => {
     dispatch({ type: 'SET_EXCLUSIVE_FILTER', group: 'strategy', filter });
-  };
+  }, []);
 
-  const handleDistanceChecked = (filter: string) => {
+  const handleDistanceChecked = useCallback((filter: string) => {
     dispatch({ type: 'SET_EXCLUSIVE_FILTER', group: 'distance', filter });
-  };
+  }, []);
 
-  const handleSurfaceChecked = (filter: string) => {
+  const handleSurfaceChecked = useCallback((filter: string) => {
     dispatch({ type: 'SET_EXCLUSIVE_FILTER', group: 'surface', filter });
-  };
+  }, []);
 
-  const handleLocationChecked = (filter: string) => {
+  const handleLocationChecked = useCallback((filter: string) => {
     dispatch({ type: 'SET_EXCLUSIVE_FILTER', group: 'location', filter });
-  };
+  }, []);
 
   useHotkeys('f', (event) => {
     event.preventDefault();

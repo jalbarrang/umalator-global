@@ -1,7 +1,8 @@
+import React from 'react';
 import { SkillItemProvider } from './provider';
 import type { SkillItemProps } from './types';
 
-export function SkillItem(props: Readonly<SkillItemProps>) {
+export const SkillItem = React.memo((props: Readonly<SkillItemProps>) => {
   const {
     children,
     skillId,
@@ -32,6 +33,4 @@ export function SkillItem(props: Readonly<SkillItemProps>) {
       {children}
     </SkillItemProvider>
   );
-}
-
-SkillItem.displayName = 'SkillItem';
+});
