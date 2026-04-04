@@ -1,5 +1,5 @@
 import { XIcon } from 'lucide-react';
-import { useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Drawer,
@@ -49,22 +49,25 @@ export function DebuffsPanel() {
     return result;
   }, []);
 
-  const handleOpenPicker = (runnerId: CompareRunnerId) => {
+  const handleOpenPicker = useCallback((runnerId: CompareRunnerId) => {
     setPickerRunnerId(runnerId);
     setPickerSelection([]);
-  };
+  }, []);
 
-  const handlePickerSelection = (selectedSkills: Array<string>) => {
-    setPickerSelection(selectedSkills);
-    const selectedSkill = selectedSkills.at(-1);
-    if (!selectedSkill || !pickerRunnerId) {
-      return;
-    }
+  const handlePickerSelection = useCallback(
+    (selectedSkills: Array<string>) => {
+      setPickerSelection(selectedSkills);
+      const selectedSkill = selectedSkills.at(-1);
+      if (!selectedSkill || !pickerRunnerId) {
+        return;
+      }
 
-    addDebuff(pickerRunnerId, normalizeSkillId(selectedSkill), 0);
-    setPickerSelection([]);
-    setPickerRunnerId(null);
-  };
+      addDebuff(pickerRunnerId, normalizeSkillId(selectedSkill), 0);
+      setPickerSelection([]);
+      setPickerRunnerId(null);
+    },
+    [pickerRunnerId],
+  );
 
   return (
     <>
