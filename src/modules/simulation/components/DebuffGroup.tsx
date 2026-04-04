@@ -1,8 +1,10 @@
+import { useCallback, type ChangeEvent } from 'react';
 import { PlusIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import i18n from '@/i18n';
+import { normalizeSkillId } from '@/modules/data/skills';
 import {
   SkillItem,
   SkillItemAccessory,
@@ -26,14 +28,6 @@ type DebuffEntry = {
   position: number;
 };
 
-export function normalizeSkillId(skillId: string) {
-  return skillId.split('-')[0] ?? skillId;
-}
-
-function getDebuffName(skillId: string) {
-  return i18n.t(`skillnames.${normalizeSkillId(skillId)}`);
-}
-
 function parsePosition(rawValue: string): number | null {
   const parsed = Number(rawValue.trim());
   if (!Number.isFinite(parsed) || parsed < 0) {
@@ -48,6 +42,56 @@ type DebuffGroupProps = Readonly<{
   debuffs: Array<DebuffEntry>;
   onAdd: (runnerId: CompareRunnerId) => void;
 }>;
+
+function DebuffRow({
+  runnerId,
+  debuff,
+}: Readonly<{
+  runnerId: CompareRunnerId;
+  debuff: DebuffEntry;
+}>) {
+  const handlePositionChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const nextPosition = parsePosition(event.currentTarget.value);
+      if (nextPosition == null) {
+        return;
+      }
+
+      updateDebuffPosition(runnerId, debuff.id, nextPosition);
+    },
+    [runnerId, debuff.id],
+  );
+
+  const handleDismiss = useCallback(() => {
+    removeDebuff(runnerId, debuff.id);
+  }, [runnerId, debuff.id]);
+
+  return (
+    <SkillItem key={debuff.id} skillId={debuff.skillId}>
+      <SkillItemRoot interactive={false}>
+        <SkillItemRail />
+        <SkillItemBody className="p-1 px-2">
+          <SkillItemMain>
+            <SkillItemIdentity />
+            <SkillItemAccessory className="w-[112px]">
+              <Input
+                type="number"
+                min={0}
+                step={10}
+                value={debuff.position}
+                aria-label={`${i18n.t(`skillnames.${normalizeSkillId(debuff.skillId)}`)} position`}
+                onChange={handlePositionChange}
+              />
+            </SkillItemAccessory>
+            <SkillItemActions>
+              <SkillItemDetailsActions dismissable onDismiss={handleDismiss} />
+            </SkillItemActions>
+          </SkillItemMain>
+        </SkillItemBody>
+      </SkillItemRoot>
+    </SkillItem>
+  );
+}
 
 export function DebuffGroup({ runnerId, title, debuffs, onAdd }: DebuffGroupProps) {
   return (
@@ -69,35 +113,7 @@ export function DebuffGroup({ runnerId, title, debuffs, onAdd }: DebuffGroupProp
       {debuffs.length > 0 && (
         <div className="flex flex-col gap-2">
           {debuffs.map((debuff) => (
-            <SkillItem key={debuff.id} skillId={debuff.skillId}>
-              <SkillItemRoot interactive={false}>
-                <SkillItemRail />
-                <SkillItemBody className="p-1 px-2">
-                  <SkillItemMain>
-                    <SkillItemIdentity />
-                    <SkillItemAccessory className="w-[112px]">
-                      <Input
-                        type="number"
-                        min={0}
-                        step={10}
-                        value={debuff.position}
-                        aria-label={`${getDebuffName(debuff.skillId)} position`}
-                        onChange={(event) => {
-                          const nextPosition = parsePosition(event.currentTarget.value);
-                          if (nextPosition == null) {
-                            return;
-                          }
-                          updateDebuffPosition(runnerId, debuff.id, nextPosition);
-                        }}
-                      />
-                    </SkillItemAccessory>
-                    <SkillItemActions>
-                      <SkillItemDetailsActions dismissable onDismiss={() => removeDebuff(runnerId, debuff.id)} />
-                    </SkillItemActions>
-                  </SkillItemMain>
-                </SkillItemBody>
-              </SkillItemRoot>
-            </SkillItem>
+            <DebuffRow key={debuff.id} runnerId={runnerId} debuff={debuff} />
           ))}
         </div>
       )}

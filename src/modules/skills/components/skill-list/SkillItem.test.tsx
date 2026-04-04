@@ -6,9 +6,14 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { SkillCostDetails } from '../cost-details';
 import { runawaySkillId } from '@/modules/runners/components/runner-card/types';
 import {
+  SkillItemAccessory,
+  SkillItemActions,
+  SkillItemBody,
+  SkillItemCostAction,
+  SkillItemDetailsActions,
+  SkillItemIdentity,
   SkillItem,
-  SkillItemContent,
-  SkillItemDefaultLayout,
+  SkillItemMain,
   SkillItemRail,
   SkillItemRoot,
 } from './skill-item';
@@ -27,11 +32,51 @@ const createCostSummary = (overrides: Partial<SkillCostSummary> = {}): SkillCost
   ...overrides,
 });
 
+function SummarySkillRow({ dismissable = false, onDismiss }: Readonly<{ dismissable?: boolean; onDismiss?: () => void }>) {
+  return (
+    <SkillItemRoot size="summary">
+      <SkillItemRail />
+      <SkillItemBody className="flex-col gap-2">
+        <SkillItemMain className="p-1 px-2">
+          <SkillItemIdentity />
+          <SkillItemDetailsActions dismissable={dismissable} onDismiss={onDismiss} className="shrink-0" />
+        </SkillItemMain>
+        <SkillItemCostAction layout="summary" />
+      </SkillItemBody>
+    </SkillItemRoot>
+  );
+}
+
+function AccessorySkillRow({
+  accessory,
+  onDismiss,
+  onClick,
+}: Readonly<{
+  accessory: React.ReactNode;
+  onDismiss?: () => void;
+  onClick?: React.MouseEventHandler<HTMLDivElement>;
+}>) {
+  return (
+    <SkillItemRoot interactive={false} onClick={onClick}>
+      <SkillItemRail />
+      <SkillItemBody className="p-1 px-2">
+        <SkillItemMain>
+          <SkillItemIdentity />
+          <SkillItemAccessory className="w-[112px]">{accessory}</SkillItemAccessory>
+          <SkillItemActions>
+            <SkillItemDetailsActions dismissable={Boolean(onDismiss)} onDismiss={onDismiss} />
+          </SkillItemActions>
+        </SkillItemMain>
+      </SkillItemBody>
+    </SkillItemRoot>
+  );
+}
+
 describe('SkillItem cost summary UI', () => {
   it('renders rounded aggregate discount and net cost in the row', () => {
     render(
       <SkillItem skillId={runawaySkillId} costSummary={createCostSummary()}>
-        <SkillItemContent />
+        <SummarySkillRow />
       </SkillItem>,
     );
 
@@ -41,8 +86,11 @@ describe('SkillItem cost summary UI', () => {
 
   it('hides the discount label when rounded discount is zero', () => {
     render(
-      <SkillItem skillId={runawaySkillId} costSummary={createCostSummary({ exactDiscountPct: 0, roundedDiscountPct: 0 })}>
-        <SkillItemContent />
+      <SkillItem
+        skillId={runawaySkillId}
+        costSummary={createCostSummary({ exactDiscountPct: 0, roundedDiscountPct: 0 })}
+      >
+        <SummarySkillRow />
       </SkillItem>,
     );
 
@@ -52,8 +100,11 @@ describe('SkillItem cost summary UI', () => {
 
   it('shows obtained state instead of discount and net cost', () => {
     render(
-      <SkillItem skillId={runawaySkillId} costSummary={createCostSummary({ isObtained: true, netTotal: 0 })}>
-        <SkillItemContent />
+      <SkillItem
+        skillId={runawaySkillId}
+        costSummary={createCostSummary({ isObtained: true, netTotal: 0 })}
+      >
+        <SummarySkillRow />
       </SkillItem>,
     );
 
@@ -67,9 +118,7 @@ describe('SkillItem cost summary UI', () => {
 
     render(
       <SkillItem skillId={runawaySkillId}>
-        <SkillItemContent
-          dismissable
-          interactive={false}
+        <AccessorySkillRow
           onDismiss={onDismiss}
           accessory={<input type="number" aria-label="Debuff position" defaultValue={120} />}
         />
@@ -90,8 +139,7 @@ describe('SkillItem cost summary UI', () => {
 
     render(
       <SkillItem skillId={runawaySkillId}>
-        <SkillItemContent
-          interactive={false}
+        <AccessorySkillRow
           onClick={onRowClick}
           accessory={
             <button type="button" onClick={onAccessoryClick}>
@@ -113,14 +161,10 @@ describe('SkillItem cost summary UI', () => {
 
     render(
       <SkillItem skillId={runawaySkillId}>
-        <SkillItemRoot interactive={false}>
-          <SkillItemRail />
-          <SkillItemDefaultLayout
-            dismissable
-            onDismiss={onDismiss}
-            accessory={<input type="number" aria-label="Forced position" defaultValue={90} />}
-          />
-        </SkillItemRoot>
+        <AccessorySkillRow
+          onDismiss={onDismiss}
+          accessory={<input type="number" aria-label="Forced position" defaultValue={90} />}
+        />
       </SkillItem>,
     );
 

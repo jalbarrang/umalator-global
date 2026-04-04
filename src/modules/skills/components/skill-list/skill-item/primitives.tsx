@@ -4,11 +4,7 @@ import i18n from '@/i18n';
 import { isEvolutionSkill, isGoldSkill, isUniqueSkill, isWhiteSkill } from '@/store/runners.store';
 import { useSkillItem } from './context';
 import { SkillIcon } from './SkillIcon';
-import type {
-  SkillItemIdentityProps,
-  SkillItemRailProps,
-  SkillItemRootProps,
-} from './types';
+import type { SkillItemIdentityProps, SkillItemRailProps, SkillItemRootProps } from './types';
 
 export function SkillItemIdentity(props: Readonly<SkillItemIdentityProps>) {
   const { iconId, skillId, className } = props;
@@ -102,7 +98,9 @@ export function SkillItemRail(props: Readonly<SkillItemRailProps>) {
 export function SkillItemBody(props: Readonly<React.ComponentProps<'div'>>) {
   const { className, ...rest } = props;
 
-  return <div data-slot="skill-item-body" className={cn('flex min-w-0 flex-1', className)} {...rest} />;
+  return (
+    <div data-slot="skill-item-body" className={cn('flex min-w-0 flex-1', className)} {...rest} />
+  );
 }
 
 export function SkillItemMain(props: Readonly<React.ComponentProps<'div'>>) {

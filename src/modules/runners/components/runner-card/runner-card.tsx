@@ -34,8 +34,15 @@ import type { RunnerState } from './types';
 import type { StatsKey } from './stats-table';
 import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
 import {
+  SkillItemActions,
+  SkillItemBody,
+  SkillItemCostAction,
+  SkillItemDetailsActions,
+  SkillItemIdentity,
   SkillItem,
-  SkillItemContent,
+  SkillItemMain,
+  SkillItemRail,
+  SkillItemRoot,
   type SkillMeta,
 } from '@/modules/skills/components/skill-list/skill-item';
 import { skillCollection } from '@/modules/data/skills';
@@ -79,6 +86,44 @@ type RunnerCardProps = {
   hideSkillButton?: boolean;
   showSkillSpCosts?: boolean;
 };
+
+function RunnerCardSkillRow({
+  dismissable,
+  showSummary,
+}: Readonly<{
+  dismissable: boolean;
+  showSummary: boolean;
+}>) {
+  if (showSummary) {
+    return (
+      <SkillItemRoot size="summary">
+        <SkillItemRail />
+        <SkillItemBody className="flex-col gap-2">
+          <SkillItemMain className="p-1 px-2">
+            <SkillItemIdentity />
+            <SkillItemDetailsActions dismissable={dismissable} className="shrink-0" />
+          </SkillItemMain>
+          <SkillItemCostAction layout="summary" />
+        </SkillItemBody>
+      </SkillItemRoot>
+    );
+  }
+
+  return (
+    <SkillItemRoot>
+      <SkillItemRail />
+      <SkillItemBody className="p-1 px-2">
+        <SkillItemMain>
+          <SkillItemIdentity />
+          <SkillItemActions>
+            <SkillItemCostAction layout="inline" />
+            <SkillItemDetailsActions dismissable={dismissable} />
+          </SkillItemActions>
+        </SkillItemMain>
+      </SkillItemBody>
+    </SkillItemRoot>
+  );
+}
 
 export const RunnerCard = (props: RunnerCardProps) => {
   const {
@@ -466,7 +511,10 @@ export const RunnerCard = (props: RunnerCardProps) => {
               onBoughtChange={isSkillSpCostEnabled ? handleBoughtChange : undefined}
               getSkillMeta={isSkillSpCostEnabled ? getSkillMetaForRunner : undefined}
             >
-              <SkillItemContent dismissable={skillId !== umaUniqueSkillId} />
+              <RunnerCardSkillRow
+                dismissable={skillId !== umaUniqueSkillId}
+                showSummary={isSkillSpCostEnabled}
+              />
             </SkillItem>
           );
 

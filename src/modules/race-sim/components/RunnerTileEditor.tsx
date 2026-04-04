@@ -19,7 +19,13 @@ import { UmaSelector } from '@/modules/runners/components/runner-selector';
 import { getUmaDisplayInfo } from '@/modules/runners/utils';
 import {
   SkillItem,
-  SkillItemContent,
+  SkillItemActions,
+  SkillItemBody,
+  SkillItemDetailsActions,
+  SkillItemIdentity,
+  SkillItemMain,
+  SkillItemRail,
+  SkillItemRoot,
 } from '@/modules/skills/components/skill-list/skill-item';
 import { openSkillPicker, updateCurrentSkills } from '@/modules/skills/store';
 import { getSelectableSkillsForUma, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
@@ -30,6 +36,22 @@ type RunnerTileEditorProps = {
   runnerIndex: number | null;
   onOpenChange: (open: boolean) => void;
 };
+
+function RaceSimTileSkillRow({ dismissable }: Readonly<{ dismissable: boolean }>) {
+  return (
+    <SkillItemRoot>
+      <SkillItemRail />
+      <SkillItemBody className="p-1 px-2">
+        <SkillItemMain>
+          <SkillItemIdentity />
+          <SkillItemActions>
+            <SkillItemDetailsActions dismissable={dismissable} />
+          </SkillItemActions>
+        </SkillItemMain>
+      </SkillItemBody>
+    </SkillItemRoot>
+  );
+}
 
 export function RunnerTileEditor(props: RunnerTileEditorProps) {
   const { open, runnerIndex, onOpenChange } = props;
@@ -223,7 +245,7 @@ export function RunnerTileEditor(props: RunnerTileEditorProps) {
               <div className="grid grid-cols-1 gap-2">
                 {runner.skills.map((skillId) => (
                   <SkillItem key={skillId} skillId={skillId} onRemove={handleRemoveSkill}>
-                    <SkillItemContent dismissable={skillId !== uniqueSkillId} />
+                    <RaceSimTileSkillRow dismissable={skillId !== uniqueSkillId} />
                   </SkillItem>
                 ))}
               </div>

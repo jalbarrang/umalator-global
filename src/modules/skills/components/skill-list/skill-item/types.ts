@@ -11,13 +11,6 @@ export type SkillItemIdentityProps = {
   className?: string;
 };
 
-export type SkillItemLayoutProps = {
-  dismissable?: boolean;
-  accessory?: ReactNode;
-  onDismiss?: () => void;
-  className?: string;
-};
-
 export type SkillItemDetailsActionsProps = {
   dismissable?: boolean;
   onDismiss?: () => void;
@@ -57,14 +50,4 @@ export type SkillItemContextProps = {
 
 export type SkillItemProps = SkillItemContextProps & {
   children: ReactNode;
-};
-
-export type SkillItemContentProps = HTMLAttributes<HTMLDivElement> & {
-  selected?: boolean;
-  isHovered?: boolean;
-  isFocused?: boolean;
-  dismissable?: boolean;
-  interactive?: boolean;
-  accessory?: ReactNode;
-  onDismiss?: () => void;
 };

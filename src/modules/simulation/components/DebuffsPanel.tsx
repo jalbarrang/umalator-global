@@ -15,7 +15,8 @@ import {
   PanelHeader,
   PanelTitle,
 } from '@/components/ui/panel';
-import { DebuffGroup, normalizeSkillId } from './DebuffGroup';
+import { normalizeSkillId } from '@/modules/data/skills';
+import { DebuffGroup } from './DebuffGroup';
 import { SkillPickerContent } from '@/modules/skills/components/skill-picker-content';
 import { getSkills } from '@/modules/data/skills';
 import { isInjectableExternalDebuffSkill } from '@/lib/sunday-tools/skills/external-debuffs';

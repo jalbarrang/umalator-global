@@ -1,8 +1,6 @@
 import { useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Panel,
   PanelContent,
@@ -10,108 +8,12 @@ import {
   PanelHeader,
   PanelTitle,
 } from '@/components/ui/panel';
-import i18n from '@/i18n';
+import { buildRunnerSkillEntries, ForcedPositionGroup } from './ForcedPositionGroup';
 import { useRunnersStore } from '@/store/runners.store';
 import {
-  SkillItem,
-  SkillItemDefaultLayout,
-  SkillItemRail,
-  SkillItemRoot,
-} from '@/modules/skills/components/skill-list/skill-item';
-import {
   clearAllForcedPositions,
-  clearForcedPosition,
-  setForcedPosition,
   useForcedPositions,
-  type CompareRunnerId,
 } from '@/modules/simulation/stores/forced-positions.store';
-
-type RunnerSkillEntry = {
-  skillId: string;
-  normalizedSkillId: string;
-  name: string;
-};
-
-function buildRunnerSkillEntries(skills: Array<string>): Array<RunnerSkillEntry> {
-  return skills.map((skillId) => {
-    const normalizedSkillId = skillId.split('-')[0];
-
-    return {
-      skillId,
-      normalizedSkillId,
-      name: i18n.t(`skillnames.${normalizedSkillId}`),
-    };
-  });
-}
-
-function updateForcedPosition(runnerId: CompareRunnerId, skillId: string, rawValue: string) {
-  const trimmedValue = rawValue.trim();
-
-  if (trimmedValue === '') {
-    clearForcedPosition(runnerId, skillId);
-    return;
-  }
-
-  const parsed = Number(trimmedValue);
-
-  if (!Number.isFinite(parsed) || parsed < 0) {
-    clearForcedPosition(runnerId, skillId);
-    return;
-  }
-
-  setForcedPosition(runnerId, skillId, Math.round(parsed));
-}
-
-function RunnerForcePositionGroup({
-  runnerId,
-  title,
-  skills,
-  positions,
-}: Readonly<{
-  runnerId: CompareRunnerId;
-  title: string;
-  skills: Array<RunnerSkillEntry>;
-  positions: Record<string, number>;
-}>) {
-  return (
-    <div className="flex flex-col gap-2 rounded-md border bg-background p-3">
-      <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        {title}
-      </Label>
-
-      {skills.length === 0 && (
-        <div className="text-xs text-muted-foreground">This runner has no skills.</div>
-      )}
-
-      {skills.length > 0 && (
-        <div className="flex flex-col gap-2">
-          {skills.map((skill) => (
-            <SkillItem key={`${runnerId}-${skill.skillId}`} skillId={skill.skillId} runnerId={runnerId}>
-              <SkillItemRoot interactive={false}>
-                <SkillItemRail />
-                <SkillItemDefaultLayout
-                  accessory={
-                    <Input
-                      type="number"
-                      min={0}
-                      step={10}
-                      placeholder="Auto"
-                      aria-label={`${skill.name} forced position`}
-                      value={positions[skill.normalizedSkillId]?.toString() ?? ''}
-                      onChange={(event) =>
-                        updateForcedPosition(runnerId, skill.normalizedSkillId, event.currentTarget.value)
-                      }
-                    />
-                  }
-                />
-              </SkillItemRoot>
-            </SkillItem>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 export function ForcedPositionsPanel() {
   const { uma1Skills, uma2Skills } = useRunnersStore(
@@ -149,13 +51,14 @@ export function ForcedPositionsPanel() {
       </PanelHeader>
 
       <PanelContent className="flex flex-col gap-3">
-        <RunnerForcePositionGroup
+        <ForcedPositionGroup
           runnerId="uma1"
           title="Uma 1"
           skills={mappedSkills.uma1}
           positions={uma1}
         />
-        <RunnerForcePositionGroup
+
+        <ForcedPositionGroup
           runnerId="uma2"
           title="Uma 2"
           skills={mappedSkills.uma2}

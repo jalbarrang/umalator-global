@@ -1,3 +1,3 @@
-export { SkillItemProvider } from './skill-item';
+export { SkillItemProvider } from './skill-item/provider';
 
-export type { SkillItemProviderProps } from './skill-item';
+export type { SkillItemProviderProps } from './skill-item/provider';

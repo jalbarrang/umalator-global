@@ -10,8 +10,14 @@ import type { CandidateSkill, HintLevel } from '../types';
 import { getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import { Separator } from '@/components/ui/separator';
 import {
+  SkillItemBody,
+  SkillItemCostAction,
+  SkillItemDetailsActions,
+  SkillItemIdentity,
   SkillItem,
-  SkillItemContent,
+  SkillItemMain,
+  SkillItemRail,
+  SkillItemRoot,
   type SkillMeta,
 } from '@/modules/skills/components/skill-list/skill-item';
 import {
@@ -141,6 +147,21 @@ type CandidateSkillItemProps = {
   getSkillMeta: (skillId: string) => SkillMeta;
 };
 
+function CandidateSkillRow({ isUnique }: Readonly<{ isUnique: boolean }>) {
+  return (
+    <SkillItemRoot size="summary">
+      <SkillItemRail />
+      <SkillItemBody className="flex-col gap-2">
+        <SkillItemMain className="p-1 px-2">
+          <SkillItemIdentity />
+          <SkillItemDetailsActions dismissable={!isUnique} className="shrink-0" />
+        </SkillItemMain>
+        <SkillItemCostAction layout="summary" />
+      </SkillItemBody>
+    </SkillItemRoot>
+  );
+}
+
 function CandidateSkillItem(props: Readonly<CandidateSkillItemProps>) {
   const {
     candidate,
@@ -163,7 +184,7 @@ function CandidateSkillItem(props: Readonly<CandidateSkillItemProps>) {
       onRemove={onRemove}
       getSkillMeta={getSkillMeta}
     >
-      <SkillItemContent dismissable={!isUnique} />
+      <CandidateSkillRow isUnique={isUnique} />
     </SkillItem>
   );
 }
