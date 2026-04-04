@@ -7,7 +7,7 @@ import i18n from '@/i18n';
 import { Code } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { SkillIcon } from './skill-list/SkillItem';
+import { SkillIcon } from './skill-list/skill-item';
 
 type ExpandedSkillDetailsProps = {
   id: string;

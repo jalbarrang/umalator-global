@@ -8,7 +8,10 @@ import type { RunnerState } from '@/modules/runners/components/runner-card/types
 import { runawaySkillId } from '@/modules/runners/components/runner-card/types';
 import { UmaSelector } from '@/modules/runners/components/runner-selector';
 import { getUmaDisplayInfo, getUmaImageUrl } from '@/modules/runners/utils';
-import { SkillItem } from '@/modules/skills/components/skill-list/SkillItem';
+import {
+  SkillItem,
+  SkillItemContent,
+} from '@/modules/skills/components/skill-list/skill-item';
 import { openSkillPicker, updateCurrentSkills } from '@/modules/skills/store';
 import { getSelectableSkillsForUma, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import { updateRunner, useRaceSimStore } from '@/modules/simulation/stores/race-sim.store';
@@ -244,12 +247,9 @@ export function RunnerDetailPanel({
             {runner.skills.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {runner.skills.map((skillId) => (
-                  <SkillItem
-                    key={skillId}
-                    skillId={skillId}
-                    dismissable={skillId !== uniqueSkillId}
-                    onRemove={handleRemoveSkill}
-                  />
+                  <SkillItem key={skillId} skillId={skillId} onRemove={handleRemoveSkill}>
+                    <SkillItemContent dismissable={skillId !== uniqueSkillId} />
+                  </SkillItem>
                 ))}
               </div>
             )}

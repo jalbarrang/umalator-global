@@ -13,6 +13,12 @@ import {
 import i18n from '@/i18n';
 import { useRunnersStore } from '@/store/runners.store';
 import {
+  SkillItem,
+  SkillItemDefaultLayout,
+  SkillItemRail,
+  SkillItemRoot,
+} from '@/modules/skills/components/skill-list/skill-item';
+import {
   clearAllForcedPositions,
   clearForcedPosition,
   setForcedPosition,
@@ -61,12 +67,12 @@ function RunnerForcePositionGroup({
   title,
   skills,
   positions,
-}: {
+}: Readonly<{
   runnerId: CompareRunnerId;
   title: string;
   skills: Array<RunnerSkillEntry>;
   positions: Record<string, number>;
-}) {
+}>) {
   return (
     <div className="flex flex-col gap-2 rounded-md border bg-background p-3">
       <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -80,25 +86,26 @@ function RunnerForcePositionGroup({
       {skills.length > 0 && (
         <div className="flex flex-col gap-2">
           {skills.map((skill) => (
-            <div
-              key={`${runnerId}-${skill.skillId}`}
-              className="grid grid-cols-[minmax(0,1fr)_112px] items-center gap-2"
-            >
-              <div className="truncate text-sm" title={skill.name}>
-                {skill.name}
-              </div>
-
-              <Input
-                type="number"
-                min={0}
-                step={10}
-                placeholder="Auto"
-                value={positions[skill.normalizedSkillId]?.toString() ?? ''}
-                onChange={(event) =>
-                  updateForcedPosition(runnerId, skill.normalizedSkillId, event.currentTarget.value)
-                }
-              />
-            </div>
+            <SkillItem key={`${runnerId}-${skill.skillId}`} skillId={skill.skillId} runnerId={runnerId}>
+              <SkillItemRoot interactive={false}>
+                <SkillItemRail />
+                <SkillItemDefaultLayout
+                  accessory={
+                    <Input
+                      type="number"
+                      min={0}
+                      step={10}
+                      placeholder="Auto"
+                      aria-label={`${skill.name} forced position`}
+                      value={positions[skill.normalizedSkillId]?.toString() ?? ''}
+                      onChange={(event) =>
+                        updateForcedPosition(runnerId, skill.normalizedSkillId, event.currentTarget.value)
+                      }
+                    />
+                  }
+                />
+              </SkillItemRoot>
+            </SkillItem>
           ))}
         </div>
       )}

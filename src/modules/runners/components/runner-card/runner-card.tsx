@@ -33,7 +33,11 @@ import { runawaySkillId } from './types';
 import type { RunnerState } from './types';
 import type { StatsKey } from './stats-table';
 import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
-import { SkillItem } from '@/modules/skills/components/skill-list/SkillItem';
+import {
+  SkillItem,
+  SkillItemContent,
+  type SkillMeta,
+} from '@/modules/skills/components/skill-list/skill-item';
 import { skillCollection } from '@/modules/data/skills';
 
 import { getSelectableSkillsForUma, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
@@ -54,7 +58,6 @@ import {
   getSkillCostMeta,
   computeSkillCostSummary,
 } from '@/modules/skills/stores/skill-cost-meta.store';
-import type { SkillMeta } from '@/modules/skills/components/skill-list/skill-item.context';
 import type { HintLevel } from '@/modules/skill-planner/types';
 import {
   buildDedupedSkillListNetTotal,
@@ -454,7 +457,6 @@ export const RunnerCard = (props: RunnerCardProps) => {
             <SkillItem
               key={skillId}
               skillId={skillId}
-              dismissable={skillId !== umaUniqueSkillId}
               distanceFactor={props.courseDistance}
               costSummary={isSkillSpCostEnabled ? costSummaryBySkillId[skillId] : undefined}
               runnerId={isSkillSpCostEnabled ? props.runnerId : undefined}
@@ -463,7 +465,9 @@ export const RunnerCard = (props: RunnerCardProps) => {
               onHintLevelChange={isSkillSpCostEnabled ? handleHintLevelChange : undefined}
               onBoughtChange={isSkillSpCostEnabled ? handleBoughtChange : undefined}
               getSkillMeta={isSkillSpCostEnabled ? getSkillMetaForRunner : undefined}
-            />
+            >
+              <SkillItemContent dismissable={skillId !== umaUniqueSkillId} />
+            </SkillItem>
           );
 
           if (!isSkillSpCostEnabled) {

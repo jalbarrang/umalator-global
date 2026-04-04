@@ -9,7 +9,7 @@ import {
   useState,
 } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { SkillIcon } from './skill-list/SkillItem';
+import { SkillIcon } from './skill-list/skill-item';
 import { VirtualizedSkillGrid } from './VirtualizedSkillGrid';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';

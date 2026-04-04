@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { SkillItem } from './skill-list/SkillItem';
+import { SkillItem, SkillItemContent } from './skill-list/skill-item';
 import type { CSSProperties } from 'react';
 import type { SkillEntry } from '@/modules/data/skills';
 
@@ -147,14 +147,17 @@ export function VirtualizedSkillGrid({
             <SkillItem
               key={skill.id}
               skillId={skill.id}
-              selected={selectedMap.get(`${skill.groupId}`) === skill.id}
-              isHovered={isHovered}
-              isFocused={isFocused}
-              onMouseEnter={() => setHoveredSkillId(skill.id)}
-              onMouseLeave={() => setHoveredSkillId(null)}
-              className="cursor-pointer"
-              style={getItemStyle(actualIndex)}
-            />
+            >
+              <SkillItemContent
+                selected={selectedMap.get(`${skill.groupId}`) === skill.id}
+                isHovered={isHovered}
+                isFocused={isFocused}
+                onMouseEnter={() => setHoveredSkillId(skill.id)}
+                onMouseLeave={() => setHoveredSkillId(null)}
+                className="cursor-pointer"
+                style={getItemStyle(actualIndex)}
+              />
+            </SkillItem>
           );
         })}
       </div>

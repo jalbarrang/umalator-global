@@ -32,7 +32,10 @@ import {
 import { useOcrImport } from '@/modules/runners/hooks/useOcrImport';
 import { useUmasForSearch } from '@/modules/runners/utils';
 import { getUniqueSkillForByUmaId } from '@/modules/skills/utils';
-import { SkillItem } from '@/modules/skills/components/skill-list/SkillItem';
+import {
+  SkillItem,
+  SkillItemContent,
+} from '@/modules/skills/components/skill-list/skill-item';
 
 interface OcrImportDialogProps {
   open: boolean;
@@ -441,11 +444,9 @@ export function OcrImportDialog({ open, onOpenChange, onApply }: OcrImportDialog
                   >
                     {results?.skills && results.skills.length > 0 ? (
                       results.skills.map((skill, i) => (
-                        <SkillItem
-                          key={`${skill.id}-${i}`}
-                          skillId={skill.id}
-                          dismissable={skill.id !== uniqueSkillId}
-                        />
+                        <SkillItem key={`${skill.id}-${i}`} skillId={skill.id}>
+                          <SkillItemContent dismissable={skill.id !== uniqueSkillId} />
+                        </SkillItem>
                       ))
                     ) : (
                       <div className="p-2 border rounded text-muted-foreground text-sm">

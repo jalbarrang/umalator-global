@@ -19,7 +19,12 @@ import {
 } from '@/components/ui/panel';
 import i18n from '@/i18n';
 import { SkillPickerContent } from '@/modules/skills/components/skill-picker-content';
-import { SkillItem } from '@/modules/skills/components/skill-list/SkillItem';
+import {
+  SkillItem,
+  SkillItemDefaultLayout,
+  SkillItemRail,
+  SkillItemRoot,
+} from '@/modules/skills/components/skill-list/skill-item';
 import { getSkills } from '@/modules/data/skills';
 import { isInjectableExternalDebuffSkill } from '@/lib/sunday-tools/skills/external-debuffs';
 import {
@@ -52,12 +57,12 @@ function DebuffGroup({
   title,
   debuffs,
   onAdd,
-}: {
+}: Readonly<{
   runnerId: CompareRunnerId;
   title: string;
   debuffs: Array<{ id: string; skillId: string; position: number }>;
   onAdd: (runnerId: CompareRunnerId) => void;
-}) {
+}>) {
   return (
     <div className="flex flex-col gap-2 rounded-md border bg-background p-3">
       <div className="flex items-center justify-between gap-2">
@@ -77,29 +82,31 @@ function DebuffGroup({
       {debuffs.length > 0 && (
         <div className="flex flex-col gap-2">
           {debuffs.map((debuff) => (
-            <SkillItem
-              key={debuff.id}
-              skillId={debuff.skillId}
-              dismissable
-              interactive={false}
-              onDismiss={() => removeDebuff(runnerId, debuff.id)}
-              accessory={
-                <Input
-                  type="number"
-                  min={0}
-                  step={10}
-                  value={debuff.position}
-                  aria-label={`${getDebuffName(debuff.skillId)} position`}
-                  onChange={(event) => {
-                    const nextPosition = parsePosition(event.currentTarget.value);
-                    if (nextPosition == null) {
-                      return;
-                    }
-                    updateDebuffPosition(runnerId, debuff.id, nextPosition);
-                  }}
+            <SkillItem key={debuff.id} skillId={debuff.skillId}>
+              <SkillItemRoot interactive={false}>
+                <SkillItemRail />
+                <SkillItemDefaultLayout
+                  dismissable
+                  onDismiss={() => removeDebuff(runnerId, debuff.id)}
+                  accessory={
+                    <Input
+                      type="number"
+                      min={0}
+                      step={10}
+                      value={debuff.position}
+                      aria-label={`${getDebuffName(debuff.skillId)} position`}
+                      onChange={(event) => {
+                        const nextPosition = parsePosition(event.currentTarget.value);
+                        if (nextPosition == null) {
+                          return;
+                        }
+                        updateDebuffPosition(runnerId, debuff.id, nextPosition);
+                      }}
+                    />
+                  }
                 />
-              }
-            />
+              </SkillItemRoot>
+            </SkillItem>
           ))}
         </div>
       )}
@@ -120,9 +127,7 @@ export function DebuffsPanel() {
     const result: string[] = [];
     const skills = getSkills();
 
-    for (let i = 0; i < skills.length; i++) {
-      const skill = skills[i];
-
+    for (const skill of skills) {
       if (isInjectableExternalDebuffSkill(skill)) {
         result.push(skill.id);
       }

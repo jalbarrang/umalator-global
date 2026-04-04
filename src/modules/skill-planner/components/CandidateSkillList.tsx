@@ -9,8 +9,11 @@ import {
 import type { CandidateSkill, HintLevel } from '../types';
 import { getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import { Separator } from '@/components/ui/separator';
-import { SkillItem } from '@/modules/skills/components/skill-list/SkillItem';
-import type { SkillMeta } from '@/modules/skills/components/skill-list/skill-item.context';
+import {
+  SkillItem,
+  SkillItemContent,
+  type SkillMeta,
+} from '@/modules/skills/components/skill-list/skill-item';
 import {
   buildDedupedSkillListNetTotal,
   buildSkillCostSummary,
@@ -153,13 +156,14 @@ function CandidateSkillItem(props: Readonly<CandidateSkillItemProps>) {
   return (
     <SkillItem
       skillId={candidate.skillId}
-      dismissable={!isUnique}
-      costSummary={costSummary}
       hasFastLearner={hasFastLearner}
+      costSummary={costSummary}
       onHintLevelChange={onHintLevelChange}
       onBoughtChange={onBoughtChange}
       onRemove={onRemove}
       getSkillMeta={getSkillMeta}
-    />
+    >
+      <SkillItemContent dismissable={!isUnique} />
+    </SkillItem>
   );
 }
