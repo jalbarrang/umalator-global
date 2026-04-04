@@ -39,8 +39,15 @@ interface SkillCombinationComparisonResult {
 export function runSkillCombinationComparison(
   params: SkillCombinationComparisonParams,
 ): SkillCombinationComparisonResult {
-  const { nsamples, course, racedef, baseRunner, candidateSkills, ignoreStaminaConsumption, options } =
-    params;
+  const {
+    nsamples,
+    course,
+    racedef,
+    baseRunner,
+    candidateSkills,
+    ignoreStaminaConsumption,
+    options,
+  } = params;
 
   const result = runPlannerComparison({
     nsamples,

@@ -238,7 +238,9 @@ export const SkillCostDetails = () => {
               <span className="text-sm font-semibold">{resolvedCostSummary.netTotal} SP</span>
 
               <span className="text-muted-foreground">Discount</span>
-              <span className="font-medium">{resolvedCostSummary.exactDiscountPct.toFixed(1)}%</span>
+              <span className="font-medium">
+                {resolvedCostSummary.exactDiscountPct.toFixed(1)}%
+              </span>
             </div>
           </div>
         ) : (
@@ -294,7 +296,9 @@ export const SkillCostDetails = () => {
               <span className="font-semibold">{resolvedCostSummary.netTotal} SP</span>
 
               <span className="text-muted-foreground">Discount</span>
-              <span className="font-medium">{resolvedCostSummary.exactDiscountPct.toFixed(1)}%</span>
+              <span className="font-medium">
+                {resolvedCostSummary.exactDiscountPct.toFixed(1)}%
+              </span>
             </div>
           </div>
         )}

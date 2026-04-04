@@ -137,7 +137,11 @@ export function computePackBoundsFromWorldPoints(
   return { minX: minX2, maxX: maxX2, minY: minY2, maxY: maxY2 };
 }
 
-export function toCanvas(x: number, y: number, transform: CanvasTransform): {
+export function toCanvas(
+  x: number,
+  y: number,
+  transform: CanvasTransform,
+): {
   cx: number;
   cy: number;
 } {

@@ -86,7 +86,9 @@ const getBoughtFamilySkillIds = (
   skillId: string,
   getSkillMeta: (skillId: string) => SkillSummaryMeta,
 ): Array<string> => {
-  return getRelatedSkillIds(skillId).filter((relatedSkillId) => getSkillMeta(relatedSkillId).bought === true);
+  return getRelatedSkillIds(skillId).filter(
+    (relatedSkillId) => getSkillMeta(relatedSkillId).bought === true,
+  );
 };
 
 export const buildSkillCostSummary = ({
@@ -139,8 +141,7 @@ export const buildSkillCostSummary = ({
     netTotal = 0;
   }
 
-  const exactDiscountPct =
-    baseTotal > 0 ? ((baseTotal - netTotal) / baseTotal) * 100 : 0;
+  const exactDiscountPct = baseTotal > 0 ? ((baseTotal - netTotal) / baseTotal) * 100 : 0;
 
   return {
     baseTotal,

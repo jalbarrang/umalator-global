@@ -63,7 +63,11 @@ function printResults(result: RaceSimResult, courseDistance: number): void {
     for (const finishOrder of finishOrders) {
       for (let j = 0; j < finishOrder.length; j++) {
         const entry = finishOrder[j];
-        const existing = avgPositions.get(entry.runnerId) ?? { name: entry.name, total: 0, count: 0 };
+        const existing = avgPositions.get(entry.runnerId) ?? {
+          name: entry.name,
+          total: 0,
+          count: 0,
+        };
         existing.total += j + 1;
         existing.count += 1;
         avgPositions.set(entry.runnerId, existing);
@@ -92,7 +96,8 @@ async function main() {
   const opts = program.opts();
   const courseId = Number(opts.course);
   const nsamples = Number(opts.samples);
-  const masterSeed = opts.seed !== undefined ? Number(opts.seed) : Math.floor(Math.random() * 1_000_000);
+  const masterSeed =
+    opts.seed !== undefined ? Number(opts.seed) : Math.floor(Math.random() * 1_000_000);
 
   console.log(`Course: ${courseId}`);
   console.log(`Samples: ${nsamples}`);

@@ -113,7 +113,10 @@ function parseScalarNumber(line: string, prefix: string): number {
   return Number(line.slice(prefix.length).trim());
 }
 
-function parseNumberList(lines: string[], startIndex: number): { values: number[]; nextIndex: number } {
+function parseNumberList(
+  lines: string[],
+  startIndex: number,
+): { values: number[]; nextIndex: number } {
   const values: number[] = [];
   let index = startIndex;
   while (index < lines.length) {
@@ -127,16 +130,17 @@ function parseNumberList(lines: string[], startIndex: number): { values: number[
   return { values, nextIndex: index };
 }
 
-function parseRotationList(lines: string[], startIndex: number): { values: RotationSample[]; nextIndex: number } {
+function parseRotationList(
+  lines: string[],
+  startIndex: number,
+): { values: RotationSample[]; nextIndex: number } {
   const values: RotationSample[] = [];
   let index = startIndex;
   while (index < lines.length) {
     const line = lines[index];
     if (line.startsWith('    - {x: ')) {
       const match =
-        /^\s*-\s*\{x:\s*([^,]+),\s*y:\s*([^,]+),\s*z:\s*([^,]+),\s*w:\s*([^}]+)\}\s*$/.exec(
-          line,
-        );
+        /^\s*-\s*\{x:\s*([^,]+),\s*y:\s*([^,]+),\s*z:\s*([^,]+),\s*w:\s*([^}]+)\}\s*$/.exec(line);
       if (!match) {
         break;
       }
@@ -339,7 +343,9 @@ async function main(): Promise<void> {
   console.log(`Skipped base-loop assets: ${skippedBaseLoopAssets}`);
   console.log(`Unmatched assets: ${unmatchedAssets}`);
 
-  const duplicateCourses = [...matchedByCourseId.entries()].filter(([, assets]) => assets.length > 1);
+  const duplicateCourses = [...matchedByCourseId.entries()].filter(
+    ([, assets]) => assets.length > 1,
+  );
   if (duplicateCourses.length > 0) {
     console.log(`Courses with multiple variants: ${duplicateCourses.length}`);
     for (const [courseId, assets] of duplicateCourses.slice(0, 10)) {

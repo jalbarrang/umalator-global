@@ -1,5 +1,10 @@
 import { skillCollection } from '@/modules/data/skills';
-import { getBaseTier, getGoldVersion, getUpgradeTier, getWhiteVersion } from '@/modules/skills/skill-relationships';
+import {
+  getBaseTier,
+  getGoldVersion,
+  getUpgradeTier,
+  getWhiteVersion,
+} from '@/modules/skills/skill-relationships';
 
 function queueIfValid(skillIds: Set<string>, queue: Array<string>, skillId?: string) {
   if (!skillId || skillIds.has(skillId) || !skillCollection[skillId]) {
@@ -25,7 +30,9 @@ export function getRepresentativePrerequisiteIds(skillId: string): Array<string>
     const upgradeTierId = getUpgradeTier(baseTierId);
 
     return Array.from(
-      new Set([baseTierId, upgradeTierId].filter((id): id is string => Boolean(id && id !== skillId))),
+      new Set(
+        [baseTierId, upgradeTierId].filter((id): id is string => Boolean(id && id !== skillId)),
+      ),
     );
   }
 
@@ -46,7 +53,10 @@ export function getRepresentativePrerequisiteIds(skillId: string): Array<string>
  * - Upgrade tier (◎) covers base tier (○).
  * - Gold covers either white tier in its family.
  */
-export function isSkillCoveredByOwnedFamily(skillId: string, ownedSkillIds: Iterable<string>): boolean {
+export function isSkillCoveredByOwnedFamily(
+  skillId: string,
+  ownedSkillIds: Iterable<string>,
+): boolean {
   const ownedSet = toSkillIdSet(ownedSkillIds);
   if (ownedSet.has(skillId)) {
     return true;

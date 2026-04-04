@@ -91,9 +91,7 @@ export function SimulationLayout() {
       <LeftSidebar />
 
       <div className="flex flex-col flex-1 min-w-0 overflow-auto p-4 gap-4">
-        {!dismissed && (
-          <CompareAlert onDismiss={() => setDismissal('compare-notice', true)} />
-        )}
+        {!dismissed && <CompareAlert onDismiss={() => setDismissal('compare-notice', true)} />}
 
         <div className="flex align-center gap-2">
           {hidden && (

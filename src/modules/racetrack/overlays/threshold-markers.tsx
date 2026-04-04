@@ -28,9 +28,9 @@ const ThresholdMarker = React.memo((props: ThresholdMarkerProps) => {
   return (
     <g className="threshold-marker">
       <line
-        x1={x}
+        x1={x + RaceTrackDimensions.xOffset}
         y1={20}
-        x2={x}
+        x2={x + RaceTrackDimensions.xOffset}
         y2={height - 20}
         stroke={strokeColor}
         strokeWidth="1"
@@ -38,7 +38,7 @@ const ThresholdMarker = React.memo((props: ThresholdMarkerProps) => {
       />
 
       <text
-        x={x}
+        x={x + RaceTrackDimensions.xOffset}
         y={12}
         fontSize="8px"
         textAnchor="middle"

@@ -98,11 +98,14 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
     };
   }, [result]);
 
-  const buildSkills = useCallback((combination: CombinationResult): Array<string> => {
-    const obtainedSkills = optimizationContext?.obtainedSkills ?? getObtainedSkills();
+  const buildSkills = useCallback(
+    (combination: CombinationResult): Array<string> => {
+      const obtainedSkills = optimizationContext?.obtainedSkills ?? getObtainedSkills();
 
-    return Array.from(new Set([...obtainedSkills, ...combination.skills]));
-  }, [optimizationContext]);
+      return Array.from(new Set([...obtainedSkills, ...combination.skills]));
+    },
+    [optimizationContext],
+  );
 
   const buildRunnerSnapshot = useCallback(
     (combination: CombinationResult) => {

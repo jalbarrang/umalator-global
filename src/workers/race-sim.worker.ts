@@ -1,5 +1,9 @@
 import '../polyfills';
-import { runRaceSim, type RaceSimParams, type RaceSimResult } from '@/lib/sunday-tools/race-sim/run-race-sim';
+import {
+  runRaceSim,
+  type RaceSimParams,
+  type RaceSimResult,
+} from '@/lib/sunday-tools/race-sim/run-race-sim';
 
 export type RaceSimWorkerParams = RaceSimParams;
 

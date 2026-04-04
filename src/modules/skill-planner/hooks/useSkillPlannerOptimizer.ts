@@ -23,7 +23,12 @@ import {
   setResult,
   useSkillPlannerStore,
 } from '../skill-planner.store';
-import type { CandidateSkill, OptimizationProgress, OptimizationResult, SkillPlanningMeta } from '../types';
+import type {
+  CandidateSkill,
+  OptimizationProgress,
+  OptimizationResult,
+  SkillPlanningMeta,
+} from '../types';
 import { buildOptimizationInputFingerprint } from '../input-fingerprint';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 import { racedefToParams } from '@/utils/races';
@@ -55,8 +60,15 @@ type WorkerMessage =
     };
 
 export function useSkillPlannerOptimizer() {
-  const { runner, candidates, skillMetaById, budget, hasFastLearner, ignoreStaminaConsumption, seed } =
-    useSkillPlannerStore();
+  const {
+    runner,
+    candidates,
+    skillMetaById,
+    budget,
+    hasFastLearner,
+    ignoreStaminaConsumption,
+    seed,
+  } = useSkillPlannerStore();
   const { courseId, racedef, staminaDrainOverrides } = useSettingsStore();
 
   const webWorkerRef = useRef<Worker | null>(null);
@@ -220,7 +232,10 @@ function expandPrerequisites(
       hintLevel: skillMetaById[candidate.skillId]?.hintLevel ?? candidate.hintLevel ?? 0,
     });
 
-    for (const prereqId of getUnsatisfiedRepresentativePrerequisiteIds(candidate.skillId, obtainedSkills)) {
+    for (const prereqId of getUnsatisfiedRepresentativePrerequisiteIds(
+      candidate.skillId,
+      obtainedSkills,
+    )) {
       if (!expanded[prereqId]) {
         expanded[prereqId] = createCandidate({
           skillId: prereqId,

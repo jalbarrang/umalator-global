@@ -135,7 +135,6 @@ function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-
 async function downloadFile(
   url: string,
   timeoutSeconds: number = DEFAULT_TIMEOUT,
@@ -563,7 +562,10 @@ async function main(): Promise<number> {
   program
     .name('fetch-master-db')
     .description('Fetch master.mdb from Uma Musume manifest chain')
-    .argument('[appVer]', 'Resource version (defaults to latest current.resource_version from https://uma.moe/api/ver)')
+    .argument(
+      '[appVer]',
+      'Resource version (defaults to latest current.resource_version from https://uma.moe/api/ver)',
+    )
     .option(
       '-o, --output <dir>',
       `Output directory (default: ${DEFAULT_OUTPUT_DIR})`,
@@ -589,7 +591,10 @@ Manifest Chain:
 `,
     )
     .action(
-      async (appVer: string | undefined, options: { output: string; platform: string; quiet: boolean }) => {
+      async (
+        appVer: string | undefined,
+        options: { output: string; platform: string; quiet: boolean },
+      ) => {
         try {
           const resolvedVersion = await resolveResourceVersion(appVer);
           if (!options.quiet) {

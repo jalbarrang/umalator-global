@@ -7,7 +7,9 @@ import {
 } from './skill-family';
 
 const getSkillIdByName = (name: string): string => {
-  const skillId = Object.keys(skillCollection).find((candidateId) => skillCollection[candidateId].name === name);
+  const skillId = Object.keys(skillCollection).find(
+    (candidateId) => skillCollection[candidateId].name === name,
+  );
 
   if (!skillId) {
     throw new Error(`Could not find skill named "${name}"`);
@@ -22,7 +24,9 @@ describe('skill-family prerequisite coverage', () => {
     const focusId = getSkillIdByName('Focus');
     const gatekeptId = getSkillIdByName('Gatekept');
 
-    expect(getRepresentativePrerequisiteIds(concentrationId)).toEqual(expect.arrayContaining([focusId, gatekeptId]));
+    expect(getRepresentativePrerequisiteIds(concentrationId)).toEqual(
+      expect.arrayContaining([focusId, gatekeptId]),
+    );
     expect(isSkillCoveredByOwnedFamily(gatekeptId, [focusId])).toBe(true);
     expect(getUnsatisfiedRepresentativePrerequisiteIds(concentrationId, [focusId])).toEqual([]);
   });
@@ -33,6 +37,8 @@ describe('skill-family prerequisite coverage', () => {
 
     expect(getRepresentativePrerequisiteIds(escapeArtistId)).toEqual([fastPacedId]);
     expect(isSkillCoveredByOwnedFamily(fastPacedId, [escapeArtistId])).toBe(true);
-    expect(getUnsatisfiedRepresentativePrerequisiteIds(escapeArtistId, [escapeArtistId])).toEqual([]);
+    expect(getUnsatisfiedRepresentativePrerequisiteIds(escapeArtistId, [escapeArtistId])).toEqual(
+      [],
+    );
   });
 });

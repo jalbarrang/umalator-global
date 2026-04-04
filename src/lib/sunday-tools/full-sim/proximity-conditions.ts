@@ -26,7 +26,11 @@ function isWithinDistance(
   return Math.abs(otherSnapshot.position - runner.position) <= maxDistanceMeters;
 }
 
-function isWithinLane(runner: Runner, otherSnapshot: RunnerSnapshot, laneThreshold: number): boolean {
+function isWithinLane(
+  runner: Runner,
+  otherSnapshot: RunnerSnapshot,
+  laneThreshold: number,
+): boolean {
   return Math.abs(otherSnapshot.currentLane - runner.currentLane) <= laneThreshold;
 }
 

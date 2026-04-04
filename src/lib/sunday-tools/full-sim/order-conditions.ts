@@ -135,7 +135,8 @@ export function registerOrderConditions(): void {
       return false;
     }
 
-    const distanceDiffRate = ((leaderPosition - runner.position) / runner.race.course.distance) * 100;
+    const distanceDiffRate =
+      ((leaderPosition - runner.position) / runner.race.course.distance) * 100;
     return compare(distanceDiffRate, arg, cmp);
   });
 

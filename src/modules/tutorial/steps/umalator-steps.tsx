@@ -6,8 +6,8 @@ export const umalatorSteps: Array<TutorialStep> = [
     description: (
       <div className="flex flex-col gap-2">
         <p className="text-muted-foreground">
-          Yet Another Umalator is an Umamusume race simulator that helps you optimize runner builds and
-          compare performance.
+          Yet Another Umalator is an Umamusume race simulator that helps you optimize runner builds
+          and compare performance.
         </p>
         <p className="text-muted-foreground">Let's run your first simulation together!</p>
       </div>

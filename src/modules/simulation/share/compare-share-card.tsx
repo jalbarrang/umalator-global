@@ -30,14 +30,7 @@ export type CompareShareCardProps = {
 
 export const CompareShareCard = forwardRef<HTMLDivElement, CompareShareCardProps>(
   function CompareShareCard(
-    {
-      shareCard,
-      raceSummary,
-      meanLengths,
-      sampleCount,
-      seedDisplay,
-      statRows,
-    },
+    { shareCard, raceSummary, meanLengths, sampleCount, seedDisplay, statRows },
     ref,
   ) {
     return (

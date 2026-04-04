@@ -112,10 +112,22 @@ export function registerStateConditions(): void {
     return compare(countInfront, arg, cmp);
   });
 
-  registerStyleTemptationCountCondition('running_style_temptation_count_nige', Strategy.FrontRunner);
-  registerStyleTemptationCountCondition('running_style_temptation_count_senko', Strategy.PaceChaser);
-  registerStyleTemptationCountCondition('running_style_temptation_count_sashi', Strategy.LateSurger);
-  registerStyleTemptationCountCondition('running_style_temptation_count_oikomi', Strategy.EndCloser);
+  registerStyleTemptationCountCondition(
+    'running_style_temptation_count_nige',
+    Strategy.FrontRunner,
+  );
+  registerStyleTemptationCountCondition(
+    'running_style_temptation_count_senko',
+    Strategy.PaceChaser,
+  );
+  registerStyleTemptationCountCondition(
+    'running_style_temptation_count_sashi',
+    Strategy.LateSurger,
+  );
+  registerStyleTemptationCountCondition(
+    'running_style_temptation_count_oikomi',
+    Strategy.EndCloser,
+  );
 
   registerDynamicCondition('running_style_equal_popularity_one', (arg, cmp) => (runner) => {
     return compare(asNumericBoolean(hasSameStyleAsPopularityOneRunner(runner)), arg, cmp);

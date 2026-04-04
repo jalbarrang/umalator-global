@@ -76,12 +76,7 @@ function toRunnerName(runnerId: number, runnerNames?: Record<number, string>): s
 }
 
 export const DetailStrip = memo<DetailStripProps>(function DetailStrip(props) {
-  const {
-    trackedRunnerIds = [],
-    runnerNames = {},
-    courseDistance,
-    className,
-  } = props;
+  const { trackedRunnerIds = [], runnerNames = {}, courseDistance, className } = props;
   const currentTick = usePlaybackStore((s) => s.currentTick);
   const roundData = usePlaybackStore((s) => s.roundData);
 
@@ -121,7 +116,12 @@ export const DetailStrip = memo<DetailStripProps>(function DetailStrip(props) {
 
   if (resolvedTrackedRunnerIds.length === 0) {
     return (
-      <div className={cn('rounded-lg border bg-card px-3 py-2 text-sm text-muted-foreground', className)}>
+      <div
+        className={cn(
+          'rounded-lg border bg-card px-3 py-2 text-sm text-muted-foreground',
+          className,
+        )}
+      >
         Select at least one tracked runner to see per-tick details.
       </div>
     );
@@ -129,7 +129,12 @@ export const DetailStrip = memo<DetailStripProps>(function DetailStrip(props) {
 
   if (!roundData) {
     return (
-      <div className={cn('rounded-lg border bg-card px-3 py-2 text-sm text-muted-foreground', className)}>
+      <div
+        className={cn(
+          'rounded-lg border bg-card px-3 py-2 text-sm text-muted-foreground',
+          className,
+        )}
+      >
         No round data available for this sample.
       </div>
     );

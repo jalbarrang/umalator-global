@@ -6,7 +6,9 @@ import { runawaySkillId } from '@/modules/runners/components/runner-card/types';
 import { getWhiteVersion } from '@/modules/skills/skill-relationships';
 
 const getSkillIdByName = (name: string): string => {
-  const skillId = Object.keys(skillCollection).find((candidateId) => skillCollection[candidateId].name === name);
+  const skillId = Object.keys(skillCollection).find(
+    (candidateId) => skillCollection[candidateId].name === name,
+  );
 
   if (!skillId) {
     throw new Error(`Could not find skill named "${name}"`);

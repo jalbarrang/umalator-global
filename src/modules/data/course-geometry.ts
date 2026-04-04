@@ -29,4 +29,3 @@ const courseGeometry = geometryJson as Record<string, CourseGeometryRecord>;
 export function getCourseGeometry(courseId: number): CourseGeometryRecord | null {
   return courseGeometry[String(courseId)] ?? null;
 }
-

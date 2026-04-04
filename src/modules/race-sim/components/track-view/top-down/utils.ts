@@ -82,9 +82,7 @@ export function buildRunnerOrderRows(
     .filter((e) => e.finished)
     .sort((a, b) => finishRankMap.get(a.runnerId)! - finishRankMap.get(b.runnerId)!);
 
-  const racingRunners = base
-    .filter((e) => !e.finished)
-    .sort((a, b) => b.position - a.position);
+  const racingRunners = base.filter((e) => !e.finished).sort((a, b) => b.position - a.position);
 
   const ordered = [...finishedRunners, ...racingRunners];
   const leaderDistance = Math.max(...base.map((e) => e.position), 0);

@@ -49,10 +49,7 @@ export class RaceEventBus {
   }
 }
 
-export function subscribeObserver(
-  bus: RaceEventBus,
-  observer: RaceLifecycleObserver,
-): () => void {
+export function subscribeObserver(bus: RaceEventBus, observer: RaceLifecycleObserver): () => void {
   const unsubRoundStart = bus.on('round-start', (race, seed) => observer.onRoundStart(race, seed));
   const unsubBeforeTick = bus.on('before-tick', (race, dt) => observer.onBeforeTick(race, dt));
   const unsubAfterRunnerTick = bus.on('after-runner-tick', (race, runner, dt) =>

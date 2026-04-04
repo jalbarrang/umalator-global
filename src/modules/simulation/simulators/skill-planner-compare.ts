@@ -57,7 +57,10 @@ export function runPlannerComparison(params: PlannerCompareParams): PlannerCompa
   const runnerBSortedSkills = runnerB.skills.toSorted(skillSorter);
 
   const raceParameters = toSundayRaceParameters(racedef);
-  const settings = createPlannerCompareSettings(ignoreStaminaConsumption, options.staminaDrainOverrides);
+  const settings = createPlannerCompareSettings(
+    ignoreStaminaConsumption,
+    options.staminaDrainOverrides,
+  );
 
   const trackedSkillId = candidateSkills[0] ?? runnerB.skills[0] ?? runnerA.skills[0] ?? '0';
   const fallbackEffectMeta = getFallbackEffectMeta(trackedSkillId);

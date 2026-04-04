@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { PoolManager } from './pool-manager';
 import type { SimulationParams, WorkerInMessage, WorkerOutMessage } from './types';
-import type { SkillComparisonResponse, SkillComparisonRoundResult } from '@/modules/simulation/types';
+import type {
+  SkillComparisonResponse,
+  SkillComparisonRoundResult,
+} from '@/modules/simulation/types';
 import type { SkillSimulationRun } from '@/modules/simulation/compare.types';
 
 const emptySkillRun: SkillSimulationRun = {
@@ -55,7 +58,10 @@ class FakePoolWorker {
         break;
       case 'work-batch': {
         const results: SkillComparisonResponse = Object.fromEntries(
-          message.batch.skills.map((skillId) => [skillId, createRoundResult(skillId, message.batch.nsamples)]),
+          message.batch.skills.map((skillId) => [
+            skillId,
+            createRoundResult(skillId, message.batch.nsamples),
+          ]),
         );
 
         this.emitMessage({
@@ -84,23 +90,16 @@ describe('PoolManager', () => {
     const progressLengths: Array<number> = [];
     let finalLength = 0;
 
-    const manager = new PoolManager(
-      () => new FakePoolWorker() as unknown as Worker,
-      2,
-    );
+    const manager = new PoolManager(() => new FakePoolWorker() as unknown as Worker, 2);
 
-    manager.run(
-      ['speed-boost'],
-      {} as SimulationParams,
-      {
-        onProgress: (results) => {
-          progressLengths.push(results['speed-boost']?.results.length ?? 0);
-        },
-        onComplete: (results) => {
-          finalLength = results['speed-boost']?.results.length ?? 0;
-        },
+    manager.run(['speed-boost'], {} as SimulationParams, {
+      onProgress: (results) => {
+        progressLengths.push(results['speed-boost']?.results.length ?? 0);
       },
-    );
+      onComplete: (results) => {
+        finalLength = results['speed-boost']?.results.length ?? 0;
+      },
+    });
 
     expect(progressLengths).toEqual([5, 20, 50]);
     expect(finalLength).toBe(75);

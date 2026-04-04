@@ -88,7 +88,10 @@ export function CandidateSkillList() {
         ) : (
           <div className="flex flex-wrap items-stretch gap-2">
             {candidateList.map((candidate) => (
-              <div key={candidate.skillId} className="basis-full min-w-0 sm:min-w-[280px] sm:basis-[320px] flex-1">
+              <div
+                key={candidate.skillId}
+                className="basis-full min-w-0 sm:min-w-[280px] sm:basis-[320px] flex-1"
+              >
                 <CandidateSkillItem
                   candidate={candidate}
                   isUnique={candidate.skillId === uniqueSkillId}

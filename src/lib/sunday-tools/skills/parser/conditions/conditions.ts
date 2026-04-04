@@ -167,7 +167,10 @@ export const defaultConditions: ConditionsMap<ICondition> = {
   behind_near_lane_time: dynamicOrStatic(noopErlangRandom(3, 2.0), 'behind_near_lane_time'),
   // NB. at least in theory _set1 should have a slightly more early-biased distribution since it's technically easier to activate, but I don't
   // really think it makes much of a difference. Same with blocked_front vs blocked_front_continuetime I suppose.
-  behind_near_lane_time_set1: dynamicOrStatic(noopErlangRandom(3, 2.0), 'behind_near_lane_time_set1'),
+  behind_near_lane_time_set1: dynamicOrStatic(
+    noopErlangRandom(3, 2.0),
+    'behind_near_lane_time_set1',
+  ),
   blocked_all_continuetime: dynamicOrStatic(noopErlangRandom(3, 2.0), 'blocked_all_continuetime'),
   blocked_front: dynamicOrStatic(noopErlangRandom(3, 2.0), 'blocked_front'),
   blocked_front_continuetime: dynamicOrStatic(
@@ -590,7 +593,10 @@ export const defaultConditions: ConditionsMap<ICondition> = {
   }),
   motivation: valueFilter(({ runner }) => runner.mood + 3), // go from -2 to 2 to 1-5 scale
   near_count: dynamicOrStatic(noopErlangRandom(3, 2.0), 'near_count'),
-  order: dynamicOrStatic(orderFilter((pos: number, _: number) => pos), 'order'),
+  order: dynamicOrStatic(
+    orderFilter((pos: number, _: number) => pos),
+    'order',
+  ),
   order_rate: dynamicOrStatic(
     orderFilter((rate: number, numUmas: number) => Math.round(numUmas * (rate / 100.0))),
     'order_rate',

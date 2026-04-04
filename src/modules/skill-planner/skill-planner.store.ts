@@ -3,7 +3,13 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import { generateSeed } from '@/utils/crypto';
 import { createRunnerState } from '../runners/components/runner-card/types';
 import type { RunnerState } from '../runners/components/runner-card/types';
-import type { CandidateSkill, HintLevel, OptimizationProgress, OptimizationResult, SkillPlanningMeta } from './types';
+import type {
+  CandidateSkill,
+  HintLevel,
+  OptimizationProgress,
+  OptimizationResult,
+  SkillPlanningMeta,
+} from './types';
 import {
   getBaseTier,
   getGoldVersion,
@@ -251,7 +257,10 @@ export const getAddableUpgrades = (): Array<string> => {
     if (candidate.isStackable && candidate.tierLevel === 1 && candidate.nextTierId) {
       // This is a base tier with an upgrade tier available
       // If upgrade tier is not already in pool, it's now addable
-      if (!hasCandidate(candidate.nextTierId) && !isSkillCoveredByOwnedFamily(candidate.nextTierId, boughtSkillIds)) {
+      if (
+        !hasCandidate(candidate.nextTierId) &&
+        !isSkillCoveredByOwnedFamily(candidate.nextTierId, boughtSkillIds)
+      ) {
         addableUpgrades.push(candidate.nextTierId);
       }
     }
@@ -394,7 +403,10 @@ export const setObtainedSkills = (skillIds: Array<string>) => {
     const nextSkillMetaById = { ...state.skillMetaById };
 
     for (const [skillId, meta] of Object.entries(nextSkillMetaById)) {
-      const normalized = normalizeSkillMeta({ ...meta, bought: skillIds.includes(skillId) || undefined });
+      const normalized = normalizeSkillMeta({
+        ...meta,
+        bought: skillIds.includes(skillId) || undefined,
+      });
       if (!normalized) {
         delete nextSkillMetaById[skillId];
       } else {

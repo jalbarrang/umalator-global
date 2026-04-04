@@ -24,8 +24,8 @@ export function RaceSimResults() {
 
   const hasFocusData = useMemo(() => {
     if (focusRunnerIndex === null || !results?.collectedData) return false;
-    return results.collectedData.rounds.some((round) =>
-      round.focusRunnerData[focusRunnerIndex] !== undefined,
+    return results.collectedData.rounds.some(
+      (round) => round.focusRunnerData[focusRunnerIndex] !== undefined,
     );
   }, [focusRunnerIndex, results]);
 

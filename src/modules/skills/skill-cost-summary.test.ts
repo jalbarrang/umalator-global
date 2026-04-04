@@ -23,7 +23,8 @@ const findSkillIdByName = (name: string): string => {
 };
 
 const plainSkillId = findSkillId(
-  (skillId) => getRepresentativePrerequisiteIds(skillId).length === 0 && skillCollection[skillId].rarity < 3,
+  (skillId) =>
+    getRepresentativePrerequisiteIds(skillId).length === 0 && skillCollection[skillId].rarity < 3,
   'a plain non-bundled skill',
 );
 
@@ -32,36 +33,33 @@ const bundledSkillId = findSkillId(
   'a skill with bundled representative prerequisites',
 );
 
-const fractionalDiscountSkillId = findSkillId(
-  (skillId) => {
-    if (skillCollection[skillId].rarity >= 3) {
-      return false;
-    }
+const fractionalDiscountSkillId = findSkillId((skillId) => {
+  if (skillCollection[skillId].rarity >= 3) {
+    return false;
+  }
 
-    const summary = buildSkillCostSummary({
-      skillId,
-      hasFastLearner: true,
-      getSkillMeta: (targetSkillId) => {
-        if (targetSkillId === skillId) {
-          return { hintLevel: 1 };
-        }
+  const summary = buildSkillCostSummary({
+    skillId,
+    hasFastLearner: true,
+    getSkillMeta: (targetSkillId) => {
+      if (targetSkillId === skillId) {
+        return { hintLevel: 1 };
+      }
 
-        return { hintLevel: 0 };
-      },
-    });
+      return { hintLevel: 0 };
+    },
+  });
 
-    return summary.baseTotal > 0 && Number(summary.exactDiscountPct.toFixed(1)) !== Math.round(summary.exactDiscountPct);
-  },
-  'a skill with fractional aggregate discount percent',
-);
+  return (
+    summary.baseTotal > 0 &&
+    Number(summary.exactDiscountPct.toFixed(1)) !== Math.round(summary.exactDiscountPct)
+  );
+}, 'a skill with fractional aggregate discount percent');
 
-const uniqueSkillId = findSkillId(
-  (skillId) => {
-    const rarity = skillCollection[skillId].rarity;
-    return rarity >= 3 && rarity <= 5;
-  },
-  'a unique skill',
-);
+const uniqueSkillId = findSkillId((skillId) => {
+  const rarity = skillCollection[skillId].rarity;
+  return rarity >= 3 && rarity <= 5;
+}, 'a unique skill');
 
 const createGetSkillMeta = (metaById: Record<string, TestMeta>) => {
   return (skillId: string): TestMeta => {
@@ -104,7 +102,8 @@ describe('buildSkillCostSummary', () => {
       getSkillMeta: createGetSkillMeta(meta),
     });
 
-    const expectedBase = skillCollection[bundledSkillId].baseCost + skillCollection[unpaidPrereqId].baseCost;
+    const expectedBase =
+      skillCollection[bundledSkillId].baseCost + skillCollection[unpaidPrereqId].baseCost;
     const expectedNet =
       calculateSkillCost(bundledSkillId, 2, false) + calculateSkillCost(unpaidPrereqId, 1, false);
 
@@ -182,7 +181,9 @@ describe('buildSkillCostSummary', () => {
     });
 
     const expectedExact =
-      summary.baseTotal > 0 ? ((summary.baseTotal - summary.netTotal) / summary.baseTotal) * 100 : 0;
+      summary.baseTotal > 0
+        ? ((summary.baseTotal - summary.netTotal) / summary.baseTotal) * 100
+        : 0;
 
     expect(summary.exactDiscountPct).toBe(expectedExact);
     expect(summary.roundedDiscountPct).toBe(Math.round(expectedExact));

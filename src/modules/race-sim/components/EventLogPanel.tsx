@@ -98,9 +98,7 @@ function getEventDescription(event: RaceEvent): string {
       const skillId = event.detail?.skillId;
       if (!skillId) return 'activated a skill';
       const skillName = skillCollection[skillId]?.name;
-      return skillName
-        ? `activated ${skillName} (${skillId})`
-        : `activated skill ${skillId}`;
+      return skillName ? `activated ${skillName} (${skillId})` : `activated skill ${skillId}`;
     }
     case 'rushed':
       return 'entered rush';
@@ -294,9 +292,7 @@ export function EventLogPanel(props: Readonly<EventLogPanelProps>) {
                       <span>{style.label}</span>
                       <span className="font-mono">t{event.tick}</span>
 
-                      <span>
-                        {formatTime(tickToDisplaySeconds(event.tick))}
-                      </span>
+                      <span>{formatTime(tickToDisplaySeconds(event.tick))}</span>
                     </div>
                   </div>
                 </div>

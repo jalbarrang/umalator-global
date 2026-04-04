@@ -10,11 +10,7 @@ export type DynamicConditionFactory = (
 
 const registry = new Map<string, DynamicConditionFactory>();
 
-export function compare(
-  value: number,
-  arg: number,
-  cmp: DynamicConditionComparator,
-): boolean {
+export function compare(value: number, arg: number, cmp: DynamicConditionComparator): boolean {
   switch (cmp) {
     case 'eq':
       return value === arg;

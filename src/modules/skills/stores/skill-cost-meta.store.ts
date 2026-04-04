@@ -113,7 +113,11 @@ export const setBought = (runnerId: string, skillId: string, bought: boolean) =>
 
     const applyBoughtState = (targetSkillId: string, isBought: boolean) => {
       const key = getSkillKey(runnerId, targetSkillId);
-      const current = resolveMeta({ ...state, skillMetaByKey: nextSkillMetaByKey }, runnerId, targetSkillId);
+      const current = resolveMeta(
+        { ...state, skillMetaByKey: nextSkillMetaByKey },
+        runnerId,
+        targetSkillId,
+      );
       const normalized = normalizeMeta({ ...current, bought: isBought });
 
       if (!normalized) {

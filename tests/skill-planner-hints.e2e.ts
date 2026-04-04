@@ -60,7 +60,9 @@ test('skill planner optimization uses hinted net cost', async ({ page }) => {
   await hintSelect.click();
   await page.getByRole('option', { name: /Lvl Max \(40%\)/ }).click();
 
-  await expect.poll(async () => parseCost(await currentCostButton.textContent())).toBeLessThan(grossCost);
+  await expect
+    .poll(async () => parseCost(await currentCostButton.textContent()))
+    .toBeLessThan(grossCost);
   const netCost = parseCost(await currentCostButton.textContent());
   expect(netCost).toBeLessThan(grossCost);
 

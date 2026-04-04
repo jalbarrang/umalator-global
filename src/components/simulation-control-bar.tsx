@@ -76,7 +76,11 @@ export function SimulationControlBar(props: SimulationControlBarProps) {
       )}
 
       {tutorial && (
-        <HelpButton tutorialId={tutorial.id} steps={tutorial.steps} tooltipText={tutorial.tooltip} />
+        <HelpButton
+          tutorialId={tutorial.id}
+          steps={tutorial.steps}
+          tooltipText={tutorial.tooltip}
+        />
       )}
 
       <div className="flex items-center gap-2">

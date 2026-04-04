@@ -24,20 +24,20 @@ export interface UmaApiResponse {
 function isGameVersionRecord(value: unknown): value is GameVersionApiRecord {
   return Boolean(
     value &&
-      typeof value === 'object' &&
-      typeof (value as Record<string, unknown>).app_version === 'string' &&
-      typeof (value as Record<string, unknown>).resource_version === 'string' &&
-      typeof (value as Record<string, unknown>).updated_at === 'string',
+    typeof value === 'object' &&
+    typeof (value as Record<string, unknown>).app_version === 'string' &&
+    typeof (value as Record<string, unknown>).resource_version === 'string' &&
+    typeof (value as Record<string, unknown>).updated_at === 'string',
   );
 }
 
 function isUmaApiResponse(value: unknown): value is UmaApiResponse {
   return Boolean(
     value &&
-      typeof value === 'object' &&
-      isGameVersionRecord((value as Record<string, unknown>).current) &&
-      Array.isArray((value as Record<string, unknown>).history) &&
-      ((value as Record<string, unknown>).history as Array<unknown>).every(isGameVersionRecord),
+    typeof value === 'object' &&
+    isGameVersionRecord((value as Record<string, unknown>).current) &&
+    Array.isArray((value as Record<string, unknown>).history) &&
+    ((value as Record<string, unknown>).history as Array<unknown>).every(isGameVersionRecord),
   );
 }
 

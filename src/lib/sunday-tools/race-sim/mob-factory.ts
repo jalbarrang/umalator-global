@@ -53,6 +53,6 @@ export function generateMobField(): CreateRunner[] {
       stats: { ...DEFAULT_MOB_STATS },
       mood: Mood.Normal,
       aptitudes: { ...DEFAULT_MOB_APTITUDES },
-    }))
+    })),
   );
 }
