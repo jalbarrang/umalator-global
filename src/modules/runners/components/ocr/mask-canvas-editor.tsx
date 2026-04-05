@@ -41,7 +41,12 @@ const MIN_SCALE = 0.2;
 const MAX_SCALE = 4.0;
 
 const MASK_WINDOWS: Record<OcrMaskType, MaskWindow[]> = {
-  'full-details': [
+  'full-details-own': [
+    { label: 'Uma Name', x: 300, y: 120, width: 900, height: 200 },
+    { label: 'Stats', x: 50, y: 380, width: 1190, height: 120 },
+    { label: 'Skills', x: 50, y: 620, width: 1190, height: 1400 },
+  ],
+  'full-details-other': [
     { label: 'Uma Name', x: 300, y: 120, width: 900, height: 200 },
     { label: 'Stats', x: 50, y: 380, width: 1190, height: 120 },
     { label: 'Skills', x: 50, y: 620, width: 1190, height: 1400 },
@@ -183,7 +188,9 @@ export function MaskCanvasEditor({
     setTransform(createFitTransform(image, maskWidth, maskHeight));
   };
 
-  const getCanvasPoint = (event: PointerEvent<HTMLCanvasElement> | WheelEvent<HTMLCanvasElement>) => {
+  const getCanvasPoint = (
+    event: PointerEvent<HTMLCanvasElement> | WheelEvent<HTMLCanvasElement>,
+  ) => {
     const canvas = canvasRef.current;
     if (!canvas) {
       return { x: 0, y: 0 };

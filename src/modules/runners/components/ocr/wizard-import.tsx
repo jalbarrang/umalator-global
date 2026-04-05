@@ -55,10 +55,10 @@ export function WizardImport({ onApply }: Readonly<WizardImportProps>) {
     try {
       reset();
 
-      const preparedImage = createPreparedImage(blob, 'full-details');
+      const preparedImage = createPreparedImage(blob, 'full-details-own');
       addPreparedImage(preparedImage);
 
-      const nextData = await processComposited(blob, 'full-details');
+      const nextData = await processComposited(blob, 'full-details-own');
       if (!nextData) {
         return;
       }
@@ -99,7 +99,9 @@ export function WizardImport({ onApply }: Readonly<WizardImportProps>) {
           <div key={entry.id} className="flex items-center gap-2">
             <div
               className={`px-2 py-1 rounded border ${
-                index <= activeStepIndex ? 'border-primary text-foreground bg-primary/10' : 'border-muted'
+                index <= activeStepIndex
+                  ? 'border-primary text-foreground bg-primary/10'
+                  : 'border-muted'
               }`}
             >
               {entry.label}
@@ -117,7 +119,7 @@ export function WizardImport({ onApply }: Readonly<WizardImportProps>) {
           </div>
 
           <MaskCanvasEditor
-            maskType="full-details"
+            maskType="full-details-own"
             processLabel="Scan"
             externalBusy={isProcessing}
             onProcess={(blob) => {
@@ -156,17 +158,26 @@ export function WizardImport({ onApply }: Readonly<WizardImportProps>) {
 
           <div className="flex flex-wrap gap-2 max-h-[84px] overflow-y-auto">
             {preparedImages.map((image, index) => (
-              <div key={`${image.preview}-${index}`} className="relative w-14 h-14 rounded-md border overflow-hidden">
+              <div
+                key={`${image.preview}-${index}`}
+                className="relative w-14 h-14 rounded-md border overflow-hidden"
+              >
                 <img src={image.preview} className="w-full h-full object-cover" />
                 <span className="absolute bottom-0 left-0 right-0 text-[10px] px-1 py-0.5 bg-black/70 text-white text-center">
-                  {image.maskType === 'full-details' ? 'Full' : 'Skills'}
+                  {image.maskType === 'full-details-own' && 'Full: Owned Runner'}
+                  {image.maskType === 'full-details-other' && 'Full: Partner Runner'}
+                  {image.maskType === 'skills-only' && 'Skills'}
                 </span>
               </div>
             ))}
           </div>
 
           <div className="flex-1 min-h-0 overflow-y-auto pr-1">
-            <OcrSkillsList results={results} isProcessing={isProcessing} onRemoveSkill={removeSkill} />
+            <OcrSkillsList
+              results={results}
+              isProcessing={isProcessing}
+              onRemoveSkill={removeSkill}
+            />
           </div>
 
           <div className="space-y-3">
@@ -288,7 +299,10 @@ export function WizardImport({ onApply }: Readonly<WizardImportProps>) {
             <span>{progress}%</span>
           </div>
           <div className="w-full bg-muted rounded-full h-2">
-            <div className="bg-primary h-2 rounded-full transition-all" style={{ width: `${progress}%` }} />
+            <div
+              className="bg-primary h-2 rounded-full transition-all"
+              style={{ width: `${progress}%` }}
+            />
           </div>
         </div>
       )}

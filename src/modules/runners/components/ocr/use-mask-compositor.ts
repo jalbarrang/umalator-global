@@ -9,7 +9,8 @@ type CachedMask = {
 };
 
 const MASK_PATHS: Record<OcrMaskType, string> = {
-  'full-details': '/masks/mask-full-details.png',
+  'full-details-own': '/masks/mask-full-details-own.png',
+  'full-details-other': '/masks/mask-full-details-other.png',
   'skills-only': '/masks/mask-skills-only.png',
 };
 
@@ -92,7 +93,7 @@ export function useMaskCompositor(maskType: OcrMaskType) {
   useEffect(() => {
     let isMounted = true;
 
-    void loadMask(maskType)
+    loadMask(maskType)
       .then((mask) => {
         if (!isMounted) {
           return;

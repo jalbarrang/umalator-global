@@ -21,7 +21,7 @@ interface AdvancedImportProps {
 }
 
 export function AdvancedImport({ onApply, formId }: Readonly<AdvancedImportProps>) {
-  const [maskType, setMaskType] = useState<OcrMaskType>('full-details');
+  const [maskType, setMaskType] = useState<OcrMaskType>('full-details-own');
 
   const results = useOcrResults();
   const { updateResults, removeSkill, processComposited } = useOcrActions();
@@ -53,12 +53,22 @@ export function AdvancedImport({ onApply, formId }: Readonly<AdvancedImportProps
         <div className="inline-flex items-center rounded-md border p-1 gap-1 self-start">
           <Button
             type="button"
-            variant={maskType === 'full-details' ? 'default' : 'ghost'}
+            variant={maskType === 'full-details-own' ? 'default' : 'ghost'}
             size="sm"
-            onClick={() => setMaskType('full-details')}
+            onClick={() => setMaskType('full-details-own')}
           >
-            Full Details
+            Full: My Uma
           </Button>
+
+          <Button
+            type="button"
+            variant={maskType === 'full-details-other' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setMaskType('full-details-other')}
+          >
+            Full: Partner Uma
+          </Button>
+
           <Button
             type="button"
             variant={maskType === 'skills-only' ? 'default' : 'ghost'}
@@ -87,7 +97,10 @@ export function AdvancedImport({ onApply, formId }: Readonly<AdvancedImportProps
               <span>{progress}%</span>
             </div>
             <div className="w-full bg-muted rounded-full h-2">
-              <div className="bg-primary h-2 rounded-full transition-all" style={{ width: `${progress}%` }} />
+              <div
+                className="bg-primary h-2 rounded-full transition-all"
+                style={{ width: `${progress}%` }}
+              />
             </div>
           </div>
         )}
