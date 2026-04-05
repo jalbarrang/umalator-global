@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router';
 
 import { Activity, useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { Import, Plus, Search, Trash2, Users, X } from 'lucide-react';
+import { Camera, Import, Plus, Search, Trash2, Users, X } from 'lucide-react';
 import type { SavedRunner } from '@/store/runner-library.store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +22,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { SavedRunnerCard } from '@/modules/runners/components/saved-runner-card';
+import { OcrImportDialog } from '@/modules/runners/components/ocr-import-dialog';
+import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
+import { createRunnerState } from '@/modules/runners/components/runner-card/types';
+import { getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import { useRunnerLibraryStore } from '@/store/runner-library.store';
 import {
   Dialog,
@@ -214,13 +218,15 @@ const APTITUDE_OPTIONS = aptitudeNames.map((g) => ({
 
 export function RunnersHome() {
   const navigate = useNavigate();
-  const { runners, deleteRunner, deleteRunners, duplicateRunner } = useRunnerLibraryStore();
+  const { runners, addRunner, deleteRunner, deleteRunners, duplicateRunner } =
+    useRunnerLibraryStore();
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [runnerToDelete, setRunnerToDelete] = useState<string | null>(null);
   const [loadDialogOpen, setLoadDialogOpen] = useState(false);
   const [runnerToLoad, setRunnerToLoad] = useState<SavedRunner | null>(null);
   const [rosterImportOpen, setRosterImportOpen] = useState(false);
+  const [ocrImportOpen, setOcrImportOpen] = useState(false);
 
   const [search, setSearch] = useState('');
   const [strategyFilter, setStrategyFilter] = useState('all');
@@ -349,6 +355,41 @@ export function RunnersHome() {
     setSurfaceFilter('all');
   };
 
+  const handleOcrImportApply = useCallback(
+    (data: ExtractedUmaData) => {
+      const baseRunnerState = createRunnerState();
+      const extractedSkills = data.skills.map((skill) => skill.id);
+      const uniqueSkillId = data.outfitId ? getUniqueSkillForByUmaId(data.outfitId) : null;
+      const skills = uniqueSkillId
+        ? [uniqueSkillId, ...extractedSkills.filter((skillId) => skillId !== uniqueSkillId)]
+        : extractedSkills;
+
+      const runnerState = {
+        ...baseRunnerState,
+        outfitId: data.outfitId ?? baseRunnerState.outfitId,
+        speed: data.speed ?? baseRunnerState.speed,
+        stamina: data.stamina ?? baseRunnerState.stamina,
+        power: data.power ?? baseRunnerState.power,
+        guts: data.guts ?? baseRunnerState.guts,
+        wisdom: data.wisdom ?? baseRunnerState.wisdom,
+        distanceAptitude: data.distanceAptitude ?? baseRunnerState.distanceAptitude,
+        surfaceAptitude: data.surfaceAptitude ?? baseRunnerState.surfaceAptitude,
+        strategyAptitude: data.strategyAptitude ?? baseRunnerState.strategyAptitude,
+        strategy:
+          data.strategy && strategyNames.includes(data.strategy)
+            ? data.strategy
+            : baseRunnerState.strategy,
+        skills,
+      };
+
+      addRunner({
+        ...runnerState,
+        notes: data.outfitName || data.umaName || 'Imported Runner',
+      });
+    },
+    [addRunner],
+  );
+
   return (
     <div className="flex flex-col flex-1 p-4 gap-4 min-h-0 overflow-hidden">
       {/* Header */}
@@ -356,6 +397,10 @@ export function RunnersHome() {
         <Button variant="outline" onClick={() => setRosterImportOpen(true)}>
           <Import className="w-4 h-4 mr-2" />
           Import Roster
+        </Button>
+        <Button variant="outline" onClick={() => setOcrImportOpen(true)}>
+          <Camera className="w-4 h-4 mr-2" />
+          Import Screenshot
         </Button>
         <Activity mode={runners.length > 0 ? 'visible' : 'hidden'}>
           <Button onClick={handleAddNew}>
@@ -459,10 +504,16 @@ export function RunnersHome() {
           </EmptyHeader>
 
           <EmptyContent>
-            <Button onClick={handleAddNew}>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Runner
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={() => setOcrImportOpen(true)}>
+                <Camera className="w-4 h-4 mr-2" />
+                Import Screenshot
+              </Button>
+              <Button onClick={handleAddNew}>
+                <Plus className="w-4 h-4 mr-2" />
+                Add Runner
+              </Button>
+            </div>
           </EmptyContent>
         </Empty>
       )}
@@ -562,6 +613,11 @@ export function RunnersHome() {
       </Dialog>
 
       <RosterImportDialog open={rosterImportOpen} onOpenChange={setRosterImportOpen} />
+      <OcrImportDialog
+        open={ocrImportOpen}
+        onOpenChange={setOcrImportOpen}
+        onApply={handleOcrImportApply}
+      />
     </div>
   );
 }

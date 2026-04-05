@@ -1,54 +1,28 @@
 /**
- * Web Worker for OCR processing using Tesseract.js
+ * Web Worker for OCR processing
  */
 
 import '../polyfills';
-import Tesseract from 'tesseract.js';
-import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
+import type { OcrEngine } from '@/modules/runners/ocr/engine';
 import { parseOcrResult } from '@/modules/runners/ocr/parser';
+import { TesseractEngine } from '@/modules/runners/ocr/engines/tesseract';
+import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
 
-let tesseractWorker: Tesseract.Worker | null = null;
+let ocrEngine: OcrEngine | null = null;
 
-// Initialize Tesseract worker
-async function initWorker() {
-  if (tesseractWorker) return tesseractWorker;
-
-  tesseractWorker = await Tesseract.createWorker('eng', 1, {
-    logger: (m) => {
-      if (m.status === 'recognizing text') {
+const getEngine = (): OcrEngine => {
+  if (!ocrEngine) {
+    ocrEngine = new TesseractEngine({
+      onProgress: (percent) => {
         postMessage({
           type: 'progress',
-          percent: Math.round(m.progress * 100),
+          percent,
         });
-      }
-    },
-  });
-
-  return tesseractWorker;
-}
-
-/**
- * Applies the following filters to an image:
- * - Grayscale
- * - Threshold (0.571)
- * @param imageData
- * @returns
- */
-const applyImageFilters = async (imageData: Blob) => {
-  const image = await createImageBitmap(imageData);
-
-  const canvas = new OffscreenCanvas(image.width, image.height);
-  const ctx = canvas.getContext('2d');
-
-  if (!ctx) {
-    throw new Error('Failed to get canvas context');
+      },
+    });
   }
 
-  ctx.filter = 'grayscale(1)';
-  ctx.filter = 'threshold(0.571)';
-  ctx.drawImage(image, 0, 0);
-
-  return canvas.convertToBlob({ type: 'image/png' });
+  return ocrEngine;
 };
 
 // Process a single image
@@ -57,62 +31,61 @@ async function processImage(
   imageIndex: number,
   existingData?: Partial<ExtractedUmaData>,
 ): Promise<ExtractedUmaData> {
-  const worker = await initWorker();
+  const engine = getEngine();
+  const engineResult = await engine.recognize(imageData);
 
-  // Convert Blob/File to data URL for Tesseract
-  const filteredImage = await applyImageFilters(imageData);
-  const dataUrl = URL.createObjectURL(filteredImage);
-
-  const {
-    data: { text },
-  } = await worker.recognize(dataUrl);
-
-  return parseOcrResult(text, imageIndex, existingData);
+  return parseOcrResult(engineResult, imageIndex, existingData);
 }
 
 // Process multiple images
 async function processImages(images: Array<Blob | File>): Promise<void> {
   let accumulatedData: Partial<ExtractedUmaData> | undefined;
 
-  for (let i = 0; i < images.length; i++) {
-    postMessage({
-      type: 'image-start',
-      imageIndex: i,
-      total: images.length,
-    });
-
-    try {
-      accumulatedData = await processImage(images[i], i, accumulatedData);
-
+  try {
+    for (let i = 0; i < images.length; i++) {
       postMessage({
-        type: 'image-complete',
+        type: 'image-start',
         imageIndex: i,
-        data: accumulatedData,
+        total: images.length,
       });
-    } catch (error) {
-      postMessage({
-        type: 'image-error',
-        imageIndex: i,
-        error:
-          error instanceof Error
-            ? `${error.message} (${error.name}) at ${error.stack}`
-            : 'Unknown error',
-      });
+
+      try {
+        accumulatedData = await processImage(images[i], i, accumulatedData);
+
+        postMessage({
+          type: 'image-complete',
+          imageIndex: i,
+          data: accumulatedData,
+        });
+      } catch (error) {
+        postMessage({
+          type: 'image-error',
+          imageIndex: i,
+          error:
+            error instanceof Error
+              ? `${error.message} (${error.name}) at ${error.stack}`
+              : 'Unknown error',
+        });
+      }
     }
-  }
 
-  postMessage({
-    type: 'complete',
-    data: accumulatedData,
-  });
+    postMessage({
+      type: 'complete',
+      data: accumulatedData,
+    });
+  } finally {
+    await terminate();
+  }
 }
 
-// Clean up worker
+// Clean up engine
 async function terminate() {
-  if (tesseractWorker) {
-    await tesseractWorker.terminate();
-    tesseractWorker = null;
+  if (!ocrEngine) {
+    return;
   }
+
+  await ocrEngine.destroy();
+  ocrEngine = null;
 }
 
 // Handle messages from main thread

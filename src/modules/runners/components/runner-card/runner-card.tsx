@@ -1,5 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 
+import { strategyNames } from '@/lib/sunday-tools/runner/definitions';
+
 import {
   CopyPlus,
   PlusIcon,
@@ -184,6 +186,14 @@ export const RunnerCard = (props: RunnerCardProps) => {
     if (data.power) newState.power = data.power;
     if (data.guts) newState.guts = data.guts;
     if (data.wisdom) newState.wisdom = data.wisdom;
+
+    // Apply aptitudes and strategy
+    if (data.surfaceAptitude) newState.surfaceAptitude = data.surfaceAptitude;
+    if (data.distanceAptitude) newState.distanceAptitude = data.distanceAptitude;
+    if (data.strategyAptitude) newState.strategyAptitude = data.strategyAptitude;
+    if (data.strategy && strategyNames.includes(data.strategy)) {
+      newState.strategy = data.strategy;
+    }
 
     // Apply skills - replace existing with OCR detected ones
     if (data.skills && data.skills.length > 0) {

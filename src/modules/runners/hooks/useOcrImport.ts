@@ -1,12 +1,3 @@
-/**
- * Hook for managing OCR import process
- *
- * Note: Following React best practices from https://react.dev/learn/you-might-not-need-an-effect
- * - Processing is triggered directly in addFiles (event handler), not via Effect
- * - Only uses Effect for cleanup of external resources (worker)
- * - No useCallback needed - React Compiler handles memoization automatically
- */
-
 import { useEffect, useRef, useState } from 'react';
 import OcrWorker from '@workers/ocr.worker.ts?worker';
 import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
@@ -35,16 +26,13 @@ export interface UseOcrImportResult {
   reset: () => void;
 }
 
-const fileToBlob = (file: Blob) => {
-  return new Promise<Blob>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(new Blob([reader.result as ArrayBuffer]));
-    reader.onerror = () => reject(reader.error);
-    reader.readAsArrayBuffer(file);
-  });
-};
-
 const createOcrWorker = () => new OcrWorker();
+
+function revokeFilePreviews(files: Array<UploadedFile>) {
+  for (const file of files) {
+    URL.revokeObjectURL(file.preview);
+  }
+}
 
 export function useOcrImport(): UseOcrImportResult {
   const [files, setFiles] = useState<Array<UploadedFile>>([]);
@@ -55,93 +43,154 @@ export function useOcrImport(): UseOcrImportResult {
   const [error, setError] = useState<string | null>(null);
 
   const workerRef = useRef<Worker | null>(null);
+  const filesRef = useRef<Array<UploadedFile>>([]);
+  const resultsRef = useRef<Partial<ExtractedUmaData> | null>(null);
 
-  // Generate unique ID for files
-  const generateId = () => Math.random().toString(36).substr(2, 9);
+  useEffect(() => {
+    filesRef.current = files;
+  }, [files]);
 
-  // Internal function to start OCR processing on specific files
-  const startProcessing = (filesToProcess: Array<UploadedFile>) => {
-    if (filesToProcess.length === 0 || isProcessing) return;
+  useEffect(() => {
+    resultsRef.current = results;
+  }, [results]);
+
+  const generateId = () => Math.random().toString(36).slice(2, 11);
+
+  const terminateWorker = () => {
+    if (!workerRef.current) {
+      return;
+    }
+
+    workerRef.current.terminate();
+    workerRef.current = null;
+  };
+
+  const startProcessing = (
+    images: Array<Blob | File>,
+    options?: {
+      trackedFileIds?: Array<string>;
+      clearResults?: boolean;
+    },
+  ): Promise<Partial<ExtractedUmaData> | null> => {
+    if (images.length === 0 || isProcessing || workerRef.current) {
+      return Promise.resolve(resultsRef.current);
+    }
 
     setIsProcessing(true);
     setProgress(0);
-    setCurrentImageIndex(0);
+    setCurrentImageIndex(-1);
     setError(null);
-    setResults(null);
 
-    // Create worker
+    if (options?.clearResults) {
+      setResults(null);
+    }
+
+    if (options?.trackedFileIds) {
+      const trackedIdSet = new Set(options.trackedFileIds);
+      setFiles((previousFiles) =>
+        previousFiles.map((file) =>
+          trackedIdSet.has(file.id)
+            ? { ...file, status: 'pending' as const, error: undefined }
+            : file,
+        ),
+      );
+    }
+
     const worker = createOcrWorker();
-
     workerRef.current = worker;
 
-    worker.onmessage = (e) => {
-      const { type, imageIndex, data, error: errMsg, percent } = e.data;
+    return new Promise((resolve, reject) => {
+      let latestResult: Partial<ExtractedUmaData> | null = null;
 
-      switch (type) {
-        case 'progress':
-          setProgress(percent);
-          break;
+      worker.onmessage = (event) => {
+        const { type, imageIndex, data, error: errorMessage, percent } = event.data;
 
-        case 'image-start':
-          setCurrentImageIndex(imageIndex);
-          setFiles((prev) =>
-            prev.map((f, i) => (i === imageIndex ? { ...f, status: 'processing' as const } : f)),
-          );
-          break;
+        switch (type) {
+          case 'progress':
+            setProgress(percent);
+            break;
 
-        case 'image-complete':
-          setFiles((prev) =>
-            prev.map((f, i) => (i === imageIndex ? { ...f, status: 'complete' as const } : f)),
-          );
-          setResults(data);
-          break;
+          case 'image-start': {
+            setCurrentImageIndex(imageIndex);
 
-        case 'image-error':
-          setFiles((prev) =>
-            prev.map((f, i) =>
-              i === imageIndex ? { ...f, status: 'error' as const, error: errMsg } : f,
-            ),
-          );
-          break;
+            const trackedFileId = options?.trackedFileIds?.[imageIndex];
+            if (trackedFileId) {
+              setFiles((previousFiles) =>
+                previousFiles.map((file) =>
+                  file.id === trackedFileId ? { ...file, status: 'processing' as const } : file,
+                ),
+              );
+            }
+            break;
+          }
 
-        case 'complete':
-          setResults(data);
-          setIsProcessing(false);
-          setProgress(100);
-          worker.terminate();
-          workerRef.current = null;
-          break;
+          case 'image-complete': {
+            latestResult = data;
+            setResults(data);
 
-        case 'log':
-          console.log(data);
-          break;
-      }
-    };
+            const trackedFileId = options?.trackedFileIds?.[imageIndex];
+            if (trackedFileId) {
+              setFiles((previousFiles) =>
+                previousFiles.map((file) =>
+                  file.id === trackedFileId ? { ...file, status: 'complete' as const } : file,
+                ),
+              );
+            }
+            break;
+          }
 
-    worker.onerror = (e: ErrorEvent) => {
-      setError(
-        e.message
-          ? `${e.message} (${e.filename}) at ${e.lineno}:${e.colno}`
-          : 'OCR processing failed',
-      );
+          case 'image-error': {
+            const trackedFileId = options?.trackedFileIds?.[imageIndex];
+            if (trackedFileId) {
+              setFiles((previousFiles) =>
+                previousFiles.map((file) =>
+                  file.id === trackedFileId
+                    ? { ...file, status: 'error' as const, error: errorMessage }
+                    : file,
+                ),
+              );
+            }
 
-      setIsProcessing(false);
+            setError(errorMessage ?? 'OCR processing failed for image');
+            break;
+          }
 
-      worker.terminate();
-      workerRef.current = null;
-    };
+          case 'complete': {
+            const finalData = (data as Partial<ExtractedUmaData> | undefined) ?? latestResult ?? null;
+            setResults(finalData);
+            setIsProcessing(false);
+            setProgress(100);
+            terminateWorker();
+            resolve(finalData);
+            break;
+          }
 
-    // Send files to worker
-    Promise.all(filesToProcess.map((f) => fileToBlob(f.file))).then((blobs) => {
-      worker.postMessage({ type: 'extract', images: blobs });
+          case 'log':
+            console.log(data);
+            break;
+        }
+      };
+
+      worker.onerror = (event: ErrorEvent) => {
+        const errorMessage = event.message
+          ? `${event.message} (${event.filename}) at ${event.lineno}:${event.colno}`
+          : 'OCR processing failed';
+
+        setError(errorMessage);
+        setIsProcessing(false);
+        terminateWorker();
+        reject(new Error(errorMessage));
+      };
+
+      worker.postMessage({ type: 'extract', images });
     });
   };
 
-  // Add files to the list (and optionally auto-process)
-  // This follows React best practices: trigger processing in event handler, not via Effect
   const addFiles = (newFiles: Array<File>, autoProcess = true) => {
-    const imageFiles = newFiles.filter((f) => f.type.startsWith('image/'));
-    if (imageFiles.length === 0) return;
+    const imageFiles = newFiles.filter((file) => file.type.startsWith('image/'));
+    if (imageFiles.length === 0) {
+      return;
+    }
 
     const uploadedFiles: Array<UploadedFile> = imageFiles.map((file) => ({
       id: generateId(),
@@ -150,70 +199,83 @@ export function useOcrImport(): UseOcrImportResult {
       status: 'pending' as const,
     }));
 
-    setFiles((prev) => [...prev, ...uploadedFiles]);
+    setFiles((previousFiles) => [...previousFiles, ...uploadedFiles]);
 
-    // Trigger processing directly in event handler (not via Effect)
-    if (autoProcess && !isProcessing) {
-      startProcessing(uploadedFiles);
+    if (!autoProcess || isProcessing) {
+      return;
     }
+
+    void startProcessing(
+      uploadedFiles.map((file) => file.file),
+      {
+        trackedFileIds: uploadedFiles.map((file) => file.id),
+        clearResults: true,
+      },
+    ).catch(() => undefined);
   };
 
-  // Remove a file from the list
   const removeFile = (id: string) => {
-    setFiles((prev) => {
-      const file = prev.find((f) => f.id === id);
+    setFiles((previousFiles) => {
+      const file = previousFiles.find((entry) => entry.id === id);
       if (file) {
         URL.revokeObjectURL(file.preview);
       }
-      return prev.filter((f) => f.id !== id);
+
+      return previousFiles.filter((entry) => entry.id !== id);
     });
   };
 
-  // Clear all files
   const clearFiles = () => {
-    files.forEach((f) => URL.revokeObjectURL(f.preview));
+    revokeFilePreviews(filesRef.current);
     setFiles([]);
     setResults(null);
     setError(null);
   };
 
-  // Process all current files (for manual trigger/re-process)
   const processFiles = () => {
-    if (files.length === 0) return;
+    if (filesRef.current.length === 0) {
+      return;
+    }
 
-    // Mark all files as pending before processing
-    const pendingFiles = files.map((f) => ({
-      ...f,
+    const pendingFiles = filesRef.current.map((file) => ({
+      ...file,
       status: 'pending' as const,
+      error: undefined,
     }));
+
     setFiles(pendingFiles);
-    startProcessing(pendingFiles);
+
+    void startProcessing(
+      pendingFiles.map((file) => file.file),
+      {
+        trackedFileIds: pendingFiles.map((file) => file.id),
+        clearResults: true,
+      },
+    ).catch(() => undefined);
   };
 
-  // Update results (for manual modifications like selecting uma)
   const updateResults = (updates: Partial<ExtractedUmaData>) => {
-    setResults((prev) => (prev ? { ...prev, ...updates } : updates));
+    setResults((previousResults) => (previousResults ? { ...previousResults, ...updates } : updates));
   };
 
-  // Remove a skill from results
   const removeSkill = (skillId: string) => {
-    setResults((prev) => {
-      if (!prev || !prev.skills) return prev;
+    setResults((previousResults) => {
+      if (!previousResults || !previousResults.skills) {
+        return previousResults;
+      }
+
       return {
-        ...prev,
-        skills: prev.skills.filter((s) => s.id !== skillId),
+        ...previousResults,
+        skills: previousResults.skills.filter((skill) => skill.id !== skillId),
       };
     });
   };
 
-  // Reset the entire state
   const reset = () => {
-    if (workerRef.current) {
-      workerRef.current.terminate();
-      workerRef.current = null;
-    }
+    terminateWorker();
 
-    files.forEach((f) => URL.revokeObjectURL(f.preview));
+    revokeFilePreviews(filesRef.current);
+
     setFiles([]);
     setResults(null);
     setIsProcessing(false);
@@ -222,12 +284,10 @@ export function useOcrImport(): UseOcrImportResult {
     setError(null);
   };
 
-  // Cleanup worker on unmount (valid Effect - synchronizing with external system)
   useEffect(() => {
     return () => {
-      if (workerRef.current) {
-        workerRef.current.terminate();
-      }
+      terminateWorker();
+      revokeFilePreviews(filesRef.current);
     };
   }, []);
 

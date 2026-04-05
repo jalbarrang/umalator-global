@@ -2,6 +2,7 @@
  * Types specific to OCR extraction
  */
 
+import type { IStrategyName } from '@/lib/sunday-tools/runner/definitions';
 import type { SkillMatch } from '@/modules/runners/data/types';
 
 /** Extracted skill with image source tracking */
@@ -23,6 +24,12 @@ export interface ExtractedUmaData {
   power?: number;
   guts?: number;
   wisdom?: number;
+
+  // Aptitudes and strategy
+  surfaceAptitude?: string;
+  distanceAptitude?: string;
+  strategyAptitude?: string;
+  strategy?: IStrategyName;
 
   // Skills
   skills: Array<ExtractedSkill>;

@@ -1,10 +1,9 @@
 /**
- * Search and lookup utilities for uma and skill data
+ * Search and lookup utilities for uma data
  */
 
 import { umas } from '@/modules/data/umas';
-import type { SkillLookupEntry, SkillMatch, UmaData, UmaLookupEntry, UmaMatch } from './types';
-import { skillCollection } from '@/modules/data/skills';
+import type { UmaData, UmaLookupEntry, UmaMatch } from './types';
 
 // =============================================================================
 // Text Normalization & Similarity
@@ -64,39 +63,6 @@ export function similarity(a: string, b: string): number {
 }
 
 // =============================================================================
-// Skill Lookup
-// =============================================================================
-
-const skillLookup = new Map<string, SkillLookupEntry>();
-
-function buildSkillLookup() {
-  if (skillLookup.size > 0) return;
-
-  for (const skill of Object.values(skillCollection)) {
-    const id = String(skill.id);
-
-    // Add main skill name
-    if (skill.name) {
-      const key = normalize(skill.name);
-      if (key && !skillLookup.has(key)) {
-        skillLookup.set(key, {
-          id,
-          geneId: skill.gene_version?.id ? `${skill.gene_version.id}` : undefined,
-          name: skill.name,
-          rarity: skill.rarity,
-        });
-      }
-    }
-  }
-}
-
-/** Get the skill lookup map (ensures it's built) */
-export function getSkillLookup(): Map<string, SkillLookupEntry> {
-  buildSkillLookup();
-  return skillLookup;
-}
-
-// =============================================================================
 // Uma Lookup
 // =============================================================================
 
@@ -133,58 +99,6 @@ export function getUmaLookup(): Map<string, UmaLookupEntry> {
 // =============================================================================
 // Search Functions
 // =============================================================================
-
-/** Find best skill match for OCR text */
-export function findBestSkillMatch(ocrText: string): SkillMatch | null {
-  const lookup = getSkillLookup();
-  const normalizedOcr = normalize(ocrText);
-  if (!normalizedOcr || normalizedOcr.length < 3) return null;
-
-  // Exact match first
-  const exactMatch = lookup.get(normalizedOcr);
-  if (exactMatch) {
-    return {
-      id: exactMatch.id,
-      geneId: exactMatch.geneId,
-      name: exactMatch.name,
-      confidence: 1,
-      originalText: ocrText,
-    };
-  }
-
-  // Fuzzy match with lower threshold (0.55 instead of 0.7)
-  let bestMatch: SkillMatch | null = null;
-  let bestScore = 0;
-  const minThreshold = 0.55;
-
-  for (const [key, entry] of lookup) {
-    // Try direct similarity
-    let score = similarity(normalizedOcr, key);
-
-    // Also try checking if OCR text contains the skill name (substring match)
-    if (score < minThreshold && normalizedOcr.includes(key)) {
-      score = 0.85; // High confidence for substring match
-    }
-
-    // Also try if skill name contains OCR text (partial match)
-    if (score < minThreshold && key.includes(normalizedOcr) && normalizedOcr.length >= 5) {
-      score = 0.75;
-    }
-
-    if (score > bestScore && score >= minThreshold) {
-      bestScore = score;
-      bestMatch = {
-        id: entry.id,
-        geneId: entry.geneId,
-        name: entry.name,
-        confidence: score,
-        originalText: ocrText,
-      };
-    }
-  }
-
-  return bestMatch;
-}
 
 /** Find best uma match from outfit and name */
 export function findBestUmaMatch(outfit: string, umaName: string): UmaMatch | null {
@@ -245,7 +159,6 @@ export function findBestUmaMatch(outfit: string, umaName: string): UmaMatch | nu
 /** Export lookup sizes for debugging */
 export function getSearchDebugInfo() {
   return {
-    skillLookupSize: getSkillLookup().size,
     umaLookupSize: getUmaLookup().size,
   };
 }

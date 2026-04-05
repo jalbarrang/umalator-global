@@ -2,14 +2,6 @@
  * Types for runner data lookups and search functionality
  */
 
-/** Skill lookup entry from the skill database */
-export interface SkillLookupEntry {
-  id: string;
-  geneId?: string;
-  name: string;
-  rarity: number;
-}
-
 /** Uma lookup entry from the uma database */
 export interface UmaLookupEntry {
   outfitId: string;
