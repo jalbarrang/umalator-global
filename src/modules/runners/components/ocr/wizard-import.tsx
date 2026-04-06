@@ -1,8 +1,8 @@
-import { AlertCircle, CheckCircle2 } from 'lucide-react';
-import type { PreparedImage, WizardStep } from '@/modules/runners/components/ocr/types';
+import { useRef, type ChangeEvent, type DragEvent } from 'react';
+import { AlertCircle, CheckCircle2, KeyRound, ScanLine } from 'lucide-react';
+import type { PreparedImage } from '@/modules/runners/components/ocr/types';
 import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
-import { Button } from '@/components/ui/button';
-import { MaskCanvasEditor } from '@/modules/runners/components/ocr/mask-canvas-editor';
+import { createPreparedImage, WIZARD_STEPS } from '@/modules/runners/components/ocr/definitions';
 import {
   useOcrActions,
   useOcrProcessing,
@@ -11,125 +11,191 @@ import {
 } from '@/modules/runners/components/ocr/ocr-dialog-provider';
 import {
   hasDetectedData,
+  OcrSkillDebugPanel,
   OcrSkillsList,
   OcrStatsEditor,
   OcrUmaSelector,
-  toExtractedUmaData,
 } from '@/modules/runners/components/ocr/ocr-import-shared';
 import { getIconById } from '@/modules/data/icons';
+import { cn } from '@/lib/utils';
+import { useGeminiApiKey } from '@/store/ocr.store';
 
-interface WizardImportProps {
-  onApply: (data: ExtractedUmaData) => void;
+interface DropZoneProps {
+  label: string;
+  description: string;
+  icon: React.ReactNode;
+  accept?: string;
+  disabled?: boolean;
+  noKey?: boolean;
+  thumbnails?: Array<PreparedImage>;
+  onFiles: (files: Array<File>) => void;
 }
 
-const STEPS: Array<{ id: WizardStep; label: string }> = [
-  { id: 'align', label: 'Align' },
-  { id: 'review-identity', label: 'Review Identity' },
-  { id: 'review-skills', label: 'Review Skills' },
-  { id: 'summary', label: 'Summary' },
-];
+function DropZone({
+  label,
+  description,
+  icon,
+  accept = 'image/*',
+  disabled = false,
+  noKey = false,
+  thumbnails = [],
+  onFiles,
+}: Readonly<DropZoneProps>) {
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
-function createPreparedImage(blob: Blob, maskType: PreparedImage['maskType']): PreparedImage {
-  return {
-    blob,
-    maskType,
-    preview: URL.createObjectURL(blob),
+  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
   };
+
+  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const files = Array.from(e.dataTransfer.files ?? []).filter((file) =>
+      file.type.startsWith('image/'),
+    );
+    if (files.length > 0) {
+      onFiles(files);
+    }
+  };
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []).filter((file) => file.type.startsWith('image/'));
+    if (files.length > 0) {
+      onFiles(files);
+    }
+    e.target.value = '';
+  };
+
+  if (noKey) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed p-4 text-center">
+        <KeyRound className="w-8 h-8 text-muted-foreground" />
+        <div className="space-y-1">
+          <p className="text-sm font-medium">Gemini API key required</p>
+          <p className="text-xs text-muted-foreground max-w-[220px]">
+            Enter your Gemini API key above to scan screenshots.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={cn(
+        'flex-1 flex flex-col gap-3 rounded-lg border-2 border-dashed p-4 transition-colors cursor-pointer',
+        disabled ? 'opacity-50 pointer-events-none' : 'hover:border-muted-foreground/50',
+      )}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+      onClick={() => inputRef.current?.click()}
+    >
+      <div className="flex flex-col items-center justify-center gap-2 text-center flex-1 py-4">
+        <div className="text-muted-foreground">{icon}</div>
+        <p className="text-sm font-medium">{label}</p>
+        <p className="text-xs text-muted-foreground max-w-[180px]">{description}</p>
+      </div>
+
+      {thumbnails.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {thumbnails.map((img, i) => (
+            <div
+              key={`${img.preview}-${i}`}
+              className="w-12 h-12 rounded border overflow-hidden shrink-0"
+            >
+              <img src={img.preview} className="w-full h-full object-cover" />
+            </div>
+          ))}
+        </div>
+      )}
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept={accept}
+        multiple
+        className="hidden"
+        onChange={handleChange}
+        disabled={disabled}
+      />
+    </div>
+  );
 }
 
-export function WizardImport({ onApply }: Readonly<WizardImportProps>) {
+export function WizardImport() {
+  const geminiApiKey = useGeminiApiKey();
+  const hasApiKey = geminiApiKey.trim().length > 0;
+
   const results = useOcrResults();
   const { isProcessing, progress, error } = useOcrProcessing();
-  const { step, preparedImages, showSkillsEditor } = useOcrWizardState();
-  const {
-    processComposited,
-    updateResults,
-    removeSkill,
-    reset,
-    setStep,
-    setShowSkillsEditor,
-    addPreparedImage,
-  } = useOcrActions();
+  const { step, preparedImages } = useOcrWizardState();
+  const { processComposited, updateResults, removeSkill, reset, setStep, addPreparedImage } =
+    useOcrActions();
 
-  const handleAlignProcess = async (blob: Blob) => {
-    try {
-      reset();
-
-      const preparedImage = createPreparedImage(blob, 'full-details-own');
-      addPreparedImage(preparedImage);
-
-      const nextData = await processComposited(blob, 'full-details-own');
-      if (!nextData) {
-        return;
-      }
-
-      setShowSkillsEditor(false);
-      setStep('review-identity');
-    } catch (processError) {
-      console.error('Failed to process full-details OCR image', processError);
-    }
-  };
-
-  const handleAddSkillsProcess = async (blob: Blob) => {
-    try {
-      const preparedImage = createPreparedImage(blob, 'skills-only');
-      addPreparedImage(preparedImage);
-
-      await processComposited(blob, 'skills-only', results ?? undefined);
-      setShowSkillsEditor(false);
-    } catch (processError) {
-      console.error('Failed to process skills-only OCR image', processError);
-    }
-  };
-
-  const handleApply = () => {
-    if (!results || !hasDetectedData(results)) {
+  const handleFullDetailsFiles = async (files: Array<File>) => {
+    if (files.length === 0) {
       return;
     }
 
-    onApply(toExtractedUmaData(results));
+    try {
+      reset();
+
+      const [fullDetailsFile, ...skillOnlyFiles] = files;
+      addPreparedImage(createPreparedImage(fullDetailsFile, 'full-details-own'));
+      let nextData: Partial<ExtractedUmaData> | undefined =
+        (await processComposited(fullDetailsFile, 'full-details-own')) ?? undefined;
+
+      for (const file of skillOnlyFiles) {
+        addPreparedImage(createPreparedImage(file, 'skills-only'));
+        nextData = (await processComposited(file, 'skills-only', nextData)) ?? undefined;
+      }
+
+      if (nextData) {
+        setStep('review-identity');
+      }
+    } catch (err) {
+      console.error('Failed to process OCR images', err);
+    }
   };
 
-  const activeStepIndex = STEPS.findIndex((entry) => entry.id === step);
+  const activeStepIndex = WIZARD_STEPS.findIndex((entry) => entry.id === step);
 
   return (
     <div className="flex-1 overflow-hidden flex flex-col gap-4">
+      {/* Step indicator */}
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        {STEPS.map((entry, index) => (
+        {WIZARD_STEPS.map((entry, index) => (
           <div key={entry.id} className="flex items-center gap-2">
             <div
-              className={`px-2 py-1 rounded border ${
+              className={cn(
+                'px-2 py-1 rounded border',
                 index <= activeStepIndex
                   ? 'border-primary text-foreground bg-primary/10'
-                  : 'border-muted'
-              }`}
+                  : 'border-muted',
+              )}
             >
               {entry.label}
             </div>
-            {index < STEPS.length - 1 && <span>→</span>}
+            {index < WIZARD_STEPS.length - 1 && <span>→</span>}
           </div>
         ))}
       </div>
 
+      {/* Step: Upload */}
       {step === 'align' && (
         <div className="flex-1 min-h-0 flex flex-col gap-4 overflow-hidden">
-          <div className="text-sm text-muted-foreground">
-            Align the <span className="font-medium text-foreground">full details</span> screenshot,
-            then scan it.
-          </div>
-
-          <MaskCanvasEditor
-            maskType="full-details-own"
-            processLabel="Scan"
-            externalBusy={isProcessing}
-            onProcess={(blob) => {
-              void handleAlignProcess(blob);
-            }}
-            className="flex-1 min-h-0"
+          <DropZone
+            label="Drop here"
+            description="The screenshots of your runner, add more if she has a lot of skills."
+            icon={<ScanLine className="w-8 h-8" />}
+            disabled={isProcessing}
+            noKey={!hasApiKey}
+            thumbnails={preparedImages}
+            onFiles={(files) => void handleFullDetailsFiles(files)}
           />
         </div>
       )}
 
+      {/* Step: Review Identity */}
       {step === 'review-identity' && (
         <div className="flex-1 min-h-0 overflow-y-auto space-y-4">
           <OcrUmaSelector
@@ -137,84 +203,27 @@ export function WizardImport({ onApply }: Readonly<WizardImportProps>) {
             isProcessing={isProcessing}
             onUpdateResults={updateResults}
           />
-
           <OcrStatsEditor results={results} onUpdateResults={updateResults} />
-
-          <div className="flex justify-between pt-2">
-            <Button variant="outline" onClick={() => setStep('align')}>
-              Back
-            </Button>
-            <Button onClick={() => setStep('review-skills')}>Next</Button>
-          </div>
         </div>
       )}
 
+      {/* Step: Review Skills */}
       {step === 'review-skills' && (
-        <div className="flex-1 min-h-0 overflow-hidden flex flex-col gap-4">
-          <div className="text-xs text-muted-foreground">
-            Prepared screenshots: {preparedImages.length}{' '}
-            {preparedImages.length === 1 ? 'image' : 'images'}
-          </div>
-
-          <div className="flex flex-wrap gap-2 max-h-[84px] overflow-y-auto">
-            {preparedImages.map((image, index) => (
-              <div
-                key={`${image.preview}-${index}`}
-                className="relative w-14 h-14 rounded-md border overflow-hidden"
-              >
-                <img src={image.preview} className="w-full h-full object-cover" />
-                <span className="absolute bottom-0 left-0 right-0 text-[10px] px-1 py-0.5 bg-black/70 text-white text-center">
-                  {image.maskType === 'full-details-own' && 'Full: Owned Runner'}
-                  {image.maskType === 'full-details-other' && 'Full: Partner Runner'}
-                  {image.maskType === 'skills-only' && 'Skills'}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          <div className="flex-1 min-h-0 overflow-y-auto pr-1">
+        <div className="flex flex-col min-h-0">
+          <div className="flex flex-col min-h-0 gap-2">
             <OcrSkillsList
               results={results}
               isProcessing={isProcessing}
               onRemoveSkill={removeSkill}
+              onUpdateResults={updateResults}
             />
-          </div>
 
-          <div className="space-y-3">
-            {!showSkillsEditor ? (
-              <Button variant="outline" onClick={() => setShowSkillsEditor(true)}>
-                Add more skills
-              </Button>
-            ) : (
-              <div className="rounded-md border p-3 bg-muted/20">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-medium">Scan skills-only screenshot</p>
-                  <Button variant="ghost" size="sm" onClick={() => setShowSkillsEditor(false)}>
-                    Cancel
-                  </Button>
-                </div>
-
-                <MaskCanvasEditor
-                  maskType="skills-only"
-                  processLabel="Scan Skills"
-                  externalBusy={isProcessing}
-                  onProcess={(blob) => {
-                    void handleAddSkillsProcess(blob);
-                  }}
-                />
-              </div>
-            )}
-          </div>
-
-          <div className="flex justify-between pt-1">
-            <Button variant="outline" onClick={() => setStep('review-identity')}>
-              Back
-            </Button>
-            <Button onClick={() => setStep('summary')}>Next</Button>
+            <OcrSkillDebugPanel results={results} />
           </div>
         </div>
       )}
 
+      {/* Step: Summary */}
       {step === 'summary' && (
         <div className="flex-1 min-h-0 overflow-y-auto space-y-4">
           <div className="rounded-md border p-4 space-y-4">
@@ -227,7 +236,6 @@ export function WizardImport({ onApply }: Readonly<WizardImportProps>) {
                 </div>
               )}
             </div>
-
             <div className="space-y-3">
               <div>
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Uma</p>
@@ -244,54 +252,32 @@ export function WizardImport({ onApply }: Readonly<WizardImportProps>) {
                     </div>
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground mt-1">Not selected</p>
+                  <p className="text-sm text-muted-foreground mt-1">Not detected</p>
                 )}
               </div>
-
               <div>
                 <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Stats</p>
                 <div className="grid grid-cols-5 gap-2 text-center text-sm">
-                  <div className="rounded border p-2">
-                    <p className="text-[10px] text-muted-foreground">SPD</p>
-                    <p className="font-mono">{results?.speed ?? '-'}</p>
-                  </div>
-                  <div className="rounded border p-2">
-                    <p className="text-[10px] text-muted-foreground">STA</p>
-                    <p className="font-mono">{results?.stamina ?? '-'}</p>
-                  </div>
-                  <div className="rounded border p-2">
-                    <p className="text-[10px] text-muted-foreground">POW</p>
-                    <p className="font-mono">{results?.power ?? '-'}</p>
-                  </div>
-                  <div className="rounded border p-2">
-                    <p className="text-[10px] text-muted-foreground">GUT</p>
-                    <p className="font-mono">{results?.guts ?? '-'}</p>
-                  </div>
-                  <div className="rounded border p-2">
-                    <p className="text-[10px] text-muted-foreground">WIT</p>
-                    <p className="font-mono">{results?.wisdom ?? '-'}</p>
-                  </div>
+                  {(['speed', 'stamina', 'power', 'guts', 'wisdom'] as const).map((stat) => (
+                    <div key={stat} className="rounded border p-2">
+                      <p className="text-[10px] text-muted-foreground uppercase">
+                        {stat.slice(0, 3)}
+                      </p>
+                      <p className="font-mono">{results?.[stat] ?? '-'}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
-
               <div>
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Skills</p>
                 <p className="text-sm mt-1">{results?.skills?.length ?? 0} detected</p>
               </div>
             </div>
           </div>
-
-          <div className="flex justify-between">
-            <Button variant="outline" onClick={() => setStep('review-skills')}>
-              Back
-            </Button>
-            <Button onClick={handleApply} disabled={!results || !hasDetectedData(results)}>
-              Apply
-            </Button>
-          </div>
         </div>
       )}
 
+      {/* Progress */}
       {isProcessing && (
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
@@ -307,6 +293,7 @@ export function WizardImport({ onApply }: Readonly<WizardImportProps>) {
         </div>
       )}
 
+      {/* Error */}
       {error && (
         <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-md text-red-500 text-sm flex items-start gap-2">
           <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />

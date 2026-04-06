@@ -1,25 +1,27 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import type { OcrImportMode } from '@/modules/runners/components/ocr/types';
 
 type IOcrStore = {
-  mode: OcrImportMode;
+  geminiApiKey: string;
+  setGeminiApiKey: (key: string) => void;
 };
 
 export const useOcrStore = create<IOcrStore>()(
   persist(
-    (_) => ({
-      mode: 'wizard',
+    (set) => ({
+      geminiApiKey: '',
+      setGeminiApiKey: (geminiApiKey) => set({ geminiApiKey }),
     }),
     {
       name: 'umalator-ocr-settings',
       storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({ geminiApiKey: state.geminiApiKey }),
     },
   ),
 );
 
-export const useOcrMode = () => useOcrStore((state) => state.mode);
+export const useGeminiApiKey = () => useOcrStore((state) => state.geminiApiKey);
 
-export const setOcrMode = (mode: OcrImportMode) => {
-  useOcrStore.setState({ mode });
+export const setGeminiApiKey = (key: string) => {
+  useOcrStore.getState().setGeminiApiKey(key);
 };

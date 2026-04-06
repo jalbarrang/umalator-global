@@ -15,8 +15,17 @@ describe('extractSkills', () => {
     const result = extractSkills('Right-Handed © Shooting Star Lvl 4', 0);
     const ids = result.map((skill) => skill.id);
 
-    expect(ids).toContain('200012');
+    expect(ids).toContain('200011');
     expect(ids).toContain('100011');
     expect(ids).not.toContain('900011');
+  });
+
+  it('maps raw double-circle OCR variants in mixed skill lines', () => {
+    const result = extractSkills('Right-Handed ⊚ Shooting Star', 0);
+    const ids = result.map((skill) => skill.id);
+
+    expect(ids).toContain('200011');
+    expect(ids).toContain('900011');
+    expect(ids).not.toContain('100011');
   });
 });

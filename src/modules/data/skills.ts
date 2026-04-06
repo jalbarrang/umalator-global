@@ -223,6 +223,7 @@ export interface SkillLookupEntry {
 }
 
 const skillLookup = new Map<string, SkillLookupEntry>();
+const skillLookupCandidates = new Map<string, Array<SkillLookupEntry>>();
 
 /**
  * Normalizes skill names for OCR matching while preserving skill-grade symbols.
@@ -243,13 +244,14 @@ export const normalizeSkillName = (value: string): string => {
     .replaceAll('⊚', '◎')
     .replaceAll('✕', '×')
     .replaceAll('✖', '×')
-    .replaceAll('©', '○')
-    .replaceAll('®', '◎')
+    .replaceAll('©', '◎')
+    .replaceAll('®', '○')
     .replace(/\b(?:lvl|level)\s*\d+\b/giu, ' ')
-    .replace(/[Oo0]\s*$/u, '○')
-    .replace(/[Xx]\s*$/u, '×')
+    .replace(/\s+[Oo0]$/u, '○')
+    .replace(/\s+[Xx]$/u, '×')
     .toLowerCase()
-    .replace(/[^\p{L}\p{N}○◎×]/gu, '');
+    .replace(/[[\]\s\-_・!！?？,、.。:：;；'"“”‘’「」『』【】()（）☆★]/gu, '')
+    .trim();
 };
 
 const levenshteinDistance = (a: string, b: string): number => {
@@ -295,24 +297,93 @@ const similarity = (a: string, b: string): number => {
   return 1 - distance / maxLength;
 };
 
+const skillIdPrefixRank = (skillId: string): number => {
+  const normalizedId = normalizeSkillId(skillId);
+  const prefix = normalizedId.charAt(0);
+
+  switch (prefix) {
+    case '1':
+      return 0;
+    case '2':
+      return 1;
+    case '9':
+      return 2;
+    default:
+      return 3;
+  }
+};
+
+const sortSkillLookupEntries = (entries: Array<SkillLookupEntry>): Array<SkillLookupEntry> => {
+  return [...entries].sort((a, b) => {
+    const prefixRank = skillIdPrefixRank(a.id) - skillIdPrefixRank(b.id);
+    if (prefixRank !== 0) {
+      return prefixRank;
+    }
+
+    const rarityRank = b.rarity - a.rarity;
+    if (rarityRank !== 0) {
+      return rarityRank;
+    }
+
+    return a.id.localeCompare(b.id);
+  });
+};
+
+const selectCanonicalSkillLookupEntry = (entries: Array<SkillLookupEntry>): SkillLookupEntry => {
+  return sortSkillLookupEntries(entries)[0];
+};
+
+const hasSkillLevelIndicator = (value: string): boolean => /\b(?:lvl|level)\s*\d+\b/iu.test(value);
+
+const selectMatchedSkillLookupEntry = (
+  entries: Array<SkillLookupEntry>,
+  originalText: string,
+): SkillLookupEntry => {
+  const hasLevel = hasSkillLevelIndicator(originalText);
+  const sortedEntries = sortSkillLookupEntries(entries);
+
+  if (hasLevel) {
+    return sortedEntries.find((entry) => normalizeSkillId(entry.id).startsWith('1')) ?? sortedEntries[0];
+  }
+
+  return (
+    sortedEntries.find((entry) => normalizeSkillId(entry.id).startsWith('9')) ??
+    sortedEntries[0]
+  );
+};
+
 function buildSkillLookup() {
-  if (skillLookup.size > 0) {
+  if (skillLookup.size > 0 || skillLookupCandidates.size > 0) {
     return;
   }
 
   for (const skill of Object.values(skillCollection)) {
     const key = normalizeSkillName(skill.name);
 
-    if (!key || skillLookup.has(key)) {
+    if (!key) {
       continue;
     }
 
-    skillLookup.set(key, {
+    const nextEntry: SkillLookupEntry = {
       id: `${skill.id}`,
       geneId: skill.gene_version?.id ? `${skill.gene_version.id}` : undefined,
       name: skill.name,
       rarity: skill.rarity,
-    });
+    };
+
+    const entries = skillLookupCandidates.get(key);
+    if (entries) {
+      if (!entries.some((entry) => entry.id === nextEntry.id)) {
+        entries.push(nextEntry);
+      }
+      continue;
+    }
+
+    skillLookupCandidates.set(key, [nextEntry]);
+  }
+
+  for (const [key, entries] of skillLookupCandidates) {
+    skillLookup.set(key, selectCanonicalSkillLookupEntry(entries));
   }
 }
 
@@ -321,17 +392,24 @@ export const getSkillLookup = (): Map<string, SkillLookupEntry> => {
   return skillLookup;
 };
 
+export const getSkillLookupCandidates = (): Map<string, Array<SkillLookupEntry>> => {
+  buildSkillLookup();
+  return skillLookupCandidates;
+};
+
 /** Find best skill match for OCR text */
 export const findBestSkillMatch = (ocrText: string): SkillMatch | null => {
-  const lookup = getSkillLookup();
+  const lookupCandidates = getSkillLookupCandidates();
   const normalizedOcr = normalizeSkillName(ocrText);
 
   if (!normalizedOcr || normalizedOcr.length < 3) {
     return null;
   }
 
-  const exactMatch = lookup.get(normalizedOcr);
-  if (exactMatch) {
+  const exactMatches = lookupCandidates.get(normalizedOcr);
+  if (exactMatches && exactMatches.length > 0) {
+    const exactMatch = selectMatchedSkillLookupEntry(exactMatches, ocrText);
+
     return {
       id: exactMatch.id,
       geneId: exactMatch.geneId,
@@ -345,7 +423,7 @@ export const findBestSkillMatch = (ocrText: string): SkillMatch | null => {
   let bestScore = 0;
   const minThreshold = 0.55;
 
-  for (const [key, entry] of lookup) {
+  for (const [key, entries] of lookupCandidates) {
     let score = similarity(normalizedOcr, key);
 
     if (score < minThreshold && normalizedOcr.includes(key)) {
@@ -357,6 +435,8 @@ export const findBestSkillMatch = (ocrText: string): SkillMatch | null => {
     }
 
     if (score > bestScore && score >= minThreshold) {
+      const entry = selectMatchedSkillLookupEntry(entries, ocrText);
+
       bestScore = score;
       bestMatch = {
         id: entry.id,

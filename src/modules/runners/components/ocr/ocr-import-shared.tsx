@@ -1,9 +1,16 @@
-import { useState } from 'react';
-import { ImageIcon } from 'lucide-react';
+import { useMemo, useState, type ReactElement, type ReactNode } from 'react';
+import { ImageIcon, Pencil, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
 import { getIconById } from '@/modules/data/icons';
+import {
+  getSkillById,
+  getSkills,
+  normalizeSkillName,
+  type SkillEntry,
+} from '@/modules/data/skills';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
 import {
   Command,
   CommandEmpty,
@@ -28,17 +35,17 @@ import {
 export function hasDetectedData(results: Partial<ExtractedUmaData> | null): boolean {
   return Boolean(
     results &&
-      (results.outfitId ||
-        results.speed ||
-        results.stamina ||
-        results.power ||
-        results.guts ||
-        results.wisdom ||
-        (results.skills && results.skills.length > 0) ||
-        results.surfaceAptitude ||
-        results.distanceAptitude ||
-        results.strategyAptitude ||
-        results.strategy),
+    (results.outfitId ||
+      results.speed ||
+      results.stamina ||
+      results.power ||
+      results.guts ||
+      results.wisdom ||
+      (results.skills && results.skills.length > 0) ||
+      results.surfaceAptitude ||
+      results.distanceAptitude ||
+      results.strategyAptitude ||
+      results.strategy),
   );
 }
 
@@ -52,19 +59,116 @@ export function toExtractedUmaData(results: Partial<ExtractedUmaData>): Extracte
   };
 }
 
-function OcrDetectedSkillRow({ dismissable }: Readonly<{ dismissable: boolean }>) {
+function OcrDetectedSkillRow({
+  dismissable,
+  onDismiss,
+  replaceAction,
+}: Readonly<{ dismissable: boolean; onDismiss?: () => void; replaceAction?: ReactNode }>) {
   return (
     <SkillItemRoot>
       <SkillItemRail />
       <SkillItemBody className="p-1 px-2">
         <SkillItemMain>
           <SkillItemIdentity />
+
           <SkillItemActions>
-            <SkillItemDetailsActions dismissable={dismissable} />
+            {replaceAction}
+            <SkillItemDetailsActions dismissable={dismissable} onDismiss={onDismiss} />
           </SkillItemActions>
         </SkillItemMain>
       </SkillItemBody>
     </SkillItemRoot>
+  );
+}
+
+type OcrSkillPickerOption = {
+  id: string;
+  name: string;
+  meta: string;
+  searchValue: string;
+};
+
+function getOcrSkillOptionMeta(skill: SkillEntry): string {
+  if (skill.id.startsWith('9')) {
+    return `${skill.id} · inherited`;
+  }
+
+  if (skill.id.startsWith('1')) {
+    return `${skill.id} · base/unique`;
+  }
+
+  return skill.id;
+}
+
+function createManualOcrSkillEntry(
+  skillId: string,
+  previous?: ExtractedUmaData['skills'][number],
+): ExtractedUmaData['skills'][number] | null {
+  const skill = getSkillById(skillId);
+  if (!skill) {
+    return null;
+  }
+
+  return {
+    id: skillId,
+    name: skill.name,
+    confidence: 1,
+    originalText: previous?.originalText ?? `[Manual] ${skill.name}`,
+    fromImage: previous?.fromImage ?? 0,
+  };
+}
+
+interface OcrSkillPickerPopoverProps {
+  skillOptions: Array<OcrSkillPickerOption>;
+  title: string;
+  trigger: ReactElement;
+  onSelectSkill: (skillId: string) => void;
+}
+
+function OcrSkillPickerPopover({
+  skillOptions,
+  title,
+  trigger,
+  onSelectSkill,
+}: Readonly<OcrSkillPickerPopoverProps>) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Popover
+      open={open}
+      onOpenChange={(nextOpen) => {
+        setOpen(nextOpen);
+      }}
+    >
+      <PopoverTrigger render={trigger as ReactElement} />
+      {open && (
+        <PopoverContent className="w-[360px] p-0" align="end">
+          <Command>
+            <CommandInput placeholder={title} />
+            <CommandList className="max-h-[320px]">
+              <CommandEmpty>No matching skills found.</CommandEmpty>
+              <CommandGroup>
+                {skillOptions.map((option) => (
+                  <CommandItem
+                    key={option.id}
+                    value={option.searchValue}
+                    onSelect={() => {
+                      onSelectSkill(option.id);
+                      setOpen(false);
+                    }}
+                  >
+                    <div className="min-w-0">
+                      <div className="truncate text-sm">{option.name}</div>
+                      <div className="truncate text-xs text-muted-foreground">{option.meta}</div>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      )}
+    </Popover>
   );
 }
 
@@ -100,17 +204,28 @@ export function OcrUmaSelector({
   };
 
   const trigger = results?.outfitId ? (
-    <div className="flex items-center gap-3 p-2 border rounded-md cursor-pointer hover:bg-muted/50 transition-colors">
-      <img src={getIconById(results.outfitId)} alt={results.umaName} className="w-12 h-12 rounded" />
+    <button
+      type="button"
+      className="flex items-center gap-3 p-2 border rounded-md cursor-pointer hover:bg-muted/50 transition-colors w-full text-left"
+    >
+      <img
+        src={getIconById(results.outfitId)}
+        alt={results.umaName}
+        className="w-12 h-12 rounded"
+      />
       <div>
         <p className="font-medium">{results.outfitName}</p>
         <p className="text-sm text-muted-foreground">{results.umaName}</p>
       </div>
-    </div>
+    </button>
   ) : (
-    <div className="p-2 border rounded-md text-muted-foreground text-sm cursor-pointer hover:bg-muted/50 transition-colors">
+    <button
+      type="button"
+      className="p-2 border rounded-md text-muted-foreground text-sm cursor-pointer hover:bg-muted/50 transition-colors w-full text-left"
+      disabled={isProcessing}
+    >
       {isProcessing ? 'Detecting...' : 'Click to select uma'}
-    </div>
+    </button>
   );
 
   return (
@@ -235,50 +350,206 @@ interface OcrSkillsListProps {
   results: Partial<ExtractedUmaData> | null;
   isProcessing: boolean;
   onRemoveSkill: (skillId: string) => void;
+  onUpdateResults: (updates: Partial<ExtractedUmaData>) => void;
 }
 
 export function OcrSkillsList({
   results,
   isProcessing,
   onRemoveSkill,
+  onUpdateResults,
 }: Readonly<OcrSkillsListProps>) {
   const uniqueSkillId = results?.outfitId ? getUniqueSkillForByUmaId(results.outfitId) : null;
+  const currentSkills = results?.skills ?? [];
+
+  const skillOptions = useMemo<Array<OcrSkillPickerOption>>(() => {
+    return getSkills()
+      .map((skill) => ({
+        id: skill.id,
+        name: skill.name,
+        meta: getOcrSkillOptionMeta(skill),
+        searchValue: `${skill.name} ${skill.id} ${getOcrSkillOptionMeta(skill)}`,
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
+  }, []);
+
+  const handleAddSkill = (skillId: string) => {
+    if (currentSkills.some((skill) => skill.id === skillId)) {
+      toast.info('That skill is already in the list');
+      return;
+    }
+
+    const nextSkill = createManualOcrSkillEntry(skillId);
+    if (!nextSkill) {
+      toast.error('Could not add that skill');
+      return;
+    }
+
+    onUpdateResults({ skills: [...currentSkills, nextSkill] });
+    toast.success('Skill added');
+  };
+
+  const handleReplaceSkill = (index: number, skillId: string) => {
+    const previous = currentSkills[index];
+    if (!previous || previous.id === skillId) {
+      return;
+    }
+
+    if (currentSkills.some((skill, skillIndex) => skill.id === skillId && skillIndex !== index)) {
+      toast.info('That skill is already in the list');
+      return;
+    }
+
+    const nextSkill = createManualOcrSkillEntry(skillId, previous);
+    if (!nextSkill) {
+      toast.error('Could not replace that skill');
+      return;
+    }
+
+    const nextSkills = [...currentSkills];
+    nextSkills[index] = nextSkill;
+    onUpdateResults({ skills: nextSkills });
+    toast.success('Skill updated');
+  };
 
   return (
-    <div className="space-y-2">
-      <h4 className="text-sm font-medium text-muted-foreground">
-        Skills ({results?.skills?.length ?? 0} found)
-      </h4>
+    <div className="flex flex-col min-h-0 gap-2">
+      <div className="flex items-center justify-between gap-2">
+        <h4 className="text-sm font-medium text-muted-foreground">
+          Skills ({results?.skills?.length ?? 0} found)
+        </h4>
 
-      <div
-        className="max-h-[240px] overflow-y-auto space-y-1"
-        onClick={(e) => {
-          const target = e.target as HTMLElement;
-          const button = target.closest('[data-event="remove-skill"]');
-
-          if (!button) {
-            return;
+        <OcrSkillPickerPopover
+          skillOptions={skillOptions}
+          title="Search skill to add"
+          onSelectSkill={handleAddSkill}
+          trigger={
+            <Button type="button" variant="outline" size="sm" disabled={isProcessing}>
+              <Plus className="mr-1 h-4 w-4" />
+              Add Skill
+            </Button>
           }
+        />
+      </div>
 
-          const skillId = button.getAttribute('data-skillid');
-          if (skillId) {
-            onRemoveSkill(skillId);
-          }
-        }}
-      >
-        {results?.skills && results.skills.length > 0 ? (
-          results.skills.map((skill, i) => (
-            <SkillItem key={`${skill.id}-${i}`} skillId={skill.id}>
-              <OcrDetectedSkillRow dismissable={skill.id !== uniqueSkillId} />
-            </SkillItem>
-          ))
-        ) : (
+      <div className="flex flex-col gap-1 overflow-y-auto">
+        {currentSkills.length === 0 && (
           <div className="p-2 border rounded text-muted-foreground text-sm">
             {isProcessing ? 'Detecting...' : 'No skills detected'}
           </div>
         )}
+
+        {currentSkills.length > 0 &&
+          currentSkills.map((skill, index) => (
+            <SkillItem key={`${skill.id}-${index}`} skillId={skill.id} onRemove={onRemoveSkill}>
+              <OcrDetectedSkillRow
+                dismissable={skill.id !== uniqueSkillId}
+                onDismiss={() => onRemoveSkill(skill.id)}
+                replaceAction={
+                  <OcrSkillPickerPopover
+                    skillOptions={skillOptions}
+                    title="Search replacement skill"
+                    onSelectSkill={(skillId) => handleReplaceSkill(index, skillId)}
+                    trigger={
+                      <Button
+                        variant="ghost"
+                        size="icon-lg"
+                        type="button"
+                        title="Replace skill"
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    }
+                  />
+                }
+              />
+            </SkillItem>
+          ))}
       </div>
     </div>
+  );
+}
+
+interface OcrSkillDebugPanelProps {
+  results: Partial<ExtractedUmaData> | null;
+}
+
+function formatOcrSkillDebugReport(results: Partial<ExtractedUmaData>): string {
+  const lines = [
+    'OCR Skill Debug Report',
+    `Uma: ${results.outfitName ?? '—'} ${results.umaName ?? ''}`.trim(),
+    `Images: ${results.imageCount ?? 0}`,
+    '',
+    'Skills:',
+  ];
+
+  for (const [index, skill] of (results.skills ?? []).entries()) {
+    lines.push(`- [${index + 1}] Raw: ${skill.originalText || '—'}`);
+    lines.push(`  Normalized: ${normalizeSkillName(skill.originalText) || '—'}`);
+    lines.push(`  Matched: ${skill.name}`);
+    lines.push(`  Skill ID: ${skill.id}`);
+    lines.push(`  Confidence: ${skill.confidence.toFixed(2)}`);
+  }
+
+  if (results.unrecognized && results.unrecognized.length > 0) {
+    lines.push('', 'Unrecognized:', ...results.unrecognized.map((line) => `- ${line}`));
+  }
+
+  return lines.join('\n');
+}
+
+export function OcrSkillDebugPanel({ results }: Readonly<OcrSkillDebugPanelProps>) {
+  if (!results?.skills || results.skills.length === 0) {
+    return null;
+  }
+
+  return (
+    <details className="text-sm">
+      <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+        OCR skill debug ({results.skills.length} matches)
+      </summary>
+
+      <div className="mt-2 space-y-2">
+        <div className="flex justify-end">
+          <button
+            type="button"
+            className="text-xs text-muted-foreground hover:text-foreground"
+            onClick={() => {
+              void navigator.clipboard.writeText(formatOcrSkillDebugReport(results));
+              toast.success('Copied OCR debug report');
+            }}
+          >
+            Copy debug report
+          </button>
+        </div>
+
+        {results.skills.map((skill, index) => {
+          const normalized = normalizeSkillName(skill.originalText);
+
+          return (
+            <div key={`${skill.id}-${index}`} className="rounded border bg-muted/30 p-2 text-xs">
+              <div className="grid grid-cols-[90px_1fr] gap-x-3 gap-y-1">
+                <span className="text-muted-foreground">Raw</span>
+                <code className="break-all">{skill.originalText || '—'}</code>
+
+                <span className="text-muted-foreground">Normalized</span>
+                <code className="break-all">{normalized || '—'}</code>
+
+                <span className="text-muted-foreground">Matched</span>
+                <code className="break-all">{skill.name}</code>
+
+                <span className="text-muted-foreground">Skill ID</span>
+                <code className="break-all">{skill.id}</code>
+
+                <span className="text-muted-foreground">Confidence</span>
+                <code>{skill.confidence.toFixed(2)}</code>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </details>
   );
 }
 
@@ -343,7 +614,7 @@ export function OcrResultPreviewPanel({
       )}
 
       {(hasResults || isProcessing) && (
-        <div className="space-y-4">
+        <div className="flex flex-col gap-4">
           <OcrUmaSelector
             results={results}
             isProcessing={isProcessing}
@@ -352,7 +623,14 @@ export function OcrResultPreviewPanel({
 
           <OcrStatsEditor results={results} onUpdateResults={onUpdateResults} />
 
-          <OcrSkillsList results={results} isProcessing={isProcessing} onRemoveSkill={onRemoveSkill} />
+          <OcrSkillsList
+            results={results}
+            isProcessing={isProcessing}
+            onRemoveSkill={onRemoveSkill}
+            onUpdateResults={onUpdateResults}
+          />
+
+          <OcrSkillDebugPanel results={results} />
 
           <OcrUnrecognized results={results} />
         </div>

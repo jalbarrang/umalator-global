@@ -1,13 +1,14 @@
 import { createContext, useContext, useEffect, useRef } from 'react';
 import { useStore } from 'zustand';
 import { useShallow } from 'zustand/shallow';
-import OcrWorker from '@workers/ocr.worker.ts?worker';
+import type { OcrEngine } from '@/modules/runners/ocr/engine';
+import { GeminiEngine } from '@/modules/runners/ocr/engines/gemini';
 import {
   createOcrDialogStore,
   type OcrDialogStore,
   type OcrDialogStoreApi,
-  type OcrDialogWorkerResponse,
 } from '@/modules/runners/components/ocr/ocr-dialog-store';
+import { useGeminiApiKey } from '@/store/ocr.store';
 
 const OcrDialogStoreContext = createContext<OcrDialogStoreApi | null>(null);
 
@@ -16,38 +17,44 @@ interface OcrDialogProviderProps {
 }
 
 export function OcrDialogProvider({ children }: Readonly<OcrDialogProviderProps>) {
-  const workerRef = useRef<Worker | null>(null);
+  const geminiApiKey = useGeminiApiKey();
+  const normalizedKey = geminiApiKey.trim();
+
+  const engineRef = useRef<OcrEngine | null>(null);
   const storeRef = useRef<OcrDialogStoreApi | null>(null);
 
   if (!storeRef.current) {
-    storeRef.current = createOcrDialogStore(workerRef);
+    storeRef.current = createOcrDialogStore(engineRef);
   }
 
   const store = storeRef.current;
 
+  useEffect(
+    () => () => {
+      store.getState().cleanup();
+    },
+    [store],
+  );
+
   useEffect(() => {
-    const worker = new OcrWorker();
-    workerRef.current = worker;
+    const previous = engineRef.current;
+    engineRef.current = null;
+    void previous?.destroy();
 
-    worker.onmessage = (event: MessageEvent<OcrDialogWorkerResponse>) => {
-      store.getState().handleWorkerMessage(event.data);
-    };
+    if (normalizedKey.length === 0) {
+      return;
+    }
 
-    worker.onerror = (event: ErrorEvent) => {
-      const errorMessage = event.message
-        ? `${event.message} (${event.filename}) at ${event.lineno}:${event.colno}`
-        : 'OCR processing failed';
-
-      store.getState().handleWorkerError(errorMessage);
-    };
+    const engine = new GeminiEngine(normalizedKey);
+    engineRef.current = engine;
 
     return () => {
-      store.getState().cleanup();
-
-      worker.terminate();
-      workerRef.current = null;
+      if (engineRef.current === engine) {
+        engineRef.current = null;
+      }
+      void engine.destroy();
     };
-  }, [store]);
+  }, [normalizedKey]);
 
   return <OcrDialogStoreContext.Provider value={store}>{children}</OcrDialogStoreContext.Provider>;
 }

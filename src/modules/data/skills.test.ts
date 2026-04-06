@@ -15,8 +15,8 @@ describe('normalizeSkillName', () => {
   });
 
   it('normalizes ©/® OCR mistakes into the expected grade symbols', () => {
-    expect(normalizeSkillName('Right-Handed ©')).toBe(normalizeSkillName('Right-Handed ○'));
-    expect(normalizeSkillName('Right-Handed ®')).toBe(normalizeSkillName('Right-Handed ◎'));
+    expect(normalizeSkillName('Right-Handed ©')).toBe(normalizeSkillName('Right-Handed ◎'));
+    expect(normalizeSkillName('Right-Handed ®')).toBe(normalizeSkillName('Right-Handed ○'));
   });
 
   it('strips level markers and punctuation for matching', () => {
@@ -30,6 +30,14 @@ describe('findBestSkillMatch', () => {
     expect(findBestSkillMatch('Right-Handed O')?.id).toBe('200012');
     expect(findBestSkillMatch('Right-Handed 0')?.id).toBe('200012');
     expect(findBestSkillMatch('Right-Handed X')?.id).toBe('200013');
+    expect(findBestSkillMatch('Right-Handed ©')?.id).toBe('200011');
+    expect(findBestSkillMatch('Right-Handed ®')?.id).toBe('200012');
+    expect(findBestSkillMatch('Right-Handed ⊚')?.id).toBe('200011');
+  });
+
+  it('selects the correct version when multiple skill IDs share the same normalized name', () => {
+    expect(findBestSkillMatch('Shooting Star Lvl 4')?.id).toBe('100011');
+    expect(findBestSkillMatch('Shooting Star')?.id).toBe('900011');
   });
 });
 

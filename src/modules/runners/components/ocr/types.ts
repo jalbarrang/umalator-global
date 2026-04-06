@@ -1,4 +1,3 @@
-export type OcrImportMode = 'wizard' | 'advanced';
 export type OcrMaskType = 'full-details-own' | 'full-details-other' | 'skills-only';
 
 export interface CanvasTransform {

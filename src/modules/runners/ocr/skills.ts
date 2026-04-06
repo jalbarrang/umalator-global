@@ -34,10 +34,10 @@ const normalizeLineWithLevels = (value: string): string => {
     .replaceAll('\u229a', '\u25ce')
     .replaceAll('\u2715', '\u00d7')
     .replaceAll('\u2716', '\u00d7')
-    .replaceAll('\u00a9', '\u25cb')
-    .replaceAll('\u00ae', '\u25ce')
-    .replace(/[Oo0]\s*$/u, '\u25cb')
-    .replace(/[Xx]\s*$/u, '\u00d7')
+    .replaceAll('\u00a9', '\u25ce')
+    .replaceAll('\u00ae', '\u25cb')
+    .replace(/\s+[Oo0]$/u, '\u25cb')
+    .replace(/\s+[Xx]$/u, '\u00d7')
     .toLowerCase()
     .replace(/[^\p{L}\p{N}\u25cb\u25ce\u00d7]/gu, '');
 };
