@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactElement, type ReactNode } from 'react';
+import { useMemo, useState, type ComponentProps, type ReactElement, type ReactNode } from 'react';
 import { ImageIcon, Pencil, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
@@ -20,7 +20,7 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import { useUmasForSearch } from '@/modules/runners/utils';
-import { getUniqueSkillForByUmaId } from '@/modules/skills/utils';
+import { getSelectableSkillsForUma, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import {
   SkillItem,
   SkillItemActions,
@@ -72,7 +72,7 @@ function OcrDetectedSkillRow({
           <SkillItemIdentity />
 
           <SkillItemActions>
-            {replaceAction}
+            {dismissable && replaceAction}
             <SkillItemDetailsActions dismissable={dismissable} onDismiss={onDismiss} />
           </SkillItemActions>
         </SkillItemMain>
@@ -121,7 +121,10 @@ function createManualOcrSkillEntry(
 interface OcrSkillPickerPopoverProps {
   skillOptions: Array<OcrSkillPickerOption>;
   title: string;
-  trigger: ReactElement;
+  trigger?: ReactElement;
+  open?: boolean;
+  anchor?: ComponentProps<typeof PopoverContent>['anchor'];
+  onOpenChange?: (open: boolean) => void;
   onSelectSkill: (skillId: string) => void;
 }
 
@@ -129,9 +132,14 @@ function OcrSkillPickerPopover({
   skillOptions,
   title,
   trigger,
+  open: controlledOpen,
+  anchor,
+  onOpenChange,
   onSelectSkill,
 }: Readonly<OcrSkillPickerPopoverProps>) {
-  const [open, setOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const open = controlledOpen ?? uncontrolledOpen;
+  const setOpen = onOpenChange ?? setUncontrolledOpen;
 
   return (
     <Popover
@@ -140,12 +148,13 @@ function OcrSkillPickerPopover({
         setOpen(nextOpen);
       }}
     >
-      <PopoverTrigger render={trigger as ReactElement} />
+      {trigger && <PopoverTrigger render={trigger as ReactElement} />}
       {open && (
-        <PopoverContent className="w-[360px] p-0" align="end">
+        <PopoverContent className="w-[360px] p-0" align="end" anchor={anchor}>
           <Command>
             <CommandInput placeholder={title} />
-            <CommandList className="max-h-[320px]">
+
+            <CommandList className="max-h-[420px]">
               <CommandEmpty>No matching skills found.</CommandEmpty>
               <CommandGroup>
                 {skillOptions.map((option) => (
@@ -361,9 +370,19 @@ export function OcrSkillsList({
 }: Readonly<OcrSkillsListProps>) {
   const uniqueSkillId = results?.outfitId ? getUniqueSkillForByUmaId(results.outfitId) : null;
   const currentSkills = results?.skills ?? [];
+  const [replacePopoverState, setReplacePopoverState] = useState<{
+    anchor: HTMLButtonElement;
+    index: number;
+  } | null>(null);
 
   const skillOptions = useMemo<Array<OcrSkillPickerOption>>(() => {
-    return getSkills()
+    const selectableSkillIds = results?.outfitId
+      ? getSelectableSkillsForUma(results.outfitId)
+      : getSkills().map((skill) => skill.id);
+
+    return selectableSkillIds
+      .map((skillId) => getSkillById(skillId))
+      .filter((skill): skill is SkillEntry => skill !== undefined)
       .map((skill) => ({
         id: skill.id,
         name: skill.name,
@@ -371,7 +390,7 @@ export function OcrSkillsList({
         searchValue: `${skill.name} ${skill.id} ${getOcrSkillOptionMeta(skill)}`,
       }))
       .sort((a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
-  }, []);
+  }, [results?.outfitId]);
 
   const handleAddSkill = (skillId: string) => {
     if (currentSkills.some((skill) => skill.id === skillId)) {
@@ -412,6 +431,10 @@ export function OcrSkillsList({
     toast.success('Skill updated');
   };
 
+  const handleOpenReplaceSkillPicker = (index: number, anchor: HTMLButtonElement) => {
+    setReplacePopoverState({ anchor, index });
+  };
+
   return (
     <div className="flex flex-col min-h-0 gap-2">
       <div className="flex items-center justify-between gap-2">
@@ -446,26 +469,39 @@ export function OcrSkillsList({
                 dismissable={skill.id !== uniqueSkillId}
                 onDismiss={() => onRemoveSkill(skill.id)}
                 replaceAction={
-                  <OcrSkillPickerPopover
-                    skillOptions={skillOptions}
-                    title="Search replacement skill"
-                    onSelectSkill={(skillId) => handleReplaceSkill(index, skillId)}
-                    trigger={
-                      <Button
-                        variant="ghost"
-                        size="icon-lg"
-                        type="button"
-                        title="Replace skill"
-                        onClick={(event) => event.stopPropagation()}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                    }
-                  />
+                  <Button
+                    variant="ghost"
+                    size="icon-lg"
+                    type="button"
+                    title="Replace skill"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      handleOpenReplaceSkillPicker(index, event.currentTarget);
+                    }}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
                 }
               />
             </SkillItem>
           ))}
+
+        <OcrSkillPickerPopover
+          skillOptions={skillOptions}
+          title="Search replacement skill"
+          open={replacePopoverState !== null}
+          anchor={replacePopoverState?.anchor}
+          onOpenChange={(open) => {
+            if (!open) {
+              setReplacePopoverState(null);
+            }
+          }}
+          onSelectSkill={(skillId) => {
+            if (replacePopoverState) {
+              handleReplaceSkill(replacePopoverState.index, skillId);
+            }
+          }}
+        />
       </div>
     </div>
   );
