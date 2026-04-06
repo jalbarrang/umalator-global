@@ -59,6 +59,24 @@ type WorkerMessage =
       error: string;
     };
 
+function getCurrentOptimizationFingerprint() {
+  const { runner, candidates, skillMetaById, budget, hasFastLearner, ignoreStaminaConsumption } =
+    useSkillPlannerStore.getState();
+  const { courseId, racedef, staminaDrainOverrides } = useSettingsStore.getState();
+
+  return buildOptimizationInputFingerprint({
+    budget,
+    hasFastLearner,
+    ignoreStaminaConsumption,
+    courseId,
+    racedef,
+    runner,
+    candidates,
+    skillMetaById,
+    staminaDrainOverrides,
+  });
+}
+
 export function useSkillPlannerOptimizer() {
   const {
     runner,
@@ -81,6 +99,9 @@ export function useSkillPlannerOptimizer() {
   // Worker message handler
   const handleWorkerMessage = (event: MessageEvent<WorkerMessage>) => {
     const { type } = event.data;
+    const currentFingerprint = getCurrentOptimizationFingerprint();
+    const isCurrentRun =
+      runFingerprintRef.current !== null && runFingerprintRef.current === currentFingerprint;
 
     console.log('skill-planner:handleWorkerMessage', {
       type,
@@ -89,9 +110,15 @@ export function useSkillPlannerOptimizer() {
 
     switch (type) {
       case 'skill-planner-progress':
+        if (!isCurrentRun) {
+          break;
+        }
         setProgress(event.data.progress);
         break;
       case 'skill-planner-result':
+        if (!isCurrentRun) {
+          break;
+        }
         setResult(event.data.result);
         setLastOptimizationFingerprint(runFingerprintRef.current);
         break;

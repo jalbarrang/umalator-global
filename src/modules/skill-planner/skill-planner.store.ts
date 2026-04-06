@@ -537,6 +537,49 @@ export const setLastOptimizationFingerprint = (lastOptimizationFingerprint: stri
   useSkillPlannerStore.setState({ lastOptimizationFingerprint });
 };
 
+export const importVeteranRunner = (runnerSnapshot: RunnerState) => {
+  const uniqueSkillId = runnerSnapshot.outfitId
+    ? getUniqueSkillForByUmaId(runnerSnapshot.outfitId)
+    : undefined;
+  const importedSkillIds = resolveActiveSkills(
+    [...runnerSnapshot.skills, ...(uniqueSkillId ? [uniqueSkillId] : [])].filter(
+      (skillId) => !!skillCollection[skillId],
+    ),
+  );
+
+  const importedRunner = createRunnerState({
+    ...runnerSnapshot,
+    skills: importedSkillIds,
+  });
+
+  const importedCandidates = importedSkillIds.reduce<Record<string, CandidateSkill>>(
+    (acc, skillId) => {
+      acc[skillId] = createCandidate({ skillId, hintLevel: 0 });
+      return acc;
+    },
+    {},
+  );
+
+  const importedSkillMetaById = importedSkillIds.reduce<Record<string, SkillPlanningMeta>>(
+    (acc, skillId) => {
+      acc[skillId] = { hintLevel: 0, bought: true };
+      return acc;
+    },
+    {},
+  );
+
+  useSkillPlannerStore.setState({
+    runner: importedRunner,
+    candidates: importedCandidates,
+    skillMetaById: importedSkillMetaById,
+    result: null,
+    lastOptimizationFingerprint: null,
+    progress: null,
+    isOptimizing: false,
+    skillDrawerOpen: false,
+  });
+};
+
 export const resetRunner = () => {
   useSkillPlannerStore.setState({
     runner: createRunnerState(),

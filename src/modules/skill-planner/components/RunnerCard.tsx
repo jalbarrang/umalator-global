@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { Import } from 'lucide-react';
 import type { StatsKey } from '@/modules/runners/components/runner-card/stats-table';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { cn } from '@/lib/utils';
@@ -5,6 +7,7 @@ import { StatsTable } from '@/modules/runners/components/runner-card/stats-table
 import { UmaSelector } from '@/modules/runners/components/runner-selector';
 import { AptitudesTable } from '@/modules/runners/components/runner-card/aptitudes-table';
 import { runawaySkillId } from '@/modules/runners/components/runner-card/types';
+import { ImportVeteranDialog } from './ImportVeteranDialog';
 import { Button } from '@/components/ui/button';
 
 type RunnerCardProps = {
@@ -16,6 +19,7 @@ type RunnerCardProps = {
 
 export const RunnerCard = (props: RunnerCardProps) => {
   const { value, onChange, onReset, className, ...rest } = props;
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
 
   const handleUpdateOutfitId = (outfitId: string) => {
     onChange({ outfitId });
@@ -40,28 +44,37 @@ export const RunnerCard = (props: RunnerCardProps) => {
   const hasRunawaySkill = value.skills.includes(runawaySkillId);
 
   return (
-    <div className={cn('flex flex-col gap-4', className)} {...rest}>
-      <div className="flex">
-        <UmaSelector
-          value={value.outfitId}
-          select={handleUpdateOutfitId}
-          onReset={() => handleUpdateOutfitId('')}
-        />
+    <>
+      <ImportVeteranDialog open={importDialogOpen} onOpenChange={setImportDialogOpen} />
 
-        <div>
-          <Button variant="outline" size="sm" onClick={handleResetRunner}>
-            Reset Runner
-          </Button>
+      <div className={cn('flex flex-col gap-4', className)} {...rest}>
+        <div className="flex items-start gap-2">
+          <UmaSelector
+            value={value.outfitId}
+            select={handleUpdateOutfitId}
+            onReset={() => handleUpdateOutfitId('')}
+          />
+
+          <div className="flex shrink-0 gap-2">
+            <Button variant="outline" size="sm" onClick={() => setImportDialogOpen(true)}>
+              <Import className="mr-2 h-4 w-4" />
+              Import from Veterans
+            </Button>
+
+            <Button variant="outline" size="sm" onClick={handleResetRunner}>
+              Reset Runner
+            </Button>
+          </div>
         </div>
-      </div>
 
-      <StatsTable value={value} onChange={handleUpdateStat} />
-      <AptitudesTable
-        value={value}
-        onChange={handleUpdateAptitude}
-        hasRunawaySkill={hasRunawaySkill}
-        onRunawayStrategy={handleUpdateRunawayStrategy}
-      />
-    </div>
+        <StatsTable value={value} onChange={handleUpdateStat} />
+        <AptitudesTable
+          value={value}
+          onChange={handleUpdateAptitude}
+          hasRunawaySkill={hasRunawaySkill}
+          onRunawayStrategy={handleUpdateRunawayStrategy}
+        />
+      </div>
+    </>
   );
 };
