@@ -1,130 +1,144 @@
-import { useMemo } from 'react';
-import { HelpCircleIcon, PlusIcon, TrashIcon } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { ArrowLeftIcon, ArrowRightIcon, RotateCcwIcon } from 'lucide-react';
 import {
-  addCandidate,
-  addObtainedSkill,
-  clearCandidates,
-  resetRunner,
-  setSkillsOpen,
-  updateRunner,
+  completeCurrentStep,
+  setCurrentStep,
+  startOver,
   useSkillPlannerStore,
 } from '../skill-planner.store';
-import { CandidateSkillList } from './CandidateSkillList';
-import { SkillPlannerResults } from './SkillPlannerResults';
-import { HelpDialog, useHelpDialog } from './HelpDialog';
-import { RunnerCard } from './RunnerCard';
-import { CostModifiersPanel } from './CostModifiersPanel';
-import { RaceSettingsPanel } from './RaceSettingsPanel';
-import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import { SkillPlannerLanding } from './SkillPlannerLanding';
+import { SkillPlannerStepper } from './SkillPlannerStepper';
+import { SkillPlannerRunnerStep } from './SkillPlannerRunnerStep';
+import { SkillPlannerShopStep } from './SkillPlannerShopStep';
+import { SkillPlannerReviewStep } from './SkillPlannerReviewStep';
+import type { WizardStep } from '../types';
 import { Button } from '@/components/ui/button';
-import { getSelectableSkillsForUma, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
-import { SkillPickerDrawer } from '@/modules/skills/components/skill-list/SkillPickerDrawer';
-import { getNonUniqueSkillIds } from '@/modules/data/skills';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+
+const nextStepByStep: Partial<Record<WizardStep, WizardStep>> = {
+  runner: 'shop',
+  shop: 'review',
+};
+
+const previousStepByStep: Partial<Record<WizardStep, WizardStep>> = {
+  shop: 'runner',
+  review: 'shop',
+};
 
 export function SkillPlannerLayout() {
-  const { open: helpOpen, setOpen: setHelpOpen } = useHelpDialog();
-  const { skillDrawerOpen, runner } = useSkillPlannerStore();
+  const { hasActiveSession, currentStep, runner } = useSkillPlannerStore();
+  const [startOverOpen, setStartOverOpen] = useState(false);
 
-  const umaId = useMemo(() => {
-    if (runner.outfitId) {
-      return runner.outfitId;
+  const canContinue = useMemo(() => {
+    if (currentStep === 'runner') {
+      return runner.outfitId !== '';
     }
 
-    return '';
-  }, [runner.outfitId]);
-
-  const handleSkillSelect = (skills: Array<string>) => {
-    for (const skillId of skills) {
-      addCandidate(skillId);
-    }
-  };
-
-  const handleOpenChange = (open: boolean) => {
-    setSkillsOpen(open);
-  };
-
-  // Get available skills based on selected outfit
-  const availableSkills = useMemo(() => {
-    if (umaId) {
-      return getSelectableSkillsForUma(umaId);
+    if (currentStep === 'shop') {
+      return true;
     }
 
-    return getNonUniqueSkillIds();
-  }, [umaId]);
+    return false;
+  }, [currentStep, runner.outfitId]);
 
-  const handleUpdateRunner = (updates: Partial<RunnerState>) => {
-    // Update runner state without rebuilding candidates
-    // This preserves auto-added family members (e.g., stackable tiers, gold skill whites)
-    updateRunner(updates);
-
-    // Only handle unique skill if outfit changed
-    if (updates.outfitId) {
-      const uniqueSkill = getUniqueSkillForByUmaId(updates.outfitId);
-
-      // Add unique skill to candidates if not already there
-      addCandidate(uniqueSkill);
-
-      // Mark unique skill as obtained
-      addObtainedSkill(uniqueSkill);
+  const handleBack = () => {
+    const previousStep = previousStepByStep[currentStep];
+    if (previousStep) {
+      setCurrentStep(previousStep);
     }
   };
 
-  const handleResetRunner = () => {
-    resetRunner();
+  const handleNext = () => {
+    const nextStep = nextStepByStep[currentStep];
+    if (!nextStep) {
+      return;
+    }
+
+    completeCurrentStep();
+    setCurrentStep(nextStep);
   };
+
+  if (!hasActiveSession) {
+    return <SkillPlannerLanding />;
+  }
 
   return (
     <>
-      <SkillPickerDrawer
-        open={skillDrawerOpen}
-        umaId={umaId}
-        options={availableSkills}
-        currentSkills={[]}
-        onSelect={handleSkillSelect}
-        onOpenChange={handleOpenChange}
-      />
+      <AlertDialog open={startOverOpen} onOpenChange={setStartOverOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Start over?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will reset the current Skill Planner session and return you to the start page.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                startOver();
+                setStartOverOpen(false);
+              }}
+            >
+              Start over
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
-      <HelpDialog open={helpOpen} onOpenChange={setHelpOpen} />
+      <div className="grid grid-cols-1 md:grid-cols-12">
+        <div className="col-span-2"></div>
+        <div className="col-span-8 flex flex-col gap-4">
+          <div className="flex items-center justify-between gap-3">
+            <SkillPlannerStepper currentStep={currentStep} onStepSelect={setCurrentStep} />
 
-      <div className="flex flex-col md:flex-row gap-2 flex-1 min-h-0">
-        <div className="flex flex-col gap-2 w-[500px]">
-          <RunnerCard
-            value={runner}
-            onChange={handleUpdateRunner}
-            onReset={handleResetRunner}
-            className="bg-card p-2 rounded border"
-          />
+            <Button variant="outline" size="sm" onClick={() => setStartOverOpen(true)}>
+              <RotateCcwIcon className="mr-2 h-4 w-4" />
+              Start over
+            </Button>
+          </div>
 
-          <div className="bg-card p-2 rounded border flex flex-col gap-2">
-            <div className="flex justify-end items-center gap-2">
-              <Button size="sm" onClick={() => setSkillsOpen(true)}>
-                Add Skills
-                <PlusIcon className="w-4 h-4" />
+          <div className="min-h-0 flex-1">
+            {currentStep === 'runner' && <SkillPlannerRunnerStep />}
+            {currentStep === 'shop' && <SkillPlannerShopStep />}
+            {currentStep === 'review' && (
+              <SkillPlannerReviewStep
+                onEditRunner={() => setCurrentStep('runner')}
+                onEditShop={() => setCurrentStep('shop')}
+              />
+            )}
+          </div>
+
+          {currentStep !== 'review' && (
+            <div className="flex items-center justify-between rounded-lg border bg-card px-4 py-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleBack}
+                disabled={!previousStepByStep[currentStep]}
+              >
+                <ArrowLeftIcon className="mr-2 h-4 w-4" />
+                Back
               </Button>
 
-              <Button variant="destructive" size="sm" onClick={() => clearCandidates()}>
-                Clear All
-                <TrashIcon className="w-4 h-4" />
-              </Button>
-
-              <Button variant="outline" size="sm" onClick={() => setHelpOpen(true)}>
-                Help
-                <HelpCircleIcon className="w-4 h-4" />
+              <Button size="sm" onClick={handleNext} disabled={!canContinue}>
+                Next
+                <ArrowRightIcon className="ml-2 h-4 w-4" />
               </Button>
             </div>
-
-            <CandidateSkillList />
-          </div>
+          )}
         </div>
 
-        {/* Right Panel - Race Settings, RaceTrack, Optimization Controls & Results */}
-        <div className="flex flex-col gap-2 flex-1">
-          {/* Always visible race settings */}
-          <RaceSettingsPanel />
-
-          <CostModifiersPanel />
-          <SkillPlannerResults />
-        </div>
+        <div className="col-span-2"></div>
       </div>
     </>
   );

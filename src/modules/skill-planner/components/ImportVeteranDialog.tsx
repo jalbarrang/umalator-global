@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CheckIcon, SearchIcon } from 'lucide-react';
-import { importVeteranRunner } from '../skill-planner.store';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { getUmaDisplayInfo, getUmaImageUrl } from '@/modules/runners/utils';
 import { useRunnerLibraryStore, type SavedRunner } from '@/store/runner-library.store';
@@ -19,9 +18,10 @@ import { cn } from '@/lib/utils';
 type ImportVeteranDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onImportRunner: (runner: RunnerState) => void;
 };
 
-function toRunnerStateSnapshot(runner: SavedRunner): RunnerState {
+export function toRunnerStateSnapshot(runner: SavedRunner): RunnerState {
   return {
     outfitId: runner.outfitId,
     speed: runner.speed,
@@ -44,7 +44,7 @@ function formatUpdatedAt(timestamp: number) {
 }
 
 export function ImportVeteranDialog(props: Readonly<ImportVeteranDialogProps>) {
-  const { open, onOpenChange } = props;
+  const { open, onOpenChange, onImportRunner } = props;
   const runners = useRunnerLibraryStore((state) => state.runners);
   const [search, setSearch] = useState('');
   const [selectedRunnerId, setSelectedRunnerId] = useState<string | null>(null);
@@ -103,7 +103,7 @@ export function ImportVeteranDialog(props: Readonly<ImportVeteranDialogProps>) {
       return;
     }
 
-    importVeteranRunner(toRunnerStateSnapshot(selectedRunner));
+    onImportRunner(toRunnerStateSnapshot(selectedRunner));
     onOpenChange(false);
   };
 

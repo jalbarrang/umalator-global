@@ -1,13 +1,11 @@
 import { useCallback, useMemo } from 'react';
 import {
-  addObtainedSkill,
+  getSkillPlanningMeta,
   removeCandidate,
-  removeObtainedSkill,
   setCandidateHintLevel,
   useSkillPlannerStore,
 } from '../skill-planner.store';
 import type { CandidateSkill, HintLevel } from '../types';
-import { getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import { Separator } from '@/components/ui/separator';
 import {
   SkillItemBody,
@@ -27,42 +25,30 @@ import {
 } from '@/modules/skills/skill-cost-summary';
 
 export function CandidateSkillList() {
-  const { candidates, skillMetaById, runner, hasFastLearner } = useSkillPlannerStore();
+  const { candidates, skillMetaById, obtainedSkillIds, hasFastLearner } = useSkillPlannerStore();
 
   const candidateList = useMemo(() => Object.values(candidates), [candidates]);
 
-  const uniqueSkillId = useMemo(() => {
-    if (!runner.outfitId) return '';
-
-    return getUniqueSkillForByUmaId(runner.outfitId);
-  }, [runner.outfitId]);
-
   const handleHintLevelChange = useCallback((skillId: string, level: number) => {
     setCandidateHintLevel(skillId, level as HintLevel);
-  }, []);
-
-  const handleBoughtChange = useCallback((skillId: string, bought: boolean) => {
-    if (bought) {
-      addObtainedSkill(skillId);
-    } else {
-      removeObtainedSkill(skillId);
-    }
   }, []);
 
   const handleRemove = useCallback((skillId: string) => {
     removeCandidate(skillId);
   }, []);
 
+  // Re-derive getSkillMeta when store meta or obtained skills change so
+  // cost summaries and the popover always reflect the latest hint levels.
   const getSkillMeta = useCallback(
     (skillId: string): SkillMeta => {
-      const candidate = candidates[skillId];
-      const meta = skillMetaById[skillId];
+      const meta = getSkillPlanningMeta(skillId);
       return {
-        hintLevel: meta?.hintLevel ?? candidate?.hintLevel ?? 0,
-        bought: meta?.bought ?? false,
+        hintLevel: meta.hintLevel,
+        bought: meta.bought ?? false,
       };
     },
-    [candidates, skillMetaById],
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally re-derive when store data changes
+    [skillMetaById, obtainedSkillIds],
   );
 
   const costSummaryBySkillId = useMemo(() => {
@@ -90,11 +76,13 @@ export function CandidateSkillList() {
   return (
     <div className="flex flex-col gap-4 h-full">
       <div className="flex-1 flex flex-col gap-4 overflow-y-auto">
-        {candidateList.length === 0 ? (
+        {candidateList.length === 0 && (
           <div className="text-center text-muted-foreground py-8">
             <p className="text-sm">No candidate skills added yet.</p>
           </div>
-        ) : (
+        )}
+
+        {candidateList.length > 0 && (
           <div className="flex flex-wrap items-stretch gap-2">
             {candidateList.map((candidate) => (
               <div
@@ -103,11 +91,9 @@ export function CandidateSkillList() {
               >
                 <CandidateSkillItem
                   candidate={candidate}
-                  isUnique={candidate.skillId === uniqueSkillId}
                   hasFastLearner={hasFastLearner}
                   costSummary={costSummaryBySkillId[candidate.skillId]}
                   onHintLevelChange={handleHintLevelChange}
-                  onBoughtChange={handleBoughtChange}
                   onRemove={handleRemove}
                   getSkillMeta={getSkillMeta}
                 />
@@ -119,6 +105,7 @@ export function CandidateSkillList() {
         {candidateList.length > 0 && (
           <>
             <Separator />
+
             <div className="text-sm text-muted-foreground">
               <div className="flex justify-end gap-2">
                 <span>Skills:</span>
@@ -138,24 +125,23 @@ export function CandidateSkillList() {
 
 type CandidateSkillItemProps = {
   candidate: CandidateSkill;
-  isUnique: boolean;
   hasFastLearner: boolean;
   costSummary: SkillCostSummary;
   onHintLevelChange: (skillId: string, level: number) => void;
-  onBoughtChange: (skillId: string, bought: boolean) => void;
   onRemove: (skillId: string) => void;
   getSkillMeta: (skillId: string) => SkillMeta;
 };
 
-function CandidateSkillRow({ isUnique }: Readonly<{ isUnique: boolean }>) {
+function CandidateSkillRow() {
   return (
     <SkillItemRoot size="summary">
       <SkillItemRail />
       <SkillItemBody className="flex-col gap-2">
         <SkillItemMain className="p-1 px-2">
           <SkillItemIdentity />
-          <SkillItemDetailsActions dismissable={!isUnique} className="shrink-0" />
+          <SkillItemDetailsActions dismissable className="shrink-0" />
         </SkillItemMain>
+
         <SkillItemCostAction layout="summary" />
       </SkillItemBody>
     </SkillItemRoot>
@@ -163,16 +149,8 @@ function CandidateSkillRow({ isUnique }: Readonly<{ isUnique: boolean }>) {
 }
 
 function CandidateSkillItem(props: Readonly<CandidateSkillItemProps>) {
-  const {
-    candidate,
-    isUnique,
-    hasFastLearner,
-    costSummary,
-    onHintLevelChange,
-    onBoughtChange,
-    onRemove,
-    getSkillMeta,
-  } = props;
+  const { candidate, hasFastLearner, costSummary, onHintLevelChange, onRemove, getSkillMeta } =
+    props;
 
   return (
     <SkillItem
@@ -180,11 +158,10 @@ function CandidateSkillItem(props: Readonly<CandidateSkillItemProps>) {
       hasFastLearner={hasFastLearner}
       costSummary={costSummary}
       onHintLevelChange={onHintLevelChange}
-      onBoughtChange={onBoughtChange}
       onRemove={onRemove}
       getSkillMeta={getSkillMeta}
     >
-      <CandidateSkillRow isUnique={isUnique} />
+      <CandidateSkillRow />
     </SkillItem>
   );
 }

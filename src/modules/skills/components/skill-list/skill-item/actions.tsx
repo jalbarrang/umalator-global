@@ -138,15 +138,17 @@ export function SkillItemCostAction(props: Readonly<SkillItemCostActionProps>) {
           className,
         )}
       >
-        {isObtained ? (
-          'Obtained'
-        ) : (
+        {}
+        {isObtained && 'Obtained'}
+
+        {!isObtained && (
           <>
             {roundedDiscountPct > 0 && (
               <span className="text-[11px] font-medium italic tracking-tight text-muted-foreground">
                 {roundedDiscountPct}% off
               </span>
             )}
+
             <span className="font-semibold text-foreground">{displayedNetCost} SP</span>
           </>
         )}

@@ -1,5 +1,6 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getObtainedSkills, useSkillPlannerStore } from '../skill-planner.store';
+import { resolveActiveSkills } from '../optimizer';
 import type { CombinationResult } from '../types';
 import { buildOptimizationInputFingerprint } from '../input-fingerprint';
 import { Progress } from '@/components/ui/progress';
@@ -43,6 +44,7 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
   const { className, ...rest } = props;
 
   const {
+    obtainedSkillIds,
     candidates,
     skillMetaById,
     budget,
@@ -58,6 +60,7 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
   const addRunner = useRunnerLibraryStore((state) => state.addRunner);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
   const [selectedCombination, setSelectedCombination] = useState<CombinationResult | null>(null);
+  const [visibleCount, setVisibleCount] = useState(5);
 
   const candidateList = useMemo(() => Object.values(candidates), [candidates]);
   const canOptimize = useMemo(
@@ -75,6 +78,18 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
     return result.allResults.toSorted((a, b) => b.bashin - a.bashin);
   }, [result]);
 
+  const visibleCombinations = useMemo(
+    () => rankedCombinations.slice(0, visibleCount),
+    [rankedCombinations, visibleCount],
+  );
+
+  const hasMore = rankedCombinations.length > visibleCount;
+
+  // Reset visible count when new results arrive
+  useEffect(() => {
+    setVisibleCount(5);
+  }, [result]);
+
   const currentInputFingerprint = useMemo(() => {
     return buildOptimizationInputFingerprint({
       budget,
@@ -83,6 +98,7 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
       courseId,
       racedef,
       runner,
+      obtainedSkillIds,
       candidates,
       skillMetaById,
       staminaDrainOverrides,
@@ -93,6 +109,7 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
     courseId,
     hasFastLearner,
     ignoreStaminaConsumption,
+    obtainedSkillIds,
     racedef,
     runner,
     skillMetaById,
@@ -117,7 +134,7 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
     return {
       runner: {
         ...state.runner,
-        skills: [...state.runner.skills],
+        skills: [...state.obtainedSkillIds],
       },
       obtainedSkills: getObtainedSkills(),
     };
@@ -127,7 +144,9 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
     (combination: CombinationResult): Array<string> => {
       const obtainedSkills = optimizationContext?.obtainedSkills ?? getObtainedSkills();
 
-      return Array.from(new Set([...obtainedSkills, ...combination.skills]));
+      return resolveActiveSkills(
+        Array.from(new Set([...obtainedSkills, ...combination.skills])),
+      );
     },
     [optimizationContext],
   );
@@ -212,7 +231,7 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
       )}
 
       {/* Results Display */}
-      {!isOptimizing && result && (
+      {result && (
         <div className="border rounded-lg bg-card overflow-hidden">
           {/* Header */}
           <div className="border-b bg-primary/10 px-4 py-4 sticky top-0 z-10">
@@ -245,7 +264,7 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
                 </p>
               )}
 
-              {rankedCombinations.map((combination, index) => {
+              {visibleCombinations.map((combination, index) => {
                 const bashinGain = combination.bashin;
 
                 return (
@@ -325,13 +344,22 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
                   </div>
                 );
               })}
+              {hasMore && (
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => setVisibleCount((prev) => prev + 5)}
+                >
+                  Load 5 more ({rankedCombinations.length - visibleCount} remaining)
+                </Button>
+              )}
             </div>
           </div>
         </div>
       )}
 
       {/* Empty State */}
-      {!isOptimizing && !result && (
+      {!result && !isOptimizing && (
         <div className="text-center text-muted-foreground py-8 border rounded-lg bg-muted/30">
           <p className="text-sm">Click "Optimize" to find the best skill combination</p>
           <p className="text-xs mt-2">

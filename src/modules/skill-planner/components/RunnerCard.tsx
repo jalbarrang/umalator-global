@@ -14,11 +14,12 @@ type RunnerCardProps = {
   value: RunnerState;
   onChange: (runner: Partial<RunnerState>) => void;
   onReset: () => void;
+  onImportVeteran?: (runner: RunnerState) => void;
   className?: string;
 };
 
 export const RunnerCard = (props: RunnerCardProps) => {
-  const { value, onChange, onReset, className, ...rest } = props;
+  const { value, onChange, onReset, onImportVeteran, className, ...rest } = props;
   const [importDialogOpen, setImportDialogOpen] = useState(false);
 
   const handleUpdateOutfitId = (outfitId: string) => {
@@ -45,7 +46,11 @@ export const RunnerCard = (props: RunnerCardProps) => {
 
   return (
     <>
-      <ImportVeteranDialog open={importDialogOpen} onOpenChange={setImportDialogOpen} />
+      <ImportVeteranDialog
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
+        onImportRunner={(runner) => onImportVeteran?.(runner)}
+      />
 
       <div className={cn('flex flex-col gap-4', className)} {...rest}>
         <div className="flex items-start gap-2">
@@ -56,7 +61,12 @@ export const RunnerCard = (props: RunnerCardProps) => {
           />
 
           <div className="flex shrink-0 gap-2">
-            <Button variant="outline" size="sm" onClick={() => setImportDialogOpen(true)}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setImportDialogOpen(true)}
+              disabled={!onImportVeteran}
+            >
               <Import className="mr-2 h-4 w-4" />
               Import from Veterans
             </Button>

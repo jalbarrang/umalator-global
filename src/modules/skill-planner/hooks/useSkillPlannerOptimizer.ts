@@ -60,8 +60,15 @@ type WorkerMessage =
     };
 
 function getCurrentOptimizationFingerprint() {
-  const { runner, candidates, skillMetaById, budget, hasFastLearner, ignoreStaminaConsumption } =
-    useSkillPlannerStore.getState();
+  const {
+    runner,
+    obtainedSkillIds,
+    candidates,
+    skillMetaById,
+    budget,
+    hasFastLearner,
+    ignoreStaminaConsumption,
+  } = useSkillPlannerStore.getState();
   const { courseId, racedef, staminaDrainOverrides } = useSettingsStore.getState();
 
   return buildOptimizationInputFingerprint({
@@ -71,6 +78,7 @@ function getCurrentOptimizationFingerprint() {
     courseId,
     racedef,
     runner,
+    obtainedSkillIds,
     candidates,
     skillMetaById,
     staminaDrainOverrides,
@@ -80,6 +88,7 @@ function getCurrentOptimizationFingerprint() {
 export function useSkillPlannerOptimizer() {
   const {
     runner,
+    obtainedSkillIds,
     candidates,
     skillMetaById,
     budget,
@@ -162,7 +171,6 @@ export function useSkillPlannerOptimizer() {
       return;
     }
 
-    setResult(null);
     setProgress(null);
     setIsOptimizing(true);
 
@@ -176,6 +184,7 @@ export function useSkillPlannerOptimizer() {
       courseId,
       racedef,
       runner,
+      obtainedSkillIds,
       candidates,
       skillMetaById,
       staminaDrainOverrides,

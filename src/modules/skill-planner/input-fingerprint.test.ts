@@ -20,13 +20,14 @@ describe('buildOptimizationInputFingerprint', () => {
     courseId: 10507,
     racedef: createRaceConditions(),
     runner: createRunnerState(),
+    obtainedSkillIds: ['skill-b'],
     candidates: {
       'skill-a': createCandidate('skill-a', 3),
       'skill-b': createCandidate('skill-b', 1),
     },
     skillMetaById: {
       'skill-a': { hintLevel: 3 as const },
-      'skill-b': { hintLevel: 1 as const, bought: true },
+      'skill-b': { hintLevel: 1 as const },
     },
     budget: 1000,
     hasFastLearner: false,

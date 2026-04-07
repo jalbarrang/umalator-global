@@ -6,6 +6,7 @@ export interface OptimizationInputFingerprintParams {
   courseId: number;
   racedef: RaceConditions;
   runner: RunnerState;
+  obtainedSkillIds: Array<string>;
   candidates: Record<string, CandidateSkill>;
   skillMetaById: Record<string, SkillPlanningMeta>;
   budget: number;
@@ -49,6 +50,7 @@ export function buildOptimizationInputFingerprint(
     courseId: params.courseId,
     racedef: params.racedef,
     runner: params.runner,
+    obtainedSkillIds: [...params.obtainedSkillIds].toSorted((a, b) => a.localeCompare(b)),
     candidates: candidateSnapshot,
     skillMetaById: params.skillMetaById,
     staminaDrainOverrides: params.staminaDrainOverrides,
