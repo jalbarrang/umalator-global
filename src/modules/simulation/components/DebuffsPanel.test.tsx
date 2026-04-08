@@ -1,20 +1,63 @@
 // @vitest-environment jsdom
 
 import '@testing-library/jest-dom/vitest';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { DebuffsPanel } from './DebuffsPanel';
+import { getSkills } from '@/modules/data/skills';
 import { useRaceStore } from '@/modules/simulation/stores/compare.store';
 import { runawaySkillId } from '@/modules/runners/components/runner-card/types';
+import { isInjectableExternalDebuffSkill } from '@/lib/sunday-tools/skills/external-debuffs';
+
+const pickerState = vi.hoisted(() => ({
+  selectedSkills: [] as Array<string>,
+  latestCurrentSkills: [] as Array<string>,
+}));
+
+vi.mock('@/modules/skills/components/skill-picker/modal', () => ({
+  SkillPickerModal: ({
+    open,
+    currentSkills,
+    onSelect,
+    onOpenChange,
+  }: {
+    open: boolean;
+    currentSkills: Array<string>;
+    onSelect: (skills: Array<string>) => void;
+    onOpenChange: (open: boolean) => void;
+  }) => {
+    pickerState.latestCurrentSkills = currentSkills;
+
+    if (!open) {
+      return null;
+    }
+
+    return (
+      <div data-testid="skill-picker-modal">
+        <button type="button" onClick={() => onSelect(pickerState.selectedSkills)}>
+          Select mock debuff
+        </button>
+        <button type="button" onClick={() => onOpenChange(false)}>
+          Close mock debuff picker
+        </button>
+      </div>
+    );
+  },
+}));
 
 const initialDebuffsState = {
   uma1: [{ id: 'debuff-1', skillId: runawaySkillId, position: 100 }],
   uma2: [],
 };
 
+const debuffSkillId =
+  getSkills().find((skill) => isInjectableExternalDebuffSkill(skill))?.id ?? runawaySkillId;
+
 function resetDebuffs() {
   localStorage.clear();
   useRaceStore.setState({ injectedDebuffs: { uma1: [], uma2: [] } });
+  pickerState.selectedSkills = [];
+  pickerState.latestCurrentSkills = [];
 }
 
 describe('DebuffsPanel', () => {
@@ -45,5 +88,28 @@ describe('DebuffsPanel', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Remove skill' }));
 
     expect(useRaceStore.getState().injectedDebuffs.uma1).toHaveLength(0);
+  });
+
+  it('adds the selected debuff and resets picker state after closing', () => {
+    render(<DebuffsPanel />);
+
+    pickerState.selectedSkills = [debuffSkillId, `${debuffSkillId}-1`];
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Add Debuff' })[1]);
+    expect(screen.getByTestId('skill-picker-modal')).toBeInTheDocument();
+    expect(pickerState.latestCurrentSkills).toEqual([]);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Select mock debuff' }));
+
+    expect(useRaceStore.getState().injectedDebuffs.uma2).toHaveLength(1);
+    expect(useRaceStore.getState().injectedDebuffs.uma2[0]?.skillId).toBe(debuffSkillId);
+    expect(screen.queryByTestId('skill-picker-modal')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Add Debuff' })[1]);
+    expect(screen.getByTestId('skill-picker-modal')).toBeInTheDocument();
+    expect(pickerState.latestCurrentSkills).toEqual([]);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Close mock debuff picker' }));
+    expect(screen.queryByTestId('skill-picker-modal')).not.toBeInTheDocument();
   });
 });

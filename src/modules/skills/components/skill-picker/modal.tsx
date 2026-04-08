@@ -5,15 +5,16 @@ import { SkillPickerContent } from './content';
 
 type SkillPickerDrawerProps = {
   open: boolean;
-  umaId: string;
+  umaId: string | undefined;
   options: Array<string>;
   currentSkills: Array<string>;
   onSelect: (skills: Array<string>) => void;
   onOpenChange: (open: boolean) => void;
+  allowDuplicateSkills?: boolean;
 };
 
 export const SkillPickerModal = (props: SkillPickerDrawerProps) => {
-  const { open, umaId, options, currentSkills, onSelect, onOpenChange } = props;
+  const { open, umaId, options, currentSkills, onSelect, onOpenChange, allowDuplicateSkills } = props;
 
   const childRef = useRef<{ focus: () => void }>(null);
 
@@ -35,6 +36,7 @@ export const SkillPickerModal = (props: SkillPickerDrawerProps) => {
               options={options}
               currentSkills={currentSkills}
               onSelect={onSelect}
+              allowDuplicateSkills={allowDuplicateSkills}
             />
           </div>
         </DialogContent>
