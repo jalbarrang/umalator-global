@@ -30,6 +30,7 @@ import {
 } from '@/modules/skills/components/skill-list/skill-item';
 import { RaceSettingsPanel } from './RaceSettingsPanel';
 import { SkillPickerModal } from '@/modules/skills/components/skill-picker/modal';
+import { useHotkeys } from 'react-hotkeys-hook';
 
 function ObtainedSkillRow({ dismissable }: Readonly<{ dismissable: boolean }>) {
   return (
@@ -98,23 +99,29 @@ export function SkillPlannerRunnerStep() {
     importRunnerBaseline(runnerSnapshot);
   };
 
+  const handleSelectSkills = (skillIds: Array<string>) => {
+    setObtainedSkills(skillIds);
+    setSkillPickerOpen(false);
+  };
+
+  useHotkeys(
+    'f',
+    (event) => {
+      event.preventDefault();
+      setSkillPickerOpen(true);
+    },
+    { enableOnFormTags: true, enabled: !skillPickerOpen },
+    [skillPickerOpen],
+  );
+
   return (
     <>
-      {/* <SkillPickerDrawer
-        open={skillPickerOpen}
-        umaId={runner.outfitId}
-        options={availableSkills}
-        currentSkills={obtainedSkillIds}
-        onSelect={setObtainedSkills}
-        onOpenChange={setSkillPickerOpen}
-      /> */}
-
       <SkillPickerModal
         open={skillPickerOpen}
         umaId={runner.outfitId}
         options={availableSkills}
         currentSkills={obtainedSkillIds}
-        onSelect={setObtainedSkills}
+        onSelect={handleSelectSkills}
         onOpenChange={setSkillPickerOpen}
       />
 
@@ -147,7 +154,7 @@ export function SkillPlannerRunnerStep() {
 
             <Button size="sm" onClick={() => setSkillPickerOpen(true)} disabled={!runner.outfitId}>
               <PlusIcon className="mr-2 h-4 w-4" />
-              Add obtained skills
+              Add obtained skills (f)
             </Button>
           </div>
 

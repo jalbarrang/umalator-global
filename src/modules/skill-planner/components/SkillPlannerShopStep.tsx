@@ -4,8 +4,9 @@ import { toast } from 'sonner';
 import { addCandidate, removeCandidate, useSkillPlannerStore } from '../skill-planner.store';
 import { CandidateSkillList } from './CandidateSkillList';
 import { Button } from '@/components/ui/button';
-import { SkillPickerDrawer } from '@/modules/skills/components/skill-picker/drawer';
 import { getSelectableSkillsForUma } from '@/modules/skills/utils';
+import { useHotkeys } from 'react-hotkeys-hook';
+import { SkillPickerModal } from '@/modules/skills/components/skill-picker/modal';
 
 export function SkillPlannerShopStep() {
   const { runner, candidates } = useSkillPlannerStore();
@@ -36,11 +37,23 @@ export function SkillPlannerShopStep() {
         addCandidate(skillId);
       }
     }
+
+    setSkillPickerOpen(false);
   };
+
+  useHotkeys(
+    'f',
+    (event) => {
+      event.preventDefault();
+      setSkillPickerOpen(true);
+    },
+    { enableOnFormTags: true, enabled: !skillPickerOpen },
+    [skillPickerOpen],
+  );
 
   return (
     <>
-      <SkillPickerDrawer
+      <SkillPickerModal
         open={skillPickerOpen}
         umaId={runner.outfitId}
         options={availableSkills}

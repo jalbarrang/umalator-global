@@ -4,12 +4,12 @@ import { Construction, SidebarOpen, XIcon } from 'lucide-react';
 
 import { LeftSidebar } from '@/layout/left-sidebar';
 import { SimulationModeToggle } from '@/components/simulation-mode-toggle';
-import { SkillPickerDrawer } from '@/modules/skills/components/skill-picker/drawer';
 import { useSkillModalStore } from '@/modules/skills/store';
 import { Alert, AlertTitle, AlertDescription, AlertAction } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { setDismissal, setLeftSidebar, useLeftSidebar, useUIStore } from '@/store/ui.store';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { SkillPickerModal } from '@/modules/skills/components/skill-picker/modal';
 
 type CompareAlertProps = {
   onDismiss: () => void;
@@ -77,14 +77,19 @@ export function SimulationLayout() {
     setLeftSidebar({ hidden: false });
   }, []);
 
+  const handleSelectSkills = (skills: Array<string>) => {
+    onSelect(skills);
+    handleOpenChange(false);
+  };
+
   return (
     <>
-      <SkillPickerDrawer
+      <SkillPickerModal
         open={open}
         umaId={umaId}
         options={options}
         currentSkills={currentSkills}
-        onSelect={onSelect}
+        onSelect={handleSelectSkills}
         onOpenChange={handleOpenChange}
       />
 

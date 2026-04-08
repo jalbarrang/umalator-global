@@ -2,18 +2,13 @@ import { SearchIcon } from 'lucide-react';
 import {
   useCallback,
   useDeferredValue,
+  useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
   useState,
 } from 'react';
-import { useHotkeys } from 'react-hotkeys-hook';
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-  InputGroupText,
-} from '@/components/ui/input-group';
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
 import { getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import { getManySkills, SkillEntry } from '@/modules/data/skills';
 import { useFilteredSkills } from './store';
@@ -29,6 +24,10 @@ import {
   SkillItemRoot,
 } from '../skill-list/skill-item';
 import { useVirtualizer, VirtualItem } from '@tanstack/react-virtual';
+import { useHotkeys } from 'react-hotkeys-hook';
+
+const SKILL_ROW_HEIGHT = 50;
+const SKILL_OVERSCAN = 40;
 
 export type SkillPickerContentProps = {
   ref: React.RefObject<{ focus: () => void } | null>;
@@ -60,7 +59,6 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
   const searchRef = useRef<HTMLInputElement>(null);
   const [searchText, setSearchText] = useState('');
   const deferredSearchText = useDeferredValue(searchText);
-  const [focusedSkillIndex, setFocusedSkillIndex] = useState<number>(-1);
 
   const skills = useMemo(() => {
     return getManySkills(options);
@@ -96,28 +94,13 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
     return new Map(selected);
   }, [currentSkills, skillsById, shouldAllowDuplicateSkill]);
 
-  const toggleSelected: React.MouseEventHandler<HTMLDivElement> = useCallback(
-    (e) => {
-      e.stopPropagation();
-      const target = e.target as HTMLElement;
-
-      const eventElement = target.closest('[data-event]') as HTMLElement;
-      if (!eventElement) return;
-
-      const eventType = eventElement.dataset.event;
-      if (!eventType) return;
-
-      if (eventType !== 'select-skill') return;
-
-      let id = eventElement.dataset.skillid;
-      const skill = skills.find((skillItem) => skillItem.id === id);
-      if (!skill) return;
-
+  const toggleSkillSelection = useCallback(
+    (skill: SkillEntry) => {
       const groupId = `${skill.groupId}`;
       const newSelected = new Set(currentSkills);
 
       const selectedId = selectedMap.get(groupId);
-      if (selectedId && selectedId === id && id !== umaUniqueSkillId) {
+      if (selectedId === skill.id && skill.id !== umaUniqueSkillId) {
         newSelected.delete(selectedId);
         onSelect(Array.from(newSelected));
         return;
@@ -129,105 +112,43 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
         let count = 0;
 
         for (const newSelectedId of newSelected) {
-          if (newSelectedId.split('-')[0] === id) {
+          if (newSelectedId.split('-')[0] === skill.id) {
             count++;
           }
         }
 
-        id = count > 0 ? `${id}-${count}` : id;
+        const skillIdWithSuffix = count > 0 ? `${skill.id}-${count}` : skill.id;
+        newSelected.add(skillIdWithSuffix);
+        onSelect(Array.from(newSelected));
+        return;
       }
 
-      if (id) {
-        newSelected.add(id);
-      }
-
+      newSelected.add(skill.id);
       onSelect(Array.from(newSelected));
     },
-    [currentSkills, selectedMap, shouldAllowDuplicateSkill, onSelect, umaUniqueSkillId, skills],
+    [currentSkills, onSelect, selectedMap, shouldAllowDuplicateSkill, umaUniqueSkillId],
   );
 
-  useHotkeys('f', (event) => {
-    event.preventDefault();
+  const toggleSelected: React.MouseEventHandler<HTMLDivElement> = useCallback(
+    (e) => {
+      e.stopPropagation();
+      const target = e.target as HTMLElement;
 
-    searchRef.current?.focus();
-    searchRef.current?.select();
-  });
+      const eventElement = target.closest('[data-event]') as HTMLElement;
+      if (!eventElement) return;
 
-  // Keyboard navigation for filtered skills
-  useHotkeys(
-    'down',
-    (event) => {
-      event.preventDefault();
-      if (filteredSkills.length === 0) return;
+      const eventType = eventElement.dataset.event;
+      if (eventType !== 'select-skill') return;
 
-      const currentIndex = focusedSkillIndex;
-      const nextIndex = currentIndex + 1;
+      const skillId = eventElement.dataset.skillid;
+      if (!skillId) return;
 
-      const clampedNextIndex = nextIndex >= filteredSkills.length ? 0 : nextIndex;
+      const skill = skillsById.get(skillId);
+      if (!skill) return;
 
-      setFocusedSkillIndex(clampedNextIndex);
-      rowVirtualizer.scrollToIndex(clampedNextIndex);
+      toggleSkillSelection(skill);
     },
-    { enableOnFormTags: true },
-  );
-
-  useHotkeys(
-    'up',
-    (event) => {
-      event.preventDefault();
-      if (filteredSkills.length === 0) return;
-
-      const currentIndex = focusedSkillIndex;
-      const nextIndex = currentIndex - 1;
-
-      const clampedNextIndex = nextIndex < 0 ? filteredSkills.length - 1 : nextIndex;
-
-      setFocusedSkillIndex(clampedNextIndex);
-      rowVirtualizer.scrollToIndex(clampedNextIndex);
-    },
-    { enableOnFormTags: true },
-  );
-
-  useHotkeys(
-    'enter',
-    (event) => {
-      if (focusedSkillIndex < 0 || focusedSkillIndex >= filteredSkills.length) return;
-
-      event.preventDefault();
-      const focusedSkill = filteredSkills[focusedSkillIndex];
-      if (!focusedSkill) return;
-
-      const groupId = `${focusedSkill.groupId}`;
-      const newSelected = new Set(currentSkills);
-
-      const selectedId = selectedMap.get(groupId);
-      if (selectedId === focusedSkill.id && focusedSkill.id !== umaUniqueSkillId) {
-        newSelected.delete(selectedId);
-        onSelect(Array.from(newSelected));
-      } else {
-        if (selectedId) {
-          newSelected.delete(selectedId);
-        } else if (shouldAllowDuplicateSkill(focusedSkill)) {
-          let count = 0;
-          for (const newSelectedId of newSelected) {
-            if (newSelectedId.split('-')[0] === focusedSkill.id) {
-              count++;
-            }
-          }
-          const skillIdWithSuffix = count > 0 ? `${focusedSkill.id}-${count}` : focusedSkill.id;
-          newSelected.add(skillIdWithSuffix);
-        } else {
-          newSelected.add(focusedSkill.id);
-        }
-
-        onSelect(Array.from(newSelected));
-      }
-
-      // Reset focus index and return focus to search input
-      setFocusedSkillIndex(-1);
-      searchRef.current?.focus();
-    },
-    { enableOnFormTags: true },
+    [skillsById, toggleSkillSelection],
   );
 
   useImperativeHandle(
@@ -241,17 +162,111 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
     [searchRef],
   );
 
-  const parentRef = useRef(null);
+  const parentRef = useRef<HTMLDivElement>(null);
 
   const rowVirtualizer = useVirtualizer({
     count: filteredSkills.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 50,
-    overscan: 40,
+    estimateSize: () => SKILL_ROW_HEIGHT,
+    overscan: SKILL_OVERSCAN,
     getItemKey: (index) => {
       return filteredSkills[index]?.id ?? `skill-${index}`;
     },
   });
+
+  const rowCount = filteredSkills.length;
+  const [focusedIndex, setFocusedIndex] = useState(0);
+
+  useEffect(() => {
+    if (rowCount === 0) {
+      setFocusedIndex(0);
+      return;
+    }
+
+    setFocusedIndex((prev) => Math.min(prev, rowCount - 1));
+  }, [rowCount]);
+
+  useEffect(() => {
+    setFocusedIndex(0);
+  }, [deferredSearchText]);
+
+  const scrollFocusedIntoView = useCallback(
+    (index: number) => {
+      requestAnimationFrame(() => {
+        rowVirtualizer.scrollToIndex(index, { align: 'auto' });
+      });
+    },
+    [rowVirtualizer],
+  );
+
+  const moveFocusedIndex = useCallback(
+    (delta: number) => {
+      if (rowCount === 0) {
+        return;
+      }
+
+      setFocusedIndex((prev) => {
+        const next = Math.max(0, Math.min(rowCount - 1, prev + delta));
+        scrollFocusedIntoView(next);
+        return next;
+      });
+    },
+    [rowCount, scrollFocusedIntoView],
+  );
+
+  const selectFocusedSkill = useCallback(() => {
+    if (rowCount === 0) {
+      return;
+    }
+
+    const skill = filteredSkills[focusedIndex];
+    if (!skill) {
+      return;
+    }
+
+    toggleSkillSelection(skill);
+  }, [filteredSkills, focusedIndex, rowCount, toggleSkillSelection]);
+
+  const hasRows = rowCount > 0;
+
+  const hotkeyOptions = useMemo(
+    () => ({
+      enableOnFormTags: ['input'] as const,
+      enabled: hasRows,
+      filter: () => document.activeElement === searchRef.current,
+    }),
+    [hasRows],
+  );
+
+  useHotkeys(
+    'up',
+    (event) => {
+      event.preventDefault();
+      moveFocusedIndex(-1);
+    },
+    hotkeyOptions,
+    [moveFocusedIndex, hotkeyOptions],
+  );
+
+  useHotkeys(
+    'down',
+    (event) => {
+      event.preventDefault();
+      moveFocusedIndex(1);
+    },
+    hotkeyOptions,
+    [moveFocusedIndex, hotkeyOptions],
+  );
+
+  useHotkeys(
+    'enter',
+    (event) => {
+      event.preventDefault();
+      selectFocusedSkill();
+    },
+    hotkeyOptions,
+    [selectFocusedSkill, hotkeyOptions],
+  );
 
   return (
     <div className={cn('flex flex-col min-h-0 max-h-full gap-2', className)}>
@@ -267,11 +282,6 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
             placeholder="Search skill by name"
             onChange={(e) => setSearchText(e.target.value)}
           />
-          <InputGroupAddon align="inline-end">
-            <InputGroupText className="border p-1 rounded-md text-foreground">
-              <kbd>f</kbd>
-            </InputGroupText>
-          </InputGroupAddon>
         </InputGroup>
       </div>
 
@@ -289,7 +299,10 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
                 skill={skill}
                 virtualItem={virtualItem}
                 selected={selectedMap.get(`${skill.groupId}`) === skill.id}
-                focused={focusedSkillIndex === virtualItem.index}
+                focused={virtualItem.index === focusedIndex}
+                onHighlightRow={() => {
+                  setFocusedIndex(virtualItem.index);
+                }}
                 toggleSelected={toggleSelected}
               />
             );
@@ -304,12 +317,13 @@ type SkillPickerItemProps = {
   skill: SkillEntry;
   virtualItem: VirtualItem;
   selected: boolean;
-  focused: boolean;
+  focused?: boolean;
+  onHighlightRow: () => void;
   toggleSelected: React.MouseEventHandler<HTMLDivElement>;
 };
 
 const SkillPickerItem = (props: SkillPickerItemProps) => {
-  const { skill, virtualItem, selected, focused, toggleSelected } = props;
+  const { skill, virtualItem, selected, focused = false, onHighlightRow, toggleSelected } = props;
 
   const [hovered, setHovered] = useState(false);
 
@@ -324,6 +338,7 @@ const SkillPickerItem = (props: SkillPickerItemProps) => {
   return (
     <div
       key={skill.id}
+      onPointerEnter={onHighlightRow}
       onClick={toggleSelected}
       style={{
         position: 'absolute',

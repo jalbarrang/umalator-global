@@ -20,7 +20,7 @@ import {
 } from '@/modules/skills/skill-relationships';
 import { getSelectableSkillsForUma, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import { findVersionOfSkill, skillCollection } from '@/modules/data/skills';
-import { getRelatedSkillIds, getRepresentativePrerequisiteIds, isSkillCoveredByOwnedFamily } from './skill-family';
+import { getRelatedSkillIds, isSkillCoveredByOwnedFamily } from './skill-family';
 import { resolveActiveSkills } from './optimizer';
 
 const DEFAULT_BUDGET = 1000;
@@ -95,14 +95,11 @@ const toPersistedState = (state: SkillPlannerState): PlannerPersistedState => ({
 });
 
 export const useSkillPlannerStore = create<SkillPlannerState>()(
-  persist(
-    () => createInitialState(),
-    {
-      name: 'umalator-skill-planner-v2',
-      storage: createJSONStorage(() => localStorage),
-      partialize: toPersistedState,
-    },
-  ),
+  persist(() => createInitialState(), {
+    name: 'umalator-skill-planner-v2',
+    storage: createJSONStorage(() => localStorage),
+    partialize: toPersistedState,
+  }),
 );
 
 const DEFAULT_SKILL_META: SkillPlanningMeta = {
@@ -248,7 +245,10 @@ const pruneCandidates = (
 
   for (const candidate of Object.values(candidates)) {
     if (!isSelectableForRunner(candidate.skillId, outfitId)) {
-      nextSkillMetaById = buildSkillMetaWithoutIds(nextSkillMetaById, getRelatedSkillIds(candidate.skillId));
+      nextSkillMetaById = buildSkillMetaWithoutIds(
+        nextSkillMetaById,
+        getRelatedSkillIds(candidate.skillId),
+      );
       continue;
     }
 
@@ -256,7 +256,10 @@ const pruneCandidates = (
     // even if their white family tiers are obtained (those are prerequisites,
     // not equivalents).
     if (obtainedSkillIds.includes(candidate.skillId)) {
-      nextSkillMetaById = buildSkillMetaWithoutIds(nextSkillMetaById, getRelatedSkillIds(candidate.skillId));
+      nextSkillMetaById = buildSkillMetaWithoutIds(
+        nextSkillMetaById,
+        getRelatedSkillIds(candidate.skillId),
+      );
       continue;
     }
 
@@ -285,7 +288,12 @@ const applyBaselineRunner = (
   obtainedSkillIds: Array<string>,
 ) => {
   const nextRunner = syncRunnerSkills(buildImportedRunnerState(runnerSnapshot), obtainedSkillIds);
-  const pruned = pruneCandidates(state.candidates, state.skillMetaById, obtainedSkillIds, nextRunner.outfitId);
+  const pruned = pruneCandidates(
+    state.candidates,
+    state.skillMetaById,
+    obtainedSkillIds,
+    nextRunner.outfitId,
+  );
 
   return {
     runner: nextRunner,
@@ -349,9 +357,14 @@ export const updateRunner = (updates: Partial<RunnerState>) => {
   useSkillPlannerStore.setState((state) => {
     const previousRunner = state.runner;
     const nextRunner = { ...previousRunner, ...updates };
-    const nextObtainedSkillIds = updates.outfitId !== undefined
-      ? resolveObtainedSkillIds(state.obtainedSkillIds, nextRunner.outfitId, previousRunner.outfitId)
-      : resolveObtainedSkillIds(state.obtainedSkillIds, nextRunner.outfitId);
+    const nextObtainedSkillIds =
+      updates.outfitId !== undefined
+        ? resolveObtainedSkillIds(
+            state.obtainedSkillIds,
+            nextRunner.outfitId,
+            previousRunner.outfitId,
+          )
+        : resolveObtainedSkillIds(state.obtainedSkillIds, nextRunner.outfitId);
 
     const pruned = pruneCandidates(
       state.candidates,
@@ -454,7 +467,8 @@ export const addCandidate = (skillId: string, hintLevel?: number) => {
   }
 
   useSkillPlannerStore.setState((state) => {
-    const effectiveHintLevel = hintLevel ?? resolveSkillMeta(state.skillMetaById, skillId).hintLevel;
+    const effectiveHintLevel =
+      hintLevel ?? resolveSkillMeta(state.skillMetaById, skillId).hintLevel;
     const candidate = createCandidate({ skillId, hintLevel: effectiveHintLevel });
     const nextCandidates = { ...state.candidates };
     let nextSkillMetaById = state.skillMetaById;

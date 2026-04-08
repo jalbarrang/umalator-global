@@ -21,7 +21,7 @@ export const SkillPickerModal = (props: SkillPickerDrawerProps) => {
     <SkillPickerProvider>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent
-          className="flex flex-col max-h-[90dvh] min-h-0 max-w-full md:max-w-3xl!"
+          className="flex flex-col h-dvh md:h-[50dvh] min-h-0 max-w-full md:max-w-3xl!"
           autoFocus
         >
           <DialogHeader>
