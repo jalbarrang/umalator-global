@@ -1,12 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { PlayIcon, RotateCcwIcon, XIcon } from 'lucide-react';
-import {
-  setBudget,
-  setHasFastLearner,
-  setIgnoreStaminaConsumption,
-  setSeed,
-  useSkillPlannerStore,
-} from '../skill-planner.store';
+import { setBudget, setIgnoreStaminaConsumption, setSeed, useSkillPlannerStore } from '../skill-planner.store';
 import { useSkillPlannerOptimizer } from '../hooks/useSkillPlannerOptimizer';
 import { parseSeed } from '@/utils/crypto';
 import { Label } from '@/components/ui/label';
@@ -21,8 +15,7 @@ type CostModifiersPanelProps = React.HTMLAttributes<HTMLDivElement>;
 export function CostModifiersPanel(props: CostModifiersPanelProps) {
   const { className, ...rest } = props;
 
-  const { budget, hasFastLearner, ignoreStaminaConsumption, candidates, isOptimizing, seed } =
-    useSkillPlannerStore();
+  const { budget, ignoreStaminaConsumption, candidates, isOptimizing, seed } = useSkillPlannerStore();
   const { handleOptimize, handleReplay, handleCancel } = useSkillPlannerOptimizer();
 
   const [seedInput, setSeedInput] = useState<string>(() => {
@@ -60,10 +53,6 @@ export function CostModifiersPanel(props: CostModifiersPanelProps) {
     setBudget(value);
   };
 
-  const handleFastLearnerChange = (checked: boolean) => {
-    setHasFastLearner(checked);
-  };
-
   const handleIgnoreStaminaConsumptionChange = (checked: boolean) => {
     setIgnoreStaminaConsumption(checked);
   };
@@ -92,20 +81,6 @@ export function CostModifiersPanel(props: CostModifiersPanelProps) {
           placeholder="e.g., 1000"
           className="w-full md:w-auto"
         />
-      </div>
-
-      {/* Fast Learner Toggle */}
-      <div className="flex gap-2 items-center">
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="fast-learner"
-            checked={hasFastLearner}
-            onCheckedChange={handleFastLearnerChange}
-          />
-          <Label htmlFor="fast-learner" className="cursor-pointer font-normal gap-1">
-            Fast Learner
-          </Label>
-        </div>
       </div>
 
       <div className="flex gap-2 items-center">

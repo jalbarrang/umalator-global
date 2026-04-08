@@ -18,7 +18,7 @@ export function StrategySelect(props: StrategySelectProps) {
 
   return (
     <Select value={value} onValueChange={onChange} disabled={disabled}>
-      <SelectTrigger className="border-none rounded-none shadow-none">
+      <SelectTrigger className="border-none rounded-none shadow-none w-full">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>

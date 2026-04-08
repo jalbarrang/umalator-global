@@ -1,5 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 
+import { strategyNames } from '@/lib/sunday-tools/runner/definitions';
+
 import {
   CopyPlus,
   PlusIcon,
@@ -54,7 +56,7 @@ import { UmaSelector } from '@/modules/runners/components/runner-selector';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { useIsMobile } from '@/hooks/useBreakpoint';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { openSkillPicker, updateCurrentSkills } from '@/modules/skills/store';
 import {
   setFastLearner,
@@ -78,13 +80,15 @@ type RunnerCardProps = {
 
   // Events
   onChange: (value: RunnerState) => void;
-  onReset: () => void;
-  onCopy: () => void;
-  onSwap: () => void;
+  onReset?: () => void;
+  onCopy?: () => void;
+  onSwap?: () => void;
+  onOpenSkillPicker?: () => void;
 
   // Options
   hideSkillButton?: boolean;
   showSkillSpCosts?: boolean;
+  showShareButton?: boolean;
 };
 
 function RunnerCardSkillRow({
@@ -131,8 +135,10 @@ export const RunnerCard = (props: RunnerCardProps) => {
     onChange,
     onReset,
     onCopy,
+    onOpenSkillPicker,
     hideSkillButton = false,
     showSkillSpCosts = false,
+    showShareButton = true,
   } = props;
 
   const isMobile = useIsMobile();
@@ -184,6 +190,14 @@ export const RunnerCard = (props: RunnerCardProps) => {
     if (data.power) newState.power = data.power;
     if (data.guts) newState.guts = data.guts;
     if (data.wisdom) newState.wisdom = data.wisdom;
+
+    // Apply aptitudes and strategy
+    if (data.surfaceAptitude) newState.surfaceAptitude = data.surfaceAptitude;
+    if (data.distanceAptitude) newState.distanceAptitude = data.distanceAptitude;
+    if (data.strategyAptitude) newState.strategyAptitude = data.strategyAptitude;
+    if (data.strategy && strategyNames.includes(data.strategy)) {
+      newState.strategy = data.strategy;
+    }
 
     // Apply skills - replace existing with OCR detected ones
     if (data.skills && data.skills.length > 0) {
@@ -295,6 +309,11 @@ export const RunnerCard = (props: RunnerCardProps) => {
   const handleOpenSkillPicker = useCallback(() => {
     const selectableSkills = getSelectableSkillsForUma(umaId);
 
+    if (onOpenSkillPicker) {
+      onOpenSkillPicker();
+      return;
+    }
+
     openSkillPicker({
       runnerId: umaId,
       umaId: umaId,
@@ -302,7 +321,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
       currentSkills: state.skills,
       onSelect: handleSetSkills,
     });
-  }, [umaId, state.skills, handleSetSkills]);
+  }, [umaId, state.skills, handleSetSkills, onOpenSkillPicker]);
 
   const handleHintLevelChange = useCallback(
     (skillId: string, level: number) => {
@@ -365,44 +384,46 @@ export const RunnerCard = (props: RunnerCardProps) => {
             </DropdownMenu>
           )}
 
-          {props.runnerId !== 'pacer' && (
+          {props.runnerId !== 'pacer' && onCopy && (
             <Button onClick={onCopy} size="sm" variant="outline" title="Copy to other runner">
               <CopyPlus className="w-4 h-4" />
               <span className="hidden md:inline!">Duplicate</span>
             </Button>
           )}
 
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <Button size="sm" variant="outline" title="Share runner">
-                  <Share2 className="w-4 h-4" />
-                  <span className="hidden md:inline!">Share</span>
-                  <ChevronDown className="w-3 h-3" />
-                </Button>
-              }
-            />
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => copyRosterViewCode(state)}>
-                <Code className="h-4 w-4 mr-2" />
-                Copy RosterView Code
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => downloadJson(state, `runner-${umaInfo?.name ?? 'unknown'}.json`)}
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Download JSON
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  if (shareCardRef.current) copyScreenshot(shareCardRef.current);
-                }}
-              >
-                <Camera className="h-4 w-4 mr-2" />
-                Copy Screenshot
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {showShareButton && (
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button size="sm" variant="outline" title="Share runner">
+                    <Share2 className="w-4 h-4" />
+                    <span className="hidden md:inline!">Share</span>
+                    <ChevronDown className="w-3 h-3" />
+                  </Button>
+                }
+              />
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => copyRosterViewCode(state)}>
+                  <Code className="h-4 w-4 mr-2" />
+                  Copy RosterView Code
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => downloadJson(state, `runner-${umaInfo?.name ?? 'unknown'}.json`)}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download JSON
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    if (shareCardRef.current) copyScreenshot(shareCardRef.current);
+                  }}
+                >
+                  <Camera className="h-4 w-4 mr-2" />
+                  Copy Screenshot
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
 
           <Button onClick={onReset} title="Reset runner" size="sm">
             <span className="hidden md:inline!">Reset</span>

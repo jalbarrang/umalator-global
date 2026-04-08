@@ -41,7 +41,7 @@ export const RacePresets = (props: RacePresetsProps) => {
       <Label htmlFor="preset-select">Preset:</Label>
 
       <Select value={selectedPresetId} onValueChange={handleChange}>
-        <SelectTrigger id="preset-select" className="w-44">
+        <SelectTrigger id="preset-select" className="w-full md:w-44">
           <SelectValue
             render={(_, value) => {
               if (value.value) {

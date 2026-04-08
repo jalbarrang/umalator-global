@@ -14,7 +14,7 @@ import {
 type UmaSelectorProps = {
   value: string;
   select: (outfitId: string) => void;
-  onReset: () => void;
+  onReset?: () => void;
   onImport?: () => void;
   randomMobId?: number;
 };

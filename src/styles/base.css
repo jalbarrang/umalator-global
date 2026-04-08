@@ -205,3 +205,7 @@
 ::-webkit-scrollbar-thumb:hover {
   background: var(--foreground);
 }
+
+button {
+  cursor: pointer;
+}

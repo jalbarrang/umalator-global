@@ -9,6 +9,7 @@ import type {
   OptimizationProgress,
   OptimizationResult,
   SkillPlanningMeta,
+  WizardStep,
 } from './types';
 import {
   getBaseTier,
@@ -17,88 +18,89 @@ import {
   getWhiteVersion,
   isStackableSkill,
 } from '@/modules/skills/skill-relationships';
-import { getUniqueSkillForByUmaId } from '@/modules/skills/utils';
+import { getSelectableSkillsForUma, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import { findVersionOfSkill, skillCollection } from '@/modules/data/skills';
-import {
-  getRelatedSkillIds,
-  getRepresentativePrerequisiteIds,
-  isSkillCoveredByOwnedFamily,
-} from './skill-family';
+import { getRelatedSkillIds, isSkillCoveredByOwnedFamily } from './skill-family';
 import { resolveActiveSkills } from './optimizer';
 
+const DEFAULT_BUDGET = 1000;
+export const skillPlannerSteps: Array<WizardStep> = ['runner', 'shop', 'review'];
+
 interface SkillPlannerState {
+  hasActiveSession: boolean;
+  currentStep: WizardStep;
+  completedSteps: Array<WizardStep>;
+
   runner: RunnerState;
-  // Candidate skills
+  obtainedSkillIds: Array<string>;
   candidates: Record<string, CandidateSkill>;
-  // Hint/bought metadata for both visible candidates and hidden prerequisites
   skillMetaById: Record<string, SkillPlanningMeta>;
 
-  // Budget and modifiers
   budget: number;
   hasFastLearner: boolean;
   ignoreStaminaConsumption: boolean;
 
-  // Optimization state
   seed: number | null;
   isOptimizing: boolean;
   progress: OptimizationProgress | null;
   result: OptimizationResult | null;
   lastOptimizationFingerprint: string | null;
-
-  // Skill UI State
-  skillDrawerOpen: boolean;
 }
 
+type PlannerPersistedState = Pick<
+  SkillPlannerState,
+  | 'hasActiveSession'
+  | 'currentStep'
+  | 'completedSteps'
+  | 'runner'
+  | 'obtainedSkillIds'
+  | 'candidates'
+  | 'skillMetaById'
+  | 'budget'
+  | 'hasFastLearner'
+  | 'ignoreStaminaConsumption'
+  | 'seed'
+>;
+
+const createInitialState = (): SkillPlannerState => ({
+  hasActiveSession: false,
+  currentStep: 'runner',
+  completedSteps: [],
+  runner: createRunnerState(),
+  obtainedSkillIds: [],
+  candidates: {},
+  skillMetaById: {},
+  budget: DEFAULT_BUDGET,
+  hasFastLearner: false,
+  ignoreStaminaConsumption: false,
+  seed: null,
+  isOptimizing: false,
+  progress: null,
+  result: null,
+  lastOptimizationFingerprint: null,
+});
+
+const toPersistedState = (state: SkillPlannerState): PlannerPersistedState => ({
+  hasActiveSession: state.hasActiveSession,
+  currentStep: state.currentStep,
+  completedSteps: state.completedSteps,
+  runner: state.runner,
+  obtainedSkillIds: state.obtainedSkillIds,
+  candidates: state.candidates,
+  skillMetaById: state.skillMetaById,
+  budget: state.budget,
+  hasFastLearner: state.hasFastLearner,
+  ignoreStaminaConsumption: state.ignoreStaminaConsumption,
+  seed: state.seed,
+});
+
 export const useSkillPlannerStore = create<SkillPlannerState>()(
-  persist(
-    (_) => ({
-      runner: createRunnerState(),
-      candidates: {},
-      skillMetaById: {},
-      budget: 1000,
-      hasFastLearner: false,
-      ignoreStaminaConsumption: false,
-      seed: null,
-      isOptimizing: false,
-      progress: null,
-      result: null,
-      lastOptimizationFingerprint: null,
-      // Skill UI State
-      skillDrawerOpen: false,
-    }),
-    {
-      name: 'umalator-skill-planner',
-      storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({
-        runner: state.runner,
-        candidates: state.candidates,
-        skillMetaById: state.skillMetaById,
-        budget: state.budget,
-        hasFastLearner: state.hasFastLearner,
-        ignoreStaminaConsumption: state.ignoreStaminaConsumption,
-      }),
-    },
-  ),
+  persist(() => createInitialState(), {
+    name: 'umalator-skill-planner-v2',
+    storage: createJSONStorage(() => localStorage),
+    partialize: toPersistedState,
+  }),
 );
-
-// Actions
-
-export const setSkillsOpen = (open: boolean) => {
-  useSkillPlannerStore.setState({ skillDrawerOpen: open });
-};
-
-export const updateRunner = (updates: Partial<RunnerState>) => {
-  useSkillPlannerStore.setState((prev) => {
-    return {
-      runner: { ...prev.runner, ...updates },
-    };
-  });
-};
-
-export const hasCandidate = (skillId: string) => {
-  const { candidates } = useSkillPlannerStore.getState();
-  return candidates[skillId] !== undefined;
-};
 
 const DEFAULT_SKILL_META: SkillPlanningMeta = {
   hintLevel: 0,
@@ -142,16 +144,11 @@ type CreateCandidateParams = {
 
 export const createCandidate = (params: CreateCandidateParams): CandidateSkill => {
   const { skillId, hintLevel = 0 } = params;
-
   const skill = skillCollection[skillId];
 
-  // Get skill data for rarity check
   const isGold = skill.rarity === 2;
-
-  // Check stackable status
   const isStackable = isStackableSkill(skillId);
 
-  // Determine tier level for stackable skills
   let tierLevel: 1 | 2 | undefined = undefined;
   let nextTierId: string | undefined = undefined;
   let previousTierId: string | undefined = undefined;
@@ -161,17 +158,14 @@ export const createCandidate = (params: CreateCandidateParams): CandidateSkill =
     const upgradeTier = getUpgradeTier(baseTier);
 
     if (skillId === baseTier) {
-      // This is the base tier
       tierLevel = 1;
       nextTierId = upgradeTier;
     } else if (skillId === upgradeTier) {
-      // This is the upgrade tier
       tierLevel = 2;
       previousTierId = baseTier;
     }
   }
 
-  // Get gold/white relationships
   const goldSkillId = isGold ? undefined : getGoldVersion(skillId);
   const whiteSkillId = isGold ? getWhiteVersion(skillId) : undefined;
   const baseTierIdForGold = isGold ? getBaseTier(whiteSkillId ?? skillId) : undefined;
@@ -181,14 +175,10 @@ export const createCandidate = (params: CreateCandidateParams): CandidateSkill =
     cost: skill.baseCost,
     netCost: skill.baseCost,
     hintLevel: hintLevel as CandidateSkill['hintLevel'],
-
-    // Stackable support
     isStackable,
     tierLevel,
     nextTierId,
     previousTierId,
-
-    // Gold/White relationship
     isGold,
     whiteSkillId,
     goldSkillId,
@@ -196,258 +186,359 @@ export const createCandidate = (params: CreateCandidateParams): CandidateSkill =
   };
 };
 
-export const setCandidates = (candidates: Record<string, CandidateSkill>) => {
-  useSkillPlannerStore.setState({ candidates });
+const isSelectableForRunner = (skillId: string, outfitId: string) => {
+  if (!outfitId) {
+    return false;
+  }
+
+  return getSelectableSkillsForUma(outfitId).includes(skillId);
 };
 
-/**
- * Checks if a skill can be added to the candidate pool.
- * Higher tiers can only be added when their prerequisites are either visible candidates
- * or already marked bought in planner skill metadata.
- * @returns { canAdd: boolean, reason?: string }
- */
-export const canAddToPool = (skillId: string): { canAdd: boolean; reason?: string } => {
-  const { candidates, skillMetaById } = useSkillPlannerStore.getState();
-  const boughtSkillIds = Object.entries(skillMetaById)
-    .filter(([, meta]) => meta.bought)
-    .map(([ownedSkillId]) => ownedSkillId);
-
-  // If already in pool, can't add again
-  if (hasCandidate(skillId)) {
-    return { canAdd: false, reason: 'Already in candidate pool' };
+const getUniqueSkillId = (outfitId: string) => {
+  if (!outfitId) {
+    return undefined;
   }
 
-  const prereqIds = getRepresentativePrerequisiteIds(skillId);
-  if (prereqIds.length === 0) {
-    return { canAdd: true };
-  }
-
-  for (const prereqId of prereqIds) {
-    if (!candidates[prereqId] && !isSkillCoveredByOwnedFamily(prereqId, boughtSkillIds)) {
-      if (prereqIds.length === 1) {
-        return {
-          canAdd: false,
-          reason: 'Base tier (○) must be added to pool or marked bought before upgrade tier (◎)',
-        };
-      }
-
-      return {
-        canAdd: false,
-        reason: 'Base and upgrade tiers must be in the pool or marked bought before gold',
-      };
-    }
-  }
-
-  return { canAdd: true };
+  return getUniqueSkillForByUmaId(outfitId);
 };
 
-/**
- * Returns upgrade tiers (◎) that are now unlocked.
- * A bought base tier also unlocks its upgrade tier.
- */
-export const getAddableUpgrades = (): Array<string> => {
-  const { candidates, skillMetaById } = useSkillPlannerStore.getState();
-  const boughtSkillIds = Object.entries(skillMetaById)
-    .filter(([, meta]) => meta.bought)
-    .map(([ownedSkillId]) => ownedSkillId);
-  const addableUpgrades: Array<string> = [];
+const syncRunnerSkills = (runner: RunnerState, obtainedSkillIds: Array<string>): RunnerState => ({
+  ...runner,
+  skills: obtainedSkillIds,
+});
 
-  // Check each candidate to see if it's a stackable base tier
+const resolveObtainedSkillIds = (
+  skillIds: Iterable<string>,
+  outfitId: string,
+  previousOutfitId?: string,
+): Array<string> => {
+  const nextSkillIds = Array.from(skillIds).filter((skillId) => !!skillCollection[skillId]);
+  const nextUniqueSkillId = getUniqueSkillId(outfitId);
+  const previousUniqueSkillId = getUniqueSkillId(previousOutfitId ?? '');
+
+  const filtered = previousUniqueSkillId
+    ? nextSkillIds.filter((skillId) => skillId !== previousUniqueSkillId)
+    : nextSkillIds;
+
+  if (nextUniqueSkillId && !filtered.includes(nextUniqueSkillId)) {
+    filtered.unshift(nextUniqueSkillId);
+  }
+
+  return resolveActiveSkills(filtered);
+};
+
+const pruneCandidates = (
+  candidates: Record<string, CandidateSkill>,
+  skillMetaById: Record<string, SkillPlanningMeta>,
+  obtainedSkillIds: Array<string>,
+  outfitId: string,
+) => {
+  if (!outfitId) {
+    return {
+      candidates: {},
+      skillMetaById: {},
+    };
+  }
+
+  const nextCandidates: Record<string, CandidateSkill> = {};
+  let nextSkillMetaById = { ...skillMetaById };
+
   for (const candidate of Object.values(candidates)) {
-    if (candidate.isStackable && candidate.tierLevel === 1 && candidate.nextTierId) {
-      // This is a base tier with an upgrade tier available
-      // If upgrade tier is not already in pool, it's now addable
-      if (
-        !hasCandidate(candidate.nextTierId) &&
-        !isSkillCoveredByOwnedFamily(candidate.nextTierId, boughtSkillIds)
-      ) {
-        addableUpgrades.push(candidate.nextTierId);
-      }
+    if (!isSelectableForRunner(candidate.skillId, outfitId)) {
+      nextSkillMetaById = buildSkillMetaWithoutIds(
+        nextSkillMetaById,
+        getRelatedSkillIds(candidate.skillId),
+      );
+      continue;
     }
+
+    // Only prune if the exact skill is obtained — gold skills should stay
+    // even if their white family tiers are obtained (those are prerequisites,
+    // not equivalents).
+    if (obtainedSkillIds.includes(candidate.skillId)) {
+      nextSkillMetaById = buildSkillMetaWithoutIds(
+        nextSkillMetaById,
+        getRelatedSkillIds(candidate.skillId),
+      );
+      continue;
+    }
+
+    nextCandidates[candidate.skillId] = {
+      ...candidate,
+      hintLevel: resolveSkillMeta(nextSkillMetaById, candidate.skillId).hintLevel,
+    };
   }
 
-  return addableUpgrades;
+  return {
+    candidates: nextCandidates,
+    skillMetaById: nextSkillMetaById,
+  };
 };
 
-/**
- * Adds a user-selected representative skill to the candidate pool.
- * Prerequisites stay hidden and are derived later for cost display / optimization.
- */
-export const addCandidate = (skillId: string, hintLevel?: number) => {
-  // If the skill is already in the candidate pool, do nothing
-  if (hasCandidate(skillId)) {
-    return;
-  }
+const buildImportedRunnerState = (runnerSnapshot: RunnerState): RunnerState => {
+  return createRunnerState({
+    ...runnerSnapshot,
+    skills: [],
+  });
+};
 
-  const candidates = useSkillPlannerStore.getState().candidates;
+const applyBaselineRunner = (
+  state: SkillPlannerState,
+  runnerSnapshot: RunnerState,
+  obtainedSkillIds: Array<string>,
+) => {
+  const nextRunner = syncRunnerSkills(buildImportedRunnerState(runnerSnapshot), obtainedSkillIds);
+  const pruned = pruneCandidates(
+    state.candidates,
+    state.skillMetaById,
+    obtainedSkillIds,
+    nextRunner.outfitId,
+  );
 
-  // If instead they choose any of the other versions, replace it with that one
-  const otherVersion = findVersionOfSkill(skillId, Object.keys(candidates));
+  return {
+    runner: nextRunner,
+    obtainedSkillIds,
+    candidates: pruned.candidates,
+    skillMetaById: pruned.skillMetaById,
+    hasActiveSession: true,
+    currentStep: 'runner' as const,
+    isOptimizing: false,
+    progress: null,
+  };
+};
 
-  if (otherVersion) {
-    const otherSkill = skillCollection[otherVersion];
-    const thisSkill = skillCollection[skillId];
-    if (!confirm(`This will replace "${otherSkill.name}" with "${thisSkill.name}", continue?`)) {
-      // Cancel the operation
-      return;
-    }
-  }
+export const setCurrentStep = (step: WizardStep) => {
+  useSkillPlannerStore.setState((state) => ({
+    hasActiveSession: true,
+    currentStep: step,
+    completedSteps: state.completedSteps,
+  }));
+};
 
-  const { skillMetaById } = useSkillPlannerStore.getState();
-  const effectiveHintLevel = hintLevel ?? resolveSkillMeta(skillMetaById, skillId).hintLevel;
-  const candidate: CandidateSkill = createCandidate({ skillId, hintLevel: effectiveHintLevel });
-
+export const completeCurrentStep = () => {
   useSkillPlannerStore.setState((state) => {
-    const newCandidates = { ...state.candidates };
-    let nextSkillMetaById = state.skillMetaById;
-
-    if (otherVersion) {
-      const relatedSkillIds = getRelatedSkillIds(otherVersion);
-      for (const relatedSkillId of relatedSkillIds) {
-        delete newCandidates[relatedSkillId];
-      }
-      nextSkillMetaById = buildSkillMetaWithoutIds(state.skillMetaById, relatedSkillIds);
+    if (state.completedSteps.includes(state.currentStep)) {
+      return state;
     }
-
-    newCandidates[skillId] = candidate;
 
     return {
-      candidates: newCandidates,
-      skillMetaById: nextSkillMetaById,
+      completedSteps: [...state.completedSteps, state.currentStep],
     };
   });
 };
 
-/**
- * Removes the visible representative and clears all related planner metadata for its family.
- */
-export const removeCandidate = (skillId: string) => {
-  useSkillPlannerStore.setState((prev) => {
-    if (!prev.candidates[skillId]) {
-      return prev;
-    }
+export const startFreshSession = () => {
+  useSkillPlannerStore.setState({
+    ...createInitialState(),
+    hasActiveSession: true,
+    currentStep: 'runner',
+  });
+};
 
-    const relatedSkillIds = getRelatedSkillIds(skillId);
-    const newCandidates = { ...prev.candidates };
-    for (const relatedSkillId of relatedSkillIds) {
-      delete newCandidates[relatedSkillId];
-    }
+export const startOver = () => {
+  useSkillPlannerStore.setState(createInitialState());
+};
+
+export const isStepUnlocked = (step: WizardStep) => {
+  const { currentStep, completedSteps } = useSkillPlannerStore.getState();
+
+  if (step === 'runner') {
+    return true;
+  }
+
+  if (step === 'shop') {
+    return completedSteps.includes('runner') || currentStep === 'shop' || currentStep === 'review';
+  }
+
+  return completedSteps.includes('shop') || currentStep === 'review';
+};
+
+export const updateRunner = (updates: Partial<RunnerState>) => {
+  useSkillPlannerStore.setState((state) => {
+    const previousRunner = state.runner;
+    const nextRunner = { ...previousRunner, ...updates };
+    const nextObtainedSkillIds =
+      updates.outfitId !== undefined
+        ? resolveObtainedSkillIds(
+            state.obtainedSkillIds,
+            nextRunner.outfitId,
+            previousRunner.outfitId,
+          )
+        : resolveObtainedSkillIds(state.obtainedSkillIds, nextRunner.outfitId);
+
+    const pruned = pruneCandidates(
+      state.candidates,
+      state.skillMetaById,
+      nextObtainedSkillIds,
+      nextRunner.outfitId,
+    );
 
     return {
-      candidates: newCandidates,
-      skillMetaById: buildSkillMetaWithoutIds(prev.skillMetaById, relatedSkillIds),
-      runner: {
-        ...prev.runner,
-        skills: prev.runner.skills.filter((id) => !relatedSkillIds.includes(id)),
-      },
+      runner: syncRunnerSkills(nextRunner, nextObtainedSkillIds),
+      obtainedSkillIds: nextObtainedSkillIds,
+      candidates: pruned.candidates,
+      skillMetaById: pruned.skillMetaById,
+      hasActiveSession: true,
+      isOptimizing: false,
+      progress: null,
     };
   });
 };
 
-export const getCandidate = (skillId: string) => {
-  const { candidates } = useSkillPlannerStore.getState();
-
-  return candidates[skillId];
-};
-
-export const setSkillBought = (skillId: string, bought: boolean) => {
+export const setObtainedSkills = (skillIds: Array<string>) => {
   useSkillPlannerStore.setState((state) => {
-    const nextSkillMetaById = { ...state.skillMetaById };
-
-    const applyBoughtState = (targetSkillId: string, isBought: boolean) => {
-      const normalized = normalizeSkillMeta({
-        ...resolveSkillMeta(nextSkillMetaById, targetSkillId),
-        bought: isBought,
-      });
-
-      if (!normalized) {
-        delete nextSkillMetaById[targetSkillId];
-        return;
-      }
-
-      nextSkillMetaById[targetSkillId] = normalized;
-    };
-
-    applyBoughtState(skillId, bought);
-
-    const baseTierId = getBaseTier(skillId);
-    const upgradeTierId = getUpgradeTier(baseTierId);
-    if (upgradeTierId && skillId === upgradeTierId && baseTierId) {
-      // Owning ◎ always implies already owning ○.
-      if (bought) {
-        applyBoughtState(baseTierId, true);
-      }
-    }
-
-    if (upgradeTierId && skillId === baseTierId && !bought) {
-      // Prevent impossible state: ○ cannot be unbought while ◎ remains bought.
-      applyBoughtState(upgradeTierId, false);
-    }
+    const nextObtainedSkillIds = resolveObtainedSkillIds(skillIds, state.runner.outfitId);
+    const pruned = pruneCandidates(
+      state.candidates,
+      state.skillMetaById,
+      nextObtainedSkillIds,
+      state.runner.outfitId,
+    );
 
     return {
-      skillMetaById: nextSkillMetaById,
+      runner: syncRunnerSkills(state.runner, nextObtainedSkillIds),
+      obtainedSkillIds: nextObtainedSkillIds,
+      candidates: pruned.candidates,
+      skillMetaById: pruned.skillMetaById,
+      hasActiveSession: true,
+      isOptimizing: false,
+      progress: null,
     };
   });
 };
 
 export const addObtainedSkill = (skillId: string) => {
-  setSkillBought(skillId, true);
+  const { obtainedSkillIds } = useSkillPlannerStore.getState();
+  setObtainedSkills([...obtainedSkillIds, skillId]);
 };
 
 export const removeObtainedSkill = (skillId: string) => {
-  setSkillBought(skillId, false);
-};
+  const { obtainedSkillIds, runner } = useSkillPlannerStore.getState();
+  const lockedUniqueSkillId = getUniqueSkillId(runner.outfitId);
 
-export const setObtainedSkills = (skillIds: Array<string>) => {
-  useSkillPlannerStore.setState((state) => {
-    const nextSkillMetaById = { ...state.skillMetaById };
+  if (lockedUniqueSkillId === skillId) {
+    return;
+  }
 
-    for (const [skillId, meta] of Object.entries(nextSkillMetaById)) {
-      const normalized = normalizeSkillMeta({
-        ...meta,
-        bought: skillIds.includes(skillId) || undefined,
-      });
-      if (!normalized) {
-        delete nextSkillMetaById[skillId];
-      } else {
-        nextSkillMetaById[skillId] = normalized;
-      }
-    }
-
-    for (const skillId of skillIds) {
-      nextSkillMetaById[skillId] = normalizeSkillMeta({
-        ...resolveSkillMeta(nextSkillMetaById, skillId),
-        bought: true,
-      })!;
-    }
-
-    return { skillMetaById: nextSkillMetaById };
-  });
-};
-
-export const hasObtainedSkill = (skillId: string) => {
-  const { skillMetaById } = useSkillPlannerStore.getState();
-  return resolveSkillMeta(skillMetaById, skillId).bought === true;
-};
-
-export const getSkillPlanningMeta = (skillId: string): SkillPlanningMeta => {
-  const { skillMetaById } = useSkillPlannerStore.getState();
-  return resolveSkillMeta(skillMetaById, skillId);
+  setObtainedSkills(obtainedSkillIds.filter((id) => id !== skillId));
 };
 
 export const getObtainedSkills = (): Array<string> => {
-  const { skillMetaById } = useSkillPlannerStore.getState();
+  return useSkillPlannerStore.getState().obtainedSkillIds;
+};
 
-  return resolveActiveSkills(
-    Object.entries(skillMetaById)
-      .filter(([, meta]) => meta.bought)
-      .map(([skillId]) => skillId),
-  );
+export const hasObtainedSkill = (skillId: string) => {
+  return isSkillCoveredByOwnedFamily(skillId, useSkillPlannerStore.getState().obtainedSkillIds);
+};
+
+export const hasCandidate = (skillId: string) => {
+  return useSkillPlannerStore.getState().candidates[skillId] !== undefined;
+};
+
+export const canAddToPool = (skillId: string): { canAdd: boolean; reason?: string } => {
+  const { candidates, obtainedSkillIds, runner } = useSkillPlannerStore.getState();
+
+  if (!runner.outfitId) {
+    return { canAdd: false, reason: 'Select a runner first' };
+  }
+
+  if (!isSelectableForRunner(skillId, runner.outfitId)) {
+    return { canAdd: false, reason: 'Not valid for the current runner' };
+  }
+
+  if (hasCandidate(skillId)) {
+    return { canAdd: false, reason: 'Already in candidate pool' };
+  }
+
+  if (isSkillCoveredByOwnedFamily(skillId, obtainedSkillIds)) {
+    return { canAdd: false, reason: 'Already obtained' };
+  }
+
+  // Gold and upgrade tier (◎) skills can always be added as candidates.
+  // Their white prerequisites are expanded automatically during optimization
+  // if not already obtained — no need to gate the user here.
+  return { canAdd: true };
+};
+
+export const addCandidate = (skillId: string, hintLevel?: number) => {
+  const canAdd = canAddToPool(skillId);
+  if (!canAdd.canAdd) {
+    return;
+  }
+
+  useSkillPlannerStore.setState((state) => {
+    const effectiveHintLevel =
+      hintLevel ?? resolveSkillMeta(state.skillMetaById, skillId).hintLevel;
+    const candidate = createCandidate({ skillId, hintLevel: effectiveHintLevel });
+    const nextCandidates = { ...state.candidates };
+    let nextSkillMetaById = state.skillMetaById;
+
+    const otherVersion = findVersionOfSkill(skillId, Object.keys(nextCandidates));
+    if (otherVersion) {
+      const relatedSkillIds = getRelatedSkillIds(otherVersion);
+      for (const relatedSkillId of relatedSkillIds) {
+        delete nextCandidates[relatedSkillId];
+      }
+      nextSkillMetaById = buildSkillMetaWithoutIds(state.skillMetaById, relatedSkillIds);
+    }
+
+    nextCandidates[skillId] = candidate;
+    const normalizedMeta = normalizeSkillMeta({
+      ...resolveSkillMeta(nextSkillMetaById, skillId),
+      hintLevel: effectiveHintLevel as HintLevel,
+    });
+
+    if (normalizedMeta) {
+      nextSkillMetaById = {
+        ...nextSkillMetaById,
+        [skillId]: normalizedMeta,
+      };
+    }
+
+    return {
+      candidates: nextCandidates,
+      skillMetaById: nextSkillMetaById,
+      hasActiveSession: true,
+      isOptimizing: false,
+      progress: null,
+    };
+  });
+};
+
+export const removeCandidate = (skillId: string) => {
+  useSkillPlannerStore.setState((state) => {
+    if (!state.candidates[skillId]) {
+      return state;
+    }
+
+    const relatedSkillIds = getRelatedSkillIds(skillId);
+    const nextCandidates = { ...state.candidates };
+
+    for (const relatedSkillId of relatedSkillIds) {
+      delete nextCandidates[relatedSkillId];
+    }
+
+    return {
+      candidates: nextCandidates,
+      skillMetaById: buildSkillMetaWithoutIds(state.skillMetaById, relatedSkillIds),
+      hasActiveSession: true,
+      isOptimizing: false,
+      progress: null,
+    };
+  });
+};
+
+export const clearCandidates = () => {
+  useSkillPlannerStore.setState({
+    candidates: {},
+    skillMetaById: {},
+    isOptimizing: false,
+    progress: null,
+  });
 };
 
 export const setCandidateHintLevel = (skillId: string, hintLevel: number) => {
   useSkillPlannerStore.setState((state) => {
-    const currentCandidate = state.candidates[skillId];
     const normalizedMeta = normalizeSkillMeta({
       ...resolveSkillMeta(state.skillMetaById, skillId),
       hintLevel: hintLevel as HintLevel,
@@ -460,32 +551,70 @@ export const setCandidateHintLevel = (skillId: string, hintLevel: number) => {
         }
       : buildSkillMetaWithoutIds(state.skillMetaById, [skillId]);
 
+    // Update the candidate entry too if the skill is a direct candidate
+    const currentCandidate = state.candidates[skillId];
+    const nextCandidates = currentCandidate
+      ? {
+          ...state.candidates,
+          [skillId]: {
+            ...currentCandidate,
+            hintLevel: hintLevel as HintLevel,
+          },
+        }
+      : state.candidates;
+
     return {
+      candidates: nextCandidates,
       skillMetaById: nextSkillMetaById,
-      ...(currentCandidate
-        ? {
-            candidates: {
-              ...state.candidates,
-              [skillId]: {
-                ...currentCandidate,
-                hintLevel: hintLevel as HintLevel,
-              },
-            },
-          }
-        : {}),
+      hasActiveSession: true,
+      isOptimizing: false,
+      progress: null,
     };
   });
 };
 
-export const updateCandidate = (skillId: string, updates: Partial<CandidateSkill>) => {
+export const getSkillPlanningMeta = (skillId: string): SkillPlanningMeta => {
+  const state = useSkillPlannerStore.getState();
+  const candidateMeta = resolveSkillMeta(state.skillMetaById, skillId);
+  return {
+    hintLevel: candidateMeta.hintLevel,
+    bought: isSkillCoveredByOwnedFamily(skillId, state.obtainedSkillIds),
+  };
+};
+
+export const importVeteranRunner = (runnerSnapshot: RunnerState, resetSession = false) => {
   useSkillPlannerStore.setState((state) => {
-    const candidate = { ...state.candidates[skillId], ...updates };
+    const baseState = resetSession ? createInitialState() : state;
+    const nextObtainedSkillIds = resolveObtainedSkillIds(
+      runnerSnapshot.skills,
+      runnerSnapshot.outfitId,
+      resetSession ? undefined : state.runner.outfitId,
+    );
 
     return {
-      candidates: {
-        ...state.candidates,
-        [skillId]: candidate,
-      },
+      ...baseState,
+      ...applyBaselineRunner(baseState, runnerSnapshot, nextObtainedSkillIds),
+    };
+  });
+};
+
+export const importRunnerBaseline = (runnerSnapshot: RunnerState, resetSession = false) => {
+  importVeteranRunner(runnerSnapshot, resetSession);
+};
+
+export const resetRunner = () => {
+  useSkillPlannerStore.setState((state) => {
+    const nextRunner = createRunnerState();
+    const nextObtainedSkillIds = resolveObtainedSkillIds([], nextRunner.outfitId);
+
+    return {
+      ...state,
+      runner: syncRunnerSkills(nextRunner, nextObtainedSkillIds),
+      obtainedSkillIds: nextObtainedSkillIds,
+      candidates: {},
+      skillMetaById: {},
+      isOptimizing: false,
+      progress: null,
     };
   });
 };
@@ -495,15 +624,11 @@ export const setBudget = (budget: number) => {
 };
 
 export const setHasFastLearner = (hasFastLearner: boolean) => {
-  useSkillPlannerStore.setState({
-    hasFastLearner,
-  });
+  useSkillPlannerStore.setState({ hasFastLearner });
 };
 
 export const setIgnoreStaminaConsumption = (ignoreStaminaConsumption: boolean) => {
-  useSkillPlannerStore.setState({
-    ignoreStaminaConsumption,
-  });
+  useSkillPlannerStore.setState({ ignoreStaminaConsumption });
 };
 
 export const setSeed = (seed: number | null) => {
@@ -517,12 +642,10 @@ export const createNewSeed = () => {
 };
 
 export const setIsOptimizing = (isOptimizing: boolean) => {
-  useSkillPlannerStore.setState((prev) => {
-    return {
-      isOptimizing,
-      progress: isOptimizing ? prev.progress : null,
-    };
-  });
+  useSkillPlannerStore.setState((state) => ({
+    isOptimizing,
+    progress: isOptimizing ? state.progress : null,
+  }));
 };
 
 export const setProgress = (progress: OptimizationProgress | null) => {
@@ -535,57 +658,6 @@ export const setResult = (result: OptimizationResult | null) => {
 
 export const setLastOptimizationFingerprint = (lastOptimizationFingerprint: string | null) => {
   useSkillPlannerStore.setState({ lastOptimizationFingerprint });
-};
-
-export const resetRunner = () => {
-  useSkillPlannerStore.setState({
-    runner: createRunnerState(),
-    candidates: {},
-    skillMetaById: {},
-  });
-};
-
-export const clearAll = () => {
-  useSkillPlannerStore.setState({
-    candidates: {},
-    skillMetaById: {},
-    result: null,
-    lastOptimizationFingerprint: null,
-    progress: null,
-    isOptimizing: false,
-  });
-};
-
-export const clearCandidates = () => {
-  const { runner, candidates, skillMetaById } = useSkillPlannerStore.getState();
-
-  // If runner has an outfit, preserve the unique skill
-  if (runner.outfitId) {
-    const uniqueSkill = getUniqueSkillForByUmaId(runner.outfitId);
-    const uniqueCandidate = candidates[uniqueSkill];
-
-    // Preserve unique skill in candidates and mark it as bought for baseline comparisons.
-    if (uniqueCandidate) {
-      useSkillPlannerStore.setState({
-        candidates: { [uniqueSkill]: uniqueCandidate },
-        skillMetaById: {
-          [uniqueSkill]: normalizeSkillMeta({
-            ...resolveSkillMeta(skillMetaById, uniqueSkill),
-            bought: true,
-          })!,
-        },
-        skillDrawerOpen: false,
-      });
-      return;
-    }
-  }
-
-  // No outfit or unique skill not found, clear everything
-  useSkillPlannerStore.setState({
-    candidates: {},
-    skillMetaById: {},
-    skillDrawerOpen: false,
-  });
 };
 
 export const clearResult = () => {

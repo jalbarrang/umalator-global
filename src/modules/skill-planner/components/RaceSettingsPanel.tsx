@@ -16,6 +16,7 @@ import { getDefaultTrackIdForCourse } from '@/modules/racetrack/courses';
 import i18n from '@/i18n';
 import strings_en from '@/i18n/lang/en/skills';
 import React from 'react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const groundConditions: Record<number, string> = {
   1: 'Firm',
@@ -50,25 +51,27 @@ export const RaceSettingsPanel = React.memo(({ open }: RaceSettingsPanelProps) =
     return { defaultOpen: false };
   }, [open]);
 
+  const isMobile = useIsMobile();
+
   return (
     <Collapsible {...collapsibleProps}>
       <CollapsibleTrigger className="group flex w-full items-center gap-2 bg-card px-4 py-2 text-sm hover:bg-accent/50 cursor-pointer">
         <Settings className="h-4 w-4 shrink-0" />
-        <span className="truncate">{summary}</span>
+        <span>{summary}</span>
       </CollapsibleTrigger>
 
-      <CollapsibleContent className="overflow-hidden data-ending-style:h-0 data-starting-style:h-0 transition-all duration-200 ease-out">
+      <CollapsibleContent>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 bg-card py-2 px-4 rounded-b-md border-t border-border">
-          <div className="flex items-center gap-2">
-            <RacePresets className="flex items-center gap-2" />
-            <SavePresetModal />
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <RacePresets className="flex flex-col md:flex-row md:items-center gap-2 w-full" />
+            {!isMobile && <SavePresetModal />}
           </div>
 
           <Separator orientation="vertical" className="hidden md:block" />
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col md:flex-row md:items-center gap-2 w-full md:w-auto">
             <Label className="text-xs font-medium">Track</Label>
-            <TrackSelect className="flex items-center gap-2" />
+            <TrackSelect className="flex flex-col md:flex-row items-center gap-2 w-full" />
           </div>
 
           <div className="flex items-center gap-2">

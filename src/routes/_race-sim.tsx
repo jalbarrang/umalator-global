@@ -18,9 +18,9 @@ import {
 import { createSkillSorterByGroup, toCreateRunner } from '@/modules/simulation/simulators/shared';
 import { useSettingsStore } from '@/store/settings.store';
 import { setDismissal, useUIStore } from '@/store/ui.store';
-import { SkillPickerDrawer } from '@/modules/skills/components/skill-list/SkillPickerDrawer';
 import { useSkillModalStore } from '@/modules/skills/store';
 import type { RaceSimWorkerParams } from '@/workers/race-sim.worker';
+import { SkillPickerModal } from '@/modules/skills/components/skill-picker/modal';
 
 function RaceSimSkillPicker() {
   const { open, umaId, options, currentSkills, onSelect } = useSkillModalStore();
@@ -29,13 +29,18 @@ function RaceSimSkillPicker() {
     useSkillModalStore.setState({ open: value });
   }, []);
 
+  const handleSelectSkills = (skills: Array<string>) => {
+    onSelect(skills);
+    handleOpenChange(false);
+  };
+
   return (
-    <SkillPickerDrawer
+    <SkillPickerModal
       open={open}
       umaId={umaId}
       options={options}
       currentSkills={currentSkills}
-      onSelect={onSelect}
+      onSelect={handleSelectSkills}
       onOpenChange={handleOpenChange}
     />
   );

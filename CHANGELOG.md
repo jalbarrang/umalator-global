@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## 0.5.0-beta.5 - 2026-04-06
+
+- Added Skill Planner support for importing a saved Veteran as a full runner snapshot, including stats, aptitudes, mood, strategy, and resolved obtained skills.
+- Added an in-place `Import from Veterans` picker with search and most-recently-updated sorting to quickly seed planner baselines from the Veterans library.
+- Cleared Skill Planner optimization state on Veteran import and ignored stale worker responses so old optimization results no longer reappear after replacing the runner baseline.
+
 ## 0.5.0-beta.4 - 2026-04-03
 
 - Fixed Skill Planner prerequisite resolution so already owned family members no longer get re-added as hidden purchase candidates during optimization.

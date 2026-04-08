@@ -1,13 +1,5 @@
-import { XIcon } from 'lucide-react';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-} from '@/components/ui/drawer';
 import {
   Panel,
   PanelContent,
@@ -17,9 +9,9 @@ import {
 } from '@/components/ui/panel';
 import { normalizeSkillId } from '@/modules/data/skills';
 import { DebuffGroup } from './DebuffGroup';
-import { SkillPickerContent } from '@/modules/skills/components/skill-picker-content';
 import { getSkills } from '@/modules/data/skills';
 import { isInjectableExternalDebuffSkill } from '@/lib/sunday-tools/skills/external-debuffs';
+import { SkillPickerModal } from '@/modules/skills/components/skill-picker/modal';
 import {
   addDebuff,
   clearAllDebuffs,
@@ -31,7 +23,6 @@ export function DebuffsPanel() {
   const { uma1, uma2 } = useDebuffs();
   const [pickerRunnerId, setPickerRunnerId] = useState<CompareRunnerId | null>(null);
   const [pickerSelection, setPickerSelection] = useState<Array<string>>([]);
-  const pickerRef = useRef<{ focus: () => void } | null>(null);
 
   const isPickerOpen = pickerRunnerId !== null;
   const hasDebuffs = uma1.length > 0 || uma2.length > 0;
@@ -69,6 +60,15 @@ export function DebuffsPanel() {
     [pickerRunnerId],
   );
 
+  const handlePickerOpenChange = useCallback((open: boolean) => {
+    if (open) {
+      return;
+    }
+
+    setPickerRunnerId(null);
+    setPickerSelection([]);
+  }, []);
+
   return (
     <>
       <Panel>
@@ -90,36 +90,15 @@ export function DebuffsPanel() {
         </PanelContent>
       </Panel>
 
-      <Drawer
-        direction="right"
+      <SkillPickerModal
         open={isPickerOpen}
-        onOpenChange={(open) => {
-          if (!open) {
-            setPickerRunnerId(null);
-            setPickerSelection([]);
-          }
-        }}
-        autoFocus
-      >
-        <DrawerContent className="px-2 w-full! md:w-1/2! max-w-none!">
-          <DrawerHeader className="flex-row items-center justify-between">
-            <DrawerClose tabIndex={-1} aria-label="Close debuff picker">
-              <XIcon className="h-4 w-4" />
-            </DrawerClose>
-            <DrawerTitle>Add Debuff Skill</DrawerTitle>
-          </DrawerHeader>
-
-          <SkillPickerContent
-            ref={pickerRef}
-            umaId={undefined}
-            options={debuffSkillOptions}
-            currentSkills={pickerSelection}
-            onSelect={handlePickerSelection}
-            allowDuplicateSkills
-            className="flex-1 overflow-y-auto lg:overflow-y-hidden lg:min-h-0"
-          />
-        </DrawerContent>
-      </Drawer>
+        umaId={undefined}
+        options={debuffSkillOptions}
+        currentSkills={pickerSelection}
+        onSelect={handlePickerSelection}
+        onOpenChange={handlePickerOpenChange}
+        allowDuplicateSkills
+      />
     </>
   );
 }

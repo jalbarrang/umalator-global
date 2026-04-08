@@ -1,4 +1,4 @@
-import { useMemo, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { CircleHelp, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -38,9 +38,10 @@ function useSkillCostState() {
 
 function SkillCostDetailsPopover(props: Readonly<SkillCostDetailsPopoverProps>) {
   const { triggerClassName, children } = props;
+  const [open, setOpen] = useState(false);
 
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
         render={
           <Button
@@ -54,9 +55,11 @@ function SkillCostDetailsPopover(props: Readonly<SkillCostDetailsPopoverProps>) 
           </Button>
         }
       />
-      <PopoverContent align="start" side="right" className="w-[420px] p-0">
-        <SkillCostDetails />
-      </PopoverContent>
+      {open && (
+        <PopoverContent align="start" side="right" className="w-[420px] p-0">
+          <SkillCostDetails />
+        </PopoverContent>
+      )}
     </Popover>
   );
 }
@@ -64,10 +67,11 @@ function SkillCostDetailsPopover(props: Readonly<SkillCostDetailsPopoverProps>) 
 export function SkillItemDetailsActions(props: Readonly<SkillItemDetailsActionsProps>) {
   const { dismissable = false, onDismiss, className } = props;
   const { skill, skillId, distanceFactor, onRemove } = useSkillItem();
+  const [detailsOpen, setDetailsOpen] = useState(false);
 
   return (
     <div data-slot="skill-item-detail-actions" className={cn('flex items-center gap-1', className)}>
-      <Popover>
+      <Popover open={detailsOpen} onOpenChange={setDetailsOpen}>
         <PopoverTrigger
           render={
             <Button
@@ -81,9 +85,11 @@ export function SkillItemDetailsActions(props: Readonly<SkillItemDetailsActionsP
           }
         />
 
-        <PopoverContent align="start" side="right" className="w-[420px] p-0">
-          <ExpandedSkillDetails id={skillId} skill={skill} distanceFactor={distanceFactor} />
-        </PopoverContent>
+        {detailsOpen && (
+          <PopoverContent align="start" side="right" className="w-[420px] p-0">
+            <ExpandedSkillDetails id={skillId} skill={skill} distanceFactor={distanceFactor} />
+          </PopoverContent>
+        )}
       </Popover>
 
       {dismissable && (
@@ -132,15 +138,17 @@ export function SkillItemCostAction(props: Readonly<SkillItemCostActionProps>) {
           className,
         )}
       >
-        {isObtained ? (
-          'Obtained'
-        ) : (
+        {}
+        {isObtained && 'Obtained'}
+
+        {!isObtained && (
           <>
             {roundedDiscountPct > 0 && (
               <span className="text-[11px] font-medium italic tracking-tight text-muted-foreground">
                 {roundedDiscountPct}% off
               </span>
             )}
+
             <span className="font-semibold text-foreground">{displayedNetCost} SP</span>
           </>
         )}

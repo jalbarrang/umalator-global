@@ -1,14 +1,13 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useIsMobile } from '@/hooks/useBreakpoint';
 import { RunnerCard } from '@/modules/runners/components/runner-card/runner-card';
-import { SkillPickerDrawer } from '@/modules/skills/components/skill-list/SkillPickerDrawer';
-import { SkillPickerContent } from '@/modules/skills/components/skill-picker-content';
 import { updateCurrentSkills } from '@/modules/skills/store';
 import { getSelectableSkillsForUma } from '@/modules/skills/utils';
+import { SkillPickerModal } from '@/modules/skills/components/skill-picker/modal';
+import { useHotkeys } from 'react-hotkeys-hook';
 
 type RunnerEditorLayoutProps = {
   runnerName: string;
@@ -20,16 +19,17 @@ type RunnerEditorLayoutProps = {
   isEditMode: boolean;
 };
 
-export const RunnerEditorLayout = ({
-  runnerName,
-  runnerState,
-  onRunnerNameChange,
-  onRunnerStateChange,
-  onSave,
-  onCancel,
-  isEditMode,
-}: RunnerEditorLayoutProps) => {
-  const isMobile = useIsMobile();
+export const RunnerEditorLayout = (props: RunnerEditorLayoutProps) => {
+  const {
+    runnerName,
+    runnerState,
+    onRunnerNameChange,
+    onRunnerStateChange,
+    onSave,
+    onCancel,
+    isEditMode,
+  } = props;
+
   const [skillPickerOpen, setSkillPickerOpen] = useState(false);
 
   const selectableSkills = useMemo(
@@ -40,6 +40,7 @@ export const RunnerEditorLayout = ({
   const handleSetSkills = (skills: Array<string>) => {
     onRunnerStateChange({ ...runnerState, skills });
     updateCurrentSkills(skills);
+    setSkillPickerOpen(false);
   };
 
   const handleRunnerChange = (newState: RunnerState) => {
@@ -47,112 +48,74 @@ export const RunnerEditorLayout = ({
     updateCurrentSkills(newState.skills);
   };
 
-  const childRef = useRef<{ focus: () => void }>(null);
+  useHotkeys(
+    'f',
+    (event) => {
+      event.preventDefault();
+      setSkillPickerOpen(true);
+    },
+    { enableOnFormTags: true, enabled: !skillPickerOpen },
+    [skillPickerOpen],
+  );
 
   return (
-    <div className="flex flex-col flex-1">
-      {/* Header with title and actions */}
-      <div className="flex items-center justify-between p-4 border-b shrink-0">
-        <h1 className="text-2xl font-bold">{isEditMode ? 'Edit Runner' : 'Register Runner'}</h1>
+    <>
+      <SkillPickerModal
+        open={skillPickerOpen}
+        umaId={runnerState.outfitId}
+        options={selectableSkills}
+        currentSkills={runnerState.skills}
+        onSelect={handleSetSkills}
+        onOpenChange={setSkillPickerOpen}
+      />
 
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button onClick={onSave}>{isEditMode ? 'Update' : 'Create'}</Button>
-        </div>
-      </div>
-
-      {/* Main content area */}
-      <div className="flex flex-1">
-        {isMobile ? (
-          /* Mobile layout: Single column with modal */
-          <div className="flex-1 overflow-y-auto p-4">
-            <div className="max-w-2xl mx-auto space-y-4">
-              {/* Runner Name Input */}
-              <div className="space-y-2">
-                <Label htmlFor="runner-name">Runner Name *</Label>
-                <Input
-                  id="runner-name"
-                  value={runnerName}
-                  onChange={(e) => onRunnerNameChange(e.target.value)}
-                  placeholder="Enter runner name..."
-                  autoFocus
-                />
-              </div>
-
-              {/* Runner Configuration */}
-              <div className="border rounded-lg p-2">
-                <RunnerCard
-                  value={runnerState}
-                  runnerId="editor"
-                  onChange={handleRunnerChange}
-                  onReset={() => {}}
-                  onCopy={() => {}}
-                  onSwap={() => {}}
-                />
-              </div>
+      <div className="flex flex-col mx-auto max-w-2xl p-4">
+        <div className="flex flex-col flex-1 bg-card rounded-md border">
+          {/* Header with title and actions */}
+          <div className="flex items-center justify-between p-4 border-b shrink-0">
+            <div className="text-xl font-bold">
+              {isEditMode ? 'Edit Runner' : 'Register Runner'}
             </div>
-
-            {/* Skill picker modal for mobile */}
-            <SkillPickerDrawer
-              open={skillPickerOpen}
-              umaId={runnerState.outfitId}
-              options={selectableSkills}
-              currentSkills={runnerState.skills}
-              onSelect={handleSetSkills}
-              onOpenChange={setSkillPickerOpen}
-            />
           </div>
-        ) : (
-          /* Desktop layout: Two columns */
-          <div className="grid grid-cols-6 w-full">
-            {/* Left column: Runner Editor */}
-            <div className="col-span-2 overflow-y-auto p-4 border-r">
-              <div className="flex flex-col gap-4">
+
+          {/* Main content area */}
+          <div className="flex flex-1">
+            <div className="flex-1 overflow-y-auto p-4">
+              <div className="max-w-2xl mx-auto space-y-4">
                 {/* Runner Name Input */}
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="runner-name">Runner Notes</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="runner-name">Runner Notes (required)</Label>
                   <Input
                     id="runner-name"
                     value={runnerName}
                     onChange={(e) => onRunnerNameChange(e.target.value)}
-                    placeholder="Enter runner notes..."
+                    placeholder="Add a note here"
                     autoFocus
+                    autoComplete="off"
                   />
                 </div>
 
                 {/* Runner Configuration */}
-                <div className="border rounded-lg p-2">
-                  <RunnerCard
-                    value={runnerState}
-                    runnerId="editor"
-                    onChange={handleRunnerChange}
-                    onReset={() => {}}
-                    onCopy={() => {}}
-                    onSwap={() => {}}
-                    hideSkillButton={true}
-                  />
-                </div>
+                <RunnerCard
+                  value={runnerState}
+                  runnerId="editor"
+                  onChange={handleRunnerChange}
+                  onOpenSkillPicker={() => setSkillPickerOpen(true)}
+                  showShareButton={false}
+                />
               </div>
             </div>
-
-            {/* Right column: Inline Skill Picker */}
-            <div className="col-span-4 p-4 flex flex-col gap-4">
-              <h2 className="text-lg font-semibold">Skills</h2>
-
-              <SkillPickerContent
-                ref={childRef}
-                umaId={runnerState.outfitId}
-                options={selectableSkills}
-                currentSkills={runnerState.skills}
-                onSelect={handleSetSkills}
-                className="flex-1 min-h-0"
-              />
-            </div>
           </div>
-        )}
+
+          {/* Footer */}
+          <div className="flex justify-end gap-2 p-4 border-t">
+            <Button variant="outline" onClick={onCancel}>
+              Cancel
+            </Button>
+            <Button onClick={onSave}>{isEditMode ? 'Update' : 'Create'}</Button>
+          </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
