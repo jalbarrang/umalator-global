@@ -1,5 +1,9 @@
 import { Outlet } from 'react-router';
 
 export function RunnersLayout() {
-  return <Outlet />;
+  return (
+    <div className="flex flex-col flex-1 overflow-y-auto">
+      <Outlet />
+    </div>
+  );
 }

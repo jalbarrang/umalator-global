@@ -24,7 +24,6 @@ import {
   SkillItemRoot,
 } from '../skill-list/skill-item';
 import { useVirtualizer, VirtualItem } from '@tanstack/react-virtual';
-import { useHotkeys } from 'react-hotkeys-hook';
 
 const SKILL_ROW_HEIGHT = 50;
 const SKILL_OVERSCAN = 40;
@@ -173,9 +172,27 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
       return filteredSkills[index]?.id ?? `skill-${index}`;
     },
   });
+  const rowVirtualizerRef = useRef(rowVirtualizer);
 
   const rowCount = filteredSkills.length;
+  const filteredSkillIds = useMemo(
+    () => filteredSkills.map((skill) => skill.id).join('|'),
+    [filteredSkills],
+  );
   const [focusedIndex, setFocusedIndex] = useState(0);
+
+  useEffect(() => {
+    rowVirtualizerRef.current = rowVirtualizer;
+  }, [rowVirtualizer]);
+
+  const scrollFocusedIntoView = useCallback(
+    (index: number) => {
+      requestAnimationFrame(() => {
+        rowVirtualizerRef.current.scrollToIndex(index, { align: 'auto' });
+      });
+    },
+    [],
+  );
 
   useEffect(() => {
     if (rowCount === 0) {
@@ -183,21 +200,9 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
       return;
     }
 
-    setFocusedIndex((prev) => Math.min(prev, rowCount - 1));
-  }, [rowCount]);
-
-  useEffect(() => {
     setFocusedIndex(0);
-  }, [deferredSearchText]);
-
-  const scrollFocusedIntoView = useCallback(
-    (index: number) => {
-      requestAnimationFrame(() => {
-        rowVirtualizer.scrollToIndex(index, { align: 'auto' });
-      });
-    },
-    [rowVirtualizer],
-  );
+    scrollFocusedIntoView(0);
+  }, [filteredSkillIds, rowCount, scrollFocusedIntoView]);
 
   const moveFocusedIndex = useCallback(
     (delta: number) => {
@@ -229,43 +234,30 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
 
   const hasRows = rowCount > 0;
 
-  const hotkeyOptions = useMemo(
-    () => ({
-      enableOnFormTags: ['input'] as const,
-      enabled: hasRows,
-      filter: () => document.activeElement === searchRef.current,
-    }),
-    [hasRows],
-  );
-
-  useHotkeys(
-    'up',
+  const handleSearchKeyDown: React.KeyboardEventHandler<HTMLInputElement> = useCallback(
     (event) => {
-      event.preventDefault();
-      moveFocusedIndex(-1);
-    },
-    hotkeyOptions,
-    [moveFocusedIndex, hotkeyOptions],
-  );
+      if (!hasRows) {
+        return;
+      }
 
-  useHotkeys(
-    'down',
-    (event) => {
-      event.preventDefault();
-      moveFocusedIndex(1);
-    },
-    hotkeyOptions,
-    [moveFocusedIndex, hotkeyOptions],
-  );
+      if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        moveFocusedIndex(-1);
+        return;
+      }
 
-  useHotkeys(
-    'enter',
-    (event) => {
-      event.preventDefault();
-      selectFocusedSkill();
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        moveFocusedIndex(1);
+        return;
+      }
+
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        selectFocusedSkill();
+      }
     },
-    hotkeyOptions,
-    [selectFocusedSkill, hotkeyOptions],
+    [hasRows, moveFocusedIndex, selectFocusedSkill],
   );
 
   return (
@@ -281,6 +273,7 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
             value={searchText}
             placeholder="Search skill by name"
             onChange={(e) => setSearchText(e.target.value)}
+            onKeyDown={handleSearchKeyDown}
           />
         </InputGroup>
       </div>
@@ -355,6 +348,7 @@ const SkillPickerItem = (props: SkillPickerItemProps) => {
           selected={selected}
           isHovered={hovered}
           isFocused={focused}
+          data-highlighted={focused ? 'true' : undefined}
           onPointerEnter={handleMouseEnter}
           onPointerLeave={handleMouseLeave}
         >
