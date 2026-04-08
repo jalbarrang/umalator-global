@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { ArrowLeftIcon, ArrowRightIcon, RotateCcwIcon } from 'lucide-react';
+import { ArrowLeftIcon, ArrowRightIcon } from 'lucide-react';
 import {
   completeCurrentStep,
   setCurrentStep,
@@ -81,8 +81,10 @@ export function SkillPlannerLayout() {
               This will reset the current Skill Planner session and return you to the start page.
             </AlertDialogDescription>
           </AlertDialogHeader>
+
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
+
             <AlertDialogAction
               onClick={() => {
                 startOver();
@@ -101,10 +103,10 @@ export function SkillPlannerLayout() {
           <div className="flex items-center justify-between gap-3">
             <SkillPlannerStepper currentStep={currentStep} onStepSelect={setCurrentStep} />
 
-            <Button variant="outline" size="sm" onClick={() => setStartOverOpen(true)}>
+            {/* <Button variant="outline" size="sm" onClick={() => setStartOverOpen(true)}>
               <RotateCcwIcon className="mr-2 h-4 w-4" />
               Start over
-            </Button>
+            </Button> */}
           </div>
 
           <div className="min-h-0 flex-1">

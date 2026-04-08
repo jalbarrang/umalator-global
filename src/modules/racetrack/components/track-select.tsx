@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import {
   getCourseIdByTrackIdAndIndex,
   getDefaultTrackIdForCourse,
@@ -33,29 +33,30 @@ export function TrackSelect(props: TrackSelectProps) {
   // Derive trackid from courseId instead of storing it as state
   const trackid = useMemo(() => getDefaultTrackIdForCourse(courseId), [courseId]);
 
-  const handleChangeCourse = (value: string | null) => {
+  const handleChangeCourse = useCallback((value: string | null) => {
     if (!value) {
       return;
     }
 
     setCourseId(+value);
-  };
+  }, []);
 
-  const handleChangeTrack = (value: string | null) => {
+  const handleChangeTrack = useCallback((value: string | null) => {
     if (!value) {
       return;
     }
 
     const newTrackId = +value;
     setCourseId(getCourseIdByTrackIdAndIndex(newTrackId, 0));
-  };
+  }, []);
 
   return (
     <div className={className} {...rest}>
       <Select value={trackid.toString()} onValueChange={handleChangeTrack}>
-        <SelectTrigger className="w-40">
+        <SelectTrigger className="w-full md:w-40">
           <SelectValue>{getTrackName(trackid)}</SelectValue>
         </SelectTrigger>
+
         <SelectContent>
           {trackIds.map((trackId, i) => (
             <SelectItem key={`track-${i}`} value={trackId}>
@@ -66,9 +67,10 @@ export function TrackSelect(props: TrackSelectProps) {
       </Select>
 
       <Select value={courseId.toString()} onValueChange={handleChangeCourse}>
-        <SelectTrigger className="w-40">
+        <SelectTrigger className="w-full md:w-40">
           <SelectValue>{trackDescription({ courseid: courseId })}</SelectValue>
         </SelectTrigger>
+
         <SelectContent>
           {(coursesByTrack[trackid] ?? []).map((cid) => (
             <SelectItem value={cid.toString()} key={cid}>

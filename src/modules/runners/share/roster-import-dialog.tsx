@@ -31,7 +31,7 @@ import { useRunnerLibraryStore, type SavedRunner } from '@/store/runner-library.
 import { getUmaDisplayInfo, getUmaImageUrl } from '@/modules/runners/utils';
 import { StatImage } from '@/modules/runners/components/StatInput';
 import { Separator } from '@/components/ui/separator';
-import { useIsMobile } from '@/hooks/useBreakpoint';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 // --- Types ---
 

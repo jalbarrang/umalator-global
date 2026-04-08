@@ -44,15 +44,16 @@ export const AptitudesTable = (props: AptitudesTableProps) => {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-      <div className="flex items-center gap-2 justify-between border rounded-xl">
+      <div className="grid grid-cols-2 items-center border rounded-xl">
         <Label className="pl-2">Surface aptitude:</Label>
+
         <AptitudeSelect
           value={value.surfaceAptitude}
           onChange={handleUpdateAptitude('surfaceAptitude')}
         />
       </div>
 
-      <div className="flex items-center gap-2 justify-between border rounded-xl">
+      <div className="grid grid-cols-2 items-center border rounded-xl">
         <Label className="pl-2">Distance aptitude:</Label>
         <AptitudeSelect
           value={value.distanceAptitude}
@@ -60,7 +61,7 @@ export const AptitudesTable = (props: AptitudesTableProps) => {
         />
       </div>
 
-      <div className="flex items-center gap-2 justify-between border rounded-xl">
+      <div className="grid grid-cols-2 items-center border rounded-xl">
         <Label className="pl-2">Style:</Label>
         <StrategySelect
           value={value.strategy}
@@ -69,7 +70,7 @@ export const AptitudesTable = (props: AptitudesTableProps) => {
         />
       </div>
 
-      <div className="flex items-center gap-2 justify-between border rounded-xl">
+      <div className="grid grid-cols-2 items-center border rounded-xl">
         <Label className="pl-2">Style aptitude:</Label>
         <AptitudeSelect
           value={value.strategyAptitude}
@@ -77,7 +78,7 @@ export const AptitudesTable = (props: AptitudesTableProps) => {
         />
       </div>
 
-      <div className="flex items-center gap-2 justify-between border rounded-xl">
+      <div className="grid grid-cols-2 items-center border rounded-xl">
         <Label className="pl-2">Mood:</Label>
         <MoodSelect value={value.mood} onChange={handleUpdateMood('mood')} />
       </div>

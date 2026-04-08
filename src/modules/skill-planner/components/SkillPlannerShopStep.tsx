@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { addCandidate, removeCandidate, useSkillPlannerStore } from '../skill-planner.store';
 import { CandidateSkillList } from './CandidateSkillList';
 import { Button } from '@/components/ui/button';
-import { SkillPickerDrawer } from '@/modules/skills/components/skill-list/SkillPickerDrawer';
+import { SkillPickerDrawer } from '@/modules/skills/components/skill-picker/drawer';
 import { getSelectableSkillsForUma } from '@/modules/skills/utils';
 
 export function SkillPlannerShopStep() {
@@ -51,10 +51,11 @@ export function SkillPlannerShopStep() {
 
       <div className="flex flex-col gap-4">
         <div className="rounded-lg border bg-card p-4">
-          <div className="mb-4 text-sm font-medium">Shop skills</div>
+          <div className="mb-4 text-sm font-medium">Skills Shop</div>
+
           <div className="flex flex-col gap-2 sm:flex-row">
             <Button
-              size="sm"
+              size="lg"
               className="justify-start sm:flex-1"
               onClick={() => toast.info('Shop screenshot import is next up in this refactor.')}
             >
@@ -63,7 +64,7 @@ export function SkillPlannerShopStep() {
             </Button>
 
             <Button
-              size="sm"
+              size="lg"
               variant="outline"
               className="justify-start sm:flex-1"
               onClick={() => setSkillPickerOpen(true)}

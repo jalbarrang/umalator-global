@@ -53,14 +53,14 @@ export const RunnerCard = (props: RunnerCardProps) => {
       />
 
       <div className={cn('flex flex-col gap-4', className)} {...rest}>
-        <div className="flex items-start gap-2">
+        <div className="flex flex-col md:flex-row gap-4">
           <UmaSelector
             value={value.outfitId}
             select={handleUpdateOutfitId}
             onReset={() => handleUpdateOutfitId('')}
           />
 
-          <div className="flex shrink-0 gap-2">
+          <div className="flex flex-col shrink-0 gap-2">
             <Button
               variant="outline"
               size="sm"
@@ -78,6 +78,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
         </div>
 
         <StatsTable value={value} onChange={handleUpdateStat} />
+
         <AptitudesTable
           value={value}
           onChange={handleUpdateAptitude}

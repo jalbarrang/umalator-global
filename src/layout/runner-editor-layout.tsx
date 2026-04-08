@@ -3,10 +3,10 @@ import type { RunnerState } from '@/modules/runners/components/runner-card/types
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useIsMobile } from '@/hooks/useBreakpoint';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { RunnerCard } from '@/modules/runners/components/runner-card/runner-card';
-import { SkillPickerDrawer } from '@/modules/skills/components/skill-list/SkillPickerDrawer';
-import { SkillPickerContent } from '@/modules/skills/components/skill-picker-content';
+import { SkillPickerDrawer } from '@/modules/skills/components/skill-picker/drawer';
+import { SkillPickerContent } from '@/modules/skills/components/skill-picker/content';
 import { updateCurrentSkills } from '@/modules/skills/store';
 import { getSelectableSkillsForUma } from '@/modules/skills/utils';
 

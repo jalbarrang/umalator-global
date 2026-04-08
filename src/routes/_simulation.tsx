@@ -4,7 +4,7 @@ import { Construction, SidebarOpen, XIcon } from 'lucide-react';
 
 import { LeftSidebar } from '@/layout/left-sidebar';
 import { SimulationModeToggle } from '@/components/simulation-mode-toggle';
-import { SkillPickerDrawer } from '@/modules/skills/components/skill-list/SkillPickerDrawer';
+import { SkillPickerDrawer } from '@/modules/skills/components/skill-picker/drawer';
 import { useSkillModalStore } from '@/modules/skills/store';
 import { Alert, AlertTitle, AlertDescription, AlertAction } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';

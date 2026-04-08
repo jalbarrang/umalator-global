@@ -18,7 +18,6 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { getSelectableSkillsForUma, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
-import { SkillPickerDrawer } from '@/modules/skills/components/skill-list/SkillPickerDrawer';
 import {
   SkillItem,
   SkillItemActions,
@@ -30,6 +29,7 @@ import {
   SkillItemRoot,
 } from '@/modules/skills/components/skill-list/skill-item';
 import { RaceSettingsPanel } from './RaceSettingsPanel';
+import { SkillPickerModal } from '@/modules/skills/components/skill-picker/modal';
 
 function ObtainedSkillRow({ dismissable }: Readonly<{ dismissable: boolean }>) {
   return (
@@ -74,7 +74,8 @@ export function SkillPlannerRunnerStep() {
 
   const handleOcrImportApply = (data: ExtractedUmaData) => {
     const nextOutfitId = data.outfitId ?? runner.outfitId;
-    const importedSkillIds = data.skills.length > 0 ? data.skills.map((skill) => skill.id) : obtainedSkillIds;
+    const importedSkillIds =
+      data.skills.length > 0 ? data.skills.map((skill) => skill.id) : obtainedSkillIds;
 
     const runnerSnapshot: RunnerState = {
       ...runner,
@@ -99,7 +100,16 @@ export function SkillPlannerRunnerStep() {
 
   return (
     <>
-      <SkillPickerDrawer
+      {/* <SkillPickerDrawer
+        open={skillPickerOpen}
+        umaId={runner.outfitId}
+        options={availableSkills}
+        currentSkills={obtainedSkillIds}
+        onSelect={setObtainedSkills}
+        onOpenChange={setSkillPickerOpen}
+      /> */}
+
+      <SkillPickerModal
         open={skillPickerOpen}
         umaId={runner.outfitId}
         options={availableSkills}
@@ -117,7 +127,6 @@ export function SkillPlannerRunnerStep() {
       <div className="flex flex-col gap-4">
         <div className="rounded-lg border bg-card p-4">
           <div className="mb-4 flex items-center justify-between gap-2">
-            <div className="text-sm font-medium">Runner baseline</div>
             <Button variant="outline" size="sm" onClick={() => setOcrImportOpen(true)}>
               <UploadIcon className="mr-2 h-4 w-4" />
               Import from Screenshot
@@ -132,12 +141,13 @@ export function SkillPlannerRunnerStep() {
           />
         </div>
 
-        <div className="rounded-lg border bg-card p-4">
-          <div className="mb-4 flex items-center justify-between gap-2">
+        <div className="flex flex-col gap-2 rounded-lg border bg-card p-2">
+          <div className="flex items-center justify-between gap-2">
             <div className="text-sm font-medium">Obtained skills</div>
+
             <Button size="sm" onClick={() => setSkillPickerOpen(true)} disabled={!runner.outfitId}>
               <PlusIcon className="mr-2 h-4 w-4" />
-              Edit obtained skills
+              Add obtained skills
             </Button>
           </div>
 
@@ -164,24 +174,23 @@ export function SkillPlannerRunnerStep() {
           )}
         </div>
 
-        <div className="rounded-lg border bg-card p-4">
-          <div className="mb-4 text-sm font-medium">Runner modifiers</div>
+        <div className="flex flex-col gap-2 rounded-lg border bg-card p-2">
+          <div className="text-sm font-medium">Runner modifiers</div>
+
           <div className="flex items-center gap-2">
             <Checkbox
               id="skill-planner-fast-learner"
               checked={hasFastLearner}
               onCheckedChange={(checked) => setHasFastLearner(checked === true)}
             />
+
             <Label htmlFor="skill-planner-fast-learner" className="font-normal">
               Fast Learner
             </Label>
           </div>
         </div>
 
-        <div className="rounded-lg border bg-card">
-          <div className="border-b px-4 py-3 text-sm font-medium">Race settings</div>
-          <RaceSettingsPanel open />
-        </div>
+        <RaceSettingsPanel open />
       </div>
     </>
   );

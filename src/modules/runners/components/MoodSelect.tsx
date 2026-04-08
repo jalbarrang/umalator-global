@@ -29,7 +29,7 @@ export function MoodSelect(props: Readonly<MoodSelectProps>) {
 
   return (
     <Select value={value.toString()} onValueChange={handleChange}>
-      <SelectTrigger className="border-none rounded-none shadow-none">
+      <SelectTrigger className="border-none rounded-none shadow-none w-full">
         <img
           src={getIconUrl(`global/${moodValues.find((m) => m.value === props.value)?.icon}.png`)}
           className="w-13 h-5"

@@ -18,7 +18,7 @@ import {
 import { createSkillSorterByGroup, toCreateRunner } from '@/modules/simulation/simulators/shared';
 import { useSettingsStore } from '@/store/settings.store';
 import { setDismissal, useUIStore } from '@/store/ui.store';
-import { SkillPickerDrawer } from '@/modules/skills/components/skill-list/SkillPickerDrawer';
+import { SkillPickerDrawer } from '@/modules/skills/components/skill-picker/drawer';
 import { useSkillModalStore } from '@/modules/skills/store';
 import type { RaceSimWorkerParams } from '@/workers/race-sim.worker';
 

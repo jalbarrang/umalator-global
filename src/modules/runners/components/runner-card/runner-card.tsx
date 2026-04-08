@@ -56,7 +56,7 @@ import { UmaSelector } from '@/modules/runners/components/runner-selector';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { useIsMobile } from '@/hooks/useBreakpoint';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { openSkillPicker, updateCurrentSkills } from '@/modules/skills/store';
 import {
   setFastLearner,

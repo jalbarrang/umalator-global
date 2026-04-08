@@ -1,14 +1,15 @@
 import type { RefObject } from 'react';
 import { createStore } from 'zustand/vanilla';
-import type { OcrMaskType, PreparedImage, WizardStep } from '@/modules/runners/components/ocr/types';
+import type {
+  OcrMaskType,
+  PreparedImage,
+  WizardStep,
+} from '@/modules/runners/components/ocr/types';
 import { parseOcrResult } from '@/modules/runners/ocr/parser';
 import type { OcrEngine } from '@/modules/runners/ocr/engine';
 import type { ExtractedSkill, ExtractedUmaData } from '@/modules/runners/ocr/types';
 
-type ProcessingResolver = (data: Partial<ExtractedUmaData> | null) => void;
-type ProcessingRejecter = (error: Error) => void;
-
-export interface OcrDialogStore {
+type OcrDialogState = {
   isProcessing: boolean;
   progress: number;
   error: string | null;
@@ -18,11 +19,11 @@ export interface OcrDialogStore {
   showSkillsEditor: boolean;
 
   _engineRef: RefObject<OcrEngine | null>;
-  _resolveProcessing: ProcessingResolver | null;
-  _rejectProcessing: ProcessingRejecter | null;
   _pendingMaskType: OcrMaskType | null;
   _pendingBaseData: Partial<ExtractedUmaData> | null;
+};
 
+type OcrDialogActions = {
   processComposited: (
     blob: Blob,
     maskType: OcrMaskType,
@@ -36,21 +37,13 @@ export interface OcrDialogStore {
   addPreparedImage: (image: PreparedImage) => void;
   clearPreparedImages: () => void;
   cleanup: () => void;
-}
+};
+
+export type IOcrDialogStore = OcrDialogState & {
+  actions: OcrDialogActions;
+};
 
 const INITIAL_STEP: WizardStep = 'align';
-
-const EMPTY_PENDING: {
-  _resolveProcessing: null;
-  _rejectProcessing: null;
-  _pendingMaskType: null;
-  _pendingBaseData: null;
-} = {
-  _resolveProcessing: null,
-  _rejectProcessing: null,
-  _pendingMaskType: null,
-  _pendingBaseData: null,
-};
 
 function dedupeSkills(skills: Array<ExtractedSkill>): Array<ExtractedSkill> {
   const byId = new Map<string, ExtractedSkill>();
@@ -104,16 +97,9 @@ function revokePreparedPreviews(images: Array<PreparedImage>) {
 }
 
 export function createOcrDialogStore(engineRef: RefObject<OcrEngine | null>) {
-  return createStore<OcrDialogStore>()((set, get) => {
-    const resolvePending = (value: Partial<ExtractedUmaData> | null) => {
-      const resolver = get()._resolveProcessing;
-      set(EMPTY_PENDING);
-      resolver?.(value);
-    };
-
+  return createStore<IOcrDialogStore>()((set, get) => {
     const resetState = () => {
       revokePreparedPreviews(get().preparedImages);
-      resolvePending(null);
       set({
         isProcessing: false,
         progress: 0,
@@ -135,86 +121,81 @@ export function createOcrDialogStore(engineRef: RefObject<OcrEngine | null>) {
       showSkillsEditor: false,
 
       _engineRef: engineRef,
-      ...EMPTY_PENDING,
+      _pendingBaseData: null,
+      _pendingMaskType: null,
 
-      processComposited: (blob, maskType, existingData) => {
-        const state = get();
+      actions: {
+        processComposited: async (blob, maskType, existingData) => {
+          const state = get();
 
-        if (state.isProcessing) return Promise.resolve(state.results);
+          if (state.isProcessing) return Promise.resolve(state.results);
 
-        const engine = state._engineRef.current;
-        if (!engine) {
-          const msg = 'No OCR engine is ready. Enter your Gemini API key to get started.';
-          set({ error: msg });
-          return Promise.reject(new Error(msg));
-        }
+          const engine = state._engineRef.current;
+          if (!engine) {
+            const msg = 'No OCR engine is ready. Enter your Gemini API key to get started.';
+            set({ error: msg });
+            return Promise.reject(new Error(msg));
+          }
 
-        const baseData = existingData ?? state.results;
+          const baseData = existingData ?? state.results;
 
-        set({
-          isProcessing: true,
-          progress: 0,
-          error: null,
-          _pendingMaskType: maskType,
-          _pendingBaseData: baseData,
-          _resolveProcessing: null,
-          _rejectProcessing: null,
-        });
+          set({
+            isProcessing: true,
+            progress: 0,
+            error: null,
+          });
 
-        return new Promise<Partial<ExtractedUmaData> | null>((resolve, reject) => {
-          set({ _resolveProcessing: resolve, _rejectProcessing: reject });
+          try {
+            set({ progress: 10 });
+            const engineResult = await engine.recognize(blob);
+            set({ progress: 90 });
 
-          void (async () => {
-            try {
-              set({ progress: 10 });
-              const engineResult = await engine.recognize(blob);
-              set({ progress: 90 });
+            const parsed = parseOcrResult(engineResult, 0);
+            const merged = mergeExtractedResults(baseData, parsed, maskType);
 
-              const parsed = parseOcrResult(engineResult, 0);
-              const merged = mergeExtractedResults(baseData, parsed, maskType);
+            set({ results: merged, isProcessing: false, progress: 100 });
 
-              const resolver = get()._resolveProcessing;
-              set({ results: merged, isProcessing: false, progress: 100, ...EMPTY_PENDING });
-              resolver?.(merged);
-            } catch (err) {
-              const msg = err instanceof Error ? err.message : 'OCR processing failed';
-              const rejecter = get()._rejectProcessing;
-              set({ isProcessing: false, error: msg, ...EMPTY_PENDING });
-              rejecter?.(new Error(msg));
-            }
-          })();
-        });
+            return merged;
+          } catch (err) {
+            const msg = err instanceof Error ? err.message : 'OCR processing failed';
+
+            set({ isProcessing: false, error: msg });
+
+            return null;
+          }
+        },
+
+        updateResults: (updates) => {
+          set((state) => ({
+            results: state.results ? { ...state.results, ...updates } : updates,
+          }));
+        },
+
+        removeSkill: (skillId) => {
+          const { results } = get();
+          if (!results?.skills) return;
+
+          set({ results: { ...results, skills: results.skills.filter((s) => s.id !== skillId) } });
+        },
+
+        reset: resetState,
+
+        setStep: (step) => set({ step }),
+
+        setShowSkillsEditor: (showSkillsEditor) => set({ showSkillsEditor }),
+
+        addPreparedImage: (image) =>
+          set((state) => ({ preparedImages: [...state.preparedImages, image] })),
+
+        clearPreparedImages: () => {
+          revokePreparedPreviews(get().preparedImages);
+          set({ preparedImages: [] });
+        },
+
+        cleanup: resetState,
       },
-
-      updateResults: (updates) => {
-        set((state) => ({
-          results: state.results ? { ...state.results, ...updates } : updates,
-        }));
-      },
-
-      removeSkill: (skillId) => {
-        const { results } = get();
-        if (!results?.skills) return;
-        set({ results: { ...results, skills: results.skills.filter((s) => s.id !== skillId) } });
-      },
-
-      reset: resetState,
-
-      setStep: (step) => set({ step }),
-
-      setShowSkillsEditor: (showSkillsEditor) => set({ showSkillsEditor }),
-
-      addPreparedImage: (image) =>
-        set((state) => ({ preparedImages: [...state.preparedImages, image] })),
-
-      clearPreparedImages: () => {
-        revokePreparedPreviews(get().preparedImages);
-        set({ preparedImages: [] });
-      },
-
-      cleanup: resetState,
     };
   });
 }
 
-export type OcrDialogStoreApi = ReturnType<typeof createOcrDialogStore>;
+export type IOcrDialogStoreApi = ReturnType<typeof createOcrDialogStore>;

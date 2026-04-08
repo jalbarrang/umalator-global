@@ -27,7 +27,10 @@ function DialogOverlay({ className, ...props }: DialogPrimitive.Backdrop.Props) 
   return (
     <DialogPrimitive.Backdrop
       data-slot="dialog-overlay"
-      className={cn('bg-black/70 fixed inset-0 isolate z-50', className)}
+      className={cn(
+        'data-closed:fade-out-0 data-open:fade-in-0 bg-black/10 supports-backdrop-filter:backdrop-blur-xs fixed inset-0 isolate z-50',
+        className,
+      )}
       {...props}
     />
   );

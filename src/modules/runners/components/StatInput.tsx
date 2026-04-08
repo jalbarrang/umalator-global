@@ -32,7 +32,7 @@ export const StatInput = (props: StatInputProps) => {
   }, [value]);
 
   return (
-    <div className="flex items-center">
+    <div className="flex items-center gap-2">
       <div className="flex items-center justify-center p-1">
         <StatImage value={innerValue} className="w-4 h-4" />
       </div>

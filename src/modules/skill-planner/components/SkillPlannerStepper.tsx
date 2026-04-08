@@ -33,11 +33,14 @@ export function SkillPlannerStepper(props: Readonly<SkillPlannerStepperProps>) {
             {index > 0 && (
               <div className={cn('h-px w-6', isPast || completed ? 'bg-primary' : 'bg-border')} />
             )}
+
             <button
               type="button"
               disabled={!isClickable}
               onClick={() => {
-                if (isClickable) onStepSelect(step);
+                if (isClickable) {
+                  onStepSelect(step);
+                }
               }}
               className={cn('flex items-center gap-1.5', isClickable && 'cursor-pointer')}
             >
@@ -51,6 +54,7 @@ export function SkillPlannerStepper(props: Readonly<SkillPlannerStepperProps>) {
               >
                 {completed && !active ? <Check className="size-3" /> : index + 1}
               </div>
+
               <span
                 className={cn(
                   'hidden text-xs font-medium lg:block',
