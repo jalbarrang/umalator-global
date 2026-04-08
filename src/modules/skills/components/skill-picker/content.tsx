@@ -8,7 +8,6 @@ import {
   useState,
 } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { VirtualizedSkillGrid } from '../VirtualizedSkillGrid';
 import {
   InputGroup,
   InputGroupAddon,
@@ -16,10 +15,20 @@ import {
   InputGroupText,
 } from '@/components/ui/input-group';
 import { getUniqueSkillForByUmaId } from '@/modules/skills/utils';
-import { getManySkills } from '@/modules/data/skills';
+import { getManySkills, SkillEntry } from '@/modules/data/skills';
 import { useFilteredSkills } from './store';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { SkillPickerFilterRow } from './filter-row';
+import { cn } from '@/lib/utils';
+import {
+  SkillItem,
+  SkillItemActions,
+  SkillItemBody,
+  SkillItemDetailsActions,
+  SkillItemIdentity,
+  SkillItemMain,
+  SkillItemRail,
+  SkillItemRoot,
+} from '../skill-list/skill-item';
+import { useVirtualizer, VirtualItem } from '@tanstack/react-virtual';
 
 export type SkillPickerContentProps = {
   ref: React.RefObject<{ focus: () => void } | null>;
@@ -27,12 +36,21 @@ export type SkillPickerContentProps = {
   options: Array<string>;
   currentSkills: Array<string>;
   onSelect: (skills: Array<string>) => void;
+  className?: string;
   isMobile?: boolean;
   allowDuplicateSkills?: boolean;
 };
 
 export function SkillPickerContent(props: SkillPickerContentProps) {
-  const { ref, umaId, options, currentSkills, onSelect, allowDuplicateSkills = false } = props;
+  const {
+    ref,
+    umaId,
+    options,
+    currentSkills,
+    onSelect,
+    className,
+    allowDuplicateSkills = false,
+  } = props;
 
   const umaUniqueSkillId = useMemo(
     () => (umaId ? getUniqueSkillForByUmaId(umaId) : undefined),
@@ -142,10 +160,13 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
       event.preventDefault();
       if (filteredSkills.length === 0) return;
 
-      setFocusedSkillIndex((prev) => {
-        const nextIndex = prev + 1;
-        return nextIndex >= filteredSkills.length ? 0 : nextIndex;
-      });
+      const currentIndex = focusedSkillIndex;
+      const nextIndex = currentIndex + 1;
+
+      const clampedNextIndex = nextIndex >= filteredSkills.length ? 0 : nextIndex;
+
+      setFocusedSkillIndex(clampedNextIndex);
+      rowVirtualizer.scrollToIndex(clampedNextIndex);
     },
     { enableOnFormTags: true },
   );
@@ -156,10 +177,13 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
       event.preventDefault();
       if (filteredSkills.length === 0) return;
 
-      setFocusedSkillIndex((prev) => {
-        const nextIndex = prev - 1;
-        return nextIndex < 0 ? filteredSkills.length - 1 : nextIndex;
-      });
+      const currentIndex = focusedSkillIndex;
+      const nextIndex = currentIndex - 1;
+
+      const clampedNextIndex = nextIndex < 0 ? filteredSkills.length - 1 : nextIndex;
+
+      setFocusedSkillIndex(clampedNextIndex);
+      rowVirtualizer.scrollToIndex(clampedNextIndex);
     },
     { enableOnFormTags: true },
   );
@@ -217,10 +241,20 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
     [searchRef],
   );
 
-  const isMobile = useIsMobile();
+  const parentRef = useRef(null);
+
+  const rowVirtualizer = useVirtualizer({
+    count: filteredSkills.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 50,
+    overscan: 40,
+    getItemKey: (index) => {
+      return filteredSkills[index]?.id ?? `skill-${index}`;
+    },
+  });
 
   return (
-    <div className="flex flex-col flex-1 min-h-0 gap-2">
+    <div className={cn('flex flex-col min-h-0 max-h-full gap-2', className)}>
       <div data-filter-group="search">
         <InputGroup>
           <InputGroupAddon>
@@ -241,21 +275,85 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
         </InputGroup>
       </div>
 
-      {!isMobile && <SkillPickerFilterRow />}
+      {/* {!isMobile && <SkillPickerFilterRow />} */}
 
-      <div className="flex flex-col min-h-0 overflow-y-auto">
-        <VirtualizedSkillGrid
-          items={filteredSkills}
-          selectedMap={selectedMap}
-          onClick={toggleSelected}
-          className="p-1"
-          focusedSkillId={
-            focusedSkillIndex >= 0 && focusedSkillIndex < filteredSkills.length
-              ? filteredSkills[focusedSkillIndex].id
-              : null
-          }
-        />
+      <div ref={parentRef} className="h-[400px] overflow-y-auto p-2">
+        <div style={{ height: `${rowVirtualizer.getTotalSize()}px` }} className="relative w-full">
+          {rowVirtualizer.getVirtualItems().map((virtualItem) => {
+            const skill = filteredSkills[virtualItem.index];
+            if (!skill) return null;
+
+            return (
+              <SkillPickerItem
+                key={skill.id}
+                skill={skill}
+                virtualItem={virtualItem}
+                selected={selectedMap.get(`${skill.groupId}`) === skill.id}
+                focused={focusedSkillIndex === virtualItem.index}
+                toggleSelected={toggleSelected}
+              />
+            );
+          })}
+        </div>
       </div>
     </div>
   );
 }
+
+type SkillPickerItemProps = {
+  skill: SkillEntry;
+  virtualItem: VirtualItem;
+  selected: boolean;
+  focused: boolean;
+  toggleSelected: React.MouseEventHandler<HTMLDivElement>;
+};
+
+const SkillPickerItem = (props: SkillPickerItemProps) => {
+  const { skill, virtualItem, selected, focused, toggleSelected } = props;
+
+  const [hovered, setHovered] = useState(false);
+
+  const handleMouseEnter = useCallback(() => {
+    setHovered(true);
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setHovered(false);
+  }, []);
+
+  return (
+    <div
+      key={skill.id}
+      onClick={toggleSelected}
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: `${virtualItem.size}px`,
+        transform: `translateY(${virtualItem.start}px)`,
+      }}
+    >
+      <SkillItem skillId={skill.id}>
+        <SkillItemRoot
+          interactive
+          selected={selected}
+          isHovered={hovered}
+          isFocused={focused}
+          onPointerEnter={handleMouseEnter}
+          onPointerLeave={handleMouseLeave}
+        >
+          <SkillItemRail />
+          <SkillItemBody className="p-1 px-2">
+            <SkillItemMain>
+              <SkillItemIdentity />
+              <SkillItemActions>
+                <SkillItemDetailsActions />
+              </SkillItemActions>
+            </SkillItemMain>
+          </SkillItemBody>
+        </SkillItemRoot>
+      </SkillItem>
+    </div>
+  );
+};

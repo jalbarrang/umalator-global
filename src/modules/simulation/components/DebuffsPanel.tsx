@@ -1,13 +1,5 @@
-import { XIcon } from 'lucide-react';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-} from '@/components/ui/drawer';
 import {
   Panel,
   PanelContent,
@@ -17,7 +9,6 @@ import {
 } from '@/components/ui/panel';
 import { normalizeSkillId } from '@/modules/data/skills';
 import { DebuffGroup } from './DebuffGroup';
-import { SkillPickerContent } from '@/modules/skills/components/skill-picker/content';
 import { getSkills } from '@/modules/data/skills';
 import { isInjectableExternalDebuffSkill } from '@/lib/sunday-tools/skills/external-debuffs';
 import {
@@ -90,7 +81,7 @@ export function DebuffsPanel() {
         </PanelContent>
       </Panel>
 
-      <Drawer
+      {/* <Drawer
         direction="right"
         open={isPickerOpen}
         onOpenChange={(open) => {
@@ -116,10 +107,9 @@ export function DebuffsPanel() {
             currentSkills={pickerSelection}
             onSelect={handlePickerSelection}
             allowDuplicateSkills
-            className="flex-1 overflow-y-auto lg:overflow-y-hidden lg:min-h-0"
           />
         </DrawerContent>
-      </Drawer>
+      </Drawer> */}
     </>
   );
 }

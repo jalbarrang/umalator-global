@@ -21,20 +21,22 @@ export const SkillPickerModal = (props: SkillPickerDrawerProps) => {
     <SkillPickerProvider>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent
-          className="max-h-[90dvh] min-h-0 max-w-full md:max-w-3xl! overflow-y-hidden"
+          className="flex flex-col max-h-[90dvh] min-h-0 max-w-full md:max-w-3xl!"
           autoFocus
         >
           <DialogHeader>
             <DialogTitle>Skill Picker</DialogTitle>
           </DialogHeader>
 
-          <SkillPickerContent
-            ref={childRef}
-            umaId={umaId}
-            options={options}
-            currentSkills={currentSkills}
-            onSelect={onSelect}
-          />
+          <div className="flex flex-col min-h-0 h-full">
+            <SkillPickerContent
+              ref={childRef}
+              umaId={umaId}
+              options={options}
+              currentSkills={currentSkills}
+              onSelect={onSelect}
+            />
+          </div>
         </DialogContent>
       </Dialog>
     </SkillPickerProvider>

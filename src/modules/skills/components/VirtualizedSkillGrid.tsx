@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import {
   SkillItem,
   SkillItemActions,
@@ -9,8 +10,9 @@ import {
   SkillItemRail,
   SkillItemRoot,
 } from './skill-list/skill-item';
-import type { CSSProperties } from 'react';
 import type { SkillEntry } from '@/modules/data/skills';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { cn } from '@/lib/utils';
 
 type VirtualizedSkillGridProps = {
   items: Array<SkillEntry>;
@@ -25,21 +27,17 @@ const GAP = 8; // Gap between items
 const ROW_HEIGHT = ITEM_HEIGHT + GAP;
 const OVERSCAN_ROWS = 3; // Render 3 extra rows above and below viewport
 
-function VirtualizedSkillRow({
-  selected,
-  isHovered,
-  isFocused,
-  style,
-  onMouseEnter,
-  onMouseLeave,
-}: Readonly<{
+type VirtualizedSkillRowProps = {
   selected: boolean;
   isHovered: boolean;
   isFocused: boolean;
-  style: CSSProperties;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
-}>) {
+};
+
+function VirtualizedSkillRow(props: VirtualizedSkillRowProps) {
+  const { selected, isHovered, isFocused, onMouseEnter, onMouseLeave } = props;
+
   return (
     <SkillItemRoot
       interactive
@@ -49,7 +47,6 @@ function VirtualizedSkillRow({
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       className="cursor-pointer"
-      style={style}
     >
       <SkillItemRail />
       <SkillItemBody className="p-1 px-2">
@@ -64,32 +61,20 @@ function VirtualizedSkillRow({
   );
 }
 
-export function VirtualizedSkillGrid({
-  items,
-  selectedMap,
-  onClick,
-  className = '',
-  focusedSkillId = null,
-}: VirtualizedSkillGridProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [scrollTop, setScrollTop] = useState(0);
-  const [containerHeight, setContainerHeight] = useState(0);
+export function VirtualizedSkillGrid(props: VirtualizedSkillGridProps) {
+  const { items, selectedMap, onClick, className = '', focusedSkillId = null } = props;
+  const viewportRef = useRef<HTMLDivElement>(null);
   const [columnCount, setColumnCount] = useState(1);
   const [hoveredSkillId, setHoveredSkillId] = useState<string | null>(null);
 
-  // Detect column count based on container width using ResizeObserver
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
+    const viewport = viewportRef.current;
+    if (!viewport) return;
 
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const width = entry.contentRect.width;
-        // Set initial container height
-        setContainerHeight(entry.contentRect.height);
 
-        // Determine column count based on breakpoints (matching Tailwind)
-        // sm: 640px, lg: 1024px
         if (width >= 1024) {
           setColumnCount(3);
         } else if (width >= 640) {
@@ -100,111 +85,97 @@ export function VirtualizedSkillGrid({
       }
     });
 
-    resizeObserver.observe(container);
+    resizeObserver.observe(viewport);
 
     return () => {
       resizeObserver.disconnect();
     };
   }, []);
 
-  // Handle scroll events
-  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-    const target = e.currentTarget;
-    setScrollTop(target.scrollTop);
-    setContainerHeight(target.clientHeight);
-  }, []);
-
-  // Calculate visible range based on scroll position
-  const { startIndex, endIndex, totalHeight } = useMemo(() => {
-    const totalRows = Math.ceil(items.length / columnCount);
-    const totalHeight = totalRows * ROW_HEIGHT;
-
-    const startRow = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - OVERSCAN_ROWS);
-    const visibleRows = Math.ceil(containerHeight / ROW_HEIGHT) + OVERSCAN_ROWS * 2;
-    const endRow = Math.min(totalRows, startRow + visibleRows);
-
-    return {
-      startIndex: startRow * columnCount,
-      endIndex: Math.min(items.length, endRow * columnCount),
-      totalHeight,
-    };
-  }, [items.length, columnCount, scrollTop, containerHeight]);
-
-  // Calculate positioning for an item
-  const getItemStyle = useCallback(
-    (index: number): CSSProperties => {
-      const row = Math.floor(index / columnCount);
-      const col = index % columnCount;
-
-      return {
-        position: 'absolute',
-        top: `${row * ROW_HEIGHT}px`,
-        left: `calc(${col} * (100% / ${columnCount}) + ${col > 0 ? GAP / 2 : 0}px)`,
-        width: `calc(100% / ${columnCount} - ${GAP}px)`,
-        height: `${ITEM_HEIGHT}px`,
-      };
-    },
-    [columnCount],
+  const rowCount = useMemo(
+    () => Math.ceil(items.length / columnCount),
+    [items.length, columnCount],
   );
 
-  // Auto-scroll to focused skill
+  const rowVirtualizer = useVirtualizer({
+    count: rowCount,
+    getScrollElement: () => viewportRef.current,
+    estimateSize: () => ROW_HEIGHT,
+    overscan: OVERSCAN_ROWS,
+    getItemKey: (index) => {
+      const rowStartIndex = index * columnCount;
+      return items[rowStartIndex]?.id ?? `row-${index}`;
+    },
+  });
+
   useEffect(() => {
-    if (!focusedSkillId || !containerRef.current) return;
+    if (!focusedSkillId) return;
 
     const focusedIndex = items.findIndex((skill) => skill.id === focusedSkillId);
     if (focusedIndex === -1) return;
 
-    const row = Math.floor(focusedIndex / columnCount);
-    const itemTop = row * ROW_HEIGHT;
-    const itemBottom = itemTop + ITEM_HEIGHT;
-
-    const container = containerRef.current;
-    const viewportTop = container.scrollTop;
-    const viewportBottom = viewportTop + container.clientHeight;
-
-    // Scroll if item is not fully visible
-    if (itemTop < viewportTop) {
-      // Scroll up to show item at top
-      container.scrollTop = itemTop - GAP;
-    } else if (itemBottom > viewportBottom) {
-      // Scroll down to show item at bottom
-      container.scrollTop = itemBottom - container.clientHeight + GAP;
-    }
-  }, [focusedSkillId, items, columnCount]);
+    rowVirtualizer.scrollToIndex(Math.floor(focusedIndex / columnCount), {
+      align: 'auto',
+    });
+  }, [focusedSkillId, items, columnCount, rowVirtualizer]);
 
   return (
-    <div
-      ref={containerRef}
-      className={`overflow-y-auto flex-1 min-h-0 ${className}`}
-      onScroll={handleScroll}
+    <ScrollArea
+      className="flex-1 min-h-0"
+      viewportRef={viewportRef}
+      viewportClassName="overflow-y-auto"
     >
       <div
+        className={cn('relative w-full', className)}
+        onClick={onClick}
         style={{
-          height: `${totalHeight}px`,
-          position: 'relative',
+          height: `${rowVirtualizer.getTotalSize()}px`,
           padding: `${GAP / 2}px`,
         }}
-        onClick={onClick}
       >
-        {items.slice(startIndex, endIndex).map((skill, i) => {
-          const actualIndex = startIndex + i;
-          const isHovered = hoveredSkillId === skill.id;
-          const isFocused = focusedSkillId === skill.id;
+        {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+          const rowItems = items.slice(
+            virtualRow.index * columnCount,
+            virtualRow.index * columnCount + columnCount,
+          );
 
           return (
-            <SkillItem key={skill.id} skillId={skill.id}>
-              <VirtualizedSkillRow
-                selected={selectedMap.get(`${skill.groupId}`) === skill.id}
-                isHovered={isHovered}
-                isFocused={isFocused}
-                onMouseEnter={() => setHoveredSkillId(skill.id)}
-                onMouseLeave={() => setHoveredSkillId(null)}
-                style={getItemStyle(actualIndex)}
-              />
-            </SkillItem>
+            <div
+              key={virtualRow.key}
+              className="absolute left-0 top-0 w-full"
+              style={{
+                height: `${ITEM_HEIGHT}px`,
+                transform: `translateY(${virtualRow.start}px)`,
+              }}
+            >
+              <div
+                className="grid px-1"
+                style={{
+                  columnGap: `${GAP}px`,
+                  gridTemplateColumns: `repeat(${columnCount}, minmax(0, 1fr))`,
+                }}
+              >
+                {rowItems.map((skill) => {
+                  const isHovered = hoveredSkillId === skill.id;
+                  const isFocused = focusedSkillId === skill.id;
+
+                  return (
+                    <SkillItem key={skill.id} skillId={skill.id}>
+                      <VirtualizedSkillRow
+                        selected={selectedMap.get(`${skill.groupId}`) === skill.id}
+                        isHovered={isHovered}
+                        isFocused={isFocused}
+                        onMouseEnter={() => setHoveredSkillId(skill.id)}
+                        onMouseLeave={() => setHoveredSkillId(null)}
+                      />
+                    </SkillItem>
+                  );
+                })}
+              </div>
+            </div>
           );
         })}
       </div>
-    </div>
+    </ScrollArea>
   );
 }
