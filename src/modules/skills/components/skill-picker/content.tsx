@@ -24,6 +24,7 @@ import {
   SkillItemRoot,
 } from '../skill-list/skill-item';
 import { useVirtualizer, VirtualItem } from '@tanstack/react-virtual';
+import { SkillPickerFilterRow } from './filter-row';
 
 const SKILL_ROW_HEIGHT = 50;
 const SKILL_OVERSCAN = 40;
@@ -185,14 +186,11 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
     rowVirtualizerRef.current = rowVirtualizer;
   }, [rowVirtualizer]);
 
-  const scrollFocusedIntoView = useCallback(
-    (index: number) => {
-      requestAnimationFrame(() => {
-        rowVirtualizerRef.current.scrollToIndex(index, { align: 'auto' });
-      });
-    },
-    [],
-  );
+  const scrollFocusedIntoView = useCallback((index: number) => {
+    requestAnimationFrame(() => {
+      rowVirtualizerRef.current.scrollToIndex(index, { align: 'auto' });
+    });
+  }, []);
 
   useEffect(() => {
     if (rowCount === 0) {
@@ -278,9 +276,9 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
         </InputGroup>
       </div>
 
-      {/* {!isMobile && <SkillPickerFilterRow />} */}
+      <SkillPickerFilterRow />
 
-      <div ref={parentRef} className="h-[400px] overflow-y-auto p-2">
+      <div ref={parentRef} className="h-[500px] overflow-y-auto p-2">
         <div style={{ height: `${rowVirtualizer.getTotalSize()}px` }} className="relative w-full">
           {rowVirtualizer.getVirtualItems().map((virtualItem) => {
             const skill = filteredSkills[virtualItem.index];

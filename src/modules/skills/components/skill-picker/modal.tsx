@@ -14,7 +14,8 @@ type SkillPickerDrawerProps = {
 };
 
 export const SkillPickerModal = (props: SkillPickerDrawerProps) => {
-  const { open, umaId, options, currentSkills, onSelect, onOpenChange, allowDuplicateSkills } = props;
+  const { open, umaId, options, currentSkills, onSelect, onOpenChange, allowDuplicateSkills } =
+    props;
 
   const childRef = useRef<{ focus: () => void }>(null);
 
@@ -22,7 +23,7 @@ export const SkillPickerModal = (props: SkillPickerDrawerProps) => {
     <SkillPickerProvider>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent
-          className="flex flex-col h-dvh md:h-[50dvh] min-h-0 max-w-full md:max-w-3xl!"
+          className="flex flex-col h-dvh md:h-[70dvh] min-h-0 max-w-full md:max-w-3xl!"
           autoFocus
         >
           <DialogHeader>
