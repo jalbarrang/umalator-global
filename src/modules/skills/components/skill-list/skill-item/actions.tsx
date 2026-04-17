@@ -57,7 +57,7 @@ function SkillCostDetailsPopover(props: Readonly<SkillCostDetailsPopoverProps>) 
       />
 
       {open && (
-        <PopoverContent align="start" side="right" className="w-[420px] p-0">
+        <PopoverContent align="start" side="right" className="w-[300px] p-0">
           <SkillCostDetails />
         </PopoverContent>
       )}
@@ -87,7 +87,7 @@ export function SkillItemDetailsActions(props: Readonly<SkillItemDetailsActionsP
         />
 
         {detailsOpen && (
-          <PopoverContent align="start" side="right" className="w-[420px] p-0">
+          <PopoverContent align="start" side="right" className="w-[300px] p-0">
             <ExpandedSkillDetails id={skillId} skill={skill} distanceFactor={distanceFactor} />
           </PopoverContent>
         )}
