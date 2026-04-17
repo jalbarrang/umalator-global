@@ -52,7 +52,7 @@ export function SkillItemRoot(props: Readonly<SkillItemRootProps>) {
       data-skillid={interactive ? resolvedSkillId : undefined}
       data-event={interactive ? 'select-skill' : undefined}
       className={cn(
-        'flex h-auto min-h-[48px] rounded-md border-2 bg-background data-[size=summary]:min-h-[64px]',
+        'flex h-auto min-h-[32px] rounded-md border-2 bg-background data-[size=summary]:min-h-[48px]',
         {
           'ring-2 ring-primary': selected,
           'bg-yellow-200/70 dark:bg-yellow-800/40': isHovered || isFocused,
@@ -81,7 +81,7 @@ export function SkillItemRail(props: Readonly<SkillItemRailProps>) {
     <div
       data-slot="skill-item-rail"
       className={cn(
-        'flex w-6 rounded-l border',
+        'flex w-3 rounded-l',
         {
           'skill-white': resolvedRarity != null && isWhiteSkill(resolvedRarity),
           'skill-gold': resolvedRarity != null && isGoldSkill(resolvedRarity),

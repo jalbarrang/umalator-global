@@ -36,16 +36,16 @@ import type { RunnerState } from './types';
 import type { StatsKey } from './stats-table';
 import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
 import {
-  SkillItemActions,
   SkillItemBody,
-  SkillItemCostAction,
-  SkillItemDetailsActions,
   SkillItemIdentity,
   SkillItem,
   SkillItemMain,
-  SkillItemRail,
   SkillItemRoot,
   type SkillMeta,
+  SkillItemRail,
+  SkillItemActions,
+  SkillItemCostAction,
+  SkillItemDetailsActions,
 } from '@/modules/skills/components/skill-list/skill-item';
 import { skillCollection } from '@/modules/data/skills';
 
@@ -72,6 +72,7 @@ import {
   buildDedupedSkillListNetTotal,
   type SkillCostSummary,
 } from '@/modules/skills/skill-cost-summary';
+import { cn } from '@/lib/utils';
 
 type RunnerCardProps = {
   value: RunnerState;
@@ -91,32 +92,18 @@ type RunnerCardProps = {
   showShareButton?: boolean;
 };
 
-function RunnerCardSkillRow({
-  dismissable,
-  showSummary,
-}: Readonly<{
+type RunnerCardSkillRowProps = {
   dismissable: boolean;
-  showSummary: boolean;
-}>) {
-  if (showSummary) {
-    return (
-      <SkillItemRoot size="summary">
-        <SkillItemRail />
-        <SkillItemBody className="flex-col gap-2">
-          <SkillItemMain className="p-1 px-2">
-            <SkillItemIdentity />
-            <SkillItemDetailsActions dismissable={dismissable} className="shrink-0" />
-          </SkillItemMain>
-          <SkillItemCostAction layout="summary" />
-        </SkillItemBody>
-      </SkillItemRoot>
-    );
-  }
+  inline: boolean;
+};
 
-  return (
+function RunnerCardSkillRow(props: Readonly<RunnerCardSkillRowProps>) {
+  const { dismissable, inline = false } = props;
+
+  if (inline) {
     <SkillItemRoot>
       <SkillItemRail />
-      <SkillItemBody className="p-1 px-2">
+      <SkillItemBody className="p-1 px-1">
         <SkillItemMain>
           <SkillItemIdentity />
           <SkillItemActions>
@@ -124,6 +111,22 @@ function RunnerCardSkillRow({
             <SkillItemDetailsActions dismissable={dismissable} />
           </SkillItemActions>
         </SkillItemMain>
+      </SkillItemBody>
+    </SkillItemRoot>;
+  }
+
+  return (
+    <SkillItemRoot>
+      <SkillItemRail />
+      <SkillItemBody className="flex-col">
+        <SkillItemMain className="p-1 px-1">
+          <SkillItemIdentity />
+        </SkillItemMain>
+
+        <SkillItemActions className="justify-end bg-card">
+          <SkillItemCostAction layout="inline" />
+          <SkillItemDetailsActions dismissable={dismissable} />
+        </SkillItemActions>
       </SkillItemBody>
     </SkillItemRoot>
   );
@@ -306,9 +309,15 @@ export const RunnerCard = (props: RunnerCardProps) => {
     [handleSetSkills, state.skills],
   );
 
-  const handleOpenSkillPicker = useCallback(() => {
-    const selectableSkills = getSelectableSkillsForUma(umaId);
+  const selectableSkills = useMemo(() => {
+    if (onOpenSkillPicker) {
+      return [];
+    }
 
+    return getSelectableSkillsForUma(umaId);
+  }, [umaId, onOpenSkillPicker]);
+
+  const handleOpenSkillPicker = useCallback(() => {
     if (onOpenSkillPicker) {
       onOpenSkillPicker();
       return;
@@ -321,7 +330,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
       currentSkills: state.skills,
       onSelect: handleSetSkills,
     });
-  }, [umaId, state.skills, handleSetSkills, onOpenSkillPicker]);
+  }, [umaId, selectableSkills, state.skills, handleSetSkills, onOpenSkillPicker]);
 
   const handleHintLevelChange = useCallback(
     (skillId: string, level: number) => {
@@ -513,45 +522,26 @@ export const RunnerCard = (props: RunnerCardProps) => {
         </div>
       )}
 
-      <div
-        className={
-          isSkillSpCostEnabled ? 'flex flex-wrap items-stretch gap-2' : 'grid grid-cols-1 gap-2'
-        }
-      >
-        {state.skills.map((skillId) => {
-          const skillItem = (
-            <SkillItem
-              key={skillId}
-              skillId={skillId}
-              distanceFactor={props.courseDistance}
-              costSummary={isSkillSpCostEnabled ? costSummaryBySkillId[skillId] : undefined}
-              runnerId={isSkillSpCostEnabled ? props.runnerId : undefined}
-              hasFastLearner={isSkillSpCostEnabled ? hasFastLearner : undefined}
-              onRemove={handleRemoveSkill}
-              onHintLevelChange={isSkillSpCostEnabled ? handleHintLevelChange : undefined}
-              onBoughtChange={isSkillSpCostEnabled ? handleBoughtChange : undefined}
-              getSkillMeta={isSkillSpCostEnabled ? getSkillMetaForRunner : undefined}
-            >
-              <RunnerCardSkillRow
-                dismissable={skillId !== umaUniqueSkillId}
-                showSummary={isSkillSpCostEnabled}
-              />
-            </SkillItem>
-          );
-
-          if (!isSkillSpCostEnabled) {
-            return skillItem;
-          }
-
-          return (
-            <div
-              key={skillId}
-              className="basis-full min-w-0 sm:min-w-[280px] sm:basis-[320px] flex-1"
-            >
-              {skillItem}
-            </div>
-          );
-        })}
+      <div className={cn('grid md:grid-cols-2 gap-2')}>
+        {state.skills.map((skillId) => (
+          <SkillItem
+            key={skillId}
+            skillId={skillId}
+            distanceFactor={props.courseDistance}
+            costSummary={isSkillSpCostEnabled ? costSummaryBySkillId[skillId] : undefined}
+            runnerId={isSkillSpCostEnabled ? props.runnerId : undefined}
+            hasFastLearner={isSkillSpCostEnabled ? hasFastLearner : undefined}
+            onRemove={handleRemoveSkill}
+            onHintLevelChange={isSkillSpCostEnabled ? handleHintLevelChange : undefined}
+            onBoughtChange={isSkillSpCostEnabled ? handleBoughtChange : undefined}
+            getSkillMeta={isSkillSpCostEnabled ? getSkillMetaForRunner : undefined}
+          >
+            <RunnerCardSkillRow
+              dismissable={skillId !== umaUniqueSkillId}
+              inline={isSkillSpCostEnabled}
+            />
+          </SkillItem>
+        ))}
       </div>
 
       <div style={{ position: 'absolute', left: -9999, top: 0 }}>

@@ -69,7 +69,7 @@ export const RunnerEditorLayout = (props: RunnerEditorLayoutProps) => {
         onOpenChange={setSkillPickerOpen}
       />
 
-      <div className="flex flex-col mx-auto max-w-2xl p-4">
+      <div className="flex flex-col w-full mx-auto max-w-[900px] p-4">
         <div className="flex flex-col flex-1 bg-card rounded-md border">
           {/* Header with title and actions */}
           <div className="flex items-center justify-between p-4 border-b shrink-0">
@@ -81,9 +81,9 @@ export const RunnerEditorLayout = (props: RunnerEditorLayoutProps) => {
           {/* Main content area */}
           <div className="flex flex-1">
             <div className="flex-1 overflow-y-auto p-4">
-              <div className="max-w-2xl mx-auto space-y-4">
+              <div className="flex flex-col gap-4">
                 {/* Runner Name Input */}
-                <div className="space-y-2">
+                <div className="flex flex-col gap-2">
                   <Label htmlFor="runner-name">Runner Notes (required)</Label>
                   <Input
                     id="runner-name"

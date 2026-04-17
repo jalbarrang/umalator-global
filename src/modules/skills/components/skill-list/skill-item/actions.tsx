@@ -45,8 +45,8 @@ function SkillCostDetailsPopover(props: Readonly<SkillCostDetailsPopoverProps>) 
       <PopoverTrigger
         render={
           <Button
-            variant="ghost"
-            size="icon-lg"
+            variant="outline"
+            size="sm"
             className={triggerClassName}
             title="Show skill cost details"
             onClick={(event) => event.stopPropagation()}
@@ -55,6 +55,7 @@ function SkillCostDetailsPopover(props: Readonly<SkillCostDetailsPopoverProps>) 
           </Button>
         }
       />
+
       {open && (
         <PopoverContent align="start" side="right" className="w-[420px] p-0">
           <SkillCostDetails />
@@ -65,12 +66,12 @@ function SkillCostDetailsPopover(props: Readonly<SkillCostDetailsPopoverProps>) 
 }
 
 export function SkillItemDetailsActions(props: Readonly<SkillItemDetailsActionsProps>) {
-  const { dismissable = false, onDismiss, className } = props;
+  const { dismissable = false, onDismiss } = props;
   const { skill, skillId, distanceFactor, onRemove } = useSkillItem();
   const [detailsOpen, setDetailsOpen] = useState(false);
 
   return (
-    <div data-slot="skill-item-detail-actions" className={cn('flex items-center gap-1', className)}>
+    <>
       <Popover open={detailsOpen} onOpenChange={setDetailsOpen}>
         <PopoverTrigger
           render={
@@ -114,7 +115,7 @@ export function SkillItemDetailsActions(props: Readonly<SkillItemDetailsActionsP
           <X className="w-4 h-4" />
         </Button>
       )}
-    </div>
+    </>
   );
 }
 
@@ -159,8 +160,8 @@ export function SkillItemCostAction(props: Readonly<SkillItemCostActionProps>) {
   return (
     <SkillCostDetailsPopover
       triggerClassName={cn(
-        'h-full cursor-pointer rounded-none whitespace-nowrap',
-        isObtained ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground',
+        'whitespace-nowrap',
+        isObtained ? 'text-green-600 dark:text-green-400' : '',
         className,
       )}
     >

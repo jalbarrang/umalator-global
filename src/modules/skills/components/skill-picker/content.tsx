@@ -1,5 +1,6 @@
 import { SearchIcon } from 'lucide-react';
 import {
+  memo,
   useCallback,
   useDeferredValue,
   useEffect,
@@ -8,11 +9,11 @@ import {
   useRef,
   useState,
 } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
-import { getUniqueSkillForByUmaId } from '@/modules/skills/utils';
-import { getManySkills, SkillEntry } from '@/modules/data/skills';
-import { useFilteredSkills } from './store';
 import { cn } from '@/lib/utils';
+import { getManySkills, SkillEntry } from '@/modules/data/skills';
+import { getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import {
   SkillItem,
   SkillItemActions,
@@ -23,11 +24,12 @@ import {
   SkillItemRail,
   SkillItemRoot,
 } from '../skill-list/skill-item';
-import { useVirtualizer, VirtualItem } from '@tanstack/react-virtual';
 import { SkillPickerFilterRow } from './filter-row';
+import { useFilteredSkills } from './store';
 
-const SKILL_ROW_HEIGHT = 50;
-const SKILL_OVERSCAN = 40;
+const SKILL_ROW_HEIGHT = 58;
+const MOBILE_SKILL_OVERSCAN = 20;
+const DESKTOP_SKILL_OVERSCAN = 8;
 
 export type SkillPickerContentProps = {
   ref: React.RefObject<{ focus: () => void } | null>;
@@ -36,7 +38,7 @@ export type SkillPickerContentProps = {
   currentSkills: Array<string>;
   onSelect: (skills: Array<string>) => void;
   className?: string;
-  isMobile?: boolean;
+  columnCount: number;
   allowDuplicateSkills?: boolean;
 };
 
@@ -48,8 +50,12 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
     currentSkills,
     onSelect,
     className,
+    columnCount,
     allowDuplicateSkills = false,
   } = props;
+
+  const resolvedColumnCount = Math.max(1, columnCount);
+  const isDesktopLayout = resolvedColumnCount > 1;
 
   const umaUniqueSkillId = useMemo(
     () => (umaId ? getUniqueSkillForByUmaId(umaId) : undefined),
@@ -164,61 +170,101 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
 
   const parentRef = useRef<HTMLDivElement>(null);
 
+  const virtualRowCount = Math.ceil(filteredSkills.length / resolvedColumnCount);
+  const rowOverscan = isDesktopLayout ? DESKTOP_SKILL_OVERSCAN : MOBILE_SKILL_OVERSCAN;
   const rowVirtualizer = useVirtualizer({
-    count: filteredSkills.length,
+    count: virtualRowCount,
     getScrollElement: () => parentRef.current,
     estimateSize: () => SKILL_ROW_HEIGHT,
-    overscan: SKILL_OVERSCAN,
+    overscan: rowOverscan,
     getItemKey: (index) => {
-      return filteredSkills[index]?.id ?? `skill-${index}`;
+      const rowStart = index * resolvedColumnCount;
+      return filteredSkills[rowStart]?.id ?? `skill-row-${index}`;
     },
   });
   const rowVirtualizerRef = useRef(rowVirtualizer);
 
-  const rowCount = filteredSkills.length;
-  const filteredSkillIds = useMemo(
-    () => filteredSkills.map((skill) => skill.id).join('|'),
-    [filteredSkills],
-  );
+  const filteredSkillCount = filteredSkills.length;
   const [focusedIndex, setFocusedIndex] = useState(0);
+  const [isBrowsing, setIsBrowsing] = useState(false);
 
   useEffect(() => {
     rowVirtualizerRef.current = rowVirtualizer;
   }, [rowVirtualizer]);
 
-  const scrollFocusedIntoView = useCallback((index: number) => {
-    requestAnimationFrame(() => {
-      rowVirtualizerRef.current.scrollToIndex(index, { align: 'auto' });
-    });
-  }, []);
+  const scrollFocusedIntoView = useCallback(
+    (index: number) => {
+      requestAnimationFrame(() => {
+        rowVirtualizerRef.current.scrollToIndex(Math.floor(index / resolvedColumnCount), {
+          align: 'auto',
+        });
+      });
+    },
+    [resolvedColumnCount],
+  );
 
   useEffect(() => {
-    if (rowCount === 0) {
+    if (filteredSkillCount === 0) {
       setFocusedIndex(0);
+      setIsBrowsing(false);
       return;
     }
 
     setFocusedIndex(0);
+    setIsBrowsing(false);
     scrollFocusedIntoView(0);
-  }, [filteredSkillIds, rowCount, scrollFocusedIntoView]);
+  }, [filteredSkillCount, filteredSkills, scrollFocusedIntoView]);
 
-  const moveFocusedIndex = useCallback(
+  const getLastIndexForRow = useCallback(
+    (rowIndex: number) => {
+      return Math.min(
+        filteredSkillCount - 1,
+        rowIndex * resolvedColumnCount + resolvedColumnCount - 1,
+      );
+    },
+    [resolvedColumnCount, filteredSkillCount],
+  );
+
+  const moveFocusedHorizontally = useCallback(
     (delta: number) => {
-      if (rowCount === 0) {
+      if (filteredSkillCount === 0) {
         return;
       }
 
       setFocusedIndex((prev) => {
-        const next = Math.max(0, Math.min(rowCount - 1, prev + delta));
+        const rowIndex = Math.floor(prev / resolvedColumnCount);
+        const rowStart = rowIndex * resolvedColumnCount;
+        const rowEnd = getLastIndexForRow(rowIndex);
+        const next = Math.max(rowStart, Math.min(rowEnd, prev + delta));
         scrollFocusedIntoView(next);
         return next;
       });
     },
-    [rowCount, scrollFocusedIntoView],
+    [resolvedColumnCount, filteredSkillCount, getLastIndexForRow, scrollFocusedIntoView],
+  );
+
+  const moveFocusedVertically = useCallback(
+    (rowDelta: number) => {
+      if (filteredSkillCount === 0) {
+        return;
+      }
+
+      setFocusedIndex((prev) => {
+        const currentRowIndex = Math.floor(prev / resolvedColumnCount);
+        const currentColumnIndex = prev % resolvedColumnCount;
+        const nextRowIndex = Math.max(0, Math.min(virtualRowCount - 1, currentRowIndex + rowDelta));
+        const nextRowStart = nextRowIndex * resolvedColumnCount;
+        const nextRowEnd = getLastIndexForRow(nextRowIndex);
+        const next = Math.min(nextRowEnd, nextRowStart + currentColumnIndex);
+        scrollFocusedIntoView(next);
+        return next;
+      });
+    },
+    [resolvedColumnCount, filteredSkillCount, getLastIndexForRow, scrollFocusedIntoView, virtualRowCount],
   );
 
   const selectFocusedSkill = useCallback(() => {
-    if (rowCount === 0) {
+    if (filteredSkillCount === 0 || !isBrowsing) {
       return;
     }
 
@@ -228,35 +274,78 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
     }
 
     toggleSkillSelection(skill);
-  }, [filteredSkills, focusedIndex, rowCount, toggleSkillSelection]);
+  }, [filteredSkillCount, filteredSkills, focusedIndex, isBrowsing, toggleSkillSelection]);
 
-  const hasRows = rowCount > 0;
+  const hasRows = filteredSkillCount > 0;
 
   const handleSearchKeyDown: React.KeyboardEventHandler<HTMLInputElement> = useCallback(
     (event) => {
+      if (event.key === 'Escape' && isBrowsing) {
+        event.preventDefault();
+        event.stopPropagation();
+        setIsBrowsing(false);
+        searchRef.current?.focus();
+        return;
+      }
+
       if (!hasRows) {
         return;
       }
 
-      if (event.key === 'ArrowUp') {
+      if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
         event.preventDefault();
-        moveFocusedIndex(-1);
+        event.stopPropagation();
+
+        if (!isBrowsing) {
+          setIsBrowsing(true);
+          scrollFocusedIntoView(focusedIndex);
+          return;
+        }
+
+        moveFocusedVertically(event.key === 'ArrowUp' ? -1 : 1);
         return;
       }
 
-      if (event.key === 'ArrowDown') {
+      if (isDesktopLayout && isBrowsing && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
         event.preventDefault();
-        moveFocusedIndex(1);
+        event.stopPropagation();
+        moveFocusedHorizontally(event.key === 'ArrowLeft' ? -1 : 1);
         return;
       }
 
-      if (event.key === 'Enter') {
+      if (event.key === 'Enter' && isBrowsing) {
         event.preventDefault();
+        event.stopPropagation();
         selectFocusedSkill();
+        return;
+      }
+
+      if (
+        isBrowsing &&
+        (event.key === 'Backspace' ||
+          event.key === 'Delete' ||
+          event.key === 'Home' ||
+          event.key === 'End' ||
+          (!event.altKey && !event.ctrlKey && !event.metaKey && event.key.length === 1))
+      ) {
+        setIsBrowsing(false);
       }
     },
-    [hasRows, moveFocusedIndex, selectFocusedSkill],
+    [
+      focusedIndex,
+      hasRows,
+      isBrowsing,
+      isDesktopLayout,
+      moveFocusedHorizontally,
+      moveFocusedVertically,
+      scrollFocusedIntoView,
+      selectFocusedSkill,
+    ],
   );
+
+  const handleHighlightSkill = useCallback((skillIndex: number) => {
+    setFocusedIndex(skillIndex);
+  }, []);
 
   return (
     <div className={cn('flex flex-col min-h-0 max-h-full gap-2', className)}>
@@ -270,7 +359,13 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
             type="text"
             value={searchText}
             placeholder="Search skill by name"
-            onChange={(e) => setSearchText(e.target.value)}
+            onChange={(e) => {
+              setIsBrowsing(false);
+              setSearchText(e.target.value);
+            }}
+            onPointerDown={() => {
+              setIsBrowsing(false);
+            }}
             onKeyDown={handleSearchKeyDown}
           />
         </InputGroup>
@@ -280,41 +375,64 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
 
       <div ref={parentRef} className="h-[500px] overflow-y-auto p-2">
         <div style={{ height: `${rowVirtualizer.getTotalSize()}px` }} className="relative w-full">
-          {rowVirtualizer.getVirtualItems().map((virtualItem) => {
-            const skill = filteredSkills[virtualItem.index];
-            if (!skill) return null;
+          {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+            const rowStart = virtualRow.index * resolvedColumnCount;
+            const rowSkills = filteredSkills.slice(rowStart, rowStart + resolvedColumnCount);
+            if (rowSkills.length === 0) return null;
 
             return (
-              <SkillPickerItem
-                key={skill.id}
-                skill={skill}
-                virtualItem={virtualItem}
-                selected={selectedMap.get(`${skill.groupId}`) === skill.id}
-                focused={virtualItem.index === focusedIndex}
-                onHighlightRow={() => {
-                  setFocusedIndex(virtualItem.index);
-                }}
-                toggleSelected={toggleSelected}
-              />
+              <div
+                key={`skill-row-${rowStart}`}
+                className="absolute top-0 left-0 w-full pb-2"
+                style={{ transform: `translateY(${virtualRow.start}px)` }}
+              >
+                <div
+                  className="grid gap-2"
+                  style={{ gridTemplateColumns: `repeat(${resolvedColumnCount}, minmax(0, 1fr))` }}
+                >
+                  {rowSkills.map((skill, columnIndex) => {
+                    const skillIndex = rowStart + columnIndex;
+
+                    return (
+                      <div key={skill.id} className="min-w-0">
+                        <SkillPickerItem
+                          skill={skill}
+                          skillIndex={skillIndex}
+                          selected={selectedMap.get(`${skill.groupId}`) === skill.id}
+                          focused={skillIndex === focusedIndex && isBrowsing}
+                          onHighlightSkill={handleHighlightSkill}
+                          toggleSelected={toggleSelected}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             );
           })}
         </div>
       </div>
+
+      {isDesktopLayout ? (
+        <div className="px-2 pb-1 text-xs text-muted-foreground">
+          ↑/↓ move between rows, ←/→ move between columns, Enter selects, Esc returns to search.
+        </div>
+      ) : null}
     </div>
   );
 }
 
 type SkillPickerItemProps = {
   skill: SkillEntry;
-  virtualItem: VirtualItem;
+  skillIndex: number;
   selected: boolean;
   focused?: boolean;
-  onHighlightRow: () => void;
+  onHighlightSkill: (skillIndex: number) => void;
   toggleSelected: React.MouseEventHandler<HTMLDivElement>;
 };
 
-const SkillPickerItem = (props: SkillPickerItemProps) => {
-  const { skill, virtualItem, selected, focused = false, onHighlightRow, toggleSelected } = props;
+const SkillPickerItem = memo((props: SkillPickerItemProps) => {
+  const { skill, skillIndex, selected, focused = false, onHighlightSkill, toggleSelected } = props;
 
   const [hovered, setHovered] = useState(false);
 
@@ -326,26 +444,19 @@ const SkillPickerItem = (props: SkillPickerItemProps) => {
     setHovered(false);
   }, []);
 
+  const handleHighlightRow = useCallback(() => {
+    onHighlightSkill(skillIndex);
+  }, [onHighlightSkill, skillIndex]);
+
   return (
-    <div
-      key={skill.id}
-      onPointerEnter={onHighlightRow}
-      onClick={toggleSelected}
-      style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: `${virtualItem.size}px`,
-        transform: `translateY(${virtualItem.start}px)`,
-      }}
-    >
+    <div onPointerEnter={handleHighlightRow} onClick={toggleSelected}>
       <SkillItem skillId={skill.id}>
         <SkillItemRoot
           interactive
           selected={selected}
           isHovered={hovered}
           isFocused={focused}
+          className="h-full"
           data-highlighted={focused ? 'true' : undefined}
           onPointerEnter={handleMouseEnter}
           onPointerLeave={handleMouseLeave}
@@ -363,4 +474,4 @@ const SkillPickerItem = (props: SkillPickerItemProps) => {
       </SkillItem>
     </div>
   );
-};
+});

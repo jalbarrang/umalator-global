@@ -101,7 +101,7 @@ export const LeftSidebar = () => {
   return (
     <div
       className={cn('flex flex-col border-r shrink-0 overflow-hidden', {
-        'w-dvw md:w-[450px]': !hidden,
+        'w-dvw md:w-[550px]': !hidden,
         'w-0': hidden,
       })}
     >

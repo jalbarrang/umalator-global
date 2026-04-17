@@ -1,7 +1,8 @@
 import { useRef } from 'react';
-import { SkillPickerProvider } from './provider';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { SkillPickerContent } from './content';
+import { SkillPickerProvider } from './provider';
 
 type SkillPickerDrawerProps = {
   open: boolean;
@@ -18,12 +19,13 @@ export const SkillPickerModal = (props: SkillPickerDrawerProps) => {
     props;
 
   const childRef = useRef<{ focus: () => void }>(null);
+  const isMobile = useIsMobile();
 
   return (
     <SkillPickerProvider>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent
-          className="flex flex-col h-dvh md:h-[70dvh] min-h-0 max-w-full md:max-w-3xl!"
+          className="flex flex-col h-dvh md:h-[70dvh] min-h-0 max-w-full md:max-w-[1200px]!"
           autoFocus
         >
           <DialogHeader>
@@ -37,6 +39,7 @@ export const SkillPickerModal = (props: SkillPickerDrawerProps) => {
               options={options}
               currentSkills={currentSkills}
               onSelect={onSelect}
+              columnCount={isMobile ? 1 : 4}
               allowDuplicateSkills={allowDuplicateSkills}
             />
           </div>

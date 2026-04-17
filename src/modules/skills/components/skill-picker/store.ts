@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react';
+import { createContext, useContext, useMemo } from 'react';
 import { createStore, useStore } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
 import { groups_filters } from '../../filters';
@@ -133,31 +133,29 @@ export const useSkillPickerActions = () => {
 type IconIdPrefix = keyof typeof iconIdPrefixes;
 
 export const useFilteredSkills = (deferredSearchText: string, skills: Array<SkillEntry>) => {
-  return useSkillPickerStore(
-    useShallow((state) => {
-      const { filters } = state;
+  const filters = useSkillPickerStore((state) => state.filters);
 
-      const activeRarities = getActiveFilters(filters, 'rarity');
-      const activeIconTypes = getActiveFilters(filters, 'icontype');
-      const activeStrategies = getActiveFilters(filters, 'strategy');
-      const activeDistances = getActiveFilters(filters, 'distance');
-      const activeSurfaces = getActiveFilters(filters, 'surface');
-      const activeLocations = getActiveFilters(filters, 'location');
+  return useMemo(() => {
+    const activeRarities = getActiveFilters(filters, 'rarity');
+    const activeIconTypes = getActiveFilters(filters, 'icontype');
+    const activeStrategies = getActiveFilters(filters, 'strategy');
+    const activeDistances = getActiveFilters(filters, 'distance');
+    const activeSurfaces = getActiveFilters(filters, 'surface');
+    const activeLocations = getActiveFilters(filters, 'location');
 
-      return SkillQuery.from(skills)
-        .whereValid()
-        .whereText(deferredSearchText)
-        .whereAny(activeRarities, (skill, r) => matchRarity(skill.id, r))
-        .whereAny(activeIconTypes, (skill, iconKey) =>
-          iconIdPrefixes[iconKey as IconIdPrefix]?.some((p) => skill.iconId.startsWith(p)),
-        )
-        .whereConditionMatch(activeStrategies)
-        .whereConditionMatch(activeDistances)
-        .whereConditionMatch(activeSurfaces)
-        .whereConditionMatch(activeLocations)
-        .execute();
-    }),
-  );
+    return SkillQuery.from(skills)
+      .whereValid()
+      .whereText(deferredSearchText)
+      .whereAny(activeRarities, (skill, r) => matchRarity(skill.id, r))
+      .whereAny(activeIconTypes, (skill, iconKey) =>
+        iconIdPrefixes[iconKey as IconIdPrefix]?.some((p) => skill.iconId.startsWith(p)),
+      )
+      .whereConditionMatch(activeStrategies)
+      .whereConditionMatch(activeDistances)
+      .whereConditionMatch(activeSurfaces)
+      .whereConditionMatch(activeLocations)
+      .execute();
+  }, [deferredSearchText, filters, skills]);
 };
 
 export const useSelectedOtherFiltersCount = () => {

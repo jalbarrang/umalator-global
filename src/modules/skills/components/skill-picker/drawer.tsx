@@ -35,6 +35,7 @@ export function SkillPickerDrawer(props: SkillPickerDrawerProps) {
             options={options}
             currentSkills={currentSkills}
             onSelect={onSelect}
+            columnCount={1}
           />
         </DrawerContent>
       </Drawer>
