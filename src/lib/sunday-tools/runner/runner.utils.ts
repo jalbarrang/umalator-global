@@ -31,6 +31,8 @@ export function buildSkillEffects(skill: SkillAlternative) {
       baseDuration: skill.baseDuration / 10000,
       modifier: effect.modifier / 10000,
       target: effect.target,
+      valueUsage: effect.valueUsage,
+      valueLevelUsage: effect.valueLevelUsage,
     });
   }
 

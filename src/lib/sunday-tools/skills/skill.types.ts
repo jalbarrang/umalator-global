@@ -11,6 +11,8 @@ export type SkillEffect = {
   type: ISkillType;
   baseDuration: number;
   modifier: number;
+  valueUsage?: number;
+  valueLevelUsage?: number;
 };
 
 export type SkillTrigger = {
@@ -58,6 +60,8 @@ export type RawSkillEffect = {
   modifier: number;
   target: ISkillTarget;
   type: number;
+  valueUsage?: number;
+  valueLevelUsage?: number;
 };
 
 export type SkillAlternative = {

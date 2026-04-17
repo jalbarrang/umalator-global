@@ -88,7 +88,8 @@ This document is a quick reference for the race mechanics that are available cur
 - ✅ `MultiplySkillNum` (2)
 - ✅ `Aoharu` skills (3-7)
 - ✅ `MultiplyRandom` (8, 9)
-- ❌ `Climax` skills (10) - Not in Global yet
+- ✅ `Climax` skills (10) - Available in Global via **Trackblazer: Start of the Climax**
+  - Example skills: **Glittering Star** / **Radiant Star**
 - ✅ `MultiplyMaximumRawStatus` (13)
 - ✅ `MultiplyActivateSpecificTagSkillCount` (14)
 - ✅ `AddDistanceDiffTop` (19)
@@ -230,7 +231,6 @@ This document is a quick reference for the race mechanics that are available cur
 
 ### Not Yet Implemented (Any Server)
 
-- ❌ Climax skills (scenario-specific)
 - ❌ L'arc Global Potential (scenario-specific)
 
 ## Course & World ✅

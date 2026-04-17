@@ -765,7 +765,7 @@ The effectiveness of climax skills scales with the number of races won during tr
 | 18 \<= Races won \< 25 | 1.1x          |
 | 25 \<= Races won       | 1.2x          |
 
-Note: Not implemented yet in Global Server.
+In Global, this scaling is now relevant through **Trackblazer: Start of the Climax** scenario skills, such as **Glittering Star** / **Radiant Star**.
 
 ### MultiplyMaximumRawStatus (13) {#multiplymaximumrawstatus-(13)}
 

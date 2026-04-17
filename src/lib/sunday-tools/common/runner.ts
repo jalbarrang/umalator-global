@@ -24,6 +24,7 @@ import {
   createBlockedSideCondition,
   createOvertakeCondition,
 } from '../conditions/special-conditions';
+import { resolveRecoveryModifier } from '../skills/recovery-effect-utils';
 import type { ApproximateCondition, ConditionState } from '../conditions/aproximate-conditions';
 import type { PositionKeepActivation } from '../poskeep/virtual-position-keep';
 import type { IAptitude, IMood, IStrategy } from '../runner/definitions';
@@ -688,15 +689,15 @@ export class Runner {
             sourceRunnerId: skill.sourceRunnerId,
           });
           break;
-        case SkillType.Recovery:
-          this.healthPolicy.recover(
-            this.getRecoveryModifierForSkill(skill.skillId, skillEffect.modifier),
-          );
+        case SkillType.Recovery: {
+          const resolvedModifier = this.getRecoveryModifierForSkill(skill.skillId, skillEffect);
+          this.healthPolicy.recover(resolvedModifier);
 
           if (this.phase >= 2 && !this.isLastSpurt) {
             this.updateLastSpurtState(true);
           }
           break;
+        }
         case SkillType.ChangeLane:
           this.targetedChangeLaneSkillsActive.push({
             skillId: skill.skillId,
@@ -834,18 +835,20 @@ export class Runner {
             effectType: skillEffect.type,
           });
           break;
-        case SkillType.Recovery:
-          this.healsActivatedCount += 1;
+        case SkillType.Recovery: {
+          const resolvedModifier = this.getRecoveryModifierForSkill(skill.skillId, skillEffect);
+          if (resolvedModifier > 0) {
+            this.healsActivatedCount += 1;
+          }
 
           // Apply health modifier to health policy
-          this.healthPolicy.recover(
-            this.getRecoveryModifierForSkill(skill.skillId, skillEffect.modifier),
-          );
+          this.healthPolicy.recover(resolvedModifier);
 
           if (this.phase >= 2 && !this.isLastSpurt) {
             this.updateLastSpurtState(true);
           }
           break;
+        }
         case SkillType.ActivateRandomGold:
           this.activateRandomGoldSkill(skillEffect.modifier);
           break;
@@ -1421,24 +1424,12 @@ export class Runner {
     return rngRoll <= witCheckThreshold;
   }
 
-  private getRecoveryModifierForSkill(skillId: string, modifier: number): number {
-    if (modifier >= 0) {
-      return modifier;
-    }
-
+  private getRecoveryModifierForSkill(skillId: string, effect: SkillEffect): number {
     const overrides = this.race.settings.staminaDrainOverrides;
-    if (!overrides) {
-      return modifier;
-    }
-
     const baseSkillId = skillId.split('-')[0] ?? skillId;
-    const override = overrides[baseSkillId];
-    if (override == null || !Number.isFinite(override)) {
-      return modifier;
-    }
+    const override = overrides?.[baseSkillId];
 
-    const clampedOverride = Math.min(Math.max(override, 0), 1);
-    return -clampedOverride;
+    return resolveRecoveryModifier(effect, this.skillRng, override);
   }
 
   // ===================

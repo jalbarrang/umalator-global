@@ -17,6 +17,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/ui/panel';
 import { Separator } from '@/components/ui/separator';
 import { skillCollection } from '@/modules/data/skills';
+import { isSupportedMultiplyRandomRecoveryDrain } from '@/lib/sunday-tools/skills/recovery-effect-utils';
 import {
   setIgnoreStaminaConsumption,
   useSkillPlannerStore,
@@ -115,6 +116,10 @@ export const AdvancedSettingsPanel = () => {
         for (const alternative of skill.alternatives) {
           for (const effect of alternative.effects) {
             if (effect.type !== SkillType.Recovery || effect.modifier >= 0) {
+              continue;
+            }
+
+            if (isSupportedMultiplyRandomRecoveryDrain(effect)) {
               continue;
             }
 
@@ -252,7 +257,7 @@ export const AdvancedSettingsPanel = () => {
         <div className="flex flex-col gap-2">
           <Label className="text-sm font-semibold">Stamina Drain Overrides</Label>
           {drainSkills.length === 0 ? (
-            <span className="text-sm text-muted-foreground">No drain skills equipped</span>
+            <span className="text-sm text-muted-foreground">No manual drain overrides needed</span>
           ) : (
             <div className="flex flex-col gap-2">
               {drainSkills.map((skill) => {

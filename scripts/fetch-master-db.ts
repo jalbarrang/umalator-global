@@ -564,7 +564,7 @@ async function main(): Promise<number> {
     .description('Fetch master.mdb from Uma Musume manifest chain')
     .argument(
       '[appVer]',
-      'Resource version (defaults to latest current.resource_version from https://uma.moe/api/ver)',
+      'Resource version (defaults to latest resource_version from https://uma.moe/api/ver)',
     )
     .option(
       '-o, --output <dir>',

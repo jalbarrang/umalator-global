@@ -161,6 +161,8 @@ export type RawSkillEffect = {
   type: number;
   modifier: number;
   target?: number;
+  valueUsage?: number;
+  valueLevelUsage?: number;
 };
 
 export type ISkillEffect = RawSkillEffect & {

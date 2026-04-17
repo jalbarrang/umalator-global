@@ -2,6 +2,7 @@ import type { SkillEntry } from '@/modules/data/skills';
 import type { SkillAlternative } from '@/lib/sunday-tools/skills/skill.types';
 import { FormatParser, formatEffect } from '@/modules/skills/components/formatters';
 import { HumanReadableParser } from '@/modules/skills/components/human-readable-formatter';
+import { describeRecoveryEffect } from '@/lib/sunday-tools/skills/recovery-effect-utils';
 import { cn } from '@/lib/utils';
 import i18n from '@/i18n';
 import { Code } from 'lucide-react';
@@ -72,11 +73,14 @@ function AlternativeDetails({
             const type = ef.type;
             const modifier = ef.modifier / 10000;
             const effectType = formatEffect[type as keyof typeof formatEffect];
-            const effectValue = effectType ? effectType(modifier) : modifier;
+            const effectValue =
+              describeRecoveryEffect({ ...ef, modifier }) ??
+              (effectType ? effectType(modifier) : modifier);
+            const effectLabel = type === 9 && modifier < 0 ? 'HP Drain' : i18n.t(`skilleffecttypes.${type}`);
 
             return (
               <div key={effectIndex} className="flex items-center gap-2">
-                <div>{i18n.t(`skilleffecttypes.${type}`)}</div>
+                <div>{effectLabel}</div>
                 <div>{effectValue}</div>
               </div>
             );

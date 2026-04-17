@@ -25,24 +25,36 @@ interface SkillRow {
   ability_type_1_1: number;
   float_ability_value_1_1: number;
   target_type_1_1: number;
+  ability_value_usage_1_1: number;
+  ability_value_level_usage_1_1: number;
   ability_type_1_2: number;
   float_ability_value_1_2: number;
   target_type_1_2: number;
+  ability_value_usage_1_2: number;
+  ability_value_level_usage_1_2: number;
   ability_type_1_3: number;
   float_ability_value_1_3: number;
   target_type_1_3: number;
+  ability_value_usage_1_3: number;
+  ability_value_level_usage_1_3: number;
   precondition_2: string;
   condition_2: string;
   float_ability_time_2: number;
   ability_type_2_1: number;
   float_ability_value_2_1: number;
   target_type_2_1: number;
+  ability_value_usage_2_1: number;
+  ability_value_level_usage_2_1: number;
   ability_type_2_2: number;
   float_ability_value_2_2: number;
   target_type_2_2: number;
+  ability_value_usage_2_2: number;
+  ability_value_level_usage_2_2: number;
   ability_type_2_3: number;
   float_ability_value_2_3: number;
   target_type_2_3: number;
+  ability_value_usage_2_3: number;
+  ability_value_level_usage_2_3: number;
   group_id: number;
   icon_id: number;
   need_skill_point: number;
@@ -68,6 +80,8 @@ type SkillEffect = {
   type: number;
   modifier: number;
   target: ISkillTarget;
+  valueUsage?: number;
+  valueLevelUsage?: number;
 };
 
 type SkillAlternative = {
@@ -145,52 +159,99 @@ function patchModifier(id: number, value: number): number {
   return value;
 }
 
+function createEffect(
+  skillId: number,
+  type: number,
+  modifier: number,
+  target: number,
+  valueUsage: number,
+  valueLevelUsage: number,
+): SkillEffect {
+  return {
+    type,
+    modifier: patchModifier(skillId, modifier),
+    target: target as ISkillTarget,
+    valueUsage,
+    valueLevelUsage,
+  };
+}
+
 function buildEffects(row: SkillRow, prefix: '1' | '2'): Array<SkillEffect> {
   const effects: Array<SkillEffect> = [];
 
   if (prefix === '1') {
-    effects.push({
-      type: row.ability_type_1_1,
-      modifier: patchModifier(row.id, row.float_ability_value_1_1),
-      target: row.target_type_1_1 as ISkillTarget,
-    });
+    effects.push(
+      createEffect(
+        row.id,
+        row.ability_type_1_1,
+        row.float_ability_value_1_1,
+        row.target_type_1_1,
+        row.ability_value_usage_1_1,
+        row.ability_value_level_usage_1_1,
+      ),
+    );
 
     if (row.ability_type_1_2 !== 0) {
-      effects.push({
-        type: row.ability_type_1_2,
-        modifier: patchModifier(row.id, row.float_ability_value_1_2),
-        target: row.target_type_1_2 as ISkillTarget,
-      });
+      effects.push(
+        createEffect(
+          row.id,
+          row.ability_type_1_2,
+          row.float_ability_value_1_2,
+          row.target_type_1_2,
+          row.ability_value_usage_1_2,
+          row.ability_value_level_usage_1_2,
+        ),
+      );
     }
 
     if (row.ability_type_1_3 !== 0) {
-      effects.push({
-        type: row.ability_type_1_3,
-        modifier: patchModifier(row.id, row.float_ability_value_1_3),
-        target: row.target_type_1_3 as ISkillTarget,
-      });
+      effects.push(
+        createEffect(
+          row.id,
+          row.ability_type_1_3,
+          row.float_ability_value_1_3,
+          row.target_type_1_3,
+          row.ability_value_usage_1_3,
+          row.ability_value_level_usage_1_3,
+        ),
+      );
     }
   } else {
-    effects.push({
-      type: row.ability_type_2_1,
-      modifier: patchModifier(row.id, row.float_ability_value_2_1),
-      target: row.target_type_2_1 as ISkillTarget,
-    });
+    effects.push(
+      createEffect(
+        row.id,
+        row.ability_type_2_1,
+        row.float_ability_value_2_1,
+        row.target_type_2_1,
+        row.ability_value_usage_2_1,
+        row.ability_value_level_usage_2_1,
+      ),
+    );
 
     if (row.ability_type_2_2 !== 0) {
-      effects.push({
-        type: row.ability_type_2_2,
-        modifier: patchModifier(row.id, row.float_ability_value_2_2),
-        target: row.target_type_2_2 as ISkillTarget,
-      });
+      effects.push(
+        createEffect(
+          row.id,
+          row.ability_type_2_2,
+          row.float_ability_value_2_2,
+          row.target_type_2_2,
+          row.ability_value_usage_2_2,
+          row.ability_value_level_usage_2_2,
+        ),
+      );
     }
 
     if (row.ability_type_2_3 !== 0) {
-      effects.push({
-        type: row.ability_type_2_3,
-        modifier: patchModifier(row.id, row.float_ability_value_2_3),
-        target: row.target_type_2_3 as ISkillTarget,
-      });
+      effects.push(
+        createEffect(
+          row.id,
+          row.ability_type_2_3,
+          row.float_ability_value_2_3,
+          row.target_type_2_3,
+          row.ability_value_usage_2_3,
+          row.ability_value_level_usage_2_3,
+        ),
+      );
     }
   }
 
@@ -265,14 +326,20 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
               s.condition_1,
               s.float_ability_time_1,
               s.ability_type_1_1, s.float_ability_value_1_1, s.target_type_1_1,
+              s.ability_value_usage_1_1, s.ability_value_level_usage_1_1,
               s.ability_type_1_2, s.float_ability_value_1_2, s.target_type_1_2,
+              s.ability_value_usage_1_2, s.ability_value_level_usage_1_2,
               s.ability_type_1_3, s.float_ability_value_1_3, s.target_type_1_3,
+              s.ability_value_usage_1_3, s.ability_value_level_usage_1_3,
               s.precondition_2,
               s.condition_2,
               s.float_ability_time_2,
               s.ability_type_2_1, s.float_ability_value_2_1, s.target_type_2_1,
+              s.ability_value_usage_2_1, s.ability_value_level_usage_2_1,
               s.ability_type_2_2, s.float_ability_value_2_2, s.target_type_2_2,
+              s.ability_value_usage_2_2, s.ability_value_level_usage_2_2,
               s.ability_type_2_3, s.float_ability_value_2_3, s.target_type_2_3,
+              s.ability_value_usage_2_3, s.ability_value_level_usage_2_3,
               s.group_id, s.icon_id, COALESCE(sp.need_skill_point, 0) as need_skill_point, s.disp_order
        FROM skill_data s
        LEFT JOIN single_mode_skill_need_point sp ON s.id = sp.id`,
