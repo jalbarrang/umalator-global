@@ -9,6 +9,7 @@ export type SkillItemIdentityProps = {
   iconId?: string;
   skillId?: string;
   className?: string;
+  labelProps?: HTMLAttributes<HTMLSpanElement>;
 };
 
 export type SkillItemDetailsActionsProps = {

@@ -1,22 +1,22 @@
 import { cn } from '@/lib/utils';
-import { SkillIcon } from '../skill-list/skill-item';
 import { Button } from '@/components/ui/button';
-import { FilterState } from './types';
 import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 import i18n from '@/i18n';
-import { useSelectedOtherFiltersCount, useSkillPickerActions, useSkillPickerState } from './store';
-import { useCallback, useState } from 'react';
-import { ChevronUpIcon, FilterIcon } from 'lucide-react';
+import { ChevronDownIcon, FilterIcon } from 'lucide-react';
+import { useCallback, useMemo, useState } from 'react';
+import { SkillIcon } from '../skill-list/skill-item';
+import { groups_filters } from '../../filters';
+import { useSkillPickerActions, useSkillPickerState } from './store';
+import { FilterState } from './types';
 
 type FilterButtonProps = {
   id: string;
   checked: boolean;
-  onChecked: any;
+  onChecked: () => void;
 };
 
-const FilterButton = (props: FilterButtonProps) => {
-  const { id, checked, onChecked } = props;
-
+const FilterButton = ({ id, checked, onChecked }: FilterButtonProps) => {
   return (
     <div className="flex items-center">
       <input
@@ -29,11 +29,10 @@ const FilterButton = (props: FilterButtonProps) => {
       <Label
         htmlFor={id}
         className={cn(
-          'cursor-pointer rounded-lg border px-3 py-1.5 transition-all',
-          'border-border bg-background hover:bg-muted hover:text-foreground',
-          'peer-focus-visible:border-ring peer-focus-visible:ring-ring/50 peer-focus-visible:ring-[3px]',
-          checked &&
-            'border-primary bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground',
+          'cursor-pointer rounded-md border px-2 py-1 text-xs leading-5 transition-colors',
+          'border-border bg-background text-muted-foreground hover:border-muted-foreground/30 hover:text-foreground',
+          'peer-focus-visible:border-ring peer-focus-visible:ring-ring/40 peer-focus-visible:ring-[3px]',
+          checked && 'border-primary/50 bg-muted text-foreground',
         )}
       >
         {i18n.t(`skillfilters.${id}`)}
@@ -49,32 +48,74 @@ type IconFilterButtonProps = {
   onChecked: () => void;
 };
 
-const IconFilterButton = (props: IconFilterButtonProps) => {
-  const { type, group, filterState } = props;
+const IconFilterButton = ({ type, group, filterState, onChecked }: IconFilterButtonProps) => {
+  const isActive = filterState[group][type];
 
   return (
     <Button
+      type="button"
       data-filter={type}
-      className={cn({
-        'border-primary border': filterState[group][type],
-      })}
       variant="ghost"
       size="icon"
-      onClick={() => props.onChecked()}
+      className={cn(
+        'h-8 w-8 rounded-md border border-border bg-background p-0 [&_img]:h-7 [&_img]:w-7',
+        isActive
+          ? 'border-primary/60 bg-muted opacity-100'
+          : 'opacity-45 hover:opacity-80 hover:border-muted-foreground/30',
+      )}
+      onClick={onChecked}
     >
       <SkillIcon iconId={`${type}1`} />
     </Button>
   );
 };
 
+const iconCategoryOrder = ['1', '2', '3', '4'] as const;
+
+const filterGroups = {
+  rarity: ['white', 'gold', 'unique', 'inherit'],
+  strategy: ['nige', 'senkou', 'sasi', 'oikomi'],
+  distance: ['short', 'mile', 'medium', 'long'],
+  surface: ['turf', 'dirt'],
+  location: ['phase0', 'phase1', 'phase2', 'phase3', 'finalcorner', 'finalstraight'],
+} as const;
+
+function groupIconTypesByCategory() {
+  const grouped: Record<string, Array<string>> = {};
+
+  for (const iconType of groups_filters.icontype) {
+    const category = iconType[0];
+    if (!grouped[category]) grouped[category] = [];
+    grouped[category].push(iconType);
+  }
+
+  return grouped;
+}
+
+const iconTypesByCategory = groupIconTypesByCategory();
+
+type FilterSectionProps = {
+  title: string;
+  children: React.ReactNode;
+};
+
+const FilterSection = ({ title, children }: FilterSectionProps) => {
+  return (
+    <section className="min-w-0">
+      <div className="text-[11px] font-medium text-muted-foreground">{title}</div>
+      <div className="flex flex-wrap gap-1">{children}</div>
+    </section>
+  );
+};
+
 export const SkillPickerFilterRow = () => {
-  const { filters: filterState, groups: groups_filters } = useSkillPickerState();
-
+  const { filters: filterState } = useSkillPickerState();
   const { toggleIconType, setExclusiveFilter } = useSkillPickerActions();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  const handleRarityChecked = useCallback(
-    (filter: string) => {
-      setExclusiveFilter('rarity', filter);
+  const handleExclusiveChecked = useCallback(
+    (group: string, filter: string) => {
+      setExclusiveFilter(group, filter);
     },
     [setExclusiveFilter],
   );
@@ -86,197 +127,124 @@ export const SkillPickerFilterRow = () => {
     [toggleIconType],
   );
 
-  const handleStrategyChecked = useCallback(
-    (filter: string) => {
-      setExclusiveFilter('strategy', filter);
-    },
-    [setExclusiveFilter],
-  );
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
 
-  const handleDistanceChecked = useCallback(
-    (filter: string) => {
-      setExclusiveFilter('distance', filter);
-    },
-    [setExclusiveFilter],
-  );
+    for (const [groupName, groupValues] of Object.entries(filterState)) {
+      if (groupName === 'icontype') continue;
+      count += Object.values(groupValues).filter(Boolean).length;
+    }
 
-  const handleSurfaceChecked = useCallback(
-    (filter: string) => {
-      setExclusiveFilter('surface', filter);
-    },
-    [setExclusiveFilter],
-  );
-
-  const handleLocationChecked = useCallback(
-    (filter: string) => {
-      setExclusiveFilter('location', filter);
-    },
-    [setExclusiveFilter],
-  );
-
-  const selectedOtherFiltersCount = useSelectedOtherFiltersCount();
-
-  const [showFilters, setShowFilters] = useState(false);
+    return count;
+  }, [filterState]);
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-row gap-2">
-        <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)}>
-          <FilterIcon className="w-4 h-4" />
-          <span className="text-xs">Filters ({selectedOtherFiltersCount})</span>
-          <ChevronUpIcon className={cn('w-4 h-4', showFilters ? 'rotate-180' : '')} />
+    <div className="flex flex-col gap-2">
+      <div className="md:hidden">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-8 w-full justify-between rounded-md"
+          onClick={() => setMobileOpen((current) => !current)}
+        >
+          <span className="flex items-center gap-2 text-xs">
+            <FilterIcon className="h-3.5 w-3.5" />
+            Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
+          </span>
+          <ChevronDownIcon
+            className={cn('h-4 w-4 transition-transform', mobileOpen && 'rotate-180')}
+          />
         </Button>
       </div>
 
-      {showFilters && (
-        <div className="flex flex-col gap-2">
-          <div className="flex flex-row gap-2 items-center flex-wrap md:flex-nowrap">
-            <div>
-              <Label>Type</Label>
-            </div>
+      <div className={cn('flex-col gap-2', mobileOpen ? 'flex' : 'hidden', 'md:flex')}>
+        <div className="flex flex-col gap-2 md:flex-row">
+          <FilterSection title="Rarity">
+            {filterGroups.rarity.map((filter) => (
+              <FilterButton
+                key={filter}
+                id={filter}
+                checked={filterState.rarity[filter]}
+                onChecked={() => handleExclusiveChecked('rarity', filter)}
+              />
+            ))}
+          </FilterSection>
 
-            <div className="flex flex-row flex-wrap md:flex-nowrap gap-2">
+          <FilterSection title="Strategy">
+            {filterGroups.strategy.map((filter) => (
               <FilterButton
-                id="white"
-                checked={filterState.rarity.white}
-                onChecked={() => handleRarityChecked('white')}
+                key={filter}
+                id={filter}
+                checked={filterState.strategy[filter]}
+                onChecked={() => handleExclusiveChecked('strategy', filter)}
               />
-              <FilterButton
-                id="gold"
-                checked={filterState.rarity.gold}
-                onChecked={() => handleRarityChecked('gold')}
-              />
-              {/* <FilterButton
-                id="pink"
-                checked={filterState.rarity.pink}
-                onChecked={() => handleRarityChecked('pink')}
-              /> */}
-              <FilterButton
-                id="unique"
-                checked={filterState.rarity.unique}
-                onChecked={() => handleRarityChecked('unique')}
-              />
-              <FilterButton
-                id="inherit"
-                checked={filterState.rarity.inherit}
-                onChecked={() => handleRarityChecked('inherit')}
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-row gap-2 items-center flex-wrap md:flex-nowrap">
-            <div>
-              <Label>Strategy</Label>
-            </div>
-
-            <div className="flex flex-row flex-wrap md:flex-nowrap gap-2">
-              <FilterButton
-                id="nige"
-                checked={filterState.strategy.nige}
-                onChecked={() => handleStrategyChecked('nige')}
-              />
-              <FilterButton
-                id="senkou"
-                checked={filterState.strategy.senkou}
-                onChecked={() => handleStrategyChecked('senkou')}
-              />
-              <FilterButton
-                id="sasi"
-                checked={filterState.strategy.sasi}
-                onChecked={() => handleStrategyChecked('sasi')}
-              />
-              <FilterButton
-                id="oikomi"
-                checked={filterState.strategy.oikomi}
-                onChecked={() => handleStrategyChecked('oikomi')}
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-row gap-2 items-center flex-wrap md:flex-nowrap">
-            <div>
-              <Label>Track</Label>
-            </div>
-
-            <div className="flex flex-row flex-wrap md:flex-nowrap gap-2">
-              <div className="flex flex-row flex-wrap md:flex-nowrap gap-2">
-                <FilterButton
-                  id="short"
-                  checked={filterState.distance.short}
-                  onChecked={() => handleDistanceChecked('short')}
-                />
-                <FilterButton
-                  id="mile"
-                  checked={filterState.distance.mile}
-                  onChecked={() => handleDistanceChecked('mile')}
-                />
-                <FilterButton
-                  id="medium"
-                  checked={filterState.distance.medium}
-                  onChecked={() => handleDistanceChecked('medium')}
-                />
-                <FilterButton
-                  id="long"
-                  checked={filterState.distance.long}
-                  onChecked={() => handleDistanceChecked('long')}
-                />
-              </div>
-
-              <div className="flex flex-row flex-wrap md:flex-nowrap gap-2">
-                <FilterButton
-                  id="turf"
-                  checked={filterState.surface.turf}
-                  onChecked={() => handleSurfaceChecked('turf')}
-                />
-                <FilterButton
-                  id="dirt"
-                  checked={filterState.surface.dirt}
-                  onChecked={() => handleSurfaceChecked('dirt')}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-row gap-2 items-center flex-wrap md:flex-nowrap">
-            <div>
-              <Label>Trigger</Label>
-            </div>
-
-            <div className="flex flex-row flex-wrap md:flex-nowrap gap-2">
-              <FilterButton
-                id="phase0"
-                checked={filterState.location.phase0}
-                onChecked={() => handleLocationChecked('phase0')}
-              />
-              <FilterButton
-                id="phase1"
-                checked={filterState.location.phase1}
-                onChecked={() => handleLocationChecked('phase1')}
-              />
-              <FilterButton
-                id="phase2"
-                checked={filterState.location.phase2}
-                onChecked={() => handleLocationChecked('phase2')}
-              />
-              <FilterButton
-                id="phase3"
-                checked={filterState.location.phase3}
-                onChecked={() => handleLocationChecked('phase3')}
-              />
-              <FilterButton
-                id="finalcorner"
-                checked={filterState.location.finalcorner}
-                onChecked={() => handleLocationChecked('finalcorner')}
-              />
-              <FilterButton
-                id="finalstraight"
-                checked={filterState.location.finalstraight}
-                onChecked={() => handleLocationChecked('finalstraight')}
-              />
-            </div>
-          </div>
+            ))}
+          </FilterSection>
         </div>
-      )}
+
+        <div className="flex flex-col gap-2 md:flex-row">
+          <FilterSection title="Distance">
+            {filterGroups.distance.map((filter) => (
+              <FilterButton
+                key={filter}
+                id={filter}
+                checked={filterState.distance[filter]}
+                onChecked={() => handleExclusiveChecked('distance', filter)}
+              />
+            ))}
+          </FilterSection>
+
+          <Separator orientation="vertical" className="hidden md:block" />
+
+          <FilterSection title="Surface">
+            {filterGroups.surface.map((filter) => (
+              <FilterButton
+                key={filter}
+                id={filter}
+                checked={filterState.surface[filter]}
+                onChecked={() => handleExclusiveChecked('surface', filter)}
+              />
+            ))}
+          </FilterSection>
+
+          <Separator orientation="vertical" className="hidden md:block" />
+
+          <FilterSection title="Location">
+            {filterGroups.location.map((filter) => (
+              <FilterButton
+                key={filter}
+                id={filter}
+                checked={filterState.location[filter]}
+                onChecked={() => handleExclusiveChecked('location', filter)}
+              />
+            ))}
+          </FilterSection>
+        </div>
+
+        <FilterSection title="Effect type">
+          <div className="flex flex-wrap gap-1">
+            {iconCategoryOrder.map((category) => {
+              const types = iconTypesByCategory[category];
+              if (!types) return null;
+
+              return (
+                <div key={category} className="flex flex-wrap gap-1">
+                  {types.map((type) => (
+                    <IconFilterButton
+                      key={type}
+                      type={type}
+                      group="icontype"
+                      filterState={filterState}
+                      onChecked={() => handleIconTypeChecked(type)}
+                    />
+                  ))}
+                </div>
+              );
+            })}
+          </div>
+        </FilterSection>
+      </div>
     </div>
   );
 };

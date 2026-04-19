@@ -27,7 +27,7 @@ import {
 import { SkillPickerFilterRow } from './filter-row';
 import { useFilteredSkills } from './store';
 
-const SKILL_ROW_HEIGHT = 58;
+const SKILL_ROW_HEIGHT = 52;
 const MOBILE_SKILL_OVERSCAN = 20;
 const DESKTOP_SKILL_OVERSCAN = 8;
 
@@ -260,7 +260,13 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
         return next;
       });
     },
-    [resolvedColumnCount, filteredSkillCount, getLastIndexForRow, scrollFocusedIntoView, virtualRowCount],
+    [
+      resolvedColumnCount,
+      filteredSkillCount,
+      getLastIndexForRow,
+      scrollFocusedIntoView,
+      virtualRowCount,
+    ],
   );
 
   const selectFocusedSkill = useCallback(() => {
@@ -306,7 +312,11 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
         return;
       }
 
-      if (isDesktopLayout && isBrowsing && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
+      if (
+        isDesktopLayout &&
+        isBrowsing &&
+        (event.key === 'ArrowLeft' || event.key === 'ArrowRight')
+      ) {
         event.preventDefault();
         event.stopPropagation();
         moveFocusedHorizontally(event.key === 'ArrowLeft' ? -1 : 1);
@@ -383,11 +393,11 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
             return (
               <div
                 key={`skill-row-${rowStart}`}
-                className="absolute top-0 left-0 w-full pb-2"
+                className="absolute top-0 left-0 w-full pb-1"
                 style={{ transform: `translateY(${virtualRow.start}px)` }}
               >
                 <div
-                  className="grid gap-2"
+                  className="grid gap-1"
                   style={{ gridTemplateColumns: `repeat(${resolvedColumnCount}, minmax(0, 1fr))` }}
                 >
                   {rowSkills.map((skill, columnIndex) => {
@@ -464,7 +474,7 @@ const SkillPickerItem = memo((props: SkillPickerItemProps) => {
           <SkillItemRail />
           <SkillItemBody className="p-1 px-2">
             <SkillItemMain>
-              <SkillItemIdentity />
+              <SkillItemIdentity labelProps={{ className: 'text-xs' }} />
               <SkillItemActions>
                 <SkillItemDetailsActions />
               </SkillItemActions>

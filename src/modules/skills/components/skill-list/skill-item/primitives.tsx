@@ -7,7 +7,9 @@ import { SkillIcon } from './SkillIcon';
 import type { SkillItemIdentityProps, SkillItemRailProps, SkillItemRootProps } from './types';
 
 export function SkillItemIdentity(props: Readonly<SkillItemIdentityProps>) {
-  const { iconId, skillId, className } = props;
+  const { iconId, skillId, className, labelProps = { className: 'text-sm' } } = props;
+  const { className: labelClassName, ...labelRest } = labelProps;
+
   const context = useSkillItem();
   const resolvedIconId = iconId ?? context.skill.iconId;
   const resolvedSkillId = skillId ?? context.skill.id;
@@ -21,7 +23,10 @@ export function SkillItemIdentity(props: Readonly<SkillItemIdentityProps>) {
         <SkillIcon iconId={resolvedIconId} />
       </Activity>
 
-      <span className="text-sm leading-tight text-foreground wrap-break-word">
+      <span
+        className={cn('leading-tight text-foreground wrap-break-word', labelClassName)}
+        {...labelRest}
+      >
         {resolvedSkillId ? i18n.t(`skillnames.${resolvedSkillId}`) : null}
       </span>
     </div>
