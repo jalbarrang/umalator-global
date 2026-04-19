@@ -52,7 +52,7 @@ type GeometryRecord = {
 
 const DEFAULT_SOURCE_DIR = 'extracted-data/course';
 const DEFAULT_COURSE_DATA_PATH = 'src/modules/data/course_data.json';
-const DEFAULT_OUTPUT_PATH = 'src/modules/data/course_geometry.json';
+const DEFAULT_OUTPUT_PATH = 'public/data/course_geometry.json';
 
 function parseArgs(argv: string[]): CliOptions {
   const program = new Command();

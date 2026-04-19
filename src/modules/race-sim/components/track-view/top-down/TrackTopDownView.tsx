@@ -6,7 +6,7 @@ import {
   getRunnerPositionsAtTick,
   usePlaybackStore,
 } from '@/modules/race-sim/stores/playback.store';
-import { buildCourseTrackPath } from '@/modules/race-sim/utils/track-path';
+import { buildCourseTrackPath, type BuiltTrackPath } from '@/modules/race-sim/utils/track-path';
 import { pointerToVirtualCanvas, zoomViewportAroundPoint } from './canvasMath';
 import { TrackTopDownLegend } from './TrackTopDownLegend';
 import { TrackRunnerPackZoom } from './TrackRunnerPackZoom';
@@ -30,6 +30,15 @@ type TrackTopDownViewProps = {
   className?: string;
 };
 
+const EMPTY_TRACK: BuiltTrackPath = {
+  points: [],
+  turnSign: 0,
+  wraps: false,
+  lapLength: 1,
+  numLaps: 1,
+  raceStartOnTrack: 0,
+};
+
 export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDownView(props) {
   const {
     courseData,
@@ -45,9 +54,10 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
   const clampedViewStart = clamp(viewStart ?? 0, 0, courseDistance);
   const clampedViewEnd = clamp(viewEnd ?? courseDistance, clampedViewStart, courseDistance);
 
-  const builtTrack = useMemo(() => buildCourseTrackPath(courseData), [courseData]);
+  const [builtTrack, setBuiltTrack] = useState<BuiltTrackPath | null>(null);
   const markers = useMemo(() => buildTrackMarkers(courseData), [courseData]);
-  const { points, turnSign } = builtTrack;
+  const activeBuiltTrack = builtTrack ?? EMPTY_TRACK;
+  const { points, turnSign } = activeBuiltTrack;
 
   const containerRef = useRef<HTMLDivElement>(null);
   const trackCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -63,7 +73,7 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
   });
 
   const configRef = useRef({
-    builtTrack,
+    builtTrack: activeBuiltTrack,
     turnSign,
     courseWidth,
     courseDistance,
@@ -76,7 +86,7 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
   });
 
   configRef.current = {
-    builtTrack,
+    builtTrack: activeBuiltTrack,
     turnSign,
     courseWidth,
     courseDistance,
@@ -87,6 +97,28 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
     turn: courseData.turn,
     markers,
   };
+
+  useEffect(() => {
+    let cancelled = false;
+    setBuiltTrack(null);
+
+    void buildCourseTrackPath(courseData)
+      .then((nextBuiltTrack) => {
+        if (!cancelled) {
+          setBuiltTrack(nextBuiltTrack);
+        }
+      })
+      .catch((error: unknown) => {
+        console.error('Failed to build course track path', error);
+        if (!cancelled) {
+          setBuiltTrack(EMPTY_TRACK);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [courseData]);
 
   const dirtyLayersRef = useRef<Record<MainTrackLayerId, boolean>>({
     track: true,
@@ -334,6 +366,11 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
               ref={hudCanvasRef}
               className="absolute inset-0 block h-full w-full pointer-events-none"
             />
+            {!builtTrack && (
+              <div className="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground">
+                Loading track geometry…
+              </div>
+            )}
           </div>
         </div>
 

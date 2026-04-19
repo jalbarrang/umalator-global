@@ -1,14 +1,5 @@
 import { NavLink, Route, Routes, useLocation, useNavigate } from 'react-router';
 
-import { SimulationLayout } from './_simulation';
-import { SimulationHome } from './_simulation/home';
-import { SkillBassin } from './_simulation/skill-bassin';
-import { UmaBassin } from './_simulation/uma-bassin';
-import { SkillPlanner } from './skill-planner';
-import { RunnersLayout } from './runners';
-import { RunnersHome } from './runners/home';
-import { RunnersNew } from './runners/new';
-import { RunnersEdit } from './runners/$runnerId.edit';
 import { Toaster } from '@/components/ui/sonner';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
@@ -28,12 +19,33 @@ import { createRunnerState } from '@/modules/runners/components/runner-card/type
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { toast } from 'sonner';
 
-import { RaceSimRoot } from './_race-sim';
-import { RaceSimHome } from './race-sim/home';
-import { RaceSimRun } from './race-sim/run';
-import { RaceSimResults } from './race-sim/results';
+import { lazy, Suspense, useCallback, useMemo, useState } from 'react';
 
-import { useCallback, useMemo, useState } from 'react';
+const SimulationLayout = lazy(
+  async () => ({ default: (await import('./_simulation')).SimulationLayout }),
+);
+const SimulationHome = lazy(
+  async () => ({ default: (await import('./_simulation/home')).SimulationHome }),
+);
+const SkillBassin = lazy(
+  async () => ({ default: (await import('./_simulation/skill-bassin')).SkillBassin }),
+);
+const UmaBassin = lazy(
+  async () => ({ default: (await import('./_simulation/uma-bassin')).UmaBassin }),
+);
+const SkillPlanner = lazy(async () => ({ default: (await import('./skill-planner')).SkillPlanner }));
+const RunnersLayout = lazy(async () => ({ default: (await import('./runners')).RunnersLayout }));
+const RunnersHome = lazy(async () => ({ default: (await import('./runners/home')).RunnersHome }));
+const RunnersNew = lazy(async () => ({ default: (await import('./runners/new')).RunnersNew }));
+const RunnersEdit = lazy(
+  async () => ({ default: (await import('./runners/$runnerId.edit')).RunnersEdit }),
+);
+const RaceSimRoot = lazy(async () => ({ default: (await import('./_race-sim')).RaceSimRoot }));
+const RaceSimHome = lazy(async () => ({ default: (await import('./race-sim/home')).RaceSimHome }));
+const RaceSimRun = lazy(async () => ({ default: (await import('./race-sim/run')).RaceSimRun }));
+const RaceSimResults = lazy(
+  async () => ({ default: (await import('./race-sim/results')).RaceSimResults }),
+);
 
 export function RootComponent() {
   const location = useLocation();
@@ -166,27 +178,35 @@ export function RootComponent() {
         </header>
 
         <main className="flex flex-1 overflow-hidden min-h-0">
-          <Routes>
-            <Route path="/" element={<SimulationLayout />}>
-              <Route index element={<SimulationHome />} />
-              <Route path="/skill-bassin" element={<SkillBassin />} />
-              <Route path="/uma-bassin" element={<UmaBassin />} />
-            </Route>
+          <Suspense
+            fallback={
+              <div className="flex flex-1 items-center justify-center p-4 text-sm text-muted-foreground">
+                Loading route…
+              </div>
+            }
+          >
+            <Routes>
+              <Route path="/" element={<SimulationLayout />}>
+                <Route index element={<SimulationHome />} />
+                <Route path="/skill-bassin" element={<SkillBassin />} />
+                <Route path="/uma-bassin" element={<UmaBassin />} />
+              </Route>
 
-            <Route path="/runners" element={<RunnersLayout />}>
-              <Route index element={<RunnersHome />} />
-              <Route path="/runners/new" element={<RunnersNew />} />
-              <Route path="/runners/:runnerId/edit" element={<RunnersEdit />} />
-            </Route>
+              <Route path="/runners" element={<RunnersLayout />}>
+                <Route index element={<RunnersHome />} />
+                <Route path="/runners/new" element={<RunnersNew />} />
+                <Route path="/runners/:runnerId/edit" element={<RunnersEdit />} />
+              </Route>
 
-            <Route path="/race-sim" element={<RaceSimRoot />}>
-              <Route index element={<RaceSimHome />} />
-              <Route path="/race-sim/run" element={<RaceSimRun />} />
-              <Route path="/race-sim/results" element={<RaceSimResults />} />
-            </Route>
+              <Route path="/race-sim" element={<RaceSimRoot />}>
+                <Route index element={<RaceSimHome />} />
+                <Route path="/race-sim/run" element={<RaceSimRun />} />
+                <Route path="/race-sim/results" element={<RaceSimResults />} />
+              </Route>
 
-            <Route path="/skill-planner" element={<SkillPlanner />} />
-          </Routes>
+              <Route path="/skill-planner" element={<SkillPlanner />} />
+            </Routes>
+          </Suspense>
         </main>
 
         <CreditsModal />

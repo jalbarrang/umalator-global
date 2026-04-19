@@ -105,11 +105,11 @@ function normalizePlanar(x: number, y: number): { x: number; y: number } | null 
   return { x: x / len, y: y / len };
 }
 
-function buildTrackPointsFromGeometry(
+async function buildTrackPointsFromGeometry(
   course: CourseData,
   turnSign: number,
-): TrackPathPoint[] | null {
-  const geometry = getCourseGeometry(course.courseId);
+): Promise<TrackPathPoint[] | null> {
+  const geometry = await getCourseGeometry(course.courseId);
   if (!geometry) {
     return null;
   }
@@ -276,10 +276,10 @@ function buildLegacyOpenTrackPath(course: CourseData, turnSign: number): BuiltTr
  * Build a 2D polyline for the inner-rail path: one physical lap as a closed loop when possible.
  * Two turns per lap, π radians each; lap length from corner period or course distance.
  */
-export function buildCourseTrackPath(course: CourseData): BuiltTrackPath {
+export async function buildCourseTrackPath(course: CourseData): Promise<BuiltTrackPath> {
   const distance = Math.max(course.distance, 1);
   const turnSign = turnSignFromOrientation(course.turn);
-  const geometryPoints = buildTrackPointsFromGeometry(course, turnSign);
+  const geometryPoints = await buildTrackPointsFromGeometry(course, turnSign);
 
   if (geometryPoints) {
     return {

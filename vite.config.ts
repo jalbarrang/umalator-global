@@ -4,6 +4,7 @@ import tailwindcss from '@tailwindcss/vite';
 import react, { reactCompilerPreset } from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import babel from '@rolldown/plugin-babel';
+import { VitePWA } from 'vite-plugin-pwa';
 
 // Feature Flags:
 // Vite automatically loads environment variables from .env files
@@ -21,6 +22,75 @@ export default defineConfig(({ command }) => ({
       presets: [reactCompilerPreset()],
     }),
     tailwindcss(),
+    VitePWA({
+      injectRegister: 'auto',
+      registerType: 'autoUpdate',
+      includeAssets: ['favicon.ico', 'favicon.svg', 'apple-touch-icon.png'],
+      manifest: {
+        id: './',
+        start_url: './',
+        scope: './',
+        name: 'Yet Another Umalator',
+        short_name: 'Umalator',
+        description: 'Race and skill simulation toolkit for Uma Musume: Pretty Derby.',
+        theme_color: '#111315',
+        background_color: '#111315',
+        display: 'standalone',
+        icons: [
+          {
+            src: 'web-app-manifest-192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'any',
+          },
+          {
+            src: 'web-app-manifest-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any',
+          },
+        ],
+        screenshots: [
+          {
+            src: 'desktop-screenshot.png',
+            sizes: '1490x836',
+            type: 'image/png',
+            form_factor: 'wide',
+            label: 'Desktop view of Yet Another Umalator',
+          },
+          {
+            src: 'mobile-screenshot.png',
+            sizes: '406x727',
+            type: 'image/png',
+            form_factor: 'narrow',
+            label: 'Mobile view of Yet Another Umalator',
+          },
+        ],
+      },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,json}'],
+        globIgnores: ['**/data/course_geometry.json'],
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        skipWaiting: true,
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.pathname.endsWith('/data/course_geometry.json'),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'course-geometry-data',
+              cacheableResponse: {
+                statuses: [200],
+              },
+              expiration: {
+                maxEntries: 1,
+                maxAgeSeconds: 60 * 60 * 24 * 30,
+              },
+            },
+          },
+        ],
+      },
+    }),
   ],
   assetsInclude: ['**/*.wasm'],
   worker: {
