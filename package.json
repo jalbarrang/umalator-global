@@ -98,6 +98,7 @@
     "typescript": "^6.0.2",
     "vite": "^8.0.3",
     "vite-plugin-pwa": "^1.2.0",
+    "vite-sitemap-plugin": "^1.20.0",
     "vitest": "^4.1.2",
     "web-vitals": "^5.1.0"
   },

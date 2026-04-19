@@ -5,6 +5,7 @@ import react, { reactCompilerPreset } from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import babel from '@rolldown/plugin-babel';
 import { VitePWA } from 'vite-plugin-pwa';
+import sitemap from 'vite-sitemap-plugin';
 
 // Feature Flags:
 // Vite automatically loads environment variables from .env files
@@ -90,6 +91,11 @@ export default defineConfig(({ command }) => ({
           },
         ],
       },
+    }),
+    sitemap({
+      base: 'https://jalbarrang.github.io/umalator-global',
+      // HashRouter routes are not crawlable sitemap entries, so only emit the real homepage for now.
+      urls: [],
     }),
   ],
   assetsInclude: ['**/*.wasm'],
