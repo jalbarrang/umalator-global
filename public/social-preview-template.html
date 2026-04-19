@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Social Preview Template</title>
+    <style>
+      :root {
+        --page-bg: #1b202a;
+        --card-bg: #151920;
+        --card-border: rgba(255, 255, 255, 0.045);
+        --title: #fff7e1;
+        --body: #d7dce6;
+        --muted: #8fa1b5;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+        background: linear-gradient(180deg, #111315, var(--page-bg));
+        color: white;
+        font-family: Verdana, Arial, sans-serif;
+      }
+
+      body {
+        padding: 64px;
+      }
+
+      .card {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        border: 2px solid var(--card-border);
+        border-radius: 32px;
+        background: linear-gradient(180deg, #14181e, #181d27);
+        overflow: hidden;
+      }
+
+      .content {
+        position: relative;
+        z-index: 2;
+        padding: 52px 56px;
+        width: 100%;
+        height: 100%;
+      }
+
+      .title {
+        margin: 0;
+        font-size: 66px;
+        line-height: 0.98;
+        letter-spacing: -0.04em;
+        font-weight: 700;
+        color: var(--title);
+        max-width: 540px;
+      }
+
+      .description {
+        margin: 32px 0 0;
+        max-width: 560px;
+        font-size: 28px;
+        line-height: 1.42;
+        color: var(--body);
+      }
+
+      .footer {
+        position: absolute;
+        left: 56px;
+        bottom: 42px;
+        font-size: 23px;
+        line-height: 1.3;
+        color: var(--muted);
+      }
+
+      .logo-wrap {
+        position: absolute;
+        right: 86px;
+        top: 112px;
+        width: 360px;
+        height: 360px;
+        display: grid;
+        place-items: center;
+        z-index: 1;
+      }
+
+      .logo-wrap::before {
+        content: '';
+        position: absolute;
+        inset: 52px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(255, 224, 131, 0.12), rgba(255, 224, 131, 0));
+        filter: blur(22px);
+      }
+
+      .logo {
+        position: relative;
+        z-index: 2;
+        width: 340px;
+        height: 340px;
+        object-fit: contain;
+        filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.24));
+      }
+
+      .notes {
+        position: absolute;
+        top: 16px;
+        right: 18px;
+        z-index: 3;
+        padding: 10px 12px;
+        border-radius: 10px;
+        background: rgba(0, 0, 0, 0.45);
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .notes code {
+        color: #fff7e1;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="notes">
+        Edit this file, then screenshot/export at <code>1200×630</code>.<br />
+        Preview card logo: <code>./social-preview-logo.png</code><br />
+        Favicons / app / Discord logo: <code>./socials-icon-logo.png</code>
+      </div>
+
+      <div class="content">
+        <h1 class="title">Yet Another<br />Umalator</h1>
+
+        <p class="description">
+          Race and skill simulation toolkit for Uma Musume: Pretty Derby Global
+        </p>
+
+        <div class="footer">Compare builds • plan skills • test race behavior</div>
+      </div>
+
+      <div class="logo-wrap">
+        <img class="logo" src="./social-preview-logo.png" alt="Yet Another Umalator social preview logo" />
+      </div>
+    </div>
+  </body>
+</html>

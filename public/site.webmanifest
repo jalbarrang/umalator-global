@@ -1,0 +1,21 @@
+{
+  "name": "Yet Another Umalator",
+  "short_name": "Umalator",
+  "description": "Race and skill simulation toolkit for Uma Musume: Pretty Derby",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#111315",
+  "theme_color": "#111315",
+  "icons": [
+    {
+      "src": "./android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
