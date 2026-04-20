@@ -10,6 +10,7 @@ import { FeatureFlagDebugPanel } from '@/components/feature-flag-debug-panel';
 import { TutorialProvider, TutorialRoot } from '@/components/tutorial';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Drawer, DrawerTrigger, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
+import { SnapshotSwitcher } from '@/components/snapshot-switcher';
 import { ScrollTextIcon, UsersIcon, MenuIcon } from 'lucide-react';
 import { setShowChangelogModal, setShowCreditsModal } from '@/store/ui.store';
 import { cn } from '@/lib/utils';
@@ -23,31 +24,33 @@ import { toast } from 'sonner';
 import { lazy, Suspense, useCallback, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 
-const SimulationLayout = lazy(
-  async () => ({ default: (await import('./_simulation')).SimulationLayout }),
-);
-const SimulationHome = lazy(
-  async () => ({ default: (await import('./_simulation/home')).SimulationHome }),
-);
-const SkillBassin = lazy(
-  async () => ({ default: (await import('./_simulation/skill-bassin')).SkillBassin }),
-);
-const UmaBassin = lazy(
-  async () => ({ default: (await import('./_simulation/uma-bassin')).UmaBassin }),
-);
-const SkillPlanner = lazy(async () => ({ default: (await import('./skill-planner')).SkillPlanner }));
+const SimulationLayout = lazy(async () => ({
+  default: (await import('./_simulation')).SimulationLayout,
+}));
+const SimulationHome = lazy(async () => ({
+  default: (await import('./_simulation/home')).SimulationHome,
+}));
+const SkillBassin = lazy(async () => ({
+  default: (await import('./_simulation/skill-bassin')).SkillBassin,
+}));
+const UmaBassin = lazy(async () => ({
+  default: (await import('./_simulation/uma-bassin')).UmaBassin,
+}));
+const SkillPlanner = lazy(async () => ({
+  default: (await import('./skill-planner')).SkillPlanner,
+}));
 const RunnersLayout = lazy(async () => ({ default: (await import('./runners')).RunnersLayout }));
 const RunnersHome = lazy(async () => ({ default: (await import('./runners/home')).RunnersHome }));
 const RunnersNew = lazy(async () => ({ default: (await import('./runners/new')).RunnersNew }));
-const RunnersEdit = lazy(
-  async () => ({ default: (await import('./runners/$runnerId.edit')).RunnersEdit }),
-);
+const RunnersEdit = lazy(async () => ({
+  default: (await import('./runners/$runnerId.edit')).RunnersEdit,
+}));
 const RaceSimRoot = lazy(async () => ({ default: (await import('./_race-sim')).RaceSimRoot }));
 const RaceSimHome = lazy(async () => ({ default: (await import('./race-sim/home')).RaceSimHome }));
 const RaceSimRun = lazy(async () => ({ default: (await import('./race-sim/run')).RaceSimRun }));
-const RaceSimResults = lazy(
-  async () => ({ default: (await import('./race-sim/results')).RaceSimResults }),
-);
+const RaceSimResults = lazy(async () => ({
+  default: (await import('./race-sim/results')).RaceSimResults,
+}));
 
 type RoutePageProps = {
   title: string;
@@ -137,6 +140,9 @@ export function RootComponent() {
                     </NavLink>
                   ))}
                 </nav>
+                <div className="border-t px-3 py-2">
+                  <SnapshotSwitcher />
+                </div>
               </DrawerContent>
             </Drawer>
           </div>
@@ -161,6 +167,9 @@ export function RootComponent() {
           </nav>
 
           <div className="flex items-center gap-2">
+            <div className="hidden md:block">
+              <SnapshotSwitcher />
+            </div>
             <Tooltip>
               <TooltipTrigger
                 render={
@@ -353,7 +362,11 @@ export function NotFoundComponent() {
 
   return (
     <>
-      <PageMetadata title="Page Not Found" description="The requested page could not be found." noindex />
+      <PageMetadata
+        title="Page Not Found"
+        description="The requested page could not be found."
+        noindex
+      />
       <div className="flex flex-1 flex-col items-center justify-center p-4">
         <div className="text-center space-y-4">
           <h1 className="text-6xl font-bold">404</h1>

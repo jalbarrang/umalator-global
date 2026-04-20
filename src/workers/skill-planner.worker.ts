@@ -23,6 +23,7 @@
  */
 
 import '../polyfills';
+import { ensureWorkerRuntime } from './bootstrap-runtime';
 import type { CandidateSkill } from '@/modules/skill-planner/types';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';
@@ -115,7 +116,8 @@ function runOptimization(params: OptimizeParams) {
 // Worker Message Handler
 // ============================================================
 
-self.addEventListener('message', (event: MessageEvent<SkillPlannerWorkerInMessage>) => {
+self.addEventListener('message', async (event: MessageEvent<SkillPlannerWorkerInMessage>) => {
+  await ensureWorkerRuntime();
   const message = event.data;
 
   try {

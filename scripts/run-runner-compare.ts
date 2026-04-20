@@ -10,6 +10,7 @@
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { Command } from 'commander';
+import { bootstrapCliRuntime } from './lib/cli-runtime';
 
 import type { CreateRunner, RunnerAptitudes, StatLine } from '@/lib/sunday-tools/common/runner';
 import type {
@@ -365,4 +366,4 @@ program
     }
   });
 
-program.parse();
+bootstrapCliRuntime().then(() => program.parse());

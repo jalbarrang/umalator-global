@@ -1,8 +1,9 @@
 import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
 import { toast } from 'sonner';
 import { cloneDeep } from 'es-toolkit';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import { createSnapshotJSONStorage, getSnapshotStorageKey } from '@/lib/storage/snapshot-storage';
 
 export type SavedRunner = RunnerState & {
   id: string;
@@ -97,8 +98,8 @@ export const useRunnerLibraryStore = create<RunnerLibraryStore>()(
       },
     }),
     {
-      name: 'umalator-runner-library',
-      storage: createJSONStorage(() => localStorage),
+      name: getSnapshotStorageKey('runner-library'),
+      storage: createSnapshotJSONStorage(),
     },
   ),
 );

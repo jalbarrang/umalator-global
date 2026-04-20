@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
 import { useShallow } from 'zustand/shallow';
 import type {
   CompareResult,
@@ -12,8 +12,9 @@ import type {
 import type { InjectedDebuffsMap } from '@/modules/simulation/types';
 import { generateSeed } from '@/utils/crypto';
 import { SpurtCandidate } from '@/lib/sunday-tools/common/spurt-calculator';
+import { createSnapshotJSONStorage, getSnapshotStorageKey } from '@/lib/storage/snapshot-storage';
 
-const COMPARE_DEBUFFS_STORE_NAME = 'umalator-compare-debuffs';
+const COMPARE_DEBUFFS_STORE_NAME = getSnapshotStorageKey('compare-debuffs');
 export type CompareRunnerId = 'uma1' | 'uma2';
 
 type IRaceStore = {
@@ -51,7 +52,7 @@ export const useRaceStore = create<IRaceStore>()(
     }),
     {
       name: COMPARE_DEBUFFS_STORE_NAME,
-      storage: createJSONStorage(() => localStorage),
+      storage: createSnapshotJSONStorage(),
       partialize: (state) => ({
         injectedDebuffs: state.injectedDebuffs,
       }),

@@ -3,6 +3,7 @@
  * Processes batches of skills and reports results back to pool manager
  */
 
+import { ensureWorkerRuntime } from '../../bootstrap-runtime';
 import { clone, cloneDeepWith } from 'es-toolkit';
 import type { SkillComparisonResponse } from '@/modules/simulation/types';
 import type { SimulationParams, WorkBatch, WorkerInMessage, WorkerOutMessage } from '../types';
@@ -53,7 +54,8 @@ function processBatch(batch: WorkBatch): void {
   });
 }
 
-self.addEventListener('message', (event: MessageEvent<WorkerInMessage>) => {
+self.addEventListener('message', async (event: MessageEvent<WorkerInMessage>) => {
+  await ensureWorkerRuntime();
   const message = event.data;
 
   switch (message.type) {

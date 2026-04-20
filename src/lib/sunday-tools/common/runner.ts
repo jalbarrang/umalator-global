@@ -40,7 +40,7 @@ import type {
   PendingTargetedSkill,
   SkillEffect,
 } from '../skills/skill.types';
-import { getUmaDisplayInfo } from '@/modules/runners/utils';
+import { getUmaById } from '@/modules/data/umas';
 
 export const PhaseDeceleration = [-1.2, -0.8, -1.0];
 export const BaseAccel = 0.0006;
@@ -1389,8 +1389,13 @@ export class Runner {
   public static create(race: Race, id: number, props: CreateRunner): Runner {
     const umaId = props.outfitId ? props.outfitId.slice(0, 4) : '';
 
-    const displayInfo = getUmaDisplayInfo(props.outfitId);
-    const name = displayInfo?.name ?? `Runner ${id}`;
+    let name = `Runner ${id}`;
+    try {
+      const uma = props.outfitId ? getUmaById(props.outfitId.slice(0, 4)) : undefined;
+      if (uma) name = uma.name[1] || name;
+    } catch {
+      // Fallback to generic name if uma lookup fails
+    }
 
     const runner = new Runner(race, {
       id: id,

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import umasJson from './umas.json';
+import { createRuntimeCatalogProxy, getDataRuntime } from './runtime';
 
 // =======
 // Types
@@ -15,7 +15,9 @@ export type UmasMap = Record<string, UmaEntry>;
 // Data
 // =======
 
-export const umas = umasJson as UmasMap;
+const getUmasMap = (): UmasMap => getDataRuntime().catalog.umas;
+
+export const umas = createRuntimeCatalogProxy(getUmasMap) as UmasMap;
 
 // =====
 // Query Methods

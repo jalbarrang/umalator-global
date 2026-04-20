@@ -7,36 +7,60 @@ TypeScript-based data extraction scripts using Node.js (`tsx`) and `better-sqlit
 - **Node.js** (v24 or later)
 - **pnpm** (project package manager)
 - **master.mdb** - Game database file from Uma Musume installation
+- **`courseeventparams/`** - required for `extract-course-data`
+- **`extracted-data/course/`** - required for `extract-course-geometry`
 
 ## Quick Start
 
-**Default behavior (Merge Mode - Recommended)**:
+### Global snapshot update
 
 ```bash
-pnpm run extract:all
+pnpm run extract:all -- --snapshot global
+pnpm run extract:course-geometry -- --snapshot global
 ```
 
 This will:
 
-- ✅ Update entries from `master.mdb` (current game content)
-- ✅ **Preserve** entries not in master.mdb (future/datamined content from gametora)
+- ✅ Update the checked-in runtime snapshot under `public/data/global/`
+- ✅ Preserve future/datamined entries already present in that same snapshot directory when merge mode is used
+- ✅ Rewrite `public/data/global/manifest.json`
 - ✅ Automatically find `db/master.mdb` if it exists
 
-**Full replacement mode** (wipes future content):
+### JP snapshot generation from an external MDB
+
+The repo does **not** include a JP database. Generate JP data from your own external `master.mdb`:
 
 ```bash
-pnpm run extract:all -- --replace
+UMALATOR_SNAPSHOT_VERSION=10004010 pnpm run extract:all -- --snapshot jp /path/to/master.mdb
+UMALATOR_SNAPSHOT_VERSION=10004010 pnpm run extract:course-geometry -- --snapshot jp
+```
+
+Then provide a JP-specific `public/data/jp/tracknames.json` before committing or shipping the snapshot.
+
+> There is currently no `tracknames` extraction script. Do **not** fake JP content by copying the Global file into `public/data/jp/`.
+
+### Full replacement mode
+
+```bash
+pnpm run extract:all -- --snapshot global --replace
 # or
-pnpm run extract:all -- --full
+pnpm run extract:all -- --snapshot global --full
 ```
 
-Or run individual extraction scripts:
+## Snapshot Outputs
 
-```bash
-pnpm run extract:skills          # Unified skill data (meta + names + mechanics)
-pnpm run extract:uma-info        # Uma musume data
-pnpm run extract:course-data     # Course/track data
-```
+All runtime snapshot data now lives under `public/data/{snapshot}/`:
+
+| File                   | Description                                   |
+| ---------------------- | --------------------------------------------- |
+| `manifest.json`        | Snapshot metadata + runtime file map          |
+| `skills.json`          | Unified skill data (meta + names + mechanics) |
+| `umas.json`            | Uma musume character data                     |
+| `course_data.json`     | Course/track metadata + sections              |
+| `tracknames.json`      | Track name translations                       |
+| `course_geometry.json` | Geometry extracted from Unity YAML assets     |
+
+`src/modules/data/*.json` still remains in the repo during the migration, but snapshot-aware scripts now write runtime data to `public/data/{snapshot}/`.
 
 ## Database Location
 
@@ -46,12 +70,6 @@ Default path:
 
 ```
 %APPDATA%\..\LocalLow\Cygames\Umamusume\master\master.mdb
-```
-
-Full path typically:
-
-```
-C:\Users\[YourUsername]\AppData\LocalLow\Cygames\Umamusume\master\master.mdb
 ```
 
 ### macOS / Linux (Steam/Proton)
@@ -67,19 +85,20 @@ Place `master.mdb` in a `db/` directory at the project root:
 ```
 umalator-global/
 ├── db/
-│   └── master.mdb    # <- Put it here!
+│   └── master.mdb
 ├── scripts/
 └── ...
 ```
 
-The extraction scripts will automatically detect and use it. This path is gitignored to avoid copyright issues.
+The extraction scripts automatically detect and use it.
 
 ### Custom Path
 
-All scripts also accept a custom database path as the first argument:
+All extraction scripts accept a custom database path as the final positional argument:
 
 ```bash
-pnpm exec tsx scripts/extract-skills.ts /path/to/master.mdb
+pnpm run extract:skills -- --snapshot jp /path/to/master.mdb
+pnpm run extract:all -- --snapshot jp /path/to/master.mdb
 ```
 
 ## Merge vs Replace Mode
@@ -88,175 +107,135 @@ pnpm exec tsx scripts/extract-skills.ts /path/to/master.mdb
 
 **What it does:**
 
-- Reads existing JSON files
-- Updates entries that exist in `master.mdb` (current game content)
-- **Preserves** entries only in existing files (future/datamined content)
+- Reads the existing snapshot-local JSON files
+- Updates entries that exist in `master.mdb`
+- **Preserves** entries already staged in that snapshot directory but not present in the selected DB
 
 **When to use:**
 
-- Regular updates after game patches
-- Keeping future content from gametora while updating current content
+- Regular Global snapshot refreshes
+- JP snapshot refreshes where you already have a staged snapshot directory
 - Safe default for most workflows
 
 ### Replace Mode ⚠️
 
 **What it does:**
 
-- Completely replaces JSON files with only `master.mdb` content
-- **Removes** all future/datamined content
+- Replaces snapshot-local JSON files with only `master.mdb` content
+- Removes snapshot-local future/datamined content
 
 **When to use:**
 
-- Fresh start from scratch
-- Cleaning up corrupted data
-- When you explicitly want only current game content
+- Fresh rebuilds
+- Cleaning up corrupted snapshot data
+- When you explicitly want only the selected database content
 
-**How to use:**
+## Script Usage
 
-```bash
-pnpm run extract:all -- --replace
-# or
-pnpm run extract:skills -- --full
-```
+### `extract-skills.ts`
 
-## Scripts Overview
+Extracts unified skill data (metadata, names, and mechanics).
 
-### extract-skills.ts
-
-Extracts unified skill data (metadata, names, and mechanics). Applies scenario skill modifiers and handles special cases like Seirios split alternatives.
-
-**Output:** `src/modules/data/skills.json`
-
-**Default:** Merge mode (preserves future content)
-
-**Features:**
-
-- Merges metadata (group ID, icon ID, SP cost, display order) with activation data
-- Includes extracted names from `text_data`
-- Applies 1.2x modifier to scenario skills
-- Handles split alternatives for specific skills (Seirios)
-- Processes up to 2 alternatives per skill
-- Supports up to 3 effects per alternative
-
-**Usage:**
+**Output:** `public/data/{snapshot}/skills.json`
 
 ```bash
-pnpm run extract:skills                # Merge mode (default)
-pnpm run extract:skills -- --replace   # Full replacement
+pnpm run extract:skills -- --snapshot global
+pnpm run extract:skills -- --snapshot jp /path/to/master.mdb
+pnpm run extract:skills -- --snapshot global --replace
 ```
 
-### extract-uma-info.ts
+### `extract-uma-info.ts`
 
-Extracts uma musume character data (names, outfits). Filters out unimplemented umas by checking if their unique skills exist.
+Extracts uma musume character data and filters outfits by the snapshot-local `skills.json` file.
 
-**Output:** `src/modules/data/umas.json`
-
-**Default:** Merge mode (preserves future content)
-
-**Requirements:**
-
-- Reads existing `skills.json` for filtering
-
-**Usage:**
+**Output:** `public/data/{snapshot}/umas.json`
 
 ```bash
-pnpm run extract:uma-info                # Merge mode (default)
-pnpm run extract:uma-info -- --replace   # Full replacement
+pnpm run extract:uma-info -- --snapshot global
+pnpm run extract:uma-info -- --snapshot jp /path/to/master.mdb
 ```
 
-### extract-course-data.ts
+### `extract-course-data.ts`
 
-Extracts course/track data including geometry (corners, straights, slopes).
+Extracts course/track metadata, corners, straights, and slopes.
 
-**Output:** `src/modules/data/course_data.json`
-
-**Default:** Merge mode (preserves future content)
-
-**Requirements:**
-
-- Requires `courseeventparams/` directory with course geometry JSON files
-- Pass courseeventparams path as second argument if not in default location
-
-**Usage:**
+**Output:** `public/data/{snapshot}/course_data.json`
 
 ```bash
-pnpm run extract:course-data                # Merge mode (default)
-pnpm run extract:course-data -- --replace   # Full replacement
+pnpm run extract:course-data -- --snapshot global
+pnpm run extract:course-data -- --snapshot jp /path/to/master.mdb
 ```
 
-**Special Cases:**
+### `extract-course-geometry.ts`
 
-- Skips incomplete Longchamp courses (IDs 11201, 11202)
-- Processes corner, straight, and slope events
-- Calculates distance type (Short/Mile/Mid/Long)
+Extracts normalized course geometry from Unity YAML assets.
 
-### extract-all.ts
+**Defaults:**
 
-Master script that runs all extraction scripts in sequence.
+- Course data: `public/data/{snapshot}/course_data.json`
+- Output: `public/data/{snapshot}/course_geometry.json`
 
-**Default:** Merge mode (preserves future content)
+**Overrides:**
 
-**Usage:**
+- `--course-data <path>` to read a different course catalog
+- `--output <path>` to emit geometry somewhere else
+- `--source <path>` to point at a different extracted asset tree
 
 ```bash
-pnpm run extract:all                # Merge mode (default)
-pnpm run extract:all -- --replace   # Full replacement
+pnpm run extract:course-geometry -- --snapshot global
+pnpm run extract:course-geometry -- --snapshot jp
+pnpm run extract:course-geometry -- --snapshot jp --course-data /tmp/course_data.json --output /tmp/course_geometry.json
 ```
 
-**Features:**
+### `extract-all.ts`
 
-- Runs all extractions sequentially
-- Merge mode preserves future/datamined content by default
-- Error handling with summary report
-- Progress indicators
-- Exits with error if any extraction fails
+Runs skills, uma info, and course data extraction in sequence, then rewrites the snapshot manifest.
 
-## Output Files
+```bash
+pnpm run extract:all -- --snapshot global
+pnpm run extract:all -- --snapshot jp /path/to/master.mdb
+```
 
-All extracted data is written to `src/modules/data/`:
+## Snapshot Manifest Version
 
-| File               | Description                                   |
-| ------------------ | --------------------------------------------- |
-| `skills.json`      | Unified skill data (meta + names + mechanics) |
-| `umas.json`        | Uma musume character data                     |
-| `course_data.json` | Course/track geometry data                    |
+`manifest.json` includes a `version` field. By default it falls back to `unknown`.
+If you know the resource version, set `UMALATOR_SNAPSHOT_VERSION` when running extraction commands:
+
+```bash
+UMALATOR_SNAPSHOT_VERSION=10004010 pnpm run extract:all -- --snapshot jp /path/to/master.mdb
+```
 
 ## Data Format
 
 ### JSON Output
 
-- **Minified**: No pretty-printing (matches Perl output)
-- **Sorted**: Keys sorted numerically
-- **Trailing newline**: Single `\n` at end of file
-- **UTF-8**: All text properly encoded
+- **Minified**: no pretty-printing
+- **Sorted**: numeric-keyed records are sorted ascending
+- **Trailing newline**: single `\n` at end of file
+- **UTF-8**: all text properly encoded
 
 ## Shared Libraries
 
-### scripts/lib/shared.ts
+### `scripts/lib/shared.ts`
 
-Utility functions:
+- `sortByNumericKey()` - sort object keys numerically
+- `writeJsonFile()` - write canonical JSON and create parent directories
+- `resolveMasterDbPath()` - resolve database path
+- `getUniqueSkillForOutfit()` - calculate unique skill ID
 
-- `sortByNumericKey()` - Sort object keys numerically
-- `writeJsonFile()` - Write JSON with canonical format
-- `resolveMasterDbPath()` - Resolve database path
-- `getUniqueSkillForOutfit()` - Calculate unique skill ID
+### `scripts/lib/snapshot-output.ts`
 
-### scripts/lib/database.ts
+- `SnapshotId` - runtime snapshot ids (`global` / `jp`)
+- `resolveSnapshotOutputDir()` - resolve `public/data/{snapshot}`
+- `resolveSnapshotFile()` - resolve snapshot-local JSON paths
+- `writeSnapshotManifest()` - write `manifest.json`
 
-Database helpers:
+### `scripts/lib/database.ts`
 
-- `openDatabase()` - Open SQLite database (readonly)
-- `closeDatabase()` - Close database connection
-- `queryAll()` - Execute query and return all rows
-- `queryAllWithParams()` - Execute parameterized query
-
-## Advantages Over Perl
-
-- **Faster extraction** - `better-sqlite3` is highly optimized
-- **Type safety** - TypeScript catches errors at compile time
-- **No Perl dependencies** - No need to install CPAN/Perl modules
-- **Modern tooling** - Better IDE support and debugging
-- **Consistent ecosystem** - Same runtime as the rest of the project
+- `openDatabase()` - open SQLite database (readonly)
+- `closeDatabase()` - close database connection
+- `queryAll()` - execute query and return all rows
+- `queryAllWithParams()` - execute parameterized query
 
 ## Troubleshooting
 
@@ -268,64 +247,27 @@ Database helpers:
 
 ### "Could not read courseeventparams"
 
-- Ensure `courseeventparams/` directory exists
+- Ensure `courseeventparams/` exists
 - Verify course JSON files are present
-- Pass correct path as second argument to `extract-course-data.ts`
+- Pass a custom path as the second positional argument to `extract-course-data.ts` if needed
 
-### UTF-8 encoding issues
+### Missing `tracknames.json` for JP
 
-Node + SQLite tooling handles UTF-8 automatically. If you see garbled Japanese text:
+A JP snapshot is incomplete until `public/data/jp/tracknames.json` exists.
+This file is not generated today; source it from your JP translation workflow.
 
-- Verify the database file is from the current game version
-- Check that your terminal supports UTF-8
-
-### Permission errors
-
-On Unix systems, make scripts executable:
+## Testing
 
 ```bash
-chmod +x scripts/*.ts
+pnpm run extract:all -- --snapshot global
+pnpm run extract:course-geometry -- --snapshot global
 ```
 
-## Development
-
-### Adding a New Extraction Script
-
-1. Create script in `scripts/` directory
-2. Import shared utilities from `scripts/lib/`
-3. Export main function for use in `extract-all.ts`
-4. Add script to `package.json` scripts section
-5. Update this README
-
-### Testing
-
-Compare output with Perl version:
-
-```bash
-# Extract with Perl
-perl scripts/legacy/make_global_skill_meta.pl master.mdb > perl_meta.json
-perl scripts/legacy/make_global_skillnames.pl master.mdb > perl_names.json
-perl scripts/legacy/make_global_skill_data.pl master.mdb > perl_data.json
-
-# Extract with Node/tsx
-pnpm exec tsx scripts/extract-skills.ts master.mdb
-
-# Compare key count as a quick sanity check
-node -e "const fs=require('fs');const skills=JSON.parse(fs.readFileSync('src/modules/data/skills.json','utf8'));console.log(Object.keys(skills).length)"
-```
+Verify the generated files under `public/data/global/` are minified JSON with a trailing newline.
 
 ## Legacy Perl Scripts
 
-Legacy Perl scripts are preserved in `scripts/legacy/` for reference. They are no longer maintained but kept for comparison and verification purposes.
-
-## Contributing
-
-When updating extraction logic:
-
-1. Update the corresponding TypeScript script
-2. Test against known good data
-3. Verify JSON output format matches expected schema
-4. Update this README if adding new features
+Legacy Perl scripts remain in `scripts/legacy/` for reference only.
 
 ## License
 

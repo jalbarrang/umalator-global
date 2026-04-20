@@ -4,15 +4,21 @@
  * Combines metadata, names, and activation/effect data into one file.
  */
 
-import path from 'node:path';
-import { Command } from 'commander';
+import { Command, Option } from 'commander';
 import { closeDatabase, openDatabase, queryAll } from './lib/database';
 import {
+  normalizeCommanderArgv,
   readJsonFileIfExists,
   resolveMasterDbPath,
   sortByNumericKey,
   writeJsonFile,
 } from './lib/shared';
+import {
+  DEFAULT_SNAPSHOT_ID,
+  SNAPSHOT_IDS,
+  type SnapshotId,
+  resolveSnapshotFile,
+} from './lib/snapshot-output';
 import type { SkillEntry } from '../src/modules/data/skills';
 import type { ISkillTarget } from '@/lib/sunday-tools/skills/definitions';
 
@@ -129,6 +135,7 @@ const SPLIT_ALTERNATIVES = new Set([100701, 900701]);
 type ExtractSkillsOptions = {
   replaceMode: boolean;
   dbPath?: string;
+  snapshot: SnapshotId;
 };
 
 function parseCliArgs(argv: Array<string>): ExtractSkillsOptions {
@@ -139,16 +146,22 @@ function parseCliArgs(argv: Array<string>): ExtractSkillsOptions {
     .description('Extract unified skill data from master.mdb')
     .option('-r, --replace', 'replace existing extracted data')
     .option('--full', 'alias for --replace')
+    .addOption(
+      new Option('--snapshot <snapshot>', 'target snapshot output')
+        .choices(SNAPSHOT_IDS)
+        .default(DEFAULT_SNAPSHOT_ID),
+    )
     .argument('[dbPath]', 'path to master.mdb');
 
-  program.parse(argv);
+  program.parse(normalizeCommanderArgv(argv));
 
-  const options = program.opts<{ replace?: boolean; full?: boolean }>();
+  const options = program.opts<{ replace?: boolean; full?: boolean; snapshot: SnapshotId }>();
   const [dbPath] = program.args as Array<string>;
 
   return {
     replaceMode: Boolean(options.replace || options.full),
     dbPath,
+    snapshot: options.snapshot,
   };
 }
 
@@ -305,15 +318,18 @@ function reduceUniqueSkillOwners(rows: Array<UniqueSkillOwnerRow>): Map<string, 
   return owners;
 }
 
-async function extractSkills(options: ExtractSkillsOptions = { replaceMode: false }) {
+async function extractSkills(
+  options: ExtractSkillsOptions = { replaceMode: false, snapshot: DEFAULT_SNAPSHOT_ID },
+) {
   console.log('📖 Extracting unified skills...\n');
 
-  const { replaceMode, dbPath: cliDbPath } = options;
+  const { replaceMode, dbPath: cliDbPath, snapshot } = options;
   const dbPath = await resolveMasterDbPath(cliDbPath);
 
   console.log(
     `Mode: ${replaceMode ? '⚠️  Full Replacement' : '✓ Merge (preserves future content)'}`,
   );
+  console.log(`Snapshot: ${snapshot}`);
   console.log(`Database: ${dbPath}\n`);
 
   const db = openDatabase(dbPath);
@@ -489,7 +505,7 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
 
     console.log(`Initialized ${familyCount} multi-member families (${versionCount} linked skills)`);
 
-    const outputPath = path.join(process.cwd(), 'src/modules/data/skills.json');
+    const outputPath = resolveSnapshotFile(snapshot, 'skills.json');
 
     let finalSkills: Record<string, SkillEntry>;
     if (replaceMode) {

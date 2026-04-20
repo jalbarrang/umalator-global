@@ -1,7 +1,7 @@
 import { ISkillType } from '@/lib/sunday-tools/skills/definitions';
-import skillsJson from './skills.json';
 import type { SkillAlternative } from '@/lib/sunday-tools/skills/skill.types';
 import type { SkillMatch } from '@/modules/runners/data/types';
+import { createRuntimeCatalogProxy, getDataRuntime } from './runtime';
 
 // =======
 // Types
@@ -36,7 +36,9 @@ export type SkillsMap = Record<string, SkillEntry>;
 // Data
 // =======
 
-export const skillCollection = skillsJson as SkillsMap;
+const getSkillCollection = (): SkillsMap => getDataRuntime().catalog.skills;
+
+export const skillCollection = createRuntimeCatalogProxy(getSkillCollection) as SkillsMap;
 
 // ============
 // Utils
@@ -52,7 +54,7 @@ export const skillComparator = (a: string, b: string): number => {
 export const translateSkillNamesForLang = (lang: 'en' | 'ja'): Record<string, string> => {
   const result: Record<string, string> = {};
 
-  for (const [key, value] of Object.entries(skillsJson)) {
+  for (const [key, value] of Object.entries(getSkillCollection())) {
     // Names from master are currently English-only; for now JA falls back to EN.
     if (lang === 'en' || lang === 'ja') {
       result[key] = value.name;
@@ -224,6 +226,7 @@ export interface SkillLookupEntry {
 
 const skillLookup = new Map<string, SkillLookupEntry>();
 const skillLookupCandidates = new Map<string, Array<SkillLookupEntry>>();
+let skillLookupRuntimeKey: string | null = null;
 
 /**
  * Normalizes skill names for OCR matching while preserving skill-grade symbols.
@@ -343,21 +346,31 @@ const selectMatchedSkillLookupEntry = (
   const sortedEntries = sortSkillLookupEntries(entries);
 
   if (hasLevel) {
-    return sortedEntries.find((entry) => normalizeSkillId(entry.id).startsWith('1')) ?? sortedEntries[0];
+    return (
+      sortedEntries.find((entry) => normalizeSkillId(entry.id).startsWith('1')) ?? sortedEntries[0]
+    );
   }
 
   return (
-    sortedEntries.find((entry) => normalizeSkillId(entry.id).startsWith('9')) ??
-    sortedEntries[0]
+    sortedEntries.find((entry) => normalizeSkillId(entry.id).startsWith('9')) ?? sortedEntries[0]
   );
 };
 
 function buildSkillLookup() {
+  const runtime = getDataRuntime();
+  const nextRuntimeKey = runtime.snapshot;
+
+  if (skillLookupRuntimeKey !== nextRuntimeKey) {
+    skillLookup.clear();
+    skillLookupCandidates.clear();
+    skillLookupRuntimeKey = nextRuntimeKey;
+  }
+
   if (skillLookup.size > 0 || skillLookupCandidates.size > 0) {
     return;
   }
 
-  for (const skill of Object.values(skillCollection)) {
+  for (const skill of Object.values(getSkillCollection())) {
     const key = normalizeSkillName(skill.name);
 
     if (!key) {

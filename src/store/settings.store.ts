@@ -1,11 +1,12 @@
 import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
 import { useShallow } from 'zustand/shallow';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import type { RaceConditions } from '@/utils/races';
 import { createRunnerState } from '@/modules/runners/components/runner-card/types';
 import { DEFAULT_COURSE_ID, DEFAULT_SAMPLES } from '@/utils/constants';
 import { createRaceConditions } from '@/utils/races';
+import { createSnapshotJSONStorage, getSnapshotStorageKey } from '@/lib/storage/snapshot-storage';
 
 export type WitVarianceSettings = {
   allowRushedUma1: boolean;
@@ -69,17 +70,8 @@ export const useSettingsStore = create<ISettingsStore>()(
       showThresholds: true,
     }),
     {
-      name: 'umalator-settings',
-      storage: createJSONStorage(() => localStorage),
-      onRehydrateStorage: () => () => {
-        // Dynamic import avoids a circular dependency (preset.store already imports settings.store).
-        // queueMicrotask defers execution so the preset store's own hydration + merge finishes first.
-        queueMicrotask(() => {
-          void import('@/store/race/preset.store').then(({ syncSelectedPresetWithCatalog }) => {
-            syncSelectedPresetWithCatalog();
-          });
-        });
-      },
+      name: getSnapshotStorageKey('settings'),
+      storage: createSnapshotJSONStorage(),
     },
   ),
 );

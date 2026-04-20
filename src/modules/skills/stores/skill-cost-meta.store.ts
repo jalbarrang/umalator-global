@@ -1,12 +1,13 @@
 import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
 import { calculateSkillCost } from '@/modules/skill-planner/cost-calculator';
 import type { HintLevel } from '@/modules/skill-planner/types';
 import { useShallow } from 'zustand/shallow';
 import { getBaseTier, getUpgradeTier } from '@/modules/skills/skill-relationships';
 import { buildSkillCostSummary } from '@/modules/skills/skill-cost-summary';
+import { createSnapshotJSONStorage, getSnapshotStorageKey } from '@/lib/storage/snapshot-storage';
 
-const SKILL_COST_META_STORE_NAME = 'umalator-skill-cost-meta';
+const SKILL_COST_META_STORE_NAME = getSnapshotStorageKey('skill-cost-meta');
 
 export type SkillCostMeta = {
   hintLevel: HintLevel;
@@ -75,7 +76,7 @@ export const useSkillCostMetaStore = create<SkillCostMetaState>()(
     }),
     {
       name: SKILL_COST_META_STORE_NAME,
-      storage: createJSONStorage(() => localStorage),
+      storage: createSnapshotJSONStorage(),
     },
   ),
 );

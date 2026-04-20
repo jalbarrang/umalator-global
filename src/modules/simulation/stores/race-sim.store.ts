@@ -1,11 +1,12 @@
 import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
 import type { RaceSimResult } from '@/lib/sunday-tools/race-sim/run-race-sim';
 import { Mood } from '@/lib/sunday-tools/runner/definitions';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { generateSeed } from '@/utils/crypto';
+import { createSnapshotJSONStorage, getSnapshotStorageKey } from '@/lib/storage/snapshot-storage';
 
-const RACE_SIM_STORE_NAME = 'umalator-race-sim';
+const RACE_SIM_STORE_NAME = getSnapshotStorageKey('race-sim');
 const MIN_NSAMPLES = 1;
 const MAX_NSAMPLES = 10;
 
@@ -94,7 +95,7 @@ export const useRaceSimStore = create<IRaceSimStore>()(
     }),
     {
       name: RACE_SIM_STORE_NAME,
-      storage: createJSONStorage(() => localStorage),
+      storage: createSnapshotJSONStorage(),
       partialize: (state) => ({
         runners: state.runners,
         nsamples: state.nsamples,

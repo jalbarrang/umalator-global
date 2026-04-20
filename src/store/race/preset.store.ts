@@ -1,10 +1,11 @@
 import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
 import type { RacePreset } from '@/utils/races';
 import { useSettingsStore } from '@/store/settings.store';
 import cmPresets from './cm-presets.json';
+import { createSnapshotJSONStorage, getSnapshotStorageKey } from '@/lib/storage/snapshot-storage';
 
-const PRESET_STORE_NAME = 'umalator-presets';
+const PRESET_STORE_NAME = getSnapshotStorageKey('presets');
 
 const defaultPresets: Record<string, RacePreset> = Object.fromEntries(
   cmPresets.map((p) => [p.id, p as RacePreset]),
@@ -57,11 +58,6 @@ function clearSelectedPresetIfInvalid(presets: Record<string, RacePreset>) {
   }
 }
 
-/** Call after preset hydration (or from settings) if selectedPresetId may reference a removed preset. */
-export function syncSelectedPresetWithCatalog() {
-  clearSelectedPresetIfInvalid(usePresetStore.getState().presets);
-}
-
 export const usePresetStore = create<IPresetStore>()(
   persist(
     (_) => ({
@@ -70,7 +66,7 @@ export const usePresetStore = create<IPresetStore>()(
     }),
     {
       name: PRESET_STORE_NAME,
-      storage: createJSONStorage(() => localStorage),
+      storage: createSnapshotJSONStorage(),
       merge: (persisted, current) => {
         const state = persisted as IPresetStore | null | undefined;
         if (!state) return current;
@@ -84,6 +80,11 @@ export const usePresetStore = create<IPresetStore>()(
     },
   ),
 );
+
+/** Call after preset hydration (or from settings) if selectedPresetId may reference a removed preset. */
+export function syncSelectedPresetWithCatalog() {
+  clearSelectedPresetIfInvalid(usePresetStore.getState().presets);
+}
 
 export const addPreset = (preset: RacePreset) => {
   usePresetStore.setState((state) => ({

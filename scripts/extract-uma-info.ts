@@ -4,16 +4,23 @@
  * Ports make_global_uma_info.pl to TypeScript
  */
 
-import path from 'node:path';
-import { Command } from 'commander';
+import { Command, Option } from 'commander';
 import { closeDatabase, openDatabase, queryAll, queryAllWithParams } from './lib/database';
 import {
+  getUniqueSkillForOutfit,
+  normalizeCommanderArgv,
   readJsonFile,
   readJsonFileIfExists,
   resolveMasterDbPath,
   sortByNumericKey,
   writeJsonFile,
 } from './lib/shared';
+import {
+  DEFAULT_SNAPSHOT_ID,
+  SNAPSHOT_IDS,
+  type SnapshotId,
+  resolveSnapshotFile,
+} from './lib/snapshot-output';
 
 interface UmaNameRow {
   index: number;
@@ -33,6 +40,7 @@ interface UmaInfo {
 type ExtractUmaInfoOptions = {
   replaceMode: boolean;
   dbPath?: string;
+  snapshot: SnapshotId;
 };
 
 function parseCliArgs(argv: Array<string>): ExtractUmaInfoOptions {
@@ -43,45 +51,42 @@ function parseCliArgs(argv: Array<string>): ExtractUmaInfoOptions {
     .description('Extract uma musume info from master.mdb')
     .option('-r, --replace', 'replace existing extracted data')
     .option('--full', 'alias for --replace')
+    .addOption(
+      new Option('--snapshot <snapshot>', 'target snapshot output')
+        .choices(SNAPSHOT_IDS)
+        .default(DEFAULT_SNAPSHOT_ID),
+    )
     .argument('[dbPath]', 'path to master.mdb');
 
-  program.parse(argv);
+  program.parse(normalizeCommanderArgv(argv));
 
-  const options = program.opts<{ replace?: boolean; full?: boolean }>();
+  const options = program.opts<{ replace?: boolean; full?: boolean; snapshot: SnapshotId }>();
   const [dbPath] = program.args as Array<string>;
 
   return {
     replaceMode: Boolean(options.replace || options.full),
     dbPath,
+    snapshot: options.snapshot,
   };
 }
 
-/**
- * Calculate unique skill ID from outfit ID
- * Formula from Perl: 100000 + 10000 * (v - 1) + i * 10 + 1
- * where i = middle digits, v = last 2 digits
- */
-function uniqueSkillForOutfit(outfitId: number): number {
-  const outfitIdStr = outfitId.toString();
-  const i = parseInt(outfitIdStr.substring(1, outfitIdStr.length - 2));
-  const v = parseInt(outfitIdStr.substring(outfitIdStr.length - 2));
-  return 100000 + 10000 * (v - 1) + i * 10 + 1;
-}
-
-async function extractUmaInfo(options: ExtractUmaInfoOptions = { replaceMode: false }) {
+async function extractUmaInfo(
+  options: ExtractUmaInfoOptions = { replaceMode: false, snapshot: DEFAULT_SNAPSHOT_ID },
+) {
   console.log('📖 Extracting uma musume info...\n');
 
-  const { replaceMode, dbPath: cliDbPath } = options;
+  const { replaceMode, dbPath: cliDbPath, snapshot } = options;
   const dbPath = await resolveMasterDbPath(cliDbPath);
 
   console.log(
     `Mode: ${replaceMode ? '⚠️  Full Replacement' : '✓ Merge (preserves future content)'}`,
   );
+  console.log(`Snapshot: ${snapshot}`);
   console.log(`Database: ${dbPath}\n`);
 
   // Read existing files to check which umas are implemented
-  const basePath = path.join(process.cwd(), 'src/modules/data');
-  const skills = await readJsonFile<Record<string, unknown>>(path.join(basePath, 'skills.json'));
+  const skillsPath = resolveSnapshotFile(snapshot, 'skills.json');
+  const skills = await readJsonFile<Record<string, unknown>>(skillsPath);
 
   const db = openDatabase(dbPath);
 
@@ -123,7 +128,7 @@ async function extractUmaInfo(options: ExtractUmaInfoOptions = { replaceMode: fa
         const epithet = outfitRow.text;
 
         // Calculate unique skill ID for this outfit
-        const skillId = uniqueSkillForOutfit(outfitId);
+        const skillId = getUniqueSkillForOutfit(outfitId.toString());
 
         // Only include outfit if the unique skill exists in extracted skills
         // (filters out unimplemented umas in global version)
@@ -143,7 +148,7 @@ async function extractUmaInfo(options: ExtractUmaInfoOptions = { replaceMode: fa
     }
 
     // Merge with existing data (unless replace mode)
-    const outputPath = path.join(basePath, 'umas.json');
+    const outputPath = resolveSnapshotFile(snapshot, 'umas.json');
 
     let finalUmas: Record<string, UmaInfo>;
 

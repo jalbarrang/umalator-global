@@ -3,6 +3,7 @@
  */
 
 import '../polyfills';
+import { ensureWorkerRuntime } from './bootstrap-runtime';
 import { cloneDeep } from 'es-toolkit';
 import type { CompareParams } from '@/modules/simulation/types';
 import { runComparison } from '@/modules/simulation/simulators/vacuum-compare';
@@ -74,7 +75,8 @@ const runRunnersComparison = (params: CompareParams) => {
   sendMessage({ type: 'compare-complete' });
 };
 
-self.addEventListener('message', (event: MessageEvent<CompareWorkerInMessage>) => {
+self.addEventListener('message', async (event: MessageEvent<CompareWorkerInMessage>) => {
+  await ensureWorkerRuntime();
   const message = event.data;
 
   switch (message.type) {

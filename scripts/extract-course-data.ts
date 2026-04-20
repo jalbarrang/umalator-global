@@ -5,15 +5,22 @@
  */
 
 import path from 'node:path';
-import { Command } from 'commander';
+import { Command, Option } from 'commander';
 import { closeDatabase, openDatabase, queryAll } from './lib/database';
 import {
+  normalizeCommanderArgv,
   readJsonFile,
   readJsonFileIfExists,
   resolveMasterDbPath,
   sortByNumericKey,
   writeJsonFile,
 } from './lib/shared';
+import {
+  DEFAULT_SNAPSHOT_ID,
+  SNAPSHOT_IDS,
+  type SnapshotId,
+  resolveSnapshotFile,
+} from './lib/snapshot-output';
 
 interface CourseSetStatusRow {
   course_set_status_id: number;
@@ -81,6 +88,7 @@ type ExtractCourseDataOptions = {
   replaceMode: boolean;
   dbPath?: string;
   courseEventParamsPath?: string;
+  snapshot: SnapshotId;
 };
 
 function parseCliArgs(argv: Array<string>): ExtractCourseDataOptions {
@@ -91,18 +99,24 @@ function parseCliArgs(argv: Array<string>): ExtractCourseDataOptions {
     .description('Extract course data from master.mdb and courseeventparams')
     .option('-r, --replace', 'replace existing extracted data')
     .option('--full', 'alias for --replace')
+    .addOption(
+      new Option('--snapshot <snapshot>', 'target snapshot output')
+        .choices(SNAPSHOT_IDS)
+        .default(DEFAULT_SNAPSHOT_ID),
+    )
     .argument('[dbPath]', 'path to master.mdb')
     .argument('[courseEventParamsPath]', 'path to courseeventparams directory');
 
-  program.parse(argv);
+  program.parse(normalizeCommanderArgv(argv));
 
-  const options = program.opts<{ replace?: boolean; full?: boolean }>();
+  const options = program.opts<{ replace?: boolean; full?: boolean; snapshot: SnapshotId }>();
   const [dbPath, courseEventParamsPath] = program.args as Array<string>;
 
   return {
     replaceMode: Boolean(options.replace || options.full),
     dbPath,
     courseEventParamsPath,
+    snapshot: options.snapshot,
   };
 }
 
@@ -116,13 +130,16 @@ function distanceType(distance: number): number {
   return 4; // Long
 }
 
-async function extractCourseData(options: ExtractCourseDataOptions = { replaceMode: false }) {
+async function extractCourseData(
+  options: ExtractCourseDataOptions = { replaceMode: false, snapshot: DEFAULT_SNAPSHOT_ID },
+) {
   console.log('📖 Extracting course data...\n');
 
   const {
     replaceMode,
     dbPath: cliDbPath,
     courseEventParamsPath: cliCourseEventParamsPath,
+    snapshot,
   } = options;
   const dbPath = await resolveMasterDbPath(cliDbPath);
   const courseEventParamsPath =
@@ -131,6 +148,7 @@ async function extractCourseData(options: ExtractCourseDataOptions = { replaceMo
   console.log(
     `Mode: ${replaceMode ? '⚠️  Full Replacement' : '✓ Merge (preserves future content)'}`,
   );
+  console.log(`Snapshot: ${snapshot}`);
   console.log(`Database: ${dbPath}`);
   console.log(`Course event params: ${courseEventParamsPath}\n`);
 
@@ -266,7 +284,7 @@ async function extractCourseData(options: ExtractCourseDataOptions = { replaceMo
     }
 
     // Merge with existing data (unless replace mode)
-    const outputPath = path.join(process.cwd(), 'src/modules/data/course_data.json');
+    const outputPath = resolveSnapshotFile(snapshot, 'course_data.json');
 
     let finalCourses: Record<string, CourseData>;
 

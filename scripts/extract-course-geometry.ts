@@ -1,8 +1,24 @@
 #!/usr/bin/env node
-import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { Command } from 'commander';
-import { sortByNumericKey, writeJsonFile } from './lib/shared';
+import { readFile, readdir } from 'node:fs/promises';
+import { Command, Option } from 'commander';
+import {
+  normalizeCommanderArgv,
+  readJsonFile,
+  readJsonFileIfExists,
+  sortByNumericKey,
+  writeJsonFile,
+} from './lib/shared';
+import {
+  DEFAULT_SNAPSHOT_ID,
+  SNAPSHOT_IDS,
+  type SnapshotId,
+  getMissingSnapshotFiles,
+  resolveSnapshotFile,
+  resolveSnapshotGeometryDir,
+  resolveSnapshotVersion,
+  writeSnapshotManifest,
+} from './lib/snapshot-output';
 
 type CourseDataEntry = {
   raceTrackId: number;
@@ -12,9 +28,11 @@ type CourseDataEntry = {
 };
 
 type CliOptions = {
+  snapshot: SnapshotId;
   sourceDir: string;
   courseDataPath: string;
   outputPath: string;
+  writesSnapshotGeometry: boolean;
 };
 
 type AssetNameParts = {
@@ -51,8 +69,6 @@ type GeometryRecord = {
 };
 
 const DEFAULT_SOURCE_DIR = 'extracted-data/course';
-const DEFAULT_COURSE_DATA_PATH = 'src/modules/data/course_data.json';
-const DEFAULT_OUTPUT_PATH = 'public/data/course_geometry.json';
 
 function parseArgs(argv: string[]): CliOptions {
   const program = new Command();
@@ -60,20 +76,34 @@ function parseArgs(argv: string[]): CliOptions {
     .name('extract-course-geometry')
     .description('Extract normalized course geometry from Unity YAML assets.')
     .option('-s, --source <path>', 'Path to extracted-data/course directory', DEFAULT_SOURCE_DIR)
-    .option(
-      '-c, --course-data <path>',
-      'Path to src/modules/data/course_data.json',
-      DEFAULT_COURSE_DATA_PATH,
+    .addOption(
+      new Option('--snapshot <snapshot>', 'target snapshot output')
+        .choices(SNAPSHOT_IDS)
+        .default(DEFAULT_SNAPSHOT_ID),
     )
-    .option('-o, --output <path>', 'Path to output JSON file', DEFAULT_OUTPUT_PATH)
+    .option('-c, --course-data <path>', 'Path to snapshot-local course_data.json')
+    .option('-o, --output <path>', 'Path to output JSON file')
     .showHelpAfterError();
 
-  program.parse(argv);
-  const options = program.opts<{ source: string; courseData: string; output: string }>();
+  program.parse(normalizeCommanderArgv(argv));
+  const options = program.opts<{
+    source: string;
+    snapshot: SnapshotId;
+    courseData?: string;
+    output?: string;
+  }>();
+
+  const defaultCourseDataPath = resolveSnapshotFile(options.snapshot, 'course_data.json');
+  const defaultOutputPath = path.join(resolveSnapshotGeometryDir(options.snapshot), 'course_geometry.json');
+  const courseDataPath = path.resolve(options.courseData ?? defaultCourseDataPath);
+  const outputPath = path.resolve(options.output ?? defaultOutputPath);
+
   return {
+    snapshot: options.snapshot,
     sourceDir: path.resolve(options.source),
-    courseDataPath: path.resolve(options.courseData),
-    outputPath: path.resolve(options.output),
+    courseDataPath,
+    outputPath,
+    writesSnapshotGeometry: outputPath === path.resolve(defaultOutputPath),
   };
 }
 
@@ -283,13 +313,15 @@ function choosePreferredAsset(left: AssetNameParts, right: AssetNameParts): numb
 
 async function main(): Promise<void> {
   const options = parseArgs(process.argv);
-  const courseData = JSON.parse(await readFile(options.courseDataPath, 'utf8')) as Record<
-    string,
-    CourseDataEntry
-  >;
+  const courseData = await readJsonFile<Record<string, CourseDataEntry>>(options.courseDataPath);
   const courseIndex = buildCourseIndex(courseData);
   const files = await walk(options.sourceDir);
   const assetFiles = files.filter((file) => file.endsWith('.asset'));
+
+  console.log(`Snapshot: ${options.snapshot}`);
+  console.log(`Source dir: ${options.sourceDir}`);
+  console.log(`Course data: ${options.courseDataPath}`);
+  console.log(`Output: ${options.outputPath}`);
 
   const matchedByCourseId = new Map<number, Array<{ filePath: string; parts: AssetNameParts }>>();
   let skippedBaseLoopAssets = 0;
@@ -336,10 +368,29 @@ async function main(): Promise<void> {
     });
   }
 
-  await writeJsonFile(options.outputPath, sortByNumericKey(result));
+  const existing = await readJsonFileIfExists<Record<string, GeometryRecord>>(options.outputPath);
+  const finalResult = existing ? { ...existing, ...result } : result;
+  await writeJsonFile(options.outputPath, sortByNumericKey(finalResult));
+
+  if (options.writesSnapshotGeometry) {
+    const version = resolveSnapshotVersion();
+    const missingFiles = await getMissingSnapshotFiles(options.snapshot);
+
+    if (missingFiles.length === 0) {
+      await writeSnapshotManifest({ snapshot: options.snapshot, version });
+      console.log(`Snapshot manifest updated for ${options.snapshot} (version: ${version})`);
+    } else {
+      console.log(
+        `Snapshot manifest not written for ${options.snapshot}; missing files: ${missingFiles.join(', ')}`,
+      );
+    }
+  }
 
   console.log(`Geometry written to ${options.outputPath}`);
   console.log(`Matched courses: ${Object.keys(result).length}`);
+  if (existing) {
+    console.log(`Preserved geometry entries from existing output: ${Object.keys(finalResult).length - Object.keys(result).length}`);
+  }
   console.log(`Skipped base-loop assets: ${skippedBaseLoopAssets}`);
   console.log(`Unmatched assets: ${unmatchedAssets}`);
 
@@ -362,3 +413,5 @@ try {
   console.error('Error:', error instanceof Error ? error.message : String(error));
   process.exit(1);
 }
+
+export { parseArgs };

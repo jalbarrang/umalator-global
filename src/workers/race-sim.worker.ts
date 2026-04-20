@@ -1,4 +1,5 @@
 import '../polyfills';
+import { ensureWorkerRuntime } from './bootstrap-runtime';
 import {
   runRaceSim,
   type RaceSimParams,
@@ -51,7 +52,8 @@ function serializeMapsForPostMessage<T>(value: T): T {
   return value;
 }
 
-self.addEventListener('message', (event: MessageEvent<RaceSimWorkerInMessage>) => {
+self.addEventListener('message', async (event: MessageEvent<RaceSimWorkerInMessage>) => {
+  await ensureWorkerRuntime();
   const message = event.data;
   if (message.type !== 'race-sim-run') {
     return;

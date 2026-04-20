@@ -2,8 +2,8 @@
  * Shared utilities for data extraction scripts
  */
 
-import { access, readFile, writeFile } from 'node:fs/promises';
-import path from 'node:path';
+import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
+import nodePath from 'node:path';
 
 /**
  * Sort an object by numeric keys
@@ -32,12 +32,32 @@ export function getUniqueSkillForOutfit(outfitId: string): string {
 }
 
 /**
+ * Commander sometimes receives an extra standalone `--` from package-manager arg passthrough.
+ * Strip that separator so scripts work with both `pnpm run foo -- --flag` and direct execution.
+ */
+export function normalizeCommanderArgv(argv: Array<string>): Array<string> {
+  const passthroughSeparatorIndex = argv.findIndex((value, index) => index >= 2 && value === '--');
+  if (passthroughSeparatorIndex === -1) {
+    return argv;
+  }
+
+  return [
+    ...argv.slice(0, passthroughSeparatorIndex),
+    ...argv.slice(passthroughSeparatorIndex + 1),
+  ];
+}
+
+/**
  * Write JSON data to file with minified format and trailing newline
  * Matches the canonical format used by Perl scripts (sorted keys, no pretty-print)
  */
-export async function writeJsonFile(path: string, data: Record<string, unknown>): Promise<void> {
+export async function writeJsonFile(
+  filePath: string,
+  data: Record<string, unknown>,
+): Promise<void> {
   const output = JSON.stringify(data) + '\n';
-  await writeFile(path, output, 'utf8');
+  await mkdir(nodePath.dirname(filePath), { recursive: true });
+  await writeFile(filePath, output, 'utf8');
 }
 
 /**
@@ -100,7 +120,7 @@ export async function resolveMasterDbPath(cliDbPath?: string): Promise<string> {
   }
 
   // Check for local db/master.mdb in current workspace
-  const localPath = path.join(process.cwd(), 'db/master.mdb');
+  const localPath = nodePath.join(process.cwd(), 'db/master.mdb');
   try {
     await access(localPath);
     return localPath;

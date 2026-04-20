@@ -3,6 +3,7 @@
  */
 
 import '../polyfills';
+import { ensureWorkerRuntime } from './bootstrap-runtime';
 import { clone, cloneDeepWith } from 'es-toolkit';
 import { mergeResultSets } from './utils';
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';
@@ -109,7 +110,8 @@ function runChart(params: RunChartParams) {
   sendMessage({ type: 'skill-bassin-done' });
 }
 
-self.addEventListener('message', (event: MessageEvent<SkillBasinWorkerInMessage>) => {
+self.addEventListener('message', async (event: MessageEvent<SkillBasinWorkerInMessage>) => {
+  await ensureWorkerRuntime();
   const message = event.data;
 
   switch (message.type) {

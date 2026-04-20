@@ -70,21 +70,38 @@ export default defineConfig(({ command }) => ({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,json}'],
-        globIgnores: ['**/data/course_geometry.json'],
+        globIgnores: ['**/data/course_geometry.json', '**/data/*/course_geometry.json'],
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         skipWaiting: true,
         runtimeCaching: [
           {
-            urlPattern: ({ url }) => url.pathname.endsWith('/data/course_geometry.json'),
-            handler: 'CacheFirst',
+            urlPattern: ({ url }) =>
+              /\/data\/[^/]+\/(?:manifest|skills|umas|course_data|tracknames)\.json$/.test(
+                url.pathname,
+              ),
+            handler: 'StaleWhileRevalidate',
             options: {
-              cacheName: 'course-geometry-data',
+              cacheName: 'snapshot-runtime-data',
               cacheableResponse: {
                 statuses: [200],
               },
               expiration: {
-                maxEntries: 1,
+                maxEntries: 20,
+                maxAgeSeconds: 60 * 60 * 24 * 30,
+              },
+            },
+          },
+          {
+            urlPattern: ({ url }) => /\/data\/[^/]+\/course_geometry\.json$/.test(url.pathname),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'snapshot-course-geometry-data',
+              cacheableResponse: {
+                statuses: [200],
+              },
+              expiration: {
+                maxEntries: 4,
                 maxAgeSeconds: 60 * 60 * 24 * 30,
               },
             },
@@ -104,5 +121,6 @@ export default defineConfig(({ command }) => ({
   },
   test: {
     globals: true,
+    setupFiles: ['./src/test/setup-runtime.ts'],
   },
 }));

@@ -3,6 +3,7 @@
  */
 
 import '../polyfills';
+import { ensureWorkerRuntime } from './bootstrap-runtime';
 import { clone, cloneDeepWith } from 'es-toolkit';
 import { mergeResultSets } from './utils';
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';
@@ -112,7 +113,8 @@ function runChart(params: RunChartParams) {
   sendMessage({ type: 'uma-bassin-done' });
 }
 
-self.addEventListener('message', (event: MessageEvent<UmaBasinWorkerInMessage>) => {
+self.addEventListener('message', async (event: MessageEvent<UmaBasinWorkerInMessage>) => {
+  await ensureWorkerRuntime();
   const message = event.data;
 
   switch (message.type) {

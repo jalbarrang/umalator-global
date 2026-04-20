@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
 import { generateSeed } from '@/utils/crypto';
 import { createRunnerState } from '../runners/components/runner-card/types';
 import type { RunnerState } from '../runners/components/runner-card/types';
@@ -22,6 +22,7 @@ import { getSelectableSkillsForUma, getUniqueSkillForByUmaId } from '@/modules/s
 import { findVersionOfSkill, skillCollection } from '@/modules/data/skills';
 import { getRelatedSkillIds, isSkillCoveredByOwnedFamily } from './skill-family';
 import { resolveActiveSkills } from './optimizer';
+import { createSnapshotJSONStorage, getSnapshotStorageKey } from '@/lib/storage/snapshot-storage';
 
 const DEFAULT_BUDGET = 1000;
 export const skillPlannerSteps: Array<WizardStep> = ['runner', 'shop', 'review'];
@@ -96,8 +97,8 @@ const toPersistedState = (state: SkillPlannerState): PlannerPersistedState => ({
 
 export const useSkillPlannerStore = create<SkillPlannerState>()(
   persist(() => createInitialState(), {
-    name: 'umalator-skill-planner-v2',
-    storage: createJSONStorage(() => localStorage),
+    name: getSnapshotStorageKey('skill-planner-v2'),
+    storage: createSnapshotJSONStorage(),
     partialize: toPersistedState,
   }),
 );

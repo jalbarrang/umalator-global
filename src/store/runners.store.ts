@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import { createJSONStorage, persist } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
 import { useShallow } from 'zustand/shallow';
 import { toast } from 'sonner';
 import { cloneDeep } from 'es-toolkit';
@@ -9,6 +9,7 @@ import type { RunnerState } from '@/modules/runners/components/runner-card/types
 import { createRunnerState, runawaySkillId } from '@/modules/runners/components/runner-card/types';
 import { getGeneVersionSkillId, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import { skillCollection } from '@/modules/data/skills';
+import { createSnapshotJSONStorage, getSnapshotStorageKey } from '@/lib/storage/snapshot-storage';
 
 type RunnerType = 'uma1' | 'uma2';
 
@@ -28,8 +29,8 @@ export const useRunnersStore = create<IRunnersStore>()(
       runnerId: 'uma1',
     }),
     {
-      name: 'umalator-runners',
-      storage: createJSONStorage(() => localStorage),
+      name: getSnapshotStorageKey('runners'),
+      storage: createSnapshotJSONStorage(),
     },
   ),
 );

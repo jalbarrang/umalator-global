@@ -5,7 +5,7 @@ import {
   useCoursesByTrack,
 } from '../courses';
 import { trackDescription } from '../labels';
-import { trackIds } from '@/i18n/lang/tracknames';
+import { getTrackIds } from '@/i18n/lang/tracknames';
 
 import i18n from '@/i18n';
 
@@ -58,7 +58,7 @@ export function TrackSelect(props: TrackSelectProps) {
         </SelectTrigger>
 
         <SelectContent>
-          {trackIds.map((trackId, i) => (
+          {getTrackIds().map((trackId, i) => (
             <SelectItem key={`track-${i}`} value={trackId}>
               {getTrackName(+trackId)}
             </SelectItem>

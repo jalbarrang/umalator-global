@@ -1,4 +1,4 @@
-import coursesJson from './course_data.json';
+import { createRuntimeCatalogProxy, getDataRuntime } from './runtime';
 
 // =======
 // Types
@@ -38,7 +38,9 @@ export type CoursesMap = Record<string, CourseEntry>;
 // Data
 // =======
 
-export const courseCollection = coursesJson as CoursesMap;
+const getCourseCollection = (): CoursesMap => getDataRuntime().catalog.courses;
+
+export const courseCollection = createRuntimeCatalogProxy(getCourseCollection) as CoursesMap;
 
 // =============
 // Query Methods: Courses

@@ -8,6 +8,7 @@
  */
 
 import { Command } from 'commander';
+import { bootstrapCliRuntime } from './lib/cli-runtime';
 
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 import { generateMobField } from '@/lib/sunday-tools/race-sim/mob-factory';
@@ -125,7 +126,9 @@ async function main() {
   printResults(result, course.distance);
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+bootstrapCliRuntime().then(() =>
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  }),
+);

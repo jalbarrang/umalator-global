@@ -6,11 +6,14 @@
 import { extractSkills } from './extract-skills';
 import { extractUmaInfo } from './extract-uma-info';
 import { extractCourseData } from './extract-course-data';
-import { Command } from 'commander';
+import { Command, Option } from 'commander';
+import { DEFAULT_SNAPSHOT_ID, SNAPSHOT_IDS, type SnapshotId } from './lib/snapshot-output';
+import { normalizeCommanderArgv } from './lib/shared';
 
 type ExtractAllOptions = {
   replaceMode: boolean;
   dbPath?: string;
+  snapshot: SnapshotId;
 };
 
 function parseCliArgs(argv: Array<string>): ExtractAllOptions {
@@ -21,26 +24,35 @@ function parseCliArgs(argv: Array<string>): ExtractAllOptions {
     .description('Run all data extraction scripts in sequence')
     .option('-r, --replace', 'replace existing extracted data')
     .option('--full', 'alias for --replace')
+    .addOption(
+      new Option('--snapshot <snapshot>', 'target snapshot output')
+        .choices(SNAPSHOT_IDS)
+        .default(DEFAULT_SNAPSHOT_ID),
+    )
     .argument('[dbPath]', 'path to master.mdb');
 
-  program.parse(argv);
+  program.parse(normalizeCommanderArgv(argv));
 
-  const options = program.opts<{ replace?: boolean; full?: boolean }>();
+  const options = program.opts<{ replace?: boolean; full?: boolean; snapshot: SnapshotId }>();
   const [dbPath] = program.args as Array<string>;
 
   return {
     replaceMode: Boolean(options.replace || options.full),
     dbPath,
+    snapshot: options.snapshot,
   };
 }
 
-async function extractAll(options: ExtractAllOptions = { replaceMode: false }) {
-  const { replaceMode, dbPath } = options;
+async function extractAll(
+  options: ExtractAllOptions = { replaceMode: false, snapshot: DEFAULT_SNAPSHOT_ID },
+) {
+  const { replaceMode, dbPath, snapshot } = options;
 
   console.log('🚀 Starting full data extraction...\n');
   console.log(
     `Mode: ${replaceMode ? '⚠️  Full Replacement' : '✓ Merge (default - preserves future content)'}`,
   );
+  console.log(`Snapshot: ${snapshot}`);
   console.log('='.repeat(60));
 
   const startTime = Date.now();
@@ -49,7 +61,7 @@ async function extractAll(options: ExtractAllOptions = { replaceMode: false }) {
   // Run extractions in sequence
   const extractions: Array<{
     name: string;
-    fn: (options: { replaceMode: boolean; dbPath?: string }) => Promise<void>;
+    fn: (options: { replaceMode: boolean; dbPath?: string; snapshot: SnapshotId }) => Promise<void>;
   }> = [
     { name: 'Skills', fn: extractSkills },
     { name: 'Uma Info', fn: extractUmaInfo },
@@ -61,7 +73,7 @@ async function extractAll(options: ExtractAllOptions = { replaceMode: false }) {
       console.log(`\n${'='.repeat(60)}`);
       console.log(`📦 ${name}`);
       console.log('='.repeat(60));
-      await fn({ replaceMode, dbPath });
+      await fn({ replaceMode, dbPath, snapshot });
       results.push({ name, success: true });
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
@@ -86,6 +98,12 @@ async function extractAll(options: ExtractAllOptions = { replaceMode: false }) {
 
   const successCount = results.filter((r) => r.success).length;
   const totalCount = results.length;
+
+  if (successCount === totalCount) {
+    console.log(
+      `ℹ️  Snapshot manifest/version for ${snapshot} is only finalized by extract-course-geometry, because geometry must be regenerated alongside the other catalog files.`,
+    );
+  }
 
   console.log(`\n✨ Completed ${successCount}/${totalCount} extractions in ${duration}s`);
 

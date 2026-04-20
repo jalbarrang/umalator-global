@@ -5,7 +5,7 @@ import skills_en from './lang/en/skills';
 import { TRACKNAMES_en } from './lang/tracknames';
 import { GroundCondition } from '@/lib/sunday-tools/course/definitions';
 
-const definitions = {
+const createDefinitions = () => ({
   en: {
     translation: {
       ...skills_en,
@@ -47,7 +47,9 @@ const definitions = {
       coursedesc: '{{surface}} {{distance}}m ({{distanceCategory}}) {{orientation}} / {{inout}}',
     },
   },
-};
+});
+
+const definitions = createDefinitions();
 
 export const getStrings = (lang: string) => {
   const strings = definitions[lang as keyof typeof definitions];

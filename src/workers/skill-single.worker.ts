@@ -4,6 +4,7 @@
  */
 
 import '../polyfills';
+import { ensureWorkerRuntime } from './bootstrap-runtime';
 import { clone, cloneDeepWith } from 'es-toolkit';
 import type { SkillComparisonResponse } from '@/modules/simulation/types';
 import type { SimulationParams } from './pool/types';
@@ -29,7 +30,8 @@ function sendMessage(message: SingleSkillWorkerOutMessage): void {
   postMessage(message);
 }
 
-self.addEventListener('message', (event: MessageEvent<SingleSkillWorkerInMessage>) => {
+self.addEventListener('message', async (event: MessageEvent<SingleSkillWorkerInMessage>) => {
+  await ensureWorkerRuntime();
   const message = event.data;
 
   switch (message.type) {

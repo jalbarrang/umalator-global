@@ -6,6 +6,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { Command } from 'commander';
+import { bootstrapCliRuntime } from './lib/cli-runtime';
 
 import { DebugConfigSchema } from './runner-config.schema';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
@@ -158,4 +159,4 @@ program
     console.log('\n✅ Debug complete!\n');
   });
 
-program.parse();
+bootstrapCliRuntime().then(() => program.parse());
