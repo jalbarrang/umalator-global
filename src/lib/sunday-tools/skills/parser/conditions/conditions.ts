@@ -86,7 +86,9 @@ function valueFilterOrNoop(
 
 export const defaultConditions: ConditionsMap<ICondition> = {
   accumulatetime: immediate({
-    filterGte({ regions, arg: t }: ConditionFilterParams) {
+    filterGte(params: ConditionFilterParams) {
+      const { arg: t } = params;
+      const regions = shiftRegionsForwardByMinTime(params);
       return [regions, (r: Runner) => r.accumulateTime.t >= t] as [RegionList, DynamicCondition];
     },
   }),

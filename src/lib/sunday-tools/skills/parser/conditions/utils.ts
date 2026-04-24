@@ -125,32 +125,38 @@ export const noopImmediate: ICondition = {
 export const noopRandom: ICondition = { ...noopAll, samplePolicy: RandomPolicy };
 
 /**
- * Old: This is a hack to prevnt skills like Dodging Danger from activating 0s into the race when their condition is >=1s
- * 13m/s * time is *not* accurate beyond 1s but it's a good enough approximation to appropriately delay skill activation
+ * Approximates the earliest distance at which a >= time condition can be satisfied,
+ * then clips candidate activation regions so static sampling does not get stuck on
+ * regions that end before that moment.
  *
- * ====
- * New: Shifts skill activation regions forward to prevent skills with time conditions
- * (e.g. >=1s) from incorrectly activating at race start (0s).
- *
- * Uses course-aware early-race average speed estimation based on start dash mechanics
- * (acceleration from 3 m/s to 0.85 × baseSpeed).
+ * This is especially important for ImmediatePolicy skills, which only keep the first
+ * matching region after static filtering.
  */
 export function shiftRegionsForwardByMinTime(params: ConditionFilterParams) {
   const { regions, arg: minTime, course } = params;
+
+  if (minTime <= 0) {
+    return regions;
+  }
 
   const avgSpeed = calculateEarlyRaceAverageSpeed(course.distance);
   const minDistance = avgSpeed * minTime;
   const shiftedRegions = new RegionList();
 
   regions.forEach((region) => {
-    if (region.start === 0) {
-      shiftedRegions.push(new Region(region.start + minDistance, region.end));
-    } else {
-      shiftedRegions.push(region);
+    if (region.end <= minDistance) {
+      return;
     }
+
+    if (region.start < minDistance) {
+      shiftedRegions.push(new Region(minDistance, region.end));
+      return;
+    }
+
+    shiftedRegions.push(region);
   });
 
-  return shiftedRegions.length > 0 ? shiftedRegions : new RegionList();
+  return shiftedRegions;
 }
 
 export function noopSectionRandom(start: number, end: number) {
