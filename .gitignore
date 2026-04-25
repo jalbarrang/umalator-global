@@ -13,7 +13,6 @@ results/
 .cursor/plans
 
 CLAUDE.md
-AGENTS.md
 
 # debug scripts
 scripts/runners/*.json

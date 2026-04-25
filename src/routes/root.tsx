@@ -1,18 +1,21 @@
-import { NavLink, Route, Routes, useLocation, useNavigate } from 'react-router';
+import { Route, Routes, useNavigate } from 'react-router';
 
 import { Toaster } from '@/components/ui/sonner';
 import { PageMetadata } from '@/components/seo/page-metadata';
 import { Button } from '@/components/ui/button';
-import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { ChangelogModal } from '@/components/changelog-modal';
 import { CreditsModal } from '@/components/credits-modal';
 import { FeatureFlagDebugPanel } from '@/components/feature-flag-debug-panel';
 import { TutorialProvider, TutorialRoot } from '@/components/tutorial';
+<<<<<<< Updated upstream
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Drawer, DrawerTrigger, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
 import { ScrollTextIcon, UsersIcon, MenuIcon } from 'lucide-react';
 import { setShowChangelogModal, setShowCreditsModal } from '@/store/ui.store';
 import { cn } from '@/lib/utils';
+=======
+import { Navbar } from '@/modules/app/components/navbar';
+>>>>>>> Stashed changes
 import { ImportCodeDialog } from '@/modules/runners/share/import-code-dialog';
 import { useRoosterImport } from '@/modules/runners/share/use-rooster-import';
 import { setRunner } from '@/store/runners.store';
@@ -20,7 +23,7 @@ import { createRunnerState } from '@/modules/runners/components/runner-card/type
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { toast } from 'sonner';
 
-import { lazy, Suspense, useCallback, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback } from 'react';
 import type { ReactNode } from 'react';
 
 const SimulationLayout = lazy(
@@ -66,29 +69,6 @@ function RoutePage({ title, description, noindex = false, children }: RoutePageP
 }
 
 export function RootComponent() {
-  const location = useLocation();
-
-  const getCurrentTab = useCallback(() => {
-    if (location.pathname.startsWith('/runners')) return 'runners';
-    if (location.pathname === '/skill-planner') return 'skill-planner';
-    if (location.pathname.startsWith('/race-sim')) return 'race-sim';
-    return 'simulation';
-  }, [location.pathname]);
-
-  const currentTab = useMemo(() => getCurrentTab(), [getCurrentTab]);
-
-  const navItems = useMemo(
-    () => [
-      { value: 'simulation', label: 'Compare', to: '/' },
-      { value: 'skill-planner', label: 'Skill Planner', to: '/skill-planner' },
-      { value: 'race-sim', label: 'Race Sim', to: '/race-sim' },
-      { value: 'runners', label: 'Veterans', to: '/runners' },
-    ],
-    [],
-  );
-
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   const { importCode, dialogOpen, setDialogOpen } = useRoosterImport();
 
   const handleRoosterImport = useCallback(
@@ -101,13 +81,10 @@ export function RootComponent() {
     [setDialogOpen],
   );
 
-  const handleNavClick = useCallback(() => {
-    setMobileMenuOpen(false);
-  }, []);
-
   return (
     <TutorialProvider>
       <div className="flex flex-col h-dvh">
+<<<<<<< Updated upstream
         <header className="flex py-2 justify-between items-center border-b px-4 shrink-0">
           {/* Mobile hamburger */}
           <div className="md:hidden">
@@ -194,6 +171,9 @@ export function RootComponent() {
             <ThemeToggle />
           </div>
         </header>
+=======
+        <Navbar />
+>>>>>>> Stashed changes
 
         <main className="flex flex-1 overflow-hidden min-h-0">
           <Suspense
