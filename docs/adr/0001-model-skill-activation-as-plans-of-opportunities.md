@@ -1,0 +1,3 @@
+# Model skill activation as plans of opportunities
+
+We model each skill as a **Skill Activation Plan**: a graph of **Activation Opportunities** with initial opportunities, follow-up edges, shared runtime rules such as cooldown, and declared repeat behavior. We chose this over continuing the current `RegionList + DynamicCondition + PendingSkill.trigger` model because real mechanics include multi-window activations, mutually exclusive `@` branches, cooldown-based repeats, and follow-up effects; flattening those concepts into one trigger region caused bugs like Restless on Tokyo 2400m and makes future skill mechanics harder to represent faithfully.

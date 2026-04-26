@@ -1,0 +1,3 @@
+# Store raw activation metadata and compile runtime policies
+
+We preserve raw `activate_lot` at `SkillEntry` level and raw `baseCooldown` at `SkillAlternative` level in extracted skill data, then compile them into runtime-facing activation semantics such as `AttemptPolicy.activationCheck` and `CooldownPolicy.lockoutDurationSeconds`. We chose this because the DB shape is not identical to the runtime shape: cooldown is stored per alternative while attempt semantics come from row-level activation metadata, and keeping raw extraction faithful while compiling mechanic-shaped policies avoids another lossy boundary.

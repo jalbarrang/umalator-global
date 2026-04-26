@@ -13,7 +13,15 @@ export type SkillGeneVersionEntry = {
 
 export type SkillEntry = {
   id: string;
+  /**
+   * Raw Skill Rarity from extracted data.
+   */
   rarity: number;
+  /**
+   * Raw extracted activate_lot flag.
+   * Optional until extracted JSON is refreshed.
+   */
+  activateLot?: 0 | 1;
   alternatives: Array<SkillAlternative>;
   groupId: number;
   versions: Array<number>;

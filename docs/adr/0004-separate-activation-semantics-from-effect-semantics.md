@@ -1,0 +1,3 @@
+# Separate activation semantics from effect semantics
+
+Activation compilation decides when a skill branch may fire; effect payload resolution decides what happens when it fires, including target selection, value scaling, forced activation, and additional-activate watchers. We chose this separation because bugs like Risky Business / Nothing Ventured showed that effect-side mechanics need their own explicit boundary, while trigger bugs like Restless belong to activation semantics; combining both into one compiler would create a large opaque skill engine and make future mechanic-specific fixes harder to isolate.

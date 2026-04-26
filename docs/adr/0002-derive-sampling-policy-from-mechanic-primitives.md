@@ -1,0 +1,3 @@
+# Derive sampling policy from mechanic primitives
+
+Sampling policy is derived by the activation compiler from documented game-mechanic condition primitives such as `corner_random`, `straight_random`, `all_corner_random`, and immediate geometry conditions, rather than assigned arbitrarily by architecture code. We chose this because the project is a simulator constrained by reverse-engineered race mechanics: compilation should produce deterministic candidate windows, sampling should apply the specific game placement algorithm, and unsupported composite sampling primitives should be diagnosed instead of invented.

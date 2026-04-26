@@ -19,9 +19,11 @@ import type { ISkillTarget } from '@/lib/sunday-tools/skills/definitions';
 interface SkillRow {
   id: number;
   rarity: number;
+  activate_lot: 0 | 1;
   precondition_1: string;
   condition_1: string;
   float_ability_time_1: number;
+  float_cooldown_time_1: number;
   ability_type_1_1: number;
   float_ability_value_1_1: number;
   target_type_1_1: number;
@@ -40,6 +42,7 @@ interface SkillRow {
   precondition_2: string;
   condition_2: string;
   float_ability_time_2: number;
+  float_cooldown_time_2: number;
   ability_type_2_1: number;
   float_ability_value_2_1: number;
   target_type_2_1: number;
@@ -88,6 +91,7 @@ type SkillAlternative = {
   precondition: string;
   condition: string;
   baseDuration: number;
+  baseCooldown: number;
   effects: Array<SkillEffect>;
 };
 
@@ -264,6 +268,7 @@ function buildAlternatives(row: SkillRow): Array<SkillAlternative> {
       precondition: row.precondition_1 === '0' ? '' : row.precondition_1,
       condition: row.condition_1,
       baseDuration: row.float_ability_time_1,
+      baseCooldown: row.float_cooldown_time_1,
       effects: buildEffects(row, '1'),
     },
   ];
@@ -273,6 +278,7 @@ function buildAlternatives(row: SkillRow): Array<SkillAlternative> {
       precondition: row.precondition_2 === '0' ? '' : row.precondition_2,
       condition: row.condition_2,
       baseDuration: row.float_ability_time_2,
+      baseCooldown: row.float_cooldown_time_2,
       effects: buildEffects(row, '2'),
     });
   }
@@ -321,10 +327,11 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
   try {
     const rows = queryAll<SkillRow>(
       db,
-      `SELECT s.id, s.rarity,
+      `SELECT s.id, s.rarity, s.activate_lot,
               s.precondition_1,
               s.condition_1,
               s.float_ability_time_1,
+              s.float_cooldown_time_1,
               s.ability_type_1_1, s.float_ability_value_1_1, s.target_type_1_1,
               s.ability_value_usage_1_1, s.ability_value_level_usage_1_1,
               s.ability_type_1_2, s.float_ability_value_1_2, s.target_type_1_2,
@@ -334,6 +341,7 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
               s.precondition_2,
               s.condition_2,
               s.float_ability_time_2,
+              s.float_cooldown_time_2,
               s.ability_type_2_1, s.float_ability_value_2_1, s.target_type_2_1,
               s.ability_value_usage_2_1, s.ability_value_level_usage_2_1,
               s.ability_type_2_2, s.float_ability_value_2_2, s.target_type_2_2,
@@ -372,6 +380,7 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
       const baseEntry: Omit<SkillEntry, 'alternatives'> = {
         id: row.id.toString(),
         rarity: row.rarity,
+        activateLot: row.activate_lot,
         groupId: row.group_id,
         versions: [],
         iconId: row.icon_id.toString(),
