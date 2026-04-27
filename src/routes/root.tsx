@@ -7,15 +7,7 @@ import { ChangelogModal } from '@/components/changelog-modal';
 import { CreditsModal } from '@/components/credits-modal';
 import { FeatureFlagDebugPanel } from '@/components/feature-flag-debug-panel';
 import { TutorialProvider, TutorialRoot } from '@/components/tutorial';
-<<<<<<< Updated upstream
-import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
-import { Drawer, DrawerTrigger, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
-import { ScrollTextIcon, UsersIcon, MenuIcon } from 'lucide-react';
-import { setShowChangelogModal, setShowCreditsModal } from '@/store/ui.store';
-import { cn } from '@/lib/utils';
-=======
 import { Navbar } from '@/modules/app/components/navbar';
->>>>>>> Stashed changes
 import { ImportCodeDialog } from '@/modules/runners/share/import-code-dialog';
 import { useRoosterImport } from '@/modules/runners/share/use-rooster-import';
 import { setRunner } from '@/store/runners.store';
@@ -26,31 +18,33 @@ import { toast } from 'sonner';
 import { lazy, Suspense, useCallback } from 'react';
 import type { ReactNode } from 'react';
 
-const SimulationLayout = lazy(
-  async () => ({ default: (await import('./_simulation')).SimulationLayout }),
-);
-const SimulationHome = lazy(
-  async () => ({ default: (await import('./_simulation/home')).SimulationHome }),
-);
-const SkillBassin = lazy(
-  async () => ({ default: (await import('./_simulation/skill-bassin')).SkillBassin }),
-);
-const UmaBassin = lazy(
-  async () => ({ default: (await import('./_simulation/uma-bassin')).UmaBassin }),
-);
-const SkillPlanner = lazy(async () => ({ default: (await import('./skill-planner')).SkillPlanner }));
+const SimulationLayout = lazy(async () => ({
+  default: (await import('./_simulation')).SimulationLayout,
+}));
+const SimulationHome = lazy(async () => ({
+  default: (await import('./_simulation/home')).SimulationHome,
+}));
+const SkillBassin = lazy(async () => ({
+  default: (await import('./_simulation/skill-bassin')).SkillBassin,
+}));
+const UmaBassin = lazy(async () => ({
+  default: (await import('./_simulation/uma-bassin')).UmaBassin,
+}));
+const SkillPlanner = lazy(async () => ({
+  default: (await import('./skill-planner')).SkillPlanner,
+}));
 const RunnersLayout = lazy(async () => ({ default: (await import('./runners')).RunnersLayout }));
 const RunnersHome = lazy(async () => ({ default: (await import('./runners/home')).RunnersHome }));
 const RunnersNew = lazy(async () => ({ default: (await import('./runners/new')).RunnersNew }));
-const RunnersEdit = lazy(
-  async () => ({ default: (await import('./runners/$runnerId.edit')).RunnersEdit }),
-);
+const RunnersEdit = lazy(async () => ({
+  default: (await import('./runners/$runnerId.edit')).RunnersEdit,
+}));
 const RaceSimRoot = lazy(async () => ({ default: (await import('./_race-sim')).RaceSimRoot }));
 const RaceSimHome = lazy(async () => ({ default: (await import('./race-sim/home')).RaceSimHome }));
 const RaceSimRun = lazy(async () => ({ default: (await import('./race-sim/run')).RaceSimRun }));
-const RaceSimResults = lazy(
-  async () => ({ default: (await import('./race-sim/results')).RaceSimResults }),
-);
+const RaceSimResults = lazy(async () => ({
+  default: (await import('./race-sim/results')).RaceSimResults,
+}));
 
 type RoutePageProps = {
   title: string;
@@ -84,96 +78,7 @@ export function RootComponent() {
   return (
     <TutorialProvider>
       <div className="flex flex-col h-dvh">
-<<<<<<< Updated upstream
-        <header className="flex py-2 justify-between items-center border-b px-4 shrink-0">
-          {/* Mobile hamburger */}
-          <div className="md:hidden">
-            <Drawer open={mobileMenuOpen} onOpenChange={setMobileMenuOpen} direction="top">
-              <DrawerTrigger asChild>
-                <Button variant="ghost" size="icon" aria-label="Open navigation menu">
-                  <MenuIcon className="h-5 w-5" />
-                </Button>
-              </DrawerTrigger>
-              <DrawerContent>
-                <DrawerTitle className="sr-only">Navigation</DrawerTitle>
-                <nav className="flex flex-col p-2 gap-1">
-                  {navItems.map((item) => (
-                    <NavLink
-                      key={item.value}
-                      to={item.to}
-                      draggable={false}
-                      onClick={handleNavClick}
-                      className={cn(
-                        'rounded-md px-3 py-2 text-sm font-medium text-left transition-colors',
-                        currentTab === item.value
-                          ? 'bg-accent text-accent-foreground'
-                          : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground',
-                      )}
-                    >
-                      {item.label}
-                    </NavLink>
-                  ))}
-                </nav>
-              </DrawerContent>
-            </Drawer>
-          </div>
-
-          {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-1">
-            {navItems.map((item) => (
-              <NavLink
-                key={item.value}
-                to={item.to}
-                draggable={false}
-                className={cn(
-                  'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
-                  currentTab === item.value
-                    ? 'bg-accent text-accent-foreground'
-                    : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground',
-                )}
-              >
-                {item.label}
-              </NavLink>
-            ))}
-          </nav>
-
-          <div className="flex items-center gap-2">
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <Button
-                    variant="outline"
-                    className="flex h-9 w-9 items-center justify-center"
-                    onClick={() => setShowCreditsModal(true)}
-                    aria-label="Open credits"
-                  />
-                }
-              >
-                <UsersIcon className="h-4 w-4" />
-              </TooltipTrigger>
-              <TooltipContent>Credits</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <Button
-                    variant="outline"
-                    className="flex h-9 w-9 items-center justify-center"
-                    onClick={() => setShowChangelogModal(true)}
-                    aria-label="Open changelog"
-                  />
-                }
-              >
-                <ScrollTextIcon className="h-4 w-4" />
-              </TooltipTrigger>
-              <TooltipContent>Changelog</TooltipContent>
-            </Tooltip>
-            <ThemeToggle />
-          </div>
-        </header>
-=======
         <Navbar />
->>>>>>> Stashed changes
 
         <main className="flex flex-1 overflow-hidden min-h-0">
           <Suspense
@@ -333,7 +238,11 @@ export function NotFoundComponent() {
 
   return (
     <>
-      <PageMetadata title="Page Not Found" description="The requested page could not be found." noindex />
+      <PageMetadata
+        title="Page Not Found"
+        description="The requested page could not be found."
+        noindex
+      />
       <div className="flex flex-1 flex-col items-center justify-center p-4">
         <div className="text-center space-y-4">
           <h1 className="text-6xl font-bold">404</h1>
