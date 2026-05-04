@@ -108,7 +108,7 @@ const EFFECT_TYPE_ALIASES: Record<string, number> = {
   '1': 1,
   speed: 1,
   speedup: 1,
-  'speedupskill': 1,
+  speedupskill: 1,
   '2': 2,
   stamina: 2,
   staminaup: 2,
@@ -198,11 +198,7 @@ function levenshteinDistance(a: string, b: string): number {
     current[0] = i;
     for (let j = 1; j <= b.length; j++) {
       const cost = a[i - 1] === b[j - 1] ? 0 : 1;
-      current[j] = Math.min(
-        previous[j] + 1,
-        current[j - 1] + 1,
-        previous[j - 1] + cost,
-      );
+      current[j] = Math.min(previous[j] + 1, current[j - 1] + 1, previous[j - 1] + cost);
     }
 
     for (let j = 0; j <= b.length; j++) {
@@ -251,7 +247,9 @@ function getEnglishNameMatch(candidateName: string, searchText: string): NameMat
   if (
     needleTokens.length > 1 &&
     needleTokens.every((token) =>
-      candidateTokens.some((candidateToken) => candidateToken.startsWith(token) || candidateToken.includes(token)),
+      candidateTokens.some(
+        (candidateToken) => candidateToken.startsWith(token) || candidateToken.includes(token),
+      ),
     )
   ) {
     return { score: 0.9, kind: 'token' };
@@ -554,7 +552,9 @@ export function searchSkills(cwd: string, filters: SkillSearchFilters): SkillSea
   }
 
   if (filters.name) {
-    candidates = candidates.filter((skill) => getEnglishNameMatch(skill.name, filters.name!) !== null);
+    candidates = candidates.filter(
+      (skill) => getEnglishNameMatch(skill.name, filters.name!) !== null,
+    );
 
     const hasDirectNameMatch = candidates.some((skill) => {
       const normalizedNeedle = normalize(filters.name!);
@@ -573,7 +573,9 @@ export function searchSkills(cwd: string, filters: SkillSearchFilters): SkillSea
 
   if (filters.condition) {
     const needle = normalize(filters.condition);
-    candidates = candidates.filter((skill) => normalize(getSkillConditions(skill).join(' ')).includes(needle));
+    candidates = candidates.filter((skill) =>
+      normalize(getSkillConditions(skill).join(' ')).includes(needle),
+    );
   }
 
   if (requestedTypeIds.length > 0) {
@@ -593,7 +595,10 @@ export function searchSkills(cwd: string, filters: SkillSearchFilters): SkillSea
 
   const ranked = candidates
     .map((skill) => ({ skill, score: scoreSkill(skill, dataset, filters) }))
-    .sort((a, b) => b.score - a.score || a.skill.order - b.skill.order || a.skill.id.localeCompare(b.skill.id));
+    .sort(
+      (a, b) =>
+        b.score - a.score || a.skill.order - b.skill.order || a.skill.id.localeCompare(b.skill.id),
+    );
 
   const results = ranked.slice(0, limit).map(({ skill }) => toResult(skill, dataset));
 
@@ -665,7 +670,10 @@ export function formatSkillDetails(result: SkillSearchResult): string {
 export function parseCommandFilters(input: string): SkillSearchFilters {
   const filters: SkillSearchFilters = {};
   const queryTokens: Array<string> = [];
-  const tokens = input.match(/(?:[^\s:=]+[:=]"[^"]*"|[^\s:=]+[:=]'[^']*'|[^\s:=]+[:=][^\s]+|"[^"]*"|'[^']*'|\S+)/g) ?? [];
+  const tokens =
+    input.match(
+      /(?:[^\s:=]+[:=]"[^"]*"|[^\s:=]+[:=]'[^']*'|[^\s:=]+[:=][^\s]+|"[^"]*"|'[^']*'|\S+)/g,
+    ) ?? [];
 
   for (const token of tokens) {
     const separatorIndex = Math.max(token.indexOf(':'), token.indexOf('='));

@@ -1,5 +1,5 @@
 import { skillCollection } from '@/modules/data/skills';
-import { calculateSkillCost } from '@/modules/skill-planner/cost-calculator';
+import { calculateRawSkillCost } from '@/modules/skill-planner/cost-calculator';
 import {
   getRelatedSkillIds,
   getRepresentativePrerequisiteIds,
@@ -113,7 +113,7 @@ export const buildSkillCostSummary = ({
   const isObtained = selfMeta.bought ?? false;
 
   let baseTotal = skill.baseCost;
-  let netTotal = calculateSkillCost(
+  let rawNetTotal = calculateRawSkillCost(
     normalizedSkillId,
     toHintLevel(selfMeta.hintLevel),
     hasFastLearner,
@@ -134,8 +134,14 @@ export const buildSkillCostSummary = ({
     }
 
     baseTotal += prereq.baseCost;
-    netTotal += calculateSkillCost(prereqId, toHintLevel(prereqMeta.hintLevel), hasFastLearner);
+    rawNetTotal += calculateRawSkillCost(
+      prereqId,
+      toHintLevel(prereqMeta.hintLevel),
+      hasFastLearner,
+    );
   }
+
+  let netTotal = Math.ceil(rawNetTotal);
 
   if (isObtained) {
     netTotal = 0;
@@ -194,11 +200,15 @@ export const buildDedupedSkillListNetTotal = ({
     }
   }
 
-  let total = 0;
+  let rawTotal = 0;
 
   for (const [coveredSkillId, coveredMeta] of coveredSkillMetaById.entries()) {
-    total += calculateSkillCost(coveredSkillId, toHintLevel(coveredMeta.hintLevel), hasFastLearner);
+    rawTotal += calculateRawSkillCost(
+      coveredSkillId,
+      toHintLevel(coveredMeta.hintLevel),
+      hasFastLearner,
+    );
   }
 
-  return total;
+  return Math.ceil(rawTotal);
 };

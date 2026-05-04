@@ -1,9 +1,5 @@
 import type { IStrategyName } from '@/lib/sunday-tools/runner/definitions';
-import {
-  findBestSkillMatch,
-  normalizeSkillName,
-  resolveSkillId,
-} from '@/modules/data/skills';
+import { findBestSkillMatch, normalizeSkillName, resolveSkillId } from '@/modules/data/skills';
 import { findBestUmaMatch } from '@/modules/runners/data/search';
 import type { OcrEngine, OcrEngineResult } from '@/modules/runners/ocr/engine';
 import type { ExtractedSkill, ExtractedUmaData } from '@/modules/runners/ocr/types';
@@ -176,7 +172,10 @@ export function stripMarkdownFences(value: string): string {
   return match?.[1]?.trim() ?? trimmed;
 }
 
-function parseStringField(payload: Record<string, unknown>, key: keyof GeminiStructuredResponse): string {
+function parseStringField(
+  payload: Record<string, unknown>,
+  key: keyof GeminiStructuredResponse,
+): string {
   const value = payload[key];
 
   if (typeof value !== 'string') {
@@ -186,7 +185,10 @@ function parseStringField(payload: Record<string, unknown>, key: keyof GeminiStr
   return value.trim();
 }
 
-function parseNumberField(payload: Record<string, unknown>, key: keyof GeminiStructuredResponse): number {
+function parseNumberField(
+  payload: Record<string, unknown>,
+  key: keyof GeminiStructuredResponse,
+): number {
   const value = payload[key];
 
   if (typeof value === 'number' && Number.isFinite(value)) {
@@ -203,7 +205,10 @@ function parseNumberField(payload: Record<string, unknown>, key: keyof GeminiStr
   throw new Error(`Gemini JSON is missing a valid numeric "${key}" value`);
 }
 
-function parseGradeField(payload: Record<string, unknown>, key: keyof GeminiStructuredResponse): string {
+function parseGradeField(
+  payload: Record<string, unknown>,
+  key: keyof GeminiStructuredResponse,
+): string {
   const value = parseStringField(payload, key).toUpperCase();
 
   if (!/^[SABCDEFG]$/.test(value)) {

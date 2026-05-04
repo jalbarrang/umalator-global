@@ -32,14 +32,21 @@ const createCostSummary = (overrides: Partial<SkillCostSummary> = {}): SkillCost
   ...overrides,
 });
 
-function SummarySkillRow({ dismissable = false, onDismiss }: Readonly<{ dismissable?: boolean; onDismiss?: () => void }>) {
+function SummarySkillRow({
+  dismissable = false,
+  onDismiss,
+}: Readonly<{ dismissable?: boolean; onDismiss?: () => void }>) {
   return (
     <SkillItemRoot size="summary">
       <SkillItemRail />
       <SkillItemBody className="flex-col gap-2">
         <SkillItemMain className="p-1 px-2">
           <SkillItemIdentity />
-          <SkillItemDetailsActions dismissable={dismissable} onDismiss={onDismiss} className="shrink-0" />
+          <SkillItemDetailsActions
+            dismissable={dismissable}
+            onDismiss={onDismiss}
+            className="shrink-0"
+          />
         </SkillItemMain>
         <SkillItemCostAction layout="summary" />
       </SkillItemBody>

@@ -343,12 +343,13 @@ const selectMatchedSkillLookupEntry = (
   const sortedEntries = sortSkillLookupEntries(entries);
 
   if (hasLevel) {
-    return sortedEntries.find((entry) => normalizeSkillId(entry.id).startsWith('1')) ?? sortedEntries[0];
+    return (
+      sortedEntries.find((entry) => normalizeSkillId(entry.id).startsWith('1')) ?? sortedEntries[0]
+    );
   }
 
   return (
-    sortedEntries.find((entry) => normalizeSkillId(entry.id).startsWith('9')) ??
-    sortedEntries[0]
+    sortedEntries.find((entry) => normalizeSkillId(entry.id).startsWith('9')) ?? sortedEntries[0]
   );
 };
 

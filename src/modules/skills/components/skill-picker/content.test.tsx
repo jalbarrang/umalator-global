@@ -9,13 +9,7 @@ import { SkillPickerContent } from './content';
 import { SkillPickerProvider } from './provider';
 
 vi.mock('@tanstack/react-virtual', () => ({
-  useVirtualizer: ({
-    count,
-    estimateSize,
-  }: {
-    count: number;
-    estimateSize: () => number;
-  }) => ({
+  useVirtualizer: ({ count, estimateSize }: { count: number; estimateSize: () => number }) => ({
     getTotalSize: () => count * estimateSize(),
     getVirtualItems: () =>
       Array.from({ length: count }, (_, index) => {
@@ -56,7 +50,8 @@ const getOptionIds = (count = 3) =>
 const getSelectableRows = () =>
   Array.from(document.querySelectorAll<HTMLElement>('[data-event="select-skill"]'));
 
-const getHighlightedRows = () => getSelectableRows().filter((row) => row.dataset.highlighted === 'true');
+const getHighlightedRows = () =>
+  getSelectableRows().filter((row) => row.dataset.highlighted === 'true');
 
 const keyCodes: Record<string, number> = {
   ArrowDown: 40,

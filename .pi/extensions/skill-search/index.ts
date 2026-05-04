@@ -31,7 +31,9 @@ const SearchSkillsParams = Type.Object({
       }),
     ),
   ),
-  limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100, description: 'Maximum results to return.' })),
+  limit: Type.Optional(
+    Type.Integer({ minimum: 1, maximum: 100, description: 'Maximum results to return.' }),
+  ),
 });
 
 type SearchSkillsInput = {
@@ -180,8 +182,10 @@ export default function skillSearchExtension(pi: ExtensionAPI) {
   pi.registerTool({
     name: 'search_skills',
     label: 'Search Skills',
-    description: 'Search the local skill dataset by skill name, effect type, groupId, raw conditions, or skill family.',
-    promptSnippet: 'Search local Umamusume skill data by name, effect type, groupId, raw conditions, or family.',
+    description:
+      'Search the local skill dataset by skill name, effect type, groupId, raw conditions, or skill family.',
+    promptSnippet:
+      'Search local Umamusume skill data by name, effect type, groupId, raw conditions, or family.',
     promptGuidelines: [
       'Use this tool when the user asks to identify, compare, or find skills from the local skill JSON data.',
       'Prefer this tool over manual grep when the task is specifically about searching skills by name, types, groups, conditions, or family.',
@@ -201,14 +205,7 @@ export default function skillSearchExtension(pi: ExtensionAPI) {
   pi.registerCommand('skill-search', {
     description: 'Search local skills by name, type, group, condition, or family',
     getArgumentCompletions: (prefix) => {
-      const suggestions = [
-        'name:',
-        'type:',
-        'group:',
-        'condition:',
-        'family:',
-        'limit:',
-      ];
+      const suggestions = ['name:', 'type:', 'group:', 'condition:', 'family:', 'limit:'];
       const filtered = suggestions.filter((item) => item.startsWith(prefix));
       return filtered.length > 0 ? filtered.map((item) => ({ value: item, label: item })) : null;
     },

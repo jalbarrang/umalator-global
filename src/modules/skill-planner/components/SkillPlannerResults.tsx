@@ -144,9 +144,7 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
     (combination: CombinationResult): Array<string> => {
       const obtainedSkills = optimizationContext?.obtainedSkills ?? getObtainedSkills();
 
-      return resolveActiveSkills(
-        Array.from(new Set([...obtainedSkills, ...combination.skills])),
-      );
+      return resolveActiveSkills(Array.from(new Set([...obtainedSkills, ...combination.skills])));
     },
     [optimizationContext],
   );

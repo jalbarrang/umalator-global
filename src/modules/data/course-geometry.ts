@@ -1,4 +1,3 @@
-
 export type CourseGeometryRotation = {
   x: number;
   y: number;
@@ -30,7 +29,9 @@ async function loadCourseGeometry(): Promise<Record<string, CourseGeometryRecord
     courseGeometryPromise = fetch(`${import.meta.env.BASE_URL}data/course_geometry.json`).then(
       async (response) => {
         if (!response.ok) {
-          throw new Error(`Failed to load course geometry: ${response.status} ${response.statusText}`);
+          throw new Error(
+            `Failed to load course geometry: ${response.status} ${response.statusText}`,
+          );
         }
 
         return (await response.json()) as Record<string, CourseGeometryRecord>;

@@ -96,27 +96,21 @@ export function Navbar() {
       </nav>
 
       <div className="flex items-center gap-2">
-        <div className="hidden md:block">
+        {/* <div className="hidden md:block">
           <SnapshotSwitcher />
-        </div>
+        </div> */}
+
         <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                variant="outline"
-                className="flex h-9 w-9 items-center justify-center"
-                render={
-                  <a
-                    href="https://github.com/jalbarrang/umalator-global"
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label="Open GitHub project"
-                  />
-                }
-              />
-            }
-          >
-            <img src="/svg/github.svg" alt="" aria-hidden="true" className="h-4 w-4 dark:invert" />
+          <TooltipTrigger>
+            <a
+              href="https://github.com/jalbarrang/umalator-global"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Open GitHub project"
+            >
+             <img src="/svg/github.svg" alt="" aria-hidden="true" className="h-4 w-4 dark:invert" />
+          </a>
+
           </TooltipTrigger>
           <TooltipContent>GitHub</TooltipContent>
         </Tooltip>

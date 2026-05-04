@@ -61,6 +61,17 @@ const uniqueSkillId = findSkillId((skillId) => {
   return rarity >= 3 && rarity <= 5;
 }, 'a unique skill');
 
+const findPlainSkillIdByBaseCost = (baseCost: number, excludedSkillIds: Array<string> = []) => {
+  return findSkillId(
+    (skillId) =>
+      !excludedSkillIds.includes(skillId) &&
+      skillCollection[skillId].baseCost === baseCost &&
+      skillCollection[skillId].rarity < 3 &&
+      getRepresentativePrerequisiteIds(skillId).length === 0,
+    `a plain non-bundled skill with base cost ${baseCost}`,
+  );
+};
+
 const createGetSkillMeta = (metaById: Record<string, TestMeta>) => {
   return (skillId: string): TestMeta => {
     return metaById[skillId] ?? { hintLevel: 0 };
@@ -213,6 +224,41 @@ describe('buildSkillCostSummary', () => {
       calculateSkillCost(bundledSkillId, 2, false) + calculateSkillCost(sharedPrereqId, 1, false);
 
     expect(total).toBe(expectedTotal);
+  });
+
+  it('rounds deduped aggregate totals after summing raw discounted costs', () => {
+    const firstSkillId = findPlainSkillIdByBaseCost(170);
+    const secondSkillId = findPlainSkillIdByBaseCost(170, [firstSkillId]);
+
+    const total = buildDedupedSkillListNetTotal({
+      visibleSkillIds: [firstSkillId, secondSkillId],
+      hasFastLearner: true,
+      getSkillMeta: createGetSkillMeta({
+        [firstSkillId]: { hintLevel: 2 },
+        [secondSkillId]: { hintLevel: 3 },
+      }),
+    });
+
+    // 170 * 0.8 * 0.9 + 170 * 0.7 * 0.9 = 229.5, ceil once => 230.
+    // Rounding each skill first would incorrectly return 231.
+    expect(total).toBe(230);
+  });
+
+  it('rounds bundled aggregate totals after summing raw discounted costs', () => {
+    const speedStarId = '200581';
+    const preparedToPassId = '200582';
+
+    const summary = buildSkillCostSummary({
+      skillId: speedStarId,
+      hasFastLearner: false,
+      getSkillMeta: createGetSkillMeta({
+        [speedStarId]: { hintLevel: 3 },
+        [preparedToPassId]: { hintLevel: 2 },
+      }),
+    });
+
+    expect(summary.baseTotal).toBe(360);
+    expect(summary.netTotal).toBe(270);
   });
 
   it('excludes unique skills from list totals by default', () => {

@@ -63,7 +63,10 @@ export async function addCandidateSkill(page: Page, skillName: string): Promise<
   await expect(searchInput).toBeVisible();
   await searchInput.fill(skillName);
 
-  const skillOption = page.locator('[data-event="select-skill"]').filter({ hasText: skillName }).first();
+  const skillOption = page
+    .locator('[data-event="select-skill"]')
+    .filter({ hasText: skillName })
+    .first();
   await expect(skillOption).toBeVisible();
   await skillOption.click();
 }

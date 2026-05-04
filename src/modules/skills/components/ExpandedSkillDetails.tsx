@@ -76,7 +76,8 @@ function AlternativeDetails({
             const effectValue =
               describeRecoveryEffect({ ...ef, modifier }) ??
               (effectType ? effectType(modifier) : modifier);
-            const effectLabel = type === 9 && modifier < 0 ? 'HP Drain' : i18n.t(`skilleffecttypes.${type}`);
+            const effectLabel =
+              type === 9 && modifier < 0 ? 'HP Drain' : i18n.t(`skilleffecttypes.${type}`);
 
             return (
               <div key={effectIndex} className="flex items-center gap-2">

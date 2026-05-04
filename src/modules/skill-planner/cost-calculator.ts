@@ -14,10 +14,10 @@ export const HINT_DISCOUNTS: Readonly<Record<HintLevel, number>> = {
 } as const;
 
 /**
- * Calculate the effective cost of a skill with all discounts applied
+ * Calculate the raw discounted cost of a skill before integer rounding.
  * Cost formula: baseCost * (1 - hintDiscount) * (hasFastLearner ? 0.9 : 1)
  */
-export function calculateSkillCost(
+export function calculateRawSkillCost(
   skillId: string,
   hintLevel: HintLevel,
   hasFastLearner: boolean,
@@ -28,8 +28,19 @@ export function calculateSkillCost(
   const hintDiscount = HINT_DISCOUNTS[hintLevel] ?? 0;
   const fastLearnerMultiplier = hasFastLearner ? 0.9 : 1.0;
 
-  // Apply hint discount first, then Fast Learner, then ceil the result
-  return Math.ceil(baseCost * (1 - hintDiscount) * fastLearnerMultiplier);
+  return baseCost * (1 - hintDiscount) * fastLearnerMultiplier;
+}
+
+/**
+ * Calculate the effective cost of a skill with all discounts applied.
+ */
+export function calculateSkillCost(
+  skillId: string,
+  hintLevel: HintLevel,
+  hasFastLearner: boolean,
+): number {
+  // Apply hint discount first, then Fast Learner, then ceil the result.
+  return Math.ceil(calculateRawSkillCost(skillId, hintLevel, hasFastLearner));
 }
 
 /**

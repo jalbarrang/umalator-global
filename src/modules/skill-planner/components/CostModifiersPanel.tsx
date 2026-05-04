@@ -1,6 +1,11 @@
 import { useCallback, useMemo, useState } from 'react';
 import { PlayIcon, RotateCcwIcon, XIcon } from 'lucide-react';
-import { setBudget, setIgnoreStaminaConsumption, setSeed, useSkillPlannerStore } from '../skill-planner.store';
+import {
+  setBudget,
+  setIgnoreStaminaConsumption,
+  setSeed,
+  useSkillPlannerStore,
+} from '../skill-planner.store';
 import { useSkillPlannerOptimizer } from '../hooks/useSkillPlannerOptimizer';
 import { parseSeed } from '@/utils/crypto';
 import { Label } from '@/components/ui/label';
@@ -15,7 +20,8 @@ type CostModifiersPanelProps = React.HTMLAttributes<HTMLDivElement>;
 export function CostModifiersPanel(props: CostModifiersPanelProps) {
   const { className, ...rest } = props;
 
-  const { budget, ignoreStaminaConsumption, candidates, isOptimizing, seed } = useSkillPlannerStore();
+  const { budget, ignoreStaminaConsumption, candidates, isOptimizing, seed } =
+    useSkillPlannerStore();
   const { handleOptimize, handleReplay, handleCancel } = useSkillPlannerOptimizer();
 
   const [seedInput, setSeedInput] = useState<string>(() => {

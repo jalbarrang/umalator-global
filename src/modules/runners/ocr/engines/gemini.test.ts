@@ -37,19 +37,19 @@ describe('GeminiEngine', () => {
   it('parses fenced JSON responses from Gemini', async () => {
     const fencedJson = `\`\`\`json
 ${JSON.stringify({
-      name: 'Taiki Shuttle',
-      outfit: '[Wild Frontier]',
-      speed: 1200,
-      stamina: 900,
-      power: 1000,
-      guts: 800,
-      wisdom: 950,
-      surfaceAptitude: 'A',
-      distanceAptitude: 'A',
-      strategyAptitude: 'S',
-      strategy: 'Senkou',
-      skills: ['Right-Handed ○'],
-    })}
+  name: 'Taiki Shuttle',
+  outfit: '[Wild Frontier]',
+  speed: 1200,
+  stamina: 900,
+  power: 1000,
+  guts: 800,
+  wisdom: 950,
+  surfaceAptitude: 'A',
+  distanceAptitude: 'A',
+  strategyAptitude: 'S',
+  strategy: 'Senkou',
+  skills: ['Right-Handed ○'],
+})}
 \`\`\``;
     const fetchMock = mockGeminiFetch(fencedJson);
 

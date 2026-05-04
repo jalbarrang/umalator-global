@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { GroundCondition, Grade, Season, TimeOfDay, Weather } from '@/lib/sunday-tools/course/definitions';
+import {
+  GroundCondition,
+  Grade,
+  Season,
+  TimeOfDay,
+  Weather,
+} from '@/lib/sunday-tools/course/definitions';
 import { Mood, Strategy } from '@/lib/sunday-tools/runner/definitions';
 import { Region, RegionList } from '@/lib/sunday-tools/shared/region';
 import { shiftRegionsForwardByMinTime } from './utils';
@@ -57,7 +63,15 @@ function buildParams(regions: Array<[number, number]>, minTime: number): Conditi
 
 describe('shiftRegionsForwardByMinTime', () => {
   it('leaves regions unchanged when min time is zero', () => {
-    const shifted = shiftRegionsForwardByMinTime(buildParams([[0, 40], [1950, 2100]], 0));
+    const shifted = shiftRegionsForwardByMinTime(
+      buildParams(
+        [
+          [0, 40],
+          [1950, 2100],
+        ],
+        0,
+      ),
+    );
 
     expect(shifted.map((r) => [r.start, r.end])).toEqual([
       [0, 40],
@@ -66,7 +80,16 @@ describe('shiftRegionsForwardByMinTime', () => {
   });
 
   it('drops regions that end before the min-time distance and clips overlapping ones', () => {
-    const shifted = shiftRegionsForwardByMinTime(buildParams([[0, 40], [1125, 1200], [1950, 2100]], 10));
+    const shifted = shiftRegionsForwardByMinTime(
+      buildParams(
+        [
+          [0, 40],
+          [1125, 1200],
+          [1950, 2100],
+        ],
+        10,
+      ),
+    );
 
     expect(shifted.map((r) => [r.start, r.end])).toEqual([
       [1125, 1200],

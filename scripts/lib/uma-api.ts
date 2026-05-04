@@ -43,8 +43,10 @@ function isLegacyUmaApiResponse(value: unknown): value is LegacyUmaApiResponse {
     return false;
   }
 
-  return record.history == null ||
-    (Array.isArray(record.history) && record.history.every(isGameVersionRecord));
+  return (
+    record.history == null ||
+    (Array.isArray(record.history) && record.history.every(isGameVersionRecord))
+  );
 }
 
 function isUmaApiResponse(value: unknown): value is UmaApiResponse {
@@ -91,7 +93,8 @@ export async function fetchCurrentResourceVersion(): Promise<string> {
 
       const payload = (await response.json()) as unknown;
       if (!isUmaApiResponse(payload)) {
-        const shape = payload && typeof payload === 'object' ? Object.keys(payload).join(', ') : typeof payload;
+        const shape =
+          payload && typeof payload === 'object' ? Object.keys(payload).join(', ') : typeof payload;
         throw new Error(`Unexpected response shape from ${UMA_MOE_VERSION_URL} (keys: ${shape})`);
       }
 

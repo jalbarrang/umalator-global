@@ -20,23 +20,31 @@ const getSkillIdByName = (name: string): string => {
 describe('cost-calculator', () => {
   const skillId = runawaySkillId;
   const baseCost = skillCollection[skillId].baseCost;
+  const speedStarId = '200581';
+  const preparedToPassId = '200582';
 
   it('applies hint discount levels from 0 to 5', () => {
     expect(calculateSkillCost(skillId, 0, false)).toBe(baseCost);
-    expect(calculateSkillCost(skillId, 1, false)).toBe(Math.floor(baseCost * 0.9));
-    expect(calculateSkillCost(skillId, 2, false)).toBe(Math.floor(baseCost * 0.8));
-    expect(calculateSkillCost(skillId, 3, false)).toBe(Math.floor(baseCost * 0.7));
-    expect(calculateSkillCost(skillId, 4, false)).toBe(Math.floor(baseCost * 0.65));
-    expect(calculateSkillCost(skillId, 5, false)).toBe(Math.floor(baseCost * 0.6));
+    expect(calculateSkillCost(skillId, 1, false)).toBe(Math.ceil(baseCost * 0.9));
+    expect(calculateSkillCost(skillId, 2, false)).toBe(Math.ceil(baseCost * 0.8));
+    expect(calculateSkillCost(skillId, 3, false)).toBe(Math.ceil(baseCost * 0.7));
+    expect(calculateSkillCost(skillId, 4, false)).toBe(Math.ceil(baseCost * 0.65));
+    expect(calculateSkillCost(skillId, 5, false)).toBe(Math.ceil(baseCost * 0.6));
   });
 
   it('applies Fast Learner discount when no hint exists', () => {
-    expect(calculateSkillCost(skillId, 0, true)).toBe(Math.floor(baseCost * 0.9));
+    expect(calculateSkillCost(skillId, 0, true)).toBe(Math.ceil(baseCost * 0.9));
   });
 
   it('stacks hint and Fast Learner discounts in order', () => {
-    expect(calculateSkillCost(skillId, 5, true)).toBe(Math.floor(baseCost * 0.6 * 0.9));
-    expect(calculateSkillCost(skillId, 3, true)).toBe(Math.floor(baseCost * 0.7 * 0.9));
+    expect(calculateSkillCost(skillId, 5, true)).toBe(Math.ceil(baseCost * 0.6 * 0.9));
+    expect(calculateSkillCost(skillId, 3, true)).toBe(Math.ceil(baseCost * 0.7 * 0.9));
+  });
+
+  it('does not undercount floating-point exact integer discounts', () => {
+    expect(skillCollection[speedStarId].baseCost).toBe(180);
+    expect(calculateSkillCost(speedStarId, 3, false)).toBe(126);
+    expect(calculateSkillCost(preparedToPassId, 2, false)).toBe(144);
   });
 
   it('getNetCost computes discounted cost from candidate data', () => {
@@ -49,8 +57,34 @@ describe('cost-calculator', () => {
       isGold: false,
     };
 
-    expect(getNetCost(candidate, false)).toBe(Math.floor(baseCost * 0.6));
-    expect(getNetCost(candidate, true)).toBe(Math.floor(baseCost * 0.6 * 0.9));
+    expect(getNetCost(candidate, false)).toBe(Math.ceil(baseCost * 0.6));
+    expect(getNetCost(candidate, true)).toBe(Math.ceil(baseCost * 0.6 * 0.9));
+  });
+
+  it('matches game bundled cost for Speed Star with Prepared to Pass prerequisite', () => {
+    const candidates: Record<string, CandidateSkill> = {
+      [speedStarId]: {
+        skillId: speedStarId,
+        cost: skillCollection[speedStarId].baseCost,
+        netCost: skillCollection[speedStarId].baseCost,
+        hintLevel: 3,
+        isStackable: false,
+        isGold: true,
+        whiteSkillId: preparedToPassId,
+        baseTierIdForGold: preparedToPassId,
+      },
+      [preparedToPassId]: {
+        skillId: preparedToPassId,
+        cost: skillCollection[preparedToPassId].baseCost,
+        netCost: skillCollection[preparedToPassId].baseCost,
+        hintLevel: 2,
+        isStackable: false,
+        isGold: false,
+        goldSkillId: speedStarId,
+      },
+    };
+
+    expect(calculateDisplayCost(speedStarId, candidates, [], false)).toBe(270);
   });
 
   it('does not bundle white tiers when a gold-owned family already covers them', () => {
