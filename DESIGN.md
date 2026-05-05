@@ -7,19 +7,19 @@ description: >
   the feel of a printed Japanese horse-racing program. Dark mode switches to a
   clean neutral charcoal palette with the lime-green primary preserved.
 colors:
-  primary: "#66bf0d"
-  primary-dark: "#57a112"
-  secondary: "#e2d8c3"
-  neutral: "#4a3f35"
-  neutral-mid: "#7d6b56"
-  surface: "#f5f1e6"
-  surface-card: "#fffcf5"
-  surface-muted: "#ece5d8"
-  accent: "#d4c8aa"
-  destructive: "#b54a35"
-  border: "#dbd0ba"
-  ring: "#a67c52"
-  on-primary: "#ffffff"
+  primary: '#66bf0d'
+  primary-dark: '#57a112'
+  secondary: '#e2d8c3'
+  neutral: '#4a3f35'
+  neutral-mid: '#7d6b56'
+  surface: '#f5f1e6'
+  surface-card: '#fffcf5'
+  surface-muted: '#ece5d8'
+  accent: '#d4c8aa'
+  destructive: '#b54a35'
+  border: '#dbd0ba'
+  ring: '#a67c52'
+  on-primary: '#ffffff'
 typography:
   headline-lg:
     fontFamily: Inter
@@ -78,57 +78,57 @@ spacing:
   2xl: 64px
 components:
   button-primary:
-    backgroundColor: "{colors.primary}"
-    textColor: "{colors.on-primary}"
-    rounded: "{rounded.md}"
+    backgroundColor: '{colors.primary}'
+    textColor: '{colors.on-primary}'
+    rounded: '{rounded.md}'
     padding: 8px 16px
-    typography: "{typography.label-md}"
+    typography: '{typography.label-md}'
   button-primary-hover:
-    backgroundColor: "#72cc0e"
+    backgroundColor: '#72cc0e'
   button-secondary:
-    backgroundColor: "{colors.secondary}"
-    textColor: "{colors.neutral}"
-    rounded: "{rounded.md}"
+    backgroundColor: '{colors.secondary}'
+    textColor: '{colors.neutral}'
+    rounded: '{rounded.md}'
     padding: 8px 16px
-    typography: "{typography.label-md}"
+    typography: '{typography.label-md}'
   button-outline:
-    backgroundColor: "transparent"
-    textColor: "{colors.neutral}"
-    rounded: "{rounded.md}"
+    backgroundColor: 'transparent'
+    textColor: '{colors.neutral}'
+    rounded: '{rounded.md}'
     padding: 8px 16px
-    typography: "{typography.label-md}"
+    typography: '{typography.label-md}'
   button-ghost:
-    backgroundColor: "transparent"
-    textColor: "{colors.neutral}"
-    rounded: "{rounded.md}"
+    backgroundColor: 'transparent'
+    textColor: '{colors.neutral}'
+    rounded: '{rounded.md}'
     padding: 8px 16px
-    typography: "{typography.label-md}"
+    typography: '{typography.label-md}'
   button-destructive:
-    backgroundColor: "{colors.destructive}"
-    textColor: "{colors.on-primary}"
-    rounded: "{rounded.md}"
+    backgroundColor: '{colors.destructive}'
+    textColor: '{colors.on-primary}'
+    rounded: '{rounded.md}'
     padding: 8px 16px
-    typography: "{typography.label-md}"
+    typography: '{typography.label-md}'
   input:
-    backgroundColor: "{colors.surface-card}"
-    textColor: "{colors.neutral}"
-    rounded: "{rounded.sm}"
+    backgroundColor: '{colors.surface-card}'
+    textColor: '{colors.neutral}'
+    rounded: '{rounded.sm}'
     padding: 8px 12px
-    typography: "{typography.body-md}"
+    typography: '{typography.body-md}'
   card:
-    backgroundColor: "{colors.surface-card}"
-    rounded: "{rounded.lg}"
+    backgroundColor: '{colors.surface-card}'
+    rounded: '{rounded.lg}'
     padding: 16px
   badge:
-    rounded: "{rounded.full}"
+    rounded: '{rounded.full}'
     padding: 2px 8px
-    typography: "{typography.label-sm}"
+    typography: '{typography.label-sm}'
   tooltip:
-    backgroundColor: "{colors.neutral}"
-    textColor: "{colors.on-primary}"
-    rounded: "{rounded.sm}"
+    backgroundColor: '{colors.neutral}'
+    textColor: '{colors.on-primary}'
+    rounded: '{rounded.sm}'
     padding: 4px 8px
-    typography: "{typography.body-sm}"
+    typography: '{typography.body-sm}'
 ---
 
 # Racing Form

@@ -108,9 +108,13 @@ export function Navbar() {
               rel="noreferrer"
               aria-label="Open GitHub project"
             >
-             <img src="/svg/github.svg" alt="" aria-hidden="true" className="h-4 w-4 dark:invert" />
-          </a>
-
+              <img
+                src="/svg/github.svg"
+                alt=""
+                aria-hidden="true"
+                className="h-4 w-4 dark:invert"
+              />
+            </a>
           </TooltipTrigger>
           <TooltipContent>GitHub</TooltipContent>
         </Tooltip>
