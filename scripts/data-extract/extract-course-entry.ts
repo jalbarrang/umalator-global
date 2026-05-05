@@ -2,9 +2,9 @@
  * Extract one course entry from src/modules/data/course_data.json.
  *
  * Usage:
- *   pnpm exec tsx scripts/extract-course-entry.ts --course-id 10914
- *   pnpm exec tsx scripts/extract-course-entry.ts -c 10914 --compact
- *   pnpm exec tsx scripts/extract-course-entry.ts -c 10914 --source path/to/course_data.json
+ *   pnpm exec tsx scripts/data-extract/extract-course-entry.ts --course-id 10914
+ *   pnpm exec tsx scripts/data-extract/extract-course-entry.ts -c 10914 --compact
+ *   pnpm exec tsx scripts/data-extract/extract-course-entry.ts -c 10914 --source path/to/course_data.json
  */
 
 import { readFileSync } from 'node:fs';

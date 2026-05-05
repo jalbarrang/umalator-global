@@ -1,4 +1,4 @@
-import trackNameList from '@/modules/data/tracknames.json';
+import trackNameList from '@/modules/data/json/tracknames.json';
 
 type TrackIds = keyof typeof trackNameList;
 

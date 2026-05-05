@@ -1,5 +1,5 @@
 import { ISkillType } from '@/lib/sunday-tools/skills/definitions';
-import skillsJson from './skills.json';
+import skillsJson from './json/skills.json';
 import type { SkillAlternative } from '@/lib/sunday-tools/skills/skill.types';
 import type { SkillMatch } from '@/modules/runners/data/types';
 

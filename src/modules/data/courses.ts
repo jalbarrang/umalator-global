@@ -1,4 +1,4 @@
-import coursesJson from './course_data.json';
+import coursesJson from './json/course_data.json';
 
 // =======
 // Types

@@ -79,7 +79,7 @@ The extraction scripts will automatically detect and use it. This path is gitign
 All scripts also accept a custom database path as the first argument:
 
 ```bash
-pnpm exec tsx scripts/extract-skills.ts /path/to/master.mdb
+pnpm exec tsx scripts/data-extract/extract-skills.ts /path/to/master.mdb
 ```
 
 ## Merge vs Replace Mode
@@ -232,7 +232,7 @@ All extracted data is written to `src/modules/data/`:
 
 ## Shared Libraries
 
-### scripts/lib/shared.ts
+### scripts/master-data/shared.ts
 
 Utility functions:
 
@@ -241,7 +241,7 @@ Utility functions:
 - `resolveMasterDbPath()` - Resolve database path
 - `getUniqueSkillForOutfit()` - Calculate unique skill ID
 
-### scripts/lib/database.ts
+### scripts/master-data/database.ts
 
 Database helpers:
 
@@ -284,15 +284,15 @@ Node + SQLite tooling handles UTF-8 automatically. If you see garbled Japanese t
 On Unix systems, make scripts executable:
 
 ```bash
-chmod +x scripts/*.ts
+chmod +x scripts/data-extract/*.ts scripts/master-data/*.ts
 ```
 
 ## Development
 
 ### Adding a New Extraction Script
 
-1. Create script in `scripts/` directory
-2. Import shared utilities from `scripts/lib/`
+1. Create script in `scripts/data-extract/` directory
+2. Import shared utilities from `scripts/master-data/`
 3. Export main function for use in `extract-all.ts`
 4. Add script to `package.json` scripts section
 5. Update this README
@@ -308,7 +308,7 @@ perl scripts/legacy/make_global_skillnames.pl master.mdb > perl_names.json
 perl scripts/legacy/make_global_skill_data.pl master.mdb > perl_data.json
 
 # Extract with Node/tsx
-pnpm exec tsx scripts/extract-skills.ts master.mdb
+pnpm exec tsx scripts/data-extract/extract-skills.ts master.mdb
 
 # Compare key count as a quick sanity check
 node -e "const fs=require('fs');const skills=JSON.parse(fs.readFileSync('src/modules/data/skills.json','utf8'));console.log(Object.keys(skills).length)"

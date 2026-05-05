@@ -2,7 +2,7 @@
 import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { Command } from 'commander';
-import { sortByNumericKey, writeJsonFile } from './lib/shared';
+import { sortByNumericKey, writeJsonFile } from '../master-data/shared';
 
 type CourseDataEntry = {
   raceTrackId: number;

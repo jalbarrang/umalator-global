@@ -6,14 +6,14 @@
 
 import path from 'node:path';
 import { Command } from 'commander';
-import { closeDatabase, openDatabase, queryAll } from './lib/database';
+import { closeDatabase, openDatabase, queryAll } from '../master-data/database';
 import {
   readJsonFileIfExists,
   resolveMasterDbPath,
   sortByNumericKey,
   writeJsonFile,
-} from './lib/shared';
-import type { SkillEntry } from '../src/modules/data/skills';
+} from '../master-data/shared';
+import type { SkillEntry } from '../../src/modules/data/skills';
 import type { ISkillTarget } from '@/lib/sunday-tools/skills/definitions';
 
 interface SkillRow {

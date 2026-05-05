@@ -1,5 +1,5 @@
 import { getIconUrl } from '@/assets/icons';
-import rawIcons from './icons.json';
+import rawIcons from './json/icons.json';
 
 type IconMap = typeof rawIcons;
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { fetchCurrentResourceVersion } from './lib/uma-api';
+import { fetchCurrentResourceVersion } from './uma-api';
 
 async function main(): Promise<void> {
   const version = await fetchCurrentResourceVersion();

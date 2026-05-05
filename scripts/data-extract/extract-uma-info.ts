@@ -6,14 +6,14 @@
 
 import path from 'node:path';
 import { Command } from 'commander';
-import { closeDatabase, openDatabase, queryAll, queryAllWithParams } from './lib/database';
+import { closeDatabase, openDatabase, queryAll, queryAllWithParams } from '../master-data/database';
 import {
   readJsonFile,
   readJsonFileIfExists,
   resolveMasterDbPath,
   sortByNumericKey,
   writeJsonFile,
-} from './lib/shared';
+} from '../master-data/shared';
 
 interface UmaNameRow {
   index: number;

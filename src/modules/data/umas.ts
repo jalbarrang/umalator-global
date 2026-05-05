@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import umasJson from './umas.json';
+import umasJson from './json/umas.json';
 
 // =======
 // Types

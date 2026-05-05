@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import rawIcons from '@/modules/data/icons.json';
+import rawIcons from '@/modules/data/json/icons.json';
 import { getIconById } from '@/modules/data/icons';
 import { getIconUrl } from './index';
 

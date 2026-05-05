@@ -16,7 +16,7 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { Command, Option } from 'commander';
 import lz4jsModule from 'lz4js';
-import { UMA_MOE_VERSION_URL, resolveResourceVersion } from './lib/uma-api';
+import { UMA_MOE_VERSION_URL, resolveResourceVersion } from './uma-api';
 
 type Lz4JsModule = {
   decompress: (data: Uint8Array, maxSize?: number) => Uint8Array;
@@ -581,10 +581,10 @@ async function main(): Promise<number> {
       'after',
       `
 Examples:
-  npx tsx scripts/fetch_master_db.ts
-  npx tsx scripts/fetch_master_db.ts 10004010
-  npx tsx scripts/fetch_master_db.ts --output ./downloads
-  npx tsx scripts/fetch_master_db.ts 10004010 --platform Android --quiet
+  pnpm exec tsx scripts/master-data/fetch-master-db.ts
+  pnpm exec tsx scripts/master-data/fetch-master-db.ts 10004010
+  pnpm exec tsx scripts/master-data/fetch-master-db.ts --output ./downloads
+  pnpm exec tsx scripts/master-data/fetch-master-db.ts 10004010 --platform Android --quiet
 
 Manifest Chain:
   Root Manifest -> Platform Manifest -> Master Manifest -> master.mdb
