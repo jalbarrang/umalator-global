@@ -49,6 +49,7 @@ function getTextContent(message: AssistantMessage): string {
 export default function planMode(pi: ExtensionAPI): void {
   let planEnabled = false;
   let executing = false;
+  let hasPlan = false;
   let todos: TodoItem[] = [];
   let previousThinking: ThinkingLevel | undefined;
   let previousModel: { provider: string; id: string } | undefined;
@@ -65,6 +66,7 @@ export default function planMode(pi: ExtensionAPI): void {
     pi.appendEntry('plan-mode', {
       enabled: planEnabled,
       executing,
+      hasPlan,
       todos,
     });
   }
@@ -118,6 +120,7 @@ export default function planMode(pi: ExtensionAPI): void {
   async function enterPlanMode(ctx: ExtensionContext): Promise<void> {
     planEnabled = true;
     executing = false;
+    hasPlan = false;
     todos = [];
     previousThinking = pi.getThinkingLevel() as ThinkingLevel;
     previousModel = ctx.model ? { provider: ctx.model.provider, id: ctx.model.id } : undefined;
@@ -135,6 +138,7 @@ export default function planMode(pi: ExtensionAPI): void {
   async function exitPlanMode(ctx: ExtensionContext): Promise<void> {
     planEnabled = false;
     executing = false;
+    hasPlan = false;
     todos = [];
     pi.setActiveTools(EXEC_TOOLS);
     if (previousModel) {
@@ -230,18 +234,17 @@ export default function planMode(pi: ExtensionAPI): void {
   // ── Inject context for each phase ─────────────────────────────────────────
   pi.on('before_agent_start', async () => {
     if (planEnabled) {
-      return {
-        message: {
-          customType: 'plan-mode-context',
-          content: `[PLAN MODE ACTIVE]
+      const baseContext = `[PLAN MODE ACTIVE]
 You are in plan mode — a read-only exploration phase.
 
 Restrictions:
 - Available tools: ${PLAN_TOOLS.join(', ')}
 - File modifications (edit, write) are DISABLED
-- Bash is restricted to read-only commands
+- Bash is restricted to read-only commands`;
 
-Your task:
+      const planInstructions = hasPlan
+        ? `\n\nA plan has already been produced. Continue the conversation naturally — answer questions, discuss trade-offs, or refine ideas. Do NOT regenerate a numbered plan or todo list unless the user explicitly asks for one.`
+        : `\n\nYour task:
 1. Analyze the codebase thoroughly using the available tools
 2. Ask clarifying questions if needed (use questionnaire tool)
 3. Produce a detailed numbered plan under a "Plan:" header:
@@ -251,7 +254,14 @@ Plan:
 2. Second step — what to change and where
 ...
 
-Do NOT attempt to make changes — only describe what you would do.`,
+This project uses a local issue tracker under .scratch/ (one feature per directory with a PRD.md and numbered issue files). When the plan is approved for execution, steps will be tracked there — not as in-memory todos.
+
+Do NOT attempt to make changes — only describe what you would do.`;
+
+      return {
+        message: {
+          customType: 'plan-mode-context',
+          content: baseContext + planInstructions,
           display: false,
         },
       };
@@ -318,17 +328,20 @@ Execute each step in order. After completing a step, include [DONE:n] in your re
 
     if (!planEnabled || !ctx.hasUI) return;
 
-    // Extract plan from last assistant message
-    const lastAssistant = [...event.messages].reverse().find(isAssistantMessage);
-    if (lastAssistant) {
-      const extracted = extractTodoItems(getTextContent(lastAssistant));
-      if (extracted.length > 0) {
-        todos = extracted;
+    // Extract plan from last assistant message (only on first plan generation)
+    if (!hasPlan) {
+      const lastAssistant = [...event.messages].reverse().find(isAssistantMessage);
+      if (lastAssistant) {
+        const extracted = extractTodoItems(getTextContent(lastAssistant));
+        if (extracted.length > 0) {
+          todos = extracted;
+          hasPlan = true;
+        }
       }
     }
 
     // Show extracted plan
-    if (todos.length > 0) {
+    if (todos.length > 0 && hasPlan) {
       const todoList = todos.map((t, i) => `${i + 1}. ☐ ${t.text}`).join('\n');
       pi.sendMessage(
         {
@@ -340,15 +353,16 @@ Execute each step in order. After completing a step, include [DONE:n] in your re
       );
     }
 
-    // Prompt user for next action
-    const choice = await ctx.ui.select('Plan mode — what next?', [
-      todos.length > 0
-        ? `Execute the plan (${todos.length} steps, thinking: ${EXEC_THINKING})`
-        : 'Execute the plan',
-      'Stay in plan mode',
-      'Refine the plan',
-      'Exit plan mode',
-    ]);
+    // Build menu options based on current state
+    const options: string[] = [];
+    if (todos.length > 0) {
+      options.push(`Execute the plan (${todos.length} steps)`);
+      options.push('Edit the plan (open editor)');
+    }
+    options.push('Continue discussing');
+    options.push('Exit plan mode');
+
+    const choice = await ctx.ui.select('What would you like to do?', options);
 
     if (choice?.startsWith('Execute')) {
       startExecution(ctx);
@@ -360,15 +374,16 @@ Execute each step in order. After completing a step, include [DONE:n] in your re
         { customType: 'plan-mode-execute', content: msg, display: true },
         { triggerTurn: true },
       );
-    } else if (choice === 'Refine the plan') {
-      const refinement = await ctx.ui.editor('Refine the plan:', '');
+    } else if (choice?.startsWith('Edit the plan')) {
+      const refinement = await ctx.ui.editor('Edit the plan:', '');
       if (refinement?.trim()) {
+        hasPlan = false; // Allow re-extraction after refinement
         pi.sendUserMessage(refinement.trim());
       }
     } else if (choice === 'Exit plan mode') {
       await exitPlanMode(ctx);
     }
-    // "Stay in plan mode" → do nothing, user types next prompt
+    // "Continue discussing" → do nothing, user types next prompt
   });
 
   // ── Restore state on session start/resume ─────────────────────────────────
@@ -393,6 +408,7 @@ Execute each step in order. After completing a step, include [DONE:n] in your re
       planEnabled = saved.data.enabled ?? planEnabled;
       todos = saved.data.todos ?? todos;
       executing = saved.data.executing ?? executing;
+      hasPlan = (saved.data as { hasPlan?: boolean }).hasPlan ?? false;
     }
 
     // Re-scan [DONE:n] markers on resume
