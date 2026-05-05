@@ -6,3 +6,33 @@ onlyBuiltDependencies:
   - protobufjs
   - sharp
   - tesseract.js
+
+overrides:
+  '@hono/node-server@<1.19.10': '>=1.19.10'
+  '@hono/node-server@<1.19.13': '>=1.19.13'
+  brace-expansion@>=4.0.0 <5.0.5: '>=5.0.5'
+  dompurify@<3.3.2: '>=3.3.2'
+  dompurify@<3.4.0: '>=3.4.0'
+  dompurify@<=3.3.1: '>=3.3.2'
+  dompurify@<=3.3.3: '>=3.4.0'
+  dompurify@>=1.0.10 <3.4.0: '>=3.4.0'
+  dompurify@>=3.0.1 <3.4.0: '>=3.4.0'
+  dompurify@>=3.1.3 <=3.3.1: '>=3.3.2'
+  express-rate-limit@>=8.2.0 <8.2.2: '>=8.2.2'
+  hono@<4.12.12: '>=4.12.12'
+  hono@<4.12.14: '>=4.12.14'
+  hono@<4.12.4: '>=4.12.4'
+  hono@<4.12.7: '>=4.12.7'
+  hono@>=4.0.0 <=4.12.11: '>=4.12.12'
+  hono@>=4.12.0 <4.12.2: '>=4.12.2'
+  lodash@<=4.17.23: '>=4.18.0'
+  lodash@>=4.0.0 <=4.17.23: '>=4.18.0'
+  minimatch@>=10.0.0 <10.2.3: '>=10.2.3'
+  path-to-regexp@>=8.0.0 <8.4.0: '>=8.4.0'
+  picomatch@<2.3.2: '>=2.3.2'
+  picomatch@>=4.0.0 <4.0.4: '>=4.0.4'
+  postcss@<8.5.10: '>=8.5.10'
+  protobufjs@<7.5.5: '>=7.5.5'
+  serialize-javascript@<7.0.5: '>=7.0.5'
+  serialize-javascript@<=7.0.2: '>=7.0.3'
+  vite@>=8.0.0 <=8.0.4: '>=8.0.5'
