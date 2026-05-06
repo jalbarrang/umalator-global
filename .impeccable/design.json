@@ -1,0 +1,222 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-05-06T00:00:00Z",
+  "title": "Design System: Racing Form",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Grass Green",
+        "canonical": "oklch(72% 0.2 130)",
+        "tonalRamp": ["#1a3000", "#2d5200", "#3f7400", "#529600", "#66bf0d", "#8cd44d", "#b2e88d", "#d9f4c6"]
+      },
+      "primary-dark": {
+        "role": "primary",
+        "displayName": "Grass Green (Dark Mode)",
+        "canonical": "oklch(64% 0.18 130)",
+        "tonalRamp": ["#162800", "#264500", "#366200", "#468000", "#57a112", "#7dba4d", "#a4d388", "#cbecbf"]
+      },
+      "secondary": {
+        "role": "secondary",
+        "displayName": "Pale Warm Tan",
+        "canonical": "oklch(88% 0.02 75)",
+        "tonalRamp": ["#3a3225", "#5a4d3c", "#7b6953", "#9d876c", "#c0a689", "#d4c0a6", "#e2d8c3", "#f0ede0"]
+      },
+      "foreground": {
+        "role": "neutral",
+        "displayName": "Dark Ink Brown",
+        "canonical": "oklch(34% 0.03 60)",
+        "tonalRamp": ["#1a150f", "#2a2218", "#3a2f22", "#4a3f35", "#6b5c4d", "#8d7b68", "#b09d88", "#d4c4b0"]
+      },
+      "muted-foreground": {
+        "role": "neutral",
+        "displayName": "Faded Ink",
+        "canonical": "oklch(52% 0.04 60)",
+        "tonalRamp": ["#2a2218", "#3f3528", "#554939", "#6b5e4a", "#7d6b56", "#9a876e", "#b8a58a", "#d6c4a8"]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Warm Parchment",
+        "canonical": "oklch(95% 0.015 80)",
+        "tonalRamp": ["#3a3225", "#6b5e4a", "#9d876c", "#c0a689", "#d4c0a6", "#e2d8c3", "#ede7da", "#f5f1e6"]
+      },
+      "surface-card": {
+        "role": "neutral",
+        "displayName": "Cream Paper",
+        "canonical": "oklch(99% 0.008 80)",
+        "tonalRamp": ["#3a3225", "#6b5e4a", "#9d876c", "#c4b49a", "#ddd2be", "#ede7da", "#f5f1e6", "#fffcf5"]
+      },
+      "surface-muted": {
+        "role": "neutral",
+        "displayName": "Warm Linen",
+        "canonical": "oklch(92% 0.015 75)",
+        "tonalRamp": ["#3a3225", "#5a4d3c", "#7b6953", "#9d876c", "#bea88a", "#d4c0a6", "#e2d5c3", "#ece5d8"]
+      },
+      "accent": {
+        "role": "neutral",
+        "displayName": "Warm Sand",
+        "canonical": "oklch(82% 0.03 75)",
+        "tonalRamp": ["#2a2218", "#4a3f35", "#6b5c4d", "#8d7b68", "#a99480", "#bfaa96", "#d4c8aa", "#e8e0cc"]
+      },
+      "destructive": {
+        "role": "destructive",
+        "displayName": "Muted Terracotta",
+        "canonical": "oklch(50% 0.15 25)",
+        "tonalRamp": ["#3a1008", "#5a1f12", "#7a2e1c", "#9a3e28", "#b54a35", "#cc6c5a", "#e09080", "#f0b8aa"]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Tan Rule",
+        "canonical": "oklch(85% 0.025 75)",
+        "tonalRamp": ["#3a3225", "#5a4d3c", "#7b6953", "#9d876c", "#b8a08a", "#cdb8a0", "#dbd0ba", "#ebe4d4"]
+      },
+      "ring": {
+        "role": "neutral",
+        "displayName": "Warm Caramel",
+        "canonical": "oklch(60% 0.08 60)",
+        "tonalRamp": ["#2a1e0e", "#4a3520", "#6a4c32", "#866444", "#a67c52", "#bb9568", "#d0b080", "#e5cc9c"]
+      }
+    },
+    "typographyMeta": {
+      "headline-lg": { "displayName": "Headline Large", "purpose": "Page titles only. Used sparingly." },
+      "headline-md": { "displayName": "Headline Medium", "purpose": "Modal titles, major section headers." },
+      "headline-sm": { "displayName": "Headline Small", "purpose": "Panel headers, card titles, section dividers. The workhorse heading." },
+      "body-md": { "displayName": "Body", "purpose": "All labels, option text, descriptions, table cell content. The default voice." },
+      "body-sm": { "displayName": "Body Small", "purpose": "Captions, tooltips, secondary metadata." },
+      "label-md": { "displayName": "Label", "purpose": "Button text, badge text, compact UI controls." },
+      "label-sm": { "displayName": "Label Small", "purpose": "Small badges, chips, fine-print labels." },
+      "mono": { "displayName": "Mono", "purpose": "Numeric outputs: bassin values, sim results, SP costs, frame indices." }
+    },
+    "shadows": [
+      { "name": "2xs", "value": "2px 3px 5px 0px hsl(30 14% 20% / 0.06)", "purpose": "Minimal elevation hint. Rarely used." },
+      { "name": "xs", "value": "2px 3px 5px 0px hsl(30 14% 20% / 0.06)", "purpose": "Subtle hover lift." },
+      { "name": "sm", "value": "2px 3px 5px 0px hsl(30 14% 20% / 0.12), 2px 1px 2px -1px hsl(30 14% 20% / 0.12)", "purpose": "Standard floating elements." },
+      { "name": "md", "value": "2px 3px 5px 0px hsl(30 14% 20% / 0.12), 2px 2px 4px -1px hsl(30 14% 20% / 0.12)", "purpose": "Dropdown menus, popovers." },
+      { "name": "lg", "value": "2px 3px 5px 0px hsl(30 14% 20% / 0.12), 2px 4px 6px -1px hsl(30 14% 20% / 0.12)", "purpose": "Sheets, dialogs." },
+      { "name": "xl", "value": "2px 3px 5px 0px hsl(30 14% 20% / 0.12), 2px 8px 10px -1px hsl(30 14% 20% / 0.12)", "purpose": "Reserved. Rarely used." }
+    ],
+    "motion": [
+      { "name": "ease-out-quart", "value": "cubic-bezier(0.25, 1, 0.5, 1)", "purpose": "Default easing for state transitions and hover feedback." },
+      { "name": "duration-fast", "value": "150ms", "purpose": "Hover, focus, active state changes." },
+      { "name": "duration-normal", "value": "200ms", "purpose": "Popover/tooltip enter/exit, tab switches." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The single highest-priority CTA per screen. Grass Green fill, white label.",
+      "html": "<button class=\"ds-btn-primary\">Run Simulation</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 10px; background: #66bf0d; color: #ffffff; font-family: Inter, sans-serif; font-size: 14px; font-weight: 500; line-height: 1; border: 1px solid transparent; border-radius: 12px; cursor: pointer; transition: background 150ms cubic-bezier(0.25,1,0.5,1); } .ds-btn-primary:hover { background: #72cc0e; } .ds-btn-primary:focus-visible { outline: none; border-color: #a67c52; box-shadow: 0 0 0 3px rgba(166,124,82,0.5); }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Non-critical submit actions. Pale Warm Tan fill.",
+      "html": "<button class=\"ds-btn-secondary\">Compare Builds</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 10px; background: #e2d8c3; color: #5c4d3f; font-family: Inter, sans-serif; font-size: 14px; font-weight: 500; line-height: 1; border: 1px solid transparent; border-radius: 12px; cursor: pointer; transition: background 150ms cubic-bezier(0.25,1,0.5,1); } .ds-btn-secondary:hover { background: #d4c8aa; } .ds-btn-secondary:focus-visible { outline: none; border-color: #a67c52; box-shadow: 0 0 0 3px rgba(166,124,82,0.5); }"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Tertiary actions, toggles, options that recede visually.",
+      "html": "<button class=\"ds-btn-outline\">Export CSV</button>",
+      "css": ".ds-btn-outline { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 10px; background: transparent; color: #4a3f35; font-family: Inter, sans-serif; font-size: 14px; font-weight: 500; line-height: 1; border: 1px solid #dbd0ba; border-radius: 12px; cursor: pointer; transition: background 150ms cubic-bezier(0.25,1,0.5,1); } .ds-btn-outline:hover { background: #ece5d8; } .ds-btn-outline:focus-visible { outline: none; border-color: #a67c52; box-shadow: 0 0 0 3px rgba(166,124,82,0.5); }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Inline controls, icon buttons, actions in dense layouts.",
+      "html": "<button class=\"ds-btn-ghost\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 5v14M5 12h14\"/></svg></button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; justify-content: center; height: 32px; width: 32px; padding: 0; background: transparent; color: #4a3f35; border: 1px solid transparent; border-radius: 12px; cursor: pointer; transition: background 150ms cubic-bezier(0.25,1,0.5,1); } .ds-btn-ghost:hover { background: #ece5d8; } .ds-btn-ghost:focus-visible { outline: none; border-color: #a67c52; box-shadow: 0 0 0 3px rgba(166,124,82,0.5); }"
+    },
+    {
+      "name": "Destructive Button",
+      "kind": "button",
+      "refersTo": "button-destructive",
+      "description": "Irreversible destructive actions. Tinted terracotta, not solid fill.",
+      "html": "<button class=\"ds-btn-destructive\">Clear Results</button>",
+      "css": ".ds-btn-destructive { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 10px; background: rgba(181,74,53,0.1); color: #b54a35; font-family: Inter, sans-serif; font-size: 14px; font-weight: 500; line-height: 1; border: 1px solid transparent; border-radius: 12px; cursor: pointer; transition: background 150ms cubic-bezier(0.25,1,0.5,1); } .ds-btn-destructive:hover { background: rgba(181,74,53,0.2); } .ds-btn-destructive:focus-visible { outline: none; border-color: #b54a35; box-shadow: 0 0 0 3px rgba(181,74,53,0.2); }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Standard text input. Transparent background, tan border, caramel focus ring.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"Search skills...\" />",
+      "css": ".ds-input { display: block; width: 100%; height: 32px; padding: 4px 10px; background: transparent; color: #4a3f35; font-family: Inter, sans-serif; font-size: 14px; line-height: 1.5; border: 1px solid #dbd0ba; border-radius: 12px; outline: none; transition: border-color 150ms cubic-bezier(0.25,1,0.5,1), box-shadow 150ms cubic-bezier(0.25,1,0.5,1); } .ds-input::placeholder { color: #7d6b56; } .ds-input:focus { border-color: #a67c52; box-shadow: 0 0 0 3px rgba(166,124,82,0.5); }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Content container. Cream Paper background, ring border, no shadow.",
+      "html": "<div class=\"ds-card\"><div class=\"ds-card-header\"><div class=\"ds-card-title\">Simulation Results</div><div class=\"ds-card-description\">1000 runs completed</div></div><div class=\"ds-card-content\"><span class=\"ds-mono\">+2.4 bassin</span></div></div>",
+      "css": ".ds-card { display: flex; flex-direction: column; gap: 16px; background: #fffcf5; border-radius: 16px; padding: 16px 0; box-shadow: inset 0 0 0 1px rgba(74,63,53,0.1); overflow: hidden; font-family: Inter, sans-serif; font-size: 14px; color: #4a3f35; } .ds-card-header { display: grid; gap: 4px; padding: 0 16px; } .ds-card-title { font-size: 16px; font-weight: 600; line-height: 1.4; } .ds-card-description { font-size: 14px; color: #7d6b56; } .ds-card-content { padding: 0 16px; } .ds-mono { font-family: 'Fira Mono', monospace; font-size: 13px; }"
+    },
+    {
+      "name": "Badge (Default)",
+      "kind": "chip",
+      "refersTo": "badge",
+      "description": "Pill badge for labels and status indicators.",
+      "html": "<span class=\"ds-badge\">Runner</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; justify-content: center; height: 20px; padding: 2px 8px; background: #66bf0d; color: #ffffff; font-family: Inter, sans-serif; font-size: 12px; font-weight: 500; line-height: 1; border: 1px solid transparent; border-radius: 9999px; white-space: nowrap; }"
+    },
+    {
+      "name": "Tooltip",
+      "kind": "custom",
+      "refersTo": "tooltip",
+      "description": "Dark tooltip with arrow. Zero delay for data-dense contexts.",
+      "html": "<div class=\"ds-tooltip\">Bassin: distance-adjusted finishing time<div class=\"ds-tooltip-arrow\"></div></div>",
+      "css": ".ds-tooltip { position: relative; display: inline-block; max-width: 280px; padding: 6px 12px; background: #4a3f35; color: #fffcf5; font-family: Inter, sans-serif; font-size: 12px; line-height: 1.5; border-radius: 10px; } .ds-tooltip-arrow { position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%) rotate(45deg); width: 10px; height: 10px; background: #4a3f35; border-radius: 2px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Trainer's Notebook",
+    "overview": "Racing Form is the design system for Yet Another Umalator, a fan-made race and skill simulation toolkit for Uma Musume: Pretty Derby. The visual identity is a well-worn trainer's notebook: warm cream paper, dark warm-brown ink, annotations in a crisp hand, and a single vivid green mark that flags the most important thing on the page. Every screen should feel like opening a reference you've dog-eared a dozen times. The density is the point. The warmth keeps it from feeling clinical.\n\nThis system explicitly rejects generic SaaS dashboards, flashy gacha game UI, raw spreadsheet dumps, and cluttered game wiki aesthetics. Information architecture is deliberate. Every screen has a reading order.",
+    "keyCharacteristics": [
+      "Precise, playful, approachable. Takes the data seriously and itself lightly.",
+      "Crisp and efficient. Compact controls, minimal padding, every pixel earns its place.",
+      "One-glance insight. The primary answer is visible without interaction.",
+      "Dense but never overwhelming. Hierarchy, spacing rhythm, and tonal contrast prevent clutter."
+    ],
+    "rules": [
+      { "name": "The One Green Rule", "body": "The lime-green primary is used on exactly one action per screen. Its rarity is the point. If you're reaching for green on a second element, use secondary or outline instead.", "section": "colors" },
+      { "name": "The No Pure Black/White Rule", "body": "Never use #000000 or #ffffff as text or background in light mode. Every neutral is tinted toward the brand hue. Dark mode uses #101010 and #fafafa, both slightly off-axis.", "section": "colors" },
+      { "name": "The Two-Weight Rule", "body": "No more than two font weights (400 and 500/600) appear on a single screen. Headlines earn 600 or 700; body stays at 400; labels split the difference at 500.", "section": "typography" },
+      { "name": "The Mono-for-Numbers Rule", "body": "Every numeric simulation output uses Fira Mono. Proportional fonts cause column misalignment in dense result tables. If it's a number the user compares, it's monospaced.", "section": "typography" },
+      { "name": "The Flat-By-Default Rule", "body": "Cards have no shadow. Background contrast between Warm Parchment and Cream Paper provides sufficient separation. Shadows appear only on floating elements as confirmation, never as the sole depth signal.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use Grass Green (#66bf0d) for exactly one action per screen — the most critical next step.",
+      "Do maintain WCAG AA contrast (4.5:1 minimum) for all body and label text.",
+      "Do use Fira Mono for all numeric simulation outputs.",
+      "Do use the tonal layering system (Warm Parchment → Cream Paper → floating shadow) to express depth.",
+      "Do use Faded Ink (#7d6b56) for metadata, captions, and secondary labels.",
+      "Do use the compact component sizing (32px buttons, 20px badges).",
+      "Do keep color-blind-safe chart palettes."
+    ],
+    "donts": [
+      "Don't apply the lime-green primary to decorative elements, text links, or secondary actions.",
+      "Don't use pure black (#000000) or pure white (#ffffff) as text or background in light mode.",
+      "Don't mix rounded-xl corners with sharp corners in the same view.",
+      "Don't use more than two font weights (400 and 500/600) on a single screen.",
+      "Don't override the skill rarity gradient border system with flat colors.",
+      "Don't build anything that looks like a generic SaaS dashboard.",
+      "Don't import flashy gacha game UI patterns.",
+      "Don't present raw data without hierarchy.",
+      "Don't let information architecture feel accumulated like a game wiki.",
+      "Don't add gradient text, side-stripe borders, or glassmorphism as decoration."
+    ]
+  }
+}
