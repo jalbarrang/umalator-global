@@ -9,15 +9,17 @@ import type { CandidateSkill, HintLevel } from '../types';
 import { Separator } from '@/components/ui/separator';
 import {
   SkillItemBody,
-  SkillItemCostAction,
-  SkillItemDetailsActions,
   SkillItemIdentity,
-  SkillItem,
   SkillItemMain,
   SkillItemRail,
   SkillItemRoot,
-  type SkillMeta,
-} from '@/modules/skills/components/skill-list/skill-item';
+} from '@/modules/skills/components/skill-list/skill-item/primitives';
+import {
+  SkillItemCostAction,
+  SkillItemDetailsActions,
+} from '@/modules/skills/components/skill-list/skill-item/actions';
+import { SkillItem } from '@/modules/skills/components/skill-list/skill-item/item';
+import type { SkillMeta } from '@/modules/skills/components/skill-list/skill-item/context';
 import {
   buildDedupedSkillListNetTotal,
   buildSkillCostSummary,

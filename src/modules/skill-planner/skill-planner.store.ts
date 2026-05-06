@@ -19,7 +19,7 @@ import {
   isStackableSkill,
 } from '@/modules/skills/skill-relationships';
 import { getSelectableSkillsForUma, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
-import { findVersionOfSkill, skillCollection } from '@/modules/data/skills';
+import { dataRegistry } from '@/modules/data/registry';
 import { getRelatedSkillIds, isSkillCoveredByOwnedFamily } from './skill-family';
 import { resolveActiveSkills } from './optimizer';
 
@@ -144,7 +144,10 @@ type CreateCandidateParams = {
 
 export const createCandidate = (params: CreateCandidateParams): CandidateSkill => {
   const { skillId, hintLevel = 0 } = params;
-  const skill = skillCollection[skillId];
+  const skill = dataRegistry.skills.getById(skillId);
+  if (!skill) {
+    throw new Error(`Skill not found: ${skillId}`);
+  }
 
   const isGold = skill.rarity === 2;
   const isStackable = isStackableSkill(skillId);
@@ -212,7 +215,7 @@ const resolveObtainedSkillIds = (
   outfitId: string,
   previousOutfitId?: string,
 ): Array<string> => {
-  const nextSkillIds = Array.from(skillIds).filter((skillId) => !!skillCollection[skillId]);
+  const nextSkillIds = Array.from(skillIds).filter((skillId) => !!dataRegistry.skills.getById(skillId));
   const nextUniqueSkillId = getUniqueSkillId(outfitId);
   const previousUniqueSkillId = getUniqueSkillId(previousOutfitId ?? '');
 
@@ -473,7 +476,7 @@ export const addCandidate = (skillId: string, hintLevel?: number) => {
     const nextCandidates = { ...state.candidates };
     let nextSkillMetaById = state.skillMetaById;
 
-    const otherVersion = findVersionOfSkill(skillId, Object.keys(nextCandidates));
+    const otherVersion = dataRegistry.skills.findVersionOfSkill(skillId, Object.keys(nextCandidates));
     if (otherVersion) {
       const relatedSkillIds = getRelatedSkillIds(otherVersion);
       for (const relatedSkillId of relatedSkillIds) {

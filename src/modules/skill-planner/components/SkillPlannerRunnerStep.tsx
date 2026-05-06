@@ -19,15 +19,15 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { getSelectableSkillsForUma, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import {
-  SkillItem,
   SkillItemActions,
   SkillItemBody,
-  SkillItemDetailsActions,
   SkillItemIdentity,
   SkillItemMain,
   SkillItemRail,
   SkillItemRoot,
-} from '@/modules/skills/components/skill-list/skill-item';
+} from '@/modules/skills/components/skill-list/skill-item/primitives';
+import { SkillItemDetailsActions } from '@/modules/skills/components/skill-list/skill-item/actions';
+import { SkillItem } from '@/modules/skills/components/skill-list/skill-item/item';
 import { RaceSettingsPanel } from './RaceSettingsPanel';
 import { SkillPickerModal } from '@/modules/skills/components/skill-picker/modal';
 import { useHotkeys } from 'react-hotkeys-hook';

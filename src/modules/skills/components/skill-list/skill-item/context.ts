@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import type { SkillEntry } from '@/modules/data/skills';
+import type { SkillEntry } from '@/modules/data/services/SkillService';
 import type { SkillCostSummary } from '@/modules/skills/skill-cost-summary';
 
 export type SkillMeta = {

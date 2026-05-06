@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import type { RaceEvent, RaceEventKind } from '@/lib/sunday-tools/race-sim/race-event-log';
 import { simToDisplaySeconds, tickToDisplaySeconds } from '@/modules/race-sim/constants';
 import { usePlaybackStore } from '@/modules/race-sim/stores/playback.store';
-import { skillCollection } from '@/modules/data/skills';
+import { dataRegistry } from '@/modules/data/registry';
 import { formatTime } from '@/utils/time';
 import { useShallow } from 'zustand/shallow';
 
@@ -97,7 +97,7 @@ function getEventDescription(event: RaceEvent): string {
     case 'skill-activated': {
       const skillId = event.detail?.skillId;
       if (!skillId) return 'activated a skill';
-      const skillName = skillCollection[skillId]?.name;
+      const skillName = dataRegistry.skills.getById(skillId)?.name;
       return skillName ? `activated ${skillName} (${skillId})` : `activated skill ${skillId}`;
     }
     case 'rushed':

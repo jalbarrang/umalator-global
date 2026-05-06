@@ -8,15 +8,15 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { SaveRunnerModal } from '@/modules/runners/components/save-runner-modal';
 import {
-  SkillItem,
   SkillItemActions,
   SkillItemBody,
-  SkillItemDetailsActions,
   SkillItemIdentity,
   SkillItemMain,
   SkillItemRail,
   SkillItemRoot,
-} from '@/modules/skills/components/skill-list/skill-item';
+} from '@/modules/skills/components/skill-list/skill-item/primitives';
+import { SkillItemDetailsActions } from '@/modules/skills/components/skill-list/skill-item/actions';
+import { SkillItem } from '@/modules/skills/components/skill-list/skill-item/item';
 import { setRunner } from '@/store/runners.store';
 import { useRunnerLibraryStore } from '@/store/runner-library.store';
 import { useSettingsStore } from '@/store/settings.store';

@@ -104,5 +104,6 @@ export default defineConfig(({ command }) => ({
   },
   test: {
     globals: true,
+    setupFiles: ['./src/test-setup.ts'],
   },
 }));

@@ -1,12 +1,13 @@
 import { useMemo } from 'react';
-import { courseCollection, CourseEntry, CoursesMap } from '../data/courses';
+import { dataRegistry } from '@/modules/data/registry';
+import type { CourseEntry, CoursesMap } from '@/modules/data/services/CourseService';
 
 export type CourseByTrack = Record<number, Array<number>>;
 
-function buildCoursesByTrack(courses: CoursesMap): CourseByTrack {
+function buildCoursesByTrack(): CourseByTrack {
   const byTrack: CourseByTrack = {};
 
-  for (const [cid, course] of Object.entries(courses)) {
+  for (const [cid, course] of dataRegistry.courses.getAllEntries()) {
     const tid = course.raceTrackId;
     if (tid in byTrack) {
       byTrack[tid].push(+cid);
@@ -19,11 +20,11 @@ function buildCoursesByTrack(courses: CoursesMap): CourseByTrack {
 }
 
 export const getCoursesByTrack = () => {
-  return buildCoursesByTrack(courseCollection);
+  return buildCoursesByTrack();
 };
 
 export function useCoursesByTrack(): CourseByTrack {
-  return useMemo(() => buildCoursesByTrack(courseCollection), []);
+  return useMemo(() => buildCoursesByTrack(), []);
 }
 
 export const getDefaultTrackIdForCourse = (courseId: number) => {
@@ -39,7 +40,7 @@ export const getCourseIdByTrackIdAndIndex = (trackId: number, index: number) => 
 };
 
 export const getCourseById = (courseId: number): CourseEntry => {
-  const course = courseCollection[courseId];
+  const course = dataRegistry.courses.getById(courseId.toString());
 
   if (!course) {
     throw new Error(`Course with id ${courseId} not found`);

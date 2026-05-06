@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { DEFAULT_COURSE_ID } from '@/utils/constants';
+import { getDefaultCourseId } from '@/store/race/defaults';
 import { createRaceConditions, racedefToParams } from '@/utils/races';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 import { createRunnerState, runawaySkillId } from '../runners/components/runner-card/types';
@@ -42,7 +42,7 @@ describe('runAdaptiveOptimization', () => {
       budget: 100,
       ignoreStaminaConsumption: false,
       runner: createRunnerState(),
-      course: CourseHelpers.getCourse(DEFAULT_COURSE_ID),
+      course: CourseHelpers.getCourse(getDefaultCourseId()),
       racedef: racedefToParams(createRaceConditions()),
       options: defaultSimulationOptions,
     });

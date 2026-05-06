@@ -1,4 +1,4 @@
-import type { SkillEntry } from '@/modules/data/skills';
+import type { SkillEntry } from '@/modules/data/services/SkillService';
 import { SkillRarity } from '@/lib/sunday-tools/skills/definitions';
 import { skillFilterLookUp } from '@/modules/skills/utils';
 

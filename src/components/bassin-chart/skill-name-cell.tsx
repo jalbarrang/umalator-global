@@ -7,9 +7,9 @@ import { getIconById } from '@/modules/data/icons';
 import { Button } from '../ui/button';
 import { CircleHelp } from 'lucide-react';
 import { useMemo } from 'react';
-import { SkillEntry, skillCollection } from '@/modules/data/skills';
+import type { SkillEntry } from '@/modules/data/services/SkillService';
 import React from 'react';
-import { umaForUniqueSkill } from '@/modules/data/umas';
+import { dataRegistry } from '@/modules/data/registry';
 
 /** `data-event` value on the skill details help control; must match delegated handler in BasinnChart. */
 export const BASSIN_DATA_EVENT_TOGGLE_SKILL_DETAILS = 'toggle-skill-details';
@@ -59,7 +59,7 @@ export const skillNameCell = ({
 }: SkillNameCellProps) => {
   return React.memo((props: CellContext<SkillComparisonRoundResult, unknown>) => {
     const id = props.getValue() as string;
-    const skill = skillCollection[id];
+    const skill = dataRegistry.skills.getById(id);
 
     const translatedName = i18n.t(`skillnames.${id}`);
 
@@ -71,7 +71,7 @@ export const skillNameCell = ({
       if (!skill) return { src: null, className: 'w-4 h-4' };
 
       if (showUmaIcons) {
-        const umaId = umaForUniqueSkill(id);
+        const umaId = dataRegistry.umas.umaForUniqueSkill(id);
         const umaIcon = umaId ? getIconById(umaId) : undefined;
         if (umaIcon) {
           return {

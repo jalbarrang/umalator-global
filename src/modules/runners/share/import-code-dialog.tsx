@@ -13,7 +13,7 @@ import { singleExportToRunnerState } from './converters';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { getUmaDisplayInfo, getUmaImageUrl } from '@/modules/runners/utils';
 import { StatImage } from '@/modules/runners/components/StatInput';
-import { skillCollection } from '@/modules/data/skills';
+import { dataRegistry } from '@/modules/data/registry';
 
 type ImportCodeDialogProps = {
   open: boolean;
@@ -57,7 +57,7 @@ export function ImportCodeDialog({
 
   const skillNames = useMemo(() => {
     if (!decoded?.skills) return [];
-    return decoded.skills.map((id) => skillCollection[id]?.name ?? `Unknown (${id})`);
+    return decoded.skills.map((id) => dataRegistry.skills.getById(id)?.name ?? `Unknown (${id})`);
   }, [decoded?.skills]);
 
   const handleOpenChange = (next: boolean) => {

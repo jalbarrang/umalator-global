@@ -1,7 +1,8 @@
 import { getIconUrl } from '@/assets/icons';
 import { useMemo } from 'react';
 import { getIconById } from '@/modules/data/icons';
-import { umas, type UmasMap } from '@/modules/data/umas';
+import { dataRegistry } from '@/modules/data/registry';
+import type { UmasMap } from '@/modules/data/services/UmaService';
 
 export type UmaSearchEntry = {
   id: string;
@@ -14,13 +15,12 @@ export type Uma = {
   outfits: Record<string, string>;
 };
 
-function buildUmaSearchData(umas: UmasMap): {
+function buildUmaSearchData(): {
   altIds: Array<string>;
   namesForSearch: Record<string, string>;
   umasForSearch: Array<UmaSearchEntry>;
 } {
-  const altIds = Object.keys(umas).flatMap((id) => {
-    const uma = umas[id];
+  const altIds = dataRegistry.umas.getAllEntries().flatMap(([id, uma]) => {
     if (!uma) {
       return [];
     }
@@ -30,7 +30,7 @@ function buildUmaSearchData(umas: UmasMap): {
   const namesForSearch = Object.fromEntries(
     altIds.map((id) => {
       const baseId = getUmaBaseId(id);
-      const uma = umas[baseId];
+      const uma = dataRegistry.umas.getById(baseId);
       if (!uma) {
         return [id, ''];
       }
@@ -42,7 +42,7 @@ function buildUmaSearchData(umas: UmasMap): {
   const umasForSearch = altIds
     .map((id) => {
       const baseId = getUmaBaseId(id);
-      const uma = umas[baseId];
+      const uma = dataRegistry.umas.getById(baseId);
       if (!uma) {
         return null;
       }
@@ -75,7 +75,7 @@ export const getUmaBaseId = (id: string) => {
 export const getUmaById = (id: string) => {
   const baseId = getUmaBaseId(id);
 
-  const uma = umas[baseId];
+  const uma = dataRegistry.umas.getById(baseId);
 
   if (!uma) {
     throw new Error(`Uma with id ${id} not found`);
@@ -85,15 +85,15 @@ export const getUmaById = (id: string) => {
 };
 
 export type UmaAltId = string;
-export const getUmaAltIds = () => buildUmaSearchData(umas).altIds;
+export const getUmaAltIds = () => buildUmaSearchData().altIds;
 
 // Lookup Functions
 
-export const getUmaNamesForSearch = () => buildUmaSearchData(umas).namesForSearch;
-export const getUmasForSearch = () => buildUmaSearchData(umas).umasForSearch;
+export const getUmaNamesForSearch = () => buildUmaSearchData().namesForSearch;
+export const getUmasForSearch = () => buildUmaSearchData().umasForSearch;
 
 export function useUmasForSearch(): Array<UmaSearchEntry> {
-  return useMemo(() => buildUmaSearchData(umas).umasForSearch, []);
+  return useMemo(() => buildUmaSearchData().umasForSearch, []);
 }
 
 export function rankForStat(x: number) {

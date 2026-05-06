@@ -1,7 +1,8 @@
 import { parseSkillCondition, tokenizedConditions } from './conditions';
 import type { UmaAltId } from '@/modules/runners/utils';
 import { SkillRarity } from '@/lib/sunday-tools/skills/definitions';
-import { getSkills, skillCollection, SkillsMap } from '@/modules/data/skills';
+import { dataRegistry } from '@/modules/data/registry';
+import type { SkillsMap } from '@/modules/data/services/SkillService';
 
 // ===== Utils =====
 
@@ -23,7 +24,7 @@ export const getBaseSkillId = (id: string): string => {
 
 export const getSkillNameById = (id: string): string => {
   const baseId = getBaseSkillId(id);
-  const skill = skillCollection[baseId];
+  const skill = dataRegistry.skills.getById(baseId);
   if (skill?.name) {
     return skill.name;
   }
@@ -31,7 +32,7 @@ export const getSkillNameById = (id: string): string => {
   // Master data doesn't always include inherited aliases. Resolve those from their original unique.
   if (baseId.startsWith('9')) {
     const originalId = `1${baseId.slice(1)}`;
-    const originalSkill = skillCollection[originalId];
+    const originalSkill = dataRegistry.skills.getById(originalId);
     if (originalSkill?.name) {
       return `${originalSkill.name} (inherited)`;
     }
@@ -55,13 +56,13 @@ export function getUniqueSkillForByUmaId(outfitId: UmaAltId): string {
 const nonMeasurableSkills = ['300051', '300061'];
 
 export const getBaseSkillsToTest = () => {
-  const skillIds = Object.keys(skillCollection);
+  const skillIds = dataRegistry.skills.getAll().map(skill => skill.id);
   const skillsToTest = [];
 
   for (const id of skillIds) {
     if (nonMeasurableSkills.includes(id)) continue;
 
-    const skillData = skillCollection[id];
+    const skillData = dataRegistry.skills.getById(id);
 
     if (!skillData) continue;
 
@@ -83,7 +84,7 @@ export const getSelectableSkillsForUma = (umaId: UmaAltId) => {
   // White, Gold, Upgraded Unique (2* Umas), Unique (3* Umas)
   const allowedRarities = [1, 2, 4, 5];
 
-  for (const skill of getSkills()) {
+  for (const skill of dataRegistry.skills.getAll()) {
     if (!allowedRarities.includes(skill.rarity)) continue;
 
     // Inherited uniques (9xxxxx) are added via the gene_version redirect
@@ -108,7 +109,7 @@ export const getSelectableSkillsForUma = (umaId: UmaAltId) => {
 };
 
 export const matchRarity = (skillId: string, rarityB: string) => {
-  const skill = skillCollection[skillId];
+  const skill = dataRegistry.skills.getById(skillId);
   if (!skill) return false;
 
   const rarity = skill.rarity;
@@ -201,8 +202,13 @@ export const generateSkillFilterLookUp = (skillsToMatch: SkillsMap) => {
   return filterLookup;
 };
 
+const skillCollectionAsMap = dataRegistry.skills.getAll().reduce((acc, skill) => {
+  acc[skill.id] = skill;
+  return acc;
+}, {} as SkillsMap);
+
 export let skillFilterLookUp: Record<string, Set<string>> = generateSkillFilterLookUp(
-  skillCollection,
+  skillCollectionAsMap,
 );
 
 /**
@@ -216,7 +222,7 @@ export let skillFilterLookUp: Record<string, Set<string>> = generateSkillFilterL
  * - Phase 3 (Last Spurt): Sections 21-24 (~83.3% to 100%)
  */
 export function estimateSkillActivationPhase(skillId: string): number | null {
-  const data = skillCollection[skillId];
+  const data = dataRegistry.skills.getById(skillId);
   if (!data?.alternatives?.[0]?.condition) return null;
 
   const condition = data.alternatives[0].condition;
@@ -255,7 +261,7 @@ export function estimateSkillActivationPhase(skillId: string): number | null {
 
 export const getGeneVersionSkillId = (skillId: string): string => {
   const baseSkillId = getBaseSkillId(skillId);
-  const skill = skillCollection[baseSkillId];
+  const skill = dataRegistry.skills.getById(baseSkillId);
   if (!skill) return skillId;
 
   const geneVersionId = skill.gene_version?.id;
@@ -267,7 +273,7 @@ export const getGeneVersionSkillId = (skillId: string): string => {
 
 export const getUmaForUniqueSkill = (skillId: string): string => {
   const baseSkillId = getBaseSkillId(skillId);
-  const skill = skillCollection[baseSkillId];
+  const skill = dataRegistry.skills.getById(baseSkillId);
   if (!skill) {
     throw new Error(`Skill not found: ${skillId}`);
   }

@@ -2,16 +2,16 @@ import { useCallback, type ChangeEvent } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import i18n from '@/i18n';
-import { normalizeSkillId } from '@/modules/data/skills';
+import { dataRegistry } from '@/modules/data/registry';
 import {
-  SkillItem,
   SkillItemAccessory,
   SkillItemBody,
   SkillItemIdentity,
   SkillItemMain,
   SkillItemRail,
   SkillItemRoot,
-} from '@/modules/skills/components/skill-list/skill-item';
+} from '@/modules/skills/components/skill-list/skill-item/primitives';
+import { SkillItem } from '@/modules/skills/components/skill-list/skill-item/item';
 import {
   clearForcedPosition,
   setForcedPosition,
@@ -75,7 +75,7 @@ function ForcedPositionRow({
                 min={0}
                 step={10}
                 placeholder="Auto"
-                aria-label={`${i18n.t(`skillnames.${normalizeSkillId(skill.skillId)}`)} forced position`}
+                aria-label={`${i18n.t(`skillnames.${dataRegistry.skills.normalizeSkillId(skill.skillId)}`)} forced position`}
                 value={positions[skill.normalizedSkillId]?.toString() ?? ''}
                 onChange={handlePositionChange}
               />
@@ -97,7 +97,7 @@ type ForcedPositionGroupProps = Readonly<{
 export function buildRunnerSkillEntries(skills: Array<string>): Array<RunnerSkillEntry> {
   return skills.map((skillId) => ({
     skillId,
-    normalizedSkillId: normalizeSkillId(skillId),
+    normalizedSkillId: dataRegistry.skills.normalizeSkillId(skillId),
   }));
 }
 

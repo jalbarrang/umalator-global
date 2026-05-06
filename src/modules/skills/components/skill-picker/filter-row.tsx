@@ -5,7 +5,7 @@ import { Separator } from '@/components/ui/separator';
 import i18n from '@/i18n';
 import { ChevronDownIcon, FilterIcon } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
-import { SkillIcon } from '../skill-list/skill-item';
+import { SkillIcon } from '../skill-list/skill-item/SkillIcon';
 import { groups_filters } from '../../filters';
 import { useSkillPickerActions, useSkillPickerState } from './store';
 import { FilterState } from './types';

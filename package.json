@@ -27,7 +27,9 @@
     "transform:cm-presets": "tsx scripts/transform-cm-presets.ts",
     "skill:compare": "tsx scripts/run-skill-compare.ts",
     "runner:compare": "tsx scripts/run-runner-compare.ts",
-    "test:ocr": "tsx scripts/test-ocr.ts"
+    "test:ocr": "tsx scripts/test-ocr.ts",
+    "code:health": "fallow",
+    "code:dead-code": "fallow dead-code"
   },
   "dependencies": {
     "@base-ui/react": "^1.0.0",
@@ -84,6 +86,7 @@
     "@vitejs/plugin-react": "^6.0.1",
     "better-sqlite3": "^12.8.0",
     "commander": "^13.1.0",
+    "fallow": "^2.65.0",
     "globals": "^16.5.0",
     "ink": "^6.8.0",
     "ink-select-input": "^6.2.0",

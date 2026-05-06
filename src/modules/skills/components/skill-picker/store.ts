@@ -6,7 +6,7 @@ import { FilterGroup, FilterState } from './types';
 import { SkillQuery } from '../../query';
 import { matchRarity } from '../../utils';
 import { iconIdPrefixes } from '../../icons';
-import { SkillEntry } from '@/modules/data/skills';
+import type { SkillEntry } from '@/modules/data/services/SkillService';
 
 type ISkillPickerState = {
   filters: FilterState;

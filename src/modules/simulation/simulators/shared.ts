@@ -13,7 +13,7 @@ import { Race } from '@/lib/sunday-tools/common/race';
 import { subscribeObserver } from '@/lib/sunday-tools/common/race-events';
 import { parseAptitudeName, parseStrategyName } from '@/lib/sunday-tools/runner/runner.types';
 import { SkillTarget, SkillType } from '@/lib/sunday-tools/skills/definitions';
-import { skillCollection } from '@/modules/data/skills';
+import { dataRegistry } from '@/modules/data/registry';
 
 export type EffectMeta = {
   effectType: ISkillType;
@@ -40,8 +40,8 @@ export function getSkillEffectMetadata(skillId: string): Array<EffectMeta> {
   const baseSkillId = normalizeSkillId(skillId);
   let effects: Array<{ type: number; target?: number }> = [];
   try {
-    const skillData = skillCollection[baseSkillId];
-    effects = skillData.alternatives?.[0]?.effects ?? [];
+    const skillData = dataRegistry.skills.getById(baseSkillId);
+    effects = skillData?.alternatives?.[0]?.effects ?? [];
   } catch {
     effects = [];
   }
@@ -66,12 +66,14 @@ export function createSkillSorterByGroup(allSkills: Array<string>) {
   const getCommonGroupIndex = (id: string) => {
     try {
       const baseId = normalizeSkillId(id);
-      const skill = skillCollection[baseId];
+      const skill = dataRegistry.skills.getById(baseId);
+      if (!skill) return commonSkills.length;
       const groupId = skill.groupId;
 
       const index = commonSkills.findIndex((skillId) => {
         const commonBaseId = normalizeSkillId(skillId);
-        return skillCollection[commonBaseId].groupId === groupId;
+        const commonSkill = dataRegistry.skills.getById(commonBaseId);
+        return commonSkill?.groupId === groupId;
       });
       return index > -1 ? index : commonSkills.length;
     } catch {

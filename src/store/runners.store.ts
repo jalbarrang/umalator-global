@@ -8,7 +8,7 @@ import { useMemo } from 'react';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import { createRunnerState, runawaySkillId } from '@/modules/runners/components/runner-card/types';
 import { getGeneVersionSkillId, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
-import { skillCollection } from '@/modules/data/skills';
+import { dataRegistry } from '@/modules/data/registry';
 
 type RunnerType = 'uma1' | 'uma2';
 
@@ -51,8 +51,8 @@ export const useRunner = () => {
   };
 
   const handleAddSkill = (skillId: string) => {
-    const skill = skillCollection[skillId];
-    const skillRarity = skill.rarity;
+    const skill = dataRegistry.skills.getById(skillId);
+    const skillRarity = skill?.rarity;
     let newSkillId = skillId;
 
     // If Runner has outfit, it means it has a unique skill.
@@ -156,7 +156,7 @@ export const replaceRunnerOutfit = (
   const newSkills: Array<string> = [];
 
   for (const skillId of currentSkills) {
-    const skillData = skillCollection[skillId];
+    const skillData = dataRegistry.skills.getById(skillId);
 
     // Clean up skills that are not 3* or lower
     if (skillData?.rarity && skillData.rarity < 3) {

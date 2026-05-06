@@ -1,10 +1,10 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import type { RacePreset } from '@/utils/races';
-import { useSettingsStore } from '@/store/settings.store';
 import cmPresets from './cm-presets.json';
 
 const PRESET_STORE_NAME = 'umalator-presets';
+
 
 const defaultPresets: Record<string, RacePreset> = Object.fromEntries(
   cmPresets.map((p) => [p.id, p as RacePreset]),
@@ -50,18 +50,6 @@ function mergePresetsWithBundled(
   return { presets: mergedPresets, presetOrder };
 }
 
-function clearSelectedPresetIfInvalid(presets: Record<string, RacePreset>) {
-  const sid = useSettingsStore.getState().selectedPresetId;
-  if (sid && !presets[sid]) {
-    useSettingsStore.setState({ selectedPresetId: null });
-  }
-}
-
-/** Call after preset hydration (or from settings) if selectedPresetId may reference a removed preset. */
-export function syncSelectedPresetWithCatalog() {
-  clearSelectedPresetIfInvalid(usePresetStore.getState().presets);
-}
-
 export const usePresetStore = create<IPresetStore>()(
   persist(
     (_) => ({
@@ -76,11 +64,7 @@ export const usePresetStore = create<IPresetStore>()(
         if (!state) return current;
         return mergePresetsWithBundled(state, current);
       },
-      onRehydrateStorage: () => (state, error) => {
-        if (error) return;
-        const presets = state?.presets ?? usePresetStore.getState().presets;
-        clearSelectedPresetIfInvalid(presets);
-      },
+
     },
   ),
 );
@@ -128,5 +112,5 @@ export const reorderPresets = (newOrder: string[]) => {
 
 export const resetPresets = () => {
   usePresetStore.setState({ presets: defaultPresets, presetOrder: defaultPresetOrder });
-  useSettingsStore.setState({ selectedPresetId: null });
 };
+

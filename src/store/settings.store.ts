@@ -4,7 +4,8 @@ import { useShallow } from 'zustand/shallow';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import type { RaceConditions } from '@/utils/races';
 import { createRunnerState } from '@/modules/runners/components/runner-card/types';
-import { DEFAULT_COURSE_ID, DEFAULT_SAMPLES } from '@/utils/constants';
+import { DEFAULT_SAMPLES } from '@/utils/constants';
+import { getDefaultCourseId } from '@/store/race/defaults';
 import { createRaceConditions } from '@/utils/races';
 
 export type WitVarianceSettings = {
@@ -42,7 +43,7 @@ type ISettingsStore = {
 export const useSettingsStore = create<ISettingsStore>()(
   persist(
     (_) => ({
-      courseId: DEFAULT_COURSE_ID,
+      courseId: getDefaultCourseId(),
       nsamples: DEFAULT_SAMPLES,
       racedef: createRaceConditions(),
       uma1: createRunnerState(),
@@ -71,15 +72,7 @@ export const useSettingsStore = create<ISettingsStore>()(
     {
       name: 'umalator-settings',
       storage: createJSONStorage(() => localStorage),
-      onRehydrateStorage: () => () => {
-        // Dynamic import avoids a circular dependency (preset.store already imports settings.store).
-        // queueMicrotask defers execution so the preset store's own hydration + merge finishes first.
-        queueMicrotask(() => {
-          void import('@/store/race/preset.store').then(({ syncSelectedPresetWithCatalog }) => {
-            syncSelectedPresetWithCatalog();
-          });
-        });
-      },
+
     },
   ),
 );

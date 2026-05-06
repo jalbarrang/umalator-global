@@ -539,6 +539,7 @@ export const PresetsPanel = () => {
             <AlertDialogAction
               onClick={() => {
                 resetPresets();
+                setSelectedPresetId(null);
                 setResetDialogOpen(false);
                 toast.success('Presets reset to defaults');
               }}

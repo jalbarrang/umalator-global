@@ -38,16 +38,18 @@ import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
 import {
   SkillItemBody,
   SkillItemIdentity,
-  SkillItem,
   SkillItemMain,
   SkillItemRoot,
-  type SkillMeta,
   SkillItemRail,
   SkillItemActions,
+} from '@/modules/skills/components/skill-list/skill-item/primitives';
+import {
   SkillItemCostAction,
   SkillItemDetailsActions,
-} from '@/modules/skills/components/skill-list/skill-item';
-import { skillCollection } from '@/modules/data/skills';
+} from '@/modules/skills/components/skill-list/skill-item/actions';
+import { SkillItem } from '@/modules/skills/components/skill-list/skill-item/item';
+import type { SkillMeta } from '@/modules/skills/components/skill-list/skill-item/context';
+import { dataRegistry } from '@/modules/data/registry';
 
 import { getSelectableSkillsForUma, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import { OcrImportDialog } from '@/modules/runners/components/ocr-import-dialog';
@@ -226,7 +228,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
       const newSkills: Array<string> = [];
 
       for (const skillId of state.skills) {
-        const skillData = skillCollection[skillId];
+        const skillData = dataRegistry.skills.getById(skillId);
 
         if (skillData?.rarity && skillData.rarity < 3) {
           newSkills.push(skillId);

@@ -4,6 +4,8 @@
  */
 
 import '../polyfills';
+import { bootstrapDataServices } from '@/modules/data/bootstrap';
+bootstrapDataServices();
 import { clone, cloneDeepWith } from 'es-toolkit';
 import type { SkillComparisonResponse } from '@/modules/simulation/types';
 import type { SimulationParams } from './pool/types';

@@ -2,7 +2,7 @@
  * Search and lookup utilities for uma data
  */
 
-import { umas } from '@/modules/data/umas';
+import { dataRegistry } from '@/modules/data/registry';
 import type { UmaData, UmaLookupEntry, UmaMatch } from './types';
 
 // =============================================================================
@@ -72,7 +72,7 @@ function buildUmaLookup() {
   if (umaLookup.size > 0) return;
 
   umaLookup.clear();
-  for (const [_baseId, uma] of Object.entries(umas) as Array<[string, UmaData]>) {
+  for (const [_baseId, uma] of dataRegistry.umas.getAllEntries()) {
     const umaName = uma.name[1] || '';
 
     for (const [outfitId, outfitName] of Object.entries(uma.outfits)) {

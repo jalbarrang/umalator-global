@@ -24,7 +24,8 @@ import type {
 } from '@tanstack/react-table';
 import type { SkillComparisonRoundResult } from '@/modules/simulation/types';
 
-import { getSkillNameById, skillCollection } from '@/modules/data/skills';
+import { dataRegistry } from '@/modules/data/registry';
+import type { SkillEntry } from '@/modules/data/services/SkillService';
 import { groups_filters } from '@/modules/skills/filters';
 import { iconIdPrefixes } from '@/modules/skills/icons';
 import i18n from '@/i18n';
@@ -151,7 +152,7 @@ type BasinnChartProps = {
   className?: string;
 };
 
-export const gridClass = 'grid grid-cols-[50px_50px_1fr_100px_100px_100px_100px] w-full';
+import { gridClass } from './styles';
 
 const SORTABLE_HEADER_IDS = new Set(['min', 'max', 'mean', 'median']);
 
@@ -232,7 +233,14 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
   });
 
   const skillMetadataById = useMemo(() => {
-    return new Map(props.data.map((row) => [row.id, skillCollection[row.id]]));
+    return new Map(
+      props.data
+        .map((row) => {
+          const skill = dataRegistry.skills.getById(row.id);
+          return skill ? [row.id, skill] as const : null;
+        })
+        .filter((entry): entry is [string, SkillEntry] => entry !== null)
+    );
   }, [props.data]);
 
   const activeIconTypeFilters = useMemo(() => {
@@ -363,8 +371,8 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
           const skillIdA = a.getValue('id');
           const skillIdB = b.getValue('id');
 
-          const skillNameA = getSkillNameById(`${skillIdA}`);
-          const skillNameB = getSkillNameById(`${skillIdB}`);
+          const skillNameA = dataRegistry.skills.getNameById(`${skillIdA}`);
+          const skillNameB = dataRegistry.skills.getNameById(`${skillIdB}`);
 
           return skillNameA < skillNameB ? -1 : 1;
         },
@@ -551,7 +559,7 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
         >
           {skillDetailsAnchor &&
             (() => {
-              const skill = skillCollection[skillDetailsAnchor.skillId];
+              const skill = dataRegistry.skills.getById(skillDetailsAnchor.skillId);
               if (!skill) {
                 return (
                   <div className="p-3 text-sm text-muted-foreground">

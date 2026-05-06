@@ -10,7 +10,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from '@/components/ui/drawer';
-import { skillCollection } from '@/modules/data/skills';
+import { dataRegistry } from '@/modules/data/registry';
 import { AptitudesTable } from '@/modules/runners/components/runner-card/aptitudes-table';
 import { StatsTable, type StatsKey } from '@/modules/runners/components/runner-card/stats-table';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
@@ -18,15 +18,15 @@ import { runawaySkillId } from '@/modules/runners/components/runner-card/types';
 import { UmaSelector } from '@/modules/runners/components/runner-selector';
 import { getUmaDisplayInfo } from '@/modules/runners/utils';
 import {
-  SkillItem,
   SkillItemActions,
   SkillItemBody,
-  SkillItemDetailsActions,
   SkillItemIdentity,
   SkillItemMain,
   SkillItemRail,
   SkillItemRoot,
-} from '@/modules/skills/components/skill-list/skill-item';
+} from '@/modules/skills/components/skill-list/skill-item/primitives';
+import { SkillItemDetailsActions } from '@/modules/skills/components/skill-list/skill-item/actions';
+import { SkillItem } from '@/modules/skills/components/skill-list/skill-item/item';
 import { openSkillPicker, updateCurrentSkills } from '@/modules/skills/store';
 import { getSelectableSkillsForUma, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import { updateRunner, useRaceSimStore } from '@/modules/simulation/stores/race-sim.store';
@@ -123,7 +123,7 @@ export function RunnerTileEditor(props: RunnerTileEditorProps) {
 
       const keptSkills = runner.skills.filter((skillId) => {
         const baseSkillId = skillId.split('-')[0] ?? skillId;
-        const skillData = skillCollection[baseSkillId];
+        const skillData = dataRegistry.skills.getById(baseSkillId);
         return Boolean(skillData?.rarity && skillData.rarity < 3);
       });
 

@@ -3,12 +3,8 @@ import { ImageIcon, Pencil, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
 import { getIconById } from '@/modules/data/icons';
-import {
-  getSkillById,
-  getSkills,
-  normalizeSkillName,
-  type SkillEntry,
-} from '@/modules/data/skills';
+import { dataRegistry } from '@/modules/data/registry';
+import type { SkillEntry } from '@/modules/data/services/SkillService';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,15 +18,15 @@ import {
 import { useUmasForSearch } from '@/modules/runners/utils';
 import { getSelectableSkillsForUma, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import {
-  SkillItem,
   SkillItemActions,
   SkillItemBody,
-  SkillItemDetailsActions,
   SkillItemIdentity,
   SkillItemMain,
   SkillItemRail,
   SkillItemRoot,
-} from '@/modules/skills/components/skill-list/skill-item';
+} from '@/modules/skills/components/skill-list/skill-item/primitives';
+import { SkillItemDetailsActions } from '@/modules/skills/components/skill-list/skill-item/actions';
+import { SkillItem } from '@/modules/skills/components/skill-list/skill-item/item';
 
 export function hasDetectedData(results: Partial<ExtractedUmaData> | null): boolean {
   return Boolean(
@@ -104,7 +100,7 @@ function createManualOcrSkillEntry(
   skillId: string,
   previous?: ExtractedUmaData['skills'][number],
 ): ExtractedUmaData['skills'][number] | null {
-  const skill = getSkillById(skillId);
+  const skill = dataRegistry.skills.getById(skillId);
   if (!skill) {
     return null;
   }
@@ -378,10 +374,10 @@ export function OcrSkillsList({
   const skillOptions = useMemo<Array<OcrSkillPickerOption>>(() => {
     const selectableSkillIds = results?.outfitId
       ? getSelectableSkillsForUma(results.outfitId)
-      : getSkills().map((skill) => skill.id);
+      : dataRegistry.skills.getAll().map((skill) => skill.id);
 
     return selectableSkillIds
-      .map((skillId) => getSkillById(skillId))
+      .map((skillId) => dataRegistry.skills.getById(skillId))
       .filter((skill): skill is SkillEntry => skill !== undefined)
       .map((skill) => ({
         id: skill.id,
@@ -522,7 +518,7 @@ function formatOcrSkillDebugReport(results: Partial<ExtractedUmaData>): string {
 
   for (const [index, skill] of (results.skills ?? []).entries()) {
     lines.push(`- [${index + 1}] Raw: ${skill.originalText || '—'}`);
-    lines.push(`  Normalized: ${normalizeSkillName(skill.originalText) || '—'}`);
+    lines.push(`  Normalized: ${dataRegistry.skills.normalizeSkillName(skill.originalText) || '—'}`);
     lines.push(`  Matched: ${skill.name}`);
     lines.push(`  Skill ID: ${skill.id}`);
     lines.push(`  Confidence: ${skill.confidence.toFixed(2)}`);
@@ -561,7 +557,7 @@ export function OcrSkillDebugPanel({ results }: Readonly<OcrSkillDebugPanelProps
         </div>
 
         {results.skills.map((skill, index) => {
-          const normalized = normalizeSkillName(skill.originalText);
+          const normalized = dataRegistry.skills.normalizeSkillName(skill.originalText);
 
           return (
             <div key={`${skill.id}-${index}`} className="rounded border bg-muted/30 p-2 text-xs">

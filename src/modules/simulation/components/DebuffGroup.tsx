@@ -4,18 +4,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import i18n from '@/i18n';
-import { normalizeSkillId } from '@/modules/data/skills';
+import { dataRegistry } from '@/modules/data/registry';
 import {
-  SkillItem,
   SkillItemAccessory,
   SkillItemActions,
   SkillItemBody,
-  SkillItemDetailsActions,
   SkillItemIdentity,
   SkillItemMain,
   SkillItemRail,
   SkillItemRoot,
-} from '@/modules/skills/components/skill-list/skill-item';
+} from '@/modules/skills/components/skill-list/skill-item/primitives';
+import { SkillItemDetailsActions } from '@/modules/skills/components/skill-list/skill-item/actions';
+import { SkillItem } from '@/modules/skills/components/skill-list/skill-item/item';
 import {
   removeDebuff,
   updateDebuffPosition,
@@ -79,7 +79,7 @@ function DebuffRow({
                 min={0}
                 step={10}
                 value={debuff.position}
-                aria-label={`${i18n.t(`skillnames.${normalizeSkillId(debuff.skillId)}`)} position`}
+                aria-label={`${i18n.t(`skillnames.${dataRegistry.skills.normalizeSkillId(debuff.skillId)}`)} position`}
                 onChange={handlePositionChange}
               />
             </SkillItemAccessory>

@@ -1,4 +1,4 @@
-import { skillCollection } from '@/modules/data/skills';
+import { dataRegistry } from '@/modules/data/registry';
 import {
   getBaseTier,
   getGoldVersion,
@@ -7,7 +7,7 @@ import {
 } from '@/modules/skills/skill-relationships';
 
 function queueIfValid(skillIds: Set<string>, queue: Array<string>, skillId?: string) {
-  if (!skillId || skillIds.has(skillId) || !skillCollection[skillId]) {
+  if (!skillId || skillIds.has(skillId) || !dataRegistry.skills.getById(skillId)) {
     return;
   }
 
@@ -19,7 +19,7 @@ function toSkillIdSet(skillIds: Iterable<string>): Set<string> {
 }
 
 export function getRepresentativePrerequisiteIds(skillId: string): Array<string> {
-  const skill = skillCollection[skillId];
+  const skill = dataRegistry.skills.getById(skillId);
   if (!skill) return [];
 
   if (skill.rarity === 2) {
@@ -62,7 +62,7 @@ export function isSkillCoveredByOwnedFamily(
     return true;
   }
 
-  const skill = skillCollection[skillId];
+  const skill = dataRegistry.skills.getById(skillId);
   if (!skill) {
     return false;
   }
@@ -100,13 +100,16 @@ export function getRelatedSkillIds(skillId: string): Array<string> {
 
   while (queue.length > 0) {
     const currentId = queue.shift();
-    if (!currentId || related.has(currentId) || !skillCollection[currentId]) {
+    if (!currentId || related.has(currentId)) {
+      continue;
+    }
+
+    const currentSkill = dataRegistry.skills.getById(currentId);
+    if (!currentSkill) {
       continue;
     }
 
     related.add(currentId);
-
-    const currentSkill = skillCollection[currentId];
     for (const versionId of currentSkill.versions.map(String)) {
       queueIfValid(related, queue, versionId);
     }

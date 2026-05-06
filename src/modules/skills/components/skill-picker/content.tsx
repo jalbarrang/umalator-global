@@ -12,18 +12,20 @@ import {
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
 import { cn } from '@/lib/utils';
-import { getManySkills, SkillEntry } from '@/modules/data/skills';
+import { dataRegistry } from '@/modules/data/registry';
+import type { SkillEntry } from '@/modules/data/services/SkillService';
 import { getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import {
-  SkillItem,
+  SkillItemAccessory,
   SkillItemActions,
   SkillItemBody,
-  SkillItemDetailsActions,
   SkillItemIdentity,
   SkillItemMain,
   SkillItemRail,
   SkillItemRoot,
-} from '../skill-list/skill-item';
+} from '../skill-list/skill-item/primitives';
+import { SkillItemDetailsActions } from '../skill-list/skill-item/actions';
+import { SkillItem } from '../skill-list/skill-item/item';
 import { SkillPickerFilterRow } from './filter-row';
 import { useFilteredSkills } from './store';
 
@@ -67,7 +69,7 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
   const deferredSearchText = useDeferredValue(searchText);
 
   const skills = useMemo(() => {
-    return getManySkills(options);
+    return dataRegistry.skills.getMany(options);
   }, [options]);
 
   const filteredSkills = useFilteredSkills(deferredSearchText, skills);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { skillCollection } from '@/modules/data/skills';
+import { dataRegistry } from '@/modules/data/registry';
 import {
   getRepresentativePrerequisiteIds,
   getUnsatisfiedRepresentativePrerequisiteIds,
@@ -7,15 +7,13 @@ import {
 } from './skill-family';
 
 const getSkillIdByName = (name: string): string => {
-  const skillId = Object.keys(skillCollection).find(
-    (candidateId) => skillCollection[candidateId].name === name,
-  );
+  const skill = dataRegistry.skills.getAll().find(skill => skill.name === name);
 
-  if (!skillId) {
+  if (!skill) {
     throw new Error(`Could not find skill named "${name}"`);
   }
 
-  return skillId;
+  return skill.id;
 };
 
 describe('skill-family prerequisite coverage', () => {

@@ -3,11 +3,11 @@ import { toBlob } from 'html-to-image';
 import { encodeSingleUma } from './encoding';
 import { runnerStateToSingleExport } from './converters';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
-import { skillCollection } from '@/modules/data/skills';
+import { dataRegistry } from '@/modules/data/registry';
 
 export function getSkillsForShareCard(skillIds: string[]) {
   return skillIds.map((id) => {
-    const skill = skillCollection[id];
+    const skill = dataRegistry.skills.getById(id);
     return {
       id,
       name: skill?.name ?? `Skill ${id}`,

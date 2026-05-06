@@ -1,6 +1,7 @@
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
-import { SkillIcon, useSkillItem } from './skill-list/skill-item';
+import { SkillIcon } from './skill-list/skill-item/SkillIcon';
+import { useSkillItem } from './skill-list/skill-item/context';
 import i18n from '@/i18n';
 import { memo, useMemo } from 'react';
 import { Label } from '@/components/ui/label';
@@ -19,7 +20,7 @@ import {
   getRepresentativePrerequisiteIds,
   isSkillCoveredByOwnedFamily,
 } from '@/modules/skill-planner/skill-family';
-import { skillCollection } from '@/modules/data/skills';
+import { dataRegistry } from '@/modules/data/registry';
 import { buildSkillCostSummary } from '@/modules/skills/skill-cost-summary';
 
 const HINT_LEVEL_OPTIONS: Array<{ value: HintLevel; label: string }> = [
@@ -44,7 +45,11 @@ const PrereqItem = memo((props: PrereqItemProps) => {
   const { runnerId, hasFastLearner, getSkillMeta, onHintLevelChange, onBoughtChange } =
     useSkillItem();
 
-  const prereqSkill = useMemo(() => skillCollection[prereqId], [prereqId]);
+  const prereqSkill = useMemo(() => {
+    const skill = dataRegistry.skills.getById(prereqId);
+    if (!skill) throw new Error(`Prereq skill not found: ${prereqId}`);
+    return skill;
+  }, [prereqId]);
   const meta = useMemo(() => getSkillMeta(prereqId), [getSkillMeta, prereqId]);
   const hintLevel = meta.hintLevel as HintLevel;
   const bought = meta.bought ?? false;

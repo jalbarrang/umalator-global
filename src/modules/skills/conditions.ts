@@ -1,7 +1,7 @@
 import type { Operator } from '@/lib/sunday-tools/skills/parser/definitions';
 import { createParser } from '@/lib/sunday-tools/skills/parser/ConditionParser';
 import { mockConditions } from '@/lib/sunday-tools/skills/parser/ConditionMatcher';
-import { getSkills } from '@/modules/data/skills';
+import { dataRegistry } from '@/modules/data/registry';
 
 var parser: ReturnType<typeof createParser> | null = null;
 
@@ -20,7 +20,7 @@ export function parseSkillCondition(skillCondition: string) {
 }
 
 function tokenizeSkillsConditions() {
-  const skills = getSkills();
+  const skills = dataRegistry.skills.getAll();
   const acc: Record<string, Array<Operator>> = {};
 
   for (const skillData of skills) {

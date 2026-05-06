@@ -1,4 +1,4 @@
-import type { SkillEntry } from '@/modules/data/skills';
+import type { SkillEntry } from '@/modules/data/services/SkillService';
 import type { SkillAlternative } from '@/lib/sunday-tools/skills/skill.types';
 import { FormatParser, formatEffect } from '@/modules/skills/components/formatters';
 import { HumanReadableParser } from '@/modules/skills/components/human-readable-formatter';
@@ -8,7 +8,7 @@ import i18n from '@/i18n';
 import { Code } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { SkillIcon } from './skill-list/skill-item';
+import { SkillIcon } from './skill-list/skill-item/SkillIcon';
 
 type ExpandedSkillDetailsProps = {
   id: string;

@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { findBestSkillMatch, normalizeSkillName, resolveSkillId } from '@/modules/data/skills';
+import { dataRegistry } from '@/modules/data/registry';
+
+const findBestSkillMatch = dataRegistry.skills.findBestSkillMatch;
+const normalizeSkillName = dataRegistry.skills.normalizeSkillName;
+const resolveSkillId = dataRegistry.skills.resolveSkillId;
 
 describe('normalizeSkillName', () => {
   it('normalizes grade symbol variants while preserving grade semantics', () => {

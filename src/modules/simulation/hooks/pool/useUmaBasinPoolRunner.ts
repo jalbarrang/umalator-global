@@ -20,9 +20,9 @@ import { useSettingsStore } from '@/store/settings.store';
 import { racedefToParams } from '@/utils/races';
 import { PoolManager } from '@/workers/pool/pool-manager';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
-import { getUniqueSkillIds } from '@/modules/data/skills';
+import { dataRegistry } from '@/modules/data/registry';
 
-const uniqueSkillIds = getUniqueSkillIds();
+const uniqueSkillIds = dataRegistry.skills.getUniqueSkillIds();
 
 const createUmaBasinPoolWorker = (options: { name: string }) => new UmaBasinPoolWorker(options);
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { skillCollection } from '@/modules/data/skills';
+import { dataRegistry } from '@/modules/data/registry';
 import { SkillType } from './definitions';
 import { describeRecoveryEffect, resolveRecoveryModifier } from './recovery-effect-utils';
 
@@ -161,7 +161,8 @@ describe('describeRecoveryEffect', () => {
 
 describe('extracted skill metadata', () => {
   it.each(['202031', '202032'])('preserves valueUsage metadata for %s', (skillId) => {
-    const recoveryEffect = skillCollection[skillId].alternatives[0]?.effects.find(
+    const skill = dataRegistry.skills.getById(skillId);
+    const recoveryEffect = skill?.alternatives[0]?.effects.find(
       (effect) => effect.type === SkillType.Recovery && effect.modifier < 0,
     );
 

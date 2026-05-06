@@ -1,4 +1,4 @@
-import { skillCollection } from '@/modules/data/skills';
+import { dataRegistry } from '@/modules/data/registry';
 import { calculateRawSkillCost } from '@/modules/skill-planner/cost-calculator';
 import {
   getRelatedSkillIds,
@@ -97,7 +97,7 @@ export const buildSkillCostSummary = ({
   getSkillMeta,
 }: BuildSkillCostSummaryOptions): SkillCostSummary => {
   const normalizedSkillId = normalizeSkillIdForCostSummary(skillId);
-  const skill = skillCollection[normalizedSkillId];
+  const skill = dataRegistry.skills.getById(normalizedSkillId);
 
   if (!skill) {
     return {
@@ -123,7 +123,7 @@ export const buildSkillCostSummary = ({
   const boughtFamilySkillIds = getBoughtFamilySkillIds(normalizedSkillId, getSkillMeta);
 
   for (const prereqId of representativePrereqIds) {
-    const prereq = skillCollection[prereqId];
+    const prereq = dataRegistry.skills.getById(prereqId);
     if (!prereq) {
       continue;
     }
@@ -168,7 +168,7 @@ export const buildDedupedSkillListNetTotal = ({
 
   for (const visibleSkillId of visibleSkillIds) {
     const normalizedSkillId = normalizeSkillIdForCostSummary(visibleSkillId);
-    const skill = skillCollection[normalizedSkillId];
+    const skill = dataRegistry.skills.getById(normalizedSkillId);
     if (!skill) {
       continue;
     }
@@ -186,7 +186,7 @@ export const buildDedupedSkillListNetTotal = ({
     upsertCoveredSkill(coveredSkillMetaById, normalizedSkillId, selfMeta);
 
     for (const prereqId of getRepresentativePrerequisiteIds(normalizedSkillId)) {
-      const prereq = skillCollection[prereqId];
+      const prereq = dataRegistry.skills.getById(prereqId);
       if (!prereq) {
         continue;
       }

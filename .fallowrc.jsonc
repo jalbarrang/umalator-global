@@ -1,0 +1,5 @@
+{
+  "$schema": "https://fallow.tools/schema.json",
+  // shadcn/ui components are library code — exclude from all fallow analysis
+  "ignorePatterns": ["src/components/ui/**", "oxlint-rules/**", "src/modules/data/services/**"]
+}

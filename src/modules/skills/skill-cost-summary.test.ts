@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { skillCollection } from '@/modules/data/skills';
+import { dataRegistry } from '@/modules/data/registry';
 import { calculateSkillCost } from '@/modules/skill-planner/cost-calculator';
 import { getRepresentativePrerequisiteIds } from '@/modules/skill-planner/skill-family';
 import { buildDedupedSkillListNetTotal, buildSkillCostSummary } from './skill-cost-summary';
@@ -10,7 +10,7 @@ type TestMeta = {
 };
 
 const findSkillId = (predicate: (skillId: string) => boolean, label: string): string => {
-  const skillId = Object.keys(skillCollection).find(predicate);
+  const skillId = dataRegistry.skills.getAll().find(skill => predicate(skill.id))?.id;
   if (!skillId) {
     throw new Error(`Could not find ${label}`);
   }
@@ -19,12 +19,18 @@ const findSkillId = (predicate: (skillId: string) => boolean, label: string): st
 };
 
 const findSkillIdByName = (name: string): string => {
-  return findSkillId((skillId) => skillCollection[skillId].name === name, `skill named "${name}"`);
+  const skill = dataRegistry.skills.getAll().find(s => s.name === name);
+  if (!skill) {
+    throw new Error(`Could not find skill named "${name}"`);
+  }
+  return skill.id;
 };
 
 const plainSkillId = findSkillId(
-  (skillId) =>
-    getRepresentativePrerequisiteIds(skillId).length === 0 && skillCollection[skillId].rarity < 3,
+  (skillId) => {
+    const skill = dataRegistry.skills.getById(skillId);
+    return getRepresentativePrerequisiteIds(skillId).length === 0 && (skill?.rarity ?? 0) < 3;
+  },
   'a plain non-bundled skill',
 );
 
@@ -34,7 +40,8 @@ const bundledSkillId = findSkillId(
 );
 
 const fractionalDiscountSkillId = findSkillId((skillId) => {
-  if (skillCollection[skillId].rarity >= 3) {
+  const skill = dataRegistry.skills.getById(skillId);
+  if ((skill?.rarity ?? 0) >= 3) {
     return false;
   }
 
@@ -57,17 +64,20 @@ const fractionalDiscountSkillId = findSkillId((skillId) => {
 }, 'a skill with fractional aggregate discount percent');
 
 const uniqueSkillId = findSkillId((skillId) => {
-  const rarity = skillCollection[skillId].rarity;
+  const skill = dataRegistry.skills.getById(skillId);
+  const rarity = skill?.rarity ?? 0;
   return rarity >= 3 && rarity <= 5;
 }, 'a unique skill');
 
 const findPlainSkillIdByBaseCost = (baseCost: number, excludedSkillIds: Array<string> = []) => {
   return findSkillId(
-    (skillId) =>
-      !excludedSkillIds.includes(skillId) &&
-      skillCollection[skillId].baseCost === baseCost &&
-      skillCollection[skillId].rarity < 3 &&
-      getRepresentativePrerequisiteIds(skillId).length === 0,
+    (skillId) => {
+      const skill = dataRegistry.skills.getById(skillId);
+      return !excludedSkillIds.includes(skillId) &&
+        (skill?.baseCost ?? 0) === baseCost &&
+        (skill?.rarity ?? 0) < 3 &&
+        getRepresentativePrerequisiteIds(skillId).length === 0;
+    },
     `a plain non-bundled skill with base cost ${baseCost}`,
   );
 };
@@ -87,7 +97,7 @@ describe('buildSkillCostSummary', () => {
     });
 
     const expectedNet = calculateSkillCost(plainSkillId, 3, false);
-    const expectedBase = skillCollection[plainSkillId].baseCost;
+    const expectedBase = dataRegistry.skills.getById(plainSkillId)?.baseCost ?? 0;
 
     expect(summary.baseTotal).toBe(expectedBase);
     expect(summary.netTotal).toBe(expectedNet);
@@ -114,7 +124,7 @@ describe('buildSkillCostSummary', () => {
     });
 
     const expectedBase =
-      skillCollection[bundledSkillId].baseCost + skillCollection[unpaidPrereqId].baseCost;
+      (dataRegistry.skills.getById(bundledSkillId)?.baseCost ?? 0) + (dataRegistry.skills.getById(unpaidPrereqId)?.baseCost ?? 0);
     const expectedNet =
       calculateSkillCost(bundledSkillId, 2, false) + calculateSkillCost(unpaidPrereqId, 1, false);
 
@@ -136,8 +146,8 @@ describe('buildSkillCostSummary', () => {
       }),
     });
 
-    expect(summary.baseTotal).toBe(skillCollection[concentrationId].baseCost);
-    expect(summary.netTotal).toBe(skillCollection[concentrationId].baseCost);
+    expect(summary.baseTotal).toBe(dataRegistry.skills.getById(concentrationId)?.baseCost ?? 0);
+    expect(summary.netTotal).toBe(dataRegistry.skills.getById(concentrationId)?.baseCost ?? 0);
     expect(summary.isObtained).toBe(false);
   });
 

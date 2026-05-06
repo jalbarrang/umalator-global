@@ -1,9 +1,11 @@
 import './polyfills';
+import '@/modules/data/bootstrap';
 import { createRoot } from 'react-dom/client';
 import { HashRouter } from 'react-router';
 import './i18n';
 
 import { enableMapSet } from 'immer';
+import { reconcileStoresAfterHydration } from '@/store/race/reconcile';
 import { ThemeStoreProvider } from './providers/theme/provider';
 import { RootComponent } from './routes/root';
 
@@ -18,6 +20,7 @@ if (import.meta.env.VITE_PUBLIC_POSTHOG_KEY) {
 }
 
 enableMapSet();
+reconcileStoresAfterHydration();
 
 const rootComponent = document.getElementById('root');
 

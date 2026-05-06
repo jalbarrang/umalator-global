@@ -1,13 +1,15 @@
 import {
   SkillItemActions,
   SkillItemBody,
-  SkillItemCostAction,
-  SkillItemDetailsActions,
   SkillItemIdentity,
   SkillItemMain,
   SkillItemRail,
   SkillItemRoot,
-} from '@/modules/skills/components/skill-list/skill-item';
+} from '@/modules/skills/components/skill-list/skill-item/primitives';
+import {
+  SkillItemCostAction,
+  SkillItemDetailsActions,
+} from '@/modules/skills/components/skill-list/skill-item/actions';
 
 export function SimpleSkillRow({
   dismissable = false,

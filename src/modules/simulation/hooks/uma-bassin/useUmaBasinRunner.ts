@@ -14,14 +14,14 @@ import {
   getActivateableSkills,
   getNullSkillComparisonRow,
 } from '@/components/bassin-chart/utils';
-import { getUniqueSkillIds } from '@/modules/data/skills';
+import { dataRegistry } from '@/modules/data/registry';
 import { useRunner } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
 import { racedefToParams } from '@/utils/races';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 
 const createUmaBasinWorker = () => new UmaBasinWorker();
-const uniqueSkillIds = getUniqueSkillIds();
+const uniqueSkillIds = dataRegistry.skills.getUniqueSkillIds();
 
 type WorkerMessage<T> =
   | { type: 'data-ready'; resourceVersion: string }

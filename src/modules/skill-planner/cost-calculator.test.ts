@@ -1,25 +1,24 @@
 import { describe, expect, it } from 'vitest';
 import { calculateDisplayCost, calculateSkillCost, getNetCost } from './cost-calculator';
 import type { CandidateSkill } from './types';
-import { skillCollection } from '@/modules/data/skills';
+import { dataRegistry } from '@/modules/data/registry';
 import { runawaySkillId } from '@/modules/runners/components/runner-card/types';
 import { getWhiteVersion } from '@/modules/skills/skill-relationships';
 
 const getSkillIdByName = (name: string): string => {
-  const skillId = Object.keys(skillCollection).find(
-    (candidateId) => skillCollection[candidateId].name === name,
-  );
+  const allSkills = dataRegistry.skills.getAll();
+  const skill = allSkills.find((skill) => skill.name === name);
 
-  if (!skillId) {
+  if (!skill) {
     throw new Error(`Could not find skill named "${name}"`);
   }
 
-  return skillId;
+  return skill.id;
 };
 
 describe('cost-calculator', () => {
   const skillId = runawaySkillId;
-  const baseCost = skillCollection[skillId].baseCost;
+  const baseCost = dataRegistry.skills.getById(skillId)?.baseCost ?? 0;
   const speedStarId = '200581';
   const preparedToPassId = '200582';
 
@@ -42,7 +41,7 @@ describe('cost-calculator', () => {
   });
 
   it('does not undercount floating-point exact integer discounts', () => {
-    expect(skillCollection[speedStarId].baseCost).toBe(180);
+    expect(dataRegistry.skills.getById(speedStarId)?.baseCost).toBe(180);
     expect(calculateSkillCost(speedStarId, 3, false)).toBe(126);
     expect(calculateSkillCost(preparedToPassId, 2, false)).toBe(144);
   });
@@ -65,8 +64,8 @@ describe('cost-calculator', () => {
     const candidates: Record<string, CandidateSkill> = {
       [speedStarId]: {
         skillId: speedStarId,
-        cost: skillCollection[speedStarId].baseCost,
-        netCost: skillCollection[speedStarId].baseCost,
+        cost: dataRegistry.skills.getById(speedStarId)?.baseCost ?? 0,
+        netCost: dataRegistry.skills.getById(speedStarId)?.baseCost ?? 0,
         hintLevel: 3,
         isStackable: false,
         isGold: true,
@@ -75,8 +74,8 @@ describe('cost-calculator', () => {
       },
       [preparedToPassId]: {
         skillId: preparedToPassId,
-        cost: skillCollection[preparedToPassId].baseCost,
-        netCost: skillCollection[preparedToPassId].baseCost,
+        cost: dataRegistry.skills.getById(preparedToPassId)?.baseCost ?? 0,
+        netCost: dataRegistry.skills.getById(preparedToPassId)?.baseCost ?? 0,
         hintLevel: 2,
         isStackable: false,
         isGold: false,
@@ -91,8 +90,8 @@ describe('cost-calculator', () => {
     const escapeArtistId = getSkillIdByName('Escape Artist');
     const goldCandidate: CandidateSkill = {
       skillId: escapeArtistId,
-      cost: skillCollection[escapeArtistId].baseCost,
-      netCost: skillCollection[escapeArtistId].baseCost,
+      cost: dataRegistry.skills.getById(escapeArtistId)?.baseCost ?? 0,
+      netCost: dataRegistry.skills.getById(escapeArtistId)?.baseCost ?? 0,
       hintLevel: 0,
       isStackable: false,
       isGold: true,
@@ -107,6 +106,6 @@ describe('cost-calculator', () => {
       false,
     );
 
-    expect(displayCost).toBe(skillCollection[escapeArtistId].baseCost);
+    expect(displayCost).toBe(dataRegistry.skills.getById(escapeArtistId)?.baseCost ?? 0);
   });
 });

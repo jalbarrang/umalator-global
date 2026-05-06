@@ -1,8 +1,8 @@
-import { skillCollection } from '@/modules/data/skills';
+import { dataRegistry } from '@/modules/data/registry';
 
 const skillNames: Record<string, string> = {};
-for (const [key, skill] of Object.entries(skillCollection)) {
-  skillNames[key] = skill.name;
+for (const skill of dataRegistry.skills.getAll()) {
+  skillNames[skill.id] = skill.name;
 }
 
 export default {

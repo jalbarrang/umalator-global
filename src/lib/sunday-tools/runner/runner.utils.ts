@@ -5,7 +5,7 @@ import type { RaceParameters } from '../common/race';
 import type { CourseData } from '../course/definitions';
 import type { DefaultParser, SkillEvalRunner } from '../skills/parser/definitions';
 import type { SkillAlternative, SkillEffect, SkillTrigger } from '../skills/skill.types';
-import { skillCollection } from '@/modules/data/skills';
+import { dataRegistry } from '@/modules/data/registry';
 
 export type BuildSkillDataParams = {
   runner: SkillEvalRunner;
@@ -55,7 +55,7 @@ export function buildSkillData(params: BuildSkillDataParams): Array<SkillTrigger
     throw new Error('bad skill ID ' + skillId);
   }
 
-  const skill = skillCollection[baseSkillId];
+  const skill = dataRegistry.skills.getById(baseSkillId);
 
   if (!skill) {
     throw new Error('bad skill ID ' + skillId);
