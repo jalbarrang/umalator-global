@@ -6,9 +6,9 @@ export async function openSkillPlanner(page: Page): Promise<void> {
   await expect(page).toHaveURL(/#\/skill-planner/);
 
   const startFreshButton = page.getByRole('button', { name: 'Start fresh' });
-  if ((await startFreshButton.count()) > 0) {
-    await startFreshButton.click();
-  }
+  // Wait for the landing page to render before deciding whether to click
+  await expect(startFreshButton).toBeVisible({ timeout: 10_000 });
+  await startFreshButton.click();
 }
 
 export async function selectRunner(page: Page, runnerName: string): Promise<void> {
