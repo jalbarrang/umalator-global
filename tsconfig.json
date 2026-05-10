@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "tsBuildInfoFile": "./.cache/tsconfig.tsbuildinfo",
+    "tsBuildInfoFile": "./node_modules/.cache/tsconfig.tsbuildinfo",
     "incremental": true,
     // Environment setup & latest features
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
