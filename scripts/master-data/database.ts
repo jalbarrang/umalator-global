@@ -1,9 +1,11 @@
 /**
- * Database connection utilities for better-sqlite3
+ * Database connection utilities using Bun's native SQLite
  */
 
-import BetterSqlite3 from 'better-sqlite3';
-import type { Database } from 'better-sqlite3';
+import { Database } from 'bun:sqlite';
+import type { SQLQueryBindings } from 'bun:sqlite';
+
+export type { Database };
 
 /**
  * Open a database connection in readonly mode
@@ -12,7 +14,7 @@ import type { Database } from 'better-sqlite3';
  */
 export function openDatabase(path: string): Database {
   try {
-    const db = new BetterSqlite3(path, { readonly: true, fileMustExist: true });
+    const db = new Database(path, { readonly: true, create: false });
     return db;
   } catch (err) {
     const error = err as Error;
@@ -55,7 +57,7 @@ export function queryAll<T>(db: Database, sql: string): Array<T> {
  * @param params Query parameters
  * @returns Array of result rows
  */
-export function queryAllWithParams<T, TParams extends Array<unknown> = Array<unknown>>(
+export function queryAllWithParams<T, TParams extends Array<SQLQueryBindings> = Array<SQLQueryBindings>>(
   db: Database,
   sql: string,
   ...params: TParams

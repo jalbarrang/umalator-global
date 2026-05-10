@@ -1,6 +1,6 @@
 /**
  * CLI Debug Script for Skill Comparison
- * Usage: pnpm run skill:compare [options]
+ * Usage: bun run skill:compare [options]
  */
 
 import { readFileSync } from 'node:fs';
