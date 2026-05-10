@@ -4,5 +4,6 @@
   "editor.codeActionsOnSave": {
     "source.removeUnusedImports": "explicit",
     "source.fixAll.oxc": "explicit"
-  }
+  },
+  "js/ts.experimental.useTsgo": true
 }
