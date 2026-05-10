@@ -1,22 +1,20 @@
 {
   "compilerOptions": {
-    "tsBuildInfoFile": "./.cache/tsconfig.tsbuildinfo",
+    "tsBuildInfoFile": "./node_modules/.cache/tsconfig.tsbuildinfo",
     "incremental": true,
     // Environment setup & latest features
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
-    "types": ["vite/client"],
+    "types": ["vite/client", "bun"],
     "target": "ESNext",
     "module": "Preserve",
     "moduleDetection": "force",
     "jsx": "react-jsx",
-    "allowJs": true,
     "forceConsistentCasingInFileNames": true,
     // Bundler mode
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": false,
     "resolveJsonModule": true,
-    "esModuleInterop": true,
     "noEmit": true,
     // Best practices
     "strict": true,
@@ -35,6 +33,6 @@
       "@cli/*": ["./cli/*"]
     }
   },
-  "include": ["src", "tests", "scripts", ".cursor", "vite.config.ts", "playwright.config.ts"],
+  "include": ["src", "tests", "scripts", ".cursor", "vite.config.ts"],
   "exclude": ["node_modules", "dist"]
 }

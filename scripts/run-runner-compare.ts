@@ -2,9 +2,9 @@
  * Runner compare CLI for Sunday engine.
  *
  * Usage:
- *   npm exec -- tsx scripts/runner-compare.ts
- *   npm exec -- tsx scripts/runner-compare.ts --samples 200 --seed 42
- *   npm exec -- tsx scripts/runner-compare.ts --json
+ *   bun scripts/run-runner-compare.ts
+ *   bun scripts/run-runner-compare.ts --samples 200 --seed 42
+ *   bun scripts/run-runner-compare.ts --json
  */
 
 import { readFile } from 'node:fs/promises';

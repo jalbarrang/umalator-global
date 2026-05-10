@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { dataRegistry } from '@/modules/data/registry';
-import type { CourseEntry, CoursesMap } from '@/modules/data/services/CourseService';
+import type { CourseEntry } from '@/modules/data/services/CourseService';
 
 export type CourseByTrack = Record<number, Array<number>>;
 

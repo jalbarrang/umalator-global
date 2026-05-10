@@ -18,12 +18,8 @@ CLAUDE.md
 scripts/runners/*.json
 scripts/skill-lists/*.json
 
-# Playwright
+# Test artifacts
 /test-results/
-/playwright-report/
-/blob-report/
-/playwright/.cache/
-/playwright/.auth/
 
 
 docs/reports/

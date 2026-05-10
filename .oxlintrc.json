@@ -41,5 +41,5 @@
     "builtin": true
   },
   "globals": {},
-  "ignorePatterns": []
+  "ignorePatterns": [".agents/", ".pi/"]
 }

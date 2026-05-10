@@ -1,11 +1,11 @@
 # Data Extraction Scripts
 
-TypeScript-based data extraction scripts using Node.js (`tsx`) and `better-sqlite3`. These scripts replace the legacy Perl scripts for extracting game data from `master.mdb`.
+TypeScript-based data extraction scripts using Bun and `bun:sqlite`. These scripts replace the legacy Perl scripts for extracting game data from `master.mdb`.
 
 ## Prerequisites
 
 - **Node.js** (v24 or later)
-- **pnpm** (project package manager)
+- **bun** (project package manager)
 - **master.mdb** - Game database file from Uma Musume installation
 
 ## Quick Start
@@ -13,7 +13,7 @@ TypeScript-based data extraction scripts using Node.js (`tsx`) and `better-sqlit
 **Default behavior (Merge Mode - Recommended)**:
 
 ```bash
-pnpm run extract:all
+bun run extract:all
 ```
 
 This will:
@@ -25,17 +25,17 @@ This will:
 **Full replacement mode** (wipes future content):
 
 ```bash
-pnpm run extract:all -- --replace
+bun run extract:all -- --replace
 # or
-pnpm run extract:all -- --full
+bun run extract:all -- --full
 ```
 
 Or run individual extraction scripts:
 
 ```bash
-pnpm run extract:skills          # Unified skill data (meta + names + mechanics)
-pnpm run extract:uma-info        # Uma musume data
-pnpm run extract:course-data     # Course/track data
+bun run extract:skills          # Unified skill data (meta + names + mechanics)
+bun run extract:uma-info        # Uma musume data
+bun run extract:course-data     # Course/track data
 ```
 
 ## Database Location
@@ -79,7 +79,7 @@ The extraction scripts will automatically detect and use it. This path is gitign
 All scripts also accept a custom database path as the first argument:
 
 ```bash
-pnpm exec tsx scripts/data-extract/extract-skills.ts /path/to/master.mdb
+bun scripts/data-extract/extract-skills.ts /path/to/master.mdb
 ```
 
 ## Merge vs Replace Mode
@@ -114,9 +114,9 @@ pnpm exec tsx scripts/data-extract/extract-skills.ts /path/to/master.mdb
 **How to use:**
 
 ```bash
-pnpm run extract:all -- --replace
+bun run extract:all -- --replace
 # or
-pnpm run extract:skills -- --full
+bun run extract:skills -- --full
 ```
 
 ## Scripts Overview
@@ -141,8 +141,8 @@ Extracts unified skill data (metadata, names, and mechanics). Applies scenario s
 **Usage:**
 
 ```bash
-pnpm run extract:skills                # Merge mode (default)
-pnpm run extract:skills -- --replace   # Full replacement
+bun run extract:skills                # Merge mode (default)
+bun run extract:skills -- --replace   # Full replacement
 ```
 
 ### extract-uma-info.ts
@@ -160,8 +160,8 @@ Extracts uma musume character data (names, outfits). Filters out unimplemented u
 **Usage:**
 
 ```bash
-pnpm run extract:uma-info                # Merge mode (default)
-pnpm run extract:uma-info -- --replace   # Full replacement
+bun run extract:uma-info                # Merge mode (default)
+bun run extract:uma-info -- --replace   # Full replacement
 ```
 
 ### extract-course-data.ts
@@ -180,8 +180,8 @@ Extracts course/track data including geometry (corners, straights, slopes).
 **Usage:**
 
 ```bash
-pnpm run extract:course-data                # Merge mode (default)
-pnpm run extract:course-data -- --replace   # Full replacement
+bun run extract:course-data                # Merge mode (default)
+bun run extract:course-data -- --replace   # Full replacement
 ```
 
 **Special Cases:**
@@ -199,8 +199,8 @@ Master script that runs all extraction scripts in sequence.
 **Usage:**
 
 ```bash
-pnpm run extract:all                # Merge mode (default)
-pnpm run extract:all -- --replace   # Full replacement
+bun run extract:all                # Merge mode (default)
+bun run extract:all -- --replace   # Full replacement
 ```
 
 **Features:**
@@ -252,7 +252,7 @@ Database helpers:
 
 ## Advantages Over Perl
 
-- **Faster extraction** - `better-sqlite3` is highly optimized
+- **Faster extraction** - `bun:sqlite` is built into Bun and highly optimized
 - **Type safety** - TypeScript catches errors at compile time
 - **No Perl dependencies** - No need to install CPAN/Perl modules
 - **Modern tooling** - Better IDE support and debugging
@@ -307,8 +307,8 @@ perl scripts/legacy/make_global_skill_meta.pl master.mdb > perl_meta.json
 perl scripts/legacy/make_global_skillnames.pl master.mdb > perl_names.json
 perl scripts/legacy/make_global_skill_data.pl master.mdb > perl_data.json
 
-# Extract with Node/tsx
-pnpm exec tsx scripts/data-extract/extract-skills.ts master.mdb
+# Extract with Bun
+bun scripts/data-extract/extract-skills.ts master.mdb
 
 # Compare key count as a quick sanity check
 node -e "const fs=require('fs');const skills=JSON.parse(fs.readFileSync('src/modules/data/skills.json','utf8'));console.log(Object.keys(skills).length)"

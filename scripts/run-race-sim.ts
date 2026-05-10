@@ -2,9 +2,9 @@
  * Race sim CLI for testing the full 9-runner simulation.
  *
  * Usage:
- *   pnpm exec tsx scripts/run-race-sim.ts
- *   pnpm exec tsx scripts/run-race-sim.ts --samples 5 --seed 42
- *   pnpm exec tsx scripts/run-race-sim.ts --course 10009 --samples 3
+ *   bun scripts/run-race-sim.ts
+ *   bun scripts/run-race-sim.ts --samples 5 --seed 42
+ *   bun scripts/run-race-sim.ts --course 10009 --samples 3
  */
 
 import { Command } from 'commander';

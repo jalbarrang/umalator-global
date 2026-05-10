@@ -16,7 +16,6 @@ import { dataRegistry } from '@/modules/data/registry';
 import type { SkillEntry } from '@/modules/data/services/SkillService';
 import { getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import {
-  SkillItemAccessory,
   SkillItemActions,
   SkillItemBody,
   SkillItemIdentity,

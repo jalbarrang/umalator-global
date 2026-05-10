@@ -9,7 +9,7 @@ This guide will help you set up a development environment, understand the codeba
 Before you begin, ensure you have the following installed:
 
 - **Node.js** v24 or later
-- **pnpm** (the project's package manager, specified in `packageManager` field)
+- **bun** (the project's package manager, specified in `packageManager` field)
 
 ### Game Data Access
 
@@ -18,7 +18,7 @@ The project ships with pre-extracted JSON data in `src/modules/data/`, so you ca
 **Option A: Download via script (recommended)**
 
 ```bash
-pnpm run db:fetch <version-id> # e.g. 10004010
+bun run db:fetch <version-id> # e.g. 10004010
 ```
 
 This downloads `master.mdb` into `db/master.mdb`, which the extraction scripts detect automatically.
@@ -197,9 +197,6 @@ umalator-global/
 │   ├── simulator-patterns.md         # Simulator design patterns
 │   └── ...                           # Additional documentation
 │
-├── tests/                            # End-to-end tests
-│   └── *.e2e.ts                      # Playwright E2E tests
-│
 ├── public/                           # Static assets
 │
 └── Configuration files
@@ -210,7 +207,6 @@ umalator-global/
     ├── .oxfmtrc.json                 # oxfmt formatter configuration
     ├── .editorconfig                 # Editor configuration
     ├── components.json               # shadcn/ui configuration
-    ├── playwright.config.ts          # Playwright test configuration
     └── .env.example                  # Environment variable template
 ```
 
@@ -221,13 +217,13 @@ umalator-global/
 ```bash
 git clone https://github.com/jalbarrang/umalator-global.git
 cd umalator-global
-pnpm install
+bun install
 ```
 
 ### 2. Run the Development Server
 
 ```bash
-pnpm run dev
+bun run dev
 ```
 
 Default port is 5173. Open `http://localhost:5173` in your browser.
@@ -239,13 +235,13 @@ The repo ships with pre-extracted JSON data, so this step is only needed when up
 **Fetch the latest database:**
 
 ```bash
-pnpm run db:fetch
+bun run db:fetch
 ```
 
 **Extract all data at once (merge mode, recommended):**
 
 ```bash
-pnpm run extract:all
+bun run extract:all
 ```
 
 Merge mode (the default) updates entries from `master.mdb` while preserving future/datamined content not yet in the database.
@@ -253,15 +249,15 @@ Merge mode (the default) updates entries from `master.mdb` while preserving futu
 **Full replacement mode** (removes future content):
 
 ```bash
-pnpm run extract:all -- --replace
+bun run extract:all -- --replace
 ```
 
 **Extract individual data files:**
 
 ```bash
-pnpm run extract:skills           # Unified skill data
-pnpm run extract:uma-info         # Uma musume data
-pnpm run extract:course-data      # Course/track data
+bun run extract:skills           # Unified skill data
+bun run extract:uma-info         # Uma musume data
+bun run extract:course-data      # Course/track data
 ```
 
 All scripts support `--replace` for full replacement mode. See [`scripts/README.md`](scripts/README.md) for detailed documentation.
@@ -302,7 +298,6 @@ Feature flags are managed via environment variables prefixed with `VITE_FEATURE_
 - **Recharts** for chart visualizations
 - **Zod** for schema validation
 - **Vitest** for unit tests
-- **Playwright** for end-to-end tests
 - **oxlint** for linting
 - **oxfmt** for formatting
 - **Lucide React** for icons
@@ -401,49 +396,49 @@ Simulations run in background threads to keep the UI responsive:
 1. **Start the dev server:**
 
    ```bash
-   pnpm run dev
+   bun run dev
    ```
 
 2. **Check for TypeScript errors:**
 
    ```bash
-   pnpm run typecheck
+   bun run typecheck
    ```
 
 3. **Run the linter:**
 
    ```bash
-   pnpm run lint
+   bun run lint
    ```
 
 4. **Fix lint issues automatically:**
 
    ```bash
-   pnpm run lint:fix
+   bun run lint:fix
    ```
 
 5. **Format code:**
 
    ```bash
-   pnpm run format
+   bun run format
    ```
 
 6. **Check formatting without writing:**
 
    ```bash
-   pnpm run format:check
+   bun run format:check
    ```
 
 7. **Run unit tests:**
 
    ```bash
-   pnpm run test
+   bun run test
    ```
 
 8. **Build for production:**
 
    ```bash
-   pnpm run build
+   bun run build
    ```
 
 ### Code Style
@@ -484,7 +479,7 @@ TypeScript strict mode is enabled. Use functional React components with hooks. S
 2. Run the extraction:
 
 ```bash
-pnpm run extract:course-data
+bun run extract:course-data
 ```
 
 3. Verify course geometry in the visualization
@@ -497,21 +492,11 @@ pnpm run extract:course-data
 Run with Vitest:
 
 ```bash
-pnpm run test          # Run once
-pnpm run test:watch    # Watch mode
+bun run test          # Run once
+bun run test:watch    # Watch mode
 ```
 
 Add tests in `*.test.ts` files alongside the code they test.
-
-### End-to-End Tests
-
-Run with Playwright:
-
-```bash
-pnpm exec playwright test
-```
-
-E2E tests live in the `tests/` directory and match `*.e2e.ts`. Playwright is configured in `playwright.config.ts` to start the dev server automatically and run against Chromium.
 
 ### Manual Testing Checklist
 
@@ -530,26 +515,18 @@ E2E tests live in the `tests/` directory and match `*.e2e.ts`. Playwright is con
 
 Runs on pull requests to `main`:
 
-- TypeScript type checking (`pnpm run typecheck`)
-- Linting (`pnpm run lint`)
-- Production build validation (`pnpm run build`)
+- TypeScript type checking (`bun run typecheck`)
+- Linting (`bun run lint`)
+- Production build validation (`bun run build`)
 
-**Playwright Tests** (`.github/workflows/playwright.yml`):
-
-Runs on pull requests to `main`:
-
-- Installs Playwright browsers
-- Runs E2E tests
-- Uploads test report artifact (retained 30 days)
-
-Both workflows use Node.js 24 and pnpm with frozen lockfile.
+Both workflows use Bun with frozen lockfile.
 
 ### Deployment
 
 The project deploys to **GitHub Pages** via `.github/workflows/deploy-pages.yml`.
 
 - Deploys automatically on pushes to `main`
-- Uses Node.js 24 + pnpm
+- Uses Bun
 - Reads `VITE_PUBLIC_POSTHOG_KEY` and `VITE_PUBLIC_POSTHOG_HOST` from repository variables at build time
 
 ## Submitting Contributions
@@ -559,10 +536,10 @@ The project deploys to **GitHub Pages** via `.github/workflows/deploy-pages.yml`
 1. **Ensure code quality:**
 
    ```bash
-   pnpm run typecheck    # No TypeScript errors
-   pnpm run lint         # No linting errors
-   pnpm run format:check # Code is formatted
-   pnpm run test         # Tests pass
+   bun run typecheck    # No TypeScript errors
+   bun run lint         # No linting errors
+   bun run format:check # Code is formatted
+   bun run test         # Tests pass
    ```
 
 2. **Update the changelog** in `src/data/changelog.ts` if the change is user-facing.
@@ -591,7 +568,7 @@ Be prepared to:
 
 **"Cannot find module":**
 
-- Run `pnpm install` to ensure all dependencies are installed
+- Run `bun install` to ensure all dependencies are installed
 - Check that import paths are correct
 - Verify path aliases are configured in `tsconfig.json`
 
@@ -627,7 +604,7 @@ Be prepared to:
 **Port already in use:**
 
 - Vite will automatically try the next available port
-- Or specify a port: `pnpm run dev -- --port 3000`
+- Or specify a port: `bun run dev -- --port 3000`
 
 **Hot reload not working:**
 

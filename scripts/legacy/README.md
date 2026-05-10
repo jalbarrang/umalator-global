@@ -1,6 +1,6 @@
 # Legacy Perl Scripts
 
-**⚠️ DEPRECATED**: These Perl scripts are no longer maintained and have been replaced by TypeScript scripts using Node.js and `better-sqlite3`.
+**⚠️ DEPRECATED**: These Perl scripts are no longer maintained and have been replaced by TypeScript scripts using Bun and `bun:sqlite`.
 
 ## Migration
 
@@ -29,7 +29,7 @@ See [`../README.md`](../README.md) for documentation on the new TypeScript extra
 Quick start:
 
 ```bash
-pnpm run extract:all
+bun run extract:all
 ```
 
 ## Why Keep These Files?

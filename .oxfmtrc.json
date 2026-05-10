@@ -8,5 +8,5 @@
   "jsxSingleQuote": false,
   "experimentalSortPackageJson": false,
   "endOfLine": "lf",
-  "ignorePatterns": ["*.png", "*.jpg", "*.mdb", "package-lock.json", "pnpm-lock.yaml", "yarn.lock"]
+  "ignorePatterns": ["*.png", "*.jpg", "*.mdb", "package-lock.json", "bun.lock", "yarn.lock"]
 }
