@@ -34,8 +34,8 @@ Use this project when you want to:
 ### Install and Run
 
 ```bash
-pnpm install
-pnpm run dev
+bun install
+bun run dev
 ```
 
 Open the local URL printed by Vite to use the simulator UI.
@@ -45,7 +45,7 @@ Open the local URL printed by Vite to use the simulator UI.
 If you want to run local extraction scripts with fresh game data, fetch the latest master database into `./db`:
 
 ```bash
-pnpm run db:fetch
+bun run db:fetch
 ```
 
 This script downloads `master.mdb` to `db/master.mdb`, which extraction scripts use automatically.
@@ -61,14 +61,14 @@ Production deploys run on **GitHub Pages** via `.github/workflows/deploy-pages.y
 
 ## Useful Commands
 
-- `pnpm run dev`: start local development server
-- `pnpm run build`: build production assets
-- `pnpm run preview`: preview built app
-- `pnpm run typecheck`: run TypeScript checks
-- `pnpm run lint`: run ESLint
-- `pnpm run test`: run test suite
-- `pnpm run db:fetch`: download latest `master.mdb` to `./db`
-- `pnpm run skill:compare`: run skill comparison debug script
+- `bun run dev`: start local development server
+- `bun run build`: build production assets
+- `bun run preview`: preview built app
+- `bun run typecheck`: run TypeScript checks
+- `bun run lint`: run ESLint
+- `bun run test`: run test suite
+- `bun run db:fetch`: download latest `master.mdb` to `./db`
+- `bun run skill:compare`: run skill comparison debug script
 
 ## Acknowledgements
 

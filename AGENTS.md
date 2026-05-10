@@ -2,7 +2,7 @@
 
 ## Package Management
 
-- Prefer using `pnpm` for package management, avoid using `npm`/`yarn`/`bun`.
+- Prefer using `bun` for package management, avoid using `npm`/`yarn`/`pnpm`.
 - Prefer using the available `package.json` scripts instead of running commands directly for typechecking, linting, formatting, testing, etc.
 
 ## Code Style
