@@ -3,7 +3,7 @@
  */
 
 import { dataRegistry } from '@/modules/data/registry';
-import type { UmaData, UmaLookupEntry, UmaMatch } from './types';
+import type { UmaLookupEntry, UmaMatch } from './types';
 
 // =============================================================================
 // Text Normalization & Similarity

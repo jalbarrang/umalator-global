@@ -439,7 +439,7 @@ export const hasCandidate = (skillId: string) => {
 };
 
 export const canAddToPool = (skillId: string): { canAdd: boolean; reason?: string } => {
-  const { candidates, obtainedSkillIds, runner } = useSkillPlannerStore.getState();
+  const { obtainedSkillIds, runner } = useSkillPlannerStore.getState();
 
   if (!runner.outfitId) {
     return { canAdd: false, reason: 'Select a runner first' };

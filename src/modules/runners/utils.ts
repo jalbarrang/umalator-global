@@ -2,7 +2,6 @@ import { getIconUrl } from '@/assets/icons';
 import { useMemo } from 'react';
 import { getIconById } from '@/modules/data/icons';
 import { dataRegistry } from '@/modules/data/registry';
-import type { UmasMap } from '@/modules/data/services/UmaService';
 
 export type UmaSearchEntry = {
   id: string;
@@ -20,7 +19,7 @@ function buildUmaSearchData(): {
   namesForSearch: Record<string, string>;
   umasForSearch: Array<UmaSearchEntry>;
 } {
-  const altIds = dataRegistry.umas.getAllEntries().flatMap(([id, uma]) => {
+  const altIds = dataRegistry.umas.getAllEntries().flatMap(([_id, uma]) => {
     if (!uma) {
       return [];
     }
