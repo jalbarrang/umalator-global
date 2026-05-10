@@ -125,7 +125,7 @@ bun run extract:skills -- --full
 
 Extracts unified skill data (metadata, names, and mechanics). Applies scenario skill modifiers and handles special cases like Seirios split alternatives.
 
-**Output:** `src/modules/data/skills.json`
+**Output:** `src/modules/data/json/skills.json`
 
 **Default:** Merge mode (preserves future content)
 
@@ -149,7 +149,7 @@ bun run extract:skills -- --replace   # Full replacement
 
 Extracts uma musume character data (names, outfits). Filters out unimplemented umas by checking if their unique skills exist.
 
-**Output:** `src/modules/data/umas.json`
+**Output:** `src/modules/data/json/umas.json`
 
 **Default:** Merge mode (preserves future content)
 
@@ -168,7 +168,7 @@ bun run extract:uma-info -- --replace   # Full replacement
 
 Extracts course/track data including geometry (corners, straights, slopes).
 
-**Output:** `src/modules/data/course_data.json`
+**Output:** `src/modules/data/json/course_data.json`
 
 **Default:** Merge mode (preserves future content)
 
@@ -213,7 +213,7 @@ bun run extract:all -- --replace   # Full replacement
 
 ## Output Files
 
-All extracted data is written to `src/modules/data/`:
+All extracted data is written to `src/modules/data/json`:
 
 | File               | Description                                   |
 | ------------------ | --------------------------------------------- |

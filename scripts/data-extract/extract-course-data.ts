@@ -266,7 +266,7 @@ async function extractCourseData(options: ExtractCourseDataOptions = { replaceMo
     }
 
     // Merge with existing data (unless replace mode)
-    const outputPath = path.join(process.cwd(), 'src/modules/data/course_data.json');
+    const outputPath = path.join(process.cwd(), 'src/modules/data/json/course_data.json');
 
     let finalCourses: Record<string, CourseData>;
 

@@ -80,7 +80,7 @@ async function extractUmaInfo(options: ExtractUmaInfoOptions = { replaceMode: fa
   console.log(`Database: ${dbPath}\n`);
 
   // Read existing files to check which umas are implemented
-  const basePath = path.join(process.cwd(), 'src/modules/data');
+  const basePath = path.join(process.cwd(), 'src/modules/data/json');
   const skills = await readJsonFile<Record<string, unknown>>(path.join(basePath, 'skills.json'));
 
   const db = openDatabase(dbPath);

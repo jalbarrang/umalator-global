@@ -17,7 +17,7 @@ type CliOptions = {
   compact: boolean;
 };
 
-const DEFAULT_SOURCE_PATH = 'src/modules/data/course_data.json';
+const DEFAULT_SOURCE_PATH = 'src/modules/data/json/course_data.json';
 
 function parseCourseId(value: string): number {
   const courseId = Number.parseInt(value, 10);

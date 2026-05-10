@@ -489,7 +489,7 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
 
     console.log(`Initialized ${familyCount} multi-member families (${versionCount} linked skills)`);
 
-    const outputPath = path.join(process.cwd(), 'src/modules/data/skills.json');
+    const outputPath = path.join(process.cwd(), 'src/modules/data/json/skills.json');
 
     let finalSkills: Record<string, SkillEntry>;
     if (replaceMode) {
