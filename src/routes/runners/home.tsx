@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router';
 
 import { Activity, useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { Camera, Import, Plus, Search, Trash2, Users, X } from 'lucide-react';
-import type { SavedRunner } from '@/store/runner-library.store';
+import type { ISavedRunner } from '@/store/runner-library.store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -36,7 +36,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { loadRunnerFromLibrary, showRunner } from '@/store/runners.store';
-import { RosterImportDialog } from '@/modules/runners/share';
+import { RosterImportDialog } from '@/modules/runners/roster/import-dialog';
 import { getUmaDisplayInfo } from '@/modules/runners/utils';
 import { aptitudeNames, strategyNames } from '@/lib/sunday-tools/runner/definitions';
 
@@ -68,14 +68,14 @@ function VirtualRunnerGrid({
   onDuplicate,
   onLoadToSimulation,
 }: Readonly<{
-  items: SavedRunner[];
+  items: ISavedRunner[];
   selected: Set<string>;
   isSelecting: boolean;
   onToggleSelect: (id: string) => void;
-  onEdit: (runner: SavedRunner) => void;
+  onEdit: (runner: ISavedRunner) => void;
   onDelete: (id: string) => void;
   onDuplicate: (id: string) => void;
-  onLoadToSimulation: (runner: SavedRunner) => void;
+  onLoadToSimulation: (runner: ISavedRunner) => void;
 }>) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollTop, setScrollTop] = useState(0);
@@ -224,7 +224,7 @@ export function RunnersHome() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [runnerToDelete, setRunnerToDelete] = useState<string | null>(null);
   const [loadDialogOpen, setLoadDialogOpen] = useState(false);
-  const [runnerToLoad, setRunnerToLoad] = useState<SavedRunner | null>(null);
+  const [runnerToLoad, setRunnerToLoad] = useState<ISavedRunner | null>(null);
   const [rosterImportOpen, setRosterImportOpen] = useState(false);
   const [ocrImportOpen, setOcrImportOpen] = useState(false);
 
@@ -281,7 +281,7 @@ export function RunnersHome() {
 
   const handleAddNew = () => navigate('/runners/new');
   const handleEdit = useCallback(
-    (runner: SavedRunner) => navigate(`/runners/${runner.id}/edit`),
+    (runner: ISavedRunner) => navigate(`/runners/${runner.id}/edit`),
     [navigate],
   );
 
@@ -300,7 +300,7 @@ export function RunnersHome() {
     setDeleteDialogOpen(false);
   };
 
-  const handleLoadClick = useCallback((runner: SavedRunner) => {
+  const handleLoadClick = useCallback((runner: ISavedRunner) => {
     setRunnerToLoad(runner);
     setLoadDialogOpen(true);
   }, []);

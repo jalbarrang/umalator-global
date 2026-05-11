@@ -2,7 +2,7 @@ import { toast } from 'sonner';
 import { toBlob } from 'html-to-image';
 import { encodeSingleUma } from './encoding';
 import { runnerStateToSingleExport } from './converters';
-import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import { dataRegistry } from '@/modules/data/registry';
 
 export function getSkillsForShareCard(skillIds: string[]) {
@@ -17,7 +17,7 @@ export function getSkillsForShareCard(skillIds: string[]) {
   });
 }
 
-export async function copyRosterViewCode(runner: RunnerState, createdAt?: number) {
+export async function copyRosterViewCode(runner: IRunnerState, createdAt?: number) {
   try {
     const exportData = runnerStateToSingleExport(runner, createdAt);
     const code = encodeSingleUma(exportData);
@@ -28,7 +28,7 @@ export async function copyRosterViewCode(runner: RunnerState, createdAt?: number
   }
 }
 
-export async function downloadJson(runner: RunnerState, filename: string, createdAt?: number) {
+export async function downloadJson(runner: IRunnerState, filename: string, createdAt?: number) {
   try {
     const exportData = runnerStateToSingleExport(runner, createdAt);
     const json = JSON.stringify(exportData, null, 2);

@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import type { RaceSimResult } from '@/lib/sunday-tools/race-sim/run-race-sim';
 import { Mood } from '@/lib/sunday-tools/runner/definitions';
-import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import { generateSeed } from '@/utils/crypto';
 
 const RACE_SIM_STORE_NAME = 'umalator-race-sim';
@@ -10,7 +10,7 @@ const MIN_NSAMPLES = 1;
 const MAX_NSAMPLES = 10;
 
 type IRaceSimStore = {
-  runners: RunnerState[];
+  runners: IRunnerState[];
   nsamples: number;
   seed: number | null;
   results: RaceSimResult | null;
@@ -20,7 +20,7 @@ type IRaceSimStore = {
   zoomWindowMeters: number;
 };
 
-const DEFAULT_FIELD_STRATEGIES: Array<RunnerState['strategy']> = [
+const DEFAULT_FIELD_STRATEGIES: Array<IRunnerState['strategy']> = [
   'Front Runner',
   'Pace Chaser',
   'End Closer',
@@ -32,7 +32,7 @@ const DEFAULT_FIELD_STRATEGIES: Array<RunnerState['strategy']> = [
   'End Closer',
 ];
 
-const createDefaultRunner = (strategy: RunnerState['strategy']): RunnerState => ({
+const createDefaultRunner = (strategy: IRunnerState['strategy']): IRunnerState => ({
   outfitId: '',
   speed: 800,
   stamina: 800,
@@ -48,7 +48,7 @@ const createDefaultRunner = (strategy: RunnerState['strategy']): RunnerState => 
   randomMobId: Math.floor(Math.random() * 624) + 8000,
 });
 
-export const generateDefaultFieldAsRunnerState = (): RunnerState[] => {
+export const generateDefaultFieldAsRunnerState = (): IRunnerState[] => {
   return DEFAULT_FIELD_STRATEGIES.map((strategy) => createDefaultRunner(strategy));
 };
 
@@ -58,7 +58,7 @@ const normalizeNsamples = (nsamples: number): number => {
 };
 
 const applyFocusRunnerSuggestion = (
-  runners: RunnerState[],
+  runners: IRunnerState[],
   focusRunnerIndices: number[],
 ): number[] => {
   const selectedRunnerIndices = runners.reduce<Array<number>>((indices, runner, index) => {
@@ -105,7 +105,7 @@ export const useRaceSimStore = create<IRaceSimStore>()(
   ),
 );
 
-export const updateRunner = (index: number, partial: Partial<RunnerState>) => {
+export const updateRunner = (index: number, partial: Partial<IRunnerState>) => {
   useRaceSimStore.setState((state) => {
     if (index < 0 || index >= state.runners.length) {
       return state;

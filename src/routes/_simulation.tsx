@@ -1,4 +1,4 @@
-import { Activity, useCallback, useState } from 'react';
+import { Activity, Suspense, useCallback, useState } from 'react';
 import { Outlet } from 'react-router';
 import { Construction, SidebarOpen, XIcon } from 'lucide-react';
 
@@ -116,7 +116,15 @@ export function SimulationLayout() {
         </div>
 
         <div className="flex flex-1 min-w-0">
-          <Outlet />
+          <Suspense
+            fallback={
+              <div className="flex flex-1 items-center justify-center p-4 text-sm text-muted-foreground">
+                Loading route…
+              </div>
+            }
+          >
+            <Outlet />
+          </Suspense>
         </div>
       </div>
     </>

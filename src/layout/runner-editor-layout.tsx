@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,9 +11,9 @@ import { useHotkeys } from 'react-hotkeys-hook';
 
 type RunnerEditorLayoutProps = {
   runnerName: string;
-  runnerState: RunnerState;
+  runnerState: IRunnerState;
   onRunnerNameChange: (name: string) => void;
-  onRunnerStateChange: (state: RunnerState) => void;
+  onRunnerStateChange: (state: IRunnerState) => void;
   onSave: () => void;
   onCancel: () => void;
   isEditMode: boolean;
@@ -43,7 +43,7 @@ export const RunnerEditorLayout = (props: RunnerEditorLayoutProps) => {
     setSkillPickerOpen(false);
   };
 
-  const handleRunnerChange = (newState: RunnerState) => {
+  const handleRunnerChange = (newState: IRunnerState) => {
     onRunnerStateChange(newState);
     updateCurrentSkills(newState.skills);
   };

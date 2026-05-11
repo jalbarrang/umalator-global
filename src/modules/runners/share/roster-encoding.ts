@@ -1,5 +1,5 @@
 import { BitVector } from './bit-vector';
-import type { SingleExportData, SingleExportSkill } from './types';
+import type { ISingleExportData, ISingleExportSkill } from './types';
 
 const MIN_BITS_PER_CHARACTER = 109;
 
@@ -44,7 +44,7 @@ function extractEncodedPayload(input: string): string {
   return trimmed;
 }
 
-function decodeCharacter(bv: BitVector): SingleExportData {
+function decodeCharacter(bv: BitVector): ISingleExportData {
   const card_id = bv.read(20);
   bv.read(3); // talent_level — discarded
 
@@ -76,7 +76,7 @@ function decodeCharacter(bv: BitVector): SingleExportData {
   }
 
   const skillCount = bv.read(6);
-  const skill_array: SingleExportSkill[] = [];
+  const skill_array: ISingleExportSkill[] = [];
   for (let i = 0; i < skillCount; i++) {
     const skill_id = bv.read(20);
     const skill_level = bv.read(1) === 0 ? 1 : 2;
@@ -116,7 +116,7 @@ function decodeCharacter(bv: BitVector): SingleExportData {
   };
 }
 
-export async function decodeRoster(input: string): Promise<SingleExportData[] | null> {
+export async function decodeRoster(input: string): Promise<ISingleExportData[] | null> {
   try {
     const encoded = extractEncodedPayload(input);
     if (!encoded) return null;
@@ -134,7 +134,7 @@ export async function decodeRoster(input: string): Promise<SingleExportData[] | 
     const version = bv.read(8);
     if (version !== 4) return null;
 
-    const results: SingleExportData[] = [];
+    const results: ISingleExportData[] = [];
     while (bv.bitsRemaining() >= MIN_BITS_PER_CHARACTER) {
       results.push(decodeCharacter(bv));
     }

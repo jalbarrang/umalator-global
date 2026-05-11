@@ -1,7 +1,7 @@
 import type { IMood, IStrategyName } from '@/lib/sunday-tools/runner/definitions';
 import { Mood } from '@/lib/sunday-tools/runner/definitions';
 
-export const defaultRunnerState: RunnerState = {
+export const defaultRunnerState: IRunnerState = {
   outfitId: '',
   speed: 1200,
   stamina: 1200,
@@ -17,13 +17,13 @@ export const defaultRunnerState: RunnerState = {
   randomMobId: Math.floor(Math.random() * 624) + 8000,
 };
 
-export const createRunnerState = (props: Partial<RunnerState> = {}): RunnerState => ({
+export const createRunnerState = (props: Partial<IRunnerState> = {}): IRunnerState => ({
   ...defaultRunnerState,
   randomMobId: Math.floor(Math.random() * 624) + 8000,
   ...props,
 });
 
-export type RunnerState = {
+export type IRunnerState = {
   outfitId: string;
   speed: number;
   stamina: number;

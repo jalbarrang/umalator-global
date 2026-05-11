@@ -2,13 +2,13 @@ import { useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 import { strategyNames } from '@/lib/sunday-tools/runner/definitions';
-import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import { getUmaDisplayInfo, getUmaImageUrl } from '@/modules/runners/utils';
 import { getIconUrl } from '@/assets/icons';
 
 type RunnerListItemProps = {
   index: number;
-  runner: RunnerState;
+  runner: IRunnerState;
   isSelected: boolean;
   isFocused: boolean;
   onSelect: (index: number) => void;

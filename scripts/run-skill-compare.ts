@@ -8,7 +8,7 @@ import { resolve } from 'node:path';
 import { Command } from 'commander';
 
 import { DebugConfigSchema } from './runner-config.schema';
-import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 import { runSkillComparison } from '@/modules/simulation/simulators/skill-compare';
 import { racedefToParams } from '@/utils/races';
@@ -80,10 +80,10 @@ program
       seed,
     };
 
-    const testRunner: RunnerState = runner;
+    const testRunner: IRunnerState = runner;
 
     // Create runner with skill
-    const runnerWithSkill: RunnerState = {
+    const runnerWithSkill: IRunnerState = {
       ...testRunner,
       skills: [...testRunner.skills, skillId],
     };

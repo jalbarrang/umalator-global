@@ -10,7 +10,7 @@
  */
 
 import type { RaceParameters } from '@/lib/sunday-tools/common/race';
-import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import type { SimulationOptions } from '@/modules/simulation/types';
 import { runPlannerComparison } from '@/modules/simulation/simulators/skill-planner-compare';
@@ -19,7 +19,7 @@ interface SkillCombinationComparisonParams {
   nsamples: number;
   course: CourseData;
   racedef: RaceParameters;
-  baseRunner: RunnerState;
+  baseRunner: IRunnerState;
   candidateSkills: Array<string>;
   ignoreStaminaConsumption: boolean;
   options: SimulationOptions;
@@ -76,7 +76,7 @@ type SkillPlannerSimulationParams = {
   nsamples: number;
   course: CourseData;
   racedef: RaceParameters;
-  baseRunner: RunnerState;
+  baseRunner: IRunnerState;
   ignoreStaminaConsumption?: boolean;
   options: SimulationOptions;
   skillCombinations: Array<Array<string>>;

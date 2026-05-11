@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { generateSeed } from '@/utils/crypto';
 import { createRunnerState } from '../runners/components/runner-card/types';
-import type { RunnerState } from '../runners/components/runner-card/types';
+import type { IRunnerState } from '../runners/components/runner-card/types';
 import type {
   CandidateSkill,
   HintLevel,
@@ -31,7 +31,7 @@ interface SkillPlannerState {
   currentStep: WizardStep;
   completedSteps: Array<WizardStep>;
 
-  runner: RunnerState;
+  runner: IRunnerState;
   obtainedSkillIds: Array<string>;
   candidates: Record<string, CandidateSkill>;
   skillMetaById: Record<string, SkillPlanningMeta>;
@@ -205,7 +205,7 @@ const getUniqueSkillId = (outfitId: string) => {
   return getUniqueSkillForByUmaId(outfitId);
 };
 
-const syncRunnerSkills = (runner: RunnerState, obtainedSkillIds: Array<string>): RunnerState => ({
+const syncRunnerSkills = (runner: IRunnerState, obtainedSkillIds: Array<string>): IRunnerState => ({
   ...runner,
   skills: obtainedSkillIds,
 });
@@ -280,7 +280,7 @@ const pruneCandidates = (
   };
 };
 
-const buildImportedRunnerState = (runnerSnapshot: RunnerState): RunnerState => {
+const buildImportedRunnerState = (runnerSnapshot: IRunnerState): IRunnerState => {
   return createRunnerState({
     ...runnerSnapshot,
     skills: [],
@@ -289,7 +289,7 @@ const buildImportedRunnerState = (runnerSnapshot: RunnerState): RunnerState => {
 
 const applyBaselineRunner = (
   state: SkillPlannerState,
-  runnerSnapshot: RunnerState,
+  runnerSnapshot: IRunnerState,
   obtainedSkillIds: Array<string>,
 ) => {
   const nextRunner = syncRunnerSkills(buildImportedRunnerState(runnerSnapshot), obtainedSkillIds);
@@ -358,7 +358,7 @@ export const isStepUnlocked = (step: WizardStep) => {
   return completedSteps.includes('shop') || currentStep === 'review';
 };
 
-export const updateRunner = (updates: Partial<RunnerState>) => {
+export const updateRunner = (updates: Partial<IRunnerState>) => {
   useSkillPlannerStore.setState((state) => {
     const previousRunner = state.runner;
     const nextRunner = { ...previousRunner, ...updates };
@@ -590,7 +590,7 @@ export const getSkillPlanningMeta = (skillId: string): SkillPlanningMeta => {
   };
 };
 
-export const importVeteranRunner = (runnerSnapshot: RunnerState, resetSession = false) => {
+export const importVeteranRunner = (runnerSnapshot: IRunnerState, resetSession = false) => {
   useSkillPlannerStore.setState((state) => {
     const baseState = resetSession ? createInitialState() : state;
     const nextObtainedSkillIds = resolveObtainedSkillIds(
@@ -606,7 +606,7 @@ export const importVeteranRunner = (runnerSnapshot: RunnerState, resetSession = 
   });
 };
 
-export const importRunnerBaseline = (runnerSnapshot: RunnerState, resetSession = false) => {
+export const importRunnerBaseline = (runnerSnapshot: IRunnerState, resetSession = false) => {
   importVeteranRunner(runnerSnapshot, resetSession);
 };
 

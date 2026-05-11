@@ -1,11 +1,11 @@
 import type { RaceConditions } from '@/utils/races';
-import type { RunnerState } from '../runners/components/runner-card/types';
+import type { IRunnerState } from '../runners/components/runner-card/types';
 import type { CandidateSkill, SkillPlanningMeta } from './types';
 
 export interface OptimizationInputFingerprintParams {
   courseId: number;
   racedef: RaceConditions;
-  runner: RunnerState;
+  runner: IRunnerState;
   obtainedSkillIds: Array<string>;
   candidates: Record<string, CandidateSkill>;
   skillMetaById: Record<string, SkillPlanningMeta>;

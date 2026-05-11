@@ -2,9 +2,9 @@ import { gzipSync } from 'node:zlib';
 import { describe, it, expect, beforeAll } from 'vitest';
 import { BitVector } from './bit-vector';
 import { decodeRoster } from './roster-encoding';
-import type { SingleExportData, SingleExportSkill } from './types';
+import type { ISingleExportData, ISingleExportSkill } from './types';
 
-type TestRosterCharacter = Omit<SingleExportData, 'create_time'> & {
+type TestRosterCharacter = Omit<ISingleExportData, 'create_time'> & {
   talent_level?: number;
 };
 
@@ -98,7 +98,7 @@ function buildTestRoster(): TestRosterCharacter[] {
   ];
 
   for (let index = 1; index < 228; index++) {
-    const skills: SingleExportSkill[] = [];
+    const skills: ISingleExportSkill[] = [];
     const skillCount = (index % 4) + 1;
 
     for (let skillIndex = 0; skillIndex < skillCount; skillIndex++) {
@@ -155,7 +155,7 @@ describe('decodeRoster', () => {
   });
 
   describe('real roster data', () => {
-    let roster: SingleExportData[];
+    let roster: ISingleExportData[];
 
     beforeAll(async () => {
       const result = await decodeRoster(TEST_ROSTER_URL);

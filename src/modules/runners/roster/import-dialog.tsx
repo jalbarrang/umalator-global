@@ -1,0 +1,360 @@
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { IAptitudeFilters, IAptitudeSlotKey, IDecodedRunner } from './types';
+import { decodeRoster } from '../share/roster-encoding';
+import { buildDecodedRunner, hasAnyAptitudeFilter, passesAptitudeFilters } from './helpers';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useVirtualizer } from '@tanstack/react-virtual';
+import { ISavedRunner, useRunnerLibraryStore } from '@/store/runner-library.store';
+import { toast } from 'sonner';
+import { Search, X } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { AptitudeFilterGrid } from './components/filter-grid';
+import { Checkbox } from '@/components/ui/checkbox';
+import { RunnerRow } from './components/runner-row';
+import { DESKTOP_ROW_HEIGHT, MOBILE_ROW_HEIGHT } from './constants';
+
+type IRosterImportDialogProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+};
+
+export function RosterImportDialog({ open, onOpenChange }: Readonly<IRosterImportDialogProps>) {
+  const [code, setCode] = useState('');
+  const [decoded, setDecoded] = useState<IDecodedRunner[] | null>(null);
+  const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [search, setSearch] = useState('');
+  const [aptFilters, setAptFilters] = useState<IAptitudeFilters>({});
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const trimmed = code.trim();
+    if (!trimmed) {
+      setDecoded(null);
+      setError(false);
+      setSelected(new Set());
+      setSearch('');
+      setAptFilters({});
+      return;
+    }
+
+    let cancelled = false;
+    setLoading(true);
+    setError(false);
+
+    decodeRoster(trimmed).then((result) => {
+      if (cancelled) return;
+      setLoading(false);
+
+      if (!result) {
+        setDecoded(null);
+        setError(true);
+        setSelected(new Set());
+        return;
+      }
+
+      const runners = result.map(buildDecodedRunner);
+      setDecoded(runners);
+      setSelected(new Set(runners.map((_, i) => i)));
+      setSearch('');
+      setAptFilters({});
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [code]);
+
+  const hasActiveAptFilter = hasAnyAptitudeFilter(aptFilters);
+
+  const filtered = useMemo(() => {
+    if (!decoded) return [];
+    const query = search.toLowerCase().trim();
+
+    return decoded.reduce<Array<{ runner: IDecodedRunner; index: number }>>((acc, runner, i) => {
+      if (query && !runner.searchText.includes(query)) return acc;
+      if (hasActiveAptFilter && !passesAptitudeFilters(runner.source, aptFilters)) return acc;
+      acc.push({ runner, index: i });
+      return acc;
+    }, []);
+  }, [decoded, search, aptFilters, hasActiveAptFilter]);
+
+  const filteredSelectedCount = useMemo(
+    () => filtered.filter((f) => selected.has(f.index)).length,
+    [filtered, selected],
+  );
+
+  const isMobile = useIsMobile();
+
+  const virtualizer = useVirtualizer({
+    count: filtered.length,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => (isMobile ? MOBILE_ROW_HEIGHT : DESKTOP_ROW_HEIGHT),
+    overscan: 15,
+    getItemKey: (index) => {
+      const item = filtered[index];
+      return `${item.runner.source.card_id}-${item.index}`;
+    },
+  });
+
+  const handleOpenChange = useCallback(
+    (next: boolean) => {
+      if (!next) {
+        setCode('');
+        setDecoded(null);
+        setError(false);
+        setSelected(new Set());
+        setSearch('');
+        setAptFilters({});
+      }
+      onOpenChange(next);
+    },
+    [onOpenChange],
+  );
+
+  const toggleOne = useCallback((index: number) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+
+      if (next.has(index)) {
+        next.delete(index);
+      } else {
+        next.add(index);
+      }
+
+      return next;
+    });
+  }, []);
+
+  const selectAllFiltered = useCallback(() => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+
+      for (const { index } of filtered) {
+        next.add(index);
+      }
+
+      return next;
+    });
+  }, [filtered]);
+
+  const deselectAllFiltered = useCallback(() => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+
+      for (const { index } of filtered) {
+        next.delete(index);
+      }
+
+      return next;
+    });
+  }, [filtered]);
+
+  const setAptFilter = useCallback((key: IAptitudeSlotKey, value: number | null) => {
+    setAptFilters((prev) => {
+      const updated = { ...prev };
+
+      if (value == null) {
+        delete updated[key];
+      } else {
+        updated[key] = value;
+      }
+
+      return updated;
+    });
+  }, []);
+
+  const allFilteredSelected = filtered.length > 0 && filteredSelectedCount === filtered.length;
+  const someFilteredSelected = filteredSelectedCount > 0 && !allFilteredSelected;
+  const hasActiveFilters = !!search.trim() || hasActiveAptFilter;
+
+  const clearAllFilters = useCallback(() => {
+    setSearch('');
+    setAptFilters({});
+  }, []);
+
+  const handleImportSelected = useCallback(() => {
+    if (!decoded || selected.size === 0) return;
+
+    const now = Date.now();
+    const newRunners: ISavedRunner[] = [];
+    let idx = 0;
+
+    for (const i of selected) {
+      const runner = decoded[i];
+      newRunners.push({
+        ...runner.state,
+        notes: 'Imported from RosterView',
+        id: `${now}-${idx}-${Math.random().toString(36).substring(2, 9)}`,
+        createdAt: now,
+        updatedAt: now,
+      });
+      idx++;
+    }
+
+    useRunnerLibraryStore.setState((state) => ({
+      runners: [...state.runners, ...newRunners],
+    }));
+
+    toast.success(
+      `Imported ${newRunners.length} runner${newRunners.length === 1 ? '' : 's'} to library`,
+    );
+    handleOpenChange(false);
+  }, [decoded, selected, handleOpenChange]);
+
+  const hasResults = decoded && decoded.length > 0;
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent
+        className={`max-h-[calc(100dvh-2rem)] overflow-y-auto ${hasResults ? 'max-w-5xl!' : 'max-w-2xl!'}`}
+      >
+        <DialogHeader>
+          <DialogTitle>Import Full Roster</DialogTitle>
+          <DialogDescription>
+            Paste an encoded roster string to import multiple runners at once.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className={hasResults ? 'flex flex-col md:flex-row gap-4' : 'flex flex-col gap-3'}>
+          {/* Left panel: input + filters */}
+          <div className={`flex flex-col gap-3 ${hasResults ? 'md:w-80 md:shrink-0' : ''}`}>
+            <textarea
+              className="w-full h-24 p-3 rounded-md border bg-background font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder="Paste RosterView roster code here..."
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+            />
+
+            {loading && (
+              <div className="p-3 text-sm text-muted-foreground text-center">Decoding roster…</div>
+            )}
+
+            {error && !loading && (
+              <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-md text-destructive text-sm">
+                Invalid roster code. Please check the code and try again.
+              </div>
+            )}
+
+            {hasResults && (
+              <div className="flex flex-col gap-2">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                  <Input
+                    placeholder="Search characters..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="pl-8"
+                  />
+                </div>
+
+                <div className="hidden md:block">
+                  <AptitudeFilterGrid filters={aptFilters} onChange={setAptFilter} />
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    checked={allFilteredSelected}
+                    indeterminate={someFilteredSelected}
+                    onCheckedChange={(checked) => {
+                      if (checked) selectAllFiltered();
+                      else deselectAllFiltered();
+                    }}
+                  />
+
+                  <button
+                    type="button"
+                    className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                    onClick={() => {
+                      if (allFilteredSelected) deselectAllFiltered();
+                      else selectAllFiltered();
+                    }}
+                  >
+                    {hasActiveFilters
+                      ? `Select all ${filtered.length} matching`
+                      : `Select all ${decoded.length}`}
+                  </button>
+
+                  {hasActiveFilters && (
+                    <button
+                      type="button"
+                      className="ml-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                      onClick={clearAllFilters}
+                    >
+                      <X className="w-3 h-3" />
+                      Clear filters
+                    </button>
+                  )}
+                </div>
+
+                <div className="text-xs text-muted-foreground">
+                  {selected.size}/{decoded.length} selected
+                  {hasActiveFilters && ` · ${filtered.length} shown`}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right panel: character list */}
+          {hasResults && (
+            <div className="flex flex-col gap-1 flex-1 min-w-0">
+              <div ref={scrollRef} className="overflow-y-auto max-h-96 md:max-h-none md:h-128">
+                <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
+                  {virtualizer.getVirtualItems().map((virtualRow) => {
+                    const { runner, index } = filtered[virtualRow.index];
+
+                    return (
+                      <div
+                        key={virtualRow.key}
+                        className="absolute left-0 w-full"
+                        style={{
+                          height: isMobile ? MOBILE_ROW_HEIGHT : DESKTOP_ROW_HEIGHT,
+                          transform: `translateY(${virtualRow.start}px)`,
+                        }}
+                      >
+                        <RunnerRow
+                          runner={runner}
+                          index={index}
+                          isSelected={selected.has(index)}
+                          onToggle={toggleOne}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {filtered.length === 0 && hasActiveFilters && (
+                <div className="p-4 text-sm text-muted-foreground text-center">
+                  No characters match the current filters
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => handleOpenChange(false)}>
+            Cancel
+          </Button>
+
+          {hasResults && (
+            <Button onClick={handleImportSelected} disabled={selected.size === 0}>
+              Import{selected.size > 0 ? ` (${selected.size})` : ''}
+            </Button>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

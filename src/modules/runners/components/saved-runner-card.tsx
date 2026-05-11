@@ -1,15 +1,8 @@
 import { Copy, Edit, MoreVertical, PlayCircle, Trash2, Code, Download, Camera } from 'lucide-react';
 import { useMemo, useRef } from 'react';
-import {
-  ShareCard,
-  copyRosterViewCode,
-  downloadJson,
-  copyScreenshot,
-  getSkillsForShareCard,
-} from '@/modules/runners/share';
 import { getUmaDisplayInfo, getUmaImageUrl } from '../utils';
 import { StatImage } from './StatInput';
-import type { SavedRunner } from '@/store/runner-library.store';
+import type { ISavedRunner } from '@/store/runner-library.store';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -20,13 +13,20 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { strategyNames } from '@/lib/sunday-tools/runner/definitions';
 import { getIconUrl } from '@/assets/icons';
+import {
+  copyRosterViewCode,
+  copyScreenshot,
+  downloadJson,
+  getSkillsForShareCard,
+} from '../share/share-actions';
+import { ShareCard } from '../share/share-card';
 
 type SavedRunnerCardProps = {
-  runner: SavedRunner;
-  onEdit: (runner: SavedRunner) => void;
+  runner: ISavedRunner;
+  onEdit: (runner: ISavedRunner) => void;
   onDelete: (id: string) => void;
   onDuplicate: (id: string) => void;
-  onLoadToSimulation: (runner: SavedRunner) => void;
+  onLoadToSimulation: (runner: ISavedRunner) => void;
 };
 
 export const SavedRunnerCard = (props: SavedRunnerCardProps) => {

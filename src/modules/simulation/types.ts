@@ -1,4 +1,4 @@
-import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import type {
   SimulationData,
   SkillSimulationData,
@@ -66,8 +66,8 @@ export type RunComparisonParams = {
   nsamples: number;
   course: CourseData;
   racedef: RaceParameters;
-  runnerA: RunnerState;
-  runnerB: RunnerState;
+  runnerA: IRunnerState;
+  runnerB: IRunnerState;
   options: SimulationOptions;
 };
 
@@ -91,8 +91,8 @@ export type CompareParams = {
   nsamples: number;
   course: CourseData;
   racedef: RaceParameters;
-  uma1: RunnerState;
-  uma2: RunnerState;
+  uma1: IRunnerState;
+  uma2: IRunnerState;
   options: SimulationOptions;
   forcedPositions?: ForcedPositionsMap;
   injectedDebuffs?: InjectedDebuffsMap;
@@ -103,6 +103,6 @@ export type Run1RoundParams = {
   skills: Array<string>;
   course: CourseData;
   racedef: RaceParameters;
-  uma: RunnerState;
+  uma: IRunnerState;
   options: SimulationOptions;
 };

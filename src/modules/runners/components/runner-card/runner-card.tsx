@@ -20,19 +20,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  ShareCard,
-  copyRosterViewCode,
-  downloadJson,
-  copyScreenshot,
-  getSkillsForShareCard,
-  ImportCodeDialog,
-} from '@/modules/runners/share';
 import { getUmaDisplayInfo, getUmaImageUrl } from '@/modules/runners/utils';
 import { StatsTable } from './stats-table';
 import { AptitudesTable } from './aptitudes-table';
 import { runawaySkillId } from './types';
-import type { RunnerState } from './types';
+import type { IRunnerState } from './types';
 import type { StatsKey } from './stats-table';
 import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
 import {
@@ -75,14 +67,22 @@ import {
   type SkillCostSummary,
 } from '@/modules/skills/skill-cost-summary';
 import { cn } from '@/lib/utils';
+import {
+  copyRosterViewCode,
+  copyScreenshot,
+  downloadJson,
+  getSkillsForShareCard,
+} from '../../share/share-actions';
+import { ImportCodeDialog } from '../../share/import-code-dialog';
+import { ShareCard } from '../../share/share-card';
 
 type RunnerCardProps = {
-  value: RunnerState;
+  value: IRunnerState;
   courseDistance?: number;
   runnerId: string;
 
   // Events
-  onChange: (value: RunnerState) => void;
+  onChange: (value: IRunnerState) => void;
   onReset?: () => void;
   onCopy?: () => void;
   onSwap?: () => void;
@@ -182,7 +182,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
 
   // Handle OCR import apply
   const handleOcrImportApply = (data: ExtractedUmaData) => {
-    const newState: Partial<RunnerState> = {};
+    const newState: Partial<IRunnerState> = {};
 
     // Apply uma identity
     if (data.outfitId) {
@@ -454,7 +454,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
         onOpenChange={setCodeImportDialogOpen}
         mode="direct-import"
         onDirectImport={(partialRunner) => {
-          onChange({ ...state, ...partialRunner } as RunnerState);
+          onChange({ ...state, ...partialRunner } as IRunnerState);
           setCodeImportDialogOpen(false);
         }}
       />

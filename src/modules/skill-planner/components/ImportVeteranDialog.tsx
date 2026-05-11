@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CheckIcon, SearchIcon } from 'lucide-react';
-import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import { getUmaDisplayInfo, getUmaImageUrl } from '@/modules/runners/utils';
-import { useRunnerLibraryStore, type SavedRunner } from '@/store/runner-library.store';
+import { useRunnerLibraryStore, type ISavedRunner } from '@/store/runner-library.store';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -18,10 +18,10 @@ import { cn } from '@/lib/utils';
 type ImportVeteranDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onImportRunner: (runner: RunnerState) => void;
+  onImportRunner: (runner: IRunnerState) => void;
 };
 
-export function toRunnerStateSnapshot(runner: SavedRunner): RunnerState {
+export function toRunnerStateSnapshot(runner: ISavedRunner): IRunnerState {
   return {
     outfitId: runner.outfitId,
     speed: runner.speed,

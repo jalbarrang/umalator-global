@@ -7,14 +7,14 @@ import { clone, cloneDeepWith } from 'es-toolkit';
 import { mergeResultSets } from './utils';
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import type { RaceParameters } from '@/lib/sunday-tools/common/race';
-import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import type { Run1RoundParams, SimulationOptions } from '@/modules/simulation/types';
 import { runSampling } from '@/modules/simulation/simulators/skill-compare';
 
 type PrepareRoundParams = {
   courseData: CourseData;
   raceParams: RaceParameters;
-  runner: RunnerState;
+  runner: IRunnerState;
   options: SimulationOptions;
 };
 
@@ -35,7 +35,7 @@ type RunChartParams = {
   skills: Array<string>;
   course: CourseData;
   racedef: RaceParameters;
-  uma: RunnerState;
+  uma: IRunnerState;
   options: SimulationOptions;
 };
 

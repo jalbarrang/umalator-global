@@ -1,9 +1,9 @@
-export type SingleExportSkill = {
+export type ISingleExportSkill = {
   skill_id: number;
   skill_level: number;
 };
 
-export type SingleExportData = {
+export type ISingleExportData = {
   card_id: number;
   speed: number;
   stamina: number;
@@ -22,5 +22,5 @@ export type SingleExportData = {
   proper_running_style_oikomi: number;
   create_time: string;
   rank_score?: number;
-  skill_array: SingleExportSkill[];
+  skill_array: ISingleExportSkill[];
 };

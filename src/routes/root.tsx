@@ -11,15 +11,21 @@ import { ImportCodeDialog } from '@/modules/runners/share/import-code-dialog';
 import { useRoosterImport } from '@/modules/runners/share/use-rooster-import';
 import { setRunner } from '@/store/runners.store';
 import { createRunnerState } from '@/modules/runners/components/runner-card/types';
-import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import { toast } from 'sonner';
 
-import { lazy, Suspense, useCallback } from 'react';
+import { lazy, useCallback } from 'react';
 import type { ReactNode } from 'react';
 
-const SimulationLayout = lazy(async () => ({
-  default: (await import('./_simulation')).SimulationLayout,
-}));
+// Layouts
+import { SimulationLayout } from './_simulation';
+import { RunnersLayout } from './runners';
+import { RaceSimRoot } from './race-sim';
+
+// Pages
+import { SparkOddsPage } from './_tools/spark-odds';
+
+// Comparison
 const SimulationHome = lazy(async () => ({
   default: (await import('./_simulation/home')).SimulationHome,
 }));
@@ -29,16 +35,21 @@ const SkillBassin = lazy(async () => ({
 const UmaBassin = lazy(async () => ({
   default: (await import('./_simulation/uma-bassin')).UmaBassin,
 }));
+
+// Skill Planner
+
 const SkillPlanner = lazy(async () => ({
   default: (await import('./skill-planner')).SkillPlanner,
 }));
-const RunnersLayout = lazy(async () => ({ default: (await import('./runners')).RunnersLayout }));
+
+// Roster
 const RunnersHome = lazy(async () => ({ default: (await import('./runners/home')).RunnersHome }));
 const RunnersNew = lazy(async () => ({ default: (await import('./runners/new')).RunnersNew }));
 const RunnersEdit = lazy(async () => ({
   default: (await import('./runners/$runnerId.edit')).RunnersEdit,
 }));
-const RaceSimRoot = lazy(async () => ({ default: (await import('./_race-sim')).RaceSimRoot }));
+
+// Race Simulation
 const RaceSimHome = lazy(async () => ({ default: (await import('./race-sim/home')).RaceSimHome }));
 const RaceSimRun = lazy(async () => ({ default: (await import('./race-sim/run')).RaceSimRun }));
 const RaceSimResults = lazy(async () => ({
@@ -65,7 +76,7 @@ export function RootComponent() {
   const { importCode, dialogOpen, setDialogOpen } = useRoosterImport();
 
   const handleRoosterImport = useCallback(
-    (slot: 'uma1' | 'uma2', partialRunner: Partial<RunnerState>) => {
+    (slot: 'uma1' | 'uma2', partialRunner: Partial<IRunnerState>) => {
       const fullRunner = createRunnerState(partialRunner);
       setRunner(slot, fullRunner);
       setDialogOpen(false);
@@ -80,139 +91,136 @@ export function RootComponent() {
         <Navbar />
 
         <main className="flex flex-1 overflow-hidden min-h-0">
-          <Suspense
-            fallback={
-              <div className="flex flex-1 items-center justify-center p-4 text-sm text-muted-foreground">
-                Loading route…
-              </div>
-            }
-          >
-            <Routes>
-              <Route path="/" element={<SimulationLayout />}>
-                <Route
-                  index
-                  element={
-                    <RoutePage
-                      title="Uma Musume Build Compare Tool"
-                      description="Compare two Uma Musume Global configurations with repeatable seeded simulations, bassin gain charts, and race setting controls."
-                    >
-                      <SimulationHome />
-                    </RoutePage>
-                  }
-                />
-                <Route
-                  path="/skill-bassin"
-                  element={
-                    <RoutePage
-                      title="Skill Bassin Compare"
-                      description="Measure bassin gain from skill changes using isolated seeded comparisons for Uma Musume Global builds."
-                    >
-                      <SkillBassin />
-                    </RoutePage>
-                  }
-                />
-                <Route
-                  path="/uma-bassin"
-                  element={
-                    <RoutePage
-                      title="Runner Bassin Compare"
-                      description="Compare full runner configurations and see position gain in bassin across repeatable Uma Musume Global simulations."
-                    >
-                      <UmaBassin />
-                    </RoutePage>
-                  }
-                />
-              </Route>
-
-              <Route path="/runners" element={<RunnersLayout />}>
-                <Route
-                  index
-                  element={
-                    <RoutePage
-                      title="Veteran Library"
-                      description="Save, search, filter, and reuse runner builds for Uma Musume Global simulations and race planning."
-                    >
-                      <RunnersHome />
-                    </RoutePage>
-                  }
-                />
-                <Route
-                  path="/runners/new"
-                  element={
-                    <RoutePage
-                      title="Add Runner"
-                      description="Create a new runner build for Yet Another Umalator."
-                      noindex
-                    >
-                      <RunnersNew />
-                    </RoutePage>
-                  }
-                />
-                <Route
-                  path="/runners/:runnerId/edit"
-                  element={
-                    <RoutePage
-                      title="Edit Runner"
-                      description="Edit a saved runner build for Yet Another Umalator."
-                      noindex
-                    >
-                      <RunnersEdit />
-                    </RoutePage>
-                  }
-                />
-              </Route>
-
-              <Route path="/race-sim" element={<RaceSimRoot />}>
-                <Route
-                  index
-                  element={
-                    <RoutePage
-                      title="Uma Musume Race Simulator"
-                      description="Inspect race simulation setup, runner details, and playback tools for a full-field Uma Musume Global race sim."
-                    >
-                      <RaceSimHome />
-                    </RoutePage>
-                  }
-                />
-                <Route
-                  path="/race-sim/run"
-                  element={
-                    <RoutePage
-                      title="Race Sim Playback"
-                      description="Run-by-run playback for the Uma Musume race simulator."
-                      noindex
-                    >
-                      <RaceSimRun />
-                    </RoutePage>
-                  }
-                />
-                <Route
-                  path="/race-sim/results"
-                  element={
-                    <RoutePage
-                      title="Race Sim Results"
-                      description="Detailed results and finish-order output for the Uma Musume race simulator."
-                      noindex
-                    >
-                      <RaceSimResults />
-                    </RoutePage>
-                  }
-                />
-              </Route>
-
+          <Routes>
+            <Route path="/" element={<SimulationLayout />}>
               <Route
-                path="/skill-planner"
+                index
                 element={
                   <RoutePage
-                    title="Uma Musume Global Skill Planner"
-                    description="Plan skill purchases for Uma Musume Global with costs, dependencies, discounts, and build iteration tools."
+                    title="Uma Musume Build Compare Tool"
+                    description="Compare two Uma Musume Global configurations with repeatable seeded simulations, bassin gain charts, and race setting controls."
                   >
-                    <SkillPlanner />
+                    <SimulationHome />
                   </RoutePage>
                 }
               />
-            </Routes>
-          </Suspense>
+              <Route
+                path="/skill-bassin"
+                element={
+                  <RoutePage
+                    title="Skill Bassin Compare"
+                    description="Measure bassin gain from skill changes using isolated seeded comparisons for Uma Musume Global builds."
+                  >
+                    <SkillBassin />
+                  </RoutePage>
+                }
+              />
+              <Route
+                path="/uma-bassin"
+                element={
+                  <RoutePage
+                    title="Runner Bassin Compare"
+                    description="Compare full runner configurations and see position gain in bassin across repeatable Uma Musume Global simulations."
+                  >
+                    <UmaBassin />
+                  </RoutePage>
+                }
+              />
+            </Route>
+
+            <Route path="/runners" element={<RunnersLayout />}>
+              <Route
+                index
+                element={
+                  <RoutePage
+                    title="Veteran Library"
+                    description="Save, search, filter, and reuse runner builds for Uma Musume Global simulations and race planning."
+                  >
+                    <RunnersHome />
+                  </RoutePage>
+                }
+              />
+              <Route
+                path="/runners/new"
+                element={
+                  <RoutePage
+                    title="Add Runner"
+                    description="Create a new runner build for Yet Another Umalator."
+                    noindex
+                  >
+                    <RunnersNew />
+                  </RoutePage>
+                }
+              />
+              <Route
+                path="/runners/:runnerId/edit"
+                element={
+                  <RoutePage
+                    title="Edit Runner"
+                    description="Edit a saved runner build for Yet Another Umalator."
+                    noindex
+                  >
+                    <RunnersEdit />
+                  </RoutePage>
+                }
+              />
+            </Route>
+
+            <Route path="/race-sim" element={<RaceSimRoot />}>
+              <Route
+                index
+                element={
+                  <RoutePage
+                    title="Uma Musume Race Simulator"
+                    description="Inspect race simulation setup, runner details, and playback tools for a full-field Uma Musume Global race sim."
+                  >
+                    <RaceSimHome />
+                  </RoutePage>
+                }
+              />
+              <Route
+                path="/race-sim/run"
+                element={
+                  <RoutePage
+                    title="Race Sim Playback"
+                    description="Run-by-run playback for the Uma Musume race simulator."
+                    noindex
+                  >
+                    <RaceSimRun />
+                  </RoutePage>
+                }
+              />
+              <Route
+                path="/race-sim/results"
+                element={
+                  <RoutePage
+                    title="Race Sim Results"
+                    description="Detailed results and finish-order output for the Uma Musume race simulator."
+                    noindex
+                  >
+                    <RaceSimResults />
+                  </RoutePage>
+                }
+              />
+            </Route>
+
+            <Route
+              path="/skill-planner"
+              element={
+                <RoutePage
+                  title="Uma Musume Global Skill Planner"
+                  description="Plan skill purchases for Uma Musume Global with costs, dependencies, discounts, and build iteration tools."
+                >
+                  <SkillPlanner />
+                </RoutePage>
+              }
+            />
+
+            <Route path="/spark-odds" element={<SparkOddsPage />} />
+
+            {/* Catch all route */}
+            <Route path="*" element={<NotFoundComponent />} />
+          </Routes>
         </main>
 
         <CreditsModal />

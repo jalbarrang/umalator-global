@@ -1,5 +1,5 @@
 import type { RoundResult, SkillComparisonRoundResult } from '@/modules/simulation/types';
-import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import type { RaceParameters } from '@/lib/sunday-tools/common/race';
 import { buildSkillData } from '@/lib/sunday-tools/runner/runner.utils';
@@ -76,7 +76,7 @@ export function createDistanceBins<T extends { start: number; end: number }>(
  */
 export function getActivateableSkills(
   skills: Array<string>,
-  runner: RunnerState,
+  runner: IRunnerState,
   course: CourseData,
   raceParams: RaceParameters,
 ) {

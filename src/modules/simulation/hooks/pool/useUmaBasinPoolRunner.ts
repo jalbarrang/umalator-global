@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import UmaBasinPoolWorker from '@workers/pool/uma-basin/uma-basin.pool.worker.ts?worker';
 import type { SkillComparisonResponse } from '@/modules/simulation/types';
-import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import {
   appendResultsToTable,
   resetTable,
@@ -26,7 +26,7 @@ const uniqueSkillIds = dataRegistry.skills.getUniqueSkillIds();
 
 const createUmaBasinPoolWorker = (options: { name: string }) => new UmaBasinPoolWorker(options);
 
-function removeUniqueSkillsFromRunner(uma: RunnerState): RunnerState {
+function removeUniqueSkillsFromRunner(uma: IRunnerState): IRunnerState {
   const filteredSkills = uma.skills.filter((skillId) => !uniqueSkillIds.includes(skillId));
 
   return { ...uma, skills: filteredSkills };

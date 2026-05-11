@@ -1,10 +1,10 @@
 import { getIconUrl } from '@/assets/icons';
 import { forwardRef } from 'react';
-import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import { Aptitude } from '@/lib/sunday-tools/runner/definitions';
 
 type ShareCardProps = {
-  runner: RunnerState;
+  runner: IRunnerState;
   umaInfo: { name: string; outfit: string } | null;
   imageUrl: string;
   skills: Array<{ id: string; name: string; iconId: string; rarity: number }>;

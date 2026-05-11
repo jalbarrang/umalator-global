@@ -10,7 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { decodeSingleUma } from './encoding';
 import { singleExportToRunnerState } from './converters';
-import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import { getUmaDisplayInfo, getUmaImageUrl } from '@/modules/runners/utils';
 import { StatImage } from '@/modules/runners/components/StatInput';
 import { dataRegistry } from '@/modules/data/registry';
@@ -20,8 +20,8 @@ type ImportCodeDialogProps = {
   onOpenChange: (open: boolean) => void;
   initialCode?: string | null;
   mode?: 'slot-picker' | 'direct-import';
-  onLoadToSlot?: (slot: 'uma1' | 'uma2', runner: Partial<RunnerState>) => void;
-  onDirectImport?: (runner: Partial<RunnerState>) => void;
+  onLoadToSlot?: (slot: 'uma1' | 'uma2', runner: Partial<IRunnerState>) => void;
+  onDirectImport?: (runner: Partial<IRunnerState>) => void;
 };
 
 export function ImportCodeDialog({

@@ -1,5 +1,5 @@
+import { ShareCard } from '@/modules/runners/share/share-card';
 import { forwardRef, type ComponentProps } from 'react';
-import { ShareCard } from '@/modules/runners/share';
 
 const FONT_STACK = 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
 

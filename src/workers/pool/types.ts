@@ -1,6 +1,6 @@
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import type { RaceParameters } from '@/lib/sunday-tools/common/race';
-import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import type { SimulationOptions, SkillComparisonResponse } from '@/modules/simulation/types';
 
 export type WorkerState = 'idle' | 'busy' | 'terminated';
@@ -22,7 +22,7 @@ export type WorkBatch = {
 export type SimulationParams = {
   course: CourseData;
   racedef: RaceParameters;
-  uma: RunnerState;
+  uma: IRunnerState;
   options: SimulationOptions;
 };
 

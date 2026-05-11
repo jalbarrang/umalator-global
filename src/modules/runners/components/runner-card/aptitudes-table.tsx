@@ -1,7 +1,7 @@
 import { AptitudeSelect } from '../AptitudeSelect';
 import { MoodSelect } from '../MoodSelect';
 import { StrategySelect } from '../StrategySelect';
-import type { RunnerState } from './types';
+import type { IRunnerState } from './types';
 import type { IMood } from '@/lib/sunday-tools/runner/definitions';
 import { Label } from '@/components/ui/label';
 
@@ -13,8 +13,8 @@ export type Aptitude =
   | 'mood';
 
 type AptitudesTableProps = {
-  value: RunnerState;
-  onChange: (value: RunnerState) => void;
+  value: IRunnerState;
+  onChange: (value: IRunnerState) => void;
   hasRunawaySkill: boolean;
   onRunawayStrategy: () => void;
 };

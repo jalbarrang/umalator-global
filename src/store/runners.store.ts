@@ -5,7 +5,7 @@ import { useShallow } from 'zustand/shallow';
 import { toast } from 'sonner';
 import { cloneDeep } from 'es-toolkit';
 import { useMemo } from 'react';
-import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import { createRunnerState, runawaySkillId } from '@/modules/runners/components/runner-card/types';
 import { getGeneVersionSkillId, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import { dataRegistry } from '@/modules/data/registry';
@@ -13,8 +13,8 @@ import { dataRegistry } from '@/modules/data/registry';
 type RunnerType = 'uma1' | 'uma2';
 
 type IRunnersStore = {
-  uma1: RunnerState;
-  uma2: RunnerState;
+  uma1: IRunnerState;
+  uma2: IRunnerState;
 
   // UI Specific
   runnerId: RunnerType;
@@ -41,7 +41,7 @@ export const useRunner = () => {
   const hasOutfit = useMemo(() => runner.outfitId !== '', [runner.outfitId]);
   const hasRunawaySkill = useMemo(() => runner.skills.includes(runawaySkillId), [runner.skills]);
 
-  const handleUpdateRunner = (runnerState: RunnerState) => {
+  const handleUpdateRunner = (runnerState: IRunnerState) => {
     setRunner(runnerId, runnerState);
   };
 
@@ -78,7 +78,7 @@ export const useRunnerByName = (runner: RunnerType) => {
   return useRunnersStore(useShallow((state) => state[runner]));
 };
 
-export const setRunner = (runner: RunnerType, runnerState: RunnerState) => {
+export const setRunner = (runner: RunnerType, runnerState: IRunnerState) => {
   useRunnersStore.setState({ [runner]: runnerState });
 };
 
@@ -149,10 +149,10 @@ export const copyToRunner = (fromRunner: RunnerType, toRunner: RunnerType) => {
 };
 
 export const replaceRunnerOutfit = (
-  runner: RunnerState,
+  runner: IRunnerState,
   newOutfitId: string,
   currentSkills: Array<string>,
-): RunnerState => {
+): IRunnerState => {
   const newSkills: Array<string> = [];
 
   for (const skillId of currentSkills) {
@@ -195,7 +195,7 @@ export const isEvolutionSkill = (skillRarity: number) => {
 
 export const loadRunnerFromLibrary = (
   runner: RunnerType,
-  libraryRunner: RunnerState & { id: string },
+  libraryRunner: IRunnerState & { id: string },
 ) => {
   const runnerData = cloneDeep(libraryRunner);
   runnerData.linkedRunnerId = libraryRunner.id;

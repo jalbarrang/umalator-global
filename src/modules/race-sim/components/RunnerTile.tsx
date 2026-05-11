@@ -4,13 +4,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { strategyNames } from '@/lib/sunday-tools/runner/definitions';
 import { getIconUrl } from '@/assets/icons';
-import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import { getUmaDisplayInfo, getUmaImageUrl } from '@/modules/runners/utils';
 import { StatImage } from '@/modules/runners/components/StatInput';
 
 type RunnerTileProps = {
   index: number;
-  runner: RunnerState;
+  runner: IRunnerState;
   isFocused: boolean;
   onToggleFocus: (index: number) => void;
   onOpenEditor?: (index: number) => void;

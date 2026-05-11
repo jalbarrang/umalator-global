@@ -13,7 +13,7 @@
  * Uses racer-sim's BatchSimulator for efficient simulation.
  */
 
-import type { RunnerState } from '../runners/components/runner-card/types';
+import type { IRunnerState } from '../runners/components/runner-card/types';
 import type { CandidateSkill, CombinationResult } from './types';
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import type { RaceParameters } from '@/lib/sunday-tools/common/race';
@@ -35,7 +35,7 @@ export interface OptimizerInput {
   /** Available skill points budget */
   budget: number;
   /** Runner configuration for simulation */
-  runnerConfig: RunnerState;
+  runnerConfig: IRunnerState;
   /** Course data */
   course: CourseData;
   /** Race parameters */

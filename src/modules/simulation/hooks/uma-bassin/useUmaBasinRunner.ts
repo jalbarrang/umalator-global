@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import UmaBasinWorker from '@workers/uma-basin.worker.ts?worker';
 import type { SkillComparisonResponse } from '@/modules/simulation/types';
-import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import {
   appendResultsToTable,
   resetTable,
@@ -33,7 +33,7 @@ const WORKER_COUNT = 2;
 // Total samples per skill: 5 + 20 + 50 + 200 = 275 (for skills that pass all filters)
 const SAMPLES_PER_STAGE = [5, 20, 50, 200];
 
-function removeUniqueSkillsFromRunner(uma: RunnerState): RunnerState {
+function removeUniqueSkillsFromRunner(uma: IRunnerState): IRunnerState {
   const filteredSkills = uma.skills.filter((skillId) => !uniqueSkillIds.includes(skillId));
 
   return { ...uma, skills: filteredSkills };

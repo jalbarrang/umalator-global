@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { useShallow } from 'zustand/shallow';
-import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import type { RaceConditions } from '@/utils/races';
 import { createRunnerState } from '@/modules/runners/components/runner-card/types';
 import { DEFAULT_SAMPLES } from '@/utils/constants';
@@ -26,8 +26,8 @@ type ISettingsStore = {
   courseId: number;
   nsamples: number;
   racedef: RaceConditions;
-  uma1: RunnerState;
-  uma2: RunnerState;
+  uma1: IRunnerState;
+  uma2: IRunnerState;
   witVarianceSettings: WitVarianceSettings;
   staminaDrainOverrides: StaminaDrainOverrides;
   selectedPresetId: string | null;

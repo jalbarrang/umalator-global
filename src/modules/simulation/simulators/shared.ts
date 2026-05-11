@@ -1,4 +1,4 @@
-import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import type { CreateRunner } from '@/lib/sunday-tools/common/runner';
 import type {
   DuelingRates,
@@ -92,7 +92,7 @@ export function createSkillSorterByGroup(allSkills: Array<string>) {
 }
 
 export function toCreateRunner(
-  runner: RunnerState,
+  runner: IRunnerState,
   sortedSkills: Array<string>,
   forcedPositions?: Record<string, number>,
   injectedDebuffs?: Array<InjectedDebuff>,

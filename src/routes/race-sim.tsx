@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { Suspense, useCallback, useMemo } from 'react';
 import { XIcon } from 'lucide-react';
 import { Link, Outlet, useLocation } from 'react-router';
 import { useShallow } from 'zustand/shallow';
@@ -159,7 +159,16 @@ export function RaceSimRoot() {
               </Alert>
             </div>
           )}
-          <Outlet />
+
+          <Suspense
+            fallback={
+              <div className="flex flex-1 items-center justify-center p-4 text-sm text-muted-foreground">
+                Loading route…
+              </div>
+            }
+          >
+            <Outlet />
+          </Suspense>
         </div>
       </div>
     </RaceSimContext.Provider>

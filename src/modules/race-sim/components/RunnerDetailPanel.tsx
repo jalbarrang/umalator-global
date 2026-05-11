@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { dataRegistry } from '@/modules/data/registry';
 import { AptitudesTable } from '@/modules/runners/components/runner-card/aptitudes-table';
 import { StatsTable, type StatsKey } from '@/modules/runners/components/runner-card/stats-table';
-import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import { runawaySkillId } from '@/modules/runners/components/runner-card/types';
 import { UmaSelector } from '@/modules/runners/components/runner-selector';
 import { getUmaDisplayInfo, getUmaImageUrl } from '@/modules/runners/utils';
@@ -74,7 +74,7 @@ export function RunnerDetailPanel({
   );
 
   const applyRunnerPatch = useCallback(
-    (partial: Partial<RunnerState>) => {
+    (partial: Partial<IRunnerState>) => {
       updateRunner(runnerIndex, partial);
     },
     [runnerIndex],
@@ -90,7 +90,7 @@ export function RunnerDetailPanel({
   const handleSetSkills = useCallback(
     (skills: Array<string>) => {
       if (!runner) return;
-      const partial: Partial<RunnerState> = { skills };
+      const partial: Partial<IRunnerState> = { skills };
       if (skills.includes(runawaySkillId) && runner.strategy !== 'Runaway') {
         partial.strategy = 'Runaway';
       }
@@ -117,7 +117,7 @@ export function RunnerDetailPanel({
   );
 
   const handleUpdateAptitudes = useCallback(
-    (nextRunner: RunnerState) => {
+    (nextRunner: IRunnerState) => {
       applyRunnerPatch(nextRunner);
     },
     [applyRunnerPatch],

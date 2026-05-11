@@ -13,7 +13,7 @@ import type {
   OptimizationProgress,
   OptimizationResult,
 } from './types';
-import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import type { RaceParameters } from '@/lib/sunday-tools/common/race';
 import type { SimulationOptions } from '@/modules/simulation/types';
@@ -28,7 +28,7 @@ export interface OptimizationParams {
   /** If true, planner ignores stamina depletion effects */
   ignoreStaminaConsumption: boolean;
   /** Runner configuration (without skills - they'll be set during simulation) */
-  runner: RunnerState;
+  runner: IRunnerState;
   /** Course data */
   course: CourseData;
   /** Race parameters */
@@ -174,7 +174,7 @@ interface EvaluateCombinationsParams {
   combinations: Array<Array<string>>;
   candidates: Array<CandidateSkill>;
   obtainedSkills: Array<string>;
-  runner: RunnerState;
+  runner: IRunnerState;
   course: CourseData;
   racedef: RaceParameters;
   options: SimulationOptions;
@@ -242,7 +242,7 @@ interface EvaluateCombinationParams {
   combination: Array<string>;
   candidates: Array<CandidateSkill>;
   obtainedSkills: Array<string>;
-  runner: RunnerState;
+  runner: IRunnerState;
   course: CourseData;
   racedef: RaceParameters;
   options: SimulationOptions;

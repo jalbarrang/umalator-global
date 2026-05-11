@@ -1,5 +1,5 @@
 import { BitVector } from './bit-vector';
-import type { SingleExportData, SingleExportSkill } from './types';
+import type { ISingleExportData, ISingleExportSkill } from './types';
 
 function parseUtcTimestamp(str: string): number {
   const [datePart, timePart] = str.split(' ');
@@ -20,7 +20,7 @@ function formatUtcTimestamp(ms: number): string {
 const clampStat = (v: number) => Math.max(0, Math.min(2047, v));
 const clampApt = (v: number) => Math.max(0, Math.min(9, v));
 
-export function encodeSingleUma(data: SingleExportData): string {
+export function encodeSingleUma(data: ISingleExportData): string {
   const bv = new BitVector();
 
   bv.write(2, 8);
@@ -63,7 +63,7 @@ export function encodeSingleUma(data: SingleExportData): string {
   return bv.toBase64();
 }
 
-export function decodeSingleUma(encoded: string): SingleExportData | null {
+export function decodeSingleUma(encoded: string): ISingleExportData | null {
   try {
     const bv = BitVector.fromBase64(encoded);
 
@@ -100,7 +100,7 @@ export function decodeSingleUma(encoded: string): SingleExportData | null {
     }
 
     const skill_count = bv.read(6);
-    const skill_array: SingleExportSkill[] = [];
+    const skill_array: ISingleExportSkill[] = [];
     for (let i = 0; i < skill_count; i++) {
       const skill_id = bv.read(20);
       const skill_level = bv.read(4) + 1;

@@ -2,7 +2,7 @@ import { useNavigate, useParams } from 'react-router';
 
 import { useMemo, useState } from 'react';
 import { AlertCircle } from 'lucide-react';
-import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import { RunnerEditorLayout } from '@/layout/runner-editor-layout';
 import { useRunnerLibraryStore } from '@/store/runner-library.store';
 import {
@@ -27,7 +27,7 @@ export function RunnersEdit() {
   }, [id, getRunner]);
 
   const [runnerName, setRunnerName] = useState(initialRunner?.notes || '');
-  const [runnerState, setRunnerState] = useState<RunnerState | null>(initialRunner || null);
+  const [runnerState, setRunnerState] = useState<IRunnerState | null>(initialRunner || null);
 
   const notFound = !initialRunner;
 

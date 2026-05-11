@@ -2,22 +2,22 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { toast } from 'sonner';
 import { cloneDeep } from 'es-toolkit';
-import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 
-export type SavedRunner = RunnerState & {
+export type ISavedRunner = IRunnerState & {
   id: string;
   notes: string;
   createdAt: number;
   updatedAt: number;
 };
 
-type RunnerLibraryStore = {
-  runners: Array<SavedRunner>;
-  addRunner: (runner: Omit<SavedRunner, 'id' | 'createdAt' | 'updatedAt'>) => string;
-  updateRunner: (id: string, updates: Partial<SavedRunner>) => void;
+type IRunnerLibraryStore = {
+  runners: Array<ISavedRunner>;
+  addRunner: (runner: Omit<ISavedRunner, 'id' | 'createdAt' | 'updatedAt'>) => string;
+  updateRunner: (id: string, updates: Partial<ISavedRunner>) => void;
   deleteRunner: (id: string) => void;
   deleteRunners: (ids: Set<string>) => void;
-  getRunner: (id: string) => SavedRunner | undefined;
+  getRunner: (id: string) => ISavedRunner | undefined;
   duplicateRunner: (id: string) => void;
 };
 
@@ -26,7 +26,7 @@ const generateId = () => {
   return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 };
 
-export const useRunnerLibraryStore = create<RunnerLibraryStore>()(
+export const useRunnerLibraryStore = create<IRunnerLibraryStore>()(
   persist(
     (set, get) => ({
       runners: [],
@@ -34,7 +34,7 @@ export const useRunnerLibraryStore = create<RunnerLibraryStore>()(
       addRunner: (runner) => {
         const id = generateId();
         const now = Date.now();
-        const newRunner: SavedRunner = {
+        const newRunner: ISavedRunner = {
           ...runner,
           id,
           createdAt: now,

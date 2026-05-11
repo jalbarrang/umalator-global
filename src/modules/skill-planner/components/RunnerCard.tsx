@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Import } from 'lucide-react';
 import type { StatsKey } from '@/modules/runners/components/runner-card/stats-table';
-import type { RunnerState } from '@/modules/runners/components/runner-card/types';
+import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import { cn } from '@/lib/utils';
 import { StatsTable } from '@/modules/runners/components/runner-card/stats-table';
 import { UmaSelector } from '@/modules/runners/components/runner-selector';
@@ -11,10 +11,10 @@ import { ImportVeteranDialog } from './ImportVeteranDialog';
 import { Button } from '@/components/ui/button';
 
 type RunnerCardProps = {
-  value: RunnerState;
-  onChange: (runner: Partial<RunnerState>) => void;
+  value: IRunnerState;
+  onChange: (runner: Partial<IRunnerState>) => void;
   onReset: () => void;
-  onImportVeteran?: (runner: RunnerState) => void;
+  onImportVeteran?: (runner: IRunnerState) => void;
   className?: string;
 };
 
@@ -30,7 +30,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
     onChange({ [stat]: newValue });
   };
 
-  const handleUpdateAptitude = (runnerState: RunnerState) => {
+  const handleUpdateAptitude = (runnerState: IRunnerState) => {
     onChange(runnerState);
   };
 

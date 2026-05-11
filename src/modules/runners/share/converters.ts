@@ -1,5 +1,5 @@
-import type { RunnerState } from '@/modules/runners/components/runner-card/types';
-import type { SingleExportData } from './types';
+import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
+import type { ISingleExportData } from './types';
 
 const APTITUDE_GRADES = ['S', 'A', 'B', 'C', 'D', 'E', 'F', 'G'] as const;
 
@@ -24,9 +24,9 @@ function formatUtcTimestamp(ms: number): string {
 }
 
 export function runnerStateToSingleExport(
-  runner: RunnerState,
+  runner: IRunnerState,
   createdAt?: number,
-): SingleExportData {
+): ISingleExportData {
   const cardId = parseInt(runner.outfitId, 10);
   const aptDistance = aptitudeToEncoding(runner.distanceAptitude);
   const aptSurface = aptitudeToEncoding(runner.surfaceAptitude);
@@ -58,7 +58,7 @@ export function runnerStateToSingleExport(
   };
 }
 
-export function singleExportToRunnerState(data: SingleExportData): Partial<RunnerState> {
+export function singleExportToRunnerState(data: ISingleExportData): Partial<IRunnerState> {
   const distanceMax = Math.max(
     data.proper_distance_short,
     data.proper_distance_mile,
