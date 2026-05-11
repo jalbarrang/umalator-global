@@ -3,8 +3,6 @@
  */
 
 import '../polyfills';
-import { bootstrapDataServices } from '@/modules/data/bootstrap';
-bootstrapDataServices();
 import { clone, cloneDeepWith } from 'es-toolkit';
 import { mergeResultSets } from './utils';
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';

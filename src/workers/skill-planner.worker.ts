@@ -23,8 +23,6 @@
  */
 
 import '../polyfills';
-import { bootstrapDataServices } from '@/modules/data/bootstrap';
-bootstrapDataServices();
 import type { CandidateSkill } from '@/modules/skill-planner/types';
 import type { RunnerState } from '@/modules/runners/components/runner-card/types';
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';

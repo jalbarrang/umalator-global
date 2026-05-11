@@ -1,6 +1,4 @@
 import '../polyfills';
-import { bootstrapDataServices } from '@/modules/data/bootstrap';
-bootstrapDataServices();
 import {
   runRaceSim,
   type RaceSimParams,

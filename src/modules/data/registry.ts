@@ -1,6 +1,10 @@
-import type { SkillService } from './services/SkillService';
-import type { CourseService } from './services/CourseService';
-import type { UmaService } from './services/UmaService';
+import skillsJson from '@/modules/data/json/skills.json';
+import coursesJson from '@/modules/data/json/course_data.json';
+import umasJson from '@/modules/data/json/umas.json';
+
+import { SkillService } from './services/SkillService';
+import { CourseService } from './services/CourseService';
+import { UmaService } from './services/UmaService';
 
 export type DataServices = {
   skills: SkillService;
@@ -8,29 +12,28 @@ export type DataServices = {
   umas: UmaService;
 };
 
-let _services: DataServices | null = null;
+export class DataRegistry {
+  private services: DataServices;
 
-export const dataRegistry = {
-  get isInitialized(): boolean {
-    return _services !== null;
-  },
-
-  init(services: DataServices) {
-    _services = services;
-  },
+  constructor(services: DataServices) {
+    this.services = services;
+  }
 
   get skills(): SkillService {
-    if (!_services) throw new Error('DataRegistry not initialized — call dataRegistry.init() first');
-    return _services.skills;
-  },
+    return this.services.skills;
+  }
 
   get courses(): CourseService {
-    if (!_services) throw new Error('DataRegistry not initialized — call dataRegistry.init() first');
-    return _services.courses;
-  },
+    return this.services.courses;
+  }
 
   get umas(): UmaService {
-    if (!_services) throw new Error('DataRegistry not initialized — call dataRegistry.init() first');
-    return _services.umas;
-  },
-};
+    return this.services.umas;
+  }
+}
+
+export const dataRegistry = new DataRegistry({
+  skills: new SkillService(skillsJson as any),
+  courses: new CourseService(coursesJson as any),
+  umas: new UmaService(umasJson as any),
+});

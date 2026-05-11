@@ -3,8 +3,6 @@
  * Processes batches of skills and reports results back to pool manager
  */
 
-import { bootstrapDataServices } from '@/modules/data/bootstrap';
-bootstrapDataServices();
 import { clone, cloneDeepWith } from 'es-toolkit';
 import type { SkillComparisonResponse } from '@/modules/simulation/types';
 import type { SimulationParams, WorkBatch, WorkerInMessage, WorkerOutMessage } from '../types';
