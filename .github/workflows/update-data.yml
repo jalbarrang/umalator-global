@@ -82,9 +82,3 @@ jobs:
           EOF
           )" \
             --base main
-
-      - name: Enable auto-merge
-        if: steps.changes.outputs.has_changes == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.DATA_UPDATE_PAT }}
-        run: gh pr merge "chore/update-data-v${{ steps.version.outputs.value }}" --auto --squash
