@@ -4,6 +4,13 @@ import { Activity, useState, useMemo, useCallback } from 'react';
 import { Camera, Import, Plus, Search, Trash2, Users, X } from 'lucide-react';
 import type { ISavedRunner } from '@/store/runner-library.store';
 import { Button } from '@/components/ui/button';
+import { FloatingButton } from '@/components/ui/fab';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   Empty,
   EmptyContent,
@@ -280,8 +287,34 @@ export function RunnersHome() {
         </div>
       )}
 
-      {/* [Mobile] Actions -> FAB that on click opens a menu */}
-      {isMobile && <div className="fixed bottom-4 right-4 z-20"></div>}
+      {/* [Mobile] Actions -> FAB */}
+      {isMobile && (
+        <div className="fixed bottom-4 right-4 z-20">
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <FloatingButton aria-label="Runner actions">
+                  <Plus />
+                </FloatingButton>
+              }
+            />
+            <DropdownMenuContent side="top" align="end" sideOffset={8}>
+              <DropdownMenuItem onClick={handleAddNew}>
+                <Plus className="size-4" />
+                Add Runner
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setRosterImportOpen(true)}>
+                <Import className="size-4" />
+                Import Roster
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setOcrImportOpen(true)}>
+                <Camera className="size-4" />
+                Import Screenshot
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      )}
 
       {/* [Desktop] Search & Filters */}
       {runners.length > 0 && (
