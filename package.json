@@ -35,6 +35,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@fontsource-variable/inter": "^5.2.8",
+    "@fontsource-variable/noto-sans-jp": "^5.2.10",
     "@posthog/react": "^1.8.2",
     "@tanstack/react-query": "^5.100.9",
     "@tanstack/react-table": "^8.21.3",

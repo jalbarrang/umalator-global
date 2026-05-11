@@ -1,4 +1,10 @@
 import './polyfills';
+
+// Supports weights 100-900
+import '@fontsource-variable/inter/wght.css';
+// Supports weights 100-900
+import '@fontsource-variable/noto-sans-jp/wght.css';
+
 import '@/modules/data/bootstrap';
 import { createRoot } from 'react-dom/client';
 import { HashRouter } from 'react-router';

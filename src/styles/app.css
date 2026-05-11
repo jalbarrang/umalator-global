@@ -1,21 +1,3 @@
-@font-face {
-  font-family: 'Inter';
-  src:
-    local('Inter'),
-    url('./assets/fonts/Inter-VariableFont_opsz,wght.ttf') format('truetype');
-}
-
-@font-face {
-  font-family: 'Noto Sans JP';
-  src:
-    local('Noto Sans JP'),
-    url('./assets/fonts/NotoSansJP-VariableFont_wght.ttf') format('truetype');
-}
-
-body {
-  font-family: Inter, 'Noto Sans JP', sans-serif;
-}
-
 main {
   overflow-x: hidden; /* Prevent horizontal scroll from SVG */
 }

@@ -101,21 +101,31 @@ export function Navbar() {
         </div> */}
 
         <Tooltip>
-          <TooltipTrigger>
-            <a
-              href="https://github.com/jalbarrang/umalator-global"
-              target="_blank"
-              rel="noreferrer"
-              aria-label="Open GitHub project"
-            >
-              <img
-                src="/svg/github.svg"
-                alt=""
-                aria-hidden="true"
-                className="h-4 w-4 dark:invert"
+          <TooltipTrigger
+            render={
+              <Button
+                variant="outline"
+                className="flex h-9 w-9 items-center justify-center"
+                aria-label="Open credits"
+                nativeButton={false}
+                render={
+                  <a
+                    href="https://github.com/jalbarrang/umalator-global"
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Open GitHub project"
+                  >
+                    <img
+                      src="/svg/github.svg"
+                      alt=""
+                      aria-hidden="true"
+                      className="h-4 w-4 dark:invert"
+                    />
+                  </a>
+                }
               />
-            </a>
-          </TooltipTrigger>
+            }
+          />
           <TooltipContent>GitHub</TooltipContent>
         </Tooltip>
         <Tooltip>

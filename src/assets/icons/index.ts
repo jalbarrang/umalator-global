@@ -1,32 +1,15 @@
-const iconModules = import.meta.glob('./**/*.png', {
-  eager: true,
-  import: 'default',
-}) as Record<string, string>;
-
-const ABSOLUTE_URL_PATTERN = /^[a-zA-Z][a-zA-Z\d+\-.]*:/;
-
-function normalizeIconPath(path: string): string {
-  return path
-    .replace(/^\/+/, '')
-    .replace(/^icons\//, '')
-    .replace(/^\.\//, '');
-}
-
-export const iconUrlByPath = Object.fromEntries(
-  Object.entries(iconModules).map(([path, url]) => [normalizeIconPath(path), url]),
-) as Record<string, string>;
+const localWindow = globalThis.window;
+/**
+ * This tells me if we're either hosting this on GitHub Pages or if we're running a local development server (which also uses a hostname of 'github.io').
+ *
+ * If true, we need to prepend `umalator-global/` to the icon paths to ensure they resolve correctly. If false, we can use the icon paths as they are.
+ */
+const isGithubPages = localWindow?.location.hostname === 'github.io';
 
 export function getIconUrl(path: string): string {
-  if (ABSOLUTE_URL_PATTERN.test(path) || path.startsWith('//') || path.startsWith('data:')) {
-    return path;
+  if (isGithubPages) {
+    return `/umalator-global/icons/${path}`;
   }
 
-  const normalizedPath = normalizeIconPath(path);
-  const url = iconUrlByPath[normalizedPath];
-
-  if (!url) {
-    throw new Error(`Icon not found for path: ${path}`);
-  }
-
-  return url;
+  return `/icons/${path}`;
 }
