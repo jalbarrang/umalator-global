@@ -10,6 +10,8 @@ import { cn } from '@/lib/utils';
 import { setShowChangelogModal, setShowCreditsModal } from '@/store/ui.store';
 import { MenuIcon, ScrollTextIcon, UsersIcon } from 'lucide-react';
 
+import { config } from '@/config';
+
 type NavItem = {
   value: string;
   label: string;
@@ -116,7 +118,7 @@ export function Navbar() {
                     aria-label="Open GitHub project"
                   >
                     <img
-                      src="/svg/github.svg"
+                      src={`${config.baseUrl}/svg/github.svg`}
                       alt=""
                       aria-hidden="true"
                       className="h-4 w-4 dark:invert"
