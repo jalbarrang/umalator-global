@@ -266,26 +266,70 @@ export function RunnersHome() {
   );
 
   return (
-    <div className="flex flex-col flex-1 p-4 gap-4 min-h-0 overflow-hidden">
-      {/* [Desktop] Actions */}
-      {!isMobile && (
-        <div className="flex items-center justify-end gap-2">
-          <Button variant="outline" onClick={() => setRosterImportOpen(true)}>
-            <Import className="w-4 h-4 mr-2" />
-            Import Roster
-          </Button>
-          <Button variant="outline" onClick={() => setOcrImportOpen(true)}>
-            <Camera className="w-4 h-4 mr-2" />
-            Import Screenshot
-          </Button>
-          <Activity mode={runners.length > 0 ? 'visible' : 'hidden'}>
-            <Button onClick={handleAddNew}>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Runner
+    <div className="flex flex-col flex-1 p-4 gap-2 min-h-0 overflow-hidden">
+      <div className="flex md:flex-row-reverse md:items-center md:justify-between">
+        {/* [Desktop] Actions */}
+        {!isMobile && (
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => setRosterImportOpen(true)}>
+              <Import className="w-4 h-4 mr-2" />
+              Import Roster
             </Button>
-          </Activity>
+            <Button variant="outline" onClick={() => setOcrImportOpen(true)}>
+              <Camera className="w-4 h-4 mr-2" />
+              Import Screenshot
+            </Button>
+            <Activity mode={runners.length > 0 ? 'visible' : 'hidden'}>
+              <Button onClick={handleAddNew}>
+                <Plus className="w-4 h-4 mr-2" />
+                Add Runner
+              </Button>
+            </Activity>
+          </div>
+        )}
+
+        <div className="flex w-full md:w-fit flex-col md:flex-row md:items-center gap-2">
+          <InputGroup className="max-w-sm">
+            <InputGroupInput
+              placeholder="Search runners..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <InputGroupAddon>
+              <Search />
+            </InputGroupAddon>
+          </InputGroup>
+
+          <div className="flex gap-2">
+            <FilterSelect
+              label="Strategy"
+              value={strategyFilter}
+              onValueChange={setStrategyFilter}
+              options={STRATEGY_OPTIONS}
+            />
+
+            <FilterSelect
+              label="Distance"
+              value={distanceFilter}
+              onValueChange={setDistanceFilter}
+              options={APTITUDE_OPTIONS}
+            />
+
+            <FilterSelect
+              label="Surface"
+              value={surfaceFilter}
+              onValueChange={setSurfaceFilter}
+              options={APTITUDE_OPTIONS}
+            />
+          </div>
+
+          {hasActiveFilters && (
+            <Button variant="ghost" size="icon-sm" onClick={clearAllFilters}>
+              <X className="w-3.5 h-3.5" />
+            </Button>
+          )}
         </div>
-      )}
+      </div>
 
       {/* [Mobile] Actions -> FAB */}
       {isMobile && (
@@ -319,48 +363,6 @@ export function RunnersHome() {
       {/* [Desktop] Search & Filters */}
       {runners.length > 0 && (
         <div className="flex flex-col gap-2">
-          <div className="flex flex-col md:flex-row gap-2">
-            <InputGroup className="max-w-sm">
-              <InputGroupInput
-                placeholder="Search runners..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-              <InputGroupAddon>
-                <Search />
-              </InputGroupAddon>
-            </InputGroup>
-
-            <div className="flex flex-wrap gap-2">
-              <FilterSelect
-                label="Strategy"
-                value={strategyFilter}
-                onValueChange={setStrategyFilter}
-                options={STRATEGY_OPTIONS}
-              />
-
-              <FilterSelect
-                label="Distance"
-                value={distanceFilter}
-                onValueChange={setDistanceFilter}
-                options={APTITUDE_OPTIONS}
-              />
-
-              <FilterSelect
-                label="Surface"
-                value={surfaceFilter}
-                onValueChange={setSurfaceFilter}
-                options={APTITUDE_OPTIONS}
-              />
-            </div>
-
-            {hasActiveFilters && (
-              <Button variant="ghost" size="icon-sm" onClick={clearAllFilters}>
-                <X className="w-3.5 h-3.5" />
-              </Button>
-            )}
-          </div>
-
           {/* Selection toolbar */}
           <div className="flex items-center gap-2">
             <Button
@@ -373,28 +375,32 @@ export function RunnersHome() {
                 }
               }}
             >
-              {hasActiveFilters
-                ? `Select all ${filtered.length} shown`
+              {allFilteredSelected
+                ? `Deselect all ${filtered.length}`
                 : `Select all ${runners.length}`}
             </Button>
 
-            {isSelecting && (
-              <>
-                <span className="text-xs text-muted-foreground">· {selected.size} selected</span>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  className="ml-auto h-7"
-                  onClick={() => setBulkDeleteDialogOpen(true)}
-                >
-                  <Trash2 className="w-3.5 h-3.5 mr-1.5" />
-                  Delete ({selected.size})
-                </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setBulkDeleteDialogOpen(true)}
+              disabled={selected.size === 0}
+            >
+              <Trash2 className="w-4 h-4" />
+              Delete ({selected.size})
+            </Button>
 
-                <Button variant="ghost" size="sm" className="h-7" onClick={clearSelection}>
-                  Cancel
-                </Button>
-              </>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={clearSelection}
+              disabled={selected.size === 0}
+            >
+              Cancel
+            </Button>
+
+            {isSelecting && (
+              <span className="text-xs text-muted-foreground"> {selected.size} selected</span>
             )}
           </div>
         </div>

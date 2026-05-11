@@ -1,17 +1,19 @@
 import { useIsMobile } from '@/hooks/use-mobile';
 import { aptitudeNames } from '@/lib/sunday-tools/runner/definitions';
 import { ISavedRunner } from '@/store/runner-library.store';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { SavedRunnerCard } from '../saved-runner-card';
+import { cn } from '@/lib/utils';
 
 export function meetsMinGrade(actual: string, min: string): boolean {
   return aptitudeNames.indexOf(actual as any) <= aptitudeNames.indexOf(min as any);
 }
 
-export const CARD_HEIGHT = 230;
-export const GAP = 16;
+export const CARD_HEIGHT = 182;
+export const GAP = 8;
 export const ROW_HEIGHT = CARD_HEIGHT + GAP;
-export const OVERSCAN = 3;
+export const OVERSCAN = 2;
 
 type IVirtualRunnerGridProps = {
   items: ISavedRunner[];
@@ -25,98 +27,81 @@ type IVirtualRunnerGridProps = {
 };
 
 export const VirtualRunnerGrid = (props: Readonly<IVirtualRunnerGridProps>) => {
-  const {
-    items,
-    selected,
-    isSelecting,
-    onToggleSelect,
-    onEdit,
-    onDelete,
-    onDuplicate,
-    onLoadToSimulation,
-  } = props;
+  const { items, selected, isSelecting, onToggleSelect, onEdit, onDuplicate, onLoadToSimulation } =
+    props;
 
   const isMobile = useIsMobile();
+  const columns = useMemo(() => (isMobile ? 1 : 4), [isMobile]);
+
+  const rowCount = Math.ceil(items.length / columns);
+
+  const rowVirtualizer = useVirtualizer({
+    count: rowCount,
+    getScrollElement: () => containerRef.current,
+    estimateSize: () => ROW_HEIGHT, // CARD_HEIGHT + GAP
+    overscan: OVERSCAN,
+  });
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const [scrollTop, setScrollTop] = useState(0);
-  const [containerHeight, setContainerHeight] = useState(0);
-  const [columnCount, setColumnCount] = useState(1);
-
-  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-    setScrollTop(e.currentTarget.scrollTop);
-    setContainerHeight(e.currentTarget.clientHeight);
-  }, []);
-
-  const { startIdx, endIdx, totalHeight } = useMemo(() => {
-    const totalRows = Math.ceil(items.length / columnCount);
+  const { totalHeight } = useMemo(() => {
+    const totalRows = Math.ceil(items.length / columns);
     const totalHeight = totalRows * ROW_HEIGHT;
-    const startRow = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - OVERSCAN);
-    const visibleRows = Math.ceil(containerHeight / ROW_HEIGHT) + OVERSCAN * 2;
-    const endRow = Math.min(totalRows, startRow + visibleRows);
 
     return {
-      startIdx: startRow * columnCount,
-      endIdx: Math.min(items.length, endRow * columnCount),
       totalHeight,
     };
-  }, [items.length, columnCount, scrollTop, containerHeight]);
-
-  const getStyle = useCallback(
-    (index: number): React.CSSProperties => {
-      const row = Math.floor(index / columnCount);
-      const col = index % columnCount;
-      return {
-        position: 'absolute',
-        top: row * ROW_HEIGHT,
-        left: `calc(${col} * (100% / ${columnCount}) + ${col > 0 ? GAP / 2 : 0}px)`,
-        width: `calc(100% / ${columnCount} - ${GAP}px)`,
-        height: CARD_HEIGHT,
-      };
-    },
-    [columnCount],
-  );
+  }, [items.length, columns]);
 
   return (
-    <div ref={containerRef} className="overflow-y-auto flex-1 min-h-0" onScroll={handleScroll}>
-      <div style={{ height: totalHeight, position: 'relative', padding: GAP / 2 }}>
-        {items.slice(startIdx, endIdx).map((runner, i) => {
-          const idx = startIdx + i;
+    <div ref={containerRef} className="overflow-y-auto flex-1 min-h-0">
+      <div
+        style={{
+          height: totalHeight,
+          position: 'relative',
+          boxSizing: 'border-box',
+        }}
+      >
+        {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+          // Cada virtualRow representa una fila → renderizar `columns` cards
+          const rowStart = virtualRow.index * columns;
+          const rowItems = items.slice(rowStart, Math.min(rowStart + columns, items.length));
+
           return (
-            <div key={runner.id} style={getStyle(idx)} className="relative">
-              {/* {isSelecting && (
-                <button
-                  type="button"
-                  className="absolute inset-0 z-10 cursor-pointer"
-                  onClick={() => onToggleSelect(runner.id)}
-                />
-              )} */}
-
-              <div
-                className={`h-full ${
-                  isSelecting && !selected.has(runner.id)
-                    ? 'opacity-40 transition-opacity'
-                    : 'transition-opacity'
-                }`}
-              >
-                <SavedRunnerCard
-                  runner={runner}
-                  onEdit={onEdit}
-                  onDelete={onDelete}
-                  onDuplicate={onDuplicate}
-                  onLoadToSimulation={onLoadToSimulation}
-                />
-              </div>
-
-              {/* {isSelecting && (
-                <div className="absolute top-3 left-3 z-20">
-                  <Checkbox
-                    checked={selected.has(runner.id)}
-                    onCheckedChange={() => onToggleSelect(runner.id)}
-                  />
-                </div>
-              )} */}
+            <div
+              key={virtualRow.key}
+              style={{
+                position: 'absolute',
+                top: virtualRow.start,
+                left: 0,
+                width: '100%',
+                height: CARD_HEIGHT,
+                display: 'grid',
+                gridTemplateColumns: `repeat(${columns}, 1fr)`,
+                gap: 8,
+                boxSizing: 'border-box',
+              }}
+            >
+              {rowItems.map((runner) => {
+                return (
+                  <div key={runner.id} className="relative">
+                    <div
+                      className={cn('h-full transition-opacity', {
+                        'opacity-40': isSelecting && !selected.has(runner.id),
+                      })}
+                    >
+                      <SavedRunnerCard
+                        runner={runner}
+                        onEdit={onEdit}
+                        onDuplicate={onDuplicate}
+                        onLoadToSimulation={onLoadToSimulation}
+                        selected={selected.has(runner.id)}
+                        onToggleSelect={() => onToggleSelect(runner.id)}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           );
         })}

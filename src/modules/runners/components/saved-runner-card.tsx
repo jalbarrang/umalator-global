@@ -1,4 +1,4 @@
-import { Copy, Edit, MoreVertical, PlayCircle, Trash2, Code, Download, Camera } from 'lucide-react';
+import { Edit, PlayCircle, Trash2, Code, Download, Camera, Share } from 'lucide-react';
 import { useMemo, useRef } from 'react';
 import { getUmaDisplayInfo, getUmaImageUrl } from '../utils';
 import { StatImage } from './StatInput';
@@ -8,7 +8,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { strategyNames } from '@/lib/sunday-tools/runner/definitions';
@@ -20,17 +19,21 @@ import {
   getSkillsForShareCard,
 } from '../share/share-actions';
 import { ShareCard } from '../share/share-card';
+import { Checkbox } from '@/components/ui/checkbox';
 
 type SavedRunnerCardProps = {
   runner: ISavedRunner;
   onEdit: (runner: ISavedRunner) => void;
-  onDelete: (id: string) => void;
   onDuplicate: (id: string) => void;
   onLoadToSimulation: (runner: ISavedRunner) => void;
+
+  // Selection grid
+  selected?: boolean;
+  onToggleSelect?: () => void;
 };
 
 export const SavedRunnerCard = (props: SavedRunnerCardProps) => {
-  const { runner, onEdit, onDelete, onDuplicate, onLoadToSimulation } = props;
+  const { runner, onEdit, onLoadToSimulation } = props;
 
   const umaInfo = useMemo(() => {
     if (!runner.outfitId) return null;
@@ -48,12 +51,12 @@ export const SavedRunnerCard = (props: SavedRunnerCardProps) => {
   }, [runner.skills]);
 
   return (
-    <div className="transition-shadow hover:shadow-lg rounded-lg border bg-card">
-      <div className="flex flex-col gap-4 p-4">
+    <div className="rounded-lg border bg-card">
+      <div className="flex flex-col gap-4 p-2">
         <div className="flex gap-4">
           {/* Uma Portrait */}
           <div className="shrink">
-            <div className="w-24 h-24">
+            <div className="w-18 h-18">
               <img src={imageUrl} alt={runner.notes} className="w-full h-full object-cover" />
             </div>
           </div>
@@ -61,72 +64,72 @@ export const SavedRunnerCard = (props: SavedRunnerCardProps) => {
           <div className="flex flex-1 justify-between gap-2">
             <div className="flex flex-col flex-1 gap-2 min-w-0">
               {umaInfo && (
-                <div className="text-center">
-                  <div className="text-sm text-muted-foreground">{umaInfo.outfit}</div>
+                <div>
+                  <div className="text-xs text-muted-foreground">{umaInfo.outfit}</div>
                   <div className="text-sm font-semibold">{umaInfo.name}</div>
                 </div>
               )}
 
-              <div className="text-sm truncate">
-                <span className="text-muted-foreground">Notes:</span> {runner.notes ?? 'No notes'}
+              <div className="text-xs text-muted-foreground truncate">
+                {runner.notes ?? 'No notes'}
               </div>
             </div>
 
-            {/* Actions Menu */}
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                render={
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
-                }
-              />
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center">
+                <Button variant="ghost" size="icon-sm" onClick={() => onLoadToSimulation(runner)}>
+                  <PlayCircle />
+                </Button>
 
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => onLoadToSimulation(runner)}>
-                  <PlayCircle className="h-4 w-4 mr-2" />
-                  Load to Simulation
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onEdit(runner)}>
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onDuplicate(runner.id)}>
-                  <Copy className="h-4 w-4 mr-2" />
-                  Duplicate
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => copyRosterViewCode(runner, runner.createdAt)}>
-                  <Code className="h-4 w-4 mr-2" />
-                  Copy RosterView Code
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() =>
-                    downloadJson(
-                      runner,
-                      `runner-${umaInfo?.name ?? 'unknown'}.json`,
-                      runner.createdAt,
-                    )
-                  }
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Download JSON
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => {
-                    if (shareCardRef.current) copyScreenshot(shareCardRef.current);
-                  }}
-                >
-                  <Camera className="h-4 w-4 mr-2" />
-                  Copy Screenshot
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => onDelete(runner.id)} className="text-destructive">
-                  <Trash2 className="h-4 w-4 mr-2 text-destructive" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                <Button variant="ghost" size="icon-sm" onClick={() => onEdit(runner)}>
+                  <Edit />
+                </Button>
+
+                {/* Actions Menu */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    render={
+                      <Button variant="ghost" size="icon-sm">
+                        <Share />
+                      </Button>
+                    }
+                  />
+
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => copyRosterViewCode(runner, runner.createdAt)}>
+                      <Code className="h-4 w-4 mr-2" />
+                      Copy RosterView Code
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() =>
+                        downloadJson(
+                          runner,
+                          `runner-${umaInfo?.name ?? 'unknown'}.json`,
+                          runner.createdAt,
+                        )
+                      }
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download JSON
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        if (shareCardRef.current) copyScreenshot(shareCardRef.current);
+                      }}
+                    >
+                      <Camera className="h-4 w-4 mr-2" />
+                      Copy Screenshot
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <Checkbox
+                  checked={props.selected}
+                  onCheckedChange={props.onToggleSelect}
+                  className="ml-1"
+                />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -138,25 +141,25 @@ export const SavedRunnerCard = (props: SavedRunnerCardProps) => {
               <div className="grid grid-cols-5">
                 <div className="flex items-center justify-center gap-2 bg-primary rounded-tl-sm">
                   <img src={getIconUrl('status_00.png')} className="w-4 h-4" />
-                  <span className="text-white text-xs md:text-sm">Speed</span>
+                  <span className="text-white text-xs">Speed</span>
                 </div>
                 <div className="flex items-center justify-center gap-2 bg-primary">
                   <img src={getIconUrl('status_01.png')} className="w-4 h-4" />
-                  <span className="text-white text-xs md:text-sm">Stamina</span>
+                  <span className="text-white text-xs">Stamina</span>
                 </div>
                 <div className="flex items-center justify-center gap-2 bg-primary">
                   <img src={getIconUrl('status_02.png')} className="w-4 h-4" />
-                  <span className="text-white text-xs md:text-sm">Power</span>
+                  <span className="text-white text-xs">Power</span>
                 </div>
 
                 <div className="flex items-center justify-center gap-2 bg-primary">
                   <img src={getIconUrl('status_03.png')} className="w-4 h-4" />
-                  <span className="text-white text-xs md:text-sm">Guts</span>
+                  <span className="text-white text-xs">Guts</span>
                 </div>
 
                 <div className="flex items-center justify-center gap-2 bg-primary rounded-tr-sm">
                   <img src={getIconUrl('status_04.png')} className="w-4 h-4" />
-                  <span className="text-white text-xs md:text-sm">Wit</span>
+                  <span className="text-white text-xs">Wit</span>
                 </div>
               </div>
 
@@ -165,35 +168,35 @@ export const SavedRunnerCard = (props: SavedRunnerCardProps) => {
                   <div className="flex items-center justify-center p-1">
                     <StatImage value={runner.speed} className="w-4 h-4" />
                   </div>
-                  <span className="p-1">{runner.speed}</span>
+                  <span className="p-1 text-sm font-mono">{runner.speed}</span>
                 </div>
 
                 <div className="flex items-center">
                   <div className="flex items-center justify-center p-1">
                     <StatImage value={runner.stamina} className="w-4 h-4" />
                   </div>
-                  <span className="p-1">{runner.stamina}</span>
+                  <span className="p-1 text-sm font-mono">{runner.stamina}</span>
                 </div>
 
                 <div className="flex items-center">
                   <div className="flex items-center justify-center p-1">
                     <StatImage value={runner.power} className="w-4 h-4" />
                   </div>
-                  <span className="p-1">{runner.power}</span>
+                  <span className="p-1 text-sm font-mono">{runner.power}</span>
                 </div>
 
                 <div className="flex items-center">
                   <div className="flex items-center justify-center p-1">
                     <StatImage value={runner.guts} className="w-4 h-4" />
                   </div>
-                  <span className="p-1">{runner.guts}</span>
+                  <span className="p-1 text-sm font-mono">{runner.guts}</span>
                 </div>
 
                 <div className="flex items-center">
                   <div className="flex items-center justify-center p-1">
                     <StatImage value={runner.wisdom} className="w-4 h-4" />
                   </div>
-                  <span className="p-1">{runner.wisdom}</span>
+                  <span className="p-1 text-sm font-mono">{runner.wisdom}</span>
                 </div>
               </div>
             </div>
