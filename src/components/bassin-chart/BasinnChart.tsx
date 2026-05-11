@@ -237,9 +237,9 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
       props.data
         .map((row) => {
           const skill = dataRegistry.skills.getById(row.id);
-          return skill ? [row.id, skill] as const : null;
+          return skill ? ([row.id, skill] as const) : null;
         })
-        .filter((entry): entry is [string, SkillEntry] => entry !== null)
+        .filter((entry): entry is [string, SkillEntry] => entry !== null),
     );
   }, [props.data]);
 

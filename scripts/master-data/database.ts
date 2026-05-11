@@ -57,11 +57,10 @@ export function queryAll<T>(db: Database, sql: string): Array<T> {
  * @param params Query parameters
  * @returns Array of result rows
  */
-export function queryAllWithParams<T, TParams extends Array<SQLQueryBindings> = Array<SQLQueryBindings>>(
-  db: Database,
-  sql: string,
-  ...params: TParams
-): Array<T> {
+export function queryAllWithParams<
+  T,
+  TParams extends Array<SQLQueryBindings> = Array<SQLQueryBindings>,
+>(db: Database, sql: string, ...params: TParams): Array<T> {
   try {
     const stmt = db.prepare(sql);
     return stmt.all(...params) as Array<T>;

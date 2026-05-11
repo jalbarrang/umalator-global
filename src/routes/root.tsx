@@ -5,7 +5,6 @@ import { PageMetadata } from '@/components/seo/page-metadata';
 import { Button } from '@/components/ui/button';
 import { ChangelogModal } from '@/components/changelog-modal';
 import { CreditsModal } from '@/components/credits-modal';
-import { FeatureFlagDebugPanel } from '@/components/feature-flag-debug-panel';
 import { TutorialProvider, TutorialRoot } from '@/components/tutorial';
 import { Navbar } from '@/modules/app/components/navbar';
 import { ImportCodeDialog } from '@/modules/runners/share/import-code-dialog';
@@ -218,7 +217,7 @@ export function RootComponent() {
 
         <CreditsModal />
         <ChangelogModal />
-        <FeatureFlagDebugPanel />
+
         <ImportCodeDialog
           open={dialogOpen}
           onOpenChange={setDialogOpen}

@@ -10,7 +10,7 @@ type TestMeta = {
 };
 
 const findSkillId = (predicate: (skillId: string) => boolean, label: string): string => {
-  const skillId = dataRegistry.skills.getAll().find(skill => predicate(skill.id))?.id;
+  const skillId = dataRegistry.skills.getAll().find((skill) => predicate(skill.id))?.id;
   if (!skillId) {
     throw new Error(`Could not find ${label}`);
   }
@@ -19,20 +19,17 @@ const findSkillId = (predicate: (skillId: string) => boolean, label: string): st
 };
 
 const findSkillIdByName = (name: string): string => {
-  const skill = dataRegistry.skills.getAll().find(s => s.name === name);
+  const skill = dataRegistry.skills.getAll().find((s) => s.name === name);
   if (!skill) {
     throw new Error(`Could not find skill named "${name}"`);
   }
   return skill.id;
 };
 
-const plainSkillId = findSkillId(
-  (skillId) => {
-    const skill = dataRegistry.skills.getById(skillId);
-    return getRepresentativePrerequisiteIds(skillId).length === 0 && (skill?.rarity ?? 0) < 3;
-  },
-  'a plain non-bundled skill',
-);
+const plainSkillId = findSkillId((skillId) => {
+  const skill = dataRegistry.skills.getById(skillId);
+  return getRepresentativePrerequisiteIds(skillId).length === 0 && (skill?.rarity ?? 0) < 3;
+}, 'a plain non-bundled skill');
 
 const bundledSkillId = findSkillId(
   (skillId) => getRepresentativePrerequisiteIds(skillId).length > 1,
@@ -70,16 +67,15 @@ const uniqueSkillId = findSkillId((skillId) => {
 }, 'a unique skill');
 
 const findPlainSkillIdByBaseCost = (baseCost: number, excludedSkillIds: Array<string> = []) => {
-  return findSkillId(
-    (skillId) => {
-      const skill = dataRegistry.skills.getById(skillId);
-      return !excludedSkillIds.includes(skillId) &&
-        (skill?.baseCost ?? 0) === baseCost &&
-        (skill?.rarity ?? 0) < 3 &&
-        getRepresentativePrerequisiteIds(skillId).length === 0;
-    },
-    `a plain non-bundled skill with base cost ${baseCost}`,
-  );
+  return findSkillId((skillId) => {
+    const skill = dataRegistry.skills.getById(skillId);
+    return (
+      !excludedSkillIds.includes(skillId) &&
+      (skill?.baseCost ?? 0) === baseCost &&
+      (skill?.rarity ?? 0) < 3 &&
+      getRepresentativePrerequisiteIds(skillId).length === 0
+    );
+  }, `a plain non-bundled skill with base cost ${baseCost}`);
 };
 
 const createGetSkillMeta = (metaById: Record<string, TestMeta>) => {
@@ -124,7 +120,8 @@ describe('buildSkillCostSummary', () => {
     });
 
     const expectedBase =
-      (dataRegistry.skills.getById(bundledSkillId)?.baseCost ?? 0) + (dataRegistry.skills.getById(unpaidPrereqId)?.baseCost ?? 0);
+      (dataRegistry.skills.getById(bundledSkillId)?.baseCost ?? 0) +
+      (dataRegistry.skills.getById(unpaidPrereqId)?.baseCost ?? 0);
     const expectedNet =
       calculateSkillCost(bundledSkillId, 2, false) + calculateSkillCost(unpaidPrereqId, 1, false);
 

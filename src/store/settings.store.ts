@@ -72,7 +72,6 @@ export const useSettingsStore = create<ISettingsStore>()(
     {
       name: 'umalator-settings',
       storage: createJSONStorage(() => localStorage),
-
     },
   ),
 );

@@ -17,9 +17,11 @@ import { RootComponent } from './routes/root';
 import posthog from 'posthog-js';
 import { PostHogErrorBoundary, PostHogProvider } from '@posthog/react';
 
-if (import.meta.env.VITE_PUBLIC_POSTHOG_KEY) {
-  posthog.init(import.meta.env.VITE_PUBLIC_POSTHOG_KEY, {
-    api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
+import { config } from './config';
+
+if (config.posthog.key) {
+  posthog.init(config.posthog.key, {
+    api_host: config.posthog.host,
     defaults: '2026-01-30',
   });
 }

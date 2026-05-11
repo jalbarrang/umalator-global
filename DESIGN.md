@@ -160,6 +160,7 @@ The visual identity is a **well-worn trainer's notebook**: warm cream paper, dar
 This system explicitly rejects generic SaaS dashboards (bland card grids, hero metrics, navy-and-white corporate surfaces), flashy gacha game UI (neon glows, particle effects, sensory overload), raw spreadsheet dumps (no hierarchy, no focal point), and cluttered game wiki aesthetics (accumulated, never designed). Information architecture is deliberate. Every screen has a reading order.
 
 **Key Characteristics:**
+
 - Precise, playful, approachable. Takes the data seriously and itself lightly.
 - Crisp and efficient. Compact controls, minimal padding, every pixel earns its place.
 - One-glance insight. The primary answer is visible without interaction.
@@ -172,12 +173,15 @@ This system explicitly rejects generic SaaS dashboards (bland card grids, hero m
 The palette is anchored in a warm earthy range with a single vivid lime-green primary reserved exclusively for the most important interactive action per screen.
 
 ### Primary
+
 - **Grass Green** (`#66bf0d`): The one punchy color in an otherwise muted palette. Used only for the single highest-priority CTA per view ("Run Simulation", "Add Skill"). Its contrast against parchment creates an immediate focal point. Dark mode shifts to `#57a112` for better contrast against charcoal.
 
 ### Secondary
+
 - **Pale Warm Tan** (`#e2d8c3`): Secondary button surfaces, muted containers, and non-primary interactive areas. Reads as slightly textured paper against the parchment ground.
 
 ### Neutral
+
 - **Dark Ink Brown** (`#4a3f35`): The body text color. Reads well on all cream and card surfaces while maintaining a natural, inky quality rather than harsh pure-black.
 - **Faded Ink** (`#7d6b56`): Subdued text: captions, metadata, placeholder labels, and muted-foreground contexts.
 - **Warm Parchment** (`#f5f1e6`): The page background. Sets the entire tonal foundation of the light theme.
@@ -189,6 +193,7 @@ The palette is anchored in a warm earthy range with a single vivid lime-green pr
 - **Muted Terracotta** (`#b54a35`): Destructive actions and error states. Conveys danger without screaming.
 
 ### Chart Ramp (Light)
+
 Five warm-brown steps for data visualization: `#a67c52`, `#8d6e4c`, `#735a3a`, `#b3906f`, `#c0a080`. Dark mode swaps to a cool blue ramp: `#91c5ff`, `#3a81f6`, `#2563ef`, `#1a4eda`, `#1f3fad`.
 
 ### Named Rules
@@ -207,6 +212,7 @@ The skill-rarity system uses out-of-band gradient border treatments not expressi
 **Character:** Humanist sans-serif at compact sizes, optimized for dense data readability. Inter carries the interface; Noto Sans JP provides complete CJK support for Uma names and skill descriptions sourced from the game. Fira Mono appears wherever numeric precision matters: stat values, frame counts, bassin deltas, SP costs. The pairing is workmanlike, not decorative. A trainer's handwriting: clear, fast, precise.
 
 ### Hierarchy
+
 - **Headline Large** (Inter 700, 24px, line-height 1.2, tracking -0.01em): Page titles only. Used sparingly.
 - **Headline Medium** (Inter 600, 20px, line-height 1.3): Modal titles, major section headers.
 - **Headline Small** (Inter 600, 16px, line-height 1.4): Panel headers, card titles, section dividers. The workhorse heading.
@@ -236,6 +242,7 @@ Three elevation levels:
 The shadow vocabulary uses a consistent warm-tinted base (`hsl(30 14% 20%)`) at varying opacities. Dark mode shifts to pure black shadows with lower opacity. All shadows carry a characteristic 2px x-offset (top-right lighting direction), giving floating elements a slight sense of being cast from the upper-left — a subtle nod to printed paper catching light from a desk lamp.
 
 ### Shadow Vocabulary
+
 - **2xs / xs** (`2px 3px 5px 0px hsl(30 14% 20% / 0.06)`): Minimal elevation hint. Used sparingly.
 - **sm / default** (`2px 3px 5px 0px hsl(30 14% 20% / 0.12), 2px 1px 2px -1px hsl(30 14% 20% / 0.12)`): Standard floating elements.
 - **md** (`2px 3px 5px 0px hsl(30 14% 20% / 0.12), 2px 2px 4px -1px hsl(30 14% 20% / 0.12)`): Dropdown menus, popovers.
@@ -249,6 +256,7 @@ The shadow vocabulary uses a consistent warm-tinted base (`hsl(30 14% 20%)`) at 
 ## Components
 
 ### Buttons
+
 - **Shape:** Generously rounded (12px radius, `rounded-lg`). Compact height (32px default). Inline flex with gap for icon + label.
 - **Primary:** Grass Green fill, white label. Reserved for the single most important action per view. One primary button per screen context maximum. Hover lightens to `#72cc0e`.
 - **Secondary:** Pale Warm Tan fill, dark brown label. Non-critical submit actions and secondary confirmations. Hover darkens to 80% opacity.
@@ -259,11 +267,13 @@ The shadow vocabulary uses a consistent warm-tinted base (`hsl(30 14% 20%)`) at 
 - **Focus:** 3px ring in Warm Caramel (`#a67c52`), offset by border color shift to ring color.
 
 ### Badges
+
 - **Shape:** Pill (9999px radius, `rounded-full`). Fixed 20px height. Label Small typography (Inter 500, 12px).
 - **Variants:** default (green fill), secondary (tan fill), destructive (terracotta tint), outline (border only), ghost (no fill).
 - **Skill rarity badges** use the gradient border CSS system (not flat fills). Four variants: white (lavender → periwinkle), gold (white → amber), pink (pink → hot-pink), unique (rainbow holographic). These gradients are a direct visual reference to in-game rarity presentation and are never overridden.
 
 ### Cards
+
 - **Shape:** 16px radius (`rounded-xl`). Ring border (`ring-1 ring-foreground/10`), not a solid `border` token — subtle at light opacities.
 - **Background:** Cream Paper (`#fffcf5`). No shadow. Tonal layering provides elevation.
 - **Internal padding:** 16px (default), 12px (sm variant).
@@ -271,6 +281,7 @@ The shadow vocabulary uses a consistent warm-tinted base (`hsl(30 14% 20%)`) at 
 - **Size variants:** `default` and `sm` via data attribute. `sm` tightens gap and padding.
 
 ### Input Fields
+
 - **Shape:** 12px radius (`rounded-lg`). 32px height. Transparent background (light mode) or `input/30` opacity (dark mode).
 - **Border:** Tan Rule (`#dbd0ba`) outline at rest. Focus swaps to Warm Caramel ring with 3px ring.
 - **Placeholder:** Faded Ink (`#7d6b56`).
@@ -278,24 +289,28 @@ The shadow vocabulary uses a consistent warm-tinted base (`hsl(30 14% 20%)`) at 
 - **Disabled:** Reduced opacity (50%), `input/50` background, no pointer events.
 
 ### Tooltips
+
 - **Shape:** 10px radius (`rounded-md`). Max width `max-w-xs`.
 - **Colors:** Dark Ink Brown background, Cream Paper text. Arrow matches background.
 - **Animation:** Fade + zoom-in on open, fade + zoom-out on close. Slide from the opposing side.
 - **Delay:** Zero delay (via provider default). Data-dense contexts need instant feedback.
 
 ### Tabs
+
 - **Two variants:** `default` (filled indicator on active tab, muted background on list) and `line` (bottom border indicator, transparent list background).
 - **Active state:** Default variant fills with background color and adds subtle shadow. Line variant shows a 2px foreground-colored bar below (horizontal) or beside (vertical) the active tab.
 - **Typography:** Label-md weight (500), 14px. Active tabs use full foreground color; inactive use muted foreground.
 - **Orientation:** Supports both horizontal and vertical. Vertical tabs align left with full-width triggers.
 
 ### Sidebar
+
 - **Width:** 16rem (desktop), 18rem (mobile sheet), 3rem (collapsed icon-only).
 - **Background:** Warm Linen (`#ece5d8`). Dark mode: `#171717`.
 - **Keyboard shortcut:** `b` toggles sidebar.
 - **Mobile:** Collapses to a slide-in sheet with overlay.
 
 ### Scrollbars
+
 - **Track:** Warm Linen background, base radius.
 - **Thumb:** Faded Ink, same radius. Hover darkens to foreground.
 - **Size:** 8px width and height.
@@ -303,6 +318,7 @@ The shadow vocabulary uses a consistent warm-tinted base (`hsl(30 14% 20%)`) at 
 ## Do's and Don'ts
 
 ### Do:
+
 - **Do** use Grass Green (`#66bf0d`) for exactly one action per screen — the most critical next step. Its rarity creates the focal point.
 - **Do** maintain WCAG AA contrast (4.5:1 minimum) for all body and label text. The Dark Ink Brown on Warm Parchment pair meets this threshold.
 - **Do** use Fira Mono for all numeric simulation outputs. Proportional fonts cause column misalignment in dense result tables.
@@ -312,6 +328,7 @@ The shadow vocabulary uses a consistent warm-tinted base (`hsl(30 14% 20%)`) at 
 - **Do** keep color-blind-safe chart palettes. Never rely on color alone to distinguish data series; combine with shape, pattern, or label.
 
 ### Don't:
+
 - **Don't** apply the lime-green primary to decorative elements, text links, or secondary actions. Green is for the one CTA. Everything else uses secondary, outline, or ghost.
 - **Don't** use pure black (`#000000`) or pure white (`#ffffff`) as text or background in light mode. Use the warm palette tokens.
 - **Don't** mix rounded-xl corners (cards/panels) with sharp corners in the same view. All interactive surfaces use a rounded token.

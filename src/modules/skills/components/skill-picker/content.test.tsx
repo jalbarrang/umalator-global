@@ -42,7 +42,8 @@ afterEach(() => {
 });
 
 const getOptionIds = (count = 3) =>
-  dataRegistry.skills.getAll()
+  dataRegistry.skills
+    .getAll()
     .filter((skill) => skill.name.length > 0 && skill.iconId.length > 0)
     .slice(0, count)
     .map((skill) => skill.id);

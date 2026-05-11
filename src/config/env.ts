@@ -1,0 +1,45 @@
+const env = import.meta.env;
+
+export const appEnv: Record<string, string | undefined> = {
+  VITE_BASE_URL: env.VITE_BASE_URL,
+  VITE_IS_GITHUB_PAGES: env.VITE_IS_GITHUB_PAGES ?? 'false',
+  VITE_REACT_SCAN: env.VITE_REACT_SCAN ?? 'false',
+  VITE_PUBLIC_POSTHOG_KEY: env.VITE_PUBLIC_POSTHOG_KEY,
+  VITE_PUBLIC_POSTHOG_HOST: env.VITE_PUBLIC_POSTHOG_HOST,
+};
+
+function isNotBlank(str: string = ''): boolean {
+  return !/^\s*$/.test(str);
+}
+
+export function envString(name: string, defaultValue = ''): string {
+  let val = null;
+  if (typeof localStorage !== 'undefined') {
+    val = localStorage.getItem(name);
+  }
+  val = val ?? appEnv[name];
+
+  return isNotBlank(val) ? String(val) : defaultValue;
+}
+
+export function envBoolean(name: string, defaultValue: boolean = false): boolean {
+  const val = envString(name, '');
+  if (val === 'true') return true;
+  if (val === 'false') return false;
+  return defaultValue;
+}
+
+export function envNumber(name: string, defaultValue: number = 0): number {
+  const val = envString(name, '');
+  if (val == '') return defaultValue;
+  const n = Number(val);
+  return !isNaN(n) ? n : defaultValue;
+}
+
+export function setEnv(key: string, value: string | number | boolean) {
+  localStorage.setItem(key, String(value));
+}
+
+export function deleteEnv(key: string) {
+  localStorage.removeItem(key);
+}

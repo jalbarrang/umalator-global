@@ -51,7 +51,8 @@ const initialDebuffsState = {
 };
 
 const debuffSkillId =
-  dataRegistry.skills.getAll().find((skill) => isInjectableExternalDebuffSkill(skill))?.id ?? runawaySkillId;
+  dataRegistry.skills.getAll().find((skill) => isInjectableExternalDebuffSkill(skill))?.id ??
+  runawaySkillId;
 
 function resetDebuffs() {
   localStorage.clear();

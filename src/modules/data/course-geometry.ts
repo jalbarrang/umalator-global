@@ -1,5 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 
+import { config } from '@/config';
+
+const courseGeometryUrl = `${config.baseUrl}/data/course_geometry.json`;
+
 export type CourseGeometryRotation = {
   x: number;
   y: number;
@@ -31,19 +35,15 @@ async function loadCourseGeometry(): Promise<Record<string, CourseGeometryRecord
     return courseGeometryPromise;
   }
 
-  courseGeometryPromise = fetch(`${import.meta.env.BASE_URL}data/course_geometry.json`).then(
-    async (response) => {
-      if (!response.ok) {
-        throw new Error(
-          `Failed to load course geometry: ${response.status} ${response.statusText}`,
-        );
-      }
+  courseGeometryPromise = fetch(courseGeometryUrl).then(async (response) => {
+    if (!response.ok) {
+      throw new Error(`Failed to load course geometry: ${response.status} ${response.statusText}`);
+    }
 
-      const responseBody = await response.json();
+    const responseBody = await response.json();
 
-      return responseBody as Record<string, CourseGeometryRecord>;
-    },
-  );
+    return responseBody as Record<string, CourseGeometryRecord>;
+  });
 
   return courseGeometryPromise;
 }

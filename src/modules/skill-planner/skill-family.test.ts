@@ -7,7 +7,7 @@ import {
 } from './skill-family';
 
 const getSkillIdByName = (name: string): string => {
-  const skill = dataRegistry.skills.getAll().find(skill => skill.name === name);
+  const skill = dataRegistry.skills.getAll().find((skill) => skill.name === name);
 
   if (!skill) {
     throw new Error(`Could not find skill named "${name}"`);

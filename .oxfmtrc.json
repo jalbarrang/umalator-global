@@ -8,5 +8,13 @@
   "jsxSingleQuote": false,
   "experimentalSortPackageJson": false,
   "endOfLine": "lf",
-  "ignorePatterns": ["*.png", "*.jpg", "*.mdb", "package-lock.json", "bun.lock", "yarn.lock"]
+  "ignorePatterns": [
+    "*.png",
+    "*.jpg",
+    "*.mdb",
+    "package-lock.json",
+    "bun.lock",
+    "yarn.lock",
+    "src/modules/data/json/*.json" // Ignore JSON files that are generated after extracting data from the game
+  ]
 }

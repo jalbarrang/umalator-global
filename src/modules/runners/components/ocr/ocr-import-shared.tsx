@@ -518,7 +518,9 @@ function formatOcrSkillDebugReport(results: Partial<ExtractedUmaData>): string {
 
   for (const [index, skill] of (results.skills ?? []).entries()) {
     lines.push(`- [${index + 1}] Raw: ${skill.originalText || '—'}`);
-    lines.push(`  Normalized: ${dataRegistry.skills.normalizeSkillName(skill.originalText) || '—'}`);
+    lines.push(
+      `  Normalized: ${dataRegistry.skills.normalizeSkillName(skill.originalText) || '—'}`,
+    );
     lines.push(`  Matched: ${skill.name}`);
     lines.push(`  Skill ID: ${skill.id}`);
     lines.push(`  Confidence: ${skill.confidence.toFixed(2)}`);

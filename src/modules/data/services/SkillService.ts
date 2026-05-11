@@ -335,11 +335,14 @@ export class SkillService {
     });
   };
 
-  private selectCanonicalSkillLookupEntry = (entries: Array<SkillLookupEntry>): SkillLookupEntry => {
+  private selectCanonicalSkillLookupEntry = (
+    entries: Array<SkillLookupEntry>,
+  ): SkillLookupEntry => {
     return this.sortSkillLookupEntries(entries)[0];
   };
 
-  private hasSkillLevelIndicator = (value: string): boolean => /\b(?:lvl|level)\s*\d+\b/iu.test(value);
+  private hasSkillLevelIndicator = (value: string): boolean =>
+    /\b(?:lvl|level)\s*\d+\b/iu.test(value);
 
   private selectMatchedSkillLookupEntry = (
     entries: Array<SkillLookupEntry>,
@@ -350,12 +353,14 @@ export class SkillService {
 
     if (hasLevel) {
       return (
-        sortedEntries.find((entry) => this.normalizeSkillId(entry.id).startsWith('1')) ?? sortedEntries[0]
+        sortedEntries.find((entry) => this.normalizeSkillId(entry.id).startsWith('1')) ??
+        sortedEntries[0]
       );
     }
 
     return (
-      sortedEntries.find((entry) => this.normalizeSkillId(entry.id).startsWith('9')) ?? sortedEntries[0]
+      sortedEntries.find((entry) => this.normalizeSkillId(entry.id).startsWith('9')) ??
+      sortedEntries[0]
     );
   };
 

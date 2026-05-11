@@ -56,7 +56,7 @@ export function getUniqueSkillForByUmaId(outfitId: UmaAltId): string {
 const nonMeasurableSkills = ['300051', '300061'];
 
 export const getBaseSkillsToTest = () => {
-  const skillIds = dataRegistry.skills.getAll().map(skill => skill.id);
+  const skillIds = dataRegistry.skills.getAll().map((skill) => skill.id);
   const skillsToTest = [];
 
   for (const id of skillIds) {

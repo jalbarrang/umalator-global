@@ -96,18 +96,3 @@ export function getAllFeatureFlags(): Record<FeatureFlagKey, boolean> {
     {} as Record<FeatureFlagKey, boolean>,
   );
 }
-
-/**
- * Development helper to log all feature flags to console
- * Only use this in development mode
- */
-export function logFeatureFlags(): void {
-  if (import.meta.env.DEV) {
-    const flags = getAllFeatureFlags();
-    console.group('🚩 Feature Flags');
-    Object.entries(flags).forEach(([key, value]) => {
-      console.log(`${key}: ${value ? '✅ enabled' : '❌ disabled'}`);
-    });
-    console.groupEnd();
-  }
-}

@@ -5,7 +5,6 @@ import cmPresets from './cm-presets.json';
 
 const PRESET_STORE_NAME = 'umalator-presets';
 
-
 const defaultPresets: Record<string, RacePreset> = Object.fromEntries(
   cmPresets.map((p) => [p.id, p as RacePreset]),
 );
@@ -64,7 +63,6 @@ export const usePresetStore = create<IPresetStore>()(
         if (!state) return current;
         return mergePresetsWithBundled(state, current);
       },
-
     },
   ),
 );
@@ -113,4 +111,3 @@ export const reorderPresets = (newOrder: string[]) => {
 export const resetPresets = () => {
   usePresetStore.setState({ presets: defaultPresets, presetOrder: defaultPresetOrder });
 };
-

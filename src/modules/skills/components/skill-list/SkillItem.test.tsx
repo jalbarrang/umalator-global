@@ -14,10 +14,7 @@ import {
   SkillItemRail,
   SkillItemRoot,
 } from './skill-item/primitives';
-import {
-  SkillItemCostAction,
-  SkillItemDetailsActions,
-} from './skill-item/actions';
+import { SkillItemCostAction, SkillItemDetailsActions } from './skill-item/actions';
 import { SkillItem } from './skill-item/item';
 import type { SkillCostSummary } from '@/modules/skills/skill-cost-summary';
 

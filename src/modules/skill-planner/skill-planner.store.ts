@@ -215,7 +215,9 @@ const resolveObtainedSkillIds = (
   outfitId: string,
   previousOutfitId?: string,
 ): Array<string> => {
-  const nextSkillIds = Array.from(skillIds).filter((skillId) => !!dataRegistry.skills.getById(skillId));
+  const nextSkillIds = Array.from(skillIds).filter(
+    (skillId) => !!dataRegistry.skills.getById(skillId),
+  );
   const nextUniqueSkillId = getUniqueSkillId(outfitId);
   const previousUniqueSkillId = getUniqueSkillId(previousOutfitId ?? '');
 
@@ -476,7 +478,10 @@ export const addCandidate = (skillId: string, hintLevel?: number) => {
     const nextCandidates = { ...state.candidates };
     let nextSkillMetaById = state.skillMetaById;
 
-    const otherVersion = dataRegistry.skills.findVersionOfSkill(skillId, Object.keys(nextCandidates));
+    const otherVersion = dataRegistry.skills.findVersionOfSkill(
+      skillId,
+      Object.keys(nextCandidates),
+    );
     if (otherVersion) {
       const relatedSkillIds = getRelatedSkillIds(otherVersion);
       for (const relatedSkillId of relatedSkillIds) {

@@ -62,7 +62,9 @@ export class CourseService {
   };
 
   getByDistanceType = (distanceType: number): Array<CourseEntry> => {
-    return Object.values(this.courseCollection).filter((course) => course.distanceType === distanceType);
+    return Object.values(this.courseCollection).filter(
+      (course) => course.distanceType === distanceType,
+    );
   };
 
   getBySurface = (surface: number): Array<CourseEntry> => {
