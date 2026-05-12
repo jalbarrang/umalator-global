@@ -1,5 +1,5 @@
 /**
- * # Skill Comparison for Yet Another Umalator
+ * # Skill Comparison for Torena Sim
  *
  * ## Overview
  *

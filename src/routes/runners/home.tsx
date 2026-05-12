@@ -1,11 +1,16 @@
 import { useNavigate } from 'react-router';
 
-import { Activity, useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { Activity, useState, useMemo, useCallback } from 'react';
 import { Camera, Import, Plus, Search, Trash2, Users, X } from 'lucide-react';
 import type { ISavedRunner } from '@/store/runner-library.store';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
+import { FloatingButton } from '@/components/ui/fab';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   Empty,
   EmptyContent,
@@ -21,7 +26,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { SavedRunnerCard } from '@/modules/runners/components/saved-runner-card';
 import { OcrImportDialog } from '@/modules/runners/components/ocr-import-dialog';
 import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
 import { createRunnerState } from '@/modules/runners/components/runner-card/types';
@@ -29,6 +33,7 @@ import { getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import { useRunnerLibraryStore } from '@/store/runner-library.store';
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -39,155 +44,23 @@ import { loadRunnerFromLibrary, showRunner } from '@/store/runners.store';
 import { RosterImportDialog } from '@/modules/runners/roster/import-dialog';
 import { getUmaDisplayInfo } from '@/modules/runners/utils';
 import { aptitudeNames, strategyNames } from '@/lib/sunday-tools/runner/definitions';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
+import {
+  meetsMinGrade,
+  VirtualRunnerGrid,
+} from '@/modules/runners/components/runner-grid/runner-grid';
 
-function meetsMinGrade(actual: string, min: string): boolean {
-  return aptitudeNames.indexOf(actual as any) <= aptitudeNames.indexOf(min as any);
-}
-
-// --- Virtual Grid ---
-
-const CARD_HEIGHT = 230;
-const GAP = 16;
-const ROW_HEIGHT = CARD_HEIGHT + GAP;
-const OVERSCAN = 3;
-
-function getColumnCount(width: number): number {
-  if (width >= 1536) return 4; // 2xl
-  if (width >= 1024) return 3; // lg
-  if (width >= 640) return 2; // sm
-  return 1;
-}
-
-function VirtualRunnerGrid({
-  items,
-  selected,
-  isSelecting,
-  onToggleSelect,
-  onEdit,
-  onDelete,
-  onDuplicate,
-  onLoadToSimulation,
-}: Readonly<{
-  items: ISavedRunner[];
-  selected: Set<string>;
-  isSelecting: boolean;
-  onToggleSelect: (id: string) => void;
-  onEdit: (runner: ISavedRunner) => void;
-  onDelete: (id: string) => void;
-  onDuplicate: (id: string) => void;
-  onLoadToSimulation: (runner: ISavedRunner) => void;
-}>) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [scrollTop, setScrollTop] = useState(0);
-  const [containerHeight, setContainerHeight] = useState(0);
-  const [columnCount, setColumnCount] = useState(1);
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-
-    const ro = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        setContainerHeight(entry.contentRect.height);
-        setColumnCount(getColumnCount(entry.contentRect.width));
-      }
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-
-  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-    setScrollTop(e.currentTarget.scrollTop);
-    setContainerHeight(e.currentTarget.clientHeight);
-  }, []);
-
-  const { startIdx, endIdx, totalHeight } = useMemo(() => {
-    const totalRows = Math.ceil(items.length / columnCount);
-    const totalHeight = totalRows * ROW_HEIGHT;
-    const startRow = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - OVERSCAN);
-    const visibleRows = Math.ceil(containerHeight / ROW_HEIGHT) + OVERSCAN * 2;
-    const endRow = Math.min(totalRows, startRow + visibleRows);
-
-    return {
-      startIdx: startRow * columnCount,
-      endIdx: Math.min(items.length, endRow * columnCount),
-      totalHeight,
-    };
-  }, [items.length, columnCount, scrollTop, containerHeight]);
-
-  const getStyle = useCallback(
-    (index: number): React.CSSProperties => {
-      const row = Math.floor(index / columnCount);
-      const col = index % columnCount;
-      return {
-        position: 'absolute',
-        top: row * ROW_HEIGHT,
-        left: `calc(${col} * (100% / ${columnCount}) + ${col > 0 ? GAP / 2 : 0}px)`,
-        width: `calc(100% / ${columnCount} - ${GAP}px)`,
-        height: CARD_HEIGHT,
-      };
-    },
-    [columnCount],
-  );
-
-  return (
-    <div ref={containerRef} className="overflow-y-auto flex-1 min-h-0" onScroll={handleScroll}>
-      <div style={{ height: totalHeight, position: 'relative', padding: GAP / 2 }}>
-        {items.slice(startIdx, endIdx).map((runner, i) => {
-          const idx = startIdx + i;
-          return (
-            <div key={runner.id} style={getStyle(idx)} className="relative">
-              {isSelecting && (
-                <button
-                  type="button"
-                  className="absolute inset-0 z-10 cursor-pointer"
-                  onClick={() => onToggleSelect(runner.id)}
-                />
-              )}
-              <div
-                className={`h-full ${
-                  isSelecting && !selected.has(runner.id)
-                    ? 'opacity-40 transition-opacity'
-                    : 'transition-opacity'
-                }`}
-              >
-                <SavedRunnerCard
-                  runner={runner}
-                  onEdit={onEdit}
-                  onDelete={onDelete}
-                  onDuplicate={onDuplicate}
-                  onLoadToSimulation={onLoadToSimulation}
-                />
-              </div>
-              {isSelecting && (
-                <div className="absolute top-3 left-3 z-20">
-                  <Checkbox
-                    checked={selected.has(runner.id)}
-                    onCheckedChange={() => onToggleSelect(runner.id)}
-                  />
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-// --- Filter Select ---
-
-function FilterSelect({
-  label,
-  value,
-  onValueChange,
-  options,
-}: Readonly<{
+type IFilterSelectProps = {
   label: string;
   value: string;
   onValueChange: (v: string) => void;
   options: Array<{ value: string; label: string }>;
-}>) {
+};
+
+function FilterSelect(props: Readonly<IFilterSelectProps>) {
+  const { label, value, onValueChange, options } = props;
+
   return (
     <Select value={value} onValueChange={(v) => onValueChange(v ?? 'all')}>
       <SelectTrigger size="sm" className="w-auto min-w-24 gap-1">
@@ -195,6 +68,7 @@ function FilterSelect({
           {value === 'all' ? label : (options.find((o) => o.value === value)?.label ?? label)}
         </SelectValue>
       </SelectTrigger>
+
       <SelectContent>
         <SelectItem value="all">{label}</SelectItem>
         {options.map((o) => (
@@ -235,7 +109,9 @@ export function RunnersHome() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
 
-  const isSelecting = selected.size > 0;
+  const isSelecting = useMemo(() => selected.size > 0, [selected]);
+
+  const isMobile = useIsMobile();
 
   const searchIndex = useMemo(() => {
     return new Map(
@@ -252,34 +128,54 @@ export function RunnersHome() {
 
   const filtered = useMemo(() => {
     const query = search.toLowerCase().trim();
+
     return runners.filter((r) => {
       if (query) {
         const text = searchIndex.get(r.id) ?? '';
-        if (!text.includes(query)) return false;
+
+        if (!text.includes(query)) {
+          return false;
+        }
       }
-      if (strategyFilter !== 'all' && r.strategy !== strategyFilter) return false;
-      if (distanceFilter !== 'all' && !meetsMinGrade(r.distanceAptitude, distanceFilter))
+
+      if (strategyFilter !== 'all' && r.strategy !== strategyFilter) {
         return false;
-      if (surfaceFilter !== 'all' && !meetsMinGrade(r.surfaceAptitude, surfaceFilter)) return false;
+      }
+
+      if (distanceFilter !== 'all' && !meetsMinGrade(r.distanceAptitude, distanceFilter)) {
+        return false;
+      }
+
+      if (surfaceFilter !== 'all' && !meetsMinGrade(r.surfaceAptitude, surfaceFilter)) {
+        return false;
+      }
+
       return true;
     });
   }, [runners, search, strategyFilter, distanceFilter, surfaceFilter, searchIndex]);
 
-  const hasActiveFilters =
-    !!search.trim() ||
-    strategyFilter !== 'all' ||
-    distanceFilter !== 'all' ||
-    surfaceFilter !== 'all';
+  const hasActiveFilters = useMemo(
+    () =>
+      !!search.trim() ||
+      strategyFilter !== 'all' ||
+      distanceFilter !== 'all' ||
+      surfaceFilter !== 'all',
+    [search, strategyFilter, distanceFilter, surfaceFilter],
+  );
 
   const filteredIds = useMemo(() => new Set(filtered.map((r) => r.id)), [filtered]);
   const filteredSelectedCount = useMemo(
     () => [...selected].filter((id) => filteredIds.has(id)).length,
     [selected, filteredIds],
   );
-  const allFilteredSelected = filtered.length > 0 && filteredSelectedCount === filtered.length;
-  const someFilteredSelected = filteredSelectedCount > 0 && !allFilteredSelected;
+
+  const allFilteredSelected = useMemo(
+    () => filtered.length > 0 && filteredSelectedCount === filtered.length,
+    [filtered, filteredSelectedCount],
+  );
 
   const handleAddNew = () => navigate('/runners/new');
+
   const handleEdit = useCallback(
     (runner: ISavedRunner) => navigate(`/runners/${runner.id}/edit`),
     [navigate],
@@ -290,7 +186,7 @@ export function RunnersHome() {
     setDeleteDialogOpen(true);
   }, []);
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = useCallback(() => {
     if (runnerToDelete) {
       deleteRunner(runnerToDelete);
       setRunnerToDelete(null);
@@ -298,22 +194,25 @@ export function RunnersHome() {
       setSelected(new Set(selected));
     }
     setDeleteDialogOpen(false);
-  };
+  }, [deleteRunner, selected, runnerToDelete]);
 
   const handleLoadClick = useCallback((runner: ISavedRunner) => {
     setRunnerToLoad(runner);
     setLoadDialogOpen(true);
   }, []);
 
-  const handleLoadToSlot = (slot: 'uma1' | 'uma2') => {
-    if (runnerToLoad) {
+  const handleLoadToSlot = useCallback(
+    (slot: 'uma1' | 'uma2') => {
+      if (!runnerToLoad) return;
+
       loadRunnerFromLibrary(slot, runnerToLoad);
       showRunner(slot);
       setLoadDialogOpen(false);
       setRunnerToLoad(null);
       navigate('/');
-    }
-  };
+    },
+    [navigate, runnerToLoad],
+  );
 
   const toggleSelect = useCallback((id: string) => {
     setSelected((prev) => {
@@ -342,18 +241,18 @@ export function RunnersHome() {
 
   const clearSelection = useCallback(() => setSelected(new Set()), []);
 
-  const handleBulkDeleteConfirm = () => {
+  const handleBulkDeleteConfirm = useCallback(() => {
     deleteRunners(selected);
     setSelected(new Set());
     setBulkDeleteDialogOpen(false);
-  };
+  }, [selected, deleteRunners]);
 
-  const clearAllFilters = () => {
+  const clearAllFilters = useCallback(() => {
     setSearch('');
     setStrategyFilter('all');
     setDistanceFilter('all');
     setSurfaceFilter('all');
-  };
+  }, []);
 
   const handleOcrImportApply = useCallback(
     (data: ExtractedUmaData) => {
@@ -391,102 +290,143 @@ export function RunnersHome() {
   );
 
   return (
-    <div className="flex flex-col flex-1 p-4 gap-4 min-h-0 overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center justify-end gap-2">
-        <Button variant="outline" onClick={() => setRosterImportOpen(true)}>
-          <Import className="w-4 h-4 mr-2" />
-          Import Roster
-        </Button>
-        <Button variant="outline" onClick={() => setOcrImportOpen(true)}>
-          <Camera className="w-4 h-4 mr-2" />
-          Import Screenshot
-        </Button>
-        <Activity mode={runners.length > 0 ? 'visible' : 'hidden'}>
-          <Button onClick={handleAddNew}>
-            <Plus className="w-4 h-4 mr-2" />
-            Add Runner
-          </Button>
-        </Activity>
-      </div>
+    <div className="flex flex-col flex-1 p-4 gap-2 min-h-0 overflow-hidden">
+      <div className="flex md:flex-row-reverse md:items-center md:justify-between">
+        {/* [Desktop] Actions */}
+        {!isMobile && (
+          <div className="flex items-center gap-2">
+            <Button size="default" variant="outline" onClick={() => setRosterImportOpen(true)}>
+              <Import className="w-4 h-4" />
+              Import Roster
+            </Button>
 
-      {/* Search & Filters */}
-      {runners.length > 0 && (
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2 flex-wrap">
-            <div className="relative flex-1 min-w-48">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-              <Input
-                placeholder="Search runners..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-8"
-              />
-            </div>
+            <Button size="default" variant="outline" onClick={() => setOcrImportOpen(true)}>
+              <Camera className="w-4 h-4" />
+              Import Screenshot
+            </Button>
+
+            <Activity mode={runners.length > 0 ? 'visible' : 'hidden'}>
+              <Button size="default" onClick={handleAddNew}>
+                <Plus className="w-4 h-4" />
+                Add Runner
+              </Button>
+            </Activity>
+          </div>
+        )}
+
+        <div className="flex w-full md:w-fit flex-col md:flex-row md:items-center gap-2">
+          <InputGroup className="max-w-sm">
+            <InputGroupInput
+              placeholder="Search runners..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <InputGroupAddon>
+              <Search />
+            </InputGroupAddon>
+          </InputGroup>
+
+          <div className="flex gap-2">
             <FilterSelect
               label="Strategy"
               value={strategyFilter}
               onValueChange={setStrategyFilter}
               options={STRATEGY_OPTIONS}
             />
+
             <FilterSelect
               label="Distance"
               value={distanceFilter}
               onValueChange={setDistanceFilter}
               options={APTITUDE_OPTIONS}
             />
+
             <FilterSelect
               label="Surface"
               value={surfaceFilter}
               onValueChange={setSurfaceFilter}
               options={APTITUDE_OPTIONS}
             />
-            {hasActiveFilters && (
-              <Button variant="ghost" size="icon-sm" onClick={clearAllFilters}>
-                <X className="w-3.5 h-3.5" />
-              </Button>
-            )}
           </div>
 
+          {hasActiveFilters && (
+            <Button variant="ghost" size="icon-sm" onClick={clearAllFilters}>
+              <X className="w-3.5 h-3.5" />
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* [Mobile] Actions -> FAB */}
+      {isMobile && (
+        <div className="fixed bottom-6 right-6 z-20">
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <FloatingButton aria-label="Runner actions">
+                  <Plus />
+                </FloatingButton>
+              }
+            />
+            <DropdownMenuContent side="top" align="end" sideOffset={8}>
+              <DropdownMenuItem onClick={handleAddNew}>
+                <Plus className="size-4" />
+                Add Runner
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setRosterImportOpen(true)}>
+                <Import className="size-4" />
+                Import Roster
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setOcrImportOpen(true)}>
+                <Camera className="size-4" />
+                Import Screenshot
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      )}
+
+      {/* [Desktop] Search & Filters */}
+      {runners.length > 0 && (
+        <div className="flex flex-col gap-2">
           {/* Selection toolbar */}
           <div className="flex items-center gap-2">
-            <Checkbox
-              checked={allFilteredSelected}
-              indeterminate={someFilteredSelected}
-              onCheckedChange={(checked) => {
-                if (checked) selectAllFiltered();
-                else deselectAllFiltered();
-              }}
-            />
-            <button
-              type="button"
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            <Button
+              variant="outline"
               onClick={() => {
-                if (allFilteredSelected) deselectAllFiltered();
-                else selectAllFiltered();
+                if (allFilteredSelected) {
+                  deselectAllFiltered();
+                } else {
+                  selectAllFiltered();
+                }
               }}
             >
-              {hasActiveFilters
-                ? `Select all ${filtered.length} shown`
+              {allFilteredSelected
+                ? `Deselect all ${filtered.length}`
                 : `Select all ${runners.length}`}
-            </button>
+            </Button>
+
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setBulkDeleteDialogOpen(true)}
+              disabled={selected.size === 0}
+            >
+              <Trash2 className="w-4 h-4" />
+              Delete ({selected.size})
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={clearSelection}
+              disabled={selected.size === 0}
+            >
+              Cancel
+            </Button>
 
             {isSelecting && (
-              <>
-                <span className="text-xs text-muted-foreground">· {selected.size} selected</span>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  className="ml-auto h-7"
-                  onClick={() => setBulkDeleteDialogOpen(true)}
-                >
-                  <Trash2 className="w-3.5 h-3.5 mr-1.5" />
-                  Delete ({selected.size})
-                </Button>
-                <Button variant="ghost" size="sm" className="h-7" onClick={clearSelection}>
-                  Cancel
-                </Button>
-              </>
+              <span className="text-xs text-muted-foreground"> {selected.size} selected</span>
             )}
           </div>
         </div>
@@ -585,34 +525,31 @@ export function RunnersHome() {
       <Dialog open={loadDialogOpen} onOpenChange={setLoadDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Load Runner to Simulation</DialogTitle>
-            <DialogDescription>
-              Choose which simulation slot to load this runner into.
-            </DialogDescription>
+            <DialogTitle>Load Runner to Compare pages</DialogTitle>
+            <DialogDescription>Choose which Uma slot to load this runner into.</DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-4 py-4">
-            <Button variant="outline" className="h-20" onClick={() => handleLoadToSlot('uma1')}>
+
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="outline" className="h-25" onClick={() => handleLoadToSlot('uma1')}>
               <div className="text-center">
                 <div className="text-lg font-semibold text-[#2a77c5]">Uma 1</div>
-                <div className="text-sm text-muted-foreground">Blue slot</div>
               </div>
             </Button>
-            <Button variant="outline" className="h-20" onClick={() => handleLoadToSlot('uma2')}>
+            <Button variant="outline" className="h-25" onClick={() => handleLoadToSlot('uma2')}>
               <div className="text-center">
                 <div className="text-lg font-semibold text-[#c52a2a]">Uma 2</div>
-                <div className="text-sm text-muted-foreground">Red slot</div>
               </div>
             </Button>
           </div>
+
           <DialogFooter>
-            <Button variant="outline" onClick={() => setLoadDialogOpen(false)}>
-              Cancel
-            </Button>
+            <DialogClose render={<Button variant="outline" />}>Cancel</DialogClose>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       <RosterImportDialog open={rosterImportOpen} onOpenChange={setRosterImportOpen} />
+
       <OcrImportDialog
         open={ocrImportOpen}
         onOpenChange={setOcrImportOpen}

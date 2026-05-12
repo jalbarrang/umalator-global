@@ -351,7 +351,7 @@
   ],
   "narrative": {
     "northStar": "The Trainer's Notebook",
-    "overview": "Racing Form is the design system for Yet Another Umalator, a fan-made race and skill simulation toolkit for Uma Musume: Pretty Derby. The visual identity is a well-worn trainer's notebook: warm cream paper, dark warm-brown ink, annotations in a crisp hand, and a single vivid green mark that flags the most important thing on the page. Every screen should feel like opening a reference you've dog-eared a dozen times. The density is the point. The warmth keeps it from feeling clinical.\n\nThis system explicitly rejects generic SaaS dashboards, flashy gacha game UI, raw spreadsheet dumps, and cluttered game wiki aesthetics. Information architecture is deliberate. Every screen has a reading order.",
+    "overview": "Racing Form is the design system for Torena Sim, a fan-made race and skill simulation toolkit for Uma Musume: Pretty Derby. The visual identity is a well-worn trainer's notebook: warm cream paper, dark warm-brown ink, annotations in a crisp hand, and a single vivid green mark that flags the most important thing on the page. Every screen should feel like opening a reference you've dog-eared a dozen times. The density is the point. The warmth keeps it from feeling clinical.\n\nThis system explicitly rejects generic SaaS dashboards, flashy gacha game UI, raw spreadsheet dumps, and cluttered game wiki aesthetics. Information architecture is deliberate. Every screen has a reading order.",
     "keyCharacteristics": [
       "Precise, playful, approachable. Takes the data seriously and itself lightly.",
       "Crisp and efficient. Compact controls, minimal padding, every pixel earns its place.",

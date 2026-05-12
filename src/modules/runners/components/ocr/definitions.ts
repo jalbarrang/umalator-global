@@ -2,8 +2,8 @@ import type { PreparedImage, WizardStep } from '@/modules/runners/components/ocr
 
 export const WIZARD_STEPS: Array<{ id: WizardStep; label: string }> = [
   { id: 'align', label: 'Upload' },
-  { id: 'review-identity', label: 'Review Identity' },
-  { id: 'review-skills', label: 'Review Skills' },
+  { id: 'review-identity', label: 'Uma' },
+  { id: 'review-skills', label: 'Skills' },
   { id: 'summary', label: 'Summary' },
 ];
 

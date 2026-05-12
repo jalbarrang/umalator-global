@@ -1,9 +1,10 @@
 import { getIconUrl } from '@/assets/icons';
-import { forwardRef } from 'react';
+import { memo } from 'react';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import { Aptitude } from '@/lib/sunday-tools/runner/definitions';
 
-type ShareCardProps = {
+export type IShareCardProps = {
+  ref?: React.Ref<HTMLDivElement | null>;
   runner: IRunnerState;
   umaInfo: { name: string; outfit: string } | null;
   imageUrl: string;
@@ -80,10 +81,8 @@ function aptitudeIconPath(grade: string): string {
   return getIconUrl(`utx_ico_statusrank_${(100 + idx).toString().slice(1)}.png`);
 }
 
-export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(function ShareCard(
-  { runner, umaInfo, imageUrl, skills },
-  ref,
-) {
+export const ShareCard = memo(function ShareCard(props: IShareCardProps) {
+  const { ref, runner, umaInfo, imageUrl, skills } = props;
   return (
     <div
       ref={ref}

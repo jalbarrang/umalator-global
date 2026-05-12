@@ -151,7 +151,7 @@ export function useCompareShareCardProps(): CompareShareCardProps | null {
       sampleCount: race.results.length,
       seedDisplay: race.seed === null ? '—' : String(race.seed),
       statRows,
-    };
+    } satisfies CompareShareCardProps;
   }, [race, runnerId, runner, uma1, uma2, courseId, racedef, wit]);
 }
 

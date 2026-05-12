@@ -57,7 +57,7 @@ export function SkillItemRoot(props: Readonly<SkillItemRootProps>) {
       data-skillid={interactive ? resolvedSkillId : undefined}
       data-event={interactive ? 'select-skill' : undefined}
       className={cn(
-        'flex h-auto min-h-[32px] rounded-md border-2 bg-background data-[size=summary]:min-h-[48px]',
+        'flex min-h-[32px] rounded-md border-2 bg-background data-[size=summary]:min-h-[48px]',
         {
           'ring-2 ring-primary': selected,
           'bg-yellow-200/70 dark:bg-yellow-800/40': isHovered || isFocused,

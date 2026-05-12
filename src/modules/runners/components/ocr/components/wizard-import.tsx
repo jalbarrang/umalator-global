@@ -8,17 +8,15 @@ import {
   useOcrProcessing,
   useOcrResults,
   useOcrWizardState,
-} from '@/modules/runners/components/ocr/ocr-dialog-provider';
-import {
-  hasDetectedData,
-  OcrSkillDebugPanel,
-  OcrSkillsList,
-  OcrStatsEditor,
-  OcrUmaSelector,
-} from '@/modules/runners/components/ocr/ocr-import-shared';
+} from '@/modules/runners/components/ocr/ocr-dialog.provider';
+
 import { getIconById } from '@/modules/data/icons';
 import { cn } from '@/lib/utils';
 import { useGeminiApiKey } from '@/store/ocr.store';
+import { OcrUmaSelector } from './uma-selector';
+import { OcrStatsEditor } from './stats-editor';
+import { OcrSkillsList } from './skill-list';
+import { hasDetectedData } from '../helpers';
 
 interface DropZoneProps {
   label: string;
@@ -160,21 +158,20 @@ export function WizardImport() {
   const activeStepIndex = WIZARD_STEPS.findIndex((entry) => entry.id === step);
 
   return (
-    <div className="flex-1 overflow-hidden flex flex-col gap-4">
+    <div className="flex flex-col flex-1 gap-4 min-h-0">
       {/* Step indicator */}
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         {WIZARD_STEPS.map((entry, index) => (
           <div key={entry.id} className="flex items-center gap-2">
             <div
-              className={cn(
-                'px-2 py-1 rounded border',
-                index <= activeStepIndex
-                  ? 'border-primary text-foreground bg-primary/10'
-                  : 'border-muted',
-              )}
+              className={cn('px-2 py-1 rounded border', {
+                'border-primary text-foreground bg-primary/10': index <= activeStepIndex,
+                'border-muted': index > activeStepIndex,
+              })}
             >
               {entry.label}
             </div>
+
             {index < WIZARD_STEPS.length - 1 && <span>→</span>}
           </div>
         ))}
@@ -203,23 +200,20 @@ export function WizardImport() {
             isProcessing={isProcessing}
             onUpdateResults={updateResults}
           />
+
           <OcrStatsEditor results={results} onUpdateResults={updateResults} />
         </div>
       )}
 
       {/* Step: Review Skills */}
       {step === 'review-skills' && (
-        <div className="flex flex-col min-h-0">
-          <div className="flex flex-col min-h-0 gap-2">
-            <OcrSkillsList
-              results={results}
-              isProcessing={isProcessing}
-              onRemoveSkill={removeSkill}
-              onUpdateResults={updateResults}
-            />
-
-            <OcrSkillDebugPanel results={results} />
-          </div>
+        <div className="flex flex-col flex-1 min-h-0">
+          <OcrSkillsList
+            results={results}
+            isProcessing={isProcessing}
+            onRemoveSkill={removeSkill}
+            onUpdateResults={updateResults}
+          />
         </div>
       )}
 

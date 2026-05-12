@@ -1,8 +1,8 @@
-# Contributing to Yet Another Umalator
+# Contributing to Torena Sim
 
 ## Introduction
 
-This guide will help you set up a development environment, understand the codebase structure, and contribute to the Yet Another Umalator project. Whether you're updating game data, fixing bugs, or adding new features, this document provides the information you need.
+This guide will help you set up a development environment, understand the codebase structure, and contribute to the Torena Sim project. Whether you're updating game data, fixing bugs, or adding new features, this document provides the information you need.
 
 ## Prerequisites
 
@@ -630,4 +630,4 @@ See `README.md` for full acknowledgements.
 
 ---
 
-Thank you for contributing to Yet Another Umalator!
+Thank you for contributing to Torena Sim!
