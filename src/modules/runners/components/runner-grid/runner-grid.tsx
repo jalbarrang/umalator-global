@@ -2,7 +2,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { aptitudeNames } from '@/lib/sunday-tools/runner/definitions';
 import { ISavedRunner } from '@/store/runner-library.store';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef } from 'react';
 import { SavedRunnerCard } from '../saved-runner-card';
 import { cn } from '@/lib/utils';
 
@@ -63,19 +63,19 @@ export const VirtualRunnerGrid = (props: Readonly<IVirtualRunnerGridProps>) => {
         }}
       >
         {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-          // Cada virtualRow representa una fila → renderizar `columns` cards
           const rowStart = virtualRow.index * columns;
           const rowItems = items.slice(rowStart, Math.min(rowStart + columns, items.length));
 
           return (
             <div
               key={virtualRow.key}
-              className="flex flex-row gap-2 box-border"
+              className="grid gap-2 box-border w-full px-2"
               style={{
                 position: 'absolute',
                 top: virtualRow.start,
                 left: 0,
                 height: CARD_HEIGHT,
+                gridTemplateColumns: `repeat(${columns}, 1fr)`,
               }}
             >
               {rowItems.map((runner) => {
