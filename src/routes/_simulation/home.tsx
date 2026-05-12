@@ -1,9 +1,9 @@
 import { Activity, useCallback, useRef, useState } from 'react';
 import {
-  createNewSeed,
+  createNewCompareSeed,
   resetResults,
-  setSeed,
-  useRaceStore,
+  setCompareSeed,
+  useRaceStore
 } from '@/modules/simulation/stores/compare.store';
 import { Button } from '@/components/ui/button';
 import { CompareLoadingOverlay } from '@/components/compare-loading-overlay';
@@ -23,14 +23,14 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
+  DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import {
   useCompareShareCardProps,
   CompareShareCard,
   copyCompareScreenshot,
   downloadSnapshot,
-  ImportSnapshotDialog,
+  ImportSnapshotDialog
 } from '@/modules/simulation/share';
 import { Camera, ChevronDown, Download, Share2, Upload } from 'lucide-react';
 
@@ -51,17 +51,17 @@ export function SimulationHome() {
   const handleSeedInputBlur = useCallback(() => {
     const parsedSeed = parseSeed(seedInput);
     if (parsedSeed === null) return;
-    setSeed(parsedSeed);
+    setCompareSeed(parsedSeed);
   }, [seedInput]);
 
   const handleRunAllSamples = () => {
-    const newSeed = createNewSeed();
+    const newSeed = createNewCompareSeed();
     setSeedInput(newSeed.toString());
     handleRunCompare(newSeed);
   };
 
   const handleRunOneSample = () => {
-    const newSeed = createNewSeed();
+    const newSeed = createNewCompareSeed();
     setSeedInput(newSeed.toString());
     handleRunOnce(newSeed);
   };

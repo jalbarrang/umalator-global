@@ -5,10 +5,10 @@ import { Label } from '@/components/ui/label';
 import { SimulationControlBar } from '@/components/simulation-control-bar';
 import {
   clearResults,
-  createNewSeed,
+  createNewRaceSeed,
   setNsamples,
-  setSeed,
-  useRaceSimStore,
+  setRaceSeed,
+  useRaceSimStore
 } from '@/modules/simulation/stores/race-sim.store';
 
 type RaceSimActionBarProps = {
@@ -23,8 +23,8 @@ export function RaceSimActionBar({ isRunning, onRun, onCancel, onReplay }: RaceS
     useShallow((state) => ({
       seed: state.seed,
       nsamples: state.nsamples,
-      results: state.results,
-    })),
+      results: state.results
+    }))
   );
 
   const [sampleInput, setSampleInput] = useState(() => nsamples.toString());
@@ -55,8 +55,8 @@ export function RaceSimActionBar({ isRunning, onRun, onCancel, onReplay }: RaceS
         onReplay={onReplay}
         onClear={clearResults}
         clearDisabled={clearDisabled || isRunning}
-        createSeed={createNewSeed}
-        setSeed={setSeed}
+        createSeed={createNewRaceSeed}
+        setSeed={setRaceSeed}
         runLabel="Run Race Simulation"
       />
 

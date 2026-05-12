@@ -2,11 +2,11 @@ import { useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { useSkillBasinPoolRunner } from '@/modules/simulation/hooks/pool/useSkillBasinPoolRunner';
 import {
-  createNewSeed,
+  createNewSkillBassinSeed,
   resetTable,
-  setSeed,
+  setSkillBassinSeed,
   useChartData,
-  useSkillBasinStore,
+  useSkillBasinStore
 } from '@/modules/simulation/stores/skill-basin.store';
 import { BasinnChart } from '@/components/bassin-chart/BasinnChart';
 import { SimulationControlBar } from '@/components/simulation-control-bar';
@@ -25,16 +25,16 @@ export function SkillBassin() {
     results: skillBasinResults,
     isSimulationRunning,
     seed,
-    skillLoadingStates,
+    skillLoadingStates
   } = useSkillBasinStore(
     useShallow((state) => {
       return {
         results: state.results,
         isSimulationRunning: state.isSimulationRunning,
         seed: state.seed,
-        skillLoadingStates: state.skillLoadingStates,
+        skillLoadingStates: state.skillLoadingStates
       };
-    }),
+    })
   );
 
   const courseId = useSettingsStore(useShallow((state) => state.courseId));
@@ -75,7 +75,7 @@ export function SkillBassin() {
     return {
       id: 'skill-bassin' as TutorialId,
       steps: skillBassinSteps,
-      tooltip: 'How to use Skill Chart',
+      tooltip: 'How to use Skill Chart'
     };
   }, []);
 
@@ -91,8 +91,8 @@ export function SkillBassin() {
         onReplay={doBasinnChart}
         onClear={resetTable}
         clearDisabled={resultCount === 0}
-        createSeed={createNewSeed}
-        setSeed={setSeed}
+        createSeed={createNewSkillBassinSeed}
+        setSeed={setSkillBassinSeed}
         tutorial={tutorialSettings}
         dataTutorial="skill-bassin-controls"
       />

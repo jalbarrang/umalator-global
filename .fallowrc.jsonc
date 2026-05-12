@@ -1,5 +1,26 @@
 {
-  "$schema": "https://fallow.tools/schema.json",
-  // shadcn/ui components are library code — exclude from all fallow analysis
-  "ignorePatterns": ["src/components/ui/**", "oxlint-rules/**", "src/modules/data/services/**"],
+  "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
+  "ignorePatterns": [
+    "src/components/ui/**",
+    "oxlint-rules/**",
+    "src/modules/data/services/**",
+    "**/*.generated.ts",
+    "**/*.d.ts"
+  ],
+  "ignoreDependencies": [
+    "class-variance-authority",
+    "cmdk",
+    "date-fns",
+    "next-themes",
+    "react-day-picker",
+    "vaul",
+    "babel-plugin-react-compiler",
+    "globals",
+    "ink",
+    "ink-select-input",
+    "ink-spinner",
+    "ink-text-input",
+    "web-vitals"
+  ],
+  "production": false
 }

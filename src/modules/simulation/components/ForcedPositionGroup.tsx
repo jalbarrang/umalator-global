@@ -9,14 +9,14 @@ import {
   SkillItemIdentity,
   SkillItemMain,
   SkillItemRail,
-  SkillItemRoot,
+  SkillItemRoot
 } from '@/modules/skills/components/skill-list/skill-item/primitives';
 import { SkillItem } from '@/modules/skills/components/skill-list/skill-item/item';
 import {
   clearForcedPosition,
-  setForcedPosition,
-  type CompareRunnerId,
+  setForcedPosition
 } from '@/modules/simulation/stores/forced-positions.store';
+import { CompareRunnerId } from '../compare.types';
 
 type RunnerSkillEntry = {
   skillId: string;
@@ -42,7 +42,7 @@ function parseForcedPosition(rawValue: string): number | null {
 function ForcedPositionRow({
   runnerId,
   skill,
-  positions,
+  positions
 }: Readonly<{
   runnerId: CompareRunnerId;
   skill: RunnerSkillEntry;
@@ -59,7 +59,7 @@ function ForcedPositionRow({
 
       setForcedPosition(runnerId, skill.normalizedSkillId, nextPosition);
     },
-    [runnerId, skill.normalizedSkillId],
+    [runnerId, skill.normalizedSkillId]
   );
 
   return (
@@ -97,7 +97,7 @@ type ForcedPositionGroupProps = Readonly<{
 export function buildRunnerSkillEntries(skills: Array<string>): Array<RunnerSkillEntry> {
   return skills.map((skillId) => ({
     skillId,
-    normalizedSkillId: dataRegistry.skills.normalizeSkillId(skillId),
+    normalizedSkillId: dataRegistry.skills.normalizeSkillId(skillId)
   }));
 }
 
@@ -105,7 +105,7 @@ export function ForcedPositionGroup({
   runnerId,
   title,
   skills,
-  positions,
+  positions
 }: ForcedPositionGroupProps) {
   return (
     <div className="flex flex-col gap-2 rounded-md border bg-background p-3">

@@ -1,5 +1,8 @@
+// fallow-ignore-file unused-file
+
 /**
  * Race sim CLI for testing the full 9-runner simulation.
+ *
  *
  * Usage:
  *   bun scripts/run-race-sim.ts
@@ -19,7 +22,7 @@ import {
   Season,
   TimeOfDay,
   Weather,
-  Grade,
+  Grade
 } from '@/lib/sunday-tools/course/definitions';
 
 const DEFAULT_COURSE_ID = 10101;
@@ -30,7 +33,7 @@ function createDefaultRaceParams(): RaceParameters {
     weather: Weather.Sunny,
     season: Season.Spring,
     timeOfDay: TimeOfDay.Midday,
-    grade: Grade.G1,
+    grade: Grade.G1
   };
 }
 
@@ -40,7 +43,7 @@ function printResults(result: RaceSimResult, courseDistance: number): void {
   for (let i = 0; i < finishOrders.length; i++) {
     console.log(`\n--- Sample ${i + 1} ---`);
     console.log(
-      `${'Pos'.padStart(4)} | ${'Runner'.padEnd(12)} | ${'Strategy'.padEnd(14)} | ${'Overshoot'.padStart(10)}`,
+      `${'Pos'.padStart(4)} | ${'Runner'.padEnd(12)} | ${'Strategy'.padEnd(14)} | ${'Overshoot'.padStart(10)}`
     );
     console.log('-'.repeat(52));
 
@@ -50,7 +53,7 @@ function printResults(result: RaceSimResult, courseDistance: number): void {
       const strategyName = StrategyName[entry.strategy] ?? `Strat(${entry.strategy})`;
 
       console.log(
-        `${String(j + 1).padStart(4)} | ${entry.name.padEnd(12)} | ${strategyName.padEnd(14)} | ${overshoot.padStart(10)}`,
+        `${String(j + 1).padStart(4)} | ${entry.name.padEnd(12)} | ${strategyName.padEnd(14)} | ${overshoot.padStart(10)}`
       );
     }
   }
@@ -66,7 +69,7 @@ function printResults(result: RaceSimResult, courseDistance: number): void {
         const existing = avgPositions.get(entry.runnerId) ?? {
           name: entry.name,
           total: 0,
-          count: 0,
+          count: 0
         };
         existing.total += j + 1;
         existing.count += 1;
@@ -116,7 +119,7 @@ async function main() {
     parameters: createDefaultRaceParams(),
     runners,
     nsamples,
-    masterSeed,
+    masterSeed
   });
 
   const elapsed = performance.now() - start;

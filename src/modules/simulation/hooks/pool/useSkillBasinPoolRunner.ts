@@ -6,8 +6,8 @@ import {
   resetTable,
   setIsSimulationRunning,
   setMetrics,
-  setProgress,
-  setTable,
+  setSkillBassinProgress,
+  setTable
 } from '@/modules/simulation/stores/skill-basin.store';
 import { getBaseSkillsToTest } from '@/modules/skills/utils';
 import { useRunner } from '@/store/runners.store';
@@ -17,7 +17,7 @@ import { racedefToParams } from '@/utils/races';
 import {
   defaultSimulationOptions,
   getActivateableSkills,
-  getNullSkillComparisonRow,
+  getNullSkillComparisonRow
 } from '@/components/bassin-chart/utils';
 import { PoolManager } from '@/workers/pool/pool-manager';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
@@ -59,11 +59,11 @@ export function useSkillBasinPoolRunner() {
       baseSkillsToTest.filter(
         (skillId) =>
           !runner.skills.includes(skillId) &&
-          (!skillId.startsWith('9') || !runner.skills.includes('1' + skillId.slice(1))),
+          (!skillId.startsWith('9') || !runner.skills.includes('1' + skillId.slice(1)))
       ),
       runner,
       course,
-      params,
+      params
     );
 
     const uma = runner;
@@ -88,28 +88,28 @@ export function useSkillBasinPoolRunner() {
         options: {
           ...defaultSimulationOptions,
           seed: simulationSeed,
-          ignoreStaminaConsumption,
-        },
+          ignoreStaminaConsumption
+        }
       },
       {
         onProgress: (results, progress) => {
           appendResultsToTable(results);
-          setProgress(progress);
+          setSkillBassinProgress(progress);
         },
         onStageComplete: (_stage, _results, progress) => {
-          setProgress(progress);
+          setSkillBassinProgress(progress);
         },
         onComplete: (_results, metrics) => {
           setMetrics(metrics);
-          setProgress(null);
+          setSkillBassinProgress(null);
           setIsSimulationRunning(false);
         },
         onError: (error) => {
           console.error('Pool simulation error:', error);
-          setProgress(null);
+          setSkillBassinProgress(null);
           setIsSimulationRunning(false);
-        },
-      },
+        }
+      }
     );
   };
 

@@ -2,8 +2,10 @@ import { cloneDeep } from 'es-toolkit';
 import type {
   ISkillPerspective,
   ISkillTarget,
-  ISkillType,
+  ISkillType
 } from '@/lib/sunday-tools/skills/definitions';
+
+export type CompareRunnerId = 'uma1' | 'uma2';
 
 export interface CompareResult {
   results: Array<number>;
@@ -173,19 +175,19 @@ const defaultSimulationRun: SimulationRun = {
   startDelay: [0, 0],
   rushed: [[], []],
   duelingRegions: [[], []],
-  spotStruggleRegions: [[], []],
+  spotStruggleRegions: [[], []]
 };
 
 export const initializeSimulationRun = (
-  simulationRun: Partial<SimulationRun> = {},
+  simulationRun: Partial<SimulationRun> = {}
 ): SimulationRun => ({
   ...cloneDeep(defaultSimulationRun),
-  ...simulationRun,
+  ...simulationRun
 });
 
 export const initializeSkillSimulationRun = (
-  skillSimulationRun: Partial<SkillSimulationRun> = {},
+  skillSimulationRun: Partial<SkillSimulationRun> = {}
 ): SkillSimulationRun => ({
   sk: [{}, {}],
-  ...skillSimulationRun,
+  ...skillSimulationRun
 });

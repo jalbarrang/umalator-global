@@ -3,9 +3,9 @@ import CompareWorker from '@workers/simulator.worker.ts?worker';
 import type { CompareParams } from '../../types';
 import type { CompareResult } from '@/modules/simulation/compare.types';
 import {
-  setIsSimulationRunning,
+  setIsCompareSimRunning,
   setResults,
-  setSimulationProgress,
+  setSimulationProgress
 } from '@/modules/simulation/stores/compare.store';
 import { racedefToParams } from '@/utils/races';
 import { useSettingsStore, useWitVariance } from '@/store/settings.store';
@@ -48,7 +48,7 @@ export function useSimulationRunner() {
     allowSectionModifierUma1,
     allowSectionModifierUma2,
     allowSkillCheckChanceUma1,
-    allowSkillCheckChanceUma2,
+    allowSkillCheckChanceUma2
   } = useWitVariance();
 
   const { uma1: forcedUma1, uma2: forcedUma2 } = useForcedPositions();
@@ -61,7 +61,7 @@ export function useSimulationRunner() {
 
     console.log('compare:handleWorkerMessage', {
       type,
-      data: event.data,
+      data: event.data
     });
 
     switch (type) {
@@ -71,16 +71,16 @@ export function useSimulationRunner() {
       case 'compare-progress':
         setSimulationProgress({
           current: event.data.currentSamples,
-          total: event.data.totalSamples,
+          total: event.data.totalSamples
         });
         break;
       case 'compare-complete':
-        setIsSimulationRunning(false);
+        setIsCompareSimRunning(false);
         setSimulationProgress(null);
         break;
       case 'worker-error':
         console.error('Compare worker error:', event.data.error);
-        setIsSimulationRunning(false);
+        setIsCompareSimRunning(false);
         setSimulationProgress(null);
         break;
     }
@@ -102,7 +102,7 @@ export function useSimulationRunner() {
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
 
   const handleRunCompare = (seed?: number) => {
-    setIsSimulationRunning(true);
+    setIsCompareSimRunning(true);
     setSimulationProgress(null);
 
     // Generate random seed if not provided
@@ -130,26 +130,26 @@ export function useSimulationRunner() {
         accuracyMode: false,
         skillCheckChanceUma1: simWitVariance ? allowSkillCheckChanceUma1 : false,
         skillCheckChanceUma2: simWitVariance ? allowSkillCheckChanceUma2 : false,
-        staminaDrainOverrides,
+        staminaDrainOverrides
       },
       forcedPositions: hasForcedPositions ? { uma1: forcedUma1, uma2: forcedUma2 } : undefined,
-      injectedDebuffs: hasDebuffs ? { uma1: debuffsUma1, uma2: debuffsUma2 } : undefined,
+      injectedDebuffs: hasDebuffs ? { uma1: debuffsUma1, uma2: debuffsUma2 } : undefined
     };
 
     const worker = webWorkerRef.current;
     if (!worker) {
-      setIsSimulationRunning(false);
+      setIsCompareSimRunning(false);
       return;
     }
 
     worker.postMessage({
       type: 'compare',
-      data: params,
+      data: params
     });
   };
 
   function handleRunOnce(seed?: number) {
-    setIsSimulationRunning(true);
+    setIsCompareSimRunning(true);
     setSimulationProgress(null);
 
     // Generate random seed if not provided
@@ -177,21 +177,21 @@ export function useSimulationRunner() {
         accuracyMode: false,
         skillCheckChanceUma1: simWitVariance ? allowSkillCheckChanceUma1 : false,
         skillCheckChanceUma2: simWitVariance ? allowSkillCheckChanceUma2 : false,
-        staminaDrainOverrides,
+        staminaDrainOverrides
       },
       forcedPositions: hasForcedPositions ? { uma1: forcedUma1, uma2: forcedUma2 } : undefined,
-      injectedDebuffs: hasDebuffs ? { uma1: debuffsUma1, uma2: debuffsUma2 } : undefined,
+      injectedDebuffs: hasDebuffs ? { uma1: debuffsUma1, uma2: debuffsUma2 } : undefined
     };
 
     const worker = webWorkerRef.current;
     if (!worker) {
-      setIsSimulationRunning(false);
+      setIsCompareSimRunning(false);
       return;
     }
 
     worker.postMessage({
       type: 'compare',
-      data: params,
+      data: params
     });
   }
 

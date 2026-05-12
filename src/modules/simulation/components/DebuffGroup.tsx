@@ -12,15 +12,12 @@ import {
   SkillItemIdentity,
   SkillItemMain,
   SkillItemRail,
-  SkillItemRoot,
+  SkillItemRoot
 } from '@/modules/skills/components/skill-list/skill-item/primitives';
 import { SkillItemDetailsActions } from '@/modules/skills/components/skill-list/skill-item/actions';
 import { SkillItem } from '@/modules/skills/components/skill-list/skill-item/item';
-import {
-  removeDebuff,
-  updateDebuffPosition,
-  type CompareRunnerId,
-} from '@/modules/simulation/stores/compare.store';
+import { removeDebuff, updateDebuffPosition } from '@/modules/simulation/stores/compare.store';
+import { CompareRunnerId } from '../compare.types';
 
 type DebuffEntry = {
   id: string;
@@ -45,7 +42,7 @@ type DebuffGroupProps = Readonly<{
 
 function DebuffRow({
   runnerId,
-  debuff,
+  debuff
 }: Readonly<{
   runnerId: CompareRunnerId;
   debuff: DebuffEntry;
@@ -59,7 +56,7 @@ function DebuffRow({
 
       updateDebuffPosition(runnerId, debuff.id, nextPosition);
     },
-    [runnerId, debuff.id],
+    [runnerId, debuff.id]
   );
 
   const handleDismiss = useCallback(() => {

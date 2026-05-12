@@ -8,7 +8,7 @@ import {
   ResponsiveContainer,
   Tooltip,
   XAxis,
-  YAxis,
+  YAxis
 } from 'recharts';
 import type { SkillEffectLog, SkillSimulationData } from '@/modules/simulation/compare.types';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
@@ -31,13 +31,13 @@ interface BinData {
 const PHASE_COLORS = {
   phase0: 'var(--chart-1)', // Start phase
   phase1: 'var(--chart-3)', // Middle phase
-  phase2: 'var(--chart-5)', // Final phase
+  phase2: 'var(--chart-5)' // Final phase
 };
 
 export function ActivationFrequencyChart({
   skillId,
   runData,
-  courseDistance,
+  courseDistance
 }: ActivationFrequencyChartProps) {
   const chartData = useMemo(() => {
     // Collect all activation positions for this skill across all run types
@@ -79,7 +79,7 @@ export function ActivationFrequencyChart({
         start: i,
         end: i + binSize,
         count: 0,
-        percentage: 0,
+        percentage: 0
       });
     }
 
@@ -101,7 +101,7 @@ export function ActivationFrequencyChart({
     const phaseStarts = [
       { position: CourseHelpers.phaseStart(courseDistance, 1), label: 'Mid' },
       { position: CourseHelpers.phaseStart(courseDistance, 2), label: 'Final' },
-      { position: CourseHelpers.phaseStart(courseDistance, 3), label: 'Last' },
+      { position: CourseHelpers.phaseStart(courseDistance, 3), label: 'Last' }
     ];
 
     return { bins, totalActivations, phaseStarts };

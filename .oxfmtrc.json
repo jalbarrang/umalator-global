@@ -8,6 +8,7 @@
   "jsxSingleQuote": false,
   "experimentalSortPackageJson": false,
   "endOfLine": "lf",
+  "trailingComma": "none",
   "ignorePatterns": [
     "*.png",
     "*.jpg",

@@ -3,18 +3,18 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import { useShallow } from 'zustand/shallow';
 import type {
   CompareResult,
+  CompareRunnerId,
   FirstUMAStats,
   SimulationData,
   SimulationRun,
   StaminaStats,
-  Stats,
+  Stats
 } from '@/modules/simulation/compare.types';
 import type { InjectedDebuffsMap } from '@/modules/simulation/types';
 import { generateSeed } from '@/utils/crypto';
 import { SpurtCandidate } from '@/lib/sunday-tools/common/spurt-calculator';
 
 const COMPARE_DEBUFFS_STORE_NAME = 'umalator-compare-debuffs';
-export type CompareRunnerId = 'uma1' | 'uma2';
 
 type IRaceStore = {
   seed: number | null;
@@ -47,23 +47,23 @@ export const useRaceStore = create<IRaceStore>()(
       firstUmaStats: null,
       isSimulationRunning: false,
       simulationProgress: null,
-      injectedDebuffs: { uma1: [], uma2: [] },
+      injectedDebuffs: { uma1: [], uma2: [] }
     }),
     {
       name: COMPARE_DEBUFFS_STORE_NAME,
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
-        injectedDebuffs: state.injectedDebuffs,
-      }),
-    },
-  ),
+        injectedDebuffs: state.injectedDebuffs
+      })
+    }
+  )
 );
 
-export const setSeed = (seed: number | null) => {
+export const setCompareSeed = (seed: number | null) => {
   useRaceStore.setState({ seed });
 };
 
-export const createNewSeed = () => {
+export const createNewCompareSeed = () => {
   const seed = generateSeed();
   useRaceStore.setState({ seed });
 
@@ -84,7 +84,7 @@ export const setResults = (results: CompareResult) => {
     leadCompetitionStats: results.leadCompetitionStats,
     spurtInfo: results.spurtInfo ?? undefined,
     staminaStats: results.staminaStats,
-    firstUmaStats: results.firstUmaStats,
+    firstUmaStats: results.firstUmaStats
   });
 };
 
@@ -95,7 +95,7 @@ export const setDisplaying = (displaying: string = 'meanrun') => {
 
   useRaceStore.setState({
     displaying,
-    chartData: currentRunData,
+    chartData: currentRunData
   });
 };
 
@@ -110,11 +110,11 @@ export const resetResults = () => {
     spurtInfo: null,
     staminaStats: null,
     firstUmaStats: null,
-    simulationProgress: null,
+    simulationProgress: null
   });
 };
 
-export const setIsSimulationRunning = (isSimulationRunning: boolean) => {
+export const setIsCompareSimRunning = (isSimulationRunning: boolean) => {
   useRaceStore.setState({ isSimulationRunning });
 };
 
@@ -128,9 +128,9 @@ export const addDebuff = (runnerId: CompareRunnerId, skillId: string, position: 
       ...state.injectedDebuffs,
       [runnerId]: [
         ...state.injectedDebuffs[runnerId],
-        { id: crypto.randomUUID(), skillId, position: Math.round(position) },
-      ],
-    },
+        { id: crypto.randomUUID(), skillId, position: Math.round(position) }
+      ]
+    }
   }));
 };
 
@@ -138,15 +138,15 @@ export const removeDebuff = (runnerId: CompareRunnerId, debuffId: string) => {
   useRaceStore.setState((state) => ({
     injectedDebuffs: {
       ...state.injectedDebuffs,
-      [runnerId]: state.injectedDebuffs[runnerId].filter((debuff) => debuff.id !== debuffId),
-    },
+      [runnerId]: state.injectedDebuffs[runnerId].filter((debuff) => debuff.id !== debuffId)
+    }
   }));
 };
 
 export const updateDebuffPosition = (
   runnerId: CompareRunnerId,
   debuffId: string,
-  position: number,
+  position: number
 ) => {
   const normalizedPosition = Math.round(position);
 
@@ -173,8 +173,8 @@ export const updateDebuffPosition = (
     return {
       injectedDebuffs: {
         ...state.injectedDebuffs,
-        [runnerId]: nextRunnerDebuffs,
-      },
+        [runnerId]: nextRunnerDebuffs
+      }
     };
   });
 };
@@ -187,7 +187,7 @@ export const useDebuffs = (): InjectedDebuffsMap => {
   return useRaceStore(
     useShallow((state) => ({
       uma1: state.injectedDebuffs.uma1,
-      uma2: state.injectedDebuffs.uma2,
-    })),
+      uma2: state.injectedDebuffs.uma2
+    }))
   );
 };

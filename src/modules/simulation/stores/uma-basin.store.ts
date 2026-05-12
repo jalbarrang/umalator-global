@@ -1,23 +1,21 @@
 import { create } from 'zustand';
 import { useMemo, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
-import { cloneDeep } from 'es-toolkit';
 import { initializeSimulationRun } from '../compare.types';
 import { useRaceStore } from './compare.store';
 import type {
   SimulationData,
   SimulationRun,
   SkillActivationMap,
-  SkillEffectLog,
+  SkillEffectLog
 } from '../compare.types';
 import type {
   PoolMetrics,
   SkillComparisonResponse,
-  SkillComparisonRoundResult,
+  SkillComparisonRoundResult
 } from '@/modules/simulation/types';
 import type { SimulationProgress } from '@/workers/pool/types';
 import { generateSeed } from '@/utils/crypto';
-import { mergeSkillResults } from '@/workers/utils';
 
 type IUmaBasinStore = {
   seed: number | null;
@@ -34,7 +32,7 @@ export const useUniqueSkillBasinStore = create<IUmaBasinStore>()((_) => ({
   metrics: null,
   progress: null,
   isSimulationRunning: false,
-  skillLoadingStates: {},
+  skillLoadingStates: {}
 }));
 
 export const setSeed = (seed: number | null) => {
@@ -56,30 +54,13 @@ export const resetTable = () => {
   useUniqueSkillBasinStore.setState({ results: {}, metrics: null, progress: null });
 };
 
-export const appendSingleSkillResult = (skillId: string, result: SkillComparisonRoundResult) => {
-  useUniqueSkillBasinStore.setState((state) => {
-    const currentResults = cloneDeep(state.results);
-    const skillResult = currentResults[skillId];
-    if (!skillResult) {
-      return {
-        results: state.results,
-      };
-    }
-    currentResults[skillId] = mergeSkillResults(skillResult, result);
-
-    return {
-      results: currentResults,
-    };
-  });
-};
-
 export const appendResultsToTable = (results: SkillComparisonResponse) => {
   useUniqueSkillBasinStore.setState((state) => {
     return {
       results: {
         ...state.results,
-        ...results,
-      },
+        ...results
+      }
     };
   });
 };
@@ -100,20 +81,12 @@ export const setSkillLoading = (skillId: string, isLoading: boolean) => {
   useUniqueSkillBasinStore.setState((state) => ({
     skillLoadingStates: {
       ...state.skillLoadingStates,
-      [skillId]: isLoading,
-    },
+      [skillId]: isLoading
+    }
   }));
 };
 
-export const getSkillLoadingState = (skillId: string): boolean => {
-  return useUniqueSkillBasinStore.getState().skillLoadingStates[skillId] ?? false;
-};
-
-export const useSkillLoadingState = (skillId: string) => {
-  return useUniqueSkillBasinStore((state) => state.skillLoadingStates[skillId] ?? false);
-};
-
-export const useUmaBasinResults = () => {
+const useUmaBasinResults = () => {
   return useUniqueSkillBasinStore(useShallow((state) => state.results));
 };
 

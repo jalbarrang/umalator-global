@@ -8,12 +8,12 @@ import type {
   SimulationData,
   SimulationRun,
   SkillActivationMap,
-  SkillEffectLog,
+  SkillEffectLog
 } from '../compare.types';
 import type {
   PoolMetrics,
   SkillComparisonResponse,
-  SkillComparisonRoundResult,
+  SkillComparisonRoundResult
 } from '@/modules/simulation/types';
 import type { SimulationProgress } from '@/workers/pool/types';
 import { generateSeed } from '@/utils/crypto';
@@ -34,14 +34,14 @@ export const useSkillBasinStore = create<ISkillBasinStore>()((_) => ({
   metrics: null,
   progress: null,
   isSimulationRunning: false,
-  skillLoadingStates: {},
+  skillLoadingStates: {}
 }));
 
-export const setSeed = (seed: number | null) => {
+export const setSkillBassinSeed = (seed: number | null) => {
   useSkillBasinStore.setState({ seed });
 };
 
-export const createNewSeed = () => {
+export const createNewSkillBassinSeed = () => {
   const seed = generateSeed();
   useSkillBasinStore.setState({ seed });
 
@@ -62,13 +62,13 @@ export const appendSingleSkillResult = (skillId: string, result: SkillComparison
     const skillResult = currentResults[skillId];
     if (!skillResult) {
       return {
-        results: state.results,
+        results: state.results
       };
     }
     currentResults[skillId] = mergeSkillResults(skillResult, result);
 
     return {
-      results: currentResults,
+      results: currentResults
     };
   });
 };
@@ -78,8 +78,8 @@ export const appendResultsToTable = (results: SkillComparisonResponse) => {
     return {
       results: {
         ...state.results,
-        ...results,
-      },
+        ...results
+      }
     };
   });
 };
@@ -88,7 +88,7 @@ export const setMetrics = (metrics: PoolMetrics) => {
   useSkillBasinStore.setState({ metrics });
 };
 
-export const setProgress = (progress: SimulationProgress | null) => {
+export const setSkillBassinProgress = (progress: SimulationProgress | null) => {
   useSkillBasinStore.setState({ progress });
 };
 
@@ -100,20 +100,12 @@ export const setSkillLoading = (skillId: string, isLoading: boolean) => {
   useSkillBasinStore.setState((state) => ({
     skillLoadingStates: {
       ...state.skillLoadingStates,
-      [skillId]: isLoading,
-    },
+      [skillId]: isLoading
+    }
   }));
 };
 
-export const getSkillLoadingState = (skillId: string): boolean => {
-  return useSkillBasinStore.getState().skillLoadingStates[skillId] ?? false;
-};
-
-export const useSkillLoadingState = (skillId: string) => {
-  return useSkillBasinStore((state) => state.skillLoadingStates[skillId] ?? false);
-};
-
-export const useSkillBasinResults = () => {
+const useSkillBasinResults = () => {
   return useSkillBasinStore(useShallow((state) => state.results));
 };
 

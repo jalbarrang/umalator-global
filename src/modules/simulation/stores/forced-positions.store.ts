@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { useShallow } from 'zustand/shallow';
-
-export type CompareRunnerId = 'uma1' | 'uma2';
+import { CompareRunnerId } from '../compare.types';
 
 type ForcedPositionsStore = {
   uma1: Record<string, number>;
@@ -10,13 +9,13 @@ type ForcedPositionsStore = {
 
 export const useForcedPositionsStore = create<ForcedPositionsStore>()(() => ({
   uma1: {},
-  uma2: {},
+  uma2: {}
 }));
 
 export const setForcedPosition = (
   runnerId: CompareRunnerId,
   skillId: string | number,
-  position: number,
+  position: number
 ) => {
   const normalizedSkillId = String(skillId);
   const normalizedPosition = Math.round(position);
@@ -30,8 +29,8 @@ export const setForcedPosition = (
       ...prev,
       [runnerId]: {
         ...prev[runnerId],
-        [normalizedSkillId]: normalizedPosition,
-      },
+        [normalizedSkillId]: normalizedPosition
+      }
     };
   });
 };
@@ -48,7 +47,7 @@ export const clearForcedPosition = (runnerId: CompareRunnerId, skillId: string |
 
     return {
       ...prev,
-      [runnerId]: rest,
+      [runnerId]: rest
     };
   });
 };
@@ -61,8 +60,8 @@ export const useForcedPositions = () => {
   return useForcedPositionsStore(
     useShallow((state) => ({
       uma1: state.uma1,
-      uma2: state.uma2,
-    })),
+      uma2: state.uma2
+    }))
   );
 };
 

@@ -1,3 +1,5 @@
+// fallow-ignore-file unused-file
+
 import { useMemo } from 'react';
 
 /**
@@ -62,7 +64,7 @@ export function useFeature(flag: FeatureFlagKey): boolean {
 export function FeatureFlag({
   feature,
   children,
-  fallback = null,
+  fallback = null
 }: {
   feature: FeatureFlagKey;
   children: React.ReactNode;
@@ -93,6 +95,6 @@ export function getAllFeatureFlags(): Record<FeatureFlagKey, boolean> {
       acc[flag] = isFeatureEnabled(flag);
       return acc;
     },
-    {} as Record<FeatureFlagKey, boolean>,
+    {} as Record<FeatureFlagKey, boolean>
   );
 }

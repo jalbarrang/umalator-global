@@ -29,7 +29,7 @@ const DEFAULT_FIELD_STRATEGIES: Array<IRunnerState['strategy']> = [
   'Pace Chaser',
   'Late Surger',
   'Front Runner',
-  'End Closer',
+  'End Closer'
 ];
 
 const createDefaultRunner = (strategy: IRunnerState['strategy']): IRunnerState => ({
@@ -45,7 +45,7 @@ const createDefaultRunner = (strategy: IRunnerState['strategy']): IRunnerState =
   strategyAptitude: 'A',
   mood: Mood.Normal,
   skills: [],
-  randomMobId: Math.floor(Math.random() * 624) + 8000,
+  randomMobId: Math.floor(Math.random() * 624) + 8000
 });
 
 export const generateDefaultFieldAsRunnerState = (): IRunnerState[] => {
@@ -59,7 +59,7 @@ const normalizeNsamples = (nsamples: number): number => {
 
 const applyFocusRunnerSuggestion = (
   runners: IRunnerState[],
-  focusRunnerIndices: number[],
+  focusRunnerIndices: number[]
 ): number[] => {
   const selectedRunnerIndices = runners.reduce<Array<number>>((indices, runner, index) => {
     if (runner.outfitId) {
@@ -90,7 +90,7 @@ export const useRaceSimStore = create<IRaceSimStore>()(
       isRunning: false,
       focusRunnerIndices: [],
       isStale: false,
-      zoomWindowMeters: 300,
+      zoomWindowMeters: 300
     }),
     {
       name: RACE_SIM_STORE_NAME,
@@ -99,10 +99,10 @@ export const useRaceSimStore = create<IRaceSimStore>()(
         runners: state.runners,
         nsamples: state.nsamples,
         focusRunnerIndices: state.focusRunnerIndices,
-        zoomWindowMeters: state.zoomWindowMeters,
-      }),
-    },
-  ),
+        zoomWindowMeters: state.zoomWindowMeters
+      })
+    }
+  )
 );
 
 export const updateRunner = (index: number, partial: Partial<IRunnerState>) => {
@@ -117,7 +117,7 @@ export const updateRunner = (index: number, partial: Partial<IRunnerState>) => {
     return {
       runners: nextRunners,
       focusRunnerIndices: applyFocusRunnerSuggestion(nextRunners, state.focusRunnerIndices),
-      isStale: true,
+      isStale: true
     };
   });
 };
@@ -126,7 +126,7 @@ export const randomizeField = () => {
   useRaceSimStore.setState({
     runners: generateDefaultFieldAsRunnerState(),
     focusRunnerIndices: [],
-    isStale: true,
+    isStale: true
   });
 };
 
@@ -136,7 +136,7 @@ export const toggleFocusRunner = (index: number) => {
     return {
       focusRunnerIndices: isFocused
         ? state.focusRunnerIndices.filter((runnerIndex) => runnerIndex !== index)
-        : [...state.focusRunnerIndices, index],
+        : [...state.focusRunnerIndices, index]
     };
   });
 };
@@ -144,24 +144,24 @@ export const toggleFocusRunner = (index: number) => {
 export const setNsamples = (nsamples: number) => {
   useRaceSimStore.setState({
     nsamples: normalizeNsamples(nsamples),
-    isStale: true,
+    isStale: true
   });
 };
 
-export const createNewSeed = () => {
+export const createNewRaceSeed = () => {
   const seed = generateSeed();
   useRaceSimStore.setState({ seed });
   return seed;
 };
 
-export const setSeed = (seed: number | null) => {
+export const setRaceSeed = (seed: number | null) => {
   useRaceSimStore.setState({ seed });
 };
 
 export const setResults = (results: RaceSimResult) => {
   useRaceSimStore.setState({
     results,
-    isStale: false,
+    isStale: false
   });
 };
 
@@ -172,7 +172,7 @@ export const setIsRunning = (isRunning: boolean) => {
 export const clearResults = () => {
   useRaceSimStore.setState({
     results: null,
-    isStale: false,
+    isStale: false
   });
 };
 
@@ -183,6 +183,6 @@ const ZOOM_STEP = 100;
 export const setZoomWindowMeters = (meters: number) => {
   const clamped = Math.round(meters / ZOOM_STEP) * ZOOM_STEP;
   useRaceSimStore.setState({
-    zoomWindowMeters: Math.min(MAX_ZOOM_WINDOW, Math.max(MIN_ZOOM_WINDOW, clamped)),
+    zoomWindowMeters: Math.min(MAX_ZOOM_WINDOW, Math.max(MIN_ZOOM_WINDOW, clamped))
   });
 };

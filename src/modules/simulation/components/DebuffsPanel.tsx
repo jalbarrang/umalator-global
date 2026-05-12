@@ -5,18 +5,14 @@ import {
   PanelContent,
   PanelDescription,
   PanelHeader,
-  PanelTitle,
+  PanelTitle
 } from '@/components/ui/panel';
 import { dataRegistry } from '@/modules/data/registry';
 import { DebuffGroup } from './DebuffGroup';
 import { isInjectableExternalDebuffSkill } from '@/lib/sunday-tools/skills/external-debuffs';
 import { SkillPickerModal } from '@/modules/skills/components/skill-picker/modal';
-import {
-  addDebuff,
-  clearAllDebuffs,
-  useDebuffs,
-  type CompareRunnerId,
-} from '@/modules/simulation/stores/compare.store';
+import { addDebuff, clearAllDebuffs, useDebuffs } from '@/modules/simulation/stores/compare.store';
+import { CompareRunnerId } from '../compare.types';
 
 export function DebuffsPanel() {
   const { uma1, uma2 } = useDebuffs();
@@ -56,7 +52,7 @@ export function DebuffsPanel() {
       setPickerSelection([]);
       setPickerRunnerId(null);
     },
-    [pickerRunnerId],
+    [pickerRunnerId]
   );
 
   const handlePickerOpenChange = useCallback((open: boolean) => {
