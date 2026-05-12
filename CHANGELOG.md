@@ -2,6 +2,39 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.5.0](https://github.com/jalbarrang/umalator-global/compare/v0.4.3...v0.5.0) (2026-05-12)
+
+
+### Features
+
+* add stamina-aware controls for planner and skill chart ([#23](https://github.com/jalbarrang/umalator-global/issues/23)) ([fdee493](https://github.com/jalbarrang/umalator-global/commit/fdee493ba413ba0143719abd7a0b8fefb66e8c1f))
+* added import all runners from rosterview ([#21](https://github.com/jalbarrang/umalator-global/issues/21)) ([81dc8d1](https://github.com/jalbarrang/umalator-global/commit/81dc8d179dec066a88fd1e7d052545384344c47a))
+* added more identify to the app ([71d7296](https://github.com/jalbarrang/umalator-global/commit/71d729689a49dcba45c436030b8388c5fd4f9e44))
+* changes to veterans virtual grid ([#38](https://github.com/jalbarrang/umalator-global/issues/38)) ([ac49fec](https://github.com/jalbarrang/umalator-global/commit/ac49fec1fc15885177c6114d59d4f1526a27c0c4))
+* default data fetch to latest version ([69052cf](https://github.com/jalbarrang/umalator-global/commit/69052cfcbcd802ba1fcfaf180bba5aea17c5351d))
+* pwa achieved umalator is now instalable ([6cb839c](https://github.com/jalbarrang/umalator-global/commit/6cb839c2a36c3b3022913e48e9e2b4936dd7b236))
+* sharing feature ([7accf7e](https://github.com/jalbarrang/umalator-global/commit/7accf7eee9bc9cb51e2f0139b409c6b1955f71af))
+* some ui fixes for the lads ([4ba3ad4](https://github.com/jalbarrang/umalator-global/commit/4ba3ad43900416e81c5266725195db76ee31c52d))
+
+
+### Bug Fixes
+
+* actions ([edeb7cc](https://github.com/jalbarrang/umalator-global/commit/edeb7cc5de779549d9643561c546742908a2f7ce))
+* add multiplyrandom so risky business gets a proper drain check ([994d91d](https://github.com/jalbarrang/umalator-global/commit/994d91dcd291dd9ef1b9560ba4efe72c8714896a))
+* align compare skill family costs ([736f35e](https://github.com/jalbarrang/umalator-global/commit/736f35e42931345417315fb4b349a88fd9a5d52f))
+* container not scrolling ([2ae5021](https://github.com/jalbarrang/umalator-global/commit/2ae50211d942e9d00d814d67ca28d726b8a9fa4e))
+* dependencies ([5a7873f](https://github.com/jalbarrang/umalator-global/commit/5a7873f8f7133bcfaf36372aa9ce7da79252d88e))
+* grid width ([a6a4b3d](https://github.com/jalbarrang/umalator-global/commit/a6a4b3d935dd51a818d4d1c183030b2e0f02f45b))
+* icon url prefix ([6002e5e](https://github.com/jalbarrang/umalator-global/commit/6002e5edf8768789a1dea92825d10b72a0401118))
+* icons again ([f8f1310](https://github.com/jalbarrang/umalator-global/commit/f8f13106ef372b7286b99cdeb651d9e1408ad497))
+* pass branch name explicitly to gh pr merge ([d9cfea7](https://github.com/jalbarrang/umalator-global/commit/d9cfea74ff794bb7c33ae86c0bc8d44e6656ee86))
+* possible memory leak issue on skill charts ([25b19de](https://github.com/jalbarrang/umalator-global/commit/25b19de286401ed7628a5757ff51af64755a4d5f))
+* resolve planner prerequisite family coverage ([df657e2](https://github.com/jalbarrang/umalator-global/commit/df657e2cfec8042dc4419e05b312bd32935c0382))
+* **restless:** changed how restless procs on 2400m ([#35](https://github.com/jalbarrang/umalator-global/issues/35)) ([ca42494](https://github.com/jalbarrang/umalator-global/commit/ca424949f7ddf43e9847295c7860522d628f02ad))
+* services for data stuff ([3318d8a](https://github.com/jalbarrang/umalator-global/commit/3318d8a50145919aea11006221c569bbbbef9ece))
+* skill hints on planner ([e9b8b8c](https://github.com/jalbarrang/umalator-global/commit/e9b8b8cbe31f821f8458f462e9cabb9bb3058519))
+* uma-api retry logic ([e3a11d4](https://github.com/jalbarrang/umalator-global/commit/e3a11d49bf210e8f644a8bcdd20ff1d40f24bca0))
+
 ## 0.5.0 - 2026-04-06
 
 - Added Skill Planner support for importing a saved Veteran as a full runner snapshot, including stats, aptitudes, mood, strategy, and resolved obtained skills.
