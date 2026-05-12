@@ -1,10 +1,10 @@
-# Yet Another Umalator
+# Torena Sim
 
 [![PR Checks](https://github.com/jalbarrang/umalator-global/actions/workflows/pr-checks.yml/badge.svg)](https://github.com/jalbarrang/umalator-global/actions/workflows/pr-checks.yml)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](./LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
-Yet Another Umalator is a race and skill simulation toolkit for **Uma Musume: Pretty Derby** Global server.
+Torena Sim is a race and skill simulation toolkit for **Uma Musume: Pretty Derby** Global server.
 It helps players, theorycrafters, and tool builders test race behavior with repeatable simulations instead
 of relying only on in-game trial runs.
 

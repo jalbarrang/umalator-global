@@ -70,16 +70,12 @@ export const VirtualRunnerGrid = (props: Readonly<IVirtualRunnerGridProps>) => {
           return (
             <div
               key={virtualRow.key}
+              className="flex flex-row gap-2 box-border"
               style={{
                 position: 'absolute',
                 top: virtualRow.start,
                 left: 0,
-                width: '100%',
                 height: CARD_HEIGHT,
-                display: 'grid',
-                gridTemplateColumns: `repeat(${columns}, 1fr)`,
-                gap: 8,
-                boxSizing: 'border-box',
               }}
             >
               {rowItems.map((runner) => {

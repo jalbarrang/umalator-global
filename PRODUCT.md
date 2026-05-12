@@ -14,7 +14,7 @@ Context: users arrive with a specific question ("Is this skill worth equipping?"
 
 ## Product Purpose
 
-Yet Another Umalator is a race and skill simulation toolkit for Uma Musume: Pretty Derby (Global server). It lets players configure race scenarios, run repeatable simulations, compare skill loadouts, and inspect velocity/distance/stamina trends across many runs.
+Torena Sim is a race and skill simulation toolkit for Uma Musume: Pretty Derby (Global server). It lets players configure race scenarios, run repeatable simulations, compare skill loadouts, and inspect velocity/distance/stamina trends across many runs.
 
 Success looks like: a player can set up a comparison, run it, and read the answer in under a minute. The tool replaces guesswork and in-game trial runs with reliable, reproducible data.
 

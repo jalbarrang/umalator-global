@@ -2,12 +2,12 @@ import type { TutorialStep } from '@/components/tutorial';
 
 export const umalatorSteps: Array<TutorialStep> = [
   {
-    title: 'Welcome to Yet Another Umalator',
+    title: 'Welcome to Torena Sim',
     description: (
       <div className="flex flex-col gap-2">
         <p className="text-muted-foreground">
-          Yet Another Umalator is an Umamusume race simulator that helps you optimize runner builds
-          and compare performance.
+          Torena Sim is an Umamusume race simulator that helps you optimize runner builds and
+          compare performance.
         </p>
         <p className="text-muted-foreground">Let's run your first simulation together!</p>
       </div>

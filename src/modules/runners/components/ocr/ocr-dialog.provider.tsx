@@ -7,7 +7,7 @@ import {
   createOcrDialogStore,
   type IOcrDialogStore,
   type IOcrDialogStoreApi,
-} from '@/modules/runners/components/ocr/ocr-dialog-store';
+} from '@/modules/runners/components/ocr/ocr-dialog.store';
 import { useGeminiApiKey } from '@/store/ocr.store';
 
 const OcrDialogStoreContext = createContext<IOcrDialogStoreApi | null>(null);

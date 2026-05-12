@@ -153,7 +153,7 @@ components:
 
 **Creative North Star: "The Trainer's Notebook"**
 
-Racing Form is the design system for **Yet Another Umalator**, a fan-made race and skill simulation toolkit for Uma Musume: Pretty Derby. The UI is data-dense and analytical, serving theorycrafters who compare runner builds, evaluate skill loadouts, and inspect race playback frame by frame.
+Racing Form is the design system for **Torena Sim**, a fan-made race and skill simulation toolkit for Uma Musume: Pretty Derby. The UI is data-dense and analytical, serving theorycrafters who compare runner builds, evaluate skill loadouts, and inspect race playback frame by frame.
 
 The visual identity is a **well-worn trainer's notebook**: warm cream paper, dark warm-brown ink, annotations in a crisp hand, and a single vivid green mark that flags the most important thing on the page. Every screen should feel like opening a reference you've dog-eared a dozen times. The density is the point. The warmth keeps it from feeling clinical.
 

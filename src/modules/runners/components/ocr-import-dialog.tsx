@@ -10,20 +10,17 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { WizardImport } from '@/modules/runners/components/ocr/wizard-import';
-import {
-  hasDetectedData,
-  toExtractedUmaData,
-} from '@/modules/runners/components/ocr/ocr-import-shared';
+import { WizardImport } from '@/modules/runners/components/ocr/components/wizard-import';
 import {
   OcrDialogProvider,
   useOcrActions,
   useOcrProcessing,
   useOcrResults,
   useOcrWizardState,
-} from '@/modules/runners/components/ocr/ocr-dialog-provider';
+} from '@/modules/runners/components/ocr/ocr-dialog.provider';
 import { setGeminiApiKey, useGeminiApiKey } from '@/store/ocr.store';
 import { getNextWizardStep, getPreviousWizardStep } from './ocr/definitions';
+import { hasDetectedData, toExtractedUmaData } from './ocr/helpers';
 
 interface OcrImportDialogProps {
   open: boolean;
@@ -94,12 +91,12 @@ const OcrImportContent = ({ open, onOpenChange, onApply }: Readonly<OcrImportCon
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-hidden flex flex-col min-w-[920px] min-h-[90dvh]">
+      <DialogContent className="flex flex-col max-h-[90dvh] md:overflow-hidden md:min-w-230 min-h-[90dvh]">
         <DialogHeader>
           <DialogTitle>Import from Screenshots</DialogTitle>
         </DialogHeader>
 
-        <div className="flex items-center gap-2 rounded-md border px-3 py-2">
+        <div className="flex flex-col md:flex-row md:items-center gap-2">
           <div className="w-28 shrink-0 text-sm font-medium">Gemini API key</div>
 
           <div className="flex-1 flex items-center gap-2 min-w-0">
@@ -123,15 +120,17 @@ const OcrImportContent = ({ open, onOpenChange, onApply }: Readonly<OcrImportCon
             </Button>
           </div>
 
-          <a
-            href="https://aistudio.google.com/app/apikey"
-            target="_blank"
-            rel="noreferrer"
-            className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1 shrink-0"
-          >
-            Get key
-            <ExternalLink className="h-3.5 w-3.5" />
-          </a>
+          <div>
+            <a
+              href="https://aistudio.google.com/app/apikey"
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1 shrink-0"
+            >
+              Get key
+              <ExternalLink className="h-3.5 w-3.5" />
+            </a>
+          </div>
         </div>
 
         <div className="flex-1 min-h-0 flex flex-col overflow-hidden">

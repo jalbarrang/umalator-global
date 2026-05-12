@@ -145,7 +145,7 @@ export function RootComponent() {
                 element={
                   <RoutePage
                     title="Add Runner"
-                    description="Create a new runner build for Yet Another Umalator."
+                    description="Create a new runner build for Torena Sim."
                     noindex
                   >
                     <RunnersNew />
@@ -157,7 +157,7 @@ export function RootComponent() {
                 element={
                   <RoutePage
                     title="Edit Runner"
-                    description="Edit a saved runner build for Yet Another Umalator."
+                    description="Edit a saved runner build for Torena Sim."
                     noindex
                   >
                     <RunnersEdit />

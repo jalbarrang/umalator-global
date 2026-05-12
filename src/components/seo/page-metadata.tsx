@@ -4,7 +4,7 @@ type PageMetadataProps = {
   noindex?: boolean;
 };
 
-const SITE_NAME = 'Yet Another Umalator';
+const SITE_NAME = 'Torena Sim';
 
 export function PageMetadata({ title, description, noindex = false }: PageMetadataProps) {
   const fullTitle = title === SITE_NAME ? title : `${title} | ${SITE_NAME}`;

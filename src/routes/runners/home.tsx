@@ -33,6 +33,7 @@ import { getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import { useRunnerLibraryStore } from '@/store/runner-library.store';
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -108,7 +109,7 @@ export function RunnersHome() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
 
-  const isSelecting = selected.size > 0;
+  const isSelecting = useMemo(() => selected.size > 0, [selected]);
 
   const isMobile = useIsMobile();
 
@@ -127,34 +128,54 @@ export function RunnersHome() {
 
   const filtered = useMemo(() => {
     const query = search.toLowerCase().trim();
+
     return runners.filter((r) => {
       if (query) {
         const text = searchIndex.get(r.id) ?? '';
-        if (!text.includes(query)) return false;
+
+        if (!text.includes(query)) {
+          return false;
+        }
       }
-      if (strategyFilter !== 'all' && r.strategy !== strategyFilter) return false;
-      if (distanceFilter !== 'all' && !meetsMinGrade(r.distanceAptitude, distanceFilter))
+
+      if (strategyFilter !== 'all' && r.strategy !== strategyFilter) {
         return false;
-      if (surfaceFilter !== 'all' && !meetsMinGrade(r.surfaceAptitude, surfaceFilter)) return false;
+      }
+
+      if (distanceFilter !== 'all' && !meetsMinGrade(r.distanceAptitude, distanceFilter)) {
+        return false;
+      }
+
+      if (surfaceFilter !== 'all' && !meetsMinGrade(r.surfaceAptitude, surfaceFilter)) {
+        return false;
+      }
+
       return true;
     });
   }, [runners, search, strategyFilter, distanceFilter, surfaceFilter, searchIndex]);
 
-  const hasActiveFilters =
-    !!search.trim() ||
-    strategyFilter !== 'all' ||
-    distanceFilter !== 'all' ||
-    surfaceFilter !== 'all';
+  const hasActiveFilters = useMemo(
+    () =>
+      !!search.trim() ||
+      strategyFilter !== 'all' ||
+      distanceFilter !== 'all' ||
+      surfaceFilter !== 'all',
+    [search, strategyFilter, distanceFilter, surfaceFilter],
+  );
 
   const filteredIds = useMemo(() => new Set(filtered.map((r) => r.id)), [filtered]);
   const filteredSelectedCount = useMemo(
     () => [...selected].filter((id) => filteredIds.has(id)).length,
     [selected, filteredIds],
   );
-  const allFilteredSelected = filtered.length > 0 && filteredSelectedCount === filtered.length;
-  const someFilteredSelected = filteredSelectedCount > 0 && !allFilteredSelected;
+
+  const allFilteredSelected = useMemo(
+    () => filtered.length > 0 && filteredSelectedCount === filtered.length,
+    [filtered, filteredSelectedCount],
+  );
 
   const handleAddNew = () => navigate('/runners/new');
+
   const handleEdit = useCallback(
     (runner: ISavedRunner) => navigate(`/runners/${runner.id}/edit`),
     [navigate],
@@ -165,7 +186,7 @@ export function RunnersHome() {
     setDeleteDialogOpen(true);
   }, []);
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = useCallback(() => {
     if (runnerToDelete) {
       deleteRunner(runnerToDelete);
       setRunnerToDelete(null);
@@ -173,22 +194,25 @@ export function RunnersHome() {
       setSelected(new Set(selected));
     }
     setDeleteDialogOpen(false);
-  };
+  }, [deleteRunner, selected, runnerToDelete]);
 
   const handleLoadClick = useCallback((runner: ISavedRunner) => {
     setRunnerToLoad(runner);
     setLoadDialogOpen(true);
   }, []);
 
-  const handleLoadToSlot = (slot: 'uma1' | 'uma2') => {
-    if (runnerToLoad) {
+  const handleLoadToSlot = useCallback(
+    (slot: 'uma1' | 'uma2') => {
+      if (!runnerToLoad) return;
+
       loadRunnerFromLibrary(slot, runnerToLoad);
       showRunner(slot);
       setLoadDialogOpen(false);
       setRunnerToLoad(null);
       navigate('/');
-    }
-  };
+    },
+    [navigate, runnerToLoad],
+  );
 
   const toggleSelect = useCallback((id: string) => {
     setSelected((prev) => {
@@ -217,18 +241,18 @@ export function RunnersHome() {
 
   const clearSelection = useCallback(() => setSelected(new Set()), []);
 
-  const handleBulkDeleteConfirm = () => {
+  const handleBulkDeleteConfirm = useCallback(() => {
     deleteRunners(selected);
     setSelected(new Set());
     setBulkDeleteDialogOpen(false);
-  };
+  }, [selected, deleteRunners]);
 
-  const clearAllFilters = () => {
+  const clearAllFilters = useCallback(() => {
     setSearch('');
     setStrategyFilter('all');
     setDistanceFilter('all');
     setSurfaceFilter('all');
-  };
+  }, []);
 
   const handleOcrImportApply = useCallback(
     (data: ExtractedUmaData) => {
@@ -271,17 +295,19 @@ export function RunnersHome() {
         {/* [Desktop] Actions */}
         {!isMobile && (
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => setRosterImportOpen(true)}>
-              <Import className="w-4 h-4 mr-2" />
+            <Button size="default" variant="outline" onClick={() => setRosterImportOpen(true)}>
+              <Import className="w-4 h-4" />
               Import Roster
             </Button>
-            <Button variant="outline" onClick={() => setOcrImportOpen(true)}>
-              <Camera className="w-4 h-4 mr-2" />
+
+            <Button size="default" variant="outline" onClick={() => setOcrImportOpen(true)}>
+              <Camera className="w-4 h-4" />
               Import Screenshot
             </Button>
+
             <Activity mode={runners.length > 0 ? 'visible' : 'hidden'}>
-              <Button onClick={handleAddNew}>
-                <Plus className="w-4 h-4 mr-2" />
+              <Button size="default" onClick={handleAddNew}>
+                <Plus className="w-4 h-4" />
                 Add Runner
               </Button>
             </Activity>
@@ -333,7 +359,7 @@ export function RunnersHome() {
 
       {/* [Mobile] Actions -> FAB */}
       {isMobile && (
-        <div className="fixed bottom-4 right-4 z-20">
+        <div className="fixed bottom-6 right-6 z-20">
           <DropdownMenu>
             <DropdownMenuTrigger
               render={
@@ -499,29 +525,25 @@ export function RunnersHome() {
       <Dialog open={loadDialogOpen} onOpenChange={setLoadDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Load Runner to Simulation</DialogTitle>
-            <DialogDescription>
-              Choose which simulation slot to load this runner into.
-            </DialogDescription>
+            <DialogTitle>Load Runner to Compare pages</DialogTitle>
+            <DialogDescription>Choose which Uma slot to load this runner into.</DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-4 py-4">
-            <Button variant="outline" className="h-20" onClick={() => handleLoadToSlot('uma1')}>
+
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="outline" className="h-25" onClick={() => handleLoadToSlot('uma1')}>
               <div className="text-center">
                 <div className="text-lg font-semibold text-[#2a77c5]">Uma 1</div>
-                <div className="text-sm text-muted-foreground">Blue slot</div>
               </div>
             </Button>
-            <Button variant="outline" className="h-20" onClick={() => handleLoadToSlot('uma2')}>
+            <Button variant="outline" className="h-25" onClick={() => handleLoadToSlot('uma2')}>
               <div className="text-center">
                 <div className="text-lg font-semibold text-[#c52a2a]">Uma 2</div>
-                <div className="text-sm text-muted-foreground">Red slot</div>
               </div>
             </Button>
           </div>
+
           <DialogFooter>
-            <Button variant="outline" onClick={() => setLoadDialogOpen(false)}>
-              Cancel
-            </Button>
+            <DialogClose render={<Button variant="outline" />}>Cancel</DialogClose>
           </DialogFooter>
         </DialogContent>
       </Dialog>

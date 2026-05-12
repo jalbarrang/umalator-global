@@ -1,5 +1,5 @@
-import { Edit, PlayCircle, Trash2, Code, Download, Camera, Share } from 'lucide-react';
-import { useMemo, useRef } from 'react';
+import { Edit, PlayCircle, Code, Download, Camera, Share } from 'lucide-react';
+import { memo, useMemo, useRef } from 'react';
 import { getUmaDisplayInfo, getUmaImageUrl } from '../utils';
 import { StatImage } from './StatInput';
 import type { ISavedRunner } from '@/store/runner-library.store';
@@ -32,7 +32,7 @@ type SavedRunnerCardProps = {
   onToggleSelect?: () => void;
 };
 
-export const SavedRunnerCard = (props: SavedRunnerCardProps) => {
+export const SavedRunnerCard = memo((props: SavedRunnerCardProps) => {
   const { runner, onEdit, onLoadToSimulation } = props;
 
   const umaInfo = useMemo(() => {
@@ -49,6 +49,10 @@ export const SavedRunnerCard = (props: SavedRunnerCardProps) => {
   const shareSkills = useMemo(() => {
     return getSkillsForShareCard(runner.skills);
   }, [runner.skills]);
+
+  const runnerStrategy = useMemo(() => {
+    return strategyNames.find((name) => name === runner.strategy) ?? 'Unknown';
+  }, [runner.strategy]);
 
   return (
     <div className="rounded-lg border bg-card">
@@ -205,9 +209,7 @@ export const SavedRunnerCard = (props: SavedRunnerCardProps) => {
             <div className="flex gap-4 text-sm">
               <div className="flex items-center gap-2">
                 <span className="text-muted-foreground">Strategy: </span>
-                <span className="font-medium">
-                  {strategyNames.find((name) => name === runner.strategy) ?? 'Unknown'}
-                </span>
+                <span className="font-medium">{runnerStrategy}</span>
               </div>
 
               <div className="flex items-center gap-2">
@@ -230,4 +232,4 @@ export const SavedRunnerCard = (props: SavedRunnerCardProps) => {
       </div>
     </div>
   );
-};
+});
