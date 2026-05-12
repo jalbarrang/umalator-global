@@ -1,3 +1,5 @@
+import { RawSkillEffect } from './skill.types';
+
 export const SkillType = {
   Noop: 0,
   // Adds Stat Bonuses
@@ -46,7 +48,7 @@ export const SkillType = {
 
   // - Some Evolve Skills adds base duration to the skill
   // ! Note: Evolve Skills are not available at this time.
-  ExtendEvolvedDuration: 42,
+  ExtendEvolvedDuration: 42
 } as const;
 export type ISkillType = (typeof SkillType)[keyof typeof SkillType];
 export const SkillEffectName: Record<ISkillType, string> = {
@@ -66,20 +68,20 @@ export const SkillEffectName: Record<ISkillType, string> = {
   [SkillType.Accel]: 'Acceleration',
   [SkillType.ChangeLane]: 'Change Lane',
   [SkillType.ActivateRandomGold]: 'Activate Random Gold',
-  [SkillType.ExtendEvolvedDuration]: 'Extend Evolved Duration',
+  [SkillType.ExtendEvolvedDuration]: 'Extend Evolved Duration'
 };
 
 // Skill Perspective
 export const SkillPerspective = {
   Self: 1,
   Other: 2,
-  Any: 3,
+  Any: 3
 } as const;
 export type ISkillPerspective = (typeof SkillPerspective)[keyof typeof SkillPerspective];
 export const SkillPerspectiveName: Record<ISkillPerspective, string> = {
   [SkillPerspective.Self]: 'Self',
   [SkillPerspective.Other]: 'Other',
-  [SkillPerspective.Any]: 'Any',
+  [SkillPerspective.Any]: 'Any'
 };
 
 // Skill Rarity
@@ -87,14 +89,14 @@ export const SkillRarity = {
   White: 1,
   Gold: 2,
   Unique: 3,
-  Evolution: 6,
+  Evolution: 6
 } as const;
 export type ISkillRarity = (typeof SkillRarity)[keyof typeof SkillRarity];
 export const SkillRarityName: Record<ISkillRarity, string> = {
   [SkillRarity.White]: 'White',
   [SkillRarity.Gold]: 'Gold',
   [SkillRarity.Unique]: 'Unique',
-  [SkillRarity.Evolution]: 'Evolution',
+  [SkillRarity.Evolution]: 'Evolution'
 };
 
 export const SkillTarget = {
@@ -110,7 +112,7 @@ export const SkillTarget = {
   KakariBehind: 20,
   KakariStrategy: 21,
   UmaId: 22,
-  UsedRecovery: 23,
+  UsedRecovery: 23
 } as const;
 export type ISkillTarget = (typeof SkillTarget)[keyof typeof SkillTarget];
 export const SkillEffectTargetName: Record<ISkillTarget, string> = {
@@ -126,7 +128,7 @@ export const SkillEffectTargetName: Record<ISkillTarget, string> = {
   [SkillTarget.KakariBehind]: 'Kakari Behind',
   [SkillTarget.KakariStrategy]: 'Kakari Strategy',
   [SkillTarget.UmaId]: 'Uma ID',
-  [SkillTarget.UsedRecovery]: 'Used Recovery',
+  [SkillTarget.UsedRecovery]: 'Used Recovery'
 };
 
 export const PositionKeepState = {
@@ -134,7 +136,7 @@ export const PositionKeepState = {
   PaceUp: 1,
   PaceDown: 2,
   SpeedUp: 3,
-  Overtake: 4,
+  Overtake: 4
 } as const;
 export type IPositionKeepState = (typeof PositionKeepState)[keyof typeof PositionKeepState];
 export const PositionKeepStateName: Record<IPositionKeepState, string> = {
@@ -142,7 +144,7 @@ export const PositionKeepStateName: Record<IPositionKeepState, string> = {
   [PositionKeepState.PaceUp]: 'Pace Up',
   [PositionKeepState.PaceDown]: 'Pace Down',
   [PositionKeepState.SpeedUp]: 'Speed Up',
-  [PositionKeepState.Overtake]: 'Overtake',
+  [PositionKeepState.Overtake]: 'Overtake'
 };
 
 export type ISkillData = {
@@ -157,21 +159,13 @@ export type ISkillAlternative = {
   effects: Array<ISkillEffect>;
 };
 
-export type RawSkillEffect = {
-  type: number;
-  modifier: number;
-  target?: number;
-  valueUsage?: number;
-  valueLevelUsage?: number;
-};
-
 export type ISkillEffect = RawSkillEffect & {
   baseDuration: number;
 };
 
 export const SkillPrecondition = {
   Empty: '',
-  Phase2OrderRate50OvertakeTargetTime2: 'phase>=2&order_rate<=50&overtake_target_time>=2',
+  Phase2OrderRate50OvertakeTargetTime2: 'phase>=2&order_rate<=50&overtake_target_time>=2'
 } as const;
 
 export type ISkillPrecondition = (typeof SkillPrecondition)[keyof typeof SkillPrecondition];

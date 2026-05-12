@@ -17,18 +17,8 @@ export function sortByNumericKey<T>(obj: Record<string, T>): Record<string, T> {
         acc[key] = obj[key];
         return acc;
       },
-      {} as Record<string, T>,
+      {} as Record<string, T>
     );
-}
-
-/**
- * Calculate unique skill ID from outfit ID
- * Keep this helper local so CLI extraction stays Node-only.
- */
-export function getUniqueSkillForOutfit(outfitId: string): string {
-  const umaId = +outfitId.slice(1, -2);
-  const altId = +outfitId.slice(-2);
-  return (100000 + 10000 * (altId - 1) + umaId * 10 + 1).toString();
 }
 
 /**
@@ -66,7 +56,7 @@ export async function readJsonFileIfExists<T>(path: string): Promise<T | null> {
 /**
  * Get default master.mdb path based on platform
  */
-export function getDefaultMasterDbPath(): string {
+function getDefaultMasterDbPath(): string {
   const platform = process.platform;
 
   if (platform === 'win32') {

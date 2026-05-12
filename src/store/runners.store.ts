@@ -25,13 +25,13 @@ export const useRunnersStore = create<IRunnersStore>()(
     (_) => ({
       uma1: createRunnerState(),
       uma2: createRunnerState(),
-      runnerId: 'uma1',
+      runnerId: 'uma1'
     }),
     {
       name: 'umalator-runners',
-      storage: createJSONStorage(() => localStorage),
-    },
-  ),
+      storage: createJSONStorage(() => localStorage)
+    }
+  )
 );
 
 export const useRunner = () => {
@@ -46,7 +46,7 @@ export const useRunner = () => {
   };
 
   const handleResetRunner = () => {
-    resetRunner(runnerId);
+    resetCompareRunner(runnerId);
     toast.success('Runner reset');
   };
 
@@ -70,11 +70,11 @@ export const useRunner = () => {
     updateRunner: handleUpdateRunner,
     resetRunner: handleResetRunner,
     addSkill: handleAddSkill,
-    hasRunawaySkill,
+    hasRunawaySkill
   };
 };
 
-export const useRunnerByName = (runner: RunnerType) => {
+const useRunnerByName = (runner: RunnerType) => {
   return useRunnersStore(useShallow((state) => state[runner]));
 };
 
@@ -82,21 +82,21 @@ export const setRunner = (runner: RunnerType, runnerState: IRunnerState) => {
   useRunnersStore.setState({ [runner]: runnerState });
 };
 
-export const resetRunner = (runner: RunnerType) => {
+const resetCompareRunner = (runner: RunnerType) => {
   useRunnersStore.setState({ [runner]: createRunnerState() });
 };
 
 export const resetRunners = () => {
   useRunnersStore.setState({
     uma1: createRunnerState(),
-    uma2: createRunnerState(),
+    uma2: createRunnerState()
   });
 };
 
 export const resetAllRunners = () => {
   useRunnersStore.setState({
     uma1: createRunnerState(),
-    uma2: createRunnerState(),
+    uma2: createRunnerState()
   });
 
   toast.success('All runners reset');
@@ -132,7 +132,7 @@ export const swapWithRunner = (fromRunner: RunnerType, toRunner: RunnerType) => 
 
   useRunnersStore.setState({
     [fromRunner]: toRunnerState,
-    [toRunner]: fromRunnerState,
+    [toRunner]: fromRunnerState
   });
 };
 
@@ -142,7 +142,7 @@ export const copyToRunner = (fromRunner: RunnerType, toRunner: RunnerType) => {
   const fromRunnerState = state[fromRunner];
 
   useRunnersStore.setState({
-    [toRunner]: cloneDeep(fromRunnerState),
+    [toRunner]: cloneDeep(fromRunnerState)
   });
 
   toast.success('Runner copied');
@@ -151,7 +151,7 @@ export const copyToRunner = (fromRunner: RunnerType, toRunner: RunnerType) => {
 export const replaceRunnerOutfit = (
   runner: IRunnerState,
   newOutfitId: string,
-  currentSkills: Array<string>,
+  currentSkills: Array<string>
 ): IRunnerState => {
   const newSkills: Array<string> = [];
 
@@ -195,7 +195,7 @@ export const isEvolutionSkill = (skillRarity: number) => {
 
 export const loadRunnerFromLibrary = (
   runner: RunnerType,
-  libraryRunner: IRunnerState & { id: string },
+  libraryRunner: IRunnerState & { id: string }
 ) => {
   const runnerData = cloneDeep(libraryRunner);
   runnerData.linkedRunnerId = libraryRunner.id;
