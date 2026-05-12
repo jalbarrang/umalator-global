@@ -35,9 +35,9 @@ export function Navbar() {
       { value: 'simulation', label: 'Compare', to: '/' },
       { value: 'skill-planner', label: 'Skill Planner', to: '/skill-planner' },
       { value: 'race-sim', label: 'Race Sim', to: '/race-sim' },
-      { value: 'runners', label: 'Veterans', to: '/runners' },
+      { value: 'runners', label: 'Veterans', to: '/runners' }
     ],
-    [],
+    []
   );
 
   return (
@@ -65,7 +65,7 @@ export function Navbar() {
                     aria-label="Open GitHub project"
                   >
                     <img
-                      src={`${config.baseUrl}/svg/github.svg`}
+                      src={`${config.basePath}svg/github.svg`}
                       alt=""
                       className="h-4 w-4 dark:invert"
                     />
@@ -148,8 +148,8 @@ const MobileNavbar = (props: MobileNavbarProps) => {
                 {
                   'bg-accent text-accent-foreground': currentTab === item.value,
                   'text-muted-foreground hover:bg-accent/50 hover:text-foreground':
-                    currentTab !== item.value,
-                },
+                    currentTab !== item.value
+                }
               )}
             >
               {item.label}
@@ -179,7 +179,7 @@ const DesktopNavbar = (props: DesktopNavbarProps) => {
           className={cn('rounded-md px-3 py-1.5 text-sm font-medium transition-colors', {
             'bg-accent text-accent-foreground': item.value === currentTab,
             'text-muted-foreground hover:bg-accent/50 hover:text-foreground':
-              item.value !== currentTab,
+              item.value !== currentTab
           })}
         >
           {item.label}

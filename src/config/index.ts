@@ -1,7 +1,7 @@
 import { envString, envBoolean } from './env';
 
 export type AppConfig = {
-  baseUrl: string;
+  basePath: string;
   reactScan: boolean;
   posthog: {
     key?: string;
@@ -10,10 +10,10 @@ export type AppConfig = {
 };
 
 export const config: AppConfig = {
-  baseUrl: envString('VITE_BASE_URL', 'http://localhost:5173'),
+  basePath: envString('VITE_BASE_PATH', '/'),
   reactScan: envBoolean('VITE_REACT_SCAN', false),
   posthog: {
     key: envString('VITE_PUBLIC_POSTHOG_KEY'),
-    host: envString('VITE_PUBLIC_POSTHOG_HOST'),
-  },
+    host: envString('VITE_PUBLIC_POSTHOG_HOST')
+  }
 };

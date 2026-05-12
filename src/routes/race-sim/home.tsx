@@ -16,8 +16,8 @@ export function RaceSimHome() {
   const { runners, focusRunnerIndices } = useRaceSimStore(
     useShallow((state) => ({
       runners: state.runners,
-      focusRunnerIndices: state.focusRunnerIndices,
-    })),
+      focusRunnerIndices: state.focusRunnerIndices
+    }))
   );
 
   const handleSelectRunner = useCallback((index: number) => {
@@ -51,7 +51,7 @@ export function RaceSimHome() {
           <div className="flex flex-col flex-1 p-2 overflow-y-auto">
             {runners.map((runner, index) => (
               <RunnerListItem
-                key={runner.randomMobId}
+                key={`${runner.randomMobId}-${index}`}
                 index={index}
                 runner={runner}
                 isSelected={selectedIndex === index}

@@ -12,15 +12,15 @@ import sitemap from 'vite-sitemap-plugin';
 // Feature flags should be prefixed with VITE_FEATURE_ to be accessible via import.meta.env
 // See docs/feature-flags.md for usage and best practices
 
-export default defineConfig(({ command }) => ({
-  base: command === 'serve' ? '/' : './',
+export default defineConfig({
+  base: process.env.VITE_BASE_PATH ?? '/',
   resolve: {
-    tsconfigPaths: true,
+    tsconfigPaths: true
   },
   plugins: [
     react(),
     babel({
-      presets: [reactCompilerPreset()],
+      presets: [reactCompilerPreset()]
     }),
     tailwindcss(),
     VitePWA({
@@ -42,14 +42,14 @@ export default defineConfig(({ command }) => ({
             src: 'web-app-manifest-192x192.png',
             sizes: '192x192',
             type: 'image/png',
-            purpose: 'any',
+            purpose: 'any'
           },
           {
             src: 'web-app-manifest-512x512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any',
-          },
+            purpose: 'any'
+          }
         ],
         screenshots: [
           {
@@ -57,16 +57,16 @@ export default defineConfig(({ command }) => ({
             sizes: '1490x836',
             type: 'image/png',
             form_factor: 'wide',
-            label: 'Desktop view of Torena Sim',
+            label: 'Desktop view of Torena Sim'
           },
           {
             src: 'mobile-screenshot.png',
             sizes: '406x727',
             type: 'image/png',
             form_factor: 'narrow',
-            label: 'Mobile view of Torena Sim',
-          },
-        ],
+            label: 'Mobile view of Torena Sim'
+          }
+        ]
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,json}'],
@@ -81,29 +81,29 @@ export default defineConfig(({ command }) => ({
             options: {
               cacheName: 'course-geometry-data',
               cacheableResponse: {
-                statuses: [200],
+                statuses: [200]
               },
               expiration: {
                 maxEntries: 1,
-                maxAgeSeconds: 60 * 60 * 24 * 30,
-              },
-            },
-          },
-        ],
-      },
+                maxAgeSeconds: 60 * 60 * 24 * 30
+              }
+            }
+          }
+        ]
+      }
     }),
     sitemap({
       base: 'https://jalbarrang.github.io/umalator-global',
       // HashRouter routes are not crawlable sitemap entries, so only emit the real homepage for now.
-      urls: [],
-    }),
+      urls: []
+    })
   ],
   assetsInclude: ['**/*.wasm'],
   worker: {
-    format: 'es',
+    format: 'es'
   },
   test: {
     globals: true,
-    setupFiles: ['./src/test-setup.ts'],
-  },
-}));
+    setupFiles: ['./src/test-setup.ts']
+  }
+});

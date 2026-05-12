@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { config } from '@/config';
 
-const courseGeometryUrl = `${config.baseUrl}/data/course_geometry.json`;
+const courseGeometryUrl = `${config.basePath}data/course_geometry.json`;
 
 export type CourseGeometryRotation = {
   x: number;
@@ -58,6 +58,6 @@ export const useFetchAllCourseGeometry = () => {
   return useQuery({
     queryKey: ['courseGeometry'],
     queryFn: loadCourseGeometry,
-    staleTime: Infinity,
+    staleTime: Infinity
   });
 };

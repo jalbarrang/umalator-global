@@ -1,11 +1,11 @@
 const env = import.meta.env;
 
 export const appEnv: Record<string, string | undefined> = {
-  VITE_BASE_URL: env.VITE_BASE_URL,
-  VITE_IS_GITHUB_PAGES: env.VITE_IS_GITHUB_PAGES ?? 'false',
+  VITE_BASE_PATH: env.VITE_BASE_PATH,
+
   VITE_REACT_SCAN: env.VITE_REACT_SCAN ?? 'false',
   VITE_PUBLIC_POSTHOG_KEY: env.VITE_PUBLIC_POSTHOG_KEY,
-  VITE_PUBLIC_POSTHOG_HOST: env.VITE_PUBLIC_POSTHOG_HOST,
+  VITE_PUBLIC_POSTHOG_HOST: env.VITE_PUBLIC_POSTHOG_HOST
 };
 
 function isNotBlank(str: string = ''): boolean {

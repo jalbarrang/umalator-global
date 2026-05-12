@@ -1,9 +1,8 @@
 name: Deploy to GitHub Pages
 
 on:
-  push:
-    branches:
-      - main
+  release:
+    types: [published]
   workflow_dispatch:
 
 permissions:
@@ -22,7 +21,7 @@ jobs:
     env:
       VITE_PUBLIC_POSTHOG_KEY: ${{ vars.VITE_PUBLIC_POSTHOG_KEY }}
       VITE_PUBLIC_POSTHOG_HOST: ${{ vars.VITE_PUBLIC_POSTHOG_HOST }}
-      VITE_BASE_URL: ${{ vars.VITE_BASE_URL }}
+      VITE_BASE_PATH: ${{ vars.VITE_BASE_PATH }}
 
     steps:
       - name: Checkout code
@@ -45,6 +44,9 @@ jobs:
 
       - name: Build app
         run: bun run build
+
+      - name: Create 404.html for SPA routing
+        run: cp dist/index.html dist/404.html
 
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v4

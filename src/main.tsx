@@ -6,7 +6,7 @@ import '@fontsource-variable/inter/wght.css';
 import '@fontsource-variable/noto-sans-jp/wght.css';
 
 import { createRoot } from 'react-dom/client';
-import { HashRouter } from 'react-router';
+import { BrowserRouter } from 'react-router';
 import './i18n';
 
 import { enableMapSet } from 'immer';
@@ -22,7 +22,7 @@ import { config } from './config';
 if (config.posthog.key) {
   posthog.init(config.posthog.key, {
     api_host: config.posthog.host,
-    defaults: '2026-01-30',
+    defaults: '2026-01-30'
   });
 }
 
@@ -39,11 +39,11 @@ const root = createRoot(rootComponent);
 root.render(
   <PostHogProvider client={posthog}>
     <PostHogErrorBoundary>
-      <HashRouter>
+      <BrowserRouter basename={config.basePath}>
         <ThemeStoreProvider>
           <RootComponent />
         </ThemeStoreProvider>
-      </HashRouter>
+      </BrowserRouter>
     </PostHogErrorBoundary>
-  </PostHogProvider>,
+  </PostHogProvider>
 );
