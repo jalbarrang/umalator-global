@@ -23,7 +23,7 @@ export default defineConfig({
     }),
     tailwindcss(),
     sitemap({
-      base: 'https://jalbarrang.github.io/umalator-global',
+      base: process.env.VITE_SITE_URL ?? 'https://jalbarrang.github.io/umalator-global',
       urls: [
         '/',
         '/skill-bassin',
