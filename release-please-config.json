@@ -1,5 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "group-pull-request-title-pattern": "chore: release v${version}",
+  "pull-request-branch-name-pattern": "release/v${version}",
   "packages": {
     ".": {
       "release-type": "node",
