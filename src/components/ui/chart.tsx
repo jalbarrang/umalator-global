@@ -6,6 +6,18 @@ import { cn } from '@/lib/utils';
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: '', dark: '.dark' } as const;
 
+function sanitizeCssIdentifier(value: string) {
+  return value.replace(/[^a-zA-Z0-9_-]/g, '');
+}
+
+function isSafeCssVariableKey(value: string) {
+  return /^[a-zA-Z0-9_-]+$/.test(value);
+}
+
+function isSafeCssValue(value: string) {
+  return !/[<>{};]/.test(value);
+}
+
 export type ChartConfig = {
   [k in string]: {
     label?: React.ReactNode;
@@ -43,7 +55,8 @@ function ChartContainer({
   children: React.ComponentProps<typeof RechartsPrimitive.ResponsiveContainer>['children'];
 }) {
   const uniqueId = React.useId();
-  const chartId = `chart-${id || uniqueId.replace(/:/g, '')}`;
+  const chartIdValue = sanitizeCssIdentifier(id || uniqueId);
+  const chartId = `chart-${chartIdValue || 'default'}`;
 
   return (
     <ChartContext.Provider value={{ config }}>
@@ -64,7 +77,9 @@ function ChartContainer({
 }
 
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
-  const colorConfig = Object.entries(config).filter(([, config]) => config.theme || config.color);
+  const colorConfig = Object.entries(config).filter(
+    ([key, itemConfig]) => isSafeCssVariableKey(key) && (itemConfig.theme || itemConfig.color)
+  );
 
   if (!colorConfig.length) {
     return null;
@@ -72,20 +87,30 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
 
   return (
     <style
+      // Chart theme CSS is generated from internal config only, not user input.
+      // eslint-disable-next-line react/no-danger
       dangerouslySetInnerHTML={{
         __html: Object.entries(THEMES)
-          .map(
-            ([theme, prefix]) => `
-${prefix} [data-chart=${id}] {
-${colorConfig
-  .map(([key, itemConfig]) => {
-    const color = itemConfig.theme?.[theme as keyof typeof itemConfig.theme] || itemConfig.color;
-    return color ? `  --color-${key}: ${color};` : null;
-  })
-  .join('\n')}
+          .map(([theme, prefix]) => {
+            const declarations = colorConfig
+              .map(([key, itemConfig]) => {
+                const color =
+                  itemConfig.theme?.[theme as keyof typeof itemConfig.theme] || itemConfig.color;
+
+                return color && isSafeCssValue(color) ? `  --color-${key}: ${color};` : null;
+              })
+              .filter(Boolean)
+              .join('\n');
+
+            return declarations
+              ? `
+${prefix} [data-chart="${id}"] {
+${declarations}
 }
 `
-          )
+              : null;
+          })
+          .filter(Boolean)
           .join('\n')
       }}
     />
@@ -94,8 +119,28 @@ ${colorConfig
 
 const ChartTooltip = RechartsPrimitive.Tooltip;
 
-function ChartTooltipContent({
-  active,
+type ChartTooltipContentProps = React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
+  React.ComponentProps<'div'> & {
+    hideLabel?: boolean;
+    hideIndicator?: boolean;
+    indicator?: 'line' | 'dot' | 'dashed';
+    nameKey?: string;
+    labelKey?: string;
+  };
+
+type ChartTooltipContentInnerProps = ChartTooltipContentProps & {
+  payload: NonNullable<ChartTooltipContentProps['payload']>;
+};
+
+function ChartTooltipContent({ active, payload, ...rest }: ChartTooltipContentProps) {
+  if (!active || !payload?.length) {
+    return null;
+  }
+
+  return <ChartTooltipContentInner {...rest} active={active} payload={payload} />;
+}
+
+function ChartTooltipContentInner({
   payload,
   className,
   indicator = 'dot',
@@ -108,14 +153,7 @@ function ChartTooltipContent({
   color,
   nameKey,
   labelKey
-}: React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
-  React.ComponentProps<'div'> & {
-    hideLabel?: boolean;
-    hideIndicator?: boolean;
-    indicator?: 'line' | 'dot' | 'dashed';
-    nameKey?: string;
-    labelKey?: string;
-  }) {
+}: ChartTooltipContentInnerProps) {
   const { config } = useChart();
 
   const tooltipLabel = React.useMemo(() => {
@@ -143,10 +181,6 @@ function ChartTooltipContent({
 
     return <div className={cn('font-medium', labelClassName)}>{value}</div>;
   }, [label, labelFormatter, payload, hideLabel, labelClassName, config, labelKey]);
-
-  if (!active || !payload?.length) {
-    return null;
-  }
 
   const nestLabel = payload.length === 1 && indicator !== 'dot';
 

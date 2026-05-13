@@ -30,6 +30,11 @@ type TrackTopDownViewProps = {
   className?: string;
 };
 
+type TrackState =
+  | { status: 'loading' }
+  | { status: 'ready'; track: BuiltTrackPath }
+  | { status: 'error' };
+
 const EMPTY_TRACK: BuiltTrackPath = {
   points: [],
   turnSign: 0,
@@ -54,9 +59,9 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
   const clampedViewStart = clamp(viewStart ?? 0, 0, courseDistance);
   const clampedViewEnd = clamp(viewEnd ?? courseDistance, clampedViewStart, courseDistance);
 
-  const [builtTrack, setBuiltTrack] = useState<BuiltTrackPath | null>(null);
+  const [trackState, setTrackState] = useState<TrackState>({ status: 'loading' });
   const markers = useMemo(() => buildTrackMarkers(courseData), [courseData]);
-  const activeBuiltTrack = builtTrack ?? EMPTY_TRACK;
+  const activeBuiltTrack = trackState.status === 'ready' ? trackState.track : EMPTY_TRACK;
   const { points, turnSign } = activeBuiltTrack;
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -100,18 +105,18 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
 
   useEffect(() => {
     let cancelled = false;
-    setBuiltTrack(null);
+    setTrackState({ status: 'loading' });
 
     void buildCourseTrackPath(courseData)
       .then((nextBuiltTrack) => {
         if (!cancelled) {
-          setBuiltTrack(nextBuiltTrack);
+          setTrackState({ status: 'ready', track: nextBuiltTrack });
         }
       })
       .catch((error: unknown) => {
         console.error('Failed to build course track path', error);
         if (!cancelled) {
-          setBuiltTrack(EMPTY_TRACK);
+          setTrackState({ status: 'error' });
         }
       });
 
@@ -366,7 +371,7 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
               ref={hudCanvasRef}
               className="absolute inset-0 block h-full w-full pointer-events-none"
             />
-            {!builtTrack && (
+            {trackState.status === 'loading' && (
               <div className="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground">
                 Loading track geometry…
               </div>

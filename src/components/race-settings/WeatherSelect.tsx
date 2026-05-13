@@ -31,24 +31,24 @@ export const WeatherIcon = (
 export function WeatherSelect() {
   const { racedef } = useSettingsStore();
 
-  const handleClick: React.MouseEventHandler<HTMLDivElement> = (e) => {
-    e.stopPropagation();
-
-    const target = e.target as HTMLDivElement;
-    const weather = target.dataset.weather;
-
-    if (!weather) {
-      return;
-    }
-    setRaceParams({ ...racedef, weather: +weather as IWeather });
+  const handleSelect = (weather: IWeather) => {
+    setRaceParams({ ...racedef, weather });
   };
 
   return (
-    <div className="flex gap-2 items-center" onClick={handleClick}>
-      <WeatherIcon weather={1} />
-      <WeatherIcon weather={2} />
-      <WeatherIcon weather={3} />
-      <WeatherIcon weather={4} />
+    <div className="flex gap-2 items-center" role="radiogroup" aria-label="Weather">
+      {[1, 2, 3, 4].map((weather) => (
+        <button
+          key={weather}
+          type="button"
+          role="radio"
+          aria-checked={weather === racedef.weather}
+          className="rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          onClick={() => handleSelect(weather as IWeather)}
+        >
+          <WeatherIcon weather={weather} />
+        </button>
+      ))}
     </div>
   );
 }

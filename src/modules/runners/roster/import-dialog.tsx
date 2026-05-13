@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { IAptitudeFilters, IAptitudeSlotKey, IDecodedRunner } from './types';
 import { decodeRoster } from '../share/roster-encoding';
 import { buildDecodedRunner, hasAnyAptitudeFilter, passesAptitudeFilters } from './helpers';
@@ -27,53 +27,191 @@ type IRosterImportDialogProps = {
   onOpenChange: (open: boolean) => void;
 };
 
+type ImportStateBase = {
+  selected: Set<number>;
+  search: string;
+  aptFilters: IAptitudeFilters;
+};
+
+type ImportState =
+  | (ImportStateBase & {
+      status: 'idle';
+      runners: null;
+    })
+  | (ImportStateBase & {
+      status: 'loading';
+      runners: IDecodedRunner[] | null;
+    })
+  | (ImportStateBase & {
+      status: 'error';
+      runners: null;
+    })
+  | (ImportStateBase & {
+      status: 'decoded';
+      runners: IDecodedRunner[];
+    });
+
+type ImportAction =
+  | { type: 'reset' }
+  | { type: 'decode:start' }
+  | { type: 'decode:success'; runners: IDecodedRunner[] }
+  | { type: 'decode:error' }
+  | { type: 'search:set'; value: string }
+  | { type: 'filters:clear' }
+  | { type: 'selection:toggle'; index: number }
+  | { type: 'selection:select-many'; indices: number[] }
+  | { type: 'selection:deselect-many'; indices: number[] }
+  | {
+      type: 'filters:aptitude:set';
+      key: IAptitudeSlotKey;
+      value: number | null;
+    };
+
+function createInitialImportState(): ImportState {
+  return {
+    status: 'idle',
+    runners: null,
+    selected: new Set(),
+    search: '',
+    aptFilters: {}
+  };
+}
+
+function importReducer(state: ImportState, action: ImportAction): ImportState {
+  switch (action.type) {
+    case 'reset':
+      return createInitialImportState();
+    case 'decode:start':
+      return {
+        ...state,
+        status: 'loading'
+      };
+    case 'decode:success':
+      return {
+        status: 'decoded',
+        runners: action.runners,
+        selected: new Set(action.runners.map((_, index) => index)),
+        search: '',
+        aptFilters: {}
+      };
+    case 'decode:error':
+      return {
+        status: 'error',
+        runners: null,
+        selected: new Set(),
+        search: state.search,
+        aptFilters: state.aptFilters
+      };
+    case 'search:set':
+      return {
+        ...state,
+        search: action.value
+      };
+    case 'filters:clear':
+      return {
+        ...state,
+        search: '',
+        aptFilters: {}
+      };
+    case 'selection:toggle': {
+      const nextSelected = new Set(state.selected);
+
+      if (nextSelected.has(action.index)) {
+        nextSelected.delete(action.index);
+      } else {
+        nextSelected.add(action.index);
+      }
+
+      return {
+        ...state,
+        selected: nextSelected
+      };
+    }
+    case 'selection:select-many': {
+      const nextSelected = new Set(state.selected);
+
+      for (const index of action.indices) {
+        nextSelected.add(index);
+      }
+
+      return {
+        ...state,
+        selected: nextSelected
+      };
+    }
+    case 'selection:deselect-many': {
+      const nextSelected = new Set(state.selected);
+
+      for (const index of action.indices) {
+        nextSelected.delete(index);
+      }
+
+      return {
+        ...state,
+        selected: nextSelected
+      };
+    }
+    case 'filters:aptitude:set': {
+      const nextFilters = { ...state.aptFilters };
+
+      if (action.value == null) {
+        delete nextFilters[action.key];
+      } else {
+        nextFilters[action.key] = action.value;
+      }
+
+      return {
+        ...state,
+        aptFilters: nextFilters
+      };
+    }
+    default: {
+      const exhaustiveAction: never = action;
+      return exhaustiveAction;
+    }
+  }
+}
+
 export function RosterImportDialog({ open, onOpenChange }: Readonly<IRosterImportDialogProps>) {
   const [code, setCode] = useState('');
-  const [decoded, setDecoded] = useState<IDecodedRunner[] | null>(null);
-  const [error, setError] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [selected, setSelected] = useState<Set<number>>(new Set());
-  const [search, setSearch] = useState('');
-  const [aptFilters, setAptFilters] = useState<IAptitudeFilters>({});
+  const [importState, dispatch] = useReducer(importReducer, undefined, createInitialImportState);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const trimmed = code.trim();
     if (!trimmed) {
-      setDecoded(null);
-      setError(false);
-      setSelected(new Set());
-      setSearch('');
-      setAptFilters({});
+      dispatch({ type: 'reset' });
       return;
     }
 
     let cancelled = false;
-    setLoading(true);
-    setError(false);
+    dispatch({ type: 'decode:start' });
 
     decodeRoster(trimmed).then((result) => {
       if (cancelled) return;
-      setLoading(false);
 
       if (!result) {
-        setDecoded(null);
-        setError(true);
-        setSelected(new Set());
+        dispatch({ type: 'decode:error' });
         return;
       }
 
-      const runners = result.map(buildDecodedRunner);
-      setDecoded(runners);
-      setSelected(new Set(runners.map((_, i) => i)));
-      setSearch('');
-      setAptFilters({});
+      dispatch({
+        type: 'decode:success',
+        runners: result.map(buildDecodedRunner)
+      });
     });
 
     return () => {
       cancelled = true;
     };
   }, [code]);
+
+  const decoded = importState.runners;
+  const error = importState.status === 'error';
+  const loading = importState.status === 'loading';
+  const selected = importState.selected;
+  const search = importState.search;
+  const aptFilters = importState.aptFilters;
 
   const hasActiveAptFilter = hasAnyAptitudeFilter(aptFilters);
 
@@ -111,11 +249,7 @@ export function RosterImportDialog({ open, onOpenChange }: Readonly<IRosterImpor
     (next: boolean) => {
       if (!next) {
         setCode('');
-        setDecoded(null);
-        setError(false);
-        setSelected(new Set());
-        setSearch('');
-        setAptFilters({});
+        dispatch({ type: 'reset' });
       }
       onOpenChange(next);
     },
@@ -123,55 +257,25 @@ export function RosterImportDialog({ open, onOpenChange }: Readonly<IRosterImpor
   );
 
   const toggleOne = useCallback((index: number) => {
-    setSelected((prev) => {
-      const next = new Set(prev);
-
-      if (next.has(index)) {
-        next.delete(index);
-      } else {
-        next.add(index);
-      }
-
-      return next;
-    });
+    dispatch({ type: 'selection:toggle', index });
   }, []);
 
   const selectAllFiltered = useCallback(() => {
-    setSelected((prev) => {
-      const next = new Set(prev);
-
-      for (const { index } of filtered) {
-        next.add(index);
-      }
-
-      return next;
+    dispatch({
+      type: 'selection:select-many',
+      indices: filtered.map(({ index }) => index)
     });
   }, [filtered]);
 
   const deselectAllFiltered = useCallback(() => {
-    setSelected((prev) => {
-      const next = new Set(prev);
-
-      for (const { index } of filtered) {
-        next.delete(index);
-      }
-
-      return next;
+    dispatch({
+      type: 'selection:deselect-many',
+      indices: filtered.map(({ index }) => index)
     });
   }, [filtered]);
 
   const setAptFilter = useCallback((key: IAptitudeSlotKey, value: number | null) => {
-    setAptFilters((prev) => {
-      const updated = { ...prev };
-
-      if (value == null) {
-        delete updated[key];
-      } else {
-        updated[key] = value;
-      }
-
-      return updated;
-    });
+    dispatch({ type: 'filters:aptitude:set', key, value });
   }, []);
 
   const allFilteredSelected = filtered.length > 0 && filteredSelectedCount === filtered.length;
@@ -179,8 +283,7 @@ export function RosterImportDialog({ open, onOpenChange }: Readonly<IRosterImpor
   const hasActiveFilters = !!search.trim() || hasActiveAptFilter;
 
   const clearAllFilters = useCallback(() => {
-    setSearch('');
-    setAptFilters({});
+    dispatch({ type: 'filters:clear' });
   }, []);
 
   const handleImportSelected = useCallback(() => {
@@ -253,7 +356,7 @@ export function RosterImportDialog({ open, onOpenChange }: Readonly<IRosterImpor
                   <Input
                     placeholder="Search characters..."
                     value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+                    onChange={(e) => dispatch({ type: 'search:set', value: e.target.value })}
                     className="pl-8"
                   />
                 </div>

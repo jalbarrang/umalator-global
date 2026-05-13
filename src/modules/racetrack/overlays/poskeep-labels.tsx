@@ -14,13 +14,13 @@ export const PosKeepLabels = (props: PosKeepLabelsProps) => {
 
   return (
     <g id="racetrack-poskeep-labels">
-      {posKeepLabels.map((label, index) => {
+      {posKeepLabels.map((label) => {
         if (label.umaIndex === 0 && !showUma1) return null;
         if (label.umaIndex === 1 && !showUma2) return null;
         if (label.x == null || label.width == null || label.yOffset == null) return null;
 
         return (
-          <g key={index} className="poskeep-label">
+          <g key={`${label.umaIndex}-${label.start}-${label.end}`} className="poskeep-label">
             <text
               x={label.x + label.width / 2}
               y={5 + label.yOffset}

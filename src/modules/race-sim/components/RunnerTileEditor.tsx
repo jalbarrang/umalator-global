@@ -187,7 +187,13 @@ export function RunnerTileEditor(props: RunnerTileEditorProps) {
   const hasRunawaySkill = runner?.skills.includes(runawaySkillId) ?? false;
 
   return (
-    <Drawer direction="right" open={open} onOpenChange={onOpenChange} autoFocus>
+    <Drawer
+      direction="right"
+      open={open}
+      onOpenChange={onOpenChange}
+      // eslint-disable-next-line jsx-a11y/no-autofocus -- Vaul drawer autoFocus is intentional to move focus into the editor on open
+      autoFocus
+    >
       <DrawerContent className="px-2 w-full! md:w-[620px]! max-w-none!" data-vaul-no-drag>
         <DrawerHeader className="flex-row items-center justify-between">
           <div className="flex flex-col gap-1">

@@ -68,11 +68,11 @@ export function OcrSkillDebugPanel({ results }: Readonly<OcrSkillDebugPanelProps
             </button>
           </div>
 
-          {results.skills.map((skill, index) => {
+          {results.skills.map((skill) => {
             const normalized = dataRegistry.skills.normalizeSkillName(skill.originalText);
 
             return (
-              <div key={`${skill.id}-${index}`} className="rounded border bg-muted/30 p-2 text-xs">
+              <div key={skill.id} className="rounded border bg-muted/30 p-2 text-xs">
                 <div className="grid grid-cols-[90px_1fr] gap-x-3 gap-y-1">
                   <span className="text-muted-foreground">Raw</span>
                   <code className="break-all">{skill.originalText || '—'}</code>

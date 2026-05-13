@@ -15,6 +15,7 @@ function InlineMarkdown(props: InlineMarkdownProps) {
       {parts.map((part, idx) => {
         const linkMatch = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
         if (linkMatch) {
+          // eslint-disable-next-line react/no-array-index-key -- inline markdown tokens are a fixed parse order
           return (
             <a
               key={idx}
@@ -29,6 +30,7 @@ function InlineMarkdown(props: InlineMarkdownProps) {
         }
 
         if (part.startsWith('`') && part.endsWith('`')) {
+          // eslint-disable-next-line react/no-array-index-key -- inline markdown tokens are a fixed parse order
           return (
             <code key={idx} className="rounded bg-muted px-1 py-0.5 text-xs text-foreground">
               {part.slice(1, -1)}
@@ -37,6 +39,7 @@ function InlineMarkdown(props: InlineMarkdownProps) {
         }
 
         if (part.startsWith('**') && part.endsWith('**')) {
+          // eslint-disable-next-line react/no-array-index-key -- inline markdown tokens are a fixed parse order
           return (
             <strong key={idx} className="font-medium text-foreground">
               {part.slice(2, -2)}

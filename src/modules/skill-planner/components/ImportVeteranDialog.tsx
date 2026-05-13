@@ -84,19 +84,13 @@ export function ImportVeteranDialog(props: Readonly<ImportVeteranDialogProps>) {
     return sortedRunners.filter((runner) => (searchIndex.get(runner.id) ?? '').includes(query));
   }, [search, searchIndex, sortedRunners]);
 
-  useEffect(() => {
-    if (!selectedRunnerId) {
-      return;
-    }
-
-    if (!filteredRunners.some((runner) => runner.id === selectedRunnerId)) {
-      setSelectedRunnerId(null);
-    }
-  }, [filteredRunners, selectedRunnerId]);
+  const validSelectedRunnerId = filteredRunners.some((runner) => runner.id === selectedRunnerId)
+    ? selectedRunnerId
+    : null;
 
   const selectedRunner = useMemo(() => {
-    return filteredRunners.find((runner) => runner.id === selectedRunnerId) ?? null;
-  }, [filteredRunners, selectedRunnerId]);
+    return filteredRunners.find((runner) => runner.id === validSelectedRunnerId) ?? null;
+  }, [filteredRunners, validSelectedRunnerId]);
 
   const handleImport = () => {
     if (!selectedRunner) {
@@ -148,7 +142,7 @@ export function ImportVeteranDialog(props: Readonly<ImportVeteranDialogProps>) {
                 {filteredRunners.map((runner) => {
                   const umaInfo = runner.outfitId ? getUmaDisplayInfo(runner.outfitId) : null;
                   const imageUrl = getUmaImageUrl(runner.outfitId, runner.randomMobId);
-                  const isSelected = runner.id === selectedRunnerId;
+                  const isSelected = runner.id === validSelectedRunnerId;
                   const runnerLabel = umaInfo?.name || runner.notes || 'Saved runner';
                   const outfitLabel = umaInfo?.outfit || runner.outfitId || 'Custom runner';
 

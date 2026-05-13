@@ -29,22 +29,24 @@ export const SeasonIcon = (props: { season: number } & React.HTMLAttributes<HTML
 export function SeasonSelect() {
   const { racedef } = useSettingsStore();
 
-  const handleClick: React.MouseEventHandler<HTMLDivElement> = (e) => {
-    e.stopPropagation();
-
-    const target = e.target as HTMLDivElement;
-    const season = target.dataset.season;
-
-    if (!season) return;
-    setRaceParams({ ...racedef, season: +season as ISeason });
+  const handleSelect = (season: ISeason) => {
+    setRaceParams({ ...racedef, season });
   };
 
   return (
-    <div className="flex gap-2 items-center" onClick={handleClick}>
-      <SeasonIcon season={1} />
-      <SeasonIcon season={2} />
-      <SeasonIcon season={3} />
-      <SeasonIcon season={4} />
+    <div className="flex gap-2 items-center" role="radiogroup" aria-label="Season">
+      {[1, 2, 3, 4].map((season) => (
+        <button
+          key={season}
+          type="button"
+          role="radio"
+          aria-checked={season === racedef.season}
+          className="rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          onClick={() => handleSelect(season as ISeason)}
+        >
+          <SeasonIcon season={season} />
+        </button>
+      ))}
     </div>
   );
 }

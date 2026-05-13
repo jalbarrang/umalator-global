@@ -51,7 +51,7 @@ export default function RaceSimHome() {
           <div className="flex flex-col flex-1 p-2 overflow-y-auto">
             {runners.map((runner, index) => (
               <RunnerListItem
-                key={`${runner.randomMobId}-${index}`}
+                key={runner.randomMobId}
                 index={index}
                 runner={runner}
                 isSelected={selectedIndex === index}

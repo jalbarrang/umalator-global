@@ -21,7 +21,13 @@ export function SkillPickerDrawer(props: SkillPickerDrawerProps) {
 
   return (
     <SkillPickerProvider>
-      <Drawer direction="right" open={open} onOpenChange={onOpenChange} autoFocus>
+      <Drawer
+        direction="right"
+        open={open}
+        onOpenChange={onOpenChange}
+        // eslint-disable-next-line jsx-a11y/no-autofocus -- Vaul drawer autoFocus is intentional to move focus into the picker on open
+        autoFocus
+      >
         <DrawerContent className="px-2 w-full! md:w-1/2! max-w-none!" data-vaul-no-drag>
           <DrawerHeader className="flex-row items-center justify-between">
             <DrawerClose tabIndex={-1} aria-label="Close skill picker">

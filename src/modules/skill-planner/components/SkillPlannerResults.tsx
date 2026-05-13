@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { getObtainedSkills, useSkillPlannerStore } from '../skill-planner.store';
 import { resolveActiveSkills } from '../optimizer';
 import type { CombinationResult } from '../types';
@@ -61,6 +61,12 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
   const [saveModalOpen, setSaveModalOpen] = useState(false);
   const [selectedCombination, setSelectedCombination] = useState<CombinationResult | null>(null);
   const [visibleCount, setVisibleCount] = useState(5);
+  const prevResultRef = useRef(result);
+
+  if (prevResultRef.current !== result) {
+    prevResultRef.current = result;
+    setVisibleCount(5);
+  }
 
   const candidateList = useMemo(() => Object.values(candidates), [candidates]);
   const canOptimize = useMemo(
@@ -84,11 +90,6 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
   );
 
   const hasMore = rankedCombinations.length > visibleCount;
-
-  // Reset visible count when new results arrive
-  useEffect(() => {
-    setVisibleCount(5);
-  }, [result]);
 
   const currentInputFingerprint = useMemo(() => {
     return buildOptimizationInputFingerprint({
@@ -262,12 +263,12 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
                 </p>
               )}
 
-              {visibleCombinations.map((combination, index) => {
+              {visibleCombinations.map((combination) => {
                 const bashinGain = combination.bashin;
 
                 return (
                   <div
-                    key={`combo-${index}-${combination.skills.join('-')}`}
+                    key={combination.skills.join('-')}
                     className="border rounded-lg p-3 bg-background"
                   >
                     <div className="mb-2 space-y-1">

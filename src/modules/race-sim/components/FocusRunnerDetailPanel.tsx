@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -109,7 +109,7 @@ function MiniLineChart({ title, xValues, yValues, color, yUnit }: LineChartProps
               const y = topPadding + ((height - topPadding - bottomPadding) * (index + 1)) / 4;
               return (
                 <line
-                  key={`grid-${index}`}
+                  key={`grid-${y.toFixed(2)}`}
                   x1={leftPadding}
                   x2={width - rightPadding}
                   y1={y}
@@ -193,10 +193,12 @@ export function FocusRunnerDetailPanel({ runnerIndex }: FocusRunnerDetailPanelPr
   }, [results, runnerIndex]);
 
   const [selectedSample, setSelectedSample] = useState('0');
+  const prevRunnerIndexRef = useRef(runnerIndex);
 
-  useEffect(() => {
+  if (prevRunnerIndexRef.current !== runnerIndex) {
+    prevRunnerIndexRef.current = runnerIndex;
     setSelectedSample('0');
-  }, [runnerIndex]);
+  }
 
   const selectedData = focusedRounds[Number(selectedSample)] ?? null;
   const skillRows = useMemo(() => {
@@ -261,7 +263,7 @@ export function FocusRunnerDetailPanel({ runnerIndex }: FocusRunnerDetailPanelPr
                 </SelectTrigger>
                 <SelectContent>
                   {focusedRounds.map((round, index) => (
-                    <SelectItem key={`${round.seed}-${index}`} value={index.toString()}>
+                    <SelectItem key={`${round.seed}-${round.sampleIndex}`} value={index.toString()}>
                       Sample {round.sampleIndex + 1} (Seed {round.seed})
                     </SelectItem>
                   ))}
@@ -308,7 +310,7 @@ export function FocusRunnerDetailPanel({ runnerIndex }: FocusRunnerDetailPanelPr
                       {row.name}
                     </div>
                     <div className="relative h-5 rounded bg-muted/70">
-                      {row.logs.map((log, index) => {
+                      {row.logs.map((log) => {
                         const leftPct = (log.start / Math.max(distanceMax, 1)) * 100;
                         const widthPct = Math.max(
                           ((log.end - log.start) / Math.max(distanceMax, 1)) * 100,
@@ -317,7 +319,7 @@ export function FocusRunnerDetailPanel({ runnerIndex }: FocusRunnerDetailPanelPr
 
                         return (
                           <span
-                            key={`${row.skillId}-${index}`}
+                            key={`${row.skillId}-${log.start}-${log.end}`}
                             className={cn(
                               'absolute top-0.5 h-4 rounded bg-primary/70',
                               'ring-1 ring-primary/40'

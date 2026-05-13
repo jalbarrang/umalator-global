@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,10 +28,12 @@ export function RaceSimActionBar({ isRunning, onRun, onCancel, onReplay }: RaceS
   );
 
   const [sampleInput, setSampleInput] = useState(() => nsamples.toString());
+  const prevNsamplesRef = useRef(nsamples);
 
-  useEffect(() => {
+  if (prevNsamplesRef.current !== nsamples) {
+    prevNsamplesRef.current = nsamples;
     setSampleInput(nsamples.toString());
-  }, [nsamples]);
+  }
 
   const handleNsamplesBlur = () => {
     const parsed = Number(sampleInput);

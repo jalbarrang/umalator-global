@@ -126,6 +126,7 @@ export function SkillItemAccessory(props: Readonly<React.ComponentProps<'div'>>)
   return (
     <div
       data-slot="skill-item-accessory"
+      role="presentation"
       className={cn('shrink-0', className)}
       onClick={(event) => {
         event.stopPropagation();

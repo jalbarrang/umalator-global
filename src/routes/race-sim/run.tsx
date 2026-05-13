@@ -40,6 +40,7 @@ function SamplePicker() {
     <div className="flex items-center gap-2">
       <span className="text-xs text-muted-foreground">Sample</span>
       <ButtonGroup>
+        {/* eslint-disable-next-line react/no-array-index-key -- sample buttons are a fixed round sequence */}
         {Array.from({ length: roundCount }, (_, index) => (
           <Button
             key={`sample-${index}`}

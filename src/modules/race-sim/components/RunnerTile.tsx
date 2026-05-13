@@ -32,6 +32,7 @@ export function RunnerTile({
     if (!runner.outfitId) return null;
     return getUmaDisplayInfo(runner.outfitId);
   }, [runner.outfitId]);
+  const focusCheckboxId = `runner-tile-track-${index}`;
 
   const handleOpenEditor = () => {
     onOpenEditor?.(index);
@@ -83,10 +84,15 @@ export function RunnerTile({
             </div>
 
             <label
+              htmlFor={focusCheckboxId}
               className="flex shrink-0 items-center gap-1.5 cursor-pointer"
               onClick={(event) => event.stopPropagation()}
             >
-              <Checkbox checked={isFocused} onCheckedChange={() => onToggleFocus(index)} />
+              <Checkbox
+                id={focusCheckboxId}
+                checked={isFocused}
+                onCheckedChange={() => onToggleFocus(index)}
+              />
               <span className="text-xs text-muted-foreground">Track</span>
             </label>
           </div>
@@ -117,14 +123,18 @@ export function RunnerTile({
           </div>
 
           <div className="grid grid-cols-5">
-            {[runner.speed, runner.stamina, runner.power, runner.guts, runner.wisdom].map(
-              (stat, i) => (
-                <div key={i} className="flex items-center gap-1 p-1">
-                  <StatImage value={stat} className="size-3.5" />
-                  <span className="text-xs">{stat}</span>
-                </div>
-              )
-            )}
+            {[
+              { label: 'Spd', value: runner.speed },
+              { label: 'Sta', value: runner.stamina },
+              { label: 'Pow', value: runner.power },
+              { label: 'Gut', value: runner.guts },
+              { label: 'Wit', value: runner.wisdom }
+            ].map((stat) => (
+              <div key={stat.label} className="flex items-center gap-1 p-1">
+                <StatImage value={stat.value} className="size-3.5" />
+                <span className="text-xs">{stat.value}</span>
+              </div>
+            ))}
           </div>
         </div>
 

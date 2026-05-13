@@ -56,7 +56,7 @@ export const SectionTypesBar = React.memo<SectionTypesBarProps>((props) => {
 
       return (
         <svg
-          key={`straight-${i}`}
+          key={`straight-${s.start}-${s.end}`}
           className="straight"
           x={`${x}%`}
           y="0"
@@ -80,7 +80,7 @@ export const SectionTypesBar = React.memo<SectionTypesBarProps>((props) => {
 
       return (
         <svg
-          key={`corner-${i}`}
+          key={`corner-${c.start}-${c.start + c.length}`}
           className="corner"
           x={`${x}%`}
           y="0"
@@ -107,7 +107,7 @@ export const SectionTypesBar = React.memo<SectionTypesBarProps>((props) => {
 
         nodes.push(
           <DistanceMarker
-            key={`section-marker-${i}-start`}
+            key={`section-start-${s.start}`}
             d={s.start}
             x={x}
             y={RaceTrackDimensions.SectionTypesBarHeight}
@@ -122,7 +122,7 @@ export const SectionTypesBar = React.memo<SectionTypesBarProps>((props) => {
 
         nodes.push(
           <DistanceMarker
-            key={`section-marker-${i}-end`}
+            key={`section-end-${s.end}`}
             d={s.end}
             x={x}
             y={RaceTrackDimensions.SectionTypesBarHeight}

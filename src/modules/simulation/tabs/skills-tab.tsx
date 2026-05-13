@@ -222,11 +222,8 @@ const RunnerSkillsTable = (props: RunnerSkillsTableProps) => {
           </div>
 
           <div className="grid grid-cols-1">
-            {skills.map((skill, index) => (
-              <div
-                key={`${skill.id}-${index}`}
-                className="grid grid-cols-1 border-b last:border-b-0 p-2"
-              >
+            {skills.map((skill) => (
+              <div key={skill.id} className="grid grid-cols-1 border-b last:border-b-0 p-2">
                 <Collapsible>
                   <CollapsibleTrigger className="w-full">
                     <div className="grid grid-cols-2">

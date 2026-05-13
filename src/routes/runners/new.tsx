@@ -10,7 +10,7 @@ export default function NewRunnerPage() {
   const { addRunner } = useRunnerLibraryStore();
 
   const [runnerName, setRunnerName] = useState('');
-  const [runnerState, setRunnerState] = useState(createRunnerState());
+  const [runnerState, setRunnerState] = useState(() => createRunnerState());
 
   const handleSave = () => {
     if (!runnerName.trim()) {

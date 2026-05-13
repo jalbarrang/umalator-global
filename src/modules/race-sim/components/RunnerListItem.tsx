@@ -36,7 +36,14 @@ export function RunnerListItem(props: Readonly<RunnerListItemProps>) {
     return getUmaDisplayInfo(runner.outfitId);
   }, [runner.outfitId]);
 
-  const stats = [runner.speed, runner.stamina, runner.power, runner.guts, runner.wisdom];
+  const stats = [
+    { label: 'Spd', icon: statIcons[0], value: runner.speed },
+    { label: 'Sta', icon: statIcons[1], value: runner.stamina },
+    { label: 'Pow', icon: statIcons[2], value: runner.power },
+    { label: 'Gut', icon: statIcons[3], value: runner.guts },
+    { label: 'Wit', icon: statIcons[4], value: runner.wisdom }
+  ];
+  const focusCheckboxId = `runner-list-item-track-${index}`;
 
   return (
     <button
@@ -87,24 +94,26 @@ export function RunnerListItem(props: Readonly<RunnerListItemProps>) {
             )}
           </div>
 
-          <label className="shrink-0 cursor-pointer" onClick={(e) => e.stopPropagation()}>
+          <label
+            htmlFor={focusCheckboxId}
+            className="shrink-0 cursor-pointer"
+            onClick={(e) => e.stopPropagation()}
+          >
             <Checkbox
+              id={focusCheckboxId}
               checked={isFocused}
               onCheckedChange={() => onToggleFocus(index)}
               className="size-3.5"
+              aria-label={`Track runner ${index + 1}`}
             />
           </label>
         </div>
 
         <div className="flex items-center gap-0.5">
-          {stats.map((stat, i) => (
-            <div
-              key={i}
-              className="flex items-center gap-px"
-              title={['Spd', 'Sta', 'Pow', 'Gut', 'Wit'][i]}
-            >
-              <img src={statIcons[i]} alt="" className="size-3 opacity-70" />
-              <span className="text-[10px] tabular-nums text-muted-foreground">{stat}</span>
+          {stats.map((stat) => (
+            <div key={stat.label} className="flex items-center gap-px" title={stat.label}>
+              <img src={stat.icon} alt="" className="size-3 opacity-70" />
+              <span className="text-[10px] tabular-nums text-muted-foreground">{stat.value}</span>
             </div>
           ))}
         </div>

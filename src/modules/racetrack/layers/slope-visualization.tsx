@@ -85,7 +85,7 @@ export const SlopeVisualization = React.memo<SlopeVisualizationProps>((props) =>
       terrainElements.push(
         <polygon
           id={`terrain-${i}`}
-          key={`terrain-${i}`}
+          key={`terrain-${s.start}-${s.length}`}
           points={`${xStart},${yLeft} ${xStart},${groundY} ${xEnd},${groundY} ${xEnd},${yRight}`}
           fill="rgb(211,243,68)"
         />

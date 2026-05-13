@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useState } from 'react';
+import { memo, useMemo, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Pause, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -35,13 +35,15 @@ function PlaybackSlider() {
   const [internalTick, setInternalTick] = useState<number[]>(() => {
     return [currentTick];
   });
+  const prevCurrentTickRef = useRef(currentTick);
+
+  if (prevCurrentTickRef.current !== currentTick) {
+    prevCurrentTickRef.current = currentTick;
+    setInternalTick([currentTick]);
+  }
 
   const hasTimeline = totalTicks > 0;
   const maxTick = Math.max(totalTicks, 1);
-
-  useEffect(() => {
-    setInternalTick([currentTick]);
-  }, [currentTick]);
 
   return (
     <div className="flex items-center justify-between gap-3">

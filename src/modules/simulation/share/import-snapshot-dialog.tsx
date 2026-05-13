@@ -79,6 +79,10 @@ export function ImportSnapshotDialog({ open, onOpenChange }: ImportSnapshotDialo
     handleOpenChange(false);
   };
 
+  const handleOpenFilePicker = () => {
+    document.getElementById('snapshot-file-input')?.click();
+  };
+
   const uma1Name = preview
     ? preview.uma1.outfitId
       ? (getUmaDisplayInfo(preview.uma1.outfitId)?.name ?? preview.uma1.outfitId)
@@ -105,6 +109,8 @@ export function ImportSnapshotDialog({ open, onOpenChange }: ImportSnapshotDialo
           className={`border-2 border-dashed rounded-lg p-6 flex flex-col items-center gap-2 cursor-pointer transition-colors ${
             isDragging ? 'border-primary bg-primary/10' : 'border-muted-foreground/30'
           }`}
+          role="button"
+          tabIndex={0}
           onDragOver={(e) => {
             e.preventDefault();
             setIsDragging(true);
@@ -114,7 +120,13 @@ export function ImportSnapshotDialog({ open, onOpenChange }: ImportSnapshotDialo
             setIsDragging(false);
           }}
           onDrop={handleDrop}
-          onClick={() => document.getElementById('snapshot-file-input')?.click()}
+          onClick={handleOpenFilePicker}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleOpenFilePicker();
+            }
+          }}
         >
           <Upload className="size-8 text-muted-foreground" />
           <span className="text-sm text-muted-foreground">

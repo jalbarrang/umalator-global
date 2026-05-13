@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useRef, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { rankForStat } from '@/modules/runners/utils';
 import { getIconUrl } from '@/assets/icons';
@@ -26,10 +26,12 @@ export const StatInput = (props: StatInputProps) => {
   const { value, onChange } = props;
 
   const [innerValue, setInnerValue] = useState(value);
+  const prevValueRef = useRef(value);
 
-  useEffect(() => {
+  if (prevValueRef.current !== value) {
+    prevValueRef.current = value;
     setInnerValue(value);
-  }, [value]);
+  }
 
   return (
     <div className="flex items-center gap-2">

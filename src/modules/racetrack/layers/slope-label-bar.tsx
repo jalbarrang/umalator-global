@@ -46,7 +46,7 @@ export const SlopeLabelBar = React.memo<SlopeLabelBarProps>((props) => {
       return (
         <svg
           id={`slope-box-${i}`}
-          key={`slope-${i}`}
+          key={`slope-${s.start}-${s.length}`}
           className="slope"
           x={`${x}%`}
           y="0"
@@ -71,7 +71,7 @@ export const SlopeLabelBar = React.memo<SlopeLabelBarProps>((props) => {
         markedStart = true;
         nodes.push(
           <DistanceMarker
-            key={`slope-marker-${i}-start`}
+            key={`slope-start-${s.start}`}
             d={s.start}
             x={(s.start / distance) * 100}
             y={RaceTrackDimensions.SlopeLabelBarHeight}
@@ -84,7 +84,7 @@ export const SlopeLabelBar = React.memo<SlopeLabelBarProps>((props) => {
       if (s.start + s.length !== distance) {
         nodes.push(
           <DistanceMarker
-            key={`slope-marker-${i}-end`}
+            key={`slope-end-${s.start + s.length}`}
             d={s.start + s.length}
             x={((s.start + s.length) / distance) * 100}
             y={RaceTrackDimensions.SlopeLabelBarHeight}
@@ -93,7 +93,7 @@ export const SlopeLabelBar = React.memo<SlopeLabelBarProps>((props) => {
         );
       }
 
-      return <Fragment key={`slope-markers-${i}`}>{nodes}</Fragment>;
+      return <Fragment key={`slope-markers-${s.start}-${s.length}`}>{nodes}</Fragment>;
     });
 
     return { slopeBoxes, slopeMarkers };

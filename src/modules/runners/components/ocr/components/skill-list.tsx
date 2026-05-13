@@ -123,7 +123,7 @@ export function OcrSkillsList(props: Readonly<IOcrSkillsListProps>) {
 
           <div className="space-y-1 overflow-y-auto h-full p-2">
             {currentSkills.map((skill, index) => (
-              <SkillItem key={`${skill.id}-${index}`} skillId={skill.id} onRemove={onRemoveSkill}>
+              <SkillItem key={skill.id} skillId={skill.id} onRemove={onRemoveSkill}>
                 <OcrDetectedSkillRow
                   dismissable={skill.id !== uniqueSkillId}
                   onDismiss={() => onRemoveSkill(skill.id)}

@@ -124,6 +124,10 @@ export function FinishOrderTable(_props: FinishOrderTableProps) {
     return null;
   }
 
+  const sampleKeys = results.finishOrders.map(
+    (_, sampleIndex) => results.collectedData.rounds[sampleIndex]?.seed ?? sampleIndex
+  );
+
   const handleSort = (key: SortKey) => {
     setSortKey((currentKey) => {
       if (currentKey !== key) {
@@ -164,7 +168,7 @@ export function FinishOrderTable(_props: FinishOrderTableProps) {
               </TableHead>
 
               {results.finishOrders.map((_, index) => (
-                <TableHead key={`sample-${index}`} className="w-14 text-center">
+                <TableHead key={sampleKeys[index]} className="w-14 text-center">
                   S{index + 1}
                 </TableHead>
               ))}
@@ -219,7 +223,10 @@ export function FinishOrderTable(_props: FinishOrderTableProps) {
                   </TableCell>
 
                   {row.samplePositions.map((position, sampleIndex) => (
-                    <TableCell key={`${row.runnerId}-${sampleIndex}`} className="text-center">
+                    <TableCell
+                      key={`${row.runnerId}-${sampleKeys[sampleIndex]}`}
+                      className="text-center"
+                    >
                       {position === null ? (
                         <span className="text-muted-foreground">-</span>
                       ) : (

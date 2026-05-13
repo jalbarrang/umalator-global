@@ -182,8 +182,8 @@ export function ActivationFrequencyChart({
           ))}
 
           <Bar dataKey="percentage" radius={[2, 2, 0, 0]}>
-            {chartData.bins.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={getBarColor(entry.start)} />
+            {chartData.bins.map((entry) => (
+              <Cell key={`${entry.start}-${entry.end}`} fill={getBarColor(entry.start)} />
             ))}
           </Bar>
         </BarChart>

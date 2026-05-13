@@ -23,25 +23,29 @@ const TimeOfDayIcon = ({ time, icon: iconIndex }: { time: number; icon: number }
 export const TimeOfDaySelect = () => {
   const { racedef } = useSettingsStore();
 
-  const handleClick: React.MouseEventHandler<HTMLDivElement> = (e) => {
-    e.stopPropagation();
-
-    const target = e.target as HTMLDivElement;
-    const timeofday = target.dataset.timeofday;
-
-    if (!timeofday) {
-      return;
-    }
-
-    setRaceParams({ ...racedef, time: +timeofday as ITimeOfDay });
+  const handleSelect = (time: ITimeOfDay) => {
+    setRaceParams({ ...racedef, time });
   };
 
   // + 2 because for some reason the icons are 00-02 (noon/evening/night) but the enum values are 1-4 (morning(?) noon evening night)
   return (
-    <div className="flex gap-2 items-center" onClick={handleClick}>
-      <TimeOfDayIcon time={2} icon={0} />
-      <TimeOfDayIcon time={3} icon={1} />
-      <TimeOfDayIcon time={4} icon={2} />
+    <div className="flex gap-2 items-center" role="radiogroup" aria-label="Time of day">
+      {[
+        { time: 2, icon: 0 },
+        { time: 3, icon: 1 },
+        { time: 4, icon: 2 }
+      ].map(({ time, icon }) => (
+        <button
+          key={time}
+          type="button"
+          role="radio"
+          aria-checked={time === racedef.time}
+          className="rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          onClick={() => handleSelect(time as ITimeOfDay)}
+        >
+          <TimeOfDayIcon time={time} icon={icon} />
+        </button>
+      ))}
     </div>
   );
 };

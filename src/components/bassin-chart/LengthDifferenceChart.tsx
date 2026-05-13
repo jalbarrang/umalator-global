@@ -137,9 +137,9 @@ export const LengthDifferenceChart = React.memo(
               />
             ))}
             <Bar dataKey="maxBasinn" radius={[2, 2, 0, 0]}>
-              {chartData.bins.map((entry, index) => (
+              {chartData.bins.map((entry) => (
                 <Cell
-                  key={`cell-${index}`}
+                  key={`${entry.start}-${entry.end}`}
                   fill={entry.maxBasinn > 0 ? PHASE_COLORS[entry.phase] : 'var(--muted)'}
                 />
               ))}

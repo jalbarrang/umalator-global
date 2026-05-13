@@ -49,6 +49,7 @@ type VelocityPathsProps = {
 };
 
 const height = RaceTrackDimensions.yAxisHeight;
+const runnerIds = ['uma1', 'uma2'] as const;
 // const xOffset = RaceTrackDimensions.xOffset;
 
 export const VelocityPaths = memo<VelocityPathsProps>(function VelocityPaths(props) {
@@ -107,7 +108,7 @@ export const VelocityPaths = memo<VelocityPathsProps>(function VelocityPaths(pro
 
         return (
           <DataPath
-            key={`velocity-${i}`}
+            key={`velocity-${runnerIds[i] ?? i}`}
             positions={chartData.position[i]}
             values={v}
             xScale={xScale}
@@ -125,7 +126,7 @@ export const VelocityPaths = memo<VelocityPathsProps>(function VelocityPaths(pro
 
           return (
             <DataPath
-              key={`hp-${i}`}
+              key={`hp-${runnerIds[i] ?? i}`}
               positions={chartData.position[i]}
               values={hp}
               xScale={xScale}
@@ -143,7 +144,7 @@ export const VelocityPaths = memo<VelocityPathsProps>(function VelocityPaths(pro
 
           return (
             <DataPath
-              key={`lane-${i}`}
+              key={`lane-${runnerIds[i] ?? i}`}
               positions={chartData.position[i]}
               values={lanes}
               xScale={xScale}

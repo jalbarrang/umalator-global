@@ -250,6 +250,7 @@ const PresetForm = ({
         value={name}
         onChange={(e) => onNameChange(e.target.value)}
         readOnly={nameReadOnly}
+        // eslint-disable-next-line jsx-a11y/no-autofocus -- modal should focus the editable name field when opened
         autoFocus={!nameReadOnly}
         maxLength={255}
         className={nameReadOnly ? 'text-muted-foreground' : undefined}

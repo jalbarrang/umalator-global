@@ -90,6 +90,7 @@ export const RunnerEditorLayout = (props: RunnerEditorLayoutProps) => {
                     value={runnerName}
                     onChange={(e) => onRunnerNameChange(e.target.value)}
                     placeholder="Add a note here"
+                    // eslint-disable-next-line jsx-a11y/no-autofocus -- autoFocus is intentional: primary action on page load
                     autoFocus
                     autoComplete="off"
                   />

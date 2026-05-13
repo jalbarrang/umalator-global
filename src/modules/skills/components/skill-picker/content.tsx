@@ -186,8 +186,17 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
   const rowVirtualizerRef = useRef(rowVirtualizer);
 
   const filteredSkillCount = filteredSkills.length;
-  const [focusedIndex, setFocusedIndex] = useState(0);
-  const [isBrowsing, setIsBrowsing] = useState(false);
+  const [browseState, setBrowseState] = useState({ focusedIndex: 0, isBrowsing: false });
+  const previousFilteredSkillsRef = useRef(filteredSkills);
+
+  if (previousFilteredSkillsRef.current !== filteredSkills) {
+    previousFilteredSkillsRef.current = filteredSkills;
+    if (browseState.focusedIndex !== 0 || browseState.isBrowsing) {
+      setBrowseState({ focusedIndex: 0, isBrowsing: false });
+    }
+  }
+
+  const { focusedIndex, isBrowsing } = browseState;
 
   useEffect(() => {
     rowVirtualizerRef.current = rowVirtualizer;
@@ -203,18 +212,6 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
     },
     [resolvedColumnCount]
   );
-
-  useEffect(() => {
-    if (filteredSkillCount === 0) {
-      setFocusedIndex(0);
-      setIsBrowsing(false);
-      return;
-    }
-
-    setFocusedIndex(0);
-    setIsBrowsing(false);
-    scrollFocusedIntoView(0);
-  }, [filteredSkillCount, filteredSkills, scrollFocusedIntoView]);
 
   const getLastIndexForRow = useCallback(
     (rowIndex: number) => {
@@ -232,13 +229,13 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
         return;
       }
 
-      setFocusedIndex((prev) => {
-        const rowIndex = Math.floor(prev / resolvedColumnCount);
+      setBrowseState((prev) => {
+        const rowIndex = Math.floor(prev.focusedIndex / resolvedColumnCount);
         const rowStart = rowIndex * resolvedColumnCount;
         const rowEnd = getLastIndexForRow(rowIndex);
-        const next = Math.max(rowStart, Math.min(rowEnd, prev + delta));
+        const next = Math.max(rowStart, Math.min(rowEnd, prev.focusedIndex + delta));
         scrollFocusedIntoView(next);
-        return next;
+        return { ...prev, focusedIndex: next };
       });
     },
     [resolvedColumnCount, filteredSkillCount, getLastIndexForRow, scrollFocusedIntoView]
@@ -250,15 +247,15 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
         return;
       }
 
-      setFocusedIndex((prev) => {
-        const currentRowIndex = Math.floor(prev / resolvedColumnCount);
-        const currentColumnIndex = prev % resolvedColumnCount;
+      setBrowseState((prev) => {
+        const currentRowIndex = Math.floor(prev.focusedIndex / resolvedColumnCount);
+        const currentColumnIndex = prev.focusedIndex % resolvedColumnCount;
         const nextRowIndex = Math.max(0, Math.min(virtualRowCount - 1, currentRowIndex + rowDelta));
         const nextRowStart = nextRowIndex * resolvedColumnCount;
         const nextRowEnd = getLastIndexForRow(nextRowIndex);
         const next = Math.min(nextRowEnd, nextRowStart + currentColumnIndex);
         scrollFocusedIntoView(next);
-        return next;
+        return { ...prev, focusedIndex: next };
       });
     },
     [
@@ -290,7 +287,7 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
       if (event.key === 'Escape' && isBrowsing) {
         event.preventDefault();
         event.stopPropagation();
-        setIsBrowsing(false);
+        setBrowseState((prev) => ({ ...prev, isBrowsing: false }));
         searchRef.current?.focus();
         return;
       }
@@ -304,7 +301,7 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
         event.stopPropagation();
 
         if (!isBrowsing) {
-          setIsBrowsing(true);
+          setBrowseState((prev) => ({ ...prev, isBrowsing: true }));
           scrollFocusedIntoView(focusedIndex);
           return;
         }
@@ -339,7 +336,7 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
           event.key === 'End' ||
           (!event.altKey && !event.ctrlKey && !event.metaKey && event.key.length === 1))
       ) {
-        setIsBrowsing(false);
+        setBrowseState((prev) => ({ ...prev, isBrowsing: false }));
       }
     },
     [
@@ -355,7 +352,7 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
   );
 
   const handleHighlightSkill = useCallback((skillIndex: number) => {
-    setFocusedIndex(skillIndex);
+    setBrowseState((prev) => ({ ...prev, focusedIndex: skillIndex }));
   }, []);
 
   return (
@@ -371,11 +368,11 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
             value={searchText}
             placeholder="Search skill by name"
             onChange={(e) => {
-              setIsBrowsing(false);
+              setBrowseState((prev) => ({ ...prev, isBrowsing: false }));
               setSearchText(e.target.value);
             }}
             onPointerDown={() => {
-              setIsBrowsing(false);
+              setBrowseState((prev) => ({ ...prev, isBrowsing: false }));
             }}
             onKeyDown={handleSearchKeyDown}
           />
@@ -460,7 +457,7 @@ const SkillPickerItem = memo((props: SkillPickerItemProps) => {
   }, [onHighlightSkill, skillIndex]);
 
   return (
-    <div onPointerEnter={handleHighlightRow} onClick={toggleSelected}>
+    <div onPointerEnter={handleHighlightRow}>
       <SkillItem skillId={skill.id}>
         <SkillItemRoot
           interactive
@@ -469,6 +466,7 @@ const SkillPickerItem = memo((props: SkillPickerItemProps) => {
           isFocused={focused}
           className="h-full"
           data-highlighted={focused ? 'true' : undefined}
+          onClick={toggleSelected}
           onPointerEnter={handleMouseEnter}
           onPointerLeave={handleMouseLeave}
         >

@@ -304,6 +304,10 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
     [onAddSkill, onReplaceOutfit]
   );
 
+  const handleGridKeyDown = useCallback((_event: React.KeyboardEvent<HTMLDivElement>) => {
+    // TODO: Add full keyboard navigation for the interactive grid.
+  }, []);
+
   const activationDetailsRow = useMemo(() => {
     if (!expandedSkillId) return null;
     return filteredData.find((r) => r.id === expandedSkillId) ?? null;
@@ -508,7 +512,11 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
       <div
         ref={parentRef}
         className="overflow-auto relative min-h-[600px] max-h-[700px]"
+        role="grid"
+        tabIndex={0}
+        aria-label="Skill comparison grid"
         onClick={handleGridClick}
+        onKeyDown={handleGridKeyDown}
       >
         {/* Table */}
         <div className="min-w-[900px] w-full text-sm">

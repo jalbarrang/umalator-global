@@ -20,6 +20,7 @@ export const SectionNumbersBar = React.memo(() => {
       <rect x="0" y="0" height="100%" width="100%" fill={BG_COLOR} />
 
       {/* Section divider lines */}
+      {/* eslint-disable-next-line react/no-array-index-key -- section dividers are a fixed visual sequence */}
       {Array.from({ length: 25 }, (_, i) => {
         const x1 = (i / 24) * 100;
         const x2 = (i / 24) * 100;
@@ -41,6 +42,7 @@ export const SectionNumbersBar = React.memo(() => {
       })}
 
       {/* Section numbers */}
+      {/* eslint-disable-next-line react/no-array-index-key -- section labels are a fixed visual sequence */}
       {Array.from({ length: 24 }, (_, i) => {
         const x1 = (1 / 48 + i / 24) * 100;
         const y1 = RaceTrackDimensions.SectionNumbersBarHeight / 2;

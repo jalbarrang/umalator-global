@@ -5,18 +5,18 @@
  * that highlights the target element. Animates between steps smoothly.
  */
 
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { ElementBounds } from './types';
 
-interface TutorialOverlayProps {
+type TutorialOverlayProps = {
   /** CSS selector for the element to highlight */
   targetSelector?: string;
   /** Padding around the highlighted element */
   padding?: number;
   /** Corner radius of the spotlight cutout */
   radius?: number;
-}
+};
 
 /**
  * Calculates the bounds of a target element with padding
@@ -36,21 +36,40 @@ function getElementBounds(element: Element | null, padding: number): ElementBoun
   };
 }
 
+function restoreTargetElement(element: Element | null) {
+  if (!element) {
+    return;
+  }
+
+  const el = element as HTMLElement;
+  const originalZIndex = el.dataset.originalZIndex || '';
+  const originalPosition = el.dataset.originalPosition || '';
+
+  el.style.zIndex = originalZIndex;
+  el.style.position = originalPosition;
+  delete el.dataset.tutorialHighlighted;
+  delete el.dataset.originalZIndex;
+  delete el.dataset.originalPosition;
+}
+
 export function TutorialOverlay({
   targetSelector,
   padding = 10,
   radius = 8
 }: TutorialOverlayProps) {
-  const [bounds, setBounds] = useState<ElementBounds | null>(null);
-  const [isVisible, setIsVisible] = useState(false);
-  const [targetElement, setTargetElement] = useState<Element | null>(null);
+  const [overlay, setOverlay] = useState<{
+    bounds: ElementBounds | null;
+    visible: boolean;
+  }>({ bounds: null, visible: false });
+  const targetElementRef = useRef<Element | null>(null);
 
   // Calculate bounds when target changes
   useLayoutEffect(() => {
+    restoreTargetElement(targetElementRef.current);
+    targetElementRef.current = null;
+
     if (!targetSelector) {
-      setBounds(null);
-      setTargetElement(null);
-      setIsVisible(true);
+      setOverlay({ bounds: null, visible: true });
       return;
     }
 
@@ -75,37 +94,27 @@ export function TutorialOverlay({
       htmlEl.dataset.originalPosition = originalPosition;
     }
 
-    setTargetElement(element);
-    setBounds(newBounds);
-    setIsVisible(true);
+    targetElementRef.current = element;
+    setOverlay({ bounds: newBounds, visible: true });
   }, [targetSelector, padding]);
 
-  // Cleanup: restore original styles when component unmounts or target changes
+  // Cleanup: restore original styles when component unmounts
   useEffect(() => {
     return () => {
-      if (targetElement) {
-        const el = targetElement as HTMLElement;
-        const originalZIndex = el.dataset.originalZIndex || '';
-        const originalPosition = el.dataset.originalPosition || '';
-
-        el.style.zIndex = originalZIndex;
-        el.style.position = originalPosition;
-        delete el.dataset.tutorialHighlighted;
-        delete el.dataset.originalZIndex;
-        delete el.dataset.originalPosition;
-      }
+      restoreTargetElement(targetElementRef.current);
+      targetElementRef.current = null;
     };
-  }, [targetElement]);
+  }, []);
 
   // Listen for window resize and scroll to update bounds
   useEffect(() => {
-    if (!targetSelector || !bounds) return;
+    if (!targetSelector || !overlay.bounds) return;
 
     const updateBounds = () => {
       const element = document.querySelector(targetSelector);
       const newBounds = getElementBounds(element, padding);
       if (newBounds) {
-        setBounds(newBounds);
+        setOverlay((current) => ({ ...current, bounds: newBounds }));
       }
     };
 
@@ -116,13 +125,13 @@ export function TutorialOverlay({
       window.removeEventListener('resize', updateBounds);
       window.removeEventListener('scroll', updateBounds, true);
     };
-  }, [targetSelector, padding, bounds]);
+  }, [targetSelector, padding, overlay.bounds]);
 
   return createPortal(
     <div
       className="fixed inset-0 z-5000 transition-opacity duration-200"
       style={{
-        opacity: isVisible ? 1 : 0
+        opacity: overlay.visible ? 1 : 0
       }}
       data-tutorial-overlay
     >
@@ -134,16 +143,16 @@ export function TutorialOverlay({
         style={{ position: 'absolute', top: 0, left: 0 }}
       >
         <defs>
-          {bounds && (
+          {overlay.bounds && (
             <mask id="tutorial-spotlight-mask">
               {/* White background makes everything visible */}
               <rect x="0" y="0" width="100%" height="100%" fill="white" />
               {/* Black cutout makes the target area transparent */}
               <rect
-                x={bounds.left}
-                y={bounds.top}
-                width={bounds.width}
-                height={bounds.height}
+                x={overlay.bounds.left}
+                y={overlay.bounds.top}
+                width={overlay.bounds.width}
+                height={overlay.bounds.height}
                 rx={radius}
                 ry={radius}
                 fill="black"
@@ -159,17 +168,17 @@ export function TutorialOverlay({
           width="100%"
           height="100%"
           fill="color-mix(in srgb, var(--color-black) 90%, transparent)"
-          mask={bounds ? 'url(#tutorial-spotlight-mask)' : undefined}
+          mask={overlay.bounds ? 'url(#tutorial-spotlight-mask)' : undefined}
           className="transition-all duration-300 ease-in-out"
         />
 
         {/* Highlighted element outline */}
-        {bounds && (
+        {overlay.bounds && (
           <rect
-            x={bounds.left}
-            y={bounds.top}
-            width={bounds.width}
-            height={bounds.height}
+            x={overlay.bounds.left}
+            y={overlay.bounds.top}
+            width={overlay.bounds.width}
+            height={overlay.bounds.height}
             rx={radius}
             ry={radius}
             fill="none"

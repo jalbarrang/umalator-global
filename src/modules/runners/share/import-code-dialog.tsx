@@ -118,23 +118,21 @@ export function ImportCodeDialog({
                     {label}
                   </div>
                 ))}
-                {(
-                  [
-                    decoded.speed,
-                    decoded.stamina,
-                    decoded.power,
-                    decoded.guts,
-                    decoded.wisdom
-                  ] as Array<number | undefined>
-                ).map((val, i) => (
+                {[
+                  { label: 'Speed', value: decoded.speed },
+                  { label: 'Stamina', value: decoded.stamina },
+                  { label: 'Power', value: decoded.power },
+                  { label: 'Guts', value: decoded.guts },
+                  { label: 'Wit', value: decoded.wisdom }
+                ].map((stat, i) => (
                   <div
-                    key={i}
+                    key={stat.label}
                     className={`border p-1 font-mono flex items-center justify-center gap-1 ${
                       i === 0 ? 'rounded-bl' : i === 4 ? 'rounded-br' : ''
                     }`}
                   >
-                    <StatImage value={val ?? 0} className="size-3" />
-                    <span>{val ?? '-'}</span>
+                    <StatImage value={stat.value ?? 0} className="size-3" />
+                    <span>{stat.value ?? '-'}</span>
                   </div>
                 ))}
               </div>

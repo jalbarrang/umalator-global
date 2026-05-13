@@ -69,7 +69,7 @@ function AlternativeDetails({
         {i18n.t('skilldetails.effects')}
 
         <div>
-          {alternative.effects.map((ef, effectIndex) => {
+          {alternative.effects.map((ef) => {
             const type = ef.type;
             const modifier = ef.modifier / 10000;
             const effectType = formatEffect[type as keyof typeof formatEffect];
@@ -78,9 +78,10 @@ function AlternativeDetails({
               (effectType ? effectType(modifier) : modifier);
             const effectLabel =
               type === 9 && modifier < 0 ? 'HP Drain' : i18n.t(`skilleffecttypes.${type}`);
+            const effectKey = `${ef.type}-${ef.target}-${ef.modifier}-${ef.valueUsage ?? ''}-${ef.valueLevelUsage ?? ''}`;
 
             return (
-              <div key={effectIndex} className="flex items-center gap-2">
+              <div key={effectKey} className="flex items-center gap-2">
                 <div>{effectLabel}</div>
                 <div>{effectValue}</div>
               </div>
@@ -134,20 +135,28 @@ export function ExpandedSkillDetails(props: ExpandedSkillDetailsProps) {
         {skillData.alternatives.length > 1 ? (
           <Tabs defaultValue={0}>
             <TabsList>
-              {skillData.alternatives.map((_, index) => (
-                <TabsTrigger key={index} value={index}>
-                  Alt {index + 1}
-                </TabsTrigger>
-              ))}
+              {skillData.alternatives.map((alternative, index) => {
+                const alternativeKey = `${alternative.precondition ?? ''}-${alternative.condition}-${alternative.baseDuration}`;
+
+                return (
+                  <TabsTrigger key={alternativeKey} value={index}>
+                    Alt {index + 1}
+                  </TabsTrigger>
+                );
+              })}
             </TabsList>
-            {skillData.alternatives.map((alternative, index) => (
-              <TabsContent key={index} value={index}>
-                <AlternativeDetails
-                  alternative={alternative}
-                  distanceFactor={props.distanceFactor}
-                />
-              </TabsContent>
-            ))}
+            {skillData.alternatives.map((alternative, index) => {
+              const alternativeKey = `${alternative.precondition ?? ''}-${alternative.condition}-${alternative.baseDuration}`;
+
+              return (
+                <TabsContent key={alternativeKey} value={index}>
+                  <AlternativeDetails
+                    alternative={alternative}
+                    distanceFactor={props.distanceFactor}
+                  />
+                </TabsContent>
+              );
+            })}
           </Tabs>
         ) : (
           <AlternativeDetails

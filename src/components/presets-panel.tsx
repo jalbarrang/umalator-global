@@ -125,6 +125,14 @@ const SortablePresetItem = ({
     transition
   };
 
+  const handleActivate = () => {
+    if (selectionMode) {
+      onToggleCheck(preset.id);
+    } else {
+      onLoad(preset.id);
+    }
+  };
+
   return (
     <div
       ref={setNodeRef}
@@ -134,11 +142,13 @@ const SortablePresetItem = ({
         isSelected && 'bg-accent',
         isDragging && 'z-10 bg-accent/80 shadow-md'
       )}
-      onClick={() => {
-        if (selectionMode) {
-          onToggleCheck(preset.id);
-        } else {
-          onLoad(preset.id);
+      role="button"
+      tabIndex={0}
+      onClick={handleActivate}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleActivate();
         }
       }}
     >

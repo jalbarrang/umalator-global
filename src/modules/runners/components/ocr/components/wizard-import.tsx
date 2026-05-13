@@ -18,6 +18,8 @@ import { OcrStatsEditor } from './stats-editor';
 import { OcrSkillsList } from './skill-list';
 import { hasDetectedData } from '../helpers';
 
+const EMPTY_THUMBNAILS: PreparedImage[] = [];
+
 interface DropZoneProps {
   label: string;
   description: string;
@@ -36,7 +38,7 @@ function DropZone({
   accept = 'image/*',
   disabled = false,
   noKey = false,
-  thumbnails = [],
+  thumbnails = EMPTY_THUMBNAILS,
   onFiles
 }: Readonly<DropZoneProps>) {
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -63,6 +65,12 @@ function DropZone({
     e.target.value = '';
   };
 
+  const handleOpenFilePicker = () => {
+    if (!disabled) {
+      inputRef.current?.click();
+    }
+  };
+
   if (noKey) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed p-4 text-center">
@@ -83,9 +91,18 @@ function DropZone({
         'flex-1 flex flex-col gap-3 rounded-lg border-2 border-dashed p-4 transition-colors cursor-pointer',
         disabled ? 'opacity-50 pointer-events-none' : 'hover:border-muted-foreground/50'
       )}
+      role="button"
+      tabIndex={disabled ? -1 : 0}
+      aria-disabled={disabled}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
-      onClick={() => inputRef.current?.click()}
+      onClick={handleOpenFilePicker}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleOpenFilePicker();
+        }
+      }}
     >
       <div className="flex flex-col items-center justify-center gap-2 text-center flex-1 py-4">
         <div className="text-muted-foreground">{icon}</div>
@@ -95,11 +112,8 @@ function DropZone({
 
       {thumbnails.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
-          {thumbnails.map((img, i) => (
-            <div
-              key={`${img.preview}-${i}`}
-              className="size-12 rounded border overflow-hidden shrink-0"
-            >
+          {thumbnails.map((img) => (
+            <div key={img.preview} className="size-12 rounded border overflow-hidden shrink-0">
               <img
                 src={img.preview}
                 alt="Screenshot preview"
