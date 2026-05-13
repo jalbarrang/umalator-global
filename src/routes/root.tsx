@@ -14,7 +14,7 @@ import { createRunnerState } from '@/modules/runners/components/runner-card/type
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import { toast } from 'sonner';
 
-import { lazy, useCallback } from 'react';
+import { useCallback } from 'react';
 import type { ReactNode } from 'react';
 
 // Layouts
@@ -23,26 +23,22 @@ import { RunnersLayout } from './runners';
 import { RaceSimRoot } from './race-sim';
 
 // Pages
-import { SparkOddsPage } from './_tools/spark-odds';
-
-// Comparison
-const SimulationHome = lazy(() => import('./_simulation/home'));
-const SkillBassin = lazy(() => import('./_simulation/skill-bassin'));
-const UmaBassin = lazy(() => import('./_simulation/uma-bassin'));
-
+// Compare
+import SimulationHome from './_simulation/home';
+import SkillBassin from './_simulation/skill-bassin';
+import UmaBassin from './_simulation/uma-bassin';
 // Skill Planner
-
-const SkillPlanner = lazy(() => import('./skill-planner'));
-
+import SkillPlanner from './skill-planner';
 // Roster
-const RunnersHome = lazy(() => import('./runners/home'));
-const RunnersNew = lazy(() => import('./runners/new'));
-const RunnersEdit = lazy(() => import('./runners/$runnerId.edit'));
-
+import RunnersHome from './runners/home';
+import RunnersNew from './runners/new';
+import RunnersEdit from './runners/$runnerId.edit';
 // Race Simulation
-const RaceSimHome = lazy(() => import('./race-sim/home'));
-const RaceSimRun = lazy(() => import('./race-sim/run'));
-const RaceSimResults = lazy(() => import('./race-sim/results'));
+import RaceSimHome from './race-sim/home';
+import RaceSimRun from './race-sim/run';
+import RaceSimResults from './race-sim/results';
+// Tools
+import { SparkOddsPage } from './_tools/spark-odds';
 
 type RoutePageProps = {
   title: string;
@@ -84,10 +80,7 @@ export function RootComponent() {
               <Route
                 index
                 element={
-                  <RoutePage
-                    title="Uma Musume Build Compare Tool"
-                    description="Compare two Uma Musume Global configurations with repeatable seeded simulations, bassin gain charts, and race setting controls."
-                  >
+                  <RoutePage title="Compare Builds" description="">
                     <SimulationHome />
                   </RoutePage>
                 }
@@ -95,10 +88,7 @@ export function RootComponent() {
               <Route
                 path="/skill-bassin"
                 element={
-                  <RoutePage
-                    title="Skill Bassin Compare"
-                    description="Measure bassin gain from skill changes using isolated seeded comparisons for Uma Musume Global builds."
-                  >
+                  <RoutePage title="Compare Skills" description="">
                     <SkillBassin />
                   </RoutePage>
                 }
@@ -106,10 +96,7 @@ export function RootComponent() {
               <Route
                 path="/uma-bassin"
                 element={
-                  <RoutePage
-                    title="Runner Bassin Compare"
-                    description="Compare full runner configurations and see position gain in bassin across repeatable Uma Musume Global simulations."
-                  >
+                  <RoutePage title="Compare Uniques" description="">
                     <UmaBassin />
                   </RoutePage>
                 }
@@ -120,10 +107,7 @@ export function RootComponent() {
               <Route
                 index
                 element={
-                  <RoutePage
-                    title="Veteran Library"
-                    description="Save, search, filter, and reuse runner builds for Uma Musume Global simulations and race planning."
-                  >
+                  <RoutePage title="Roster" description="">
                     <RunnersHome />
                   </RoutePage>
                 }
@@ -131,11 +115,7 @@ export function RootComponent() {
               <Route
                 path="/runners/new"
                 element={
-                  <RoutePage
-                    title="Add Runner"
-                    description="Create a new runner build for Torena Sim."
-                    noindex
-                  >
+                  <RoutePage title="Add Runner" description="" noindex>
                     <RunnersNew />
                   </RoutePage>
                 }
@@ -143,11 +123,7 @@ export function RootComponent() {
               <Route
                 path="/runners/:runnerId/edit"
                 element={
-                  <RoutePage
-                    title="Edit Runner"
-                    description="Edit a saved runner build for Torena Sim."
-                    noindex
-                  >
+                  <RoutePage title="Edit Runner" description="" noindex>
                     <RunnersEdit />
                   </RoutePage>
                 }
@@ -158,10 +134,7 @@ export function RootComponent() {
               <Route
                 index
                 element={
-                  <RoutePage
-                    title="Uma Musume Race Simulator"
-                    description="Inspect race simulation setup, runner details, and playback tools for a full-field Uma Musume Global race sim."
-                  >
+                  <RoutePage title="9-runner race sim" description="">
                     <RaceSimHome />
                   </RoutePage>
                 }
@@ -169,11 +142,7 @@ export function RootComponent() {
               <Route
                 path="/race-sim/run"
                 element={
-                  <RoutePage
-                    title="Race Sim Playback"
-                    description="Run-by-run playback for the Uma Musume race simulator."
-                    noindex
-                  >
+                  <RoutePage title="Race Sim - Playback" description="" noindex>
                     <RaceSimRun />
                   </RoutePage>
                 }
@@ -181,11 +150,7 @@ export function RootComponent() {
               <Route
                 path="/race-sim/results"
                 element={
-                  <RoutePage
-                    title="Race Sim Results"
-                    description="Detailed results and finish-order output for the Uma Musume race simulator."
-                    noindex
-                  >
+                  <RoutePage title="Race Sim - Results" description="" noindex>
                     <RaceSimResults />
                   </RoutePage>
                 }
@@ -195,10 +160,7 @@ export function RootComponent() {
             <Route
               path="/skill-planner"
               element={
-                <RoutePage
-                  title="Uma Musume Global Skill Planner"
-                  description="Plan skill purchases for Uma Musume Global with costs, dependencies, discounts, and build iteration tools."
-                >
+                <RoutePage title="Skill Planner" description="">
                   <SkillPlanner />
                 </RoutePage>
               }
