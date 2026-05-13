@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.6.0](https://github.com/jalbarrang/umalator-global/compare/v0.5.0...v0.6.0) (2026-05-13)
+
+
+### Features
+
+* generate sitemap from BrowserRouter routes with env-based site URL ([54a19e6](https://github.com/jalbarrang/umalator-global/commit/54a19e67a2dcaac41ad236e8204b5fe9be8b26c3))
+
 ## [0.5.0](https://github.com/jalbarrang/umalator-global/compare/v0.4.3...v0.5.0) (2026-05-12)
 
 ### Features
