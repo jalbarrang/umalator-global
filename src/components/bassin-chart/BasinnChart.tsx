@@ -89,7 +89,7 @@ const IconTypeFilterButton = React.memo(
         onClick={handleClick}
         title={`Filter by icon type ${iconType}`}
       >
-        <img src={imgSrc} className="size-6" />
+        <img src={imgSrc} alt="" className="size-6" />
       </Button>
     );
   }

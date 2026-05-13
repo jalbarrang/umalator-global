@@ -103,7 +103,7 @@ export function RunnerListItem(props: Readonly<RunnerListItemProps>) {
               className="flex items-center gap-px"
               title={['Spd', 'Sta', 'Pow', 'Gut', 'Wit'][i]}
             >
-              <img src={statIcons[i]} className="size-3 opacity-70" />
+              <img src={statIcons[i]} alt="" className="size-3 opacity-70" />
               <span className="text-[10px] tabular-nums text-muted-foreground">{stat}</span>
             </div>
           ))}

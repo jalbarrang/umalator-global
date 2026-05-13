@@ -100,7 +100,11 @@ function DropZone({
               key={`${img.preview}-${i}`}
               className="size-12 rounded border overflow-hidden shrink-0"
             >
-              <img src={img.preview} className="w-full h-full object-cover" />
+              <img
+                src={img.preview}
+                alt="Screenshot preview"
+                className="w-full h-full object-cover"
+              />
             </div>
           ))}
         </div>

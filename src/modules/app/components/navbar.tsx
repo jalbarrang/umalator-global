@@ -19,16 +19,16 @@ type NavItem = {
 };
 
 export function Navbar() {
-  const location = useLocation();
+  const { pathname } = useLocation();
 
   const isMobile = useIsMobile();
 
   const currentTab = useMemo(() => {
-    if (location.pathname.startsWith('/runners')) return 'runners';
-    if (location.pathname === '/skill-planner') return 'skill-planner';
-    if (location.pathname.startsWith('/race-sim')) return 'race-sim';
+    if (pathname.startsWith('/runners')) return 'runners';
+    if (pathname === '/skill-planner') return 'skill-planner';
+    if (pathname.startsWith('/race-sim')) return 'race-sim';
     return 'simulation';
-  }, [location.pathname]);
+  }, [pathname]);
 
   const navItems = useMemo<NavItem[]>(
     () => [

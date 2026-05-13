@@ -26,7 +26,7 @@ const SkillNameTableCell = React.memo((props: SkillNameTableCellProps) => {
 
   return (
     <div className="flex items-center gap-2 min-w-0">
-      {iconSrc && <img src={iconSrc} className={iconClassName} />}
+      {iconSrc && <img src={iconSrc} alt="" className={iconClassName} />}
 
       <span className="truncate" title={displayedName}>
         {displayedName}

@@ -13,6 +13,7 @@ export const WeatherIcon = (
   return (
     <img
       src={getIconUrl(`utx_ico_weather_0${weather - 1}.png`)}
+      alt={strings_en.skilldetails.weather[weather]}
       title={strings_en.skilldetails.weather[weather]}
       className={cn(
         'w-8 h-8 grayscale-100 hover:grayscale-0',

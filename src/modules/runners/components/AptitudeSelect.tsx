@@ -52,6 +52,7 @@ export function AptitudeIcon({ aptitude, className }: AptitudeIconProps) {
   return (
     <img
       src={getIconUrl(`utx_ico_statusrank_${(100 + idx).toString().slice(1)}.png`)}
+      alt={`${aptitude} aptitude`}
       className={className}
     />
   );

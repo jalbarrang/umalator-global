@@ -78,7 +78,11 @@ export function OcrUmaSelector(props: Readonly<OcrUmaSelectorProps>) {
                     value={`${uma.outfit} ${uma.name}`}
                     onSelect={() => handleSelectUma(uma.id)}
                   >
-                    <img src={getIconById(uma.id)} className="size-10 rounded mr-2" />
+                    <img
+                      src={getIconById(uma.id)}
+                      alt={uma.name}
+                      className="size-10 rounded mr-2"
+                    />
                     <div>
                       <div className="text-xs font-bold">{uma.outfit}</div>
                       <div className="text-sm">{uma.name}</div>

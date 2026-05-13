@@ -10,6 +10,7 @@ const TimeOfDayIcon = ({ time, icon: iconIndex }: { time: number; icon: number }
   return (
     <img
       src={getIconUrl(`utx_ico_timezone_0${iconIndex}.png`)}
+      alt={strings_en.skilldetails.time[time]}
       title={strings_en.skilldetails.time[time]}
       className={cn('w-8 h-8 cursor-pointer grayscale-100 hover:grayscale-0', {
         'grayscale-0': time === racedef.time

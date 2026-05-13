@@ -95,23 +95,23 @@ export function RunnerTile({
         <div className="grid grid-cols-1 rounded-sm border-2">
           <div className="grid grid-cols-5">
             <div className="flex items-center justify-center gap-1 bg-primary py-1 rounded-tl-sm">
-              <img src={getIconUrl('status_00.png')} className="size-3.5" />
+              <img src={getIconUrl('status_00.png')} alt="" className="size-3.5" />
               <span className="text-white text-[10px]">Spd</span>
             </div>
             <div className="flex items-center justify-center gap-1 bg-primary py-1">
-              <img src={getIconUrl('status_01.png')} className="size-3.5" />
+              <img src={getIconUrl('status_01.png')} alt="" className="size-3.5" />
               <span className="text-white text-[10px]">Sta</span>
             </div>
             <div className="flex items-center justify-center gap-1 bg-primary py-1">
-              <img src={getIconUrl('status_02.png')} className="size-3.5" />
+              <img src={getIconUrl('status_02.png')} alt="" className="size-3.5" />
               <span className="text-white text-[10px]">Pow</span>
             </div>
             <div className="flex items-center justify-center gap-1 bg-primary py-1">
-              <img src={getIconUrl('status_03.png')} className="size-3.5" />
+              <img src={getIconUrl('status_03.png')} alt="" className="size-3.5" />
               <span className="text-white text-[10px]">Gut</span>
             </div>
             <div className="flex items-center justify-center gap-1 bg-primary py-1 rounded-tr-sm">
-              <img src={getIconUrl('status_04.png')} className="size-3.5" />
+              <img src={getIconUrl('status_04.png')} alt="" className="size-3.5" />
               <span className="text-white text-[10px]">Wit</span>
             </div>
           </div>

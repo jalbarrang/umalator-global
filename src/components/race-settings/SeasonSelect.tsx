@@ -11,6 +11,7 @@ export const SeasonIcon = (props: { season: number } & React.HTMLAttributes<HTML
   return (
     <img
       src={getIconUrl(`global/utx_txt_season_0${season - 1}.png`)}
+      alt={strings_en.skilldetails.season[season]}
       title={strings_en.skilldetails.season[season]}
       className={cn(
         'w-8 h-8 grayscale-100 hover:grayscale-0',

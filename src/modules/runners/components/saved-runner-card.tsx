@@ -144,25 +144,25 @@ export const SavedRunnerCard = memo((props: SavedRunnerCardProps) => {
             <div className="grid grid-cols-1 rounded-sm border-2">
               <div className="grid grid-cols-5">
                 <div className="flex items-center justify-center gap-2 bg-primary rounded-tl-sm">
-                  <img src={getIconUrl('status_00.png')} className="size-4" />
+                  <img src={getIconUrl('status_00.png')} alt="" className="size-4" />
                   <span className="text-white text-xs">Speed</span>
                 </div>
                 <div className="flex items-center justify-center gap-2 bg-primary">
-                  <img src={getIconUrl('status_01.png')} className="size-4" />
+                  <img src={getIconUrl('status_01.png')} alt="" className="size-4" />
                   <span className="text-white text-xs">Stamina</span>
                 </div>
                 <div className="flex items-center justify-center gap-2 bg-primary">
-                  <img src={getIconUrl('status_02.png')} className="size-4" />
+                  <img src={getIconUrl('status_02.png')} alt="" className="size-4" />
                   <span className="text-white text-xs">Power</span>
                 </div>
 
                 <div className="flex items-center justify-center gap-2 bg-primary">
-                  <img src={getIconUrl('status_03.png')} className="size-4" />
+                  <img src={getIconUrl('status_03.png')} alt="" className="size-4" />
                   <span className="text-white text-xs">Guts</span>
                 </div>
 
                 <div className="flex items-center justify-center gap-2 bg-primary rounded-tr-sm">
-                  <img src={getIconUrl('status_04.png')} className="size-4" />
+                  <img src={getIconUrl('status_04.png')} alt="" className="size-4" />
                   <span className="text-white text-xs">Wit</span>
                 </div>
               </div>

@@ -14,7 +14,7 @@ export const StatImage = (props: StatImageProps) => {
 
   const iconId = (100 + rank).toString().slice(1);
 
-  return <img src={getIconUrl(`statusrank/ui_statusrank_${iconId}.png`)} {...rest} />;
+  return <img src={getIconUrl(`statusrank/ui_statusrank_${iconId}.png`)} alt="" {...rest} />;
 };
 
 type StatInputProps = {
