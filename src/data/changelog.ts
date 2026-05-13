@@ -13,7 +13,12 @@ export function parseChangelog(markdown: string): Array<ChangelogEntry> {
   let currentEntry: ChangelogEntry | null = null;
 
   for (const line of lines) {
-    const versionMatch = line.match(/^##\s+([^\s]+)\s+[-\u2013\u2014]\s+(\d{4}-\d{2}-\d{2})\s*$/);
+    // Match conventional-changelog format: ## [0.6.0](url) (2026-05-13)
+    const conventionalMatch = line.match(/^##\s+\[([^\]]+)\]\([^)]*\)\s+\((\d{4}-\d{2}-\d{2})\)/);
+    // Match manual format: ## 0.5.0 - 2026-04-06
+    const manualMatch = line.match(/^##\s+([^\s]+)\s+[-\u2013\u2014]\s+(\d{4}-\d{2}-\d{2})\s*$/);
+
+    const versionMatch = conventionalMatch ?? manualMatch;
     if (versionMatch) {
       currentEntry = {
         version: versionMatch[1],
@@ -24,7 +29,11 @@ export function parseChangelog(markdown: string): Array<ChangelogEntry> {
       continue;
     }
 
-    const itemMatch = line.match(/^-\s+(.+)$/);
+    // Skip section headers like ### Features, ### Bug Fixes
+    if (line.match(/^###\s+/)) continue;
+
+    // Match both `- item` and `* item` bullets
+    const itemMatch = line.match(/^[-*]\s+(.+)$/);
     if (!itemMatch || !currentEntry) continue;
 
     currentEntry.changes.push(itemMatch[1].trim());

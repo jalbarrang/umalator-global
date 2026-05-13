@@ -2,6 +2,54 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { setShowChangelogModal, useUIStore } from '@/store/ui.store';
 import { changelog } from '@/data/changelog';
 
+type InlineMarkdownProps = {
+  text: string;
+};
+
+function InlineMarkdown(props: InlineMarkdownProps) {
+  const { text } = props;
+  const parts = text.split(/(\[[^\]]+\]\([^)]+\)|`[^`]+`|\*\*[^*]+\*\*)/g);
+
+  return (
+    <>
+      {parts.map((part, idx) => {
+        const linkMatch = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+        if (linkMatch) {
+          return (
+            <a
+              key={idx}
+              href={linkMatch[2]}
+              target="_blank"
+              rel="noreferrer"
+              className="text-primary underline-offset-2 hover:underline"
+            >
+              {linkMatch[1]}
+            </a>
+          );
+        }
+
+        if (part.startsWith('`') && part.endsWith('`')) {
+          return (
+            <code key={idx} className="rounded bg-muted px-1 py-0.5 text-xs text-foreground">
+              {part.slice(1, -1)}
+            </code>
+          );
+        }
+
+        if (part.startsWith('**') && part.endsWith('**')) {
+          return (
+            <strong key={idx} className="font-medium text-foreground">
+              {part.slice(2, -2)}
+            </strong>
+          );
+        }
+
+        return part;
+      })}
+    </>
+  );
+}
+
 export function ChangelogModal() {
   const { showChangelogModal } = useUIStore();
 
@@ -31,7 +79,9 @@ export function ChangelogModal() {
                   {entry.changes.map((item, itemIdx) => (
                     <li key={itemIdx} className="flex gap-2">
                       <span className="text-muted-foreground/50">•</span>
-                      <span>{item}</span>
+                      <span>
+                        <InlineMarkdown text={item} />
+                      </span>
                     </li>
                   ))}
                 </ul>
