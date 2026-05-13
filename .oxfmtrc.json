@@ -16,6 +16,7 @@
     "package-lock.json",
     "bun.lock",
     "yarn.lock",
+    "CHANGELOG.md",
     "src/modules/data/json/*.json" // Ignore JSON files that are generated after extracting data from the game
   ]
 }
