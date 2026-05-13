@@ -82,7 +82,7 @@ export const DetailStrip = memo<DetailStripProps>(function DetailStrip(props) {
 
   const resolvedTrackedRunnerIds = useMemo(
     () => [...new Set(trackedRunnerIds)],
-    [trackedRunnerIds],
+    [trackedRunnerIds]
   );
 
   const snapshots = useMemo<Array<RunnerSnapshot>>(() => {
@@ -109,7 +109,7 @@ export const DetailStrip = memo<DetailStripProps>(function DetailStrip(props) {
         hp,
         lane,
         phase: getPhaseLabel(position, courseDistance),
-        hasFocusData: Boolean(focusData),
+        hasFocusData: Boolean(focusData)
       };
     });
   }, [courseDistance, currentTick, resolvedTrackedRunnerIds, roundData, runnerNames]);
@@ -119,7 +119,7 @@ export const DetailStrip = memo<DetailStripProps>(function DetailStrip(props) {
       <div
         className={cn(
           'rounded-lg border bg-card px-3 py-2 text-sm text-muted-foreground',
-          className,
+          className
         )}
       >
         Select at least one tracked runner to see per-tick details.
@@ -132,7 +132,7 @@ export const DetailStrip = memo<DetailStripProps>(function DetailStrip(props) {
       <div
         className={cn(
           'rounded-lg border bg-card px-3 py-2 text-sm text-muted-foreground',
-          className,
+          className
         )}
       >
         No round data available for this sample.

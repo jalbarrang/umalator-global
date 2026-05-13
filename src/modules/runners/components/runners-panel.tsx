@@ -10,7 +10,7 @@ import {
   swapWithRunner,
   syncRunnerToLibrary,
   unlinkRunner,
-  useRunner,
+  useRunner
 } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
 
@@ -29,7 +29,7 @@ export const RunnersPanel = () => {
   const {
     updateRunner: updateLibraryRunner,
     getRunner: getLibraryRunner,
-    addRunner,
+    addRunner
   } = useRunnerLibraryStore();
 
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
@@ -69,7 +69,7 @@ export const RunnersPanel = () => {
   const handleSaveToVeterans = (name: string, shouldLink: boolean) => {
     const newRunnerId = addRunner({
       ...runner,
-      notes: name,
+      notes: name
     });
 
     if (shouldLink) {
@@ -88,7 +88,7 @@ export const RunnersPanel = () => {
                 'px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer h-full',
                 runnerId === 'uma1'
                   ? 'bg-[#2a77c5] text-white'
-                  : 'bg-background text-muted-foreground hover:bg-muted',
+                  : 'bg-background text-muted-foreground hover:bg-muted'
               )}
               onClick={() => showRunner('uma1')}
             >
@@ -101,7 +101,7 @@ export const RunnersPanel = () => {
                 'px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer h-full',
                 runnerId === 'uma2'
                   ? 'bg-[#c52a2a] text-white'
-                  : 'bg-background text-muted-foreground hover:bg-muted',
+                  : 'bg-background text-muted-foreground hover:bg-muted'
               )}
               onClick={() => showRunner('uma2')}
             >

@@ -5,7 +5,7 @@ import {
   groundConditions,
   seasons,
   timeOfDays,
-  weathers,
+  weathers
 } from '@/lib/sunday-tools/course/definitions';
 
 export const RunnerConfigSchema = z.object({
@@ -21,7 +21,7 @@ export const RunnerConfigSchema = z.object({
   strategyAptitude: z.enum(aptitudeNames),
   mood: z.literal(moods),
   skills: z.array(z.string()),
-  randomMobId: z.number().optional().default(8573),
+  randomMobId: z.number().optional().default(8573)
 });
 
 export const RaceConditionsSchema = z.object({
@@ -30,13 +30,13 @@ export const RaceConditionsSchema = z.object({
   weather: z.literal(weathers),
   season: z.literal(seasons),
   time: z.literal(timeOfDays),
-  grade: z.literal(grades),
+  grade: z.literal(grades)
 });
 
 export const DebugConfigSchema = z.object({
   runner: RunnerConfigSchema,
   courseId: z.number(),
-  raceConditions: RaceConditionsSchema,
+  raceConditions: RaceConditionsSchema
 });
 
 export type DebugConfig = z.infer<typeof DebugConfigSchema>;

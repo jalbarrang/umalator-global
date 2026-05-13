@@ -2,7 +2,7 @@ import {
   interpolateTrackPoint,
   outwardFromTrackPoint,
   type BuiltTrackPath,
-  type TrackPathPoint,
+  type TrackPathPoint
 } from '@/modules/race-sim/utils/track-path';
 import {
   CANVAS_H,
@@ -11,14 +11,14 @@ import {
   type Bounds,
   type CanvasTransform,
   type CanvasTransformOptions,
-  type ViewportState,
+  type ViewportState
 } from './shared';
 import { clamp } from './utils';
 
 export function computeBounds(
   inner: TrackPathPoint[],
   courseWidth: number,
-  turnSign: number,
+  turnSign: number
 ): Bounds {
   let minX = Infinity;
   let maxX = -Infinity;
@@ -46,7 +46,7 @@ export function buildVisibleTrackPoints(
   builtTrack: BuiltTrackPath,
   courseDistance: number,
   viewStart: number,
-  viewEnd: number,
+  viewEnd: number
 ): TrackPathPoint[] {
   if (builtTrack.wraps || (viewStart <= 0 && viewEnd >= courseDistance)) {
     return builtTrack.points;
@@ -55,7 +55,7 @@ export function buildVisibleTrackPoints(
   const start = clamp(viewStart, 0, courseDistance);
   const end = clamp(viewEnd, start, courseDistance);
   const visible = builtTrack.points.filter(
-    (point) => point.distance >= start && point.distance <= end,
+    (point) => point.distance >= start && point.distance <= end
   );
   const startPoint = interpolateTrackPoint(builtTrack, start);
   const endPoint = interpolateTrackPoint(builtTrack, end);
@@ -63,14 +63,14 @@ export function buildVisibleTrackPoints(
   return [
     { ...startPoint, distance: start },
     ...visible.filter((point) => point.distance > start && point.distance < end),
-    { ...endPoint, distance: end },
+    { ...endPoint, distance: end }
   ];
 }
 
 export function createCanvasTransform(
   bounds: Bounds,
   viewport: ViewportState,
-  options?: CanvasTransformOptions,
+  options?: CanvasTransformOptions
 ): CanvasTransform {
   const canvasW = options?.canvasWidth ?? CANVAS_W;
   const canvasH = options?.canvasHeight ?? CANVAS_H;
@@ -92,13 +92,13 @@ export function createCanvasTransform(
     panX: viewport.panX,
     panY: viewport.panY,
     canvasWidth: canvasW,
-    canvasHeight: canvasH,
+    canvasHeight: canvasH
   };
 }
 
 export function computePackBoundsFromWorldPoints(
   points: Array<{ x: number; y: number }>,
-  courseWidth: number,
+  courseWidth: number
 ): Bounds {
   const innerPad = Math.max(courseWidth * 0.4, 5);
   if (points.length === 0) {
@@ -140,7 +140,7 @@ export function computePackBoundsFromWorldPoints(
 export function toCanvas(
   x: number,
   y: number,
-  transform: CanvasTransform,
+  transform: CanvasTransform
 ): {
   cx: number;
   cy: number;
@@ -152,7 +152,7 @@ export function toCanvas(
 
   return {
     cx: centerX + (baseX - centerX) * transform.zoom + transform.panX,
-    cy: centerY + (baseY - centerY) * transform.zoom + transform.panY,
+    cy: centerY + (baseY - centerY) * transform.zoom + transform.panY
   };
 }
 
@@ -163,18 +163,18 @@ export function clampZoom(zoom: number): number {
 export function pointerToVirtualCanvas(
   clientX: number,
   clientY: number,
-  rect: DOMRect,
+  rect: DOMRect
 ): { x: number; y: number } {
   return {
     x: ((clientX - rect.left) / Math.max(rect.width, 1)) * CANVAS_W,
-    y: ((clientY - rect.top) / Math.max(rect.height, 1)) * CANVAS_H,
+    y: ((clientY - rect.top) / Math.max(rect.height, 1)) * CANVAS_H
   };
 }
 
 export function zoomViewportAroundPoint(
   viewport: ViewportState,
   point: { x: number; y: number },
-  factor: number,
+  factor: number
 ): ViewportState {
   const nextZoom = clampZoom(viewport.zoom * factor);
   const zoomRatio = nextZoom / viewport.zoom;
@@ -184,6 +184,6 @@ export function zoomViewportAroundPoint(
   return {
     zoom: nextZoom,
     panX: point.x - centerX - (point.x - centerX - viewport.panX) * zoomRatio,
-    panY: point.y - centerY - (point.y - centerY - viewport.panY) * zoomRatio,
+    panY: point.y - centerY - (point.y - centerY - viewport.panY) * zoomRatio
   };
 }

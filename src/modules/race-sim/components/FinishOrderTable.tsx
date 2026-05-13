@@ -8,7 +8,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
+  TableRow
 } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 import { StrategyBadge } from '@/modules/race-sim/components/StrategyBadge';
@@ -41,7 +41,7 @@ function compareValues(
   key: SortKey,
   direction: SortDirection,
   left: RunnerSummaryRow,
-  right: RunnerSummaryRow,
+  right: RunnerSummaryRow
 ): number {
   const sign = direction === 'asc' ? 1 : -1;
 
@@ -58,8 +58,8 @@ export function FinishOrderTable(_props: FinishOrderTableProps) {
       results: state.results,
       isStale: state.isStale,
       focusRunnerIndices: state.focusRunnerIndices,
-      runners: state.runners,
-    })),
+      runners: state.runners
+    }))
   );
 
   const [sortKey, setSortKey] = useState<SortKey>('avg');
@@ -83,7 +83,7 @@ export function FinishOrderTable(_props: FinishOrderTableProps) {
         samplePositions: Array.from({ length: sampleCount }, () => null),
         avg: 0,
         best: 0,
-        worst: 0,
+        worst: 0
       });
     }
 

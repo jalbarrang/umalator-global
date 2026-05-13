@@ -4,7 +4,7 @@ import type { RaceSimResult } from '@/lib/sunday-tools/race-sim/run-race-sim';
 import type {
   RaceSimWorkerInMessage,
   RaceSimWorkerOutMessage,
-  RaceSimWorkerParams,
+  RaceSimWorkerParams
 } from '@/workers/race-sim.worker';
 
 const createRaceSimWorker = () => new RaceSimWorker();
@@ -25,7 +25,7 @@ export function useRaceSimRunner(options: RaceSimRunnerOptions = {}) {
       setIsRunning(running);
       onRunningChange?.(running);
     },
-    [onRunningChange],
+    [onRunningChange]
   );
 
   const resetWorker = useCallback(() => {
@@ -88,11 +88,11 @@ export function useRaceSimRunner(options: RaceSimRunnerOptions = {}) {
 
       const message: RaceSimWorkerInMessage = {
         type: 'race-sim-run',
-        data: params,
+        data: params
       };
       worker.postMessage(message);
     },
-    [resetWorker, updateRunning],
+    [resetWorker, updateRunning]
   );
 
   const cancelSimulation = useCallback(() => {
@@ -104,6 +104,6 @@ export function useRaceSimRunner(options: RaceSimRunnerOptions = {}) {
     runSimulation,
     cancelSimulation,
     isRunning,
-    error,
+    error
   };
 }

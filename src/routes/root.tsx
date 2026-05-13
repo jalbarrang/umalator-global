@@ -26,35 +26,23 @@ import { RaceSimRoot } from './race-sim';
 import { SparkOddsPage } from './_tools/spark-odds';
 
 // Comparison
-const SimulationHome = lazy(async () => ({
-  default: (await import('./_simulation/home')).SimulationHome,
-}));
-const SkillBassin = lazy(async () => ({
-  default: (await import('./_simulation/skill-bassin')).SkillBassin,
-}));
-const UmaBassin = lazy(async () => ({
-  default: (await import('./_simulation/uma-bassin')).UmaBassin,
-}));
+const SimulationHome = lazy(() => import('./_simulation/home'));
+const SkillBassin = lazy(() => import('./_simulation/skill-bassin'));
+const UmaBassin = lazy(() => import('./_simulation/uma-bassin'));
 
 // Skill Planner
 
-const SkillPlanner = lazy(async () => ({
-  default: (await import('./skill-planner')).SkillPlanner,
-}));
+const SkillPlanner = lazy(() => import('./skill-planner'));
 
 // Roster
-const RunnersHome = lazy(async () => ({ default: (await import('./runners/home')).RunnersHome }));
-const RunnersNew = lazy(async () => ({ default: (await import('./runners/new')).RunnersNew }));
-const RunnersEdit = lazy(async () => ({
-  default: (await import('./runners/$runnerId.edit')).RunnersEdit,
-}));
+const RunnersHome = lazy(() => import('./runners/home'));
+const RunnersNew = lazy(() => import('./runners/new'));
+const RunnersEdit = lazy(() => import('./runners/$runnerId.edit'));
 
 // Race Simulation
-const RaceSimHome = lazy(async () => ({ default: (await import('./race-sim/home')).RaceSimHome }));
-const RaceSimRun = lazy(async () => ({ default: (await import('./race-sim/run')).RaceSimRun }));
-const RaceSimResults = lazy(async () => ({
-  default: (await import('./race-sim/results')).RaceSimResults,
-}));
+const RaceSimHome = lazy(() => import('./race-sim/home'));
+const RaceSimRun = lazy(() => import('./race-sim/run'));
+const RaceSimResults = lazy(() => import('./race-sim/results'));
 
 type RoutePageProps = {
   title: string;
@@ -82,7 +70,7 @@ export function RootComponent() {
       setDialogOpen(false);
       toast.success(`Runner loaded to ${slot === 'uma1' ? 'Uma 1' : 'Uma 2'}`);
     },
-    [setDialogOpen],
+    [setDialogOpen]
   );
 
   return (

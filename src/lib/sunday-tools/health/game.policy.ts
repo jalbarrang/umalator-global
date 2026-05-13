@@ -15,12 +15,12 @@ export const HpStrategyCoefficient: ReadonlyArray<number> = [
   0.89, // Pace Chaser
   1.0, // Late Surger
   0.995, // End Closer
-  0.86, // Runaway
+  0.86 // Runaway
 ];
 export const HpConsumptionGroundModifier: ReadonlyArray<ReadonlyArray<number>> = [
   [], // None
   [0, 1.0, 1.0, 1.02, 1.02],
-  [0, 1.0, 1.0, 1.01, 1.02],
+  [0, 1.0, 1.0, 1.01, 1.02]
 ];
 
 export class GameHpPolicy implements HpPolicy {
@@ -91,7 +91,7 @@ export class GameHpPolicy implements HpPolicy {
       inSpotStruggle: runner.inSpotStruggle,
       posKeepStrategy: runner.positionKeepStrategy,
       pos: runner.position,
-      currentSpeed: runner.currentSpeed,
+      currentSpeed: runner.currentSpeed
     };
   }
 
@@ -132,7 +132,7 @@ export class GameHpPolicy implements HpPolicy {
       phase: 2 as IPhase,
       positionKeepState: state.positionKeepState,
       inSpotStruggle: false,
-      posKeepStrategy: state.posKeepStrategy,
+      posKeepStrategy: state.posKeepStrategy
     };
 
     const hpNeeded = this.hpPerSecond(lastleg, maxSpeed) * s;
@@ -160,8 +160,8 @@ export class GameHpPolicy implements HpPolicy {
           (baseTargetSpeed2 * this.currentHealth -
             this.hpPerSecond(lastleg, baseTargetSpeed2) * remainDistance) /
             (baseTargetSpeed2 * this.hpPerSecond(lastleg, speed) -
-              this.hpPerSecond(lastleg, baseTargetSpeed2) * speed),
-        ),
+              this.hpPerSecond(lastleg, baseTargetSpeed2) * speed)
+        )
       );
       const spurtDistance = spurtDuration * speed;
       candidates.push([this.distance - spurtDistance - 60, speed]);
@@ -170,7 +170,7 @@ export class GameHpPolicy implements HpPolicy {
       (a, b) =>
         (a[0] - state.pos) / baseTargetSpeed2 +
         (this.distance - a[0]) / a[1] -
-        ((b[0] - state.pos) / baseTargetSpeed2 + (this.distance - b[0]) / b[1]),
+        ((b[0] - state.pos) / baseTargetSpeed2 + (this.distance - b[0]) / b[1])
     );
 
     for (let i = 0; i < candidates.length; ++i) {

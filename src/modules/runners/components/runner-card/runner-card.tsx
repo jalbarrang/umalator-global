@@ -12,13 +12,13 @@ import {
   Download,
   Camera,
   ChevronDown,
-  ClipboardPaste,
+  ClipboardPaste
 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
+  DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { getUmaDisplayInfo, getUmaImageUrl } from '@/modules/runners/utils';
 import { StatsTable } from './stats-table';
@@ -33,11 +33,11 @@ import {
   SkillItemMain,
   SkillItemRoot,
   SkillItemRail,
-  SkillItemActions,
+  SkillItemActions
 } from '@/modules/skills/components/skill-list/skill-item/primitives';
 import {
   SkillItemCostAction,
-  SkillItemDetailsActions,
+  SkillItemDetailsActions
 } from '@/modules/skills/components/skill-list/skill-item/actions';
 import { SkillItem } from '@/modules/skills/components/skill-list/skill-item/item';
 import type { SkillMeta } from '@/modules/skills/components/skill-list/skill-item/context';
@@ -59,19 +59,19 @@ import {
   useSkillCostMetaStore,
   useRunnerHasFastLearner,
   getSkillCostMeta,
-  computeSkillCostSummary,
+  computeSkillCostSummary
 } from '@/modules/skills/stores/skill-cost-meta.store';
 import type { HintLevel } from '@/modules/skill-planner/types';
 import {
   buildDedupedSkillListNetTotal,
-  type SkillCostSummary,
+  type SkillCostSummary
 } from '@/modules/skills/skill-cost-summary';
 import { cn } from '@/lib/utils';
 import {
   copyRosterViewCode,
   copyScreenshot,
   downloadJson,
-  getSkillsForShareCard,
+  getSkillsForShareCard
 } from '../../share/share-actions';
 import { ImportCodeDialog } from '../../share/import-code-dialog';
 import { ShareCard } from '../../share/share-card';
@@ -143,7 +143,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
     onOpenSkillPicker,
     hideSkillButton = false,
     showSkillSpCosts = false,
-    showShareButton = true,
+    showShareButton = true
   } = props;
 
   const isMobile = useIsMobile();
@@ -177,7 +177,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
         onChange({ ...state, strategy: 'Runaway' });
       }
     },
-    [onChange, state],
+    [onChange, state]
   );
 
   // Handle OCR import apply
@@ -242,7 +242,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
 
       onChange({ ...state, outfitId: outfitId, skills: newSkills });
     },
-    [onChange, state],
+    [onChange, state]
   );
 
   const handleUpdateStat = (prop: StatsKey) => (value: number) => {
@@ -270,7 +270,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
         skillId,
         props.runnerId,
         skillMetaByKey,
-        hasFastLearner,
+        hasFastLearner
       );
     }
 
@@ -288,7 +288,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
       getSkillMeta: (targetSkillId) => {
         const key = `${props.runnerId}:${targetSkillId}`;
         return skillMetaByKey[key] ?? { hintLevel: 0 };
-      },
+      }
     });
   }, [isSkillSpCostEnabled, state.skills, hasFastLearner, props.runnerId, skillMetaByKey]);
 
@@ -301,14 +301,14 @@ export const RunnerCard = (props: RunnerCardProps) => {
 
       setFastLearner(props.runnerId, checked);
     },
-    [isSkillSpCostEnabled, props.runnerId],
+    [isSkillSpCostEnabled, props.runnerId]
   );
 
   const handleRemoveSkill = useCallback(
     (skillId: string) => {
       handleSetSkills(state.skills.filter((id) => id !== skillId));
     },
-    [handleSetSkills, state.skills],
+    [handleSetSkills, state.skills]
   );
 
   const selectableSkills = useMemo(() => {
@@ -330,7 +330,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
       umaId: umaId,
       options: selectableSkills,
       currentSkills: state.skills,
-      onSelect: handleSetSkills,
+      onSelect: handleSetSkills
     });
   }, [umaId, selectableSkills, state.skills, handleSetSkills, onOpenSkillPicker]);
 
@@ -339,7 +339,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
       if (!isSkillSpCostEnabled) return;
       setHintLevel(props.runnerId, skillId, level as HintLevel);
     },
-    [isSkillSpCostEnabled, props.runnerId],
+    [isSkillSpCostEnabled, props.runnerId]
   );
 
   const handleBoughtChange = useCallback(
@@ -347,7 +347,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
       if (!isSkillSpCostEnabled) return;
       setBought(props.runnerId, skillId, bought);
     },
-    [isSkillSpCostEnabled, props.runnerId],
+    [isSkillSpCostEnabled, props.runnerId]
   );
 
   const getSkillMetaForRunner = useCallback(
@@ -356,7 +356,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
       return getSkillCostMeta(props.runnerId, skillId);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps -- skillMetaByKey triggers new ref so cost-details re-reads fresh data
-    [isSkillSpCostEnabled, props.runnerId, skillMetaByKey],
+    [isSkillSpCostEnabled, props.runnerId, skillMetaByKey]
   );
 
   return (

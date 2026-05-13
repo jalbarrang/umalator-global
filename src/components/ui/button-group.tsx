@@ -13,13 +13,13 @@ const buttonGroupVariants = cva(
         horizontal:
           '[&>[data-slot]:not(:has(~[data-slot]))]:rounded-r-lg! [&>[data-slot]~[data-slot]]:rounded-l-none [&>[data-slot]~[data-slot]]:border-l-0 [&>[data-slot]]:rounded-r-none',
         vertical:
-          '[&>[data-slot]:not(:has(~[data-slot]))]:rounded-b-lg! flex-col [&>[data-slot]~[data-slot]]:rounded-t-none [&>[data-slot]~[data-slot]]:border-t-0 [&>[data-slot]]:rounded-b-none',
-      },
+          '[&>[data-slot]:not(:has(~[data-slot]))]:rounded-b-lg! flex-col [&>[data-slot]~[data-slot]]:rounded-t-none [&>[data-slot]~[data-slot]]:border-t-0 [&>[data-slot]]:rounded-b-none'
+      }
     },
     defaultVariants: {
-      orientation: 'horizontal',
-    },
-  },
+      orientation: 'horizontal'
+    }
+  }
 );
 
 function ButtonGroup({
@@ -45,15 +45,15 @@ function ButtonGroupText({ className, render, ...props }: useRender.ComponentPro
       {
         className: cn(
           "bg-muted gap-2 rounded-lg border px-2.5 text-sm font-medium [&_svg:not([class*='size-'])]:size-4 flex items-center [&_svg]:pointer-events-none",
-          className,
-        ),
+          className
+        )
       },
-      props,
+      props
     ),
     render,
     state: {
-      slot: 'button-group-text',
-    },
+      slot: 'button-group-text'
+    }
   });
 }
 
@@ -68,7 +68,7 @@ function ButtonGroupSeparator({
       orientation={orientation}
       className={cn(
         'bg-input relative self-stretch data-[orientation=horizontal]:mx-px data-[orientation=horizontal]:w-auto data-[orientation=vertical]:my-px data-[orientation=vertical]:h-auto',
-        className,
+        className
       )}
       {...props}
     />

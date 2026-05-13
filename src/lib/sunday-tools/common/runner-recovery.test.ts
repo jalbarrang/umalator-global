@@ -5,7 +5,7 @@ import {
   GroundCondition,
   Season,
   TimeOfDay,
-  Weather,
+  Weather
 } from '@/lib/sunday-tools/course/definitions';
 import { Aptitude, Mood, Strategy } from '@/lib/sunday-tools/runner/definitions';
 import { Region } from '@/lib/sunday-tools/shared/region';
@@ -26,7 +26,7 @@ const TEST_SETTINGS: SimulationSettings = {
   dueling: false,
   witChecks: false,
   positionKeepMode: 0,
-  staminaDrainOverrides: {},
+  staminaDrainOverrides: {}
 };
 
 const TEST_RACE_PARAMS: RaceParameters = {
@@ -34,7 +34,7 @@ const TEST_RACE_PARAMS: RaceParameters = {
   weather: Weather.Sunny,
   season: Season.Spring,
   timeOfDay: TimeOfDay.Midday,
-  grade: Grade.G1,
+  grade: Grade.G1
 };
 
 const TEST_RUNNER: CreateRunner = {
@@ -44,16 +44,16 @@ const TEST_RUNNER: CreateRunner = {
   aptitudes: {
     distance: Aptitude.S,
     surface: Aptitude.A,
-    strategy: Aptitude.A,
+    strategy: Aptitude.A
   },
   stats: {
     speed: 1200,
     stamina: 1200,
     power: 800,
     guts: 400,
-    wit: 400,
+    wit: 400
   },
-  skills: [],
+  skills: []
 };
 
 function createRace(skillIds: Array<string>, overrides?: Record<string, number>) {
@@ -62,7 +62,7 @@ function createRace(skillIds: Array<string>, overrides?: Record<string, number>)
     parameters: TEST_RACE_PARAMS,
     settings: {
       ...TEST_SETTINGS,
-      staminaDrainOverrides: overrides ?? {},
+      staminaDrainOverrides: overrides ?? {}
     },
     skillSamples: 1,
     duelingRates: {
@@ -70,15 +70,15 @@ function createRace(skillIds: Array<string>, overrides?: Record<string, number>)
       frontRunner: 10,
       paceChaser: 10,
       lateSurger: 10,
-      endCloser: 10,
-    },
+      endCloser: 10
+    }
   });
 
   race.onInitialize();
   race.skillSamples = 1;
   race.addRunner({
     ...TEST_RUNNER,
-    skills: skillIds,
+    skills: skillIds
   });
   race.prepareRace().validateRaceSetup();
   return race;
@@ -106,13 +106,13 @@ function setSkillRoll(runner: TestRunner, roll: number) {
   runner.skillRng = {
     random: () => roll,
     int32: () => 0,
-    uniform: () => 0,
+    uniform: () => 0
   };
 }
 
 function getPendingSkill(runner: TestRunner, baseSkillId: string): PendingSkill {
   const pendingSkill = runner.pendingSkills.find(
-    (skill: PendingSkill) => (skill.skillId.split('-')[0] ?? skill.skillId) === baseSkillId,
+    (skill: PendingSkill) => (skill.skillId.split('-')[0] ?? skill.skillId) === baseSkillId
   );
 
   if (!pendingSkill) {
@@ -166,9 +166,9 @@ describe('recovery resolution in runner', () => {
           type: SkillType.Recovery,
           target: SkillTarget.Self,
           baseDuration: 0,
-          modifier: 0.055,
-        },
-      ],
+          modifier: 0.055
+        }
+      ]
     };
 
     runner.activateSkill(recoverySkill);

@@ -6,7 +6,7 @@ import {
   defaultGetSkillMeta,
   SkillItemContext,
   type SkillItemContextValue,
-  type SkillMeta,
+  type SkillMeta
 } from './context';
 import type { SkillItemContextProps } from './types';
 
@@ -23,7 +23,7 @@ export function SkillItemProvider({
   onHintLevelChange,
   onBoughtChange,
   onRemove,
-  getSkillMeta,
+  getSkillMeta
 }: Readonly<SkillItemProviderProps>) {
   const normalizedSkillId = useMemo(() => normalizeSkillIdForCostSummary(skillId), [skillId]);
 
@@ -82,7 +82,7 @@ export function SkillItemProvider({
       onHintLevelChange,
       onBoughtChange,
       onRemove,
-      getSkillMeta: resolvedGetSkillMeta,
+      getSkillMeta: resolvedGetSkillMeta
     };
   }, [
     skill,
@@ -97,7 +97,7 @@ export function SkillItemProvider({
     onHintLevelChange,
     onBoughtChange,
     onRemove,
-    resolvedGetSkillMeta,
+    resolvedGetSkillMeta
   ]);
 
   return <SkillItemContext.Provider value={contextValue}>{children}</SkillItemContext.Provider>;

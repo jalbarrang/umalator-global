@@ -27,7 +27,7 @@ export function TableSearchBar({
   currentMatchIndex,
   totalMatches,
   hasMatches,
-  searchInputRef,
+  searchInputRef
 }: TableSearchBarProps) {
   if (!isOpen) return null;
 
@@ -47,7 +47,7 @@ export function TableSearchBar({
           <div
             className={cn(
               'text-xs px-2 py-1 rounded',
-              hasMatches ? 'text-muted-foreground' : 'text-destructive',
+              hasMatches ? 'text-muted-foreground' : 'text-destructive'
             )}
           >
             {hasMatches ? `${currentMatchIndex + 1} / ${totalMatches}` : 'No matches'}

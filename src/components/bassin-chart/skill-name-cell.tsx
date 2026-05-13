@@ -55,7 +55,7 @@ type SkillNameCellProps = {
 
 export const skillNameCell = ({
   showUmaIcons = false,
-  showSkillIds = true,
+  showSkillIds = true
 }: SkillNameCellProps) => {
   return React.memo((props: CellContext<SkillComparisonRoundResult, unknown>) => {
     const id = props.getValue() as string;
@@ -76,14 +76,14 @@ export const skillNameCell = ({
         if (umaIcon) {
           return {
             src: umaIcon,
-            className: 'w-8 h-8',
+            className: 'w-8 h-8'
           };
         }
       }
 
       return {
         src: getIconUrl(`${skill.iconId}.png`),
-        className: 'w-4 h-4',
+        className: 'w-4 h-4'
       };
     }, [id, skill]);
 

@@ -27,14 +27,14 @@ export const RunnerEditorLayout = (props: RunnerEditorLayoutProps) => {
     onRunnerStateChange,
     onSave,
     onCancel,
-    isEditMode,
+    isEditMode
   } = props;
 
   const [skillPickerOpen, setSkillPickerOpen] = useState(false);
 
   const selectableSkills = useMemo(
     () => getSelectableSkillsForUma(runnerState.outfitId),
-    [runnerState.outfitId],
+    [runnerState.outfitId]
   );
 
   const handleSetSkills = (skills: Array<string>) => {
@@ -55,7 +55,7 @@ export const RunnerEditorLayout = (props: RunnerEditorLayoutProps) => {
       setSkillPickerOpen(true);
     },
     { enableOnFormTags: true, enabled: !skillPickerOpen },
-    [skillPickerOpen],
+    [skillPickerOpen]
   );
 
   return (

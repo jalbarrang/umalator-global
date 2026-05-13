@@ -22,5 +22,5 @@ export const hiddenSkills: ReadonlyArray<string> = [
   '40011',
   '20061',
   '20062',
-  '20066',
+  '20066'
 ];

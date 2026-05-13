@@ -26,7 +26,7 @@ export function OcrStatsEditor(props: Readonly<OcrStatsEditorProps>) {
           placeholder="-"
           onChange={(e) =>
             onUpdateResults({
-              speed: e.target.value ? parseInt(e.target.value) : undefined,
+              speed: e.target.value ? parseInt(e.target.value) : undefined
             })
           }
         />
@@ -39,7 +39,7 @@ export function OcrStatsEditor(props: Readonly<OcrStatsEditorProps>) {
           placeholder="-"
           onChange={(e) =>
             onUpdateResults({
-              stamina: e.target.value ? parseInt(e.target.value) : undefined,
+              stamina: e.target.value ? parseInt(e.target.value) : undefined
             })
           }
         />
@@ -52,7 +52,7 @@ export function OcrStatsEditor(props: Readonly<OcrStatsEditorProps>) {
           placeholder="-"
           onChange={(e) =>
             onUpdateResults({
-              power: e.target.value ? parseInt(e.target.value) : undefined,
+              power: e.target.value ? parseInt(e.target.value) : undefined
             })
           }
         />
@@ -65,7 +65,7 @@ export function OcrStatsEditor(props: Readonly<OcrStatsEditorProps>) {
           placeholder="-"
           onChange={(e) =>
             onUpdateResults({
-              guts: e.target.value ? parseInt(e.target.value) : undefined,
+              guts: e.target.value ? parseInt(e.target.value) : undefined
             })
           }
         />
@@ -78,7 +78,7 @@ export function OcrStatsEditor(props: Readonly<OcrStatsEditorProps>) {
           placeholder="-"
           onChange={(e) =>
             onUpdateResults({
-              wisdom: e.target.value ? parseInt(e.target.value) : undefined,
+              wisdom: e.target.value ? parseInt(e.target.value) : undefined
             })
           }
         />

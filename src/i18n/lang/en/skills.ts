@@ -34,7 +34,7 @@ export default {
     phase2: 'Late-race',
     phase3: 'Last spurt',
     finalcorner: 'Final corner',
-    finalstraight: 'Final straight',
+    finalstraight: 'Final straight'
   },
   skilleffecttypes: {
     '1': 'Speed up',
@@ -49,7 +49,7 @@ export default {
     '28': 'Lane movement speed',
     '31': 'Acceleration',
     '37': 'Activate random gold skill',
-    '42': 'Increase skill duration',
+    '42': 'Increase skill duration'
   },
   skilldetails: {
     accel: '{{n}}m/s²',
@@ -68,7 +68,7 @@ export default {
       700: 'Pre-OP',
       800: 'Maiden',
       900: 'Debut',
-      999: 'Daily races',
+      999: 'Daily races'
     },
     ground_condition: ['', 'Good', 'Yielding', 'Soft', 'Heavy'],
     ground_type: ['', 'Turf', 'Dirt'],
@@ -86,6 +86,6 @@ export default {
     slope: ['Flat', 'Uphill', 'Downhill'],
     speed: '{{n}}m/s',
     time: ['', 'Morning', 'Mid day', 'Evening', 'Night'],
-    weather: ['', 'Sunny', 'Cloudy', 'Rainy', 'Snowy'],
-  },
+    weather: ['', 'Sunny', 'Cloudy', 'Rainy', 'Snowy']
+  }
 };

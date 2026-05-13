@@ -17,12 +17,12 @@ interface Corner {
 
 const STRAIGHT_COLORS = {
   main: ['rgb(209,235,255)', 'rgb(185,224,255)'],
-  accent: ['rgb(23,154,255)', 'rgb(9,146,254)'],
+  accent: ['rgb(23,154,255)', 'rgb(9,146,254)']
 };
 
 const CORNER_COLORS = {
   main: ['rgb(255,216,185)', 'rgb(254,228,209)'],
-  accent: ['rgb(254,117,9)', 'rgb(250,121,27)'],
+  accent: ['rgb(254,117,9)', 'rgb(250,121,27)']
 };
 
 type SectionTypesBarProps = {
@@ -42,8 +42,8 @@ export const SectionTypesBar = React.memo<SectionTypesBarProps>((props) => {
         corners.map((c) => ({
           start: c.start,
           end: c.start + c.length,
-          frontType: 0,
-        })),
+          frontType: 0
+        }))
       )
       .sort((a, b) => a.start - b.start);
 
@@ -112,7 +112,7 @@ export const SectionTypesBar = React.memo<SectionTypesBarProps>((props) => {
             x={x}
             y={RaceTrackDimensions.SectionTypesBarHeight}
             up={up}
-          />,
+          />
         );
       }
 
@@ -127,7 +127,7 @@ export const SectionTypesBar = React.memo<SectionTypesBarProps>((props) => {
             x={x}
             y={RaceTrackDimensions.SectionTypesBarHeight}
             up={up}
-          />,
+          />
         );
       }
 

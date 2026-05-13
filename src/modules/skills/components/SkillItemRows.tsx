@@ -4,16 +4,16 @@ import {
   SkillItemIdentity,
   SkillItemMain,
   SkillItemRail,
-  SkillItemRoot,
+  SkillItemRoot
 } from '@/modules/skills/components/skill-list/skill-item/primitives';
 import {
   SkillItemCostAction,
-  SkillItemDetailsActions,
+  SkillItemDetailsActions
 } from '@/modules/skills/components/skill-list/skill-item/actions';
 
 export function SimpleSkillRow({
   dismissable = false,
-  className,
+  className
 }: Readonly<{
   dismissable?: boolean;
   className?: string;
@@ -34,7 +34,7 @@ export function SimpleSkillRow({
 }
 
 export function SummarySkillRow({
-  dismissable = false,
+  dismissable = false
 }: Readonly<{
   dismissable?: boolean;
 }>) {
@@ -53,7 +53,7 @@ export function SummarySkillRow({
 }
 
 export function InlineCostSkillRow({
-  dismissable = false,
+  dismissable = false
 }: Readonly<{
   dismissable?: boolean;
 }>) {

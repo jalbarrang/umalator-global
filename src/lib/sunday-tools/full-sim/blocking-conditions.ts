@@ -20,7 +20,7 @@ function getLaneThreshold(runner: Runner, multiplier: number): number {
 
 function forEachActiveOtherSnapshot(
   runner: Runner,
-  callback: (snapshot: RunnerSnapshot, runnerId: number) => void,
+  callback: (snapshot: RunnerSnapshot, runnerId: number) => void
 ): void {
   for (const [runnerId, snapshot] of runner.race.runnerSnapshots) {
     if (runnerId === runner.id) {
@@ -109,7 +109,7 @@ function isOvertakingRunner(runner: Runner): boolean {
 
 function registerContinuousTimeCondition(
   name: string,
-  predicate: (runner: Runner) => boolean,
+  predicate: (runner: Runner) => boolean
 ): void {
   registerDynamicCondition(name, (arg, cmp) => (runner) => {
     const proxyTimeSeconds = predicate(runner) ? runner.accumulateTime.t : 0;
@@ -126,7 +126,7 @@ export function registerBlockingConditions(): void {
 
   registerContinuousTimeCondition(
     'blocked_all_continuetime',
-    (runner) => hasFrontBlockingRunner(runner) && hasAllSideBlockingRunners(runner),
+    (runner) => hasFrontBlockingRunner(runner) && hasAllSideBlockingRunners(runner)
   );
 
   registerContinuousTimeCondition('blocked_side_continuetime', hasSideBlockingRunner);

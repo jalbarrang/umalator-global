@@ -24,13 +24,13 @@ export const DistanceMarker: React.FC<DistanceMarkerProps> = (props) => {
       const baseY = y - y - 5;
       return {
         start: baseY,
-        end: baseY + 8,
+        end: baseY + 8
       };
     }
 
     return {
       start: y - 8,
-      end: y,
+      end: y
     };
   }, [y, up]);
 

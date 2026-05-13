@@ -11,7 +11,7 @@ type UseTableSearchOptions<T> = {
 export function useTableSearch<T>({
   rows,
   getSearchableText,
-  onScrollToRow,
+  onScrollToRow
 }: UseTableSearchOptions<T>) {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -76,7 +76,7 @@ export function useTableSearch<T>({
         searchInputRef.current?.select();
       }, 0);
     },
-    { enableOnFormTags: true },
+    { enableOnFormTags: true }
   );
 
   // Handle Escape to close search
@@ -89,7 +89,7 @@ export function useTableSearch<T>({
         setCurrentMatchIndex(0);
       }
     },
-    { enableOnFormTags: true, enabled: isSearchOpen },
+    { enableOnFormTags: true, enabled: isSearchOpen }
   );
 
   // Handle Enter for next match
@@ -99,7 +99,7 @@ export function useTableSearch<T>({
       event.preventDefault();
       goToNextMatch();
     },
-    { enableOnFormTags: true, enabled: isSearchOpen && hasMatches },
+    { enableOnFormTags: true, enabled: isSearchOpen && hasMatches }
   );
 
   // Handle Shift+Enter for previous match
@@ -109,7 +109,7 @@ export function useTableSearch<T>({
       event.preventDefault();
       goToPreviousMatch();
     },
-    { enableOnFormTags: true, enabled: isSearchOpen && hasMatches },
+    { enableOnFormTags: true, enabled: isSearchOpen && hasMatches }
   );
 
   const closeSearch = useCallback(() => {
@@ -128,6 +128,6 @@ export function useTableSearch<T>({
     hasMatches,
     goToNextMatch,
     goToPreviousMatch,
-    closeSearch,
+    closeSearch
   };
 }

@@ -18,10 +18,10 @@ export const groups_filters = {
     '3002',
     '3004',
     '3005',
-    '3007',
+    '3007'
   ],
   strategy: ['nige', 'senkou', 'sasi', 'oikomi'],
   distance: ['short', 'mile', 'medium', 'long'],
   surface: ['turf', 'dirt'],
-  location: ['phase0', 'phase1', 'phase2', 'phase3', 'finalcorner', 'finalstraight'],
+  location: ['phase0', 'phase1', 'phase2', 'phase3', 'finalcorner', 'finalstraight']
 };

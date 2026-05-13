@@ -37,7 +37,7 @@ interface SkillCombinationComparisonResult {
  * Compare a baseline runner against a runner with additional candidate skills
  */
 export function runSkillCombinationComparison(
-  params: SkillCombinationComparisonParams,
+  params: SkillCombinationComparisonParams
 ): SkillCombinationComparisonResult {
   const {
     nsamples,
@@ -46,7 +46,7 @@ export function runSkillCombinationComparison(
     baseRunner,
     candidateSkills,
     ignoreStaminaConsumption,
-    options,
+    options
   } = params;
 
   const result = runPlannerComparison({
@@ -56,11 +56,11 @@ export function runSkillCombinationComparison(
     runnerA: baseRunner,
     runnerB: {
       ...baseRunner,
-      skills: [...baseRunner.skills, ...candidateSkills],
+      skills: [...baseRunner.skills, ...candidateSkills]
     },
     candidateSkills,
     ignoreStaminaConsumption,
-    options,
+    options
   });
 
   return {
@@ -68,7 +68,7 @@ export function runSkillCombinationComparison(
     min: result.min,
     max: result.max,
     mean: result.mean,
-    median: result.median,
+    median: result.median
   };
 }
 
@@ -99,7 +99,7 @@ type BatchSimulationResult = {
  * Evaluate multiple skill combinations in batch
  */
 export function runBatchSkillEvaluation(
-  params: SkillPlannerSimulationParams,
+  params: SkillPlannerSimulationParams
 ): BatchSimulationResult {
   const results: Array<CombinationSimulationResult> = [];
 
@@ -111,7 +111,7 @@ export function runBatchSkillEvaluation(
       baseRunner: params.baseRunner,
       candidateSkills: combination,
       ignoreStaminaConsumption: params.ignoreStaminaConsumption ?? false,
-      options: params.options,
+      options: params.options
     });
 
     results.push({
@@ -119,12 +119,12 @@ export function runBatchSkillEvaluation(
       bashin: result.mean,
       min: result.min,
       max: result.max,
-      median: result.median,
+      median: result.median
     });
   }
 
   return {
     results,
-    totalSimulations: params.skillCombinations.length * params.nsamples,
+    totalSimulations: params.skillCombinations.length * params.nsamples
   };
 }

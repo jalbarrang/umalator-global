@@ -22,13 +22,13 @@ const tabsListVariants = cva(
     variants: {
       variant: {
         default: 'bg-muted',
-        line: 'gap-1 bg-transparent',
-      },
+        line: 'gap-1 bg-transparent'
+      }
     },
     defaultVariants: {
-      variant: 'default',
-    },
-  },
+      variant: 'default'
+    }
+  }
 );
 
 function TabsList({
@@ -55,7 +55,7 @@ function TabsTrigger({ className, ...props }: TabsPrimitive.Tab.Props) {
         'group-data-[variant=line]/tabs-list:bg-transparent group-data-[variant=line]/tabs-list:data-active:bg-transparent dark:group-data-[variant=line]/tabs-list:data-active:border-transparent dark:group-data-[variant=line]/tabs-list:data-active:bg-transparent',
         'data-active:bg-background dark:data-active:text-foreground dark:data-active:border-input dark:data-active:bg-input/30 data-active:text-foreground',
         'after:bg-foreground after:absolute after:opacity-0 after:transition-opacity group-data-[orientation=horizontal]/tabs:after:inset-x-0 group-data-[orientation=horizontal]/tabs:after:bottom-[-5px] group-data-[orientation=horizontal]/tabs:after:h-0.5 group-data-[orientation=vertical]/tabs:after:inset-y-0 group-data-[orientation=vertical]/tabs:after:-right-1 group-data-[orientation=vertical]/tabs:after:w-0.5 group-data-[variant=line]/tabs-list:data-active:after:opacity-100',
-        className,
+        className
       )}
       {...props}
     />

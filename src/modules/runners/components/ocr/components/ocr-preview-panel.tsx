@@ -20,7 +20,7 @@ export function OcrResultPreviewPanel({
   isProcessing,
   onUpdateResults,
   onRemoveSkill,
-  emptyMessage = 'Process a screenshot to extract data',
+  emptyMessage = 'Process a screenshot to extract data'
 }: Readonly<OcrResultPreviewPanelProps>) {
   const hasResults = hasDetectedData(results);
 

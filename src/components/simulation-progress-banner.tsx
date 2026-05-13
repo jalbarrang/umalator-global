@@ -41,7 +41,7 @@ export function SimulationProgressBanner({ useStore }: Readonly<SimulationProgre
             <div
               className="h-full bg-primary rounded-full transition-all duration-300"
               style={{
-                width: `${Math.round((progress.skillsCompletedInStage / progress.totalSkillsInStage) * 100)}%`,
+                width: `${Math.round((progress.skillsCompletedInStage / progress.totalSkillsInStage) * 100)}%`
               }}
             />
           </div>

@@ -2,7 +2,7 @@ import {
   Orientation,
   type CourseData,
   type ICorner,
-  type IOrientation,
+  type IOrientation
 } from '@/lib/sunday-tools/course/definitions';
 import { getCourseGeometry } from '@/modules/data/course-geometry';
 import { dataRegistry } from '@/modules/data/registry';
@@ -53,7 +53,7 @@ export function outwardFromInnerRail(heading: number, turnSign: number): { x: nu
 
 export function outwardFromTrackPoint(
   point: Pick<TrackPathPoint, 'heading' | 'outwardX' | 'outwardY'>,
-  turnSign: number,
+  turnSign: number
 ): { x: number; y: number } {
   if (point.outwardX != null && point.outwardY != null) {
     return { x: point.outwardX, y: point.outwardY };
@@ -80,7 +80,7 @@ function unwrapAngleLerp(a0: number, a1: number, t: number): number {
 
 function rotateVectorByQuaternion(
   vector: { x: number; y: number; z: number },
-  rotation: { x: number; y: number; z: number; w: number },
+  rotation: { x: number; y: number; z: number; w: number }
 ): { x: number; y: number; z: number } {
   const { x, y, z, w } = rotation;
   const uvx = y * vector.z - z * vector.y;
@@ -93,7 +93,7 @@ function rotateVectorByQuaternion(
   return {
     x: vector.x + 2 * (w * uvx + uuvx),
     y: vector.y + 2 * (w * uvy + uuvy),
-    z: vector.z + 2 * (w * uvz + uuvz),
+    z: vector.z + 2 * (w * uvz + uuvz)
   };
 }
 
@@ -107,7 +107,7 @@ function normalizePlanar(x: number, y: number): { x: number; y: number } | null 
 
 async function buildTrackPointsFromGeometry(
   course: CourseData,
-  turnSign: number,
+  turnSign: number
 ): Promise<TrackPathPoint[] | null> {
   const geometry = await getCourseGeometry(course.courseId);
   if (!geometry) {
@@ -117,7 +117,7 @@ async function buildTrackPointsFromGeometry(
   const sampleCount = Math.min(
     geometry.sampleCount,
     geometry.valueX.length,
-    geometry.valueZ.length,
+    geometry.valueZ.length
   );
   if (sampleCount < 2) {
     return null;
@@ -146,7 +146,7 @@ async function buildTrackPointsFromGeometry(
       y: -geometry.valueZ[index],
       heading,
       outwardX: planarOutward.x,
-      outwardY: planarOutward.y,
+      outwardY: planarOutward.y
     });
   }
 
@@ -165,12 +165,12 @@ function lapPeriodFromCorners(sorted: Corner[], courseDistance: number): number 
 function buildSyntheticLapCourse(
   course: CourseData,
   lapCorners: Corner[],
-  lapPeriod: number,
+  lapPeriod: number
 ): CourseData {
   const baseStart = lapCorners[0].start;
   const corners = lapCorners.map((corner) => ({
     start: corner.start - baseStart,
-    length: corner.length,
+    length: corner.length
   }));
 
   return {
@@ -178,7 +178,7 @@ function buildSyntheticLapCourse(
     distance: lapPeriod,
     corners,
     straights: [],
-    slopes: [],
+    slopes: []
   };
 }
 
@@ -268,7 +268,7 @@ function buildLegacyOpenTrackPath(course: CourseData, turnSign: number): BuiltTr
     wraps: true,
     lapLength: distance,
     numLaps: 1,
-    raceStartOnTrack: 0,
+    raceStartOnTrack: 0
   };
 }
 
@@ -288,7 +288,7 @@ export async function buildCourseTrackPath(course: CourseData): Promise<BuiltTra
       wraps: false,
       lapLength: distance,
       numLaps: 1,
-      raceStartOnTrack: 0,
+      raceStartOnTrack: 0
     };
   }
 
@@ -304,7 +304,7 @@ export async function buildCourseTrackPath(course: CourseData): Promise<BuiltTra
       wraps: false,
       lapLength: distance,
       numLaps: 1,
-      raceStartOnTrack: 0,
+      raceStartOnTrack: 0
     };
   }
 
@@ -314,7 +314,7 @@ export async function buildCourseTrackPath(course: CourseData): Promise<BuiltTra
     lapCorners: Corner[],
     lapPeriod: number,
     orientationSource: IOrientation,
-    raceStartOnTrack: number,
+    raceStartOnTrack: number
   ): BuiltTrackPath => {
     const ts = turnSignFromOrientation(orientationSource);
     const syntheticLapCourse = buildSyntheticLapCourse(course, lapCorners, lapPeriod);
@@ -326,7 +326,7 @@ export async function buildCourseTrackPath(course: CourseData): Promise<BuiltTra
       wraps: true,
       lapLength: lapPeriod,
       numLaps,
-      raceStartOnTrack,
+      raceStartOnTrack
     };
   };
 
@@ -383,7 +383,7 @@ export function interpolateTrackPoint(built: BuiltTrackPath, raceDistance: numbe
     a.outwardX != null && a.outwardY != null && b.outwardX != null && b.outwardY != null
       ? normalizePlanar(
           a.outwardX + t * (b.outwardX - a.outwardX),
-          a.outwardY + t * (b.outwardY - a.outwardY),
+          a.outwardY + t * (b.outwardY - a.outwardY)
         )
       : null;
 
@@ -393,6 +393,6 @@ export function interpolateTrackPoint(built: BuiltTrackPath, raceDistance: numbe
     y: a.y + t * (b.y - a.y),
     heading: unwrapAngleLerp(a.heading, b.heading, t),
     outwardX: outward?.x,
-    outwardY: outward?.y,
+    outwardY: outward?.y
   };
 }

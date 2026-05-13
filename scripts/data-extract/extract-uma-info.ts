@@ -12,7 +12,7 @@ import {
   readJsonFileIfExists,
   resolveMasterDbPath,
   sortByNumericKey,
-  writeJsonFile,
+  writeJsonFile
 } from '../master-data/shared';
 
 interface UmaNameRow {
@@ -52,7 +52,7 @@ function parseCliArgs(argv: Array<string>): ExtractUmaInfoOptions {
 
   return {
     replaceMode: Boolean(options.replace || options.full),
-    dbPath,
+    dbPath
   };
 }
 
@@ -75,7 +75,7 @@ async function extractUmaInfo(options: ExtractUmaInfoOptions = { replaceMode: fa
   const dbPath = await resolveMasterDbPath(cliDbPath);
 
   console.log(
-    `Mode: ${replaceMode ? '⚠️  Full Replacement' : '✓ Merge (preserves future content)'}`,
+    `Mode: ${replaceMode ? '⚠️  Full Replacement' : '✓ Merge (preserves future content)'}`
   );
   console.log(`Database: ${dbPath}\n`);
 
@@ -89,7 +89,7 @@ async function extractUmaInfo(options: ExtractUmaInfoOptions = { replaceMode: fa
     // Query uma names (category 6, index < 2000)
     const umaRows = queryAll<UmaNameRow>(
       db,
-      `SELECT [index], text FROM text_data WHERE category = 6 AND [index] < 2000`,
+      `SELECT [index], text FROM text_data WHERE category = 6 AND [index] < 2000`
     );
 
     console.log(`Found ${umaRows.length} uma musume\n`);
@@ -112,7 +112,7 @@ async function extractUmaInfo(options: ExtractUmaInfoOptions = { replaceMode: fa
          AND [index] BETWEEN ? AND ?
          ORDER BY [index] ASC`,
         minOutfitIndex,
-        maxOutfitIndex,
+        maxOutfitIndex
       );
 
       const outfits: Record<string, string> = {};
@@ -136,7 +136,7 @@ async function extractUmaInfo(options: ExtractUmaInfoOptions = { replaceMode: fa
       if (Object.keys(outfits).length > 0) {
         umas[umaId.toString()] = {
           name: ['', umaName], // Empty English name, Japanese name
-          outfits: outfits,
+          outfits: outfits
         };
         processedCount++;
       }
@@ -176,7 +176,7 @@ async function extractUmaInfo(options: ExtractUmaInfoOptions = { replaceMode: fa
 
     const totalOutfits = Object.values(sorted).reduce(
       (sum, uma) => sum + Object.keys(uma.outfits).length,
-      0,
+      0
     );
     console.log(`\n✓ Written to ${outputPath}`);
     console.log(`✓ Total outfits: ${totalOutfits}`);

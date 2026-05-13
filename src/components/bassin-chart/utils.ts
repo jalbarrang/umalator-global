@@ -17,7 +17,7 @@ export const PHASE_COLORS = [
   'rgb(0,154,111)', // Early race (green)
   'rgb(242,233,103)', // Mid race (yellow)
   'rgb(209,134,175)', // Late race (light pink)
-  'rgb(255,130,130)', // Last spurt (light red)
+  'rgb(255,130,130)' // Last spurt (light red)
 ] as const;
 
 // Standard bin size for position-based charts (in meters)
@@ -40,7 +40,7 @@ export function getPhaseReferenceLines(courseDistance: number) {
   return [
     { position: CourseHelpers.phaseStart(courseDistance, 1), label: 'Mid' },
     { position: CourseHelpers.phaseStart(courseDistance, 2), label: 'Final' },
-    { position: CourseHelpers.phaseStart(courseDistance, 3), label: 'Last' },
+    { position: CourseHelpers.phaseStart(courseDistance, 3), label: 'Last' }
   ];
 }
 
@@ -48,7 +48,7 @@ export function getPhaseReferenceLines(courseDistance: number) {
 export function createDistanceBins<T extends { start: number; end: number }>(
   courseDistance: number,
   binSize: number = DEFAULT_BIN_SIZE,
-  initialData: (start: number, end: number, index: number) => T,
+  initialData: (start: number, end: number, index: number) => T
 ): Array<T> {
   const maxDistance = Math.ceil(courseDistance / binSize) * binSize;
   const bins: Array<T> = [];
@@ -78,7 +78,7 @@ export function getActivateableSkills(
   skills: Array<string>,
   runner: IRunnerState,
   course: CourseData,
-  raceParams: RaceParameters,
+  raceParams: RaceParameters
 ) {
   const parser = createParser();
   const baseStats = buildBaseStats(
@@ -87,14 +87,14 @@ export function getActivateableSkills(
       stamina: runner.stamina,
       power: runner.power,
       guts: runner.guts,
-      wit: runner.wisdom,
+      wit: runner.wisdom
     },
-    runner.mood,
+    runner.mood
   );
   const skillEvalRunner: SkillEvalRunner = {
     baseStats,
     strategy: parseStrategyName(runner.strategy),
-    mood: runner.mood,
+    mood: runner.mood
   };
 
   const wholeCourse = new RegionList();
@@ -110,11 +110,11 @@ export function getActivateableSkills(
       wholeCourse,
       parser,
       skillId,
-      ignoreNullEffects: false,
+      ignoreNullEffects: false
     });
 
     const isActivable = skillTriggers.some(
-      (trigger) => trigger.regions.length > 0 && trigger.regions[0].start < 9999,
+      (trigger) => trigger.regions.length > 0 && trigger.regions[0].start < 9999
     );
 
     if (isActivable) {
@@ -133,7 +133,7 @@ export function getNullRow(skillid: string): RoundResult {
     mean: 0,
     median: 0,
     results: [],
-    runData: undefined,
+    runData: undefined
   };
 }
 
@@ -148,19 +148,19 @@ export function getNullSkillComparisonRow(skillid: string): SkillComparisonRound
     results: [],
     runData: {
       minrun: {
-        sk: [{}, {}],
+        sk: [{}, {}]
       },
       maxrun: {
-        sk: [{}, {}],
+        sk: [{}, {}]
       },
       meanrun: {
-        sk: [{}, {}],
+        sk: [{}, {}]
       },
       medianrun: {
-        sk: [{}, {}],
-      },
+        sk: [{}, {}]
+      }
     },
-    filterReason: undefined,
+    filterReason: undefined
   };
 }
 
@@ -174,5 +174,5 @@ export const defaultSimulationOptions = {
   useEnhancedSpurt: false,
   accuracyMode: false,
   skillCheckChanceUma1: false,
-  skillCheckChanceUma2: false,
+  skillCheckChanceUma2: false
 };

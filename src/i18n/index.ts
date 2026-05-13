@@ -31,22 +31,22 @@ const definitions = {
           [GroundCondition.Firm]: 'Firm',
           [GroundCondition.Good]: 'Good',
           [GroundCondition.Soft]: 'Soft',
-          [GroundCondition.Heavy]: 'Heavy',
+          [GroundCondition.Heavy]: 'Heavy'
         },
         short: {
           straight: '→',
           corner: 'C{{n}}',
           uphill: '↗',
-          downhill: '↘',
+          downhill: '↘'
         },
         sprint: 'Sprint',
         mile: 'Mile',
         medium: 'Medium',
-        long: 'Long',
+        long: 'Long'
       },
-      coursedesc: '{{surface}} {{distance}}m ({{distanceCategory}}) {{orientation}} / {{inout}}',
-    },
-  },
+      coursedesc: '{{surface}} {{distance}}m ({{distanceCategory}}) {{orientation}} / {{inout}}'
+    }
+  }
 };
 
 export const getStrings = (lang: string) => {
@@ -59,8 +59,8 @@ i18n.use(initReactI18next).init({
   resources: definitions,
   lng: 'en',
   interpolation: {
-    escapeValue: false, // React already escapes values
-  },
+    escapeValue: false // React already escapes values
+  }
 });
 
 export default i18n;

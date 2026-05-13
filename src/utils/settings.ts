@@ -1,7 +1,7 @@
 export enum Mode {
   Compare,
   Chart,
-  UniquesChart,
+  UniquesChart
 }
 export enum UiStateMsg {
   SetModeCompare,
@@ -10,5 +10,5 @@ export enum UiStateMsg {
   SetCurrentIdx0,
   SetCurrentIdx1,
   SetCurrentIdx2,
-  ToggleExpand,
+  ToggleExpand
 }

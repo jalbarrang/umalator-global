@@ -16,7 +16,7 @@ export const skillBassinSteps: Array<TutorialStep> = [
         <div>Let's explore how to use this powerful analysis tool!</div>
       </div>
     ),
-    showButtons: ['next', 'close'],
+    showButtons: ['next', 'close']
   },
   {
     element: '[data-tutorial="skill-bassin-controls"]',
@@ -43,7 +43,7 @@ export const skillBassinSteps: Array<TutorialStep> = [
     ),
     side: 'bottom',
     align: 'start',
-    showButtons: ['previous', 'next', 'close'],
+    showButtons: ['previous', 'next', 'close']
   },
   {
     element: '[data-tutorial="skill-bassin-table"]',
@@ -73,7 +73,7 @@ export const skillBassinSteps: Array<TutorialStep> = [
     ),
     side: 'top',
     align: 'center',
-    showButtons: ['previous', 'next', 'close'],
+    showButtons: ['previous', 'next', 'close']
   },
   {
     title: 'Understanding the Results 💡',
@@ -104,6 +104,6 @@ export const skillBassinSteps: Array<TutorialStep> = [
       </div>
     ),
     showButtons: ['close', 'next'],
-    doneBtnText: 'Got it!',
-  },
+    doneBtnText: 'Got it!'
+  }
 ];

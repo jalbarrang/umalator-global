@@ -33,14 +33,14 @@ const COMBAT_KINDS = new Set<RaceEventKind>([
   'dueling-start',
   'dueling-end',
   'spot-struggle-start',
-  'spot-struggle-end',
+  'spot-struggle-end'
 ]);
 
 const FILTERS: Array<{ id: EventFilter; label: string }> = [
   { id: 'all', label: 'All' },
   { id: 'skills', label: 'Skills' },
   { id: 'combat', label: 'Combat' },
-  { id: 'state', label: 'State' },
+  { id: 'state', label: 'State' }
 ];
 
 const EVENT_KIND_STYLES: Record<RaceEventKind, EventKindStyle> = {
@@ -63,7 +63,7 @@ const EVENT_KIND_STYLES: Record<RaceEventKind, EventKindStyle> = {
   'blocked-side-start': { label: 'Lane', dotClassName: 'bg-slate-500' },
   'blocked-side-end': { label: 'Lane', dotClassName: 'bg-slate-400' },
   'mid-race-start': { label: 'Phase', dotClassName: 'bg-indigo-500' },
-  'late-race-start': { label: 'Phase', dotClassName: 'bg-violet-600' },
+  'late-race-start': { label: 'Phase', dotClassName: 'bg-violet-600' }
 };
 
 function toOrdinal(value: number): string {
@@ -157,8 +157,8 @@ export function EventLogPanel(props: Readonly<EventLogPanelProps>) {
   const { roundEvents: events, currentTick } = usePlaybackStore(
     useShallow((s) => ({
       roundEvents: s.roundEvents,
-      currentTick: s.currentTick,
-    })),
+      currentTick: s.currentTick
+    }))
   );
 
   const [activeFilter, setActiveFilter] = useState<EventFilter>('all');
@@ -171,7 +171,7 @@ export function EventLogPanel(props: Readonly<EventLogPanelProps>) {
       .map((event, index) => ({
         event,
         index,
-        key: `${index}-${event.tick}-${event.runnerId}-${event.kind}`,
+        key: `${index}-${event.tick}-${event.runnerId}-${event.kind}`
       }))
       .sort((left, right) => {
         if (left.event.tick !== right.event.tick) {
@@ -184,9 +184,9 @@ export function EventLogPanel(props: Readonly<EventLogPanelProps>) {
   const visibleEvents = useMemo(
     () =>
       indexedEvents.filter(
-        (item) => item.event.tick <= currentTick && matchesFilter(item.event.kind, activeFilter),
+        (item) => item.event.tick <= currentTick && matchesFilter(item.event.kind, activeFilter)
       ),
-    [indexedEvents, activeFilter, currentTick],
+    [indexedEvents, activeFilter, currentTick]
   );
 
   const cursorEventKey = useMemo(() => {
@@ -200,7 +200,7 @@ export function EventLogPanel(props: Readonly<EventLogPanelProps>) {
   useEffect(() => {
     cursorEventRef.current?.scrollIntoView({
       block: 'nearest',
-      inline: 'nearest',
+      inline: 'nearest'
     });
   }, [cursorEventKey]);
 
@@ -251,8 +251,8 @@ export function EventLogPanel(props: Readonly<EventLogPanelProps>) {
                     'grid grid-cols-[auto_1fr] items-start gap-2 rounded-md border px-2 py-1.5 text-xs transition-colors',
                     {
                       'border-primary/50 bg-primary/10': isNearCursor,
-                      'border-transparent': !isNearCursor,
-                    },
+                      'border-transparent': !isNearCursor
+                    }
                   )}
                 >
                   <span className={cn('mt-1 size-2 rounded-full', style.dotClassName)} />
@@ -277,7 +277,7 @@ export function EventLogPanel(props: Readonly<EventLogPanelProps>) {
                               {index > 0 && ', '}
                               <span
                                 className={cn(
-                                  trackedRunnerIdSet.has(runnerId) && 'font-medium text-primary',
+                                  trackedRunnerIdSet.has(runnerId) && 'font-medium text-primary'
                                 )}
                               >
                                 {getRunnerName(runnerId, runnerNames)}

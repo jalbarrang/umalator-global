@@ -4,7 +4,7 @@ export const WIZARD_STEPS: Array<{ id: WizardStep; label: string }> = [
   { id: 'align', label: 'Upload' },
   { id: 'review-identity', label: 'Uma' },
   { id: 'review-skills', label: 'Skills' },
-  { id: 'summary', label: 'Summary' },
+  { id: 'summary', label: 'Summary' }
 ];
 
 /** Previous step in the wizard flow, or null on upload step. */
@@ -34,11 +34,11 @@ export function getNextWizardStep(step: WizardStep): WizardStep | null {
 
 export function createPreparedImage(
   blob: Blob,
-  maskType: PreparedImage['maskType'],
+  maskType: PreparedImage['maskType']
 ): PreparedImage {
   return {
     blob,
     maskType,
-    preview: URL.createObjectURL(blob),
+    preview: URL.createObjectURL(blob)
   };
 }

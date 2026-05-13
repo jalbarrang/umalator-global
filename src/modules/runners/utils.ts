@@ -35,7 +35,7 @@ function buildUmaSearchData(): {
       }
 
       return [id, (uma.outfits[id] + ' ' + uma.name[1]).toUpperCase().replace(/\./g, '')];
-    }),
+    })
   );
 
   const umasForSearch = altIds
@@ -49,7 +49,7 @@ function buildUmaSearchData(): {
       return {
         id,
         name: uma.name[1],
-        outfit: uma.outfits[id],
+        outfit: uma.outfits[id]
       };
     })
     .filter((entry): entry is UmaSearchEntry => entry !== null);
@@ -57,7 +57,7 @@ function buildUmaSearchData(): {
   return {
     altIds,
     namesForSearch,
-    umasForSearch,
+    umasForSearch
   };
 }
 
@@ -160,7 +160,7 @@ export const getUmaDisplayInfo = (outfitId: string): { name: string; outfit: str
 
     return {
       name: uma.name[1],
-      outfit: uma.outfits[outfitId],
+      outfit: uma.outfits[outfitId]
     };
   } catch {
     return null;

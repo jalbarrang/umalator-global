@@ -23,7 +23,7 @@ const statTable = [
   { key: 'stamina', label: 'Stamina', icon: getIconUrl('status_01.png') },
   { key: 'power', label: 'Power', icon: getIconUrl('status_02.png') },
   { key: 'guts', label: 'Guts', icon: getIconUrl('status_03.png') },
-  { key: 'wisdom', label: 'Wisdom', icon: getIconUrl('status_04.png') },
+  { key: 'wisdom', label: 'Wisdom', icon: getIconUrl('status_04.png') }
 ] as const;
 
 export const StatsTable = (props: StatsTableProps) => {

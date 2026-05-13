@@ -2,7 +2,7 @@ import type { IRunnerState } from '@/modules/runners/components/runner-card/type
 import type {
   SimulationData,
   SkillSimulationData,
-  SkillTrackedMetaCollection,
+  SkillTrackedMetaCollection
 } from '@/modules/simulation/compare.types';
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import type { RaceParameters } from '@/lib/sunday-tools/common/race';

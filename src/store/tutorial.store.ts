@@ -26,13 +26,13 @@ export const useTutorialStore = create<ITutorialStore>()(
     (_) => ({
       completedTutorials: [],
       dismissedTutorials: [],
-      firstVisits: {},
+      firstVisits: {}
     }),
     {
       name: TUTORIAL_STORE_NAME,
-      storage: createJSONStorage(() => localStorage),
-    },
-  ),
+      storage: createJSONStorage(() => localStorage)
+    }
+  )
 );
 
 /**
@@ -44,7 +44,7 @@ export const completeTutorial = (tutorialId: TutorialId) => {
     completedTutorials: state.completedTutorials.includes(tutorialId)
       ? state.completedTutorials
       : [...state.completedTutorials, tutorialId],
-    dismissedTutorials: state.dismissedTutorials.filter((id) => id !== tutorialId),
+    dismissedTutorials: state.dismissedTutorials.filter((id) => id !== tutorialId)
   }));
 };
 
@@ -52,7 +52,7 @@ export const dismissTutorial = (tutorialId: TutorialId) => {
   useTutorialStore.setState((state) => ({
     dismissedTutorials: state.dismissedTutorials.includes(tutorialId)
       ? state.dismissedTutorials
-      : [...state.dismissedTutorials, tutorialId],
+      : [...state.dismissedTutorials, tutorialId]
   }));
 };
 
@@ -62,8 +62,8 @@ export const resetTutorial = (tutorialId: TutorialId) => {
     dismissedTutorials: state.dismissedTutorials.filter((id) => id !== tutorialId),
     firstVisits: {
       ...state.firstVisits,
-      [tutorialId]: false,
-    },
+      [tutorialId]: false
+    }
   }));
 };
 
@@ -71,7 +71,7 @@ export const resetAllTutorials = () => {
   useTutorialStore.setState({
     completedTutorials: [],
     dismissedTutorials: [],
-    firstVisits: {},
+    firstVisits: {}
   });
 };
 
@@ -84,8 +84,8 @@ export const markVisited = (section: string) => {
   useTutorialStore.setState((state) => ({
     firstVisits: {
       ...state.firstVisits,
-      [section]: true,
-    },
+      [section]: true
+    }
   }));
 };
 
@@ -96,8 +96,8 @@ export const useTutorialStatus = (tutorialId: TutorialId) => {
   return useTutorialStore(
     useShallow((state) => ({
       isCompleted: state.completedTutorials.includes(tutorialId),
-      isDismissed: state.dismissedTutorials.includes(tutorialId),
-    })),
+      isDismissed: state.dismissedTutorials.includes(tutorialId)
+    }))
   );
 };
 

@@ -4,7 +4,7 @@ import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import {
   getRunnerLanesAtTick,
   getRunnerPositionsAtTick,
-  usePlaybackStore,
+  usePlaybackStore
 } from '@/modules/race-sim/stores/playback.store';
 import { useShallow } from 'zustand/shallow';
 import { buildRunnerOrderRows, type FinishRankEntry, formatGap, formatLaneMeters } from './utils';
@@ -21,17 +21,17 @@ export const TrackTopDownLegend = memo(function TrackTopDownLegend(props: TrackT
     useShallow((s) => ({
       results: s.results,
       selectedRound: s.selectedRound,
-      currentTick: s.currentTick,
-    })),
+      currentTick: s.currentTick
+    }))
   );
 
   const runnerPositions = useMemo(
     () => getRunnerPositionsAtTick(results, selectedRound, currentTick),
-    [results, selectedRound, currentTick],
+    [results, selectedRound, currentTick]
   );
   const runnerLanes = useMemo(
     () => getRunnerLanesAtTick(results, selectedRound, currentTick),
-    [results, selectedRound, currentTick],
+    [results, selectedRound, currentTick]
   );
 
   const finishRanks: FinishRankEntry[] = useMemo(() => {
@@ -48,9 +48,9 @@ export const TrackTopDownLegend = memo(function TrackTopDownLegend(props: TrackT
         runnerPositions,
         runnerLanes,
         trackedRunnerIds,
-        finishRanks,
+        finishRanks
       ),
-    [runnerNames, runnerPositions, runnerLanes, trackedRunnerIds, courseData.distance, finishRanks],
+    [runnerNames, runnerPositions, runnerLanes, trackedRunnerIds, courseData.distance, finishRanks]
   );
 
   return (
@@ -65,7 +65,7 @@ export const TrackTopDownLegend = memo(function TrackTopDownLegend(props: TrackT
             key={row.runnerId}
             className={cn(
               'flex items-baseline justify-between gap-2 rounded-md px-2',
-              row.isTracked && 'bg-primary/10',
+              row.isTracked && 'bg-primary/10'
             )}
           >
             <div className="flex flex-col flex-1">

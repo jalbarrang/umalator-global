@@ -49,13 +49,13 @@ const runRunnersComparison = (params: CompareParams) => {
       uma2: uma2_,
       options: compareOptions,
       forcedPositions,
-      injectedDebuffs,
+      injectedDebuffs
     });
 
     sendMessage({
       type: 'compare-progress',
       currentSamples: n,
-      totalSamples: nsamples,
+      totalSamples: nsamples
     });
   }
 
@@ -67,7 +67,7 @@ const runRunnersComparison = (params: CompareParams) => {
     uma2: uma2_,
     options: compareOptions,
     forcedPositions,
-    injectedDebuffs,
+    injectedDebuffs
   });
 
   // Always post final results

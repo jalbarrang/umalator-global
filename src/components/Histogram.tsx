@@ -12,8 +12,8 @@ type HistogramProps = {
 const chartConfig = {
   count: {
     label: 'Count',
-    color: '#2a77c5',
-  },
+    color: '#2a77c5'
+  }
 } satisfies ChartConfig;
 
 export const Histogram = ({ data }: HistogramProps) => {
@@ -37,7 +37,7 @@ export const Histogram = ({ data }: HistogramProps) => {
     range: bucket.x0?.toFixed(1) ?? '',
     count: bucket.length,
     x0: bucket.x0,
-    x1: bucket.x1,
+    x1: bucket.x1
   }));
 
   return (

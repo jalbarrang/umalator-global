@@ -34,7 +34,7 @@ export {
   TutorialProvider,
   useTutorial,
   useCurrentStep,
-  useTutorialProgress,
+  useTutorialProgress
 } from './tutorial-context';
 export { TutorialRoot } from './tutorial-root';
 export { TutorialOverlay } from './tutorial-overlay';

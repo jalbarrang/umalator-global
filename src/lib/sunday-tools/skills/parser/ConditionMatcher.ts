@@ -113,7 +113,7 @@ const mockSamplePolicy: ActivationSamplePolicy = {
   },
   reconcileAllCornerRandom(_) {
     return this;
-  },
+  }
 };
 
 export const mockConditions = new Proxy(
@@ -129,6 +129,6 @@ export const mockConditions = new Proxy(
       cache[prop] = condition;
 
       return condition;
-    },
-  },
+    }
+  }
 );

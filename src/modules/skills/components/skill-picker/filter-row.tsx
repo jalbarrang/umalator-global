@@ -32,7 +32,7 @@ const FilterButton = ({ id, checked, onChecked }: FilterButtonProps) => {
           'cursor-pointer rounded-md border px-2 py-1 text-xs leading-5 transition-colors',
           'border-border bg-background text-muted-foreground hover:border-muted-foreground/30 hover:text-foreground',
           'peer-focus-visible:border-ring peer-focus-visible:ring-ring/40 peer-focus-visible:ring-[3px]',
-          checked && 'border-primary/50 bg-muted text-foreground',
+          checked && 'border-primary/50 bg-muted text-foreground'
         )}
       >
         {i18n.t(`skillfilters.${id}`)}
@@ -61,7 +61,7 @@ const IconFilterButton = ({ type, group, filterState, onChecked }: IconFilterBut
         'h-8 w-8 rounded-md border border-border bg-background p-0 [&_img]:h-7 [&_img]:w-7',
         isActive
           ? 'border-primary/60 bg-muted opacity-100'
-          : 'opacity-45 hover:opacity-80 hover:border-muted-foreground/30',
+          : 'opacity-45 hover:opacity-80 hover:border-muted-foreground/30'
       )}
       onClick={onChecked}
     >
@@ -77,7 +77,7 @@ const filterGroups = {
   strategy: ['nige', 'senkou', 'sasi', 'oikomi'],
   distance: ['short', 'mile', 'medium', 'long'],
   surface: ['turf', 'dirt'],
-  location: ['phase0', 'phase1', 'phase2', 'phase3', 'finalcorner', 'finalstraight'],
+  location: ['phase0', 'phase1', 'phase2', 'phase3', 'finalcorner', 'finalstraight']
 } as const;
 
 function groupIconTypesByCategory() {
@@ -117,14 +117,14 @@ export const SkillPickerFilterRow = () => {
     (group: string, filter: string) => {
       setExclusiveFilter(group, filter);
     },
-    [setExclusiveFilter],
+    [setExclusiveFilter]
   );
 
   const handleIconTypeChecked = useCallback(
     (filter: string) => {
       toggleIconType(filter);
     },
-    [toggleIconType],
+    [toggleIconType]
   );
 
   const activeFilterCount = useMemo(() => {

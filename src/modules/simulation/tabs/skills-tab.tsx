@@ -10,13 +10,13 @@ import {
   EmptyDescription,
   EmptyHeader,
   EmptyMedia,
-  EmptyTitle,
+  EmptyTitle
 } from '@/components/ui/empty';
 import { getSkillNameById } from '@/modules/skills/utils';
 import {
   SkillType,
   translateSkillEffectTarget,
-  translateSkillEffectType,
+  translateSkillEffectType
 } from '@/lib/sunday-tools/skills/definitions';
 
 /**
@@ -43,8 +43,8 @@ const useRunnerSkillsActivated = (runnerIndex: number) => {
           effectTarget: a.effectTarget,
           start: a.start,
           end: a.end,
-          duration: a.end - a.start,
-        })),
+          duration: a.end - a.start
+        }))
       });
     }
 

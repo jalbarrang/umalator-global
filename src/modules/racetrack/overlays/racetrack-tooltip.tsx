@@ -62,7 +62,7 @@ export function RaceTrackTooltip(props: RaceTrackTooltipProps) {
         return { v1Text, v2Text };
       });
     },
-    [chartData, course.distance],
+    [chartData, course.distance]
   );
 
   const hide = useCallback(() => {
@@ -74,9 +74,9 @@ export function RaceTrackTooltip(props: RaceTrackTooltipProps) {
     ref,
     () => ({
       updateFromPositionRatio,
-      hide,
+      hide
     }),
-    [updateFromPositionRatio, hide],
+    [updateFromPositionRatio, hide]
   );
 
   if (!tooltipVisible) {

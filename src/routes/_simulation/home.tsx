@@ -34,7 +34,7 @@ import {
 } from '@/modules/simulation/share';
 import { Camera, ChevronDown, Download, Share2, Upload } from 'lucide-react';
 
-export function SimulationHome() {
+export default function CompareHomePage() {
   const { chartData, results, isSimulationRunning, simulationProgress, seed } = useRaceStore();
   const { courseId } = useSettingsStore();
   const { handleRunCompare, handleRunOnce } = useSimulationRunner();

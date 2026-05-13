@@ -38,11 +38,11 @@ export const useRunnerLibraryStore = create<IRunnerLibraryStore>()(
           ...runner,
           id,
           createdAt: now,
-          updatedAt: now,
+          updatedAt: now
         };
 
         set((state) => ({
-          runners: [...state.runners, newRunner],
+          runners: [...state.runners, newRunner]
         }));
 
         toast.success(`Runner "${runner.notes}" added to library`);
@@ -52,8 +52,8 @@ export const useRunnerLibraryStore = create<IRunnerLibraryStore>()(
       updateRunner: (id, updates) => {
         set((state) => ({
           runners: state.runners.map((runner) =>
-            runner.id === id ? { ...runner, ...updates, updatedAt: Date.now() } : runner,
-          ),
+            runner.id === id ? { ...runner, ...updates, updatedAt: Date.now() } : runner
+          )
         }));
 
         toast.success('Runner updated');
@@ -63,7 +63,7 @@ export const useRunnerLibraryStore = create<IRunnerLibraryStore>()(
         const runner = get().getRunner(id);
 
         set((state) => ({
-          runners: state.runners.filter((r) => r.id !== id),
+          runners: state.runners.filter((r) => r.id !== id)
         }));
 
         toast.success(`Runner "${runner?.notes || 'Unknown'}" deleted`);
@@ -74,7 +74,7 @@ export const useRunnerLibraryStore = create<IRunnerLibraryStore>()(
         if (count === 0) return;
 
         set((state) => ({
-          runners: state.runners.filter((r) => !ids.has(r.id)),
+          runners: state.runners.filter((r) => !ids.has(r.id))
         }));
 
         toast.success(`Deleted ${count} runner${count === 1 ? '' : 's'}`);
@@ -94,11 +94,11 @@ export const useRunnerLibraryStore = create<IRunnerLibraryStore>()(
         const duplicated = cloneDeep(runner);
 
         get().addRunner(duplicated);
-      },
+      }
     }),
     {
       name: 'umalator-runner-library',
-      storage: createJSONStorage(() => localStorage),
-    },
-  ),
+      storage: createJSONStorage(() => localStorage)
+    }
+  )
 );

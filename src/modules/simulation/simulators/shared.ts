@@ -4,7 +4,7 @@ import type {
   DuelingRates,
   RaceLifecycleObserver,
   SimulationSettings,
-  RaceParameters as SundayRaceParameters,
+  RaceParameters as SundayRaceParameters
 } from '@/lib/sunday-tools/common/race';
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import type { ISkillTarget, ISkillType } from '@/lib/sunday-tools/skills/definitions';
@@ -25,7 +25,7 @@ export const DEFAULT_DUELING_RATES: DuelingRates = {
   frontRunner: 10,
   paceChaser: 10,
   lateSurger: 10,
-  endCloser: 10,
+  endCloser: 10
 };
 
 export function normalizeSkillId(skillId: string): string {
@@ -52,7 +52,7 @@ export function getSkillEffectMetadata(skillId: string): Array<EffectMeta> {
 
   return effects.map((effect) => ({
     effectType: (effect.type ?? SkillType.Noop) as ISkillType,
-    effectTarget: (effect.target ?? SkillTarget.Self) as ISkillTarget,
+    effectTarget: (effect.target ?? SkillTarget.Self) as ISkillTarget
   }));
 }
 
@@ -95,7 +95,7 @@ export function toCreateRunner(
   runner: IRunnerState,
   sortedSkills: Array<string>,
   forcedPositions?: Record<string, number>,
-  injectedDebuffs?: Array<InjectedDebuff>,
+  injectedDebuffs?: Array<InjectedDebuff>
 ): CreateRunner {
   return {
     outfitId: runner.outfitId,
@@ -104,23 +104,23 @@ export function toCreateRunner(
     aptitudes: {
       distance: parseAptitudeName(runner.distanceAptitude),
       surface: parseAptitudeName(runner.surfaceAptitude),
-      strategy: parseAptitudeName(runner.strategyAptitude),
+      strategy: parseAptitudeName(runner.strategyAptitude)
     },
     stats: {
       speed: runner.speed,
       stamina: runner.stamina,
       power: runner.power,
       guts: runner.guts,
-      wit: runner.wisdom,
+      wit: runner.wisdom
     },
     skills: sortedSkills,
     forcedPositions,
-    injectedDebuffs: injectedDebuffs?.map(({ skillId, position }) => ({ skillId, position })),
+    injectedDebuffs: injectedDebuffs?.map(({ skillId, position }) => ({ skillId, position }))
   };
 }
 
 export function toSundayRaceParameters(
-  racedef: RunComparisonParams['racedef'],
+  racedef: RunComparisonParams['racedef']
 ): SundayRaceParameters {
   const race = racedef as Record<string, unknown>;
 
@@ -138,7 +138,7 @@ export function toSundayRaceParameters(
 }
 
 export function createCompareSettings(
-  overrides: Partial<Omit<SimulationSettings, 'mode'>> = {},
+  overrides: Partial<Omit<SimulationSettings, 'mode'>> = {}
 ): SimulationSettings {
   return {
     mode: 'compare',
@@ -151,7 +151,7 @@ export function createCompareSettings(
     witChecks: false,
     positionKeepMode: 0,
     staminaDrainOverrides: {},
-    ...overrides,
+    ...overrides
   };
 }
 
@@ -169,7 +169,7 @@ export function createInitializedRace(params: {
     parameters: params.raceParameters,
     settings: params.settings,
     skillSamples: params.skillSamples,
-    duelingRates: params.duelingRates,
+    duelingRates: params.duelingRates
   });
 
   if (params.observer) {

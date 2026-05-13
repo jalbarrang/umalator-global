@@ -22,7 +22,7 @@ export type RaceSimCollectedResult = {
 };
 
 function cloneSkillActivationMap(
-  map: Record<string, CollectedRunnerRoundData['skillActivations'][string]>,
+  map: Record<string, CollectedRunnerRoundData['skillActivations'][string]>
 ): Record<string, CollectedRunnerRoundData['skillActivations'][string]> {
   const cloned: Record<string, CollectedRunnerRoundData['skillActivations'][string]> = {};
   for (const [skillId, logs] of Object.entries(map)) {
@@ -63,12 +63,12 @@ function cloneCollectedRunnerRoundData(data: CollectedRunnerRoundData): Collecte
     firstPositionInLateRace: data.firstPositionInLateRace,
     usedSkills: [...data.usedSkills],
     finished: data.finished,
-    finishPosition: data.finishPosition,
+    finishPosition: data.finishPosition
   };
 }
 
 function cloneFocusRunnerDataRecord(
-  record: Record<number, CollectedRunnerRoundData>,
+  record: Record<number, CollectedRunnerRoundData>
 ): Record<number, CollectedRunnerRoundData> {
   const cloned: Record<number, CollectedRunnerRoundData> = {};
   for (const [runnerId, data] of Object.entries(record)) {
@@ -113,10 +113,10 @@ export class RaceSimDataCollector {
   public subscribe(bus: RaceEventBus): () => void {
     const unsubRoundStart = bus.on('round-start', (race, seed) => this.onRoundStart(race, seed));
     const unsubAfterRunnerTick = bus.on('after-runner-tick', (race, runner, dt) =>
-      this.onAfterRunnerTick(race, runner, dt),
+      this.onAfterRunnerTick(race, runner, dt)
     );
     const unsubRunnerFinished = bus.on('runner-finished', (race, runner) =>
-      this.onRunnerFinished(race, runner),
+      this.onRunnerFinished(race, runner)
     );
     const unsubRoundEnd = bus.on('round-end', (race) => this.onRoundEnd(race));
 
@@ -140,8 +140,8 @@ export class RaceSimDataCollector {
         finishOrder: round.finishOrder.map((entry) => ({ ...entry })),
         focusRunnerData: cloneFocusRunnerDataRecord(round.focusRunnerData),
         allRunnerPositions: cloneAllRunnerPositionsRecord(round.allRunnerPositions),
-        allRunnerLanes: cloneAllRunnerLanesRecord(round.allRunnerLanes),
-      })),
+        allRunnerLanes: cloneAllRunnerLanesRecord(round.allRunnerLanes)
+      }))
     };
   }
 
@@ -175,7 +175,7 @@ export class RaceSimDataCollector {
       name: runner.name,
       strategy: runner.strategy,
       finishPosition: Math.min(runner.position, race.course.distance),
-      finishTime: runner.finishTime,
+      finishTime: runner.finishTime
     });
 
     const focusCollector = this.focusCollectors.get(runner.id);
@@ -222,7 +222,7 @@ export class RaceSimDataCollector {
         name: runner.name,
         strategy: runner.strategy,
         finishPosition: Math.min(runner.position, race.course.distance),
-        finishTime: runner.finishTime,
+        finishTime: runner.finishTime
       });
     }
 
@@ -252,7 +252,7 @@ export class RaceSimDataCollector {
       finishOrder: this.currentRoundFinishOrder.map((entry) => ({ ...entry })),
       focusRunnerData,
       allRunnerPositions,
-      allRunnerLanes,
+      allRunnerLanes
     });
   }
 

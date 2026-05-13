@@ -24,7 +24,7 @@ export function buildDecodedRunner(data: ISingleExportData): IDecodedRunner {
 
 export function passesAptitudeFilters(
   source: ISingleExportData,
-  filters: IAptitudeFilters,
+  filters: IAptitudeFilters
 ): boolean {
   for (const key in filters) {
     const minGrade = filters[key as IAptitudeSlotKey];

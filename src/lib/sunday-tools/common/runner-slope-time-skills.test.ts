@@ -5,7 +5,7 @@ import {
   GroundCondition,
   Season,
   TimeOfDay,
-  Weather,
+  Weather
 } from '@/lib/sunday-tools/course/definitions';
 import { Aptitude, Mood, Strategy } from '@/lib/sunday-tools/runner/definitions';
 import type { PendingSkill } from '@/lib/sunday-tools/skills/skill.types';
@@ -27,7 +27,7 @@ const TEST_SETTINGS: SimulationSettings = {
   dueling: false,
   witChecks: false,
   positionKeepMode: 0,
-  staminaDrainOverrides: {},
+  staminaDrainOverrides: {}
 };
 
 const TEST_RACE_PARAMS: RaceParameters = {
@@ -35,7 +35,7 @@ const TEST_RACE_PARAMS: RaceParameters = {
   weather: Weather.Sunny,
   season: Season.Spring,
   timeOfDay: TimeOfDay.Midday,
-  grade: Grade.G1,
+  grade: Grade.G1
 };
 
 const TEST_RUNNER: CreateRunner = {
@@ -45,16 +45,16 @@ const TEST_RUNNER: CreateRunner = {
   aptitudes: {
     distance: Aptitude.S,
     surface: Aptitude.A,
-    strategy: Aptitude.A,
+    strategy: Aptitude.A
   },
   stats: {
     speed: 1200,
     stamina: 1200,
     power: 800,
     guts: 400,
-    wit: 400,
+    wit: 400
   },
-  skills: [RESTLESS],
+  skills: [RESTLESS]
 };
 
 type TestRunner = {
@@ -74,8 +74,8 @@ function createRace(courseId: number) {
       frontRunner: 10,
       paceChaser: 10,
       lateSurger: 10,
-      endCloser: 10,
-    },
+      endCloser: 10
+    }
   });
 
   race.onInitialize();
@@ -91,7 +91,7 @@ function getRunner(race: Race): TestRunner {
 
 function getPendingSkill(runner: TestRunner, baseSkillId: string): PendingSkill {
   const pendingSkill = runner.pendingSkills.find(
-    (skill: PendingSkill) => (skill.skillId.split('-')[0] ?? skill.skillId) === baseSkillId,
+    (skill: PendingSkill) => (skill.skillId.split('-')[0] ?? skill.skillId) === baseSkillId
   );
 
   if (!pendingSkill) {

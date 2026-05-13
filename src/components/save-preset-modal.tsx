@@ -13,7 +13,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  DialogTrigger
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,7 +23,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
+  SelectValue
 } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { addPreset, updatePreset, usePresetStore } from '@/store/race/preset.store';
@@ -97,7 +97,7 @@ export const SavePresetModal = () => {
       ground: racedef.ground,
       weather: racedef.weather,
       season: racedef.season,
-      time: racedef.time,
+      time: racedef.time
     });
 
     toast.success('Preset updated successfully!');
@@ -127,7 +127,7 @@ export const SavePresetModal = () => {
       ground: racedef.ground,
       weather: racedef.weather,
       season: racedef.season,
-      time: racedef.time,
+      time: racedef.time
     });
 
     setSelectedPresetId(newId);
@@ -239,7 +239,7 @@ const PresetForm = ({
   onNameChange,
   onDateChange,
   onEventTypeChange,
-  onCalendarOpenChange,
+  onCalendarOpenChange
 }: PresetFormProps) => (
   <div className="grid gap-4 py-4">
     <div className="grid gap-2">

@@ -20,7 +20,7 @@ const statIcons = [
   getIconUrl('status_01.png'),
   getIconUrl('status_02.png'),
   getIconUrl('status_03.png'),
-  getIconUrl('status_04.png'),
+  getIconUrl('status_04.png')
 ] as const;
 
 export function RunnerListItem(props: Readonly<RunnerListItemProps>) {
@@ -28,7 +28,7 @@ export function RunnerListItem(props: Readonly<RunnerListItemProps>) {
 
   const imageUrl = useMemo(
     () => getUmaImageUrl(runner.outfitId, runner.randomMobId),
-    [runner.outfitId, runner.randomMobId],
+    [runner.outfitId, runner.randomMobId]
   );
 
   const umaInfo = useMemo(() => {
@@ -45,7 +45,7 @@ export function RunnerListItem(props: Readonly<RunnerListItemProps>) {
       className={cn(
         'group relative flex w-full items-start gap-3 rounded-lg p-2.5 text-left transition-all duration-150',
         'hover:bg-accent/60',
-        isSelected ? 'bg-card shadow-sm ring-1 ring-primary/30' : 'bg-transparent',
+        isSelected ? 'bg-card shadow-sm ring-1 ring-primary/30' : 'bg-transparent'
       )}
     >
       {isSelected && (
@@ -58,14 +58,14 @@ export function RunnerListItem(props: Readonly<RunnerListItemProps>) {
           alt={umaInfo?.name ?? `Runner ${index + 1}`}
           className={cn(
             'size-12 rounded-md object-cover ring-1 ring-border transition-all',
-            isSelected && 'ring-primary/50',
+            isSelected && 'ring-primary/50'
           )}
         />
         <div
           className={cn(
             'absolute -top-1 -left-1 flex size-5 items-center justify-center rounded-full text-[10px] font-bold',
             'bg-muted text-muted-foreground ring-1 ring-border',
-            isSelected && 'bg-primary text-primary-foreground ring-primary',
+            isSelected && 'bg-primary text-primary-foreground ring-primary'
           )}
         >
           {index + 1}

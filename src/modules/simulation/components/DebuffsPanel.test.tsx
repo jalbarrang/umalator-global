@@ -11,7 +11,7 @@ import { isInjectableExternalDebuffSkill } from '@/lib/sunday-tools/skills/exter
 
 const pickerState = vi.hoisted(() => ({
   selectedSkills: [] as Array<string>,
-  latestCurrentSkills: [] as Array<string>,
+  latestCurrentSkills: [] as Array<string>
 }));
 
 vi.mock('@/modules/skills/components/skill-picker/modal', () => ({
@@ -19,7 +19,7 @@ vi.mock('@/modules/skills/components/skill-picker/modal', () => ({
     open,
     currentSkills,
     onSelect,
-    onOpenChange,
+    onOpenChange
   }: {
     open: boolean;
     currentSkills: Array<string>;
@@ -42,12 +42,12 @@ vi.mock('@/modules/skills/components/skill-picker/modal', () => ({
         </button>
       </div>
     );
-  },
+  }
 }));
 
 const initialDebuffsState = {
   uma1: [{ id: 'debuff-1', skillId: runawaySkillId, position: 100 }],
-  uma2: [],
+  uma2: []
 };
 
 const debuffSkillId =

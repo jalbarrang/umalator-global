@@ -13,7 +13,7 @@ const EXTERNAL_DEBUFF_EFFECT_TYPES = new Set<number>([
   SkillType.TargetSpeed,
   SkillType.Accel,
   SkillType.LaneMovementSpeed,
-  SkillType.ChangeLane,
+  SkillType.ChangeLane
 ]);
 
 type SkillWithAlternatives = {
@@ -40,6 +40,6 @@ export function getExternalDebuffEffects<T extends EffectLike>(effects: Array<T>
 
 export function isInjectableExternalDebuffSkill(skill: SkillWithAlternatives): boolean {
   return skill.alternatives.some((alternative) =>
-    alternative.effects.some((effect) => isExternalDebuffEffect(effect)),
+    alternative.effects.some((effect) => isExternalDebuffEffect(effect))
   );
 }

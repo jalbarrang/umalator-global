@@ -30,7 +30,7 @@ const groundConditions: Record<number, string> = {
   1: 'Firm',
   2: 'Good',
   3: 'Soft',
-  4: 'Heavy',
+  4: 'Heavy'
 };
 
 export function getRaceSettingsSummaryLine(courseId: number, racedef: RaceConditions): string {
@@ -58,12 +58,12 @@ export function useCompareShareCardProps(): CompareShareCardProps | null {
       rushedStats: s.rushedStats,
       leadCompetitionStats: s.leadCompetitionStats,
       staminaStats: s.staminaStats,
-      seed: s.seed,
-    })),
+      seed: s.seed
+    }))
   );
 
   const { runnerId, uma1, uma2 } = useRunnersStore(
-    useShallow((s) => ({ runnerId: s.runnerId, uma1: s.uma1, uma2: s.uma2 })),
+    useShallow((s) => ({ runnerId: s.runnerId, uma1: s.uma1, uma2: s.uma2 }))
   );
 
   const courseId = useSettingsStore((s) => s.courseId);
@@ -106,7 +106,7 @@ export function useCompareShareCardProps(): CompareShareCardProps | null {
     const statRows: CompareShareStatRow[] = [
       { label: 'Time to finish', value: formatTime(finishTime) },
       { label: 'Start delay', value: `${startDelay.toFixed(4)} s` },
-      { label: 'Top speed', value: `${topSpeed.toFixed(2)} m/s` },
+      { label: 'Top speed', value: `${topSpeed.toFixed(2)} m/s` }
     ];
 
     if (race.rushedStats && wit.allowRushedUma2) {
@@ -115,7 +115,7 @@ export function useCompareShareCardProps(): CompareShareCardProps | null {
         value:
           rushedStats && rushedStats.frequency > 0
             ? `${rushedStats.frequency.toFixed(1)}% (${rushedStats.mean.toFixed(1)}m)`
-            : '0%',
+            : '0%'
       });
     }
 
@@ -125,7 +125,7 @@ export function useCompareShareCardProps(): CompareShareCardProps | null {
         value:
           leadCompetitionStats && leadCompetitionStats.frequency > 0
             ? `${leadCompetitionStats.frequency.toFixed(1)}%`
-            : '0%',
+            : '0%'
       });
     }
 
@@ -134,13 +134,13 @@ export function useCompareShareCardProps(): CompareShareCardProps | null {
         {
           label: 'Spurt Rate',
           value: `${(staminaStats?.fullSpurtRate ?? 0).toFixed(1)}%`,
-          highlight: true,
+          highlight: true
         },
         {
           label: 'Survival Rate',
           value: `${(staminaStats?.staminaSurvivalRate ?? 0).toFixed(1)}%`,
-          highlight: true,
-        },
+          highlight: true
+        }
       );
     }
 
@@ -150,7 +150,7 @@ export function useCompareShareCardProps(): CompareShareCardProps | null {
       meanLengths,
       sampleCount: race.results.length,
       seedDisplay: race.seed === null ? '—' : String(race.seed),
-      statRows,
+      statRows
     } satisfies CompareShareCardProps;
   }, [race, runnerId, runner, uma1, uma2, courseId, racedef, wit]);
 }

@@ -4,7 +4,7 @@ import {
   Grade,
   Season,
   TimeOfDay,
-  Weather,
+  Weather
 } from '@/lib/sunday-tools/course/definitions';
 import { Mood, Strategy } from '@/lib/sunday-tools/runner/definitions';
 import { Region, RegionList } from '@/lib/sunday-tools/shared/region';
@@ -29,7 +29,7 @@ const TEST_COURSE: CourseData = {
   laneChangeAcceleration: 0.02 * 1.5,
   laneChangeAccelerationPerFrame: (0.02 * 1.5) / 15,
   maxLaneDistance: (11.25 * 13500) / 10000,
-  moveLanePoint: 30,
+  moveLanePoint: 30
 };
 
 function buildParams(regions: Array<[number, number]>, minTime: number): ConditionFilterParams {
@@ -46,18 +46,18 @@ function buildParams(regions: Array<[number, number]>, minTime: number): Conditi
         stamina: 1200,
         power: 800,
         guts: 400,
-        wit: 400,
+        wit: 400
       },
       strategy: Strategy.FrontRunner,
-      mood: Mood.Great,
+      mood: Mood.Great
     },
     extra: {
       ground: GroundCondition.Firm,
       weather: Weather.Sunny,
       season: Season.Spring,
       timeOfDay: TimeOfDay.Midday,
-      grade: Grade.G1,
-    },
+      grade: Grade.G1
+    }
   };
 }
 
@@ -67,15 +67,15 @@ describe('shiftRegionsForwardByMinTime', () => {
       buildParams(
         [
           [0, 40],
-          [1950, 2100],
+          [1950, 2100]
         ],
-        0,
-      ),
+        0
+      )
     );
 
     expect(shifted.map((r) => [r.start, r.end])).toEqual([
       [0, 40],
-      [1950, 2100],
+      [1950, 2100]
     ]);
   });
 
@@ -85,15 +85,15 @@ describe('shiftRegionsForwardByMinTime', () => {
         [
           [0, 40],
           [1125, 1200],
-          [1950, 2100],
+          [1950, 2100]
         ],
-        10,
-      ),
+        10
+      )
     );
 
     expect(shifted.map((r) => [r.start, r.end])).toEqual([
       [1125, 1200],
-      [1950, 2100],
+      [1950, 2100]
     ]);
   });
 

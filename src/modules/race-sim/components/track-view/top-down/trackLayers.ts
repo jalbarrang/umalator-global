@@ -12,19 +12,19 @@ import {
   type TrackMarker,
   type TrackSceneColors,
   type TrackTopDownScene,
-  type ViewportState,
+  type ViewportState
 } from './shared';
 import {
   buildLinearRunnerMarkers,
   computeLinearPackViewport,
   paintMainMapPackIndicator,
-  paintRunnerMarkersOnPackCanvas,
+  paintRunnerMarkersOnPackCanvas
 } from './trackMarkers';
 import {
   paintPhaseColoredSegments,
   paintPhaseDividersStartFinish,
   paintTrackMarkers,
-  strokeTrackOutlineAndRails,
+  strokeTrackOutlineAndRails
 } from './trackPrimitives';
 import { clamp, formatLapTotal, resolvedColor } from './utils';
 
@@ -89,7 +89,7 @@ export type PaintTrackPackZoomParams = {
 function collectVisibleRunnerIds(
   runnerNames: Record<number, string>,
   runnerPositions: Record<number, number>,
-  trackedRunnerIds: number[],
+  trackedRunnerIds: number[]
 ): number[] {
   const ids = new Set<number>();
   for (const k of Object.keys(runnerNames)) ids.add(Number(k));
@@ -104,7 +104,7 @@ export function resolveTrackSceneColors(): TrackSceneColors {
     muted: resolvedColor('--muted-foreground'),
     border: resolvedColor('--border'),
     primary: resolvedColor('--foreground-primary'),
-    dot: resolvedColor('--foreground'),
+    dot: resolvedColor('--foreground')
   };
 }
 
@@ -114,7 +114,7 @@ function setupCanvasLayer(
   measuredWidth: number,
   measuredHeight: number,
   virtualWidth: number,
-  virtualHeight: number,
+  virtualHeight: number
 ): void {
   ctx.canvas.width = measuredWidth * dpr;
   ctx.canvas.height = measuredHeight * dpr;
@@ -135,14 +135,14 @@ export function buildTrackTopDownScene(params: BuildTrackTopDownSceneParams): Tr
     runnerPositions,
     runnerNames,
     trackedRunnerIds,
-    markers,
+    markers
   } = params;
   const inner = builtTrack.points;
   const visiblePoints = buildVisibleTrackPoints(builtTrack, courseDistance, viewStart, viewEnd);
   const bounds = computeBounds(
     visiblePoints.length > 1 ? visiblePoints : inner,
     courseWidth,
-    turnSign,
+    turnSign
   );
   const transform = createCanvasTransform(bounds, viewport);
   const innerPts: Array<{ x: number; y: number }> = [];
@@ -163,7 +163,7 @@ export function buildTrackTopDownScene(params: BuildTrackTopDownSceneParams): Tr
     outerPts,
     runnerIds: collectVisibleRunnerIds(runnerNames, runnerPositions, trackedRunnerIds),
     tracked: new Set(trackedRunnerIds),
-    markers,
+    markers
   };
 }
 
@@ -177,7 +177,7 @@ export function paintTrackBaseLayer(params: PaintTrackBaseLayerParams): void {
     outerPts: scene.outerPts,
     transform: scene.transform,
     builtTrack: scene.builtTrack,
-    courseDistance: scene.courseDistance,
+    courseDistance: scene.courseDistance
   });
   strokeTrackOutlineAndRails(
     ctx,
@@ -185,7 +185,7 @@ export function paintTrackBaseLayer(params: PaintTrackBaseLayerParams): void {
     scene.outerPts,
     scene.transform,
     colors.border,
-    colors.muted,
+    colors.muted
   );
   paintPhaseDividersStartFinish({
     ctx,
@@ -194,7 +194,7 @@ export function paintTrackBaseLayer(params: PaintTrackBaseLayerParams): void {
     turnSign: scene.turnSign,
     courseDistance: scene.courseDistance,
     transform: scene.transform,
-    colorMuted: colors.muted,
+    colorMuted: colors.muted
   });
   paintTrackMarkers({
     ctx,
@@ -202,7 +202,7 @@ export function paintTrackBaseLayer(params: PaintTrackBaseLayerParams): void {
     builtTrack: scene.builtTrack,
     courseWidth: scene.courseWidth,
     turnSign: scene.turnSign,
-    transform: scene.transform,
+    transform: scene.transform
   });
   ctx.restore();
 }
@@ -223,7 +223,7 @@ export function paintTrackOverlayLayer(params: PaintTrackOverlayLayerParams): vo
     courseDistance: scene.courseDistance,
     turnSign: scene.turnSign,
     colorPrimary: colors.primary,
-    colorDot: colors.primary,
+    colorDot: colors.primary
   });
 
   ctx.restore();
@@ -274,7 +274,7 @@ function paintLinearPackDistanceTicks(
   distMin: number,
   distMax: number,
   colorLine: string,
-  colorLabel: string,
+  colorLabel: string
 ): void {
   const span = Math.max(distMax - distMin, 1e-6);
   const step = niceDistanceTickStep(span);
@@ -327,7 +327,7 @@ export function paintTrackPackZoom(params: PaintTrackPackZoomParams) {
     runnerPositions,
     runnerLanes,
     runnerNames,
-    trackedRunnerIds,
+    trackedRunnerIds
   } = params;
 
   const colorFg = resolvedColor('--foreground-primary');
@@ -346,7 +346,7 @@ export function paintTrackPackZoom(params: PaintTrackPackZoomParams) {
     runnerPositions,
     runnerIds,
     courseWidth,
-    courseDistance,
+    courseDistance
   });
 
   if (viewport) {
@@ -362,7 +362,7 @@ export function paintTrackPackZoom(params: PaintTrackPackZoomParams) {
       viewport,
       canvasWidth: PACK_CANVAS_W,
       canvasHeight: PACK_CANVAS_H,
-      pad: PACK_PAD,
+      pad: PACK_PAD
     });
     paintRunnerMarkersOnPackCanvas(ctx, runnerMarkers, colorPrimary, colorBg);
   } else {

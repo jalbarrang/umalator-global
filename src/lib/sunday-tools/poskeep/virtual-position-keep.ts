@@ -92,11 +92,11 @@ export function initializePositionKeep(runner: RunnerLike, createTimer: () => Ti
   runner.posKeepExitPosition = 0.0;
   runner.posKeepMinThreshold = PositionKeep.minThreshold(
     runner.strategy,
-    runner.race.course.distance,
+    runner.race.course.distance
   );
   runner.posKeepMaxThreshold = PositionKeep.maxThreshold(
     runner.strategy,
-    runner.race.course.distance,
+    runner.race.course.distance
   );
   runner.positionKeepActivations = [];
   runner.posKeepEnd = calculatePosKeepEnd(runner);

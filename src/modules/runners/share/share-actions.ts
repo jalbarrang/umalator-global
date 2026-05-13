@@ -12,7 +12,7 @@ export function getSkillsForShareCard(skillIds: string[]) {
       id,
       name: skill?.name ?? `Skill ${id}`,
       iconId: skill?.iconId ?? '',
-      rarity: skill?.rarity ?? 1,
+      rarity: skill?.rarity ?? 1
     };
   });
 }
@@ -81,7 +81,7 @@ export async function inlineAllImages(element: HTMLElement) {
   await Promise.all(
     Array.from(images).map(async (img) => {
       img.src = await imageToDataUri(img);
-    }),
+    })
   );
 }
 
@@ -92,7 +92,7 @@ export async function copyScreenshot(element: HTMLElement) {
     const blob = await toBlob(element, {
       pixelRatio: 2,
       skipFonts: true,
-      imagePlaceholder: TRANSPARENT_PIXEL,
+      imagePlaceholder: TRANSPARENT_PIXEL
     });
     if (!blob) throw new Error('toBlob returned null');
 
@@ -112,7 +112,7 @@ export async function copyScreenshot(element: HTMLElement) {
   } catch (err) {
     console.error('[share] copyScreenshot failed:', err);
     toast.error(
-      `Failed to copy screenshot: ${err instanceof Error ? err.message : 'Unknown error'}`,
+      `Failed to copy screenshot: ${err instanceof Error ? err.message : 'Unknown error'}`
     );
   }
 }

@@ -4,7 +4,7 @@ import {
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
-  useReactTable,
+  useReactTable
 } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 
@@ -20,7 +20,7 @@ import type {
   HeaderGroup,
   Row,
   SortingState,
-  Table,
+  Table
 } from '@tanstack/react-table';
 import type { SkillComparisonRoundResult } from '@/modules/simulation/types';
 
@@ -36,7 +36,7 @@ import { Menu as MenuPrimitive } from '@base-ui/react/menu';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from '../ui/dropdown-menu';
 import {
   BASSIN_DATA_EVENT_TOGGLE_ACTIVATION_DETAILS,
-  SkillActivationDetailsDialog,
+  SkillActivationDetailsDialog
 } from './skill-activation-details-dialog';
 import { BASSIN_DATA_EVENT_TOGGLE_SKILL_DETAILS, skillNameCell } from './skill-name-cell';
 import { Popover, PopoverContent } from '../ui/popover';
@@ -48,7 +48,7 @@ export const formatBasinn = React.memo(
     const value = props.getValue() as number;
 
     return value.toFixed(2).replace('-0.00', '0.00') + ' L';
-  },
+  }
 );
 
 type IconTypeFilterKey = keyof typeof iconIdPrefixes;
@@ -72,7 +72,7 @@ const IconTypeFilterButton = React.memo(
 
     const classNameObject = useMemo(() => {
       return cn('border rounded-none', {
-        'border-primary': iconTypeFilters[iconType as IconTypeFilterKey],
+        'border-primary': iconTypeFilters[iconType as IconTypeFilterKey]
       });
     }, [iconTypeFilters, iconType]);
 
@@ -92,7 +92,7 @@ const IconTypeFilterButton = React.memo(
         <img src={imgSrc} className="w-6 h-6" />
       </Button>
     );
-  },
+  }
 );
 
 const IconTypeFilterBar = React.memo(({ iconTypeFilters, onToggle }: IconTypeFilterBarProps) => {
@@ -167,7 +167,7 @@ const BassinTableHeaderRow = React.memo(({ headerGroup }: BassinTableHeaderRowPr
         <div
           key={header.id}
           className={cn('flex items-center gap-2', {
-            'cursor-pointer': SORTABLE_HEADER_IDS.has(header.id),
+            'cursor-pointer': SORTABLE_HEADER_IDS.has(header.id)
           })}
         >
           {header.isPlaceholder
@@ -194,7 +194,7 @@ function BassinTableHeader({ table }: BassinTableHeaderProps) {
 }
 
 function isSkillActionsMenuAllowedCloseReason(
-  reason: MenuPrimitive.Root.ChangeEventDetails['reason'],
+  reason: MenuPrimitive.Root.ChangeEventDetails['reason']
 ): boolean {
   return reason === 'outside-press' || reason === 'item-press';
 }
@@ -209,7 +209,7 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
     currentSeed = null,
     skillLoadingStates = {},
     onRunAdditionalSamples,
-    className,
+    className
   } = props;
 
   const [expandedSkillId, setExpandedSkillId] = useState<string | null>(null);
@@ -239,13 +239,13 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
           const skill = dataRegistry.skills.getById(row.id);
           return skill ? ([row.id, skill] as const) : null;
         })
-        .filter((entry): entry is [string, SkillEntry] => entry !== null),
+        .filter((entry): entry is [string, SkillEntry] => entry !== null)
     );
   }, [props.data]);
 
   const activeIconTypeFilters = useMemo(() => {
     return groups_filters.icontype.filter(
-      (iconType) => iconTypeFilters[iconType as IconTypeFilterKey],
+      (iconType) => iconTypeFilters[iconType as IconTypeFilterKey]
     );
   }, [iconTypeFilters]);
 
@@ -256,8 +256,8 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
 
       return activeIconTypeFilters.some((iconType) =>
         iconIdPrefixes[iconType as IconTypeFilterKey]?.some((prefix) =>
-          skill.iconId.startsWith(prefix),
-        ),
+          skill.iconId.startsWith(prefix)
+        )
       );
     });
   }, [activeIconTypeFilters, props.data, skillMetadataById]);
@@ -265,7 +265,7 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
   const handleGridClick = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
       const actionsEl = (e.target as HTMLElement).closest(
-        `[data-event="${BASSIN_DATA_EVENT_OPEN_SKILL_ACTIONS}"]`,
+        `[data-event="${BASSIN_DATA_EVENT_OPEN_SKILL_ACTIONS}"]`
       );
       if (actionsEl) {
         const skillId = actionsEl.getAttribute('data-skill-id');
@@ -279,7 +279,7 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
       }
 
       const detailsEl = (e.target as HTMLElement).closest(
-        `[data-event="${BASSIN_DATA_EVENT_TOGGLE_SKILL_DETAILS}"]`,
+        `[data-event="${BASSIN_DATA_EVENT_TOGGLE_SKILL_DETAILS}"]`
       );
       if (detailsEl) {
         const skillId = detailsEl.getAttribute('data-skill-id');
@@ -292,7 +292,7 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
       }
 
       const el = (e.target as HTMLElement).closest(
-        `[data-event="${BASSIN_DATA_EVENT_TOGGLE_ACTIVATION_DETAILS}"]`,
+        `[data-event="${BASSIN_DATA_EVENT_TOGGLE_ACTIVATION_DETAILS}"]`
       );
       if (!el) return;
 
@@ -301,7 +301,7 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
 
       setExpandedSkillId((prev) => (prev === skillId ? null : skillId));
     },
-    [onAddSkill, onReplaceOutfit],
+    [onAddSkill, onReplaceOutfit]
   );
 
   const activationDetailsRow = useMemo(() => {
@@ -315,7 +315,7 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
   const handleToggleIconTypeFilter = useCallback((iconType: IconTypeFilterKey) => {
     setIconTypeFilters((prev) => {
       const allActive = groups_filters.icontype.every(
-        (filter) => prev[filter as IconTypeFilterKey],
+        (filter) => prev[filter as IconTypeFilterKey]
       );
 
       if (allActive) {
@@ -328,11 +328,11 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
 
       const toggledState = {
         ...prev,
-        [iconType]: !prev[iconType],
+        [iconType]: !prev[iconType]
       };
 
       const anyActive = groups_filters.icontype.some(
-        (filter) => toggledState[filter as IconTypeFilterKey],
+        (filter) => toggledState[filter as IconTypeFilterKey]
       );
 
       if (!anyActive) {
@@ -351,13 +351,13 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
         id: 'actions',
         header: '',
         cell: () => null,
-        enableSorting: false,
+        enableSorting: false
       },
       {
         id: 'expand',
         header: '',
         cell: () => null,
-        enableSorting: false,
+        enableSorting: false
       },
       {
         header: () => <span>Skill name</span>,
@@ -365,7 +365,7 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
         cell: skillNameCell({
           showUmaIcons,
           showSkillIds,
-          skillMetadataById,
+          skillMetadataById
         }),
         sortingFn: (a, b, _) => {
           const skillIdA = a.getValue('id');
@@ -375,31 +375,31 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
           const skillNameB = dataRegistry.skills.getNameById(`${skillIdB}`);
 
           return skillNameA < skillNameB ? -1 : 1;
-        },
+        }
       },
       {
         header: sortableHeader('Minimum', 'min'),
         accessorKey: 'min',
-        cell: formatBasinn,
+        cell: formatBasinn
       },
       {
         header: sortableHeader('Maximum', 'max'),
         accessorKey: 'max',
         cell: formatBasinn,
-        sortDescFirst: true,
+        sortDescFirst: true
       },
       {
         header: sortableHeader('Mean', 'mean'),
         accessorKey: 'mean',
         cell: formatBasinn,
-        sortDescFirst: true,
+        sortDescFirst: true
       },
       {
         header: sortableHeader('Median', 'median'),
         accessorKey: 'median',
         cell: formatBasinn,
-        sortDescFirst: true,
-      },
+        sortDescFirst: true
+      }
     ];
   }, [showUmaIcons, showSkillIds, skillMetadataById]);
 
@@ -413,7 +413,7 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     onRowSelectionChange: setRowSelection,
-    state: { sorting, rowSelection },
+    state: { sorting, rowSelection }
   });
 
   const { rows } = table.getRowModel();
@@ -430,9 +430,9 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
       measureElement:
         typeof window !== 'undefined' && navigator.userAgent.indexOf('Firefox') === -1
           ? (element: Element) => element?.getBoundingClientRect().height
-          : undefined,
+          : undefined
     }),
-    [rows],
+    [rows]
   );
 
   const virtualizer = useVirtualizer(virtualizerOptions);
@@ -447,9 +447,9 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
       },
       onScrollToRow: (index: number) => {
         virtualizer.scrollToIndex(index, { align: 'center' });
-      },
+      }
     }),
-    [rows, virtualizer],
+    [rows, virtualizer]
   );
 
   const search = useTableSearch(searchOptions);
@@ -468,7 +468,7 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
         setSkillActionsAnchor(null);
       }
     },
-    [],
+    []
   );
 
   return (

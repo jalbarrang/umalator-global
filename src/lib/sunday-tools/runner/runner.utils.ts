@@ -32,7 +32,7 @@ export function buildSkillEffects(skill: SkillAlternative) {
       modifier: effect.modifier / 10000,
       target: effect.target,
       valueUsage: effect.valueUsage,
-      valueLevelUsage: effect.valueLevelUsage,
+      valueLevelUsage: effect.valueLevelUsage
     });
   }
 
@@ -47,7 +47,7 @@ export function buildSkillData(params: BuildSkillDataParams): Array<SkillTrigger
     wholeCourse,
     parser,
     skillId,
-    ignoreNullEffects = false,
+    ignoreNullEffects = false
   } = params;
 
   const [baseSkillId] = skillId.split('-');
@@ -83,7 +83,7 @@ export function buildSkillData(params: BuildSkillDataParams): Array<SkillTrigger
         regions: wholeCourse,
         course,
         runner,
-        extra,
+        extra
       })[0];
 
       if (preRegions.length == 0) {
@@ -101,7 +101,7 @@ export function buildSkillData(params: BuildSkillDataParams): Array<SkillTrigger
       regions: full,
       course,
       runner,
-      extra,
+      extra
     });
 
     if (regions.length === 0) {
@@ -135,7 +135,7 @@ export function buildSkillData(params: BuildSkillDataParams): Array<SkillTrigger
         samplePolicy: parsedOperator.samplePolicy,
         regions: regions,
         extraCondition: extraCondition,
-        effects: effects,
+        effects: effects
       });
     }
   }
@@ -165,7 +165,7 @@ export function buildSkillData(params: BuildSkillDataParams): Array<SkillTrigger
       samplePolicy: ImmediatePolicy,
       regions: afterEnd,
       extraCondition: (_) => false,
-      effects: effects,
-    },
+      effects: effects
+    }
   ];
 }

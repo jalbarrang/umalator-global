@@ -3,7 +3,7 @@ import { dataRegistry } from '@/modules/data/registry';
 import {
   getRepresentativePrerequisiteIds,
   getUnsatisfiedRepresentativePrerequisiteIds,
-  isSkillCoveredByOwnedFamily,
+  isSkillCoveredByOwnedFamily
 } from './skill-family';
 
 const getSkillIdByName = (name: string): string => {
@@ -23,7 +23,7 @@ describe('skill-family prerequisite coverage', () => {
     const gatekeptId = getSkillIdByName('Gatekept');
 
     expect(getRepresentativePrerequisiteIds(concentrationId)).toEqual(
-      expect.arrayContaining([focusId, gatekeptId]),
+      expect.arrayContaining([focusId, gatekeptId])
     );
     expect(isSkillCoveredByOwnedFamily(gatekeptId, [focusId])).toBe(true);
     expect(getUnsatisfiedRepresentativePrerequisiteIds(concentrationId, [focusId])).toEqual([]);
@@ -36,7 +36,7 @@ describe('skill-family prerequisite coverage', () => {
     expect(getRepresentativePrerequisiteIds(escapeArtistId)).toEqual([fastPacedId]);
     expect(isSkillCoveredByOwnedFamily(fastPacedId, [escapeArtistId])).toBe(true);
     expect(getUnsatisfiedRepresentativePrerequisiteIds(escapeArtistId, [escapeArtistId])).toEqual(
-      [],
+      []
     );
   });
 });

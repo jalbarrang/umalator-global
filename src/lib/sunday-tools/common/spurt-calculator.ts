@@ -41,7 +41,7 @@ export function getGroundConsumptionCoef(surface: number, condition: IGroundCond
   const coefficients = [
     [],
     [0, 1.0, 1.0, 1.02, 1.02], // Turf
-    [0, 1.0, 1.0, 1.01, 1.02], // Dirt
+    [0, 1.0, 1.0, 1.01, 1.02] // Dirt
   ];
   return coefficients[surface]?.[condition] ?? 1.0;
 }
@@ -69,7 +69,7 @@ export function calculateHpPerSecond(
   groundCoef: number,
   gutsModifier: number,
   statusModifier: number = 1.0,
-  inSpurtPhase: boolean = false,
+  inSpurtPhase: boolean = false
 ): number {
   const guts = inSpurtPhase ? gutsModifier : 1.0;
   return (
@@ -93,7 +93,7 @@ export function calculateRequiredHp(
   baseSpeed: number,
   groundCoef: number,
   gutsModifier: number,
-  inSpurtPhase: boolean = true,
+  inSpurtPhase: boolean = true
 ): number {
   const time = distance / velocity;
   const hpPerSec = calculateHpPerSecond(
@@ -102,7 +102,7 @@ export function calculateRequiredHp(
     groundCoef,
     gutsModifier,
     1.0,
-    inSpurtPhase,
+    inSpurtPhase
   );
   return hpPerSec * time;
 }
@@ -130,7 +130,7 @@ export function calculateSpurtDistance(
   baseSpeed: number,
   baseSpeedCourse: number,
   groundCoef: number,
-  gutsModifier: number,
+  gutsModifier: number
 ): number {
   const remainingDistance = courseDistance - currentPosition;
   const bufferDistance = 60; // Game uses 60m buffer before finish
@@ -143,7 +143,7 @@ export function calculateSpurtDistance(
     baseSpeedCourse,
     groundCoef,
     gutsModifier,
-    true,
+    true
   );
 
   // Calculate excess HP available for spurting
@@ -160,7 +160,7 @@ export function calculateSpurtDistance(
     groundCoef,
     gutsModifier,
     1.0,
-    true,
+    true
   );
   const consumptionAtBase = calculateHpPerSecond(
     baseSpeed,
@@ -168,7 +168,7 @@ export function calculateSpurtDistance(
     groundCoef,
     gutsModifier,
     1.0,
-    true,
+    true
   );
   const consumptionDiff = consumptionAtTarget / targetSpeed - consumptionAtBase / baseSpeed;
 
@@ -207,7 +207,7 @@ export function findOptimalSpurt(
   baseSpeedCourse: number,
   groundCoef: number,
   gutsModifier: number,
-  speedIncrement: number = 0.1,
+  speedIncrement: number = 0.1
 ): Array<SpurtCandidate> {
   const remainingDistance = courseDistance - currentPosition;
 
@@ -220,7 +220,7 @@ export function findOptimalSpurt(
     baseSpeed,
     baseSpeedCourse,
     groundCoef,
-    gutsModifier,
+    gutsModifier
   );
 
   const maxHpRequired = calculateRequiredHp(
@@ -229,7 +229,7 @@ export function findOptimalSpurt(
     baseSpeedCourse,
     groundCoef,
     gutsModifier,
-    true,
+    true
   );
 
   if (maxSpurtDist >= remainingDistance) {
@@ -239,8 +239,8 @@ export function findOptimalSpurt(
         speed: maxSpeed,
         distance: remainingDistance,
         time: remainingDistance / maxSpeed,
-        hpDiff: currentHp - maxHpRequired,
-      },
+        hpDiff: currentHp - maxHpRequired
+      }
     ];
   }
 
@@ -251,7 +251,7 @@ export function findOptimalSpurt(
     baseSpeedCourse,
     groundCoef,
     gutsModifier,
-    true,
+    true
   );
 
   if (currentHp < baseHpRequired) {
@@ -261,8 +261,8 @@ export function findOptimalSpurt(
         speed: baseSpeed,
         distance: 0,
         time: remainingDistance / baseSpeed,
-        hpDiff: currentHp - maxHpRequired,
-      },
+        hpDiff: currentHp - maxHpRequired
+      }
     ];
   }
 
@@ -278,7 +278,7 @@ export function findOptimalSpurt(
       baseSpeed,
       baseSpeedCourse,
       groundCoef,
-      gutsModifier,
+      gutsModifier
     );
 
     // Calculate completion time
@@ -291,7 +291,7 @@ export function findOptimalSpurt(
       speed: speed,
       distance: spurtDist,
       time: totalTime,
-      hpDiff: currentHp - maxHpRequired,
+      hpDiff: currentHp - maxHpRequired
     });
   }
 
@@ -320,7 +320,7 @@ export function calculateRequiredHpInPhase2(
   maxSpurtSpeed: number,
   baseSpeedCourse: number,
   groundCoef: number,
-  gutsModifier: number,
+  gutsModifier: number
 ): number {
   const phase2Length = (courseDistance * 2.0) / 3.0 - currentPosition;
   const phase3Length = courseDistance / 3.0;
@@ -331,7 +331,7 @@ export function calculateRequiredHpInPhase2(
     baseSpeedCourse,
     groundCoef,
     gutsModifier,
-    false,
+    false
   );
   const hpPhase3 = calculateRequiredHp(
     maxSpurtSpeed,
@@ -339,7 +339,7 @@ export function calculateRequiredHpInPhase2(
     baseSpeedCourse,
     groundCoef,
     gutsModifier,
-    true,
+    true
   );
 
   return hpPhase2 + hpPhase3;
@@ -359,7 +359,7 @@ export function simulateHpConsumption(
   gutsModifier: number,
   statusModifier: (position: number) => number = () => 1.0,
   inSpurtPhase: boolean = false,
-  _dt: number = 1 / 15, // Default to 15 FPS
+  _dt: number = 1 / 15 // Default to 15 FPS
 ): { finalHp: number; consumptionBySegment: Array<number> } {
   let hp = startHp;
   const consumption: Array<number> = [];
@@ -380,7 +380,7 @@ export function simulateHpConsumption(
       groundCoef,
       gutsModifier,
       status,
-      inSpurtPhase,
+      inSpurtPhase
     );
     const time = segmentDistance / velocity;
     const consumed = hpPerSec * time;
@@ -391,7 +391,7 @@ export function simulateHpConsumption(
 
   return {
     finalHp: hp,
-    consumptionBySegment: consumption,
+    consumptionBySegment: consumption
   };
 }
 
@@ -405,7 +405,7 @@ export function simulateHpConsumption(
 export function calculateEquivalentStamina(
   healAmount: number,
   maxHp: number,
-  strategy: number,
+  strategy: number
 ): number {
   const HpStrategyCoefficient = [0, 0.95, 0.89, 1.0, 0.995, 0.86];
   const coef = HpStrategyCoefficient[strategy];

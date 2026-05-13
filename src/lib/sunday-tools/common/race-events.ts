@@ -53,10 +53,10 @@ export function subscribeObserver(bus: RaceEventBus, observer: RaceLifecycleObse
   const unsubRoundStart = bus.on('round-start', (race, seed) => observer.onRoundStart(race, seed));
   const unsubBeforeTick = bus.on('before-tick', (race, dt) => observer.onBeforeTick(race, dt));
   const unsubAfterRunnerTick = bus.on('after-runner-tick', (race, runner, dt) =>
-    observer.onAfterRunnerTick(race, runner, dt),
+    observer.onAfterRunnerTick(race, runner, dt)
   );
   const unsubRunnerFinished = bus.on('runner-finished', (race, runner) =>
-    observer.onRunnerFinished(race, runner),
+    observer.onRunnerFinished(race, runner)
   );
   const unsubRoundEnd = bus.on('round-end', (race) => observer.onRoundEnd(race));
 

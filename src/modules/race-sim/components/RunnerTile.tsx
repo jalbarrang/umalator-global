@@ -21,11 +21,11 @@ export function RunnerTile({
   runner,
   isFocused,
   onToggleFocus,
-  onOpenEditor,
+  onOpenEditor
 }: RunnerTileProps) {
   const imageUrl = useMemo(
     () => getUmaImageUrl(runner.outfitId, runner.randomMobId),
-    [runner.outfitId, runner.randomMobId],
+    [runner.outfitId, runner.randomMobId]
   );
 
   const umaInfo = useMemo(() => {
@@ -53,7 +53,7 @@ export function RunnerTile({
       className={cn(
         'relative rounded-lg border bg-card transition-shadow hover:shadow-lg',
         onOpenEditor && 'cursor-pointer hover:border-primary/40',
-        isFocused && 'ring-2 ring-primary',
+        isFocused && 'ring-2 ring-primary'
       )}
       onClick={handleOpenEditor}
       onKeyDown={onOpenEditor ? handleKeyDown : undefined}
@@ -123,7 +123,7 @@ export function RunnerTile({
                   <StatImage value={stat} className="w-3.5 h-3.5" />
                   <span className="text-xs">{stat}</span>
                 </div>
-              ),
+              )
             )}
           </div>
         </div>

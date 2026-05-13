@@ -9,7 +9,7 @@ describe('icon asset manifest', () => {
     expect(getIconUrl('global/utx_txt_season_00.png')).toContain('utx_txt_season_00');
     expect(getIconUrl('statusrank/ui_statusrank_00.png')).toContain('ui_statusrank_00');
     expect(getIconUrl('mob/trained_mob_chr_icon_8000_000001_01.png')).toContain(
-      'trained_mob_chr_icon_8000_000001_01',
+      'trained_mob_chr_icon_8000_000001_01'
     );
     expect(getIconUrl('chara/chr_icon_1001.png')).toContain('chr_icon_1001');
   });

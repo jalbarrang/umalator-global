@@ -96,8 +96,8 @@ export const createSkillPickerStore = () => {
           });
 
           set({ filters: { ...filters, [group]: newGroupFilters } });
-        },
-      },
+        }
+      }
     };
   });
 };
@@ -120,9 +120,9 @@ export const useSkillPickerState = () => {
     useShallow((state) => {
       return {
         filters: state.filters,
-        groups: state.groups,
+        groups: state.groups
       };
-    }),
+    })
   );
 };
 
@@ -148,7 +148,7 @@ export const useFilteredSkills = (deferredSearchText: string, skills: Array<Skil
       .whereText(deferredSearchText)
       .whereAny(activeRarities, (skill, r) => matchRarity(skill.id, r))
       .whereAny(activeIconTypes, (skill, iconKey) =>
-        iconIdPrefixes[iconKey as IconIdPrefix]?.some((p) => skill.iconId.startsWith(p)),
+        iconIdPrefixes[iconKey as IconIdPrefix]?.some((p) => skill.iconId.startsWith(p))
       )
       .whereConditionMatch(activeStrategies)
       .whereConditionMatch(activeDistances)
@@ -170,6 +170,6 @@ export const useSelectedOtherFiltersCount = () => {
       }
 
       return count;
-    }),
+    })
   );
 };

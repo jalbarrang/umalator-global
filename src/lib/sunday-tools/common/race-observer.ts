@@ -2,7 +2,7 @@ import type {
   SkillEffectLog,
   SkillSimulationRun,
   SkillTrackedMeta,
-  SkillTrackedMetaCollection,
+  SkillTrackedMetaCollection
 } from '@/modules/simulation/compare.types';
 import { isSameSkill, getSkillEffectMetadata } from '@/modules/simulation/simulators/shared';
 import {
@@ -11,7 +11,7 @@ import {
   SkillType,
   type ISkillPerspective,
   type ISkillTarget,
-  type ISkillType,
+  type ISkillType
 } from '../skills/definitions';
 import type { ActiveSkill } from '../skills/skill.types';
 import type { Race, RaceLifecycleObserver } from './race';
@@ -32,11 +32,11 @@ const ACTIVE_EFFECT_TYPES = new Set<ISkillType>([
   SkillType.LaneMovementSpeed,
   SkillType.CurrentSpeed,
   SkillType.CurrentSpeedWithNaturalDeceleration,
-  SkillType.ChangeLane,
+  SkillType.ChangeLane
 ]);
 
 function cloneSkillActivationMap(
-  map: Record<string, Array<SkillEffectLog>>,
+  map: Record<string, Array<SkillEffectLog>>
 ): Record<string, Array<SkillEffectLog>> {
   const cloned: Record<string, Array<SkillEffectLog>> = {};
   for (const [skillId, logs] of Object.entries(map)) {
@@ -173,11 +173,11 @@ export class VacuumCompareDataCollector implements RaceLifecycleObserver {
         firstPositionInLateRace: false,
         usedSkills: [],
         finished: false,
-        finishPosition: 0,
+        finishPosition: 0
       },
       openEffectsByKey: new Map(),
       effectSequence: 0,
-      seenUsedSkills: new Set(),
+      seenUsedSkills: new Set()
     };
 
     this.runnerStates.set(runner.id, state);
@@ -188,7 +188,7 @@ export class VacuumCompareDataCollector implements RaceLifecycleObserver {
     data.time.push(runner.accumulateTime.t);
     data.position.push(runner.position);
     data.velocity.push(
-      runner.currentSpeed + runner.modifiers.currentSpeed.acc + runner.modifiers.currentSpeed.err,
+      runner.currentSpeed + runner.modifiers.currentSpeed.acc + runner.modifiers.currentSpeed.err
     );
     data.hp.push(runner.healthPolicy.currentHealth);
     data.currentLane.push(runner.currentLane);
@@ -209,7 +209,7 @@ export class VacuumCompareDataCollector implements RaceLifecycleObserver {
       runner.currentSpeedSkillsActive,
       runner.accelerationSkillsActive,
       runner.laneMovementSkillsActive,
-      runner.changeLaneSkillsActive,
+      runner.changeLaneSkillsActive
     ];
 
     for (const bucket of selfBuckets) {
@@ -225,7 +225,7 @@ export class VacuumCompareDataCollector implements RaceLifecycleObserver {
       runner.targetedCurrentSpeedActive,
       runner.targetedAccelerationActive,
       runner.targetedLaneMovementSkillsActive,
-      runner.targetedChangeLaneSkillsActive,
+      runner.targetedChangeLaneSkillsActive
     ];
 
     for (const bucket of targetedBuckets) {
@@ -262,7 +262,7 @@ export class VacuumCompareDataCollector implements RaceLifecycleObserver {
           skillId: effect.skillId,
           effectType: effect.effectType,
           effectTarget: effect.effectTarget,
-          perspective: effect.perspective,
+          perspective: effect.perspective
         });
       }
     }
@@ -279,7 +279,7 @@ export class VacuumCompareDataCollector implements RaceLifecycleObserver {
           end: currentPosition,
           perspective: current.perspective,
           effectType: current.effectType,
-          effectTarget: current.effectTarget,
+          effectTarget: current.effectTarget
         };
         logs.push(log);
         state.data.skillActivations[skillId] = logs;
@@ -305,7 +305,7 @@ export class VacuumCompareDataCollector implements RaceLifecycleObserver {
   private captureUsedSkillActivations(
     runner: Runner,
     state: RunnerCollectorState,
-    courseDistance: number,
+    courseDistance: number
   ): void {
     const activationPosition = Math.min(runner.position, courseDistance);
     for (const usedSkillId of runner.usedSkills) {
@@ -332,7 +332,7 @@ export class VacuumCompareDataCollector implements RaceLifecycleObserver {
           end: activationPosition,
           perspective: PERSPECTIVE_SELF,
           effectType: effect.effectType,
-          effectTarget: effect.effectTarget,
+          effectTarget: effect.effectTarget
         });
       }
       state.data.skillActivations[usedSkillId] = logs;
@@ -354,7 +354,7 @@ export class VacuumCompareDataCollector implements RaceLifecycleObserver {
   private captureFinishSnapshot(
     runner: Runner,
     data: CollectedRunnerRoundData,
-    courseDistance: number,
+    courseDistance: number
   ): void {
     data.startDelay = runner.startDelay;
     data.rushed = cloneRegionArray(runner.rushedActivations);
@@ -362,14 +362,14 @@ export class VacuumCompareDataCollector implements RaceLifecycleObserver {
       runner.duelingStartPosition >= 0
         ? [
             runner.duelingStartPosition,
-            runner.duelingEndPosition >= 0 ? runner.duelingEndPosition : courseDistance,
+            runner.duelingEndPosition >= 0 ? runner.duelingEndPosition : courseDistance
           ]
         : [];
     data.spotStruggleRegion =
       runner.spotStruggleStartPosition != null
         ? [
             runner.spotStruggleStartPosition,
-            runner.spotStruggleEndPosition >= 0 ? runner.spotStruggleEndPosition : courseDistance,
+            runner.spotStruggleEndPosition >= 0 ? runner.spotStruggleEndPosition : courseDistance
           ]
         : [];
     data.hasAchievedFullSpurt = runner.hasAchievedFullSpurt;
@@ -410,7 +410,7 @@ export class VacuumCompareDataCollector implements RaceLifecycleObserver {
       firstPositionInLateRace: data.firstPositionInLateRace,
       usedSkills: [...data.usedSkills],
       finished: data.finished,
-      finishPosition: data.finishPosition,
+      finishPosition: data.finishPosition
     };
   }
 }
@@ -447,7 +447,7 @@ export class SkillCompareDataCollector extends VacuumCompareDataCollector {
   public getTrackedMetaCollection(): SkillTrackedMetaCollection {
     return this.trackedMetaCollection.map((meta) => ({
       horseLength: meta.horseLength,
-      positions: [...meta.positions],
+      positions: [...meta.positions]
     }));
   }
 
@@ -457,7 +457,7 @@ export class SkillCompareDataCollector extends VacuumCompareDataCollector {
       return { sk: [{}, {}] };
     }
     return {
-      sk: [{}, { [this.trackedSkillId]: logs }],
+      sk: [{}, { [this.trackedSkillId]: logs }]
     };
   }
 
@@ -469,7 +469,7 @@ export class SkillCompareDataCollector extends VacuumCompareDataCollector {
 
     const trackedLogs = this.getCurrentTrackedLogs();
     const trackedUsed = runnerData.usedSkills.some((usedSkillId) =>
-      isSameSkill(usedSkillId, this.trackedSkillId),
+      isSameSkill(usedSkillId, this.trackedSkillId)
     );
 
     const logs =
@@ -485,7 +485,7 @@ export class SkillCompareDataCollector extends VacuumCompareDataCollector {
 
     this.trackedMetaCollection.push({
       horseLength,
-      positions,
+      positions
     });
   }
 
@@ -510,7 +510,7 @@ export class SkillCompareDataCollector extends VacuumCompareDataCollector {
 
   private buildFallbackLogsIfNeeded(
     runnerData: CollectedRunnerRoundData,
-    trackedUsed: boolean,
+    trackedUsed: boolean
   ): Array<SkillEffectLog> {
     if (!trackedUsed) {
       return [];
@@ -529,8 +529,8 @@ export class SkillCompareDataCollector extends VacuumCompareDataCollector {
         end: activationPosition,
         perspective: PERSPECTIVE_SELF,
         effectType: this.fallbackEffectType,
-        effectTarget: this.fallbackEffectTarget,
-      },
+        effectTarget: this.fallbackEffectTarget
+      }
     ];
   }
 

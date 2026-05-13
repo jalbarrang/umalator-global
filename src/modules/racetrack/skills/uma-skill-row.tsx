@@ -11,7 +11,7 @@ import {
   COMPACT_LANES,
   IMMEDIATE_HIT_PADDING,
   MARKER_START_PCT,
-  MARKER_RUNG_STEP_PCT,
+  MARKER_RUNG_STEP_PCT
 } from './definitions';
 import { ImmediateLayout, ImmediateMarker } from './immediate-marker';
 import { DurationLayout, DurationMarker } from './duration-marker';
@@ -19,7 +19,7 @@ import { DurationLayout, DurationMarker } from './duration-marker';
 const findAvailableRung = (
   start: number,
   end: number,
-  rungs: Array<Array<{ start: number; end: number }>>,
+  rungs: Array<Array<{ start: number; end: number }>>
 ): number => {
   for (let i = 0; i < rungs.length; i++) {
     const hasOverlap = rungs[i].some((b) => !(end <= b.start || start >= b.end));
@@ -56,7 +56,7 @@ export const UmaSkillSection = React.memo<UmaSkillSectionProps>((props) => {
     debuffIndicators,
     showUma1,
     showUma2,
-    onDragStart,
+    onDragStart
   } = props;
 
   const positionsMapUma1 = useForcedPositionMap('uma1');
@@ -82,13 +82,13 @@ export const UmaSkillSection = React.memo<UmaSkillSectionProps>((props) => {
 
           return (b.regions[0]?.start ?? 0) - (a.regions[0]?.start ?? 0);
         }),
-    [skillActivations, rushedIndicators, debuffIndicators, showUma1, showUma2],
+    [skillActivations, rushedIndicators, debuffIndicators, showUma1, showUma2]
   );
 
   const { immediates, durations } = useMemo(() => {
     const rungs: Array<Array<{ start: number; end: number }>> = Array.from(
       { length: COMPACT_LANES },
-      () => [],
+      () => []
     );
     const immOut: Array<ImmediateLayout> = [];
     const durOut: Array<DurationLayout> = [];
@@ -146,7 +146,7 @@ export const UmaSkillSection = React.memo<UmaSkillSectionProps>((props) => {
           umaIndex,
           position,
           debuffId: desc.debuffId,
-          isDragging: matchesPreview,
+          isDragging: matchesPreview
         });
         continue;
       }
@@ -198,7 +198,7 @@ export const UmaSkillSection = React.memo<UmaSkillSectionProps>((props) => {
             end,
             isDebuff,
             debuffId: desc.debuffId,
-            isDragging: matchesPreview,
+            isDragging: matchesPreview
           });
         }
       }
@@ -212,7 +212,7 @@ export const UmaSkillSection = React.memo<UmaSkillSectionProps>((props) => {
     positionsMapUma2,
     dragPreviewUma1,
     dragPreviewUma2,
-    immediateCenterOffsetPct,
+    immediateCenterOffsetPct
   ]);
 
   return (

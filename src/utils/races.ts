@@ -5,7 +5,7 @@ import type {
   IGroundCondition,
   ISeason,
   ITimeOfDay,
-  IWeather,
+  IWeather
 } from '@/lib/sunday-tools/course/definitions';
 import type { IMood } from '@/lib/sunday-tools/runner/definitions';
 import { Mood } from '@/lib/sunday-tools/runner/definitions';
@@ -14,7 +14,7 @@ import {
   GroundCondition,
   Season,
   TimeOfDay,
-  Weather,
+  Weather
 } from '@/lib/sunday-tools/course/definitions';
 
 export type PosKeepLabel = {
@@ -34,7 +34,7 @@ export const ORDER_RANGE_FOR_STRATEGY = {
   ['Pace Chaser']: [2, 4],
   'Late Surger': [5, 9],
   'End Closer': [5, 9],
-  Runaway: [1, 1],
+  Runaway: [1, 1]
 };
 
 export type RaceConditions = {
@@ -52,13 +52,13 @@ export const defaultRaceConditions: RaceConditions = {
   weather: Weather.Sunny,
   season: Season.Spring,
   time: TimeOfDay.Midday,
-  grade: Grade.G1,
+  grade: Grade.G1
 };
 
 export const createRaceConditions = (conditions: Partial<RaceConditions> = {}): RaceConditions => {
   return {
     ...defaultRaceConditions,
-    ...conditions,
+    ...conditions
   };
 };
 
@@ -76,7 +76,7 @@ export type RacePreset = {
 
 export function racedefToParams(
   { ground, weather, season, time, grade }: RaceConditions,
-  includeOrder?: string,
+  includeOrder?: string
 ): RaceParameters {
   let orderForStrategy: [number, number] | undefined = undefined;
 
@@ -93,6 +93,6 @@ export function racedefToParams(
     timeOfDay: time,
     grade,
     orderRange: orderForStrategy,
-    numUmas: 9,
+    numUmas: 9
   };
 }

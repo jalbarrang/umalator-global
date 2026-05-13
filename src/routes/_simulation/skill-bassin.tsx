@@ -19,7 +19,7 @@ import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 import { TutorialId } from '@/components/tutorial/types';
 import { SimulationProgressBanner } from '@/components/simulation-progress-banner';
 
-export function SkillBassin() {
+export default function SkillComparePage() {
   const { selectedSkills, setSelectedSkills } = useChartData();
   const {
     results: skillBasinResults,

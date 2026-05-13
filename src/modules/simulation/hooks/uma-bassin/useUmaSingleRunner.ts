@@ -3,13 +3,13 @@ import { useShallow } from 'zustand/shallow';
 import SkillSingleWorker from '@workers/skill-single.worker.ts?worker';
 import type {
   SingleSkillWorkerInMessage,
-  SingleSkillWorkerOutMessage,
+  SingleSkillWorkerOutMessage
 } from '@/workers/skill-single.worker';
 import type { SimulationParams } from '@/workers/pool/types';
 import {
   appendResultsToTable,
   setSkillLoading,
-  useUniqueSkillBasinStore,
+  useUniqueSkillBasinStore
 } from '@/modules/simulation/stores/uma-basin.store';
 import { useRunner } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
@@ -25,7 +25,7 @@ export function useUmaSingleRunner() {
   const { runner } = useRunner();
   const { racedef, courseId } = useSettingsStore();
   const { seed: currentSeed, results } = useUniqueSkillBasinStore(
-    useShallow((state) => ({ seed: state.seed, results: state.results })),
+    useShallow((state) => ({ seed: state.seed, results: state.results }))
   );
 
   const workerRef = useRef<Worker | null>(null);
@@ -115,7 +115,7 @@ export function useUmaSingleRunner() {
         course,
         racedef: params,
         uma: runner,
-        options: defaultSimulationOptions,
+        options: defaultSimulationOptions
       };
 
       // Send run message to worker
@@ -124,15 +124,15 @@ export function useUmaSingleRunner() {
         skillId,
         nsamples: additionalSamples,
         seed: newSeed,
-        params: simulationParams,
+        params: simulationParams
       };
 
       worker.postMessage(runMessage);
       console.log(
-        `Started ${additionalSamples} additional samples for skill ${skillId} with seed ${newSeed}`,
+        `Started ${additionalSamples} additional samples for skill ${skillId} with seed ${newSeed}`
       );
     },
-    [currentSeed, results, course, racedef, runner],
+    [currentSeed, results, course, racedef, runner]
   );
 
   /**
@@ -147,6 +147,6 @@ export function useUmaSingleRunner() {
 
   return {
     runAdditionalSamples,
-    cancelAdditionalSamples,
+    cancelAdditionalSamples
   };
 }

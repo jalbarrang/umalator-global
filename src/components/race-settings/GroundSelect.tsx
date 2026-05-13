@@ -6,7 +6,7 @@ const groundConditions = {
   '1': 'Firm',
   '2': 'Good',
   '3': 'Soft',
-  '4': 'Heavy',
+  '4': 'Heavy'
 } as const;
 
 export const GroundSelect = () => {

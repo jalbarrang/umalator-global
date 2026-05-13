@@ -22,7 +22,7 @@ export const applyTheme = (resolvedTheme: 'light' | 'dark') => {
 };
 
 export const defaultThemeState: ThemeState = {
-  theme: 'dark',
+  theme: 'dark'
 };
 
 export const createThemeStore = (initState: ThemeState = defaultThemeState) => {
@@ -39,14 +39,14 @@ export const createThemeStore = (initState: ThemeState = defaultThemeState) => {
             const { theme, setTheme } = get();
             const newTheme = theme === 'dark' ? 'light' : 'dark';
             setTheme(newTheme);
-          },
+          }
         };
       },
       {
         name: 'umalator-theme',
         storage: createJSONStorage(() => localStorage),
-        partialize: (state) => ({ theme: state.theme }),
-      },
-    ),
+        partialize: (state) => ({ theme: state.theme })
+      }
+    )
   );
 };

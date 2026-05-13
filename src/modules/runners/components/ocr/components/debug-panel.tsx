@@ -14,13 +14,13 @@ function formatOcrSkillDebugReport(results: Partial<ExtractedUmaData>): string {
     `Uma: ${results.outfitName ?? '—'} ${results.umaName ?? ''}`.trim(),
     `Images: ${results.imageCount ?? 0}`,
     '',
-    'Skills:',
+    'Skills:'
   ];
 
   for (const [index, skill] of (results.skills ?? []).entries()) {
     lines.push(`- [${index + 1}] Raw: ${skill.originalText || '—'}`);
     lines.push(
-      `  Normalized: ${dataRegistry.skills.normalizeSkillName(skill.originalText) || '—'}`,
+      `  Normalized: ${dataRegistry.skills.normalizeSkillName(skill.originalText) || '—'}`
     );
     lines.push(`  Matched: ${skill.name}`);
     lines.push(`  Skill ID: ${skill.id}`);

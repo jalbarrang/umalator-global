@@ -5,7 +5,7 @@ import { getIconUrl } from '@/assets/icons';
 import { cn } from '@/lib/utils';
 
 export const WeatherIcon = (
-  props: { weather: number } & React.HTMLAttributes<HTMLImageElement>,
+  props: { weather: number } & React.HTMLAttributes<HTMLImageElement>
 ) => {
   const { weather, className, ...rest } = props;
   const { racedef } = useSettingsStore();
@@ -17,9 +17,9 @@ export const WeatherIcon = (
       className={cn(
         'w-8 h-8 grayscale-100 hover:grayscale-0',
         {
-          'grayscale-0': weather === racedef.weather,
+          'grayscale-0': weather === racedef.weather
         },
-        className,
+        className
       )}
       data-weather={weather}
       {...rest}

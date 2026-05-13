@@ -20,7 +20,7 @@ const COLORS = {
   textSecondary: '#a1a1a1',
   primary: '#57a112',
   border: '#282828',
-  muted: '#262626',
+  muted: '#262626'
 } as const;
 
 function rarityBarStyle(rarity: number): React.CSSProperties {
@@ -31,21 +31,21 @@ function rarityBarStyle(rarity: number): React.CSSProperties {
       flexShrink: 0,
       borderRadius: '4px 0 0 4px',
       background:
-        'linear-gradient(180deg, rgb(197, 255, 190), rgb(189, 235, 255), rgb(195, 208, 255), rgb(255, 138, 222))',
+        'linear-gradient(180deg, rgb(197, 255, 190), rgb(189, 235, 255), rgb(195, 208, 255), rgb(255, 138, 222))'
     };
   }
 
   const solidColors: Record<number, string> = {
     1: '#9496bd',
     2: '#ffbe28',
-    6: '#c0392b',
+    6: '#c0392b'
   };
 
   return {
     width: 4,
     flexShrink: 0,
     borderRadius: '4px 0 0 4px',
-    backgroundColor: solidColors[rarity] ?? solidColors[1],
+    backgroundColor: solidColors[rarity] ?? solidColors[1]
   };
 }
 
@@ -54,7 +54,7 @@ const STAT_DEFS = [
   { key: 'stamina', label: 'Sta', icon: getIconUrl('status_01.png') },
   { key: 'power', label: 'Pow', icon: getIconUrl('status_02.png') },
   { key: 'guts', label: 'Guts', icon: getIconUrl('status_03.png') },
-  { key: 'wisdom', label: 'Wit', icon: getIconUrl('status_04.png') },
+  { key: 'wisdom', label: 'Wit', icon: getIconUrl('status_04.png') }
 ] as const;
 
 function rankForStat(x: number): number {
@@ -93,7 +93,7 @@ export const ShareCard = memo(function ShareCard(props: IShareCardProps) {
         color: COLORS.text,
         borderRadius: 12,
         overflow: 'hidden',
-        border: `1px solid ${COLORS.border}`,
+        border: `1px solid ${COLORS.border}`
       }}
     >
       {/* Header */}
@@ -103,7 +103,7 @@ export const ShareCard = memo(function ShareCard(props: IShareCardProps) {
           alignItems: 'center',
           gap: 14,
           padding: '18px 20px 14px',
-          borderBottom: `1px solid ${COLORS.border}`,
+          borderBottom: `1px solid ${COLORS.border}`
         }}
       >
         <img
@@ -115,7 +115,7 @@ export const ShareCard = memo(function ShareCard(props: IShareCardProps) {
             borderRadius: 10,
             objectFit: 'cover',
             border: `2px solid ${COLORS.border}`,
-            flexShrink: 0,
+            flexShrink: 0
           }}
         />
 
@@ -124,7 +124,7 @@ export const ShareCard = memo(function ShareCard(props: IShareCardProps) {
             style={{
               fontSize: 18,
               fontWeight: 700,
-              lineHeight: 1.25,
+              lineHeight: 1.25
             }}
           >
             {umaInfo?.name ?? 'Unknown'}
@@ -133,7 +133,7 @@ export const ShareCard = memo(function ShareCard(props: IShareCardProps) {
           <div
             style={{
               fontSize: 12,
-              color: COLORS.textSecondary,
+              color: COLORS.textSecondary
             }}
           >
             {umaInfo?.outfit ?? runner.outfitId}
@@ -147,7 +147,7 @@ export const ShareCard = memo(function ShareCard(props: IShareCardProps) {
           display: 'flex',
           justifyContent: 'space-between',
           padding: '14px 16px',
-          gap: 6,
+          gap: 6
         }}
       >
         {STAT_DEFS.map((stat) => {
@@ -165,7 +165,7 @@ export const ShareCard = memo(function ShareCard(props: IShareCardProps) {
                 gap: 4,
                 backgroundColor: COLORS.muted,
                 borderRadius: 8,
-                padding: '8px 2px 6px',
+                padding: '8px 2px 6px'
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
@@ -192,7 +192,7 @@ export const ShareCard = memo(function ShareCard(props: IShareCardProps) {
           gap: 10,
           padding: '6px 20px 14px',
           borderBottom: `1px solid ${COLORS.border}`,
-          fontSize: 13,
+          fontSize: 13
         }}
       >
         <span
@@ -202,7 +202,7 @@ export const ShareCard = memo(function ShareCard(props: IShareCardProps) {
             borderRadius: 6,
             border: `1px solid ${COLORS.border}`,
             color: COLORS.text,
-            fontWeight: 600,
+            fontWeight: 600
           }}
         >
           {runner.strategy}
@@ -213,14 +213,14 @@ export const ShareCard = memo(function ShareCard(props: IShareCardProps) {
             display: 'flex',
             alignItems: 'center',
             gap: 4,
-            marginLeft: 'auto',
+            marginLeft: 'auto'
           }}
         >
           {(
             [
               ['Distance', runner.distanceAptitude],
               ['Surface', runner.surfaceAptitude],
-              ['Style', runner.strategyAptitude],
+              ['Style', runner.strategyAptitude]
             ] as const
           ).map(([label, grade]) => (
             <span
@@ -232,7 +232,7 @@ export const ShareCard = memo(function ShareCard(props: IShareCardProps) {
                 backgroundColor: COLORS.surface,
                 padding: '3px 6px',
                 borderRadius: 6,
-                border: `1px solid ${COLORS.border}`,
+                border: `1px solid ${COLORS.border}`
               }}
             >
               <span style={{ color: COLORS.textSecondary, fontSize: 11 }}>{label}</span>
@@ -255,7 +255,7 @@ export const ShareCard = memo(function ShareCard(props: IShareCardProps) {
             color: COLORS.textSecondary,
             textTransform: 'uppercase' as const,
             letterSpacing: 0.8,
-            marginBottom: 8,
+            marginBottom: 8
           }}
         >
           Skills
@@ -275,7 +275,7 @@ export const ShareCard = memo(function ShareCard(props: IShareCardProps) {
                 borderLeft: 'none',
                 color: COLORS.text,
                 whiteSpace: 'nowrap',
-                overflow: 'hidden',
+                overflow: 'hidden'
               }}
             >
               <span style={rarityBarStyle(skill.rarity)} />
@@ -290,7 +290,7 @@ export const ShareCard = memo(function ShareCard(props: IShareCardProps) {
                       width: 16,
                       height: 16,
                       objectFit: 'contain',
-                      flexShrink: 0,
+                      flexShrink: 0
                     }}
                   />
                 )}

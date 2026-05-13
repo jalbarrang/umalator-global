@@ -4,7 +4,7 @@ import { extractStats } from './stats';
 describe('extractStats', () => {
   it('keeps comma-grouped numbers together so non-stat values do not pollute stat parsing', () => {
     const result = extractStats(
-      ['Speed Stamina Power Guts Wit', '14,441 1200 667 791 466 1030'].join('\n'),
+      ['Speed Stamina Power Guts Wit', '14,441 1200 667 791 466 1030'].join('\n')
     );
 
     expect(result).toEqual({
@@ -12,7 +12,7 @@ describe('extractStats', () => {
       stamina: 667,
       power: 791,
       guts: 466,
-      wisdom: 1030,
+      wisdom: 1030
     });
   });
 });

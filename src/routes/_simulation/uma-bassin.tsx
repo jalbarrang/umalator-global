@@ -5,7 +5,7 @@ import {
   resetTable,
   setSeed,
   useChartData,
-  useUniqueSkillBasinStore,
+  useUniqueSkillBasinStore
 } from '@/modules/simulation/stores/uma-basin.store';
 import { BasinnChart } from '@/components/bassin-chart/BasinnChart';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
@@ -20,22 +20,22 @@ import { umaBassinSteps } from '@/modules/tutorial/steps/uma-bassin-steps';
 import { TutorialId } from '@/components/tutorial/types';
 import { SimulationProgressBanner } from '@/components/simulation-progress-banner';
 
-export function UmaBassin() {
+export default function UmaComparePage() {
   const { selectedSkills, setSelectedSkills } = useChartData();
   const {
     results: umaBasinResults,
     isSimulationRunning,
     seed,
-    skillLoadingStates,
+    skillLoadingStates
   } = useUniqueSkillBasinStore(
     useShallow((state) => {
       return {
         results: state.results,
         isSimulationRunning: state.isSimulationRunning,
         seed: state.seed,
-        skillLoadingStates: state.skillLoadingStates,
+        skillLoadingStates: state.skillLoadingStates
       };
-    }),
+    })
   );
   const courseId = useSettingsStore(useShallow((state) => state.courseId));
 
@@ -82,7 +82,7 @@ export function UmaBassin() {
     return {
       id: 'uma-bassin' as TutorialId,
       steps: umaBassinSteps,
-      tooltip: 'How to use Uma Chart',
+      tooltip: 'How to use Uma Chart'
     };
   }, []);
 

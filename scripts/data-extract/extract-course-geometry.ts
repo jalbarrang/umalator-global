@@ -63,7 +63,7 @@ function parseArgs(argv: string[]): CliOptions {
     .option(
       '-c, --course-data <path>',
       'Path to src/modules/data/course_data.json',
-      DEFAULT_COURSE_DATA_PATH,
+      DEFAULT_COURSE_DATA_PATH
     )
     .option('-o, --output <path>', 'Path to output JSON file', DEFAULT_OUTPUT_PATH)
     .showHelpAfterError();
@@ -73,7 +73,7 @@ function parseArgs(argv: string[]): CliOptions {
   return {
     sourceDir: path.resolve(options.source),
     courseDataPath: path.resolve(options.courseData),
-    outputPath: path.resolve(options.output),
+    outputPath: path.resolve(options.output)
   };
 }
 
@@ -94,7 +94,7 @@ async function walk(dir: string): Promise<string[]> {
 function parseAssetName(fileName: string): AssetNameParts | null {
   const match =
     /^an_pos_race(?<trackId>\d+)_(?<trackVariant>\d+)_(?<distance>\d+)_(?<surfaceCode>\d+)_(?<courseCode>\d+)_(?<variant>\d+)\.asset$/.exec(
-      fileName,
+      fileName
     );
   if (!match?.groups) {
     return null;
@@ -105,7 +105,7 @@ function parseAssetName(fileName: string): AssetNameParts | null {
     distance: Number(match.groups.distance),
     surfaceCode: Number(match.groups.surfaceCode),
     courseCode: Number(match.groups.courseCode),
-    variant: Number(match.groups.variant),
+    variant: Number(match.groups.variant)
   };
 }
 
@@ -115,7 +115,7 @@ function parseScalarNumber(line: string, prefix: string): number {
 
 function parseNumberList(
   lines: string[],
-  startIndex: number,
+  startIndex: number
 ): { values: number[]; nextIndex: number } {
   const values: number[] = [];
   let index = startIndex;
@@ -132,7 +132,7 @@ function parseNumberList(
 
 function parseRotationList(
   lines: string[],
-  startIndex: number,
+  startIndex: number
 ): { values: RotationSample[]; nextIndex: number } {
   const values: RotationSample[] = [];
   let index = startIndex;
@@ -148,7 +148,7 @@ function parseRotationList(
         x: Number(match[1]),
         y: Number(match[2]),
         z: Number(match[3]),
-        w: Number(match[4]),
+        w: Number(match[4])
       });
       index += 1;
       continue;
@@ -177,7 +177,7 @@ function parseGeometryAsset(
     course: number;
     trackVariant: number;
     variant: number;
-  },
+  }
 ): GeometryRecord {
   const lines = raw.split(/\r?\n/);
   let durationSeconds = 0;
@@ -241,7 +241,7 @@ function parseGeometryAsset(
 
   if (distanceFromAsset !== meta.distance) {
     throw new Error(
-      `Distance mismatch for ${assetName}: filename/course=${meta.distance}, asset=${distanceFromAsset}`,
+      `Distance mismatch for ${assetName}: filename/course=${meta.distance}, asset=${distanceFromAsset}`
     );
   }
 
@@ -259,7 +259,7 @@ function parseGeometryAsset(
     valueX,
     valueY,
     valueZ,
-    rotation,
+    rotation
   };
 }
 
@@ -268,7 +268,7 @@ function buildCourseIndex(courseData: Record<string, CourseDataEntry>): Map<stri
   for (const [courseId, entry] of Object.entries(courseData)) {
     index.set(
       `${entry.raceTrackId}:${entry.distance}:${entry.surface}:${entry.course}`,
-      Number(courseId),
+      Number(courseId)
     );
   }
   return index;
@@ -332,7 +332,7 @@ async function main(): Promise<void> {
       surface: entry.surface,
       course: entry.course,
       trackVariant: chosen.parts.trackVariant,
-      variant: chosen.parts.variant,
+      variant: chosen.parts.variant
     });
   }
 
@@ -344,13 +344,13 @@ async function main(): Promise<void> {
   console.log(`Unmatched assets: ${unmatchedAssets}`);
 
   const duplicateCourses = [...matchedByCourseId.entries()].filter(
-    ([, assets]) => assets.length > 1,
+    ([, assets]) => assets.length > 1
   );
   if (duplicateCourses.length > 0) {
     console.log(`Courses with multiple variants: ${duplicateCourses.length}`);
     for (const [courseId, assets] of duplicateCourses.slice(0, 10)) {
       console.log(
-        `  ${courseId}: ${assets.map(({ filePath }) => path.basename(filePath)).join(', ')}`,
+        `  ${courseId}: ${assets.map(({ filePath }) => path.basename(filePath)).join(', ')}`
       );
     }
   }

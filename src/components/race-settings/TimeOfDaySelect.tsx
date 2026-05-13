@@ -12,7 +12,7 @@ const TimeOfDayIcon = ({ time, icon: iconIndex }: { time: number; icon: number }
       src={getIconUrl(`utx_ico_timezone_0${iconIndex}.png`)}
       title={strings_en.skilldetails.time[time]}
       className={cn('w-8 h-8 cursor-pointer grayscale-100 hover:grayscale-0', {
-        'grayscale-0': time === racedef.time,
+        'grayscale-0': time === racedef.time
       })}
       data-timeofday={time}
     />

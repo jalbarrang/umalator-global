@@ -11,7 +11,7 @@ export type StageConfig = {
 export const STAGE_CONFIGS: Array<StageConfig> = [
   { stage: 1, nsamples: 5 },
   { stage: 2, nsamples: 20 },
-  { stage: 3, nsamples: 50 },
+  { stage: 3, nsamples: 50 }
 ];
 
 export class WorkQueue {
@@ -50,7 +50,7 @@ export class WorkQueue {
       batchId,
       skills: batchSkills,
       stage: stageConfig.stage,
-      nsamples: stageConfig.nsamples,
+      nsamples: stageConfig.nsamples
     };
   }
 
@@ -199,7 +199,7 @@ export class WorkQueue {
       currentStage: STAGE_CONFIGS[this.currentStageIndex].stage,
       totalStages: 3,
       skillsCompletedInStage: this.completedSkillsInCurrentStage,
-      totalSkillsInStage: this.totalSkillsInCurrentStage,
+      totalSkillsInStage: this.totalSkillsInCurrentStage
     };
   }
 }

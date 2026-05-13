@@ -21,7 +21,7 @@ import {
   getBaseTier,
   getGoldVersion,
   getUpgradeTier,
-  getWhiteVersion,
+  getWhiteVersion
 } from '@/modules/skills/skill-relationships';
 
 /**
@@ -93,7 +93,7 @@ const MAX_COMBINATIONS = 500;
  */
 export function generateCombinations(
   candidates: Array<CandidateSkill>,
-  budget: number,
+  budget: number
 ): Array<Array<string>> {
   const combinations: Array<Array<string>> = [[]];
   const sorted = candidates.toSorted((a, b) => a.netCost - b.netCost);
@@ -135,7 +135,7 @@ export function generateCombinations(
 function enforcePrerequisites(
   combinations: Array<Array<string>>,
   candidates: Array<CandidateSkill>,
-  budget: number,
+  budget: number
 ): Array<Array<string>> {
   const candidateMap = new Map(candidates.map((c) => [c.skillId, c]));
 
@@ -205,7 +205,7 @@ function enforcePrerequisites(
  */
 export function calculateCombinationCost(
   skillIds: Array<string>,
-  candidates: Array<CandidateSkill>,
+  candidates: Array<CandidateSkill>
 ): number {
   const candidateMap = new Map(candidates.map((c) => [c.skillId, c]));
   let total = 0;

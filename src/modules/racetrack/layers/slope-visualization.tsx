@@ -88,7 +88,7 @@ export const SlopeVisualization = React.memo<SlopeVisualizationProps>((props) =>
           key={`terrain-${i}`}
           points={`${xStart},${yLeft} ${xStart},${groundY} ${xEnd},${groundY} ${xEnd},${yRight}`}
           fill="rgb(211,243,68)"
-        />,
+        />
       );
     }
 

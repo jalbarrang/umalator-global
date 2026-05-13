@@ -7,7 +7,7 @@ import {
   useOcrActions,
   useOcrProcessing,
   useOcrResults,
-  useOcrWizardState,
+  useOcrWizardState
 } from '@/modules/runners/components/ocr/ocr-dialog.provider';
 
 import { getIconById } from '@/modules/data/icons';
@@ -37,7 +37,7 @@ function DropZone({
   disabled = false,
   noKey = false,
   thumbnails = [],
-  onFiles,
+  onFiles
 }: Readonly<DropZoneProps>) {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -48,7 +48,7 @@ function DropZone({
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     const files = Array.from(e.dataTransfer.files ?? []).filter((file) =>
-      file.type.startsWith('image/'),
+      file.type.startsWith('image/')
     );
     if (files.length > 0) {
       onFiles(files);
@@ -81,7 +81,7 @@ function DropZone({
     <div
       className={cn(
         'flex-1 flex flex-col gap-3 rounded-lg border-2 border-dashed p-4 transition-colors cursor-pointer',
-        disabled ? 'opacity-50 pointer-events-none' : 'hover:border-muted-foreground/50',
+        disabled ? 'opacity-50 pointer-events-none' : 'hover:border-muted-foreground/50'
       )}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
@@ -166,7 +166,7 @@ export function WizardImport() {
             <div
               className={cn('px-2 py-1 rounded border', {
                 'border-primary text-foreground bg-primary/10': index <= activeStepIndex,
-                'border-muted': index > activeStepIndex,
+                'border-muted': index > activeStepIndex
               })}
             >
               {entry.label}

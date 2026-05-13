@@ -63,7 +63,7 @@ export class CourseService {
 
   getByDistanceType = (distanceType: number): Array<CourseEntry> => {
     return Object.values(this.courseCollection).filter(
-      (course) => course.distanceType === distanceType,
+      (course) => course.distanceType === distanceType
     );
   };
 
@@ -85,7 +85,7 @@ export class CourseService {
    */
   findReferenceCourse = (raceTrackId: number, surface: number): CourseEntry | null => {
     const candidates = Object.values(this.courseCollection).filter(
-      (c) => c.raceTrackId === raceTrackId && c.surface === surface && c.corners.length >= 4,
+      (c) => c.raceTrackId === raceTrackId && c.surface === surface && c.corners.length >= 4
     );
     if (candidates.length === 0) return null;
     const withFour = candidates
@@ -94,7 +94,7 @@ export class CourseService {
     if (withFour.length > 0) return withFour[0];
     return candidates.reduce(
       (best, c) => (c.corners.length > best.corners.length ? c : best),
-      candidates[0]!,
+      candidates[0]!
     );
   };
 }

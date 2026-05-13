@@ -11,20 +11,20 @@ const floatingButtonVariants = cva(
       variant: {
         default: 'bg-primary text-primary-foreground hover:bg-primary/90',
         secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
-        outline: 'border border-border bg-background text-foreground hover:bg-muted',
+        outline: 'border border-border bg-background text-foreground hover:bg-muted'
       },
       size: {
         default: "size-14 [&_svg:not([class*='size-'])]:size-6",
         sm: "size-10 [&_svg:not([class*='size-'])]:size-4",
         lg: "size-16 [&_svg:not([class*='size-'])]:size-7",
-        extended: "h-14 gap-3 px-6 text-sm font-medium [&_svg:not([class*='size-'])]:size-5",
-      },
+        extended: "h-14 gap-3 px-6 text-sm font-medium [&_svg:not([class*='size-'])]:size-5"
+      }
     },
     defaultVariants: {
       variant: 'default',
-      size: 'default',
-    },
-  },
+      size: 'default'
+    }
+  }
 );
 
 export type FloatingButtonProps = ButtonPrimitive.Props &
@@ -37,7 +37,7 @@ const FloatingButton = React.memo(
     }, [variant, size, className]);
 
     return <ButtonPrimitive data-slot="floating-button" className={classNameObject} {...props} />;
-  },
+  }
 );
 
 export { FloatingButton, floatingButtonVariants };

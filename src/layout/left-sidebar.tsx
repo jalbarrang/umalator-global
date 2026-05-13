@@ -4,7 +4,7 @@ import {
   CrosshairIcon,
   SidebarClose,
   SlidersHorizontalIcon,
-  UsersIcon,
+  UsersIcon
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router';
@@ -45,22 +45,22 @@ export const LeftSidebar = () => {
         label: 'Runners',
         icon: UsersIcon,
         content: <RunnersPanel />,
-        hasBadge: false,
+        hasBadge: false
       },
       {
         id: 'presets',
         label: 'Presets',
         icon: BookmarkIcon,
         content: <PresetsPanel />,
-        hasBadge: false,
+        hasBadge: false
       },
       {
         id: 'advanced-settings',
         label: 'Advanced Settings',
         icon: SlidersHorizontalIcon,
         content: <AdvancedSettingsPanel />,
-        hasBadge: false,
-      },
+        hasBadge: false
+      }
     ];
 
     if (isCompareRunnersView) {
@@ -69,14 +69,14 @@ export const LeftSidebar = () => {
         label: 'Force Skill Positions',
         icon: CrosshairIcon,
         content: <ForcedPositionsPanel />,
-        hasBadge: hasForcedPositions,
+        hasBadge: hasForcedPositions
       });
       basePanels.push({
         id: 'debuffs',
         label: 'Debuffs',
         icon: CircleAlert,
         content: <DebuffsPanel />,
-        hasBadge: hasDebuffs,
+        hasBadge: hasDebuffs
       });
     }
 
@@ -102,7 +102,7 @@ export const LeftSidebar = () => {
     <div
       className={cn('flex flex-col border-r shrink-0 overflow-hidden', {
         'w-dvw md:w-[550px]': !hidden,
-        'w-0': hidden,
+        'w-0': hidden
       })}
     >
       {/* Activity Bar */}

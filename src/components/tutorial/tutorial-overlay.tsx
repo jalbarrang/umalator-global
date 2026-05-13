@@ -32,14 +32,14 @@ function getElementBounds(element: Element | null, padding: number): ElementBoun
     width: rect.width + padding * 2,
     height: rect.height + padding * 2,
     bottom: rect.bottom + padding,
-    right: rect.right + padding,
+    right: rect.right + padding
   };
 }
 
 export function TutorialOverlay({
   targetSelector,
   padding = 10,
-  radius = 8,
+  radius = 8
 }: TutorialOverlayProps) {
   const [bounds, setBounds] = useState<ElementBounds | null>(null);
   const [isVisible, setIsVisible] = useState(false);
@@ -122,7 +122,7 @@ export function TutorialOverlay({
     <div
       className="fixed inset-0 z-5000 transition-opacity duration-200"
       style={{
-        opacity: isVisible ? 1 : 0,
+        opacity: isVisible ? 1 : 0
       }}
       data-tutorial-overlay
     >
@@ -180,6 +180,6 @@ export function TutorialOverlay({
         )}
       </svg>
     </div>,
-    document.body,
+    document.body
   );
 }

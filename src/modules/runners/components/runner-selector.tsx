@@ -8,7 +8,7 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
-  CommandList,
+  CommandList
 } from '@/components/ui/command';
 
 type UmaSelectorProps = {
@@ -34,7 +34,7 @@ export const UmaSelector = (props: UmaSelectorProps) => {
 
     return {
       outfit: uma.outfit,
-      name: uma.name,
+      name: uma.name
     };
   }, [value, umasForSearch]);
 

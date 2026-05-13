@@ -6,7 +6,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
+  SelectValue
 } from '@/components/ui/select';
 import { getSkillNameById } from '@/modules/skills/utils';
 import { getUmaDisplayInfo } from '@/modules/runners/utils';
@@ -167,8 +167,8 @@ export function FocusRunnerDetailPanel({ runnerIndex }: FocusRunnerDetailPanelPr
   const { results, runners } = useRaceSimStore(
     useShallow((state) => ({
       results: state.results,
-      runners: state.runners,
-    })),
+      runners: state.runners
+    }))
   );
 
   const focusedRounds = useMemo<Array<RoundFocusData>>(() => {
@@ -185,7 +185,7 @@ export function FocusRunnerDetailPanel({ runnerIndex }: FocusRunnerDetailPanelPr
       collected.push({
         sampleIndex,
         seed: round.seed,
-        data,
+        data
       });
     }
 
@@ -217,9 +217,9 @@ export function FocusRunnerDetailPanel({ runnerIndex }: FocusRunnerDetailPanelPr
         logs: logs
           .map((log) => ({
             start: log.start,
-            end: Math.max(log.end, log.start),
+            end: Math.max(log.end, log.start)
           }))
-          .toSorted((a, b) => a.start - b.start),
+          .toSorted((a, b) => a.start - b.start)
       }))
       .filter((entry) => entry.logs.length > 0)
       .toSorted((a, b) => {
@@ -241,7 +241,7 @@ export function FocusRunnerDetailPanel({ runnerIndex }: FocusRunnerDetailPanelPr
 
   const distanceMax = Math.max(
     selectedData.data.finishPosition,
-    selectedData.data.position[selectedData.data.position.length - 1] ?? 0,
+    selectedData.data.position[selectedData.data.position.length - 1] ?? 0
   );
 
   return (
@@ -312,7 +312,7 @@ export function FocusRunnerDetailPanel({ runnerIndex }: FocusRunnerDetailPanelPr
                         const leftPct = (log.start / Math.max(distanceMax, 1)) * 100;
                         const widthPct = Math.max(
                           ((log.end - log.start) / Math.max(distanceMax, 1)) * 100,
-                          1.2,
+                          1.2
                         );
 
                         return (
@@ -320,7 +320,7 @@ export function FocusRunnerDetailPanel({ runnerIndex }: FocusRunnerDetailPanelPr
                             key={`${row.skillId}-${index}`}
                             className={cn(
                               'absolute top-0.5 h-4 rounded bg-primary/70',
-                              'ring-1 ring-primary/40',
+                              'ring-1 ring-primary/40'
                             )}
                             style={{ left: `${leftPct}%`, width: `${widthPct}%` }}
                             title={`${row.name}: ${log.start.toFixed(0)}m -> ${log.end.toFixed(0)}m`}

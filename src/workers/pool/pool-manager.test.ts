@@ -3,12 +3,12 @@ import { PoolManager } from './pool-manager';
 import type { SimulationParams, WorkerInMessage, WorkerOutMessage } from './types';
 import type {
   SkillComparisonResponse,
-  SkillComparisonRoundResult,
+  SkillComparisonRoundResult
 } from '@/modules/simulation/types';
 import type { SkillSimulationRun } from '@/modules/simulation/compare.types';
 
 const emptySkillRun: SkillSimulationRun = {
-  sk: [{}, {}],
+  sk: [{}, {}]
 };
 
 function createRoundResult(skillId: string, nsamples: number): SkillComparisonRoundResult {
@@ -22,13 +22,13 @@ function createRoundResult(skillId: string, nsamples: number): SkillComparisonRo
       minrun: emptySkillRun,
       maxrun: emptySkillRun,
       meanrun: emptySkillRun,
-      medianrun: emptySkillRun,
+      medianrun: emptySkillRun
     },
     min: 0,
     max: 1,
     mean: 0.5,
     median: 0.5,
-    filterReason: undefined,
+    filterReason: undefined
   };
 }
 
@@ -37,7 +37,7 @@ class FakePoolWorker {
 
   addEventListener(
     type: 'message' | 'error',
-    listener: ((event: MessageEvent<WorkerOutMessage>) => void) | ((event: ErrorEvent) => void),
+    listener: ((event: MessageEvent<WorkerOutMessage>) => void) | ((event: ErrorEvent) => void)
   ): void {
     if (type === 'message') {
       this.messageListeners.push(listener as (event: MessageEvent<WorkerOutMessage>) => void);
@@ -53,22 +53,22 @@ class FakePoolWorker {
       case 'init':
         this.emitMessage({
           type: 'worker-ready',
-          workerId: message.workerId,
+          workerId: message.workerId
         });
         break;
       case 'work-batch': {
         const results: SkillComparisonResponse = Object.fromEntries(
           message.batch.skills.map((skillId) => [
             skillId,
-            createRoundResult(skillId, message.batch.nsamples),
-          ]),
+            createRoundResult(skillId, message.batch.nsamples)
+          ])
         );
 
         this.emitMessage({
           type: 'batch-complete',
           workerId: 0,
           batchId: message.batch.batchId,
-          results,
+          results
         });
         break;
       }
@@ -98,7 +98,7 @@ describe('PoolManager', () => {
       },
       onComplete: (results) => {
         finalLength = results['speed-boost']?.results.length ?? 0;
-      },
+      }
     });
 
     expect(progressLengths).toEqual([5, 20, 50]);

@@ -11,7 +11,7 @@ import {
   readJsonFileIfExists,
   resolveMasterDbPath,
   sortByNumericKey,
-  writeJsonFile,
+  writeJsonFile
 } from '../master-data/shared';
 import type { SkillEntry } from '../../src/modules/data/services/SkillService';
 import type { ISkillTarget } from '@/lib/sunday-tools/skills/definitions';
@@ -114,14 +114,14 @@ const SCENARIO_SKILLS = new Set([
   210272,
   210281,
   210282, // Grand Masters
-  210291, // RFTS (white version)
+  210291 // RFTS (white version)
 ]);
 
 const EXCLUDED_SKILLS = new Set([
   // Narita Brian's Story
   300011, 300021,
   // Silence Suzuka's Story
-  300031, 300041, 300051, 300061, 300071, 300081, 300091, 300101,
+  300031, 300041, 300051, 300061, 300071, 300081, 300091, 300101
 ]);
 
 const SPLIT_ALTERNATIVES = new Set([100701, 900701]);
@@ -148,7 +148,7 @@ function parseCliArgs(argv: Array<string>): ExtractSkillsOptions {
 
   return {
     replaceMode: Boolean(options.replace || options.full),
-    dbPath,
+    dbPath
   };
 }
 
@@ -165,14 +165,14 @@ function createEffect(
   modifier: number,
   target: number,
   valueUsage: number,
-  valueLevelUsage: number,
+  valueLevelUsage: number
 ): SkillEffect {
   return {
     type,
     modifier: patchModifier(skillId, modifier),
     target: target as ISkillTarget,
     valueUsage,
-    valueLevelUsage,
+    valueLevelUsage
   };
 }
 
@@ -187,8 +187,8 @@ function buildEffects(row: SkillRow, prefix: '1' | '2'): Array<SkillEffect> {
         row.float_ability_value_1_1,
         row.target_type_1_1,
         row.ability_value_usage_1_1,
-        row.ability_value_level_usage_1_1,
-      ),
+        row.ability_value_level_usage_1_1
+      )
     );
 
     if (row.ability_type_1_2 !== 0) {
@@ -199,8 +199,8 @@ function buildEffects(row: SkillRow, prefix: '1' | '2'): Array<SkillEffect> {
           row.float_ability_value_1_2,
           row.target_type_1_2,
           row.ability_value_usage_1_2,
-          row.ability_value_level_usage_1_2,
-        ),
+          row.ability_value_level_usage_1_2
+        )
       );
     }
 
@@ -212,8 +212,8 @@ function buildEffects(row: SkillRow, prefix: '1' | '2'): Array<SkillEffect> {
           row.float_ability_value_1_3,
           row.target_type_1_3,
           row.ability_value_usage_1_3,
-          row.ability_value_level_usage_1_3,
-        ),
+          row.ability_value_level_usage_1_3
+        )
       );
     }
   } else {
@@ -224,8 +224,8 @@ function buildEffects(row: SkillRow, prefix: '1' | '2'): Array<SkillEffect> {
         row.float_ability_value_2_1,
         row.target_type_2_1,
         row.ability_value_usage_2_1,
-        row.ability_value_level_usage_2_1,
-      ),
+        row.ability_value_level_usage_2_1
+      )
     );
 
     if (row.ability_type_2_2 !== 0) {
@@ -236,8 +236,8 @@ function buildEffects(row: SkillRow, prefix: '1' | '2'): Array<SkillEffect> {
           row.float_ability_value_2_2,
           row.target_type_2_2,
           row.ability_value_usage_2_2,
-          row.ability_value_level_usage_2_2,
-        ),
+          row.ability_value_level_usage_2_2
+        )
       );
     }
 
@@ -249,8 +249,8 @@ function buildEffects(row: SkillRow, prefix: '1' | '2'): Array<SkillEffect> {
           row.float_ability_value_2_3,
           row.target_type_2_3,
           row.ability_value_usage_2_3,
-          row.ability_value_level_usage_2_3,
-        ),
+          row.ability_value_level_usage_2_3
+        )
       );
     }
   }
@@ -264,8 +264,8 @@ function buildAlternatives(row: SkillRow): Array<SkillAlternative> {
       precondition: row.precondition_1 === '0' ? '' : row.precondition_1,
       condition: row.condition_1,
       baseDuration: row.float_ability_time_1,
-      effects: buildEffects(row, '1'),
-    },
+      effects: buildEffects(row, '1')
+    }
   ];
 
   if (row.condition_2 && row.condition_2 !== '' && row.condition_2 !== '0') {
@@ -273,7 +273,7 @@ function buildAlternatives(row: SkillRow): Array<SkillAlternative> {
       precondition: row.precondition_2 === '0' ? '' : row.precondition_2,
       condition: row.condition_2,
       baseDuration: row.float_ability_time_2,
-      effects: buildEffects(row, '2'),
+      effects: buildEffects(row, '2')
     });
   }
 
@@ -312,7 +312,7 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
   const dbPath = await resolveMasterDbPath(cliDbPath);
 
   console.log(
-    `Mode: ${replaceMode ? '⚠️  Full Replacement' : '✓ Merge (preserves future content)'}`,
+    `Mode: ${replaceMode ? '⚠️  Full Replacement' : '✓ Merge (preserves future content)'}`
   );
   console.log(`Database: ${dbPath}\n`);
 
@@ -342,14 +342,14 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
               s.ability_value_usage_2_3, s.ability_value_level_usage_2_3,
               s.group_id, s.icon_id, COALESCE(sp.need_skill_point, 0) as need_skill_point, s.disp_order
        FROM skill_data s
-       LEFT JOIN single_mode_skill_need_point sp ON s.id = sp.id`,
+       LEFT JOIN single_mode_skill_need_point sp ON s.id = sp.id`
     );
 
     const nameRows = queryAll<SkillNameRow>(
       db,
       `SELECT [index], text
        FROM text_data
-       WHERE category = 47`,
+       WHERE category = 47`
     );
 
     console.log(`Found ${rows.length} skill records`);
@@ -378,7 +378,7 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
         baseCost: row.need_skill_point,
         order: row.disp_order,
         name,
-        character: [],
+        character: []
       };
 
       if (SPLIT_ALTERNATIVES.has(row.id)) {
@@ -387,13 +387,13 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
           const key = `${row.id}${suffix}`;
           extractedSkills[key] = {
             ...baseEntry,
-            alternatives: [alt],
+            alternatives: [alt]
           };
         });
       } else {
         extractedSkills[row.id.toString()] = {
           ...baseEntry,
-          alternatives,
+          alternatives
         };
       }
     }
@@ -422,7 +422,7 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
          ON ss.skill_set_id = crd.skill_set
        JOIN skill_data sd
          ON sd.id = ss.skill_id
-       WHERE sd.rarity = 5`,
+       WHERE sd.rarity = 5`
     );
     const uniqueSkillOwners = reduceUniqueSkillOwners(uniqueSkillOwnerRows);
     let ownerCount = 0;
@@ -446,7 +446,7 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
        FROM skill_data u
        JOIN skill_data g ON g.id = u.id + 800000
        WHERE u.rarity IN (4, 5)
-         AND g.rarity = 1`,
+         AND g.rarity = 1`
     );
 
     for (const row of geneVersionRows) {
@@ -495,7 +495,7 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
     if (replaceMode) {
       finalSkills = extractedSkills;
       console.log(
-        `\n⚠️  Full replacement mode: ${Object.keys(extractedSkills).length} skills from master.mdb only`,
+        `\n⚠️  Full replacement mode: ${Object.keys(extractedSkills).length} skills from master.mdb only`
       );
     } else {
       const existingData = await readJsonFileIfExists<Record<string, SkillEntry>>(outputPath);

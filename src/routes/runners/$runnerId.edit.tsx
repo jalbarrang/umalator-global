@@ -11,11 +11,11 @@ import {
   EmptyDescription,
   EmptyHeader,
   EmptyMedia,
-  EmptyTitle,
+  EmptyTitle
 } from '@/components/ui/empty';
 import { Button } from '@/components/ui/button';
 
-export function RunnersEdit() {
+export default function EditRunnerPage() {
   const navigate = useNavigate();
   const { runnerId: id } = useParams();
   const { getRunner, updateRunner } = useRunnerLibraryStore();
@@ -38,7 +38,7 @@ export function RunnersEdit() {
 
     updateRunner(id, {
       ...runnerState,
-      notes: runnerName.trim(),
+      notes: runnerName.trim()
     });
 
     navigate('/runners');

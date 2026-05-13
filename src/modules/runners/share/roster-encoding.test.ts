@@ -92,9 +92,9 @@ function buildTestRoster(): TestRosterCharacter[] {
       skill_array: [
         { skill_id: 100101, skill_level: 1 },
         { skill_id: 100202, skill_level: 2 },
-        { skill_id: 100303, skill_level: 1 },
-      ],
-    },
+        { skill_id: 100303, skill_level: 1 }
+      ]
+    }
   ];
 
   for (let index = 1; index < 228; index++) {
@@ -104,7 +104,7 @@ function buildTestRoster(): TestRosterCharacter[] {
     for (let skillIndex = 0; skillIndex < skillCount; skillIndex++) {
       skills.push({
         skill_id: 200000 + index * 10 + skillIndex,
-        skill_level: ((index + skillIndex) % 2) + 1,
+        skill_level: ((index + skillIndex) % 2) + 1
       });
     }
 
@@ -127,7 +127,7 @@ function buildTestRoster(): TestRosterCharacter[] {
       proper_running_style_sashi: (index % 8) + 1,
       proper_running_style_oikomi: ((index + 2) % 8) + 1,
       rank_score: index % 3 === 0 ? 1000 + index * 7 : undefined,
-      skill_array: skills,
+      skill_array: skills
     });
   }
 
@@ -205,7 +205,7 @@ describe('decodeRoster', () => {
           char.proper_running_style_nige,
           char.proper_running_style_senko,
           char.proper_running_style_sashi,
-          char.proper_running_style_oikomi,
+          char.proper_running_style_oikomi
         ];
         for (const apt of aptitudes) {
           expect(apt).toBeGreaterThanOrEqual(1);

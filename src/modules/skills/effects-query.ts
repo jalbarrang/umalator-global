@@ -30,13 +30,13 @@ export class EffectQuery {
   // Filter methods become clearer
   getSelfBuffs(): Array<SkillEffectLog> {
     return this.flatList.filter(
-      (a) => a.perspective === SkillPerspective.Self && a.effectTarget === SkillTarget.Self,
+      (a) => a.perspective === SkillPerspective.Self && a.effectTarget === SkillTarget.Self
     );
   }
 
   getDebuffs(): Array<SkillEffectLog> {
     return this.flatList.filter(
-      (a) => a.perspective !== SkillPerspective.Self && a.effectTarget !== SkillTarget.Self,
+      (a) => a.perspective !== SkillPerspective.Self && a.effectTarget !== SkillTarget.Self
     );
   }
 
@@ -45,7 +45,7 @@ export class EffectQuery {
       (a) =>
         a.perspective === SkillPerspective.Other &&
         a.effectTarget !== SkillTarget.Self &&
-        a.effectType === SkillType.Recovery,
+        a.effectType === SkillType.Recovery
     );
   }
 
@@ -56,7 +56,7 @@ export class EffectQuery {
 
   getSelfHeals(): Array<SkillEffectLog> {
     return this.flatList.filter(
-      (a) => a.perspective === SkillPerspective.Self && a.effectType === SkillType.Recovery,
+      (a) => a.perspective === SkillPerspective.Self && a.effectType === SkillType.Recovery
     );
   }
 }

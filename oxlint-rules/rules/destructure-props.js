@@ -66,7 +66,7 @@ const PRIMITIVE_TYPE_ANNOTATIONS = new Set([
   'TSNullKeyword',
   'TSUndefinedKeyword',
   'TSVoidKeyword',
-  'TSNeverKeyword',
+  'TSNeverKeyword'
 ]);
 
 function isInsideForwardRef(node) {
@@ -110,7 +110,7 @@ function checkFunction(node, context) {
 
   context.report({
     node: firstParam,
-    message: `Props parameter '${paramName}' in component '${name}' must be destructured in the function signature or body.`,
+    message: `Props parameter '${paramName}' in component '${name}' must be destructured in the function signature or body.`
   });
 }
 
@@ -118,9 +118,9 @@ export default {
   meta: {
     type: 'problem',
     docs: {
-      description: 'Require destructuring of React component props',
+      description: 'Require destructuring of React component props'
     },
-    schema: [],
+    schema: []
   },
   create(context) {
     return {
@@ -132,7 +132,7 @@ export default {
       },
       ArrowFunctionExpression(node) {
         checkFunction(node, context);
-      },
+      }
     };
-  },
+  }
 };

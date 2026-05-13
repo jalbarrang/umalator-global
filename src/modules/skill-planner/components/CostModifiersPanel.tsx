@@ -4,7 +4,7 @@ import {
   setBudget,
   setIgnoreStaminaConsumption,
   setSeed,
-  useSkillPlannerStore,
+  useSkillPlannerStore
 } from '../skill-planner.store';
 import { useSkillPlannerOptimizer } from '../hooks/useSkillPlannerOptimizer';
 import { parseSeed } from '@/utils/crypto';
@@ -50,7 +50,7 @@ export function CostModifiersPanel(props: CostModifiersPanelProps) {
   const candidateList = useMemo(() => Object.values(candidates), [candidates]);
   const canOptimize = useMemo(
     () => candidateList.length > 0 && budget > 0,
-    [candidateList, budget],
+    [candidateList, budget]
   );
 
   const handleBudgetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -69,7 +69,7 @@ export function CostModifiersPanel(props: CostModifiersPanelProps) {
         'flex flex-col gap-4 ',
         'border rounded-lg p-4 bg-card',
         'md:flex-row',
-        className,
+        className
       )}
       {...rest}
     >

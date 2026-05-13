@@ -6,15 +6,15 @@ import { RaceResultsSummary } from '@/modules/race-sim/components/RaceResultsSum
 import { FocusRunnerDetailPanel } from '@/modules/race-sim/components/FocusRunnerDetailPanel';
 import { useRaceSimStore } from '@/modules/simulation/stores/race-sim.store';
 
-export function RaceSimResults() {
+export default function RaceSimResultsPage() {
   const { runWithSeed, isRunning } = useRaceSimContext();
 
   const { focusRunnerIndices, results, isStale } = useRaceSimStore(
     useShallow((state) => ({
       focusRunnerIndices: state.focusRunnerIndices,
       results: state.results,
-      isStale: state.isStale,
-    })),
+      isStale: state.isStale
+    }))
   );
 
   const focusRunnerIndex = useMemo(() => {
@@ -25,7 +25,7 @@ export function RaceSimResults() {
   const hasFocusData = useMemo(() => {
     if (focusRunnerIndex === null || !results?.collectedData) return false;
     return results.collectedData.rounds.some(
-      (round) => round.focusRunnerData[focusRunnerIndex] !== undefined,
+      (round) => round.focusRunnerData[focusRunnerIndex] !== undefined
     );
   }, [focusRunnerIndex, results]);
 

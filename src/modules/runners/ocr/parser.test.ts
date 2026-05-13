@@ -5,9 +5,9 @@ describe('parseOcrResult', () => {
   it('routes text OCR through skill extraction and level-aware ID resolution', () => {
     const result = parseOcrResult(
       {
-        text: 'Shooting Star Lvl 4 Right-Handed ○',
+        text: 'Shooting Star Lvl 4 Right-Handed ○'
       },
-      0,
+      0
     );
 
     const skillIds = result.skills.map((skill) => skill.id);
@@ -31,12 +31,12 @@ describe('parseOcrResult', () => {
               name: 'Right-Handed ○',
               confidence: 0.95,
               originalText: 'Right-Handed ○',
-              fromImage: 0,
-            },
-          ],
-        },
+              fromImage: 0
+            }
+          ]
+        }
       },
-      0,
+      0
     );
 
     expect(result.surfaceAptitude).toBe('S');
@@ -54,10 +54,10 @@ describe('parseOcrResult', () => {
           'Speed Stamina Power Guts Wit',
           '1000 900 800 700 600',
           'Shooting Star',
-          'Right-Handed ○',
-        ].join('\n'),
+          'Right-Handed ○'
+        ].join('\n')
       },
-      0,
+      0
     );
 
     const second = parseOcrResult(
@@ -66,11 +66,11 @@ describe('parseOcrResult', () => {
           'Speed Stamina Power Guts Wit',
           '1500 1400 1300 1200 1100',
           'Right-Handed ○',
-          'Left-Handed ○',
-        ].join('\n'),
+          'Left-Handed ○'
+        ].join('\n')
       },
       1,
-      first,
+      first
     );
 
     expect(second.imageCount).toBe(2);
@@ -97,10 +97,10 @@ describe('parseOcrResult', () => {
         text: 'Right-Handed ○',
         structured: {
           strategy: 'Runaway',
-          strategyAptitude: 'A',
-        },
+          strategyAptitude: 'A'
+        }
       },
-      0,
+      0
     );
 
     expect(result.strategy).toBe('Runaway');

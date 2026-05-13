@@ -2,14 +2,14 @@ import { RUNNER_COLORS } from '@/modules/race-sim/constants';
 import {
   interpolateTrackPoint,
   outwardFromTrackPoint,
-  type BuiltTrackPath,
+  type BuiltTrackPath
 } from '@/modules/race-sim/utils/track-path';
 import { toCanvas } from './canvasMath';
 import {
   MAIN_MAP_PACK_MARKER,
   type CanvasTransform,
   type MapPinMarkerSpec,
-  type RunnerMarker,
+  type RunnerMarker
 } from './shared';
 import { clamp } from './utils';
 
@@ -35,7 +35,7 @@ export function buildRunnerMarkers(p: BuildRunnerMarkersParams): RunnerMarker[] 
     builtTrack,
     courseDistance,
     turnSign,
-    transform,
+    transform
   } = p;
   const markers: RunnerMarker[] = [];
 
@@ -56,7 +56,7 @@ export function buildRunnerMarkers(p: BuildRunnerMarkersParams): RunnerMarker[] 
       pos,
       color: RUNNER_COLORS[rid % RUNNER_COLORS.length],
       name: runnerNames[rid] ?? `Runner ${rid + 1}`,
-      isTracked: tracked.has(rid),
+      isTracked: tracked.has(rid)
     });
   }
 
@@ -131,7 +131,7 @@ export function buildLinearRunnerMarkers(p: {
     viewport,
     canvasWidth,
     canvasHeight,
-    pad,
+    pad
   } = p;
   const span = Math.max(viewport.distMax - viewport.distMin, 1e-6);
   const drawW = canvasWidth - pad * 2;
@@ -158,7 +158,7 @@ export function buildLinearRunnerMarkers(p: {
       pos,
       color: RUNNER_COLORS[rid % RUNNER_COLORS.length],
       name: runnerNames[rid] ?? `Runner ${rid + 1}`,
-      isTracked: tracked.has(rid),
+      isTracked: tracked.has(rid)
     });
   }
 
@@ -174,7 +174,7 @@ function createArrowPath(
   cy: number,
   halfWidth: number,
   height: number,
-  notchDepth: number,
+  notchDepth: number
 ): Path2D {
   const path = new Path2D();
   const top = cy - height;
@@ -192,7 +192,7 @@ function renderMapPinMarker(
   cx: number,
   cy: number,
   spec: MapPinMarkerSpec,
-  tracked: boolean,
+  tracked: boolean
 ): void {
   const { geometry, colors } = spec;
   const hw = geometry.headRadius;
@@ -235,7 +235,7 @@ function paintPackCentroidOnMainCanvas(
   cy: number,
   colorPrimary: string,
   colorDot: string,
-  anyTracked: boolean,
+  anyTracked: boolean
 ): void {
   renderMapPinMarker(
     ctx,
@@ -247,10 +247,10 @@ function paintPackCentroidOnMainCanvas(
         fill: colorDot,
         stroke: 'rgba(15, 23, 42, 0.5)',
         highlight: 'rgba(255, 255, 255, 0.38)',
-        trackedStroke: colorPrimary,
-      },
+        trackedStroke: colorPrimary
+      }
     },
-    anyTracked,
+    anyTracked
   );
 }
 
@@ -305,7 +305,7 @@ export function paintMainMapPackIndicator(p: {
     courseDistance,
     turnSign,
     colorPrimary,
-    colorDot,
+    colorDot
   } = p;
 
   const worldPts = collectRunnerWorldPositions({
@@ -314,7 +314,7 @@ export function paintMainMapPackIndicator(p: {
     runnerLanes,
     builtTrack,
     courseDistance,
-    turnSign,
+    turnSign
   });
 
   if (worldPts.length === 0) return;
@@ -337,7 +337,7 @@ export function paintRunnerMarkersOnPackCanvas(
   ctx: CanvasRenderingContext2D,
   markers: RunnerMarker[],
   colorPrimary: string,
-  _colorBg: string,
+  _colorBg: string
 ): void {
   const r = 7;
   const border = 2.5;

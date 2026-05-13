@@ -48,7 +48,7 @@ export const RaceTrack = (props: RaceTrackProps) => {
 
   const { skillActivations, rushedIndicators, debuffIndicators, posKeepLabels } =
     useVisualizationData({
-      chartData,
+      chartData
     });
 
   const handleSkillDrag = useCallback(
@@ -58,7 +58,7 @@ export const RaceTrack = (props: RaceTrackProps) => {
       newStart: number,
       _newEnd: number,
       markerType: 'skill' | 'debuff' = 'skill',
-      debuffId?: string,
+      debuffId?: string
     ) => {
       if (markerType === 'debuff' && debuffId) {
         updateDebuffPosition(umaIndex === 0 ? 'uma1' : 'uma2', debuffId, newStart);
@@ -71,14 +71,14 @@ export const RaceTrack = (props: RaceTrackProps) => {
         setForcedPosition('uma2', skillId, newStart);
       }
     },
-    [],
+    []
   );
 
   const { draggedSkill, handleDragStart, handleDragMove, handleDragEnd } = useDragSkill({
     xOffset: RaceTrackDimensions.xOffset,
     courseDistance: course.distance,
     viewBoxWidth: RaceTrackDimensions.RenderWidth,
-    onSkillDrag: handleSkillDrag,
+    onSkillDrag: handleSkillDrag
   });
 
   const doPointerMove: React.PointerEventHandler<SVGSVGElement> = useCallback(
@@ -119,7 +119,7 @@ export const RaceTrack = (props: RaceTrackProps) => {
       if (mouseTextRef.current) {
         mouseTextRef.current.setAttribute(
           'x',
-          (x > RaceTrackDimensions.RenderWidth - 45 ? x - 45 : x + 5).toString(),
+          (x > RaceTrackDimensions.RenderWidth - 45 ? x - 45 : x + 5).toString()
         );
         mouseTextRef.current.setAttribute('y', y.toString());
         mouseTextRef.current.textContent =
@@ -128,7 +128,7 @@ export const RaceTrack = (props: RaceTrackProps) => {
 
       tooltipRef.current?.updateFromPositionRatio(x / RaceTrackDimensions.RenderWidth);
     },
-    [handleDragMove, draggedSkill, course.distance],
+    [handleDragMove, draggedSkill, course.distance]
   );
 
   const doPointerLeave = useCallback(() => {

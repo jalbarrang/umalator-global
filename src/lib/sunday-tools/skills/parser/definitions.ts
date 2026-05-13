@@ -53,7 +53,7 @@ export type ConditionFilterParams = {
 };
 
 export type ConditionFilter = (
-  params: ConditionFilterParams,
+  params: ConditionFilterParams
 ) => RegionList | [RegionList, DynamicCondition];
 
 // ============================================================

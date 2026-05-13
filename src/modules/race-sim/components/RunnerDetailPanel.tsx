@@ -14,7 +14,7 @@ import {
   SkillItemIdentity,
   SkillItemMain,
   SkillItemRail,
-  SkillItemRoot,
+  SkillItemRoot
 } from '@/modules/skills/components/skill-list/skill-item/primitives';
 import { SkillItemDetailsActions } from '@/modules/skills/components/skill-list/skill-item/actions';
 import { SkillItem } from '@/modules/skills/components/skill-list/skill-item/item';
@@ -48,7 +48,7 @@ function RaceSimDetailSkillRow({ dismissable }: Readonly<{ dismissable: boolean 
 export function RunnerDetailPanel({
   runnerIndex,
   totalRunners,
-  onNavigate,
+  onNavigate
 }: Readonly<RunnerDetailPanelProps>) {
   const runner = useRaceSimStore((state) => {
     if (runnerIndex < 0 || runnerIndex >= state.runners.length) return null;
@@ -70,21 +70,21 @@ export function RunnerDetailPanel({
 
   const imageUrl = useMemo(
     () => getUmaImageUrl(runner?.outfitId, runner?.randomMobId),
-    [runner?.outfitId, runner?.randomMobId],
+    [runner?.outfitId, runner?.randomMobId]
   );
 
   const applyRunnerPatch = useCallback(
     (partial: Partial<IRunnerState>) => {
       updateRunner(runnerIndex, partial);
     },
-    [runnerIndex],
+    [runnerIndex]
   );
 
   const handleUpdateStat = useCallback(
     (stat: StatsKey) => (value: number) => {
       applyRunnerPatch({ [stat]: value });
     },
-    [applyRunnerPatch],
+    [applyRunnerPatch]
   );
 
   const handleSetSkills = useCallback(
@@ -97,7 +97,7 @@ export function RunnerDetailPanel({
       applyRunnerPatch(partial);
       updateCurrentSkills(skills);
     },
-    [applyRunnerPatch, runner],
+    [applyRunnerPatch, runner]
   );
 
   const handleChangeRunner = useCallback(
@@ -113,14 +113,14 @@ export function RunnerDetailPanel({
       }
       applyRunnerPatch({ outfitId, skills: keptSkills });
     },
-    [applyRunnerPatch, runner],
+    [applyRunnerPatch, runner]
   );
 
   const handleUpdateAptitudes = useCallback(
     (nextRunner: IRunnerState) => {
       applyRunnerPatch(nextRunner);
     },
-    [applyRunnerPatch],
+    [applyRunnerPatch]
   );
 
   const handleOpenSkillPicker = useCallback(() => {
@@ -130,7 +130,7 @@ export function RunnerDetailPanel({
       umaId: runner.outfitId,
       options: getSelectableSkillsForUma(runner.outfitId),
       currentSkills: runner.skills,
-      onSelect: handleSetSkills,
+      onSelect: handleSetSkills
     });
   }, [handleSetSkills, runner, runnerIndex]);
 
@@ -139,7 +139,7 @@ export function RunnerDetailPanel({
       if (!runner) return;
       handleSetSkills(runner.skills.filter((id) => id !== skillId));
     },
-    [handleSetSkills, runner],
+    [handleSetSkills, runner]
   );
 
   const handleRunawayStrategy = useCallback(() => {
@@ -285,7 +285,7 @@ export function RunnerDetailPanel({
 function Section({
   title,
   action,
-  children,
+  children
 }: Readonly<{
   title: string;
   action?: React.ReactNode;

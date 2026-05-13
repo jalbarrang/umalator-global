@@ -38,7 +38,7 @@ const NORMAL_SIM_SETTINGS = {
   spotStruggle: true,
   dueling: true,
   witChecks: true,
-  positionKeepMode: 2,
+  positionKeepMode: 2
 };
 
 const ZERO_DUELING_RATES = {
@@ -46,7 +46,7 @@ const ZERO_DUELING_RATES = {
   frontRunner: 0,
   paceChaser: 0,
   lateSurger: 0,
-  endCloser: 0,
+  endCloser: 0
 };
 
 export function runRaceSim(params: RaceSimParams): RaceSimResult {
@@ -63,7 +63,7 @@ export function runRaceSim(params: RaceSimParams): RaceSimResult {
     parameters: params.parameters,
     settings: NORMAL_SIM_SETTINGS,
     skillSamples: 0,
-    duelingRates: ZERO_DUELING_RATES,
+    duelingRates: ZERO_DUELING_RATES
   });
 
   race.onInitialize();
@@ -96,7 +96,7 @@ export function runRaceSim(params: RaceSimParams): RaceSimResult {
           name: runner.name,
           strategy: runner.strategy,
           finishPosition: runner.position,
-          finishTime: runner.finishTime,
+          finishTime: runner.finishTime
         };
       });
 
@@ -113,6 +113,6 @@ export function runRaceSim(params: RaceSimParams): RaceSimResult {
   return {
     finishOrders,
     collectedData,
-    eventLogs,
+    eventLogs
   };
 }

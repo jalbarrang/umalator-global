@@ -21,7 +21,7 @@ function getLaneThreshold(runner: Runner, multiplier: number): number {
 function isWithinDistance(
   runner: Runner,
   otherSnapshot: RunnerSnapshot,
-  maxDistanceMeters: number,
+  maxDistanceMeters: number
 ): boolean {
   return Math.abs(otherSnapshot.position - runner.position) <= maxDistanceMeters;
 }
@@ -29,7 +29,7 @@ function isWithinDistance(
 function isWithinLane(
   runner: Runner,
   otherSnapshot: RunnerSnapshot,
-  laneThreshold: number,
+  laneThreshold: number
 ): boolean {
   return Math.abs(otherSnapshot.currentLane - runner.currentLane) <= laneThreshold;
 }
@@ -44,7 +44,7 @@ function isBehindOf(runner: Runner, otherSnapshot: RunnerSnapshot): boolean {
 
 function forEachActiveOtherSnapshot(
   runner: Runner,
-  callback: (snapshot: RunnerSnapshot, runnerId: number) => void,
+  callback: (snapshot: RunnerSnapshot, runnerId: number) => void
 ): void {
   for (const [runnerId, snapshot] of runner.race.runnerSnapshots) {
     if (runnerId === runner.id) {

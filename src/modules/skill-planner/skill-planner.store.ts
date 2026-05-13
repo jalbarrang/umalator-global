@@ -9,14 +9,14 @@ import type {
   OptimizationProgress,
   OptimizationResult,
   SkillPlanningMeta,
-  WizardStep,
+  WizardStep
 } from './types';
 import {
   getBaseTier,
   getGoldVersion,
   getUpgradeTier,
   getWhiteVersion,
-  isStackableSkill,
+  isStackableSkill
 } from '@/modules/skills/skill-relationships';
 import { getSelectableSkillsForUma, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import { dataRegistry } from '@/modules/data/registry';
@@ -77,7 +77,7 @@ const createInitialState = (): SkillPlannerState => ({
   isOptimizing: false,
   progress: null,
   result: null,
-  lastOptimizationFingerprint: null,
+  lastOptimizationFingerprint: null
 });
 
 const toPersistedState = (state: SkillPlannerState): PlannerPersistedState => ({
@@ -91,25 +91,25 @@ const toPersistedState = (state: SkillPlannerState): PlannerPersistedState => ({
   budget: state.budget,
   hasFastLearner: state.hasFastLearner,
   ignoreStaminaConsumption: state.ignoreStaminaConsumption,
-  seed: state.seed,
+  seed: state.seed
 });
 
 export const useSkillPlannerStore = create<SkillPlannerState>()(
   persist(() => createInitialState(), {
     name: 'umalator-skill-planner-v2',
     storage: createJSONStorage(() => localStorage),
-    partialize: toPersistedState,
-  }),
+    partialize: toPersistedState
+  })
 );
 
 const DEFAULT_SKILL_META: SkillPlanningMeta = {
-  hintLevel: 0,
+  hintLevel: 0
 };
 
 const normalizeSkillMeta = (meta: SkillPlanningMeta): SkillPlanningMeta | undefined => {
   const next: SkillPlanningMeta = {
     hintLevel: meta.hintLevel,
-    bought: meta.bought || undefined,
+    bought: meta.bought || undefined
   };
 
   if (next.hintLevel === 0 && !next.bought) {
@@ -121,14 +121,14 @@ const normalizeSkillMeta = (meta: SkillPlanningMeta): SkillPlanningMeta | undefi
 
 const resolveSkillMeta = (
   skillMetaById: Record<string, SkillPlanningMeta>,
-  skillId: string,
+  skillId: string
 ): SkillPlanningMeta => {
   return skillMetaById[skillId] ?? DEFAULT_SKILL_META;
 };
 
 const buildSkillMetaWithoutIds = (
   skillMetaById: Record<string, SkillPlanningMeta>,
-  skillIds: Array<string>,
+  skillIds: Array<string>
 ): Record<string, SkillPlanningMeta> => {
   const next = { ...skillMetaById };
   for (const skillId of skillIds) {
@@ -185,7 +185,7 @@ export const createCandidate = (params: CreateCandidateParams): CandidateSkill =
     isGold,
     whiteSkillId,
     goldSkillId,
-    baseTierIdForGold,
+    baseTierIdForGold
   };
 };
 
@@ -207,16 +207,16 @@ const getUniqueSkillId = (outfitId: string) => {
 
 const syncRunnerSkills = (runner: IRunnerState, obtainedSkillIds: Array<string>): IRunnerState => ({
   ...runner,
-  skills: obtainedSkillIds,
+  skills: obtainedSkillIds
 });
 
 const resolveObtainedSkillIds = (
   skillIds: Iterable<string>,
   outfitId: string,
-  previousOutfitId?: string,
+  previousOutfitId?: string
 ): Array<string> => {
   const nextSkillIds = Array.from(skillIds).filter(
-    (skillId) => !!dataRegistry.skills.getById(skillId),
+    (skillId) => !!dataRegistry.skills.getById(skillId)
   );
   const nextUniqueSkillId = getUniqueSkillId(outfitId);
   const previousUniqueSkillId = getUniqueSkillId(previousOutfitId ?? '');
@@ -236,12 +236,12 @@ const pruneCandidates = (
   candidates: Record<string, CandidateSkill>,
   skillMetaById: Record<string, SkillPlanningMeta>,
   obtainedSkillIds: Array<string>,
-  outfitId: string,
+  outfitId: string
 ) => {
   if (!outfitId) {
     return {
       candidates: {},
-      skillMetaById: {},
+      skillMetaById: {}
     };
   }
 
@@ -252,7 +252,7 @@ const pruneCandidates = (
     if (!isSelectableForRunner(candidate.skillId, outfitId)) {
       nextSkillMetaById = buildSkillMetaWithoutIds(
         nextSkillMetaById,
-        getRelatedSkillIds(candidate.skillId),
+        getRelatedSkillIds(candidate.skillId)
       );
       continue;
     }
@@ -263,41 +263,41 @@ const pruneCandidates = (
     if (obtainedSkillIds.includes(candidate.skillId)) {
       nextSkillMetaById = buildSkillMetaWithoutIds(
         nextSkillMetaById,
-        getRelatedSkillIds(candidate.skillId),
+        getRelatedSkillIds(candidate.skillId)
       );
       continue;
     }
 
     nextCandidates[candidate.skillId] = {
       ...candidate,
-      hintLevel: resolveSkillMeta(nextSkillMetaById, candidate.skillId).hintLevel,
+      hintLevel: resolveSkillMeta(nextSkillMetaById, candidate.skillId).hintLevel
     };
   }
 
   return {
     candidates: nextCandidates,
-    skillMetaById: nextSkillMetaById,
+    skillMetaById: nextSkillMetaById
   };
 };
 
 const buildImportedRunnerState = (runnerSnapshot: IRunnerState): IRunnerState => {
   return createRunnerState({
     ...runnerSnapshot,
-    skills: [],
+    skills: []
   });
 };
 
 const applyBaselineRunner = (
   state: SkillPlannerState,
   runnerSnapshot: IRunnerState,
-  obtainedSkillIds: Array<string>,
+  obtainedSkillIds: Array<string>
 ) => {
   const nextRunner = syncRunnerSkills(buildImportedRunnerState(runnerSnapshot), obtainedSkillIds);
   const pruned = pruneCandidates(
     state.candidates,
     state.skillMetaById,
     obtainedSkillIds,
-    nextRunner.outfitId,
+    nextRunner.outfitId
   );
 
   return {
@@ -308,7 +308,7 @@ const applyBaselineRunner = (
     hasActiveSession: true,
     currentStep: 'runner' as const,
     isOptimizing: false,
-    progress: null,
+    progress: null
   };
 };
 
@@ -316,7 +316,7 @@ export const setCurrentStep = (step: WizardStep) => {
   useSkillPlannerStore.setState((state) => ({
     hasActiveSession: true,
     currentStep: step,
-    completedSteps: state.completedSteps,
+    completedSteps: state.completedSteps
   }));
 };
 
@@ -327,7 +327,7 @@ export const completeCurrentStep = () => {
     }
 
     return {
-      completedSteps: [...state.completedSteps, state.currentStep],
+      completedSteps: [...state.completedSteps, state.currentStep]
     };
   });
 };
@@ -336,7 +336,7 @@ export const startFreshSession = () => {
   useSkillPlannerStore.setState({
     ...createInitialState(),
     hasActiveSession: true,
-    currentStep: 'runner',
+    currentStep: 'runner'
   });
 };
 
@@ -367,7 +367,7 @@ export const updateRunner = (updates: Partial<IRunnerState>) => {
         ? resolveObtainedSkillIds(
             state.obtainedSkillIds,
             nextRunner.outfitId,
-            previousRunner.outfitId,
+            previousRunner.outfitId
           )
         : resolveObtainedSkillIds(state.obtainedSkillIds, nextRunner.outfitId);
 
@@ -375,7 +375,7 @@ export const updateRunner = (updates: Partial<IRunnerState>) => {
       state.candidates,
       state.skillMetaById,
       nextObtainedSkillIds,
-      nextRunner.outfitId,
+      nextRunner.outfitId
     );
 
     return {
@@ -385,7 +385,7 @@ export const updateRunner = (updates: Partial<IRunnerState>) => {
       skillMetaById: pruned.skillMetaById,
       hasActiveSession: true,
       isOptimizing: false,
-      progress: null,
+      progress: null
     };
   });
 };
@@ -397,7 +397,7 @@ export const setObtainedSkills = (skillIds: Array<string>) => {
       state.candidates,
       state.skillMetaById,
       nextObtainedSkillIds,
-      state.runner.outfitId,
+      state.runner.outfitId
     );
 
     return {
@@ -407,7 +407,7 @@ export const setObtainedSkills = (skillIds: Array<string>) => {
       skillMetaById: pruned.skillMetaById,
       hasActiveSession: true,
       isOptimizing: false,
-      progress: null,
+      progress: null
     };
   });
 };
@@ -480,7 +480,7 @@ export const addCandidate = (skillId: string, hintLevel?: number) => {
 
     const otherVersion = dataRegistry.skills.findVersionOfSkill(
       skillId,
-      Object.keys(nextCandidates),
+      Object.keys(nextCandidates)
     );
     if (otherVersion) {
       const relatedSkillIds = getRelatedSkillIds(otherVersion);
@@ -493,13 +493,13 @@ export const addCandidate = (skillId: string, hintLevel?: number) => {
     nextCandidates[skillId] = candidate;
     const normalizedMeta = normalizeSkillMeta({
       ...resolveSkillMeta(nextSkillMetaById, skillId),
-      hintLevel: effectiveHintLevel as HintLevel,
+      hintLevel: effectiveHintLevel as HintLevel
     });
 
     if (normalizedMeta) {
       nextSkillMetaById = {
         ...nextSkillMetaById,
-        [skillId]: normalizedMeta,
+        [skillId]: normalizedMeta
       };
     }
 
@@ -508,7 +508,7 @@ export const addCandidate = (skillId: string, hintLevel?: number) => {
       skillMetaById: nextSkillMetaById,
       hasActiveSession: true,
       isOptimizing: false,
-      progress: null,
+      progress: null
     };
   });
 };
@@ -531,7 +531,7 @@ export const removeCandidate = (skillId: string) => {
       skillMetaById: buildSkillMetaWithoutIds(state.skillMetaById, relatedSkillIds),
       hasActiveSession: true,
       isOptimizing: false,
-      progress: null,
+      progress: null
     };
   });
 };
@@ -541,7 +541,7 @@ export const clearCandidates = () => {
     candidates: {},
     skillMetaById: {},
     isOptimizing: false,
-    progress: null,
+    progress: null
   });
 };
 
@@ -549,13 +549,13 @@ export const setCandidateHintLevel = (skillId: string, hintLevel: number) => {
   useSkillPlannerStore.setState((state) => {
     const normalizedMeta = normalizeSkillMeta({
       ...resolveSkillMeta(state.skillMetaById, skillId),
-      hintLevel: hintLevel as HintLevel,
+      hintLevel: hintLevel as HintLevel
     });
 
     const nextSkillMetaById = normalizedMeta
       ? {
           ...state.skillMetaById,
-          [skillId]: normalizedMeta,
+          [skillId]: normalizedMeta
         }
       : buildSkillMetaWithoutIds(state.skillMetaById, [skillId]);
 
@@ -566,8 +566,8 @@ export const setCandidateHintLevel = (skillId: string, hintLevel: number) => {
           ...state.candidates,
           [skillId]: {
             ...currentCandidate,
-            hintLevel: hintLevel as HintLevel,
-          },
+            hintLevel: hintLevel as HintLevel
+          }
         }
       : state.candidates;
 
@@ -576,7 +576,7 @@ export const setCandidateHintLevel = (skillId: string, hintLevel: number) => {
       skillMetaById: nextSkillMetaById,
       hasActiveSession: true,
       isOptimizing: false,
-      progress: null,
+      progress: null
     };
   });
 };
@@ -586,7 +586,7 @@ export const getSkillPlanningMeta = (skillId: string): SkillPlanningMeta => {
   const candidateMeta = resolveSkillMeta(state.skillMetaById, skillId);
   return {
     hintLevel: candidateMeta.hintLevel,
-    bought: isSkillCoveredByOwnedFamily(skillId, state.obtainedSkillIds),
+    bought: isSkillCoveredByOwnedFamily(skillId, state.obtainedSkillIds)
   };
 };
 
@@ -596,12 +596,12 @@ export const importVeteranRunner = (runnerSnapshot: IRunnerState, resetSession =
     const nextObtainedSkillIds = resolveObtainedSkillIds(
       runnerSnapshot.skills,
       runnerSnapshot.outfitId,
-      resetSession ? undefined : state.runner.outfitId,
+      resetSession ? undefined : state.runner.outfitId
     );
 
     return {
       ...baseState,
-      ...applyBaselineRunner(baseState, runnerSnapshot, nextObtainedSkillIds),
+      ...applyBaselineRunner(baseState, runnerSnapshot, nextObtainedSkillIds)
     };
   });
 };
@@ -622,7 +622,7 @@ export const resetRunner = () => {
       candidates: {},
       skillMetaById: {},
       isOptimizing: false,
-      progress: null,
+      progress: null
     };
   });
 };
@@ -652,7 +652,7 @@ export const createNewSeed = () => {
 export const setIsOptimizing = (isOptimizing: boolean) => {
   useSkillPlannerStore.setState((state) => ({
     isOptimizing,
-    progress: isOptimizing ? state.progress : null,
+    progress: isOptimizing ? state.progress : null
   }));
 };
 

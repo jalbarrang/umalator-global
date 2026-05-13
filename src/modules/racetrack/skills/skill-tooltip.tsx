@@ -64,5 +64,5 @@ export const SkillTooltip = React.memo<SkillTooltipProps>(
         {label}
       </text>
     </g>
-  ),
+  )
 );

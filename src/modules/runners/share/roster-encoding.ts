@@ -112,7 +112,7 @@ function decodeCharacter(bv: BitVector): ISingleExportData {
     proper_running_style_oikomi,
     create_time: currentUtcTimestamp(),
     rank_score,
-    skill_array,
+    skill_array
   };
 }
 

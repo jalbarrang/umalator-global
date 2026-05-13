@@ -5,7 +5,7 @@ export type DynamicConditionComparator = 'eq' | 'neq' | 'lt' | 'lte' | 'gt' | 'g
 
 export type DynamicConditionFactory = (
   arg: number,
-  comparator: DynamicConditionComparator,
+  comparator: DynamicConditionComparator
 ) => DynamicCondition;
 
 const registry = new Map<string, DynamicConditionFactory>();
@@ -42,7 +42,7 @@ export function hasDynamicCondition(name: string): boolean {
 function getDynamicResult(
   params: ConditionFilterParams,
   conditionName: string,
-  comparator: DynamicConditionComparator,
+  comparator: DynamicConditionComparator
 ) {
   if (params.extra.mode !== 'normal' || !hasDynamicCondition(conditionName)) {
     return undefined;
@@ -55,7 +55,7 @@ function getDynamicResult(
 
   return [params.regions, factory(params.arg, comparator)] as [
     typeof params.regions,
-    ReturnType<typeof factory>,
+    ReturnType<typeof factory>
   ];
 }
 
@@ -79,6 +79,6 @@ export function dynamicOrStatic(staticCondition: ICondition, conditionName: stri
     },
     filterGte(params: ConditionFilterParams) {
       return getDynamicResult(params, conditionName, 'gte') ?? staticCondition.filterGte(params);
-    },
+    }
   };
 }

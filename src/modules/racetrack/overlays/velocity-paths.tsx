@@ -58,7 +58,7 @@ export const VelocityPaths = memo<VelocityPathsProps>(function VelocityPaths(pro
 
   const xScale = useMemo(
     () => d3.scaleLinear().domain([0, course.distance]).range([0, RaceTrackDimensions.RenderWidth]),
-    [course.distance],
+    [course.distance]
   );
 
   const yScale = useMemo(() => {

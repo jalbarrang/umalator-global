@@ -12,7 +12,7 @@ import {
   readJsonFileIfExists,
   resolveMasterDbPath,
   sortByNumericKey,
-  writeJsonFile,
+  writeJsonFile
 } from '../master-data/shared';
 
 interface CourseSetStatusRow {
@@ -102,7 +102,7 @@ function parseCliArgs(argv: Array<string>): ExtractCourseDataOptions {
   return {
     replaceMode: Boolean(options.replace || options.full),
     dbPath,
-    courseEventParamsPath,
+    courseEventParamsPath
   };
 }
 
@@ -122,14 +122,14 @@ async function extractCourseData(options: ExtractCourseDataOptions = { replaceMo
   const {
     replaceMode,
     dbPath: cliDbPath,
-    courseEventParamsPath: cliCourseEventParamsPath,
+    courseEventParamsPath: cliCourseEventParamsPath
   } = options;
   const dbPath = await resolveMasterDbPath(cliDbPath);
   const courseEventParamsPath =
     cliCourseEventParamsPath || path.join(process.cwd(), 'courseeventparams');
 
   console.log(
-    `Mode: ${replaceMode ? '⚠️  Full Replacement' : '✓ Merge (preserves future content)'}`,
+    `Mode: ${replaceMode ? '⚠️  Full Replacement' : '✓ Merge (preserves future content)'}`
   );
   console.log(`Database: ${dbPath}`);
   console.log(`Course event params: ${courseEventParamsPath}\n`);
@@ -141,7 +141,7 @@ async function extractCourseData(options: ExtractCourseDataOptions = { replaceMo
     const statusRows = queryAll<CourseSetStatusRow>(
       db,
       `SELECT course_set_status_id, target_status_1, target_status_2
-       FROM race_course_set_status`,
+       FROM race_course_set_status`
     );
 
     const courseSetStatus: Record<number, Array<number>> = {};
@@ -158,7 +158,7 @@ async function extractCourseData(options: ExtractCourseDataOptions = { replaceMo
       db,
       `SELECT id, race_track_id, distance, ground, inout, turn, float_lane_max, course_set_status_id,
               finish_time_min, finish_time_max
-       FROM race_course_set`,
+       FROM race_course_set`
     );
 
     console.log(`Found ${courseRows.length} courses\n`);
@@ -197,7 +197,7 @@ async function extractCourseData(options: ExtractCourseDataOptions = { replaceMo
           // Corner
           corners.push({
             start: event._distance,
-            length: event._values[1],
+            length: event._values[1]
           });
         } else if (event._paramType === 2) {
           // Straight
@@ -205,26 +205,26 @@ async function extractCourseData(options: ExtractCourseDataOptions = { replaceMo
             // Start of straight
             if (event._values[0] !== 1) {
               throw new Error(
-                `Confused about course event params: straight ended before it started? (course id ${row.id})`,
+                `Confused about course event params: straight ended before it started? (course id ${row.id})`
               );
             }
             pendingStraight = {
               start: event._distance,
-              frontType: event._values[1],
+              frontType: event._values[1]
             };
             straightState = 1;
           } else {
             // End of straight
             if (event._values[0] !== 2) {
               throw new Error(
-                `Confused about course event params: new straight started before previous straight ended (course id ${row.id})`,
+                `Confused about course event params: new straight started before previous straight ended (course id ${row.id})`
               );
             }
             if (pendingStraight) {
               straights.push({
                 start: pendingStraight.start!,
                 end: event._distance,
-                frontType: pendingStraight.frontType!,
+                frontType: pendingStraight.frontType!
               });
             }
             pendingStraight = null;
@@ -235,7 +235,7 @@ async function extractCourseData(options: ExtractCourseDataOptions = { replaceMo
           slopes.push({
             start: event._distance,
             length: event._values[1],
-            slope: event._values[0],
+            slope: event._values[0]
           });
         }
       }
@@ -259,7 +259,7 @@ async function extractCourseData(options: ExtractCourseDataOptions = { replaceMo
         courseSetStatus: courseSetStatus[row.course_set_status_id] || [],
         corners,
         straights,
-        slopes,
+        slopes
       };
 
       processedCount++;

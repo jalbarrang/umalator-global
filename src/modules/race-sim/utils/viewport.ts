@@ -12,7 +12,7 @@ export type ViewportWindow = {
 export function computeViewport(
   positions: Record<number, number>,
   courseDistance: number,
-  windowMeters: number,
+  windowMeters: number
 ): ViewportWindow {
   const distance = Math.max(0, courseDistance);
   if (distance <= 0) {

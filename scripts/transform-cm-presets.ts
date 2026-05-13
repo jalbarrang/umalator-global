@@ -69,7 +69,7 @@ function findCourseId(
   track: number,
   distance: number,
   turn: number,
-  surface: number,
+  surface: number
 ): { courseId: number | null; reason: string } {
   const knownTracks = new Set(Object.values(courses).map((c) => c.raceTrackId));
   if (!knownTracks.has(track)) {
@@ -78,22 +78,19 @@ function findCourseId(
 
   const matches = Object.entries(courses).filter(
     ([, c]) =>
-      c.raceTrackId === track &&
-      c.distance === distance &&
-      c.turn === turn &&
-      c.surface === surface,
+      c.raceTrackId === track && c.distance === distance && c.turn === turn && c.surface === surface
   );
 
   if (matches.length === 0) {
     return {
       courseId: null,
-      reason: `no course for track=${track} distance=${distance} turn=${turn} surface=${surface}`,
+      reason: `no course for track=${track} distance=${distance} turn=${turn} surface=${surface}`
     };
   }
 
   if (matches.length > 1) {
     console.warn(
-      `Ambiguous course match (using first): ${matches.map((m) => m[0]).join(', ')} for track=${track} distance=${distance} turn=${turn} surface=${surface}`,
+      `Ambiguous course match (using first): ${matches.map((m) => m[0]).join(', ')} for track=${track} distance=${distance} turn=${turn} surface=${surface}`
     );
   }
 
@@ -127,14 +124,14 @@ async function main(): Promise<void> {
       season: r.season,
       ground: r.condition,
       weather: r.weather,
-      time: TIME_OF_DAY_MIDDAY,
+      time: TIME_OF_DAY_MIDDAY
     });
   }
 
   const json = JSON.stringify(out, null, 2) + '\n';
   await writeFile(presetsPath, json, 'utf8');
   console.log(
-    `Wrote ${out.length} presets to ${presetsPath} (skipped ${rawPresets.length - out.length})`,
+    `Wrote ${out.length} presets to ${presetsPath} (skipped ${rawPresets.length - out.length})`
   );
 }
 

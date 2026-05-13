@@ -145,14 +145,14 @@ export const conditionFilterMap = {
     parseSkillCondition('phase==0'),
     parseSkillCondition('phase_random==0'),
     parseSkillCondition('phase_firsthalf_random==0'),
-    parseSkillCondition('phase_laterhalf_random==0'),
+    parseSkillCondition('phase_laterhalf_random==0')
   ],
   phase1: [
     parseSkillCondition('phase==1'),
     parseSkillCondition('phase>=1'),
     parseSkillCondition('phase_random==1'),
     parseSkillCondition('phase_firsthalf_random==1'),
-    parseSkillCondition('phase_laterhalf_random==1'),
+    parseSkillCondition('phase_laterhalf_random==1')
   ],
   phase2: [
     parseSkillCondition('phase==2'),
@@ -161,23 +161,23 @@ export const conditionFilterMap = {
     parseSkillCondition('phase_firsthalf_random==2'),
     parseSkillCondition('phase_laterhalf_random==2'),
     parseSkillCondition('phase_firstquarter_random==2'),
-    parseSkillCondition('is_lastspurt==1'),
+    parseSkillCondition('is_lastspurt==1')
   ],
   phase3: [
     parseSkillCondition('phase==3'),
     parseSkillCondition('phase_random==3'),
     parseSkillCondition('phase_firsthalf_random==3'),
-    parseSkillCondition('phase_laterhalf_random==3'),
+    parseSkillCondition('phase_laterhalf_random==3')
   ],
   finalcorner: [
     parseSkillCondition('is_finalcorner==1'),
     parseSkillCondition('is_finalcorner_laterhalf==1'),
-    parseSkillCondition('is_finalcorner_random==1'),
+    parseSkillCondition('is_finalcorner_random==1')
   ],
   finalstraight: [
     parseSkillCondition('is_last_straight==1'),
-    parseSkillCondition('is_last_straight_onetime==1'),
-  ],
+    parseSkillCondition('is_last_straight_onetime==1')
+  ]
 };
 
 export const generateSkillFilterLookUp = (skillsToMatch: SkillsMap) => {
@@ -208,7 +208,7 @@ const skillCollectionAsMap = dataRegistry.skills.getAll().reduce((acc, skill) =>
 }, {} as SkillsMap);
 
 export let skillFilterLookUp: Record<string, Set<string>> = generateSkillFilterLookUp(
-  skillCollectionAsMap,
+  skillCollectionAsMap
 );
 
 /**

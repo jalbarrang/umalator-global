@@ -13,7 +13,7 @@ function ComboboxInput({ className, ...props }: ComboboxPrimitive.Input.Props) {
       data-slot="combobox-input"
       className={cn(
         'dark:bg-input/30 border-input focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:aria-invalid:border-destructive/50 disabled:bg-input/50 dark:disabled:bg-input/80 h-8 rounded-lg border bg-transparent px-2.5 py-1 text-base transition-colors file:h-6 file:text-sm file:font-medium focus-visible:ring-[3px] aria-invalid:ring-[3px] md:text-sm file:text-foreground placeholder:text-muted-foreground w-full min-w-0 outline-none file:inline-flex file:border-0 file:bg-transparent disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50',
-        className,
+        className
       )}
       {...props}
     />
@@ -26,7 +26,7 @@ function ComboboxTrigger({ className, ...props }: ComboboxPrimitive.Trigger.Prop
       data-slot="combobox-trigger"
       className={cn(
         'text-muted-foreground hover:bg-accent hover:text-accent-foreground flex size-8 items-center justify-center rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
-        className,
+        className
       )}
       {...props}
     >
@@ -41,7 +41,7 @@ function ComboboxClear({ className, ...props }: ComboboxPrimitive.Clear.Props) {
       data-slot="combobox-clear"
       className={cn(
         'text-muted-foreground hover:bg-accent hover:text-accent-foreground flex size-8 items-center justify-center rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
-        className,
+        className
       )}
       {...props}
     >
@@ -86,7 +86,7 @@ function ComboboxContent({
           data-slot="combobox-content"
           className={cn(
             'bg-popover text-popover-foreground data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0 data-closed:zoom-out-95 data-open:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 ring-foreground/10 min-w-36 rounded-lg shadow-md ring-1 duration-100 relative isolate z-50 max-h-(--available-height) w-(--anchor-width) origin-(--transform-origin) overflow-x-hidden overflow-y-auto',
-            className,
+            className
           )}
           {...props}
         />
@@ -121,7 +121,7 @@ function ComboboxItem({ className, ...props }: ComboboxPrimitive.Item.Props) {
       data-slot="combobox-item"
       className={cn(
         "focus:bg-accent focus:text-accent-foreground not-data-[variant=destructive]:focus:**:text-accent-foreground gap-1.5 rounded-md py-1 pr-8 pl-1.5 text-sm [&_svg:not([class*='size-'])]:size-4 relative flex w-full cursor-default items-center outline-hidden select-none data-disabled:pointer-events-none data-disabled:opacity-50 data-highlighted:bg-accent data-highlighted:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0",
-        className,
+        className
       )}
       {...props}
     />
@@ -199,7 +199,7 @@ function ComboboxChip({ className, ...props }: ComboboxPrimitive.Chip.Props) {
       data-slot="combobox-chip"
       className={cn(
         'border-input bg-background text-foreground inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-        className,
+        className
       )}
       {...props}
     />
@@ -212,7 +212,7 @@ function ComboboxChipRemove({ className, ...props }: ComboboxPrimitive.ChipRemov
       data-slot="combobox-chip-remove"
       className={cn(
         'text-muted-foreground hover:text-foreground ml-1 rounded-sm opacity-70 hover:opacity-100 focus:opacity-100 focus:outline-none [&_svg]:size-3 [&_svg]:pointer-events-none',
-        className,
+        className
       )}
       {...props}
     >
@@ -239,5 +239,5 @@ export {
   ComboboxStatus,
   ComboboxChips,
   ComboboxChip,
-  ComboboxChipRemove,
+  ComboboxChipRemove
 };

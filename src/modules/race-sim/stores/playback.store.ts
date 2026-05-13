@@ -18,7 +18,7 @@ function getRoundCount(results: RaceSimResult | null): number {
   return Math.max(
     results.finishOrders.length,
     results.collectedData.rounds.length,
-    results.eventLogs.length,
+    results.eventLogs.length
   );
 }
 
@@ -43,7 +43,7 @@ function toTimeDisplay(tick: number): string {
 export function getRunnerPositionsAtTick(
   results: RaceSimResult | null,
   selectedRound: number,
-  currentTick: number,
+  currentTick: number
 ): Record<number, number> {
   if (!results) return {};
   const allPositions = results.collectedData.rounds[selectedRound]?.allRunnerPositions ?? {};
@@ -59,7 +59,7 @@ export function getRunnerPositionsAtTick(
 export function getRunnerLanesAtTick(
   results: RaceSimResult | null,
   selectedRound: number,
-  currentTick: number,
+  currentTick: number
 ): Record<number, number> {
   if (!results) return {};
   const allLanes = results.collectedData.rounds[selectedRound]?.allRunnerLanes ?? {};
@@ -89,14 +89,14 @@ type PlaybackState = {
 
 function deriveFromRound(
   results: RaceSimResult | null,
-  selectedRound: number,
+  selectedRound: number
 ): Pick<PlaybackState, 'totalTicks' | 'totalTimeDisplay' | 'roundData' | 'roundEvents'> {
   const totalTicks = getRoundMaxTick(results, selectedRound);
   return {
     totalTicks,
     totalTimeDisplay: toTimeDisplay(totalTicks),
     roundData: results?.collectedData.rounds[selectedRound] ?? null,
-    roundEvents: results?.eventLogs[selectedRound] ?? [],
+    roundEvents: results?.eventLogs[selectedRound] ?? []
   };
 }
 
@@ -112,7 +112,7 @@ export const usePlaybackStore = create<PlaybackState>()((_) => ({
   roundData: null,
   roundEvents: [],
   currentTimeDisplay: toTimeDisplay(0),
-  totalTimeDisplay: toTimeDisplay(0),
+  totalTimeDisplay: toTimeDisplay(0)
 }));
 
 export const SPEED_OPTIONS = PLAYBACK_SPEEDS;
@@ -129,7 +129,7 @@ export function loadResults(results: RaceSimResult | null) {
     currentTick: 0,
     isPlaying: false,
     currentTimeDisplay: toTimeDisplay(0),
-    ...roundDerived,
+    ...roundDerived
   });
 }
 
@@ -144,7 +144,7 @@ export function setRound(roundIndex: number) {
     currentTick: 0,
     isPlaying: false,
     currentTimeDisplay: toTimeDisplay(0),
-    ...roundDerived,
+    ...roundDerived
   });
 }
 
@@ -164,7 +164,7 @@ export function stepForward() {
   usePlaybackStore.setState({
     isPlaying: false,
     currentTick: next,
-    currentTimeDisplay: toTimeDisplay(next),
+    currentTimeDisplay: toTimeDisplay(next)
   });
 }
 
@@ -174,7 +174,7 @@ export function stepBack() {
   usePlaybackStore.setState({
     isPlaying: false,
     currentTick: next,
-    currentTimeDisplay: toTimeDisplay(next),
+    currentTimeDisplay: toTimeDisplay(next)
   });
 }
 
@@ -185,7 +185,7 @@ export function seekTo(targetTick: number) {
   usePlaybackStore.setState({
     isPlaying: false,
     currentTick: next,
-    currentTimeDisplay: toTimeDisplay(next),
+    currentTimeDisplay: toTimeDisplay(next)
   });
 }
 
@@ -197,7 +197,7 @@ export function setSpeed(speed: PlaybackSpeed) {
 export function tick(nextTick: number) {
   usePlaybackStore.setState({
     currentTick: nextTick,
-    currentTimeDisplay: toTimeDisplay(nextTick),
+    currentTimeDisplay: toTimeDisplay(nextTick)
   });
 }
 

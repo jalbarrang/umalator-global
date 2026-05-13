@@ -38,7 +38,7 @@ export function SimulationControlBar(props: SimulationControlBarProps) {
     setSeed: setStoreSeed,
     runLabel = 'Run Skill Simulations',
     tutorial,
-    dataTutorial,
+    dataTutorial
   } = props;
 
   const [seedInput, setSeedInput] = useState<string>(() => {

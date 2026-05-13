@@ -6,7 +6,7 @@ import {
   DialogContent,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
+  DialogTitle
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,7 +16,7 @@ import {
   useOcrActions,
   useOcrProcessing,
   useOcrResults,
-  useOcrWizardState,
+  useOcrWizardState
 } from '@/modules/runners/components/ocr/ocr-dialog.provider';
 import { setGeminiApiKey, useGeminiApiKey } from '@/store/ocr.store';
 import { getNextWizardStep, getPreviousWizardStep } from './ocr/definitions';

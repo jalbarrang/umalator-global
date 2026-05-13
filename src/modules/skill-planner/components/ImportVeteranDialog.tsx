@@ -10,7 +10,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
+  DialogTitle
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
@@ -35,7 +35,7 @@ export function toRunnerStateSnapshot(runner: ISavedRunner): IRunnerState {
     strategyAptitude: runner.strategyAptitude,
     mood: runner.mood,
     skills: runner.skills,
-    randomMobId: runner.randomMobId,
+    randomMobId: runner.randomMobId
   };
 }
 
@@ -70,7 +70,7 @@ export function ImportVeteranDialog(props: Readonly<ImportVeteranDialogProps>) {
           .toLowerCase();
 
         return [runner.id, text];
-      }),
+      })
     );
   }, [sortedRunners]);
 
@@ -161,7 +161,7 @@ export function ImportVeteranDialog(props: Readonly<ImportVeteranDialogProps>) {
                         'flex w-full items-start gap-3 rounded-lg border p-3 text-left transition-colors',
                         isSelected
                           ? 'border-primary bg-primary/5 ring-1 ring-primary/30'
-                          : 'border-border hover:bg-accent/40',
+                          : 'border-border hover:bg-accent/40'
                       )}
                     >
                       <img

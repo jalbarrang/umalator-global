@@ -18,7 +18,7 @@ export function parseChangelog(markdown: string): Array<ChangelogEntry> {
       currentEntry = {
         version: versionMatch[1],
         date: versionMatch[2],
-        changes: [],
+        changes: []
       };
       entries.push(currentEntry);
       continue;

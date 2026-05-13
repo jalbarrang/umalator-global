@@ -90,7 +90,7 @@ const EFFECT_TYPE_NAMES: Record<number, string> = {
   31: 'Acceleration',
   35: 'Change Lane',
   37: 'Activate Random Gold',
-  42: 'Extend Evolved Duration',
+  42: 'Extend Evolved Duration'
 };
 
 const RARITY_NAMES: Record<number, string> = {
@@ -99,7 +99,7 @@ const RARITY_NAMES: Record<number, string> = {
   3: 'Unique',
   4: 'Unique',
   5: 'Unique',
-  6: 'Evolution',
+  6: 'Evolution'
 };
 
 const EFFECT_TYPE_ALIASES: Record<string, number> = {
@@ -158,7 +158,7 @@ const EFFECT_TYPE_ALIASES: Record<string, number> = {
   randomgold: 37,
   '42': 42,
   extendevolvedduration: 42,
-  evolvedduration: 42,
+  evolvedduration: 42
 };
 
 type NameMatchKind = 'exact' | 'substring' | 'token' | 'fuzzy';
@@ -238,7 +238,7 @@ function getEnglishNameMatch(candidateName: string, searchText: string): NameMat
   ) {
     return {
       score: candidate.startsWith(needle) ? 0.97 : 0.94,
-      kind: 'substring',
+      kind: 'substring'
     };
   }
 
@@ -248,8 +248,8 @@ function getEnglishNameMatch(candidateName: string, searchText: string): NameMat
     needleTokens.length > 1 &&
     needleTokens.every((token) =>
       candidateTokens.some(
-        (candidateToken) => candidateToken.startsWith(token) || candidateToken.includes(token),
-      ),
+        (candidateToken) => candidateToken.startsWith(token) || candidateToken.includes(token)
+      )
     )
   ) {
     return { score: 0.9, kind: 'token' };
@@ -495,7 +495,7 @@ function toResult(skill: SkillEntry, dataset: SkillDataset): SkillSearchResult {
     familyNames: unique(familyNames),
     conditions: getSkillConditions(skill),
     effectTypeIds,
-    effectTypeNames: effectTypeIds.map(getEffectTypeName),
+    effectTypeNames: effectTypeIds.map(getEffectTypeName)
   };
 }
 
@@ -519,7 +519,7 @@ export function searchSkills(cwd: string, filters: SkillSearchFilters): SkillSea
       totalMatches: 0,
       shown: 0,
       notes: ['Provide at least one filter: query, name, condition, groupId, familyOf, or types.'],
-      results: [],
+      results: []
     };
   }
 
@@ -541,7 +541,7 @@ export function searchSkills(cwd: string, filters: SkillSearchFilters): SkillSea
         `Family filter resolved from: ${familyRoots
           .slice(0, 5)
           .map((skill) => `${skill.id} ${skill.name}`)
-          .join(', ')}${familyRoots.length > 5 ? '…' : ''}`,
+          .join(', ')}${familyRoots.length > 5 ? '…' : ''}`
       );
       candidates = candidates.filter((skill) => familyIds.has(skill.id));
     }
@@ -553,7 +553,7 @@ export function searchSkills(cwd: string, filters: SkillSearchFilters): SkillSea
 
   if (filters.name) {
     candidates = candidates.filter(
-      (skill) => getEnglishNameMatch(skill.name, filters.name!) !== null,
+      (skill) => getEnglishNameMatch(skill.name, filters.name!) !== null
     );
 
     const hasDirectNameMatch = candidates.some((skill) => {
@@ -574,7 +574,7 @@ export function searchSkills(cwd: string, filters: SkillSearchFilters): SkillSea
   if (filters.condition) {
     const needle = normalize(filters.condition);
     candidates = candidates.filter((skill) =>
-      normalize(getSkillConditions(skill).join(' ')).includes(needle),
+      normalize(getSkillConditions(skill).join(' ')).includes(needle)
     );
   }
 
@@ -597,7 +597,7 @@ export function searchSkills(cwd: string, filters: SkillSearchFilters): SkillSea
     .map((skill) => ({ skill, score: scoreSkill(skill, dataset, filters) }))
     .sort(
       (a, b) =>
-        b.score - a.score || a.skill.order - b.skill.order || a.skill.id.localeCompare(b.skill.id),
+        b.score - a.score || a.skill.order - b.skill.order || a.skill.id.localeCompare(b.skill.id)
     );
 
   const results = ranked.slice(0, limit).map(({ skill }) => toResult(skill, dataset));
@@ -607,7 +607,7 @@ export function searchSkills(cwd: string, filters: SkillSearchFilters): SkillSea
     totalMatches: ranked.length,
     shown: results.length,
     notes,
-    results,
+    results
   };
 }
 
@@ -628,7 +628,7 @@ export function formatSkillSearchSummary(response: SkillSearchResponse): string 
 
   const lines: Array<string> = [
     `Skill search: ${response.totalMatches} match(es), showing ${response.shown}`,
-    filterParts.length > 0 ? `Filters: ${filterParts.join(' · ')}` : 'Filters: (none)',
+    filterParts.length > 0 ? `Filters: ${filterParts.join(' · ')}` : 'Filters: (none)'
   ];
 
   if (response.notes.length > 0) {
@@ -642,7 +642,7 @@ export function formatSkillSearchSummary(response: SkillSearchResponse): string 
 
   for (const [index, result] of response.results.entries()) {
     lines.push(
-      `${index + 1}. ${result.id} ${result.name} [${result.rarityName}] group:${result.groupId} types:${result.effectTypeNames.join(', ') || '—'}`,
+      `${index + 1}. ${result.id} ${result.name} [${result.rarityName}] group:${result.groupId} types:${result.effectTypeNames.join(', ') || '—'}`
     );
     lines.push(`   family: ${result.familyNames.join(' | ') || result.id}`);
     lines.push(`   conditions: ${compactConditions(result.conditions)}`);
@@ -661,7 +661,7 @@ export function formatSkillDetails(result: SkillSearchResult): string {
     `versions: ${result.versions.join(', ') || '—'}`,
     `family: ${result.familyIds.map((id, index) => `${id} ${result.familyNames[index] ?? ''}`.trim()).join(' | ')}`,
     'conditions:',
-    ...result.conditions.map((condition) => `- ${condition}`),
+    ...result.conditions.map((condition) => `- ${condition}`)
   ];
 
   return lines.join('\n');
@@ -672,7 +672,7 @@ export function parseCommandFilters(input: string): SkillSearchFilters {
   const queryTokens: Array<string> = [];
   const tokens =
     input.match(
-      /(?:[^\s:=]+[:=]"[^"]*"|[^\s:=]+[:=]'[^']*'|[^\s:=]+[:=][^\s]+|"[^"]*"|'[^']*'|\S+)/g,
+      /(?:[^\s:=]+[:=]"[^"]*"|[^\s:=]+[:=]'[^']*'|[^\s:=]+[:=][^\s]+|"[^"]*"|'[^']*'|\S+)/g
     ) ?? [];
 
   for (const token of tokens) {
@@ -746,7 +746,7 @@ export function getSkillSearchHelp(): string {
     '  /skill-search type:Recovery condition:order_rate>50',
     '  /skill-search group:20144',
     '  /skill-search family:"Risky Business"',
-    '  /skill-search name:"All seeing eye"',
+    '  /skill-search name:"All seeing eye"'
   ].join('\n');
 }
 

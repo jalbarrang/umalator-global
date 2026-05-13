@@ -8,7 +8,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
+  DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { strategyNames } from '@/lib/sunday-tools/runner/definitions';
 import { getIconUrl } from '@/assets/icons';
@@ -16,7 +16,7 @@ import {
   copyRosterViewCode,
   copyScreenshot,
   downloadJson,
-  getSkillsForShareCard,
+  getSkillsForShareCard
 } from '../share/share-actions';
 import { ShareCard } from '../share/share-card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -109,7 +109,7 @@ export const SavedRunnerCard = memo((props: SavedRunnerCardProps) => {
                         downloadJson(
                           runner,
                           `runner-${umaInfo?.name ?? 'unknown'}.json`,
-                          runner.createdAt,
+                          runner.createdAt
                         )
                       }
                     >

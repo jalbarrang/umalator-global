@@ -5,7 +5,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
+  DialogDescription
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { decodeSingleUma } from './encoding';
@@ -30,7 +30,7 @@ export function ImportCodeDialog({
   initialCode,
   mode = 'slot-picker',
   onLoadToSlot,
-  onDirectImport,
+  onDirectImport
 }: ImportCodeDialogProps) {
   const [code, setCode] = useState('');
 
@@ -124,7 +124,7 @@ export function ImportCodeDialog({
                     decoded.stamina,
                     decoded.power,
                     decoded.guts,
-                    decoded.wisdom,
+                    decoded.wisdom
                   ] as Array<number | undefined>
                 ).map((val, i) => (
                   <div

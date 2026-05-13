@@ -78,10 +78,10 @@ export class CourseHelpers {
       power: number;
       guts: number;
       wisdom: number;
-    }>,
+    }>
   ) {
     const statvalues = [0, stats.speed, stats.stamina, stats.power, stats.guts, stats.wisdom].map(
-      (x) => Math.min(x, 901),
+      (x) => Math.min(x, 901)
     );
 
     return (
@@ -117,7 +117,7 @@ export class CourseHelpers {
       laneChangeAcceleration,
       laneChangeAccelerationPerFrame,
       maxLaneDistance,
-      moveLanePoint,
+      moveLanePoint
     };
 
     return course2 as CourseData;

@@ -4,7 +4,7 @@ import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import {
   getRunnerLanesAtTick,
   getRunnerPositionsAtTick,
-  usePlaybackStore,
+  usePlaybackStore
 } from '@/modules/race-sim/stores/playback.store';
 import { buildCourseTrackPath, type BuiltTrackPath } from '@/modules/race-sim/utils/track-path';
 import { pointerToVirtualCanvas, zoomViewportAroundPoint } from './canvasMath';
@@ -15,7 +15,7 @@ import {
   paintTrackBaseLayer,
   paintTrackHudLayer,
   paintTrackOverlayLayer,
-  resolveTrackSceneColors,
+  resolveTrackSceneColors
 } from './trackLayers';
 import { CANVAS_H, CANVAS_W, type MainTrackLayerId, type ViewportState } from './shared';
 import { buildTrackMarkers } from './trackPrimitives';
@@ -36,7 +36,7 @@ const EMPTY_TRACK: BuiltTrackPath = {
   wraps: false,
   lapLength: 1,
   numLaps: 1,
-  raceStartOnTrack: 0,
+  raceStartOnTrack: 0
 };
 
 export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDownView(props) {
@@ -46,7 +46,7 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
     trackedRunnerIds = [],
     viewStart,
     viewEnd,
-    className,
+    className
   } = props;
 
   const courseDistance = Math.max(courseData.distance, 1);
@@ -69,7 +69,7 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
   const dragRef = useRef<{ pointerId: number | null; x: number; y: number }>({
     pointerId: null,
     x: 0,
-    y: 0,
+    y: 0
   });
 
   const configRef = useRef({
@@ -82,7 +82,7 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
     runnerNames,
     trackedRunnerIds,
     turn: courseData.turn,
-    markers,
+    markers
   });
 
   configRef.current = {
@@ -95,7 +95,7 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
     runnerNames,
     trackedRunnerIds,
     turn: courseData.turn,
-    markers,
+    markers
   };
 
   useEffect(() => {
@@ -123,7 +123,7 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
   const dirtyLayersRef = useRef<Record<MainTrackLayerId, boolean>>({
     track: true,
     overlay: true,
-    hud: true,
+    hud: true
   });
   const frameRef = useRef<number | null>(null);
   const flushLayers = useRef<() => void>(() => {});
@@ -135,7 +135,7 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
     const positions = getRunnerPositionsAtTick(
       state.results,
       state.selectedRound,
-      state.currentTick,
+      state.currentTick
     );
     const lanes = getRunnerLanesAtTick(state.results, state.selectedRound, state.currentTick);
     const cfg = configRef.current;
@@ -152,7 +152,7 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
       runnerPositions: positions,
       runnerNames: cfg.runnerNames,
       trackedRunnerIds: cfg.trackedRunnerIds,
-      markers: cfg.markers,
+      markers: cfg.markers
     });
     const colors = resolveTrackSceneColors();
 
@@ -165,7 +165,7 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
           measuredWidth: width,
           measuredHeight: height,
           scene,
-          colors,
+          colors
         });
       }
     }
@@ -181,7 +181,7 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
           scene,
           colors,
           runnerPositions: positions,
-          runnerLanes: lanes,
+          runnerLanes: lanes
         });
       }
     }
@@ -196,7 +196,7 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
           scene,
           colors,
           turn: cfg.turn,
-          runnerPositions: positions,
+          runnerPositions: positions
         });
       }
     }
@@ -226,7 +226,7 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
     clampedViewStart,
     clampedViewEnd,
     runnerNames,
-    trackedRunnerIds,
+    trackedRunnerIds
   ]);
 
   useEffect(() => {
@@ -270,7 +270,7 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
     });
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['class', 'data-theme', 'style'],
+      attributeFilter: ['class', 'data-theme', 'style']
     });
     return () => observer.disconnect();
   }, []);
@@ -303,7 +303,7 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
       viewportRef.current = {
         ...viewportRef.current,
         panX: viewportRef.current.panX + dx,
-        panY: viewportRef.current.panY + dy,
+        panY: viewportRef.current.panY + dy
       };
       scheduleLayers.current();
     };

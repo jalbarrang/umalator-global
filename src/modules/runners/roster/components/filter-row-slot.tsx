@@ -5,7 +5,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
+  SelectValue
 } from '@/components/ui/select';
 import { MIN_GRADES } from '../constants';
 import { encodingToAptitude } from '../../share/converters';
@@ -35,7 +35,7 @@ export const AptitudeFilterRowSlot = (props: Readonly<IAptitudeFilterRowSlotProp
 
       onChange(slot.key, Number(v));
     },
-    [onChange, slot.key],
+    [onChange, slot.key]
   );
 
   return (

@@ -2,7 +2,7 @@ import { useCallback, useMemo } from 'react';
 import {
   getCourseIdByTrackIdAndIndex,
   getDefaultTrackIdForCourse,
-  useCoursesByTrack,
+  useCoursesByTrack
 } from '../courses';
 import { trackDescription } from '../labels';
 import { trackIds } from '@/i18n/lang/tracknames';
@@ -14,7 +14,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
+  SelectValue
 } from '@/components/ui/select';
 import { setCourseId, useSettingsStore } from '@/store/settings.store';
 

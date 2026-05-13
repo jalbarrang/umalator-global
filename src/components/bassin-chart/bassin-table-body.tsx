@@ -63,7 +63,7 @@ type BassinVirtualTableRowCellsProps = {
 };
 
 const BassinVirtualTableRowCells = React.memo(function BassinVirtualTableRowCells(
-  props: BassinVirtualTableRowCellsProps,
+  props: BassinVirtualTableRowCellsProps
 ) {
   const { row, hasRunData } = props;
   const id = row.getValue('id') as string;
@@ -116,7 +116,7 @@ type BassinVirtualTableRowProps = {
 };
 
 const BassinVirtualTableRow = React.memo(function BassinVirtualTableRow(
-  props: BassinVirtualTableRowProps,
+  props: BassinVirtualTableRowProps
 ) {
   const {
     virtualRow,
@@ -127,7 +127,7 @@ const BassinVirtualTableRow = React.memo(function BassinVirtualTableRow(
     isSearchMatch,
     isCurrentMatch,
     isPending,
-    isHidden,
+    isHidden
   } = props;
 
   const classNameObject = useMemo(() => {
@@ -139,15 +139,15 @@ const BassinVirtualTableRow = React.memo(function BassinVirtualTableRow(
         'bg-primary/5': isSelected && !isSearchMatch,
         'bg-yellow-100/50 dark:bg-yellow-900/20': isSearchMatch && !isCurrentMatch,
         'bg-yellow-200/70 dark:bg-yellow-800/40': isCurrentMatch,
-        'opacity-40': isPending,
-      },
+        'opacity-40': isPending
+      }
     );
   }, [isHidden, isSelected, isSearchMatch, isCurrentMatch, isPending]);
 
   const styleObject = useMemo(() => {
     return {
       position: 'absolute',
-      transform: `translateY(${virtualRow.start}px)`,
+      transform: `translateY(${virtualRow.start}px)`
     } satisfies React.CSSProperties;
   }, [virtualRow.start]);
 
@@ -186,14 +186,14 @@ export const BassinTableBody = React.memo((props: BassinTableBodyProps) => {
     expandedSkillId,
     search,
     hiddenSkills,
-    isSimulationRunning,
+    isSimulationRunning
   } = props;
 
   return (
     <div
       className="relative"
       style={{
-        height: `${virtualizer.getTotalSize()}px`,
+        height: `${virtualizer.getTotalSize()}px`
       }}
     >
       {virtualizer.getVirtualItems().map((virtualRow) => {

@@ -5,7 +5,7 @@ import { describeRecoveryEffect, resolveRecoveryModifier } from './recovery-effe
 
 function createSkillRng(roll: number) {
   return {
-    random: () => roll,
+    random: () => roll
   };
 }
 
@@ -15,10 +15,10 @@ describe('resolveRecoveryModifier', () => {
       resolveRecoveryModifier(
         {
           type: SkillType.Recovery,
-          modifier: -0.125,
+          modifier: -0.125
         },
-        createSkillRng(0.95),
-      ),
+        createSkillRng(0.95)
+      )
     ).toBe(-0.125);
   });
 
@@ -28,10 +28,10 @@ describe('resolveRecoveryModifier', () => {
         {
           type: SkillType.Recovery,
           modifier: -1,
-          valueUsage: 8,
+          valueUsage: 8
         },
-        createSkillRng(0.1),
-      ),
+        createSkillRng(0.1)
+      )
     ).toBe(0);
 
     expect(
@@ -39,10 +39,10 @@ describe('resolveRecoveryModifier', () => {
         {
           type: SkillType.Recovery,
           modifier: -1,
-          valueUsage: 8,
+          valueUsage: 8
         },
-        createSkillRng(0.6),
-      ),
+        createSkillRng(0.6)
+      )
     ).toBe(-0.02);
 
     expect(
@@ -50,10 +50,10 @@ describe('resolveRecoveryModifier', () => {
         {
           type: SkillType.Recovery,
           modifier: -1,
-          valueUsage: 9,
+          valueUsage: 9
         },
-        createSkillRng(0.95),
-      ),
+        createSkillRng(0.95)
+      )
     ).toBe(-0.04);
   });
 
@@ -63,10 +63,10 @@ describe('resolveRecoveryModifier', () => {
         {
           type: SkillType.Recovery,
           modifier: -0.5,
-          valueUsage: 8,
+          valueUsage: 8
         },
-        createSkillRng(0.6),
-      ),
+        createSkillRng(0.6)
+      )
     ).toBe(-0.01);
 
     expect(
@@ -74,10 +74,10 @@ describe('resolveRecoveryModifier', () => {
         {
           type: SkillType.Recovery,
           modifier: -0.5,
-          valueUsage: 8,
+          valueUsage: 8
         },
-        createSkillRng(0.95),
-      ),
+        createSkillRng(0.95)
+      )
     ).toBe(-0.02);
   });
 
@@ -87,10 +87,10 @@ describe('resolveRecoveryModifier', () => {
         {
           type: SkillType.Recovery,
           modifier: 1,
-          valueUsage: 8,
+          valueUsage: 8
         },
-        createSkillRng(0.1),
-      ),
+        createSkillRng(0.1)
+      )
     ).toBe(0);
 
     expect(
@@ -98,10 +98,10 @@ describe('resolveRecoveryModifier', () => {
         {
           type: SkillType.Recovery,
           modifier: 1,
-          valueUsage: 8,
+          valueUsage: 8
         },
-        createSkillRng(0.6),
-      ),
+        createSkillRng(0.6)
+      )
     ).toBe(0.02);
 
     expect(
@@ -109,10 +109,10 @@ describe('resolveRecoveryModifier', () => {
         {
           type: SkillType.Recovery,
           modifier: 0.5,
-          valueUsage: 9,
+          valueUsage: 9
         },
-        createSkillRng(0.95),
-      ),
+        createSkillRng(0.95)
+      )
     ).toBe(0.02);
   });
 
@@ -122,11 +122,11 @@ describe('resolveRecoveryModifier', () => {
         {
           type: SkillType.Recovery,
           modifier: -1,
-          valueUsage: 8,
+          valueUsage: 8
         },
         createSkillRng(0.95),
-        0.35,
-      ),
+        0.35
+      )
     ).toBe(-0.35);
   });
 });
@@ -137,24 +137,24 @@ describe('describeRecoveryEffect', () => {
       describeRecoveryEffect({
         type: SkillType.Recovery,
         modifier: -1,
-        valueUsage: 8,
-      }),
+        valueUsage: 8
+      })
     ).toBe('60% chance to drain nothing, 30% to drain 2%, 10% to drain 4%');
 
     expect(
       describeRecoveryEffect({
         type: SkillType.Recovery,
         modifier: -0.5,
-        valueUsage: 8,
-      }),
+        valueUsage: 8
+      })
     ).toBe('60% chance to drain nothing, 30% to drain 1%, 10% to drain 2%');
 
     expect(
       describeRecoveryEffect({
         type: SkillType.Recovery,
         modifier: 1,
-        valueUsage: 8,
-      }),
+        valueUsage: 8
+      })
     ).toBe('60% chance to recover nothing, 30% to recover 2%, 10% to recover 4%');
   });
 });
@@ -163,12 +163,12 @@ describe('extracted skill metadata', () => {
   it.each(['202031', '202032'])('preserves valueUsage metadata for %s', (skillId) => {
     const skill = dataRegistry.skills.getById(skillId);
     const recoveryEffect = skill?.alternatives[0]?.effects.find(
-      (effect) => effect.type === SkillType.Recovery && effect.modifier < 0,
+      (effect) => effect.type === SkillType.Recovery && effect.modifier < 0
     );
 
     expect(recoveryEffect).toMatchObject({
       valueUsage: 8,
-      valueLevelUsage: 1,
+      valueLevelUsage: 1
     });
   });
 });

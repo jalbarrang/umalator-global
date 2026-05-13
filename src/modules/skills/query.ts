@@ -105,7 +105,7 @@ export class SkillQuery {
     if (activeFilters.length === 0) return this;
 
     this.predicates.push((skill) =>
-      activeFilters.some((filterKey) => skillFilterLookUp[filterKey].has(skill.id)),
+      activeFilters.some((filterKey) => skillFilterLookUp[filterKey].has(skill.id))
     );
 
     return this;
@@ -159,5 +159,5 @@ export const SkillMatchers = {
     (iconKey: string) =>
     (skill: SkillEntry): boolean => {
       return iconPrefixes[iconKey]?.some((p) => skill.iconId.startsWith(p)) ?? false;
-    },
+    }
 };

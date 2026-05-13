@@ -6,7 +6,7 @@ import {
   setCourseId,
   setRaceParams,
   setSelectedPresetId,
-  useSettingsStore,
+  useSettingsStore
 } from '@/store/settings.store';
 import { createRaceConditions } from '@/utils/races';
 
@@ -30,8 +30,8 @@ export const RacePresets = (props: RacePresetsProps) => {
         ground: preset.ground,
         weather: preset.weather,
         season: preset.season,
-        time: preset.time,
-      }),
+        time: preset.time
+      })
     );
     setSelectedPresetId(value);
   };

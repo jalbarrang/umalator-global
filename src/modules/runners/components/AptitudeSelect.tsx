@@ -3,7 +3,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
+  SelectValue
 } from '@/components/ui/select';
 import { getIconUrl } from '@/assets/icons';
 import { Aptitude, AptitudeName } from '@/lib/sunday-tools/runner/definitions';

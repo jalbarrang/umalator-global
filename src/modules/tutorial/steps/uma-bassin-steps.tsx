@@ -12,7 +12,7 @@ export const umaBassinSteps: Array<TutorialStep> = [
         <div>Let's learn how to use this comprehensive analysis tool!</div>
       </div>
     ),
-    showButtons: ['next', 'close'],
+    showButtons: ['next', 'close']
   },
   {
     element: '[data-tutorial="uma-bassin-controls"]',
@@ -35,7 +35,7 @@ export const umaBassinSteps: Array<TutorialStep> = [
     ),
     side: 'bottom',
     align: 'start',
-    showButtons: ['previous', 'next', 'close'],
+    showButtons: ['previous', 'next', 'close']
   },
   {
     element: '[data-tutorial="uma-bassin-chart"]',
@@ -50,7 +50,7 @@ export const umaBassinSteps: Array<TutorialStep> = [
     ),
     side: 'top',
     align: 'center',
-    showButtons: ['previous', 'next', 'close'],
+    showButtons: ['previous', 'next', 'close']
   },
   {
     title: 'Finishing Up 🎯',
@@ -61,6 +61,6 @@ export const umaBassinSteps: Array<TutorialStep> = [
       </div>
     ),
     showButtons: ['close', 'next'],
-    doneBtnText: 'Got it!',
-  },
+    doneBtnText: 'Got it!'
+  }
 ];

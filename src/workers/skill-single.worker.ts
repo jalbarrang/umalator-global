@@ -52,8 +52,8 @@ self.addEventListener('message', (event: MessageEvent<SingleSkillWorkerInMessage
           uma: baseRunner,
           options: {
             ...options,
-            seed,
-          },
+            seed
+          }
         };
 
         const results: SkillComparisonResponse = runSampling(roundParams);
@@ -62,13 +62,13 @@ self.addEventListener('message', (event: MessageEvent<SingleSkillWorkerInMessage
         sendMessage({
           type: 'complete',
           skillId,
-          results,
+          results
         });
       } catch (error) {
         sendMessage({
           type: 'error',
           skillId: message.skillId,
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: error instanceof Error ? error.message : 'Unknown error'
         });
       }
       break;

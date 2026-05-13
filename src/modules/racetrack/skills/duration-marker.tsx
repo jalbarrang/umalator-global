@@ -35,14 +35,14 @@ export const DurationMarker = React.memo<DurationLayout & { onDragStart: DragSta
     isDebuff,
     debuffId,
     isDragging = false,
-    onDragStart,
+    onDragStart
   }) => {
     const handlePointerDown = useCallback(
       (e: React.PointerEvent) => {
         if (!skillId || umaIndex === undefined) return;
         onDragStart(e, skillId, umaIndex, start, end, isDebuff ? 'debuff' : 'skill', debuffId);
       },
-      [skillId, umaIndex, start, end, isDebuff, debuffId, onDragStart],
+      [skillId, umaIndex, start, end, isDebuff, debuffId, onDragStart]
     );
 
     return (
@@ -61,5 +61,5 @@ export const DurationMarker = React.memo<DurationLayout & { onDragStart: DragSta
         onDragStart={handlePointerDown}
       />
     );
-  },
+  }
 );

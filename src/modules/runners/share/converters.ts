@@ -25,7 +25,7 @@ function formatUtcTimestamp(ms: number): string {
 
 export function runnerStateToSingleExport(
   runner: IRunnerState,
-  createdAt?: number,
+  createdAt?: number
 ): ISingleExportData {
   const cardId = parseInt(runner.outfitId, 10);
   const aptDistance = aptitudeToEncoding(runner.distanceAptitude);
@@ -53,8 +53,8 @@ export function runnerStateToSingleExport(
     create_time: formatUtcTimestamp(ts),
     skill_array: runner.skills.map((id) => ({
       skill_id: parseInt(id, 10),
-      skill_level: 1,
-    })),
+      skill_level: 1
+    }))
   };
 }
 
@@ -63,14 +63,14 @@ export function singleExportToRunnerState(data: ISingleExportData): Partial<IRun
     data.proper_distance_short,
     data.proper_distance_mile,
     data.proper_distance_middle,
-    data.proper_distance_long,
+    data.proper_distance_long
   );
   const surfaceMax = Math.max(data.proper_ground_turf, data.proper_ground_dirt);
   const strategyMax = Math.max(
     data.proper_running_style_nige,
     data.proper_running_style_senko,
     data.proper_running_style_sashi,
-    data.proper_running_style_oikomi,
+    data.proper_running_style_oikomi
   );
 
   return {
@@ -83,6 +83,6 @@ export function singleExportToRunnerState(data: ISingleExportData): Partial<IRun
     distanceAptitude: encodingToAptitude(distanceMax),
     surfaceAptitude: encodingToAptitude(surfaceMax),
     strategyAptitude: encodingToAptitude(strategyMax),
-    skills: data.skill_array.map((s) => String(s.skill_id)),
+    skills: data.skill_array.map((s) => String(s.skill_id))
   };
 }

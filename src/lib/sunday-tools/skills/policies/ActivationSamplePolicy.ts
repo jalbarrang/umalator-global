@@ -41,7 +41,7 @@ export const ImmediatePolicy = {
   },
   reconcileAllCornerRandom(other: ActivationSamplePolicy) {
     return other;
-  },
+  }
 };
 
 export const RandomPolicy = {
@@ -76,7 +76,7 @@ export const RandomPolicy = {
   },
   reconcileAllCornerRandom(other: ActivationSamplePolicy) {
     return other;
-  },
+  }
 };
 
 /**
@@ -115,7 +115,7 @@ export const CornerRandomPolicy = {
   },
   reconcileAllCornerRandom(other: ActivationSamplePolicy) {
     return other;
-  },
+  }
 };
 
 export abstract class DistributionRandomPolicy {
@@ -196,7 +196,7 @@ export class UniformRandomPolicy extends DistributionRandomPolicy {
 export class LogNormalRandomPolicy extends DistributionRandomPolicy {
   constructor(
     readonly mu: number,
-    readonly sigma: number,
+    readonly sigma: number
   ) {
     super();
   }
@@ -233,7 +233,7 @@ export class LogNormalRandomPolicy extends DistributionRandomPolicy {
 export class ErlangRandomPolicy extends DistributionRandomPolicy {
   constructor(
     readonly k: number,
-    readonly lambda: number,
+    readonly lambda: number
   ) {
     super();
   }
@@ -292,7 +292,7 @@ export const StraightRandomPolicy = {
   },
   reconcileAllCornerRandom(_: ActivationSamplePolicy) {
     throw new Error('cannot reconcile StraightRandomPolicy with AllCornerRandomPolicy');
-  },
+  }
 };
 
 export const AllCornerRandomPolicy = {
@@ -348,7 +348,7 @@ export const AllCornerRandomPolicy = {
   },
   reconcileAllCornerRandom(_: ActivationSamplePolicy) {
     return this;
-  },
+  }
 };
 
 /**
@@ -384,6 +384,6 @@ export function createFixedPositionPolicy(position: number): ActivationSamplePol
     },
     reconcileAllCornerRandom(_: ActivationSamplePolicy) {
       return this;
-    },
+    }
   };
 }

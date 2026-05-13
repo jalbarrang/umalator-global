@@ -12,7 +12,7 @@ import {
   GroundPowerModifier,
   GroundSpeedModifier,
   Speed,
-  StrategyModule,
+  StrategyModule
 } from '../shared/definitions';
 import { CourseHelpers } from '../course/CourseData';
 import { buildSkillData } from '../runner/runner.utils';
@@ -22,7 +22,7 @@ import { StrategyHelpers } from '../runner/runner.types';
 import { Region } from '../shared/region';
 import {
   createBlockedSideCondition,
-  createOvertakeCondition,
+  createOvertakeCondition
 } from '../conditions/special-conditions';
 import { resolveRecoveryModifier } from '../skills/recovery-effect-utils';
 import type { ApproximateCondition, ConditionState } from '../conditions/aproximate-conditions';
@@ -38,7 +38,7 @@ import type {
   ActiveTargetedSkill,
   PendingSkill,
   PendingTargetedSkill,
-  SkillEffect,
+  SkillEffect
 } from '../skills/skill.types';
 import { getUmaDisplayInfo } from '@/modules/runners/utils';
 
@@ -311,7 +311,7 @@ export class Runner {
       this._baseStats,
       race.course,
       race.ground,
-      props.aptitudes.strategy,
+      props.aptitudes.strategy
     );
     this.skillIds = props.skillIds;
     this.forcedPositions = props.forcedPositions ?? {};
@@ -347,7 +347,7 @@ export class Runner {
       currentSpeed: new CompensatedAccumulator(0.0),
       accel: new CompensatedAccumulator(0.0),
       oneFrameAccel: 0.0,
-      specialSkillDurationScaling: 1.0,
+      specialSkillDurationScaling: 1.0
     };
 
     // ---- dependency-safe init chain ----
@@ -370,10 +370,10 @@ export class Runner {
 
     // speed/terrain cached values
     this.baseAccelerations = [0, 1, 2, 0, 1, 2].map((phase, i) =>
-      this.calculatePhaseBaseAccel(i > 2 ? UphillBaseAccel : BaseAccel, phase),
+      this.calculatePhaseBaseAccel(i > 2 ? UphillBaseAccel : BaseAccel, phase)
     );
     this.slopePenalties = this.race.course.slopes.map(
-      (s) => ((s.slope / 10000.0) * 200.0) / this.adjustedStats.power,
+      (s) => ((s.slope / 10000.0) * 200.0) / this.adjustedStats.power
     );
 
     this.registerCondition('blocked_side', createBlockedSideCondition());
@@ -621,7 +621,7 @@ export class Runner {
         case SkillType.StaminaUp:
           this.adjustedStats.stamina = Math.max(
             this.adjustedStats.stamina + skillEffect.modifier,
-            1,
+            1
           );
           this.baseStats.stamina = Math.max(this.baseStats.stamina + skillEffect.modifier, 1);
           break;
@@ -649,7 +649,7 @@ export class Runner {
             effectTarget: skillEffect.target,
             effectType: skillEffect.type,
             origin: skill.origin,
-            sourceRunnerId: skill.sourceRunnerId,
+            sourceRunnerId: skill.sourceRunnerId
           });
           break;
         case SkillType.Accel:
@@ -661,7 +661,7 @@ export class Runner {
             effectTarget: skillEffect.target,
             effectType: skillEffect.type,
             origin: skill.origin,
-            sourceRunnerId: skill.sourceRunnerId,
+            sourceRunnerId: skill.sourceRunnerId
           });
           break;
         case SkillType.LaneMovementSpeed:
@@ -672,7 +672,7 @@ export class Runner {
             effectTarget: skillEffect.target,
             effectType: skillEffect.type,
             origin: skill.origin,
-            sourceRunnerId: skill.sourceRunnerId,
+            sourceRunnerId: skill.sourceRunnerId
           });
           break;
         case SkillType.CurrentSpeed:
@@ -686,7 +686,7 @@ export class Runner {
             effectTarget: skillEffect.target,
             effectType: skillEffect.type,
             origin: skill.origin,
-            sourceRunnerId: skill.sourceRunnerId,
+            sourceRunnerId: skill.sourceRunnerId
           });
           break;
         case SkillType.Recovery: {
@@ -706,7 +706,7 @@ export class Runner {
             effectTarget: skillEffect.target,
             effectType: skillEffect.type,
             origin: skill.origin,
-            sourceRunnerId: skill.sourceRunnerId,
+            sourceRunnerId: skill.sourceRunnerId
           });
           break;
       }
@@ -716,14 +716,14 @@ export class Runner {
   public receiveTargetedEffect(
     skillId: string,
     effects: Array<SkillEffect>,
-    sourceRunnerId: number,
+    sourceRunnerId: number
   ) {
     this.applyTargetedEffect({
       skillId,
       origin: 'runner',
       sourceRunnerId,
       trigger: new Region(this.position, this.position + 1),
-      effects,
+      effects
     });
   }
 
@@ -775,7 +775,7 @@ export class Runner {
         case SkillType.StaminaUp:
           this.adjustedStats.stamina = Math.max(
             this.adjustedStats.stamina + skillEffect.modifier,
-            1,
+            1
           );
           this.baseStats.stamina = Math.max(this.baseStats.stamina + skillEffect.modifier, 1);
           break;
@@ -801,7 +801,7 @@ export class Runner {
             durationTimer: this.createTimer(-scaledDuration),
             modifier: skillEffect.modifier,
             effectTarget: skillEffect.target,
-            effectType: skillEffect.type,
+            effectType: skillEffect.type
           });
           break;
         case SkillType.Accel:
@@ -811,7 +811,7 @@ export class Runner {
             durationTimer: this.createTimer(-scaledDuration),
             modifier: skillEffect.modifier,
             effectTarget: skillEffect.target,
-            effectType: skillEffect.type,
+            effectType: skillEffect.type
           });
           break;
         case SkillType.LaneMovementSpeed:
@@ -820,7 +820,7 @@ export class Runner {
             durationTimer: this.createTimer(-scaledDuration),
             modifier: skillEffect.modifier,
             effectTarget: skillEffect.target,
-            effectType: skillEffect.type,
+            effectType: skillEffect.type
           });
           break;
         case SkillType.CurrentSpeed:
@@ -832,7 +832,7 @@ export class Runner {
             modifier: skillEffect.modifier,
             naturalDeceleration: skillEffect.type == SkillType.CurrentSpeedWithNaturalDeceleration,
             effectTarget: skillEffect.target,
-            effectType: skillEffect.type,
+            effectType: skillEffect.type
           });
           break;
         case SkillType.Recovery: {
@@ -861,7 +861,7 @@ export class Runner {
             durationTimer: this.createTimer(-scaledDuration),
             modifier: skillEffect.modifier,
             effectTarget: skillEffect.target,
-            effectType: skillEffect.type,
+            effectType: skillEffect.type
           });
           break;
       }
@@ -1167,7 +1167,7 @@ export class Runner {
         inSpotStruggle: this.inSpotStruggle,
         isDownhillMode: this.isDownhillMode,
         isRushed: this.isRushed,
-        posKeepStrategy: this.positionKeepStrategy,
+        posKeepStrategy: this.positionKeepStrategy
       };
 
       const lateRaceTargetSpeed = this.baseTargetSpeedPerPhase[2];
@@ -1175,7 +1175,7 @@ export class Runner {
       const [transition, speed] = this.healthPolicy.getLastSpurtPair(
         raceState,
         this.lastSpurtSpeed,
-        lateRaceTargetSpeed,
+        lateRaceTargetSpeed
       );
 
       this.lastSpurtTransition = transition;
@@ -1305,13 +1305,13 @@ export class Runner {
 
       this.laneChangeSpeed = Math.min(
         this.laneChangeSpeed + course.laneChangeAccelerationPerFrame,
-        targetSpeed,
+        targetSpeed
       );
 
       const actualSpeed = Math.min(
         this.laneChangeSpeed +
           this.laneMovementSkillsActive.reduce((sum, skill) => sum + skill.modifier, 0),
-        0.6,
+        0.6
       );
 
       if (this.targetLane > currentLane) {
@@ -1319,7 +1319,7 @@ export class Runner {
       } else {
         this.currentLane = Math.max(
           this.targetLane,
-          currentLane - actualSpeed * (1.0 + currentLane),
+          currentLane - actualSpeed * (1.0 + currentLane)
         );
       }
     }
@@ -1403,7 +1403,7 @@ export class Runner {
       stats: props.stats,
       skillIds: props.skills,
       forcedPositions: props.forcedPositions,
-      injectedDebuffs: props.injectedDebuffs,
+      injectedDebuffs: props.injectedDebuffs
     });
 
     return runner;
@@ -1438,7 +1438,7 @@ export class Runner {
 
   tickConditions(): void {
     const state: ConditionState = {
-      runner: this,
+      runner: this
     };
 
     for (const [name, condition] of this.conditions.entries()) {
@@ -1641,7 +1641,7 @@ export class Runner {
   private initializeSpeedCalculations(): void {
     // Base target speeds for each phase [early, mid, late]
     this.baseTargetSpeedPerPhase = [0, 1, 2].map((phase) =>
-      this.calculatePhaseTargetSpeed(phase),
+      this.calculatePhaseTargetSpeed(phase)
     ) as [number, number, number];
 
     // Last spurt (final sprint) speed
@@ -1703,16 +1703,16 @@ export class Runner {
             ? {
                 strategyCounts: this.race.strategyCounts,
                 commonSkills: this.race.commonSkills,
-                numUmas: this.race.runners.size,
+                numUmas: this.race.runners.size
               }
-            : {}),
+            : {})
         },
         course: this.race.course,
         wholeCourse: this.race.wholeCourse,
         parser: this.race.parser,
         skillId: skillId,
-        ignoreNullEffects: false,
-      }),
+        ignoreNullEffects: false
+      })
     );
 
     const triggers = skillTrigers.map((skillTrigger) => {
@@ -1739,8 +1739,8 @@ export class Runner {
           rarity: skillTrigger.rarity,
           trigger: samples[roundIteration % samples.length],
           extraCondition: skillTrigger.extraCondition,
-          effects: skillTrigger.effects,
-        },
+          effects: skillTrigger.effects
+        }
       ];
     });
 
@@ -1761,13 +1761,13 @@ export class Runner {
           weather: this.race.weather,
           grade: this.race.grade,
           season: this.race.season,
-          mode: this.race.settings.mode,
+          mode: this.race.settings.mode
         },
         course: this.race.course,
         wholeCourse: this.race.wholeCourse,
         parser: this.race.parser,
         skillId: injectedDebuff.skillId,
-        ignoreNullEffects: false,
+        ignoreNullEffects: false
       });
 
       for (const skillTrigger of skillTriggers) {
@@ -1780,7 +1780,7 @@ export class Runner {
         const triggers = fixedPolicy.sample(
           skillTrigger.regions,
           this.race.skillSamples,
-          this.skillRng,
+          this.skillRng
         );
         if (triggers.length === 0) continue;
         const trigger = triggers[roundIteration % triggers.length];
@@ -1789,7 +1789,7 @@ export class Runner {
           skillId: skillTrigger.skillId,
           origin: 'injection',
           trigger,
-          effects: externalDebuffEffects,
+          effects: externalDebuffEffects
         });
       }
     }
@@ -1861,7 +1861,7 @@ export class Runner {
     this.hills = this.race.course.slopes.map((s) => ({
       start: s.start,
       end: s.start + s.length,
-      slope: s.slope,
+      slope: s.slope
     }));
     this.slopePer = 0.0;
   }
@@ -1904,7 +1904,7 @@ export class Runner {
       const nextPhase = this.phase + 1;
       this.nextPhaseTransition = CourseHelpers.phaseStart(
         this.race.course.distance,
-        nextPhase as IPhase,
+        nextPhase as IPhase
       );
     }
   }
@@ -2113,13 +2113,13 @@ export const buildBaseStats = (stats: StatLine, mood: IMood): StatLine => {
     stamina: adjustOvercap(stats.stamina) * moodCoefficient,
     power: adjustOvercap(stats.power) * moodCoefficient,
     guts: adjustOvercap(stats.guts) * moodCoefficient,
-    wit: adjustOvercap(stats.wit) * moodCoefficient,
+    wit: adjustOvercap(stats.wit) * moodCoefficient
   };
 };
 
 const calculateSpeedModifier = (course: CourseData, stats: StatLine): number => {
   const statvalues = [0, stats.speed, stats.stamina, stats.power, stats.guts, stats.wit].map((x) =>
-    Math.min(x, 901),
+    Math.min(x, 901)
   );
 
   return (
@@ -2135,7 +2135,7 @@ const buildAdjustedStats = (
   stats: StatLine,
   course: CourseData,
   ground: IGroundCondition,
-  strategyAptitude: IAptitude,
+  strategyAptitude: IAptitude
 ): StatLine => {
   const speedModifier = calculateSpeedModifier(course, stats);
   const groundModifier = GroundSpeedModifier[course.surface][ground];
@@ -2147,6 +2147,6 @@ const buildAdjustedStats = (
     stamina: stats.stamina,
     power: Math.max(stats.power + surfaceModifier, 1),
     guts: stats.guts,
-    wit: stats.wit * strategyAptitudeModifier,
+    wit: stats.wit * strategyAptitudeModifier
   };
 };

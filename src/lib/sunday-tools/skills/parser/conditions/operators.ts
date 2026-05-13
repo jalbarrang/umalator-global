@@ -8,7 +8,7 @@ import type {
   ConditionFilterParams,
   ICondition,
   Operator,
-  OperatorsConfig,
+  OperatorsConfig
 } from '../definitions';
 import type { DynamicCondition } from '@/lib/sunday-tools/skills/skill.types';
 
@@ -17,7 +17,7 @@ export class EqOperator implements Operator {
 
   constructor(
     readonly condition: ICondition,
-    readonly argument: number,
+    readonly argument: number
   ) {
     this.samplePolicy = condition.samplePolicy;
   }
@@ -25,7 +25,7 @@ export class EqOperator implements Operator {
   apply(params: ApplyParams) {
     const condParams: ConditionFilterParams = {
       ...params,
-      arg: this.argument,
+      arg: this.argument
     };
     return withDefaultCond(this.condition.filterEq(condParams));
   }
@@ -36,7 +36,7 @@ export class NeqOperator implements Operator {
 
   constructor(
     readonly condition: ICondition,
-    readonly argument: number,
+    readonly argument: number
   ) {
     this.samplePolicy = condition.samplePolicy;
   }
@@ -44,7 +44,7 @@ export class NeqOperator implements Operator {
   apply(params: ApplyParams) {
     const condParams: ConditionFilterParams = {
       ...params,
-      arg: this.argument,
+      arg: this.argument
     };
 
     return withDefaultCond(this.condition.filterNeq(condParams));
@@ -56,7 +56,7 @@ export class LtOperator implements Operator {
 
   constructor(
     readonly condition: ICondition,
-    readonly argument: number,
+    readonly argument: number
   ) {
     this.samplePolicy = condition.samplePolicy;
   }
@@ -64,7 +64,7 @@ export class LtOperator implements Operator {
   apply(params: ApplyParams) {
     const condParams: ConditionFilterParams = {
       ...params,
-      arg: this.argument,
+      arg: this.argument
     };
 
     return withDefaultCond(this.condition.filterLt(condParams));
@@ -76,7 +76,7 @@ export class LteOperator implements Operator {
 
   constructor(
     readonly condition: ICondition,
-    readonly argument: number,
+    readonly argument: number
   ) {
     this.samplePolicy = condition.samplePolicy;
   }
@@ -84,7 +84,7 @@ export class LteOperator implements Operator {
   apply(params: ApplyParams) {
     const condParams: ConditionFilterParams = {
       ...params,
-      arg: this.argument,
+      arg: this.argument
     };
 
     return withDefaultCond(this.condition.filterLte(condParams));
@@ -96,7 +96,7 @@ export class GtOperator implements Operator {
 
   constructor(
     readonly condition: ICondition,
-    readonly argument: number,
+    readonly argument: number
   ) {
     this.samplePolicy = condition.samplePolicy;
   }
@@ -104,7 +104,7 @@ export class GtOperator implements Operator {
   apply(params: ApplyParams) {
     const condParams: ConditionFilterParams = {
       ...params,
-      arg: this.argument,
+      arg: this.argument
     };
 
     return withDefaultCond(this.condition.filterGt(condParams));
@@ -116,7 +116,7 @@ export class GteOperator implements Operator {
 
   constructor(
     readonly condition: ICondition,
-    readonly argument: number,
+    readonly argument: number
   ) {
     this.samplePolicy = condition.samplePolicy;
   }
@@ -124,7 +124,7 @@ export class GteOperator implements Operator {
   apply(params: ApplyParams) {
     const condParams: ConditionFilterParams = {
       ...params,
-      arg: this.argument,
+      arg: this.argument
     };
 
     return withDefaultCond(this.condition.filterGte(condParams));
@@ -136,7 +136,7 @@ export class AndOperator implements Operator {
 
   constructor(
     readonly left: Operator,
-    readonly right: Operator,
+    readonly right: Operator
   ) {
     this.samplePolicy = left.samplePolicy.reconcile(right.samplePolicy);
   }
@@ -145,7 +145,7 @@ export class AndOperator implements Operator {
     const [leftval, leftcond] = this.left.apply(params);
     const leftParams: ApplyParams = {
       ...params,
-      regions: leftval,
+      regions: leftval
     };
 
     const [rightval, rightcond] = this.right.apply(leftParams);
@@ -164,7 +164,7 @@ export class OrOperator implements Operator {
 
   constructor(
     readonly left: Operator,
-    readonly right: Operator,
+    readonly right: Operator
   ) {
     // not entirely clear what the right thing to do here is
     // but i'm pretty sure there are no skills with disjunctive conditions that
@@ -212,5 +212,5 @@ export const defaultOperators: OperatorsConfig<ICondition, Operator> = {
   lt: LtOperator,
   lte: LteOperator,
   gt: GtOperator,
-  gte: GteOperator,
+  gte: GteOperator
 };

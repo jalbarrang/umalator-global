@@ -27,9 +27,9 @@ export function buildSnapshot(): SimulationSnapshot {
     staminaDrainOverrides: cloneDeep(settings.staminaDrainOverrides),
     forcedPositions: {
       uma1: cloneDeep(forced.uma1),
-      uma2: cloneDeep(forced.uma2),
+      uma2: cloneDeep(forced.uma2)
     },
-    injectedDebuffs: cloneDeep(race.injectedDebuffs),
+    injectedDebuffs: cloneDeep(race.injectedDebuffs)
   };
 }
 
@@ -78,7 +78,7 @@ function isWitVariance(value: unknown): boolean {
     'allowSectionModifierUma2',
     'allowSkillCheckChanceUma1',
     'allowSkillCheckChanceUma2',
-    'simWitVariance',
+    'simWitVariance'
   ] as const;
   return keys.every((k) => typeof value[k] === 'boolean');
 }
@@ -94,7 +94,7 @@ function isInjectedDebuffsMap(value: unknown): value is SimulationSnapshot['inje
         isRecord(d) &&
         typeof d.id === 'string' &&
         typeof d.skillId === 'string' &&
-        typeof d.position === 'number',
+        typeof d.position === 'number'
     );
   return ok(u1) && ok(u2);
 }
@@ -142,9 +142,9 @@ export function parseSnapshotJson(raw: string): SimulationSnapshot | null {
       parsed.staminaDrainOverrides as SimulationSnapshot['staminaDrainOverrides'],
     forcedPositions: {
       uma1: fp.uma1 as Record<string, number>,
-      uma2: fp.uma2 as Record<string, number>,
+      uma2: fp.uma2 as Record<string, number>
     },
-    injectedDebuffs: parsed.injectedDebuffs,
+    injectedDebuffs: parsed.injectedDebuffs
   };
 }
 
@@ -153,7 +153,7 @@ export function importSnapshot(data: SimulationSnapshot): void {
 
   useRunnersStore.setState({
     uma1: cloneDeep(data.uma1),
-    uma2: cloneDeep(uma2),
+    uma2: cloneDeep(uma2)
   });
 
   useSettingsStore.setState({
@@ -162,17 +162,17 @@ export function importSnapshot(data: SimulationSnapshot): void {
     nsamples: data.nsamples,
     witVarianceSettings: cloneDeep(data.witVarianceSettings),
     staminaDrainOverrides: cloneDeep(data.staminaDrainOverrides),
-    selectedPresetId: null,
+    selectedPresetId: null
   });
 
   useForcedPositionsStore.setState({
     uma1: cloneDeep(data.forcedPositions.uma1),
-    uma2: cloneDeep(data.forcedPositions.uma2),
+    uma2: cloneDeep(data.forcedPositions.uma2)
   });
 
   useRaceStore.setState({
     seed: data.seed,
-    injectedDebuffs: cloneDeep(data.injectedDebuffs),
+    injectedDebuffs: cloneDeep(data.injectedDebuffs)
   });
 
   resetResults();

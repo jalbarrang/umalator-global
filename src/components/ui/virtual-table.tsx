@@ -47,7 +47,7 @@ function VirtualTable({
     getScrollElement: () => parentRef.current,
     estimateSize: () => estimateSize,
     overscan,
-    getItemKey,
+    getItemKey
   });
 
   const heightStyle = typeof height === 'number' ? `${height}px` : height;
@@ -63,7 +63,7 @@ function VirtualTable({
         style={{
           height: `${virtualizer.getTotalSize()}px`,
           width: '100%',
-          position: 'relative',
+          position: 'relative'
         }}
       >
         <table data-slot="table" className="w-full caption-bottom text-sm">
@@ -73,8 +73,8 @@ function VirtualTable({
               children({
                 virtualItem,
                 index,
-                virtualizer,
-              }),
+                virtualizer
+              })
             )}
           </tbody>
         </table>
@@ -95,12 +95,12 @@ function VirtualTableRow({ virtualItem, index, className, style, ...props }: Vir
       data-slot="table-row"
       className={cn(
         'hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors',
-        className,
+        className
       )}
       style={{
         height: `${virtualItem.size}px`,
         transform: `translateY(${virtualItem.start - index * virtualItem.size}px)`,
-        ...style,
+        ...style
       }}
       {...props}
     />

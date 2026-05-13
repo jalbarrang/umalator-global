@@ -10,7 +10,7 @@ export const HINT_DISCOUNTS: Readonly<Record<HintLevel, number>> = {
   2: 0.2, // 20% off (Hint Lvl 2)
   3: 0.3, // 30% off (Hint Lvl 3)
   4: 0.35, // 35% off (Hint Lvl 4)
-  5: 0.4, // 40% off (Hint Lvl 5 - max)
+  5: 0.4 // 40% off (Hint Lvl 5 - max)
 } as const;
 
 /**
@@ -20,7 +20,7 @@ export const HINT_DISCOUNTS: Readonly<Record<HintLevel, number>> = {
 export function calculateRawSkillCost(
   skillId: string,
   hintLevel: HintLevel,
-  hasFastLearner: boolean,
+  hasFastLearner: boolean
 ): number {
   const skill = dataRegistry.skills.getById(skillId);
   if (!skill) {
@@ -40,7 +40,7 @@ export function calculateRawSkillCost(
 export function calculateSkillCost(
   skillId: string,
   hintLevel: HintLevel,
-  hasFastLearner: boolean,
+  hasFastLearner: boolean
 ): number {
   // Apply hint discount first, then Fast Learner, then ceil the result.
   return Math.ceil(calculateRawSkillCost(skillId, hintLevel, hasFastLearner));
@@ -84,7 +84,7 @@ export function calculateDisplayCost(
   skillId: string,
   candidates: Record<string, CandidateSkill>,
   obtainedSkills: Array<string>,
-  hasFastLearner: boolean,
+  hasFastLearner: boolean
 ): number {
   const candidate = candidates[skillId];
 
@@ -169,7 +169,7 @@ export function calculateDisplayCost(
 export function calculatePoolCost(
   candidates: Record<string, CandidateSkill>,
   obtainedSkills: Array<string>,
-  hasFastLearner: boolean,
+  hasFastLearner: boolean
 ): { total: number; breakdown: Array<CostBreakdown> } {
   const breakdown: Array<CostBreakdown> = [];
   let total = 0;
@@ -240,7 +240,7 @@ export function calculatePoolCost(
       baseCost,
       hintDiscount,
       bundledWhiteCost,
-      finalCost,
+      finalCost
     });
 
     total += finalCost;

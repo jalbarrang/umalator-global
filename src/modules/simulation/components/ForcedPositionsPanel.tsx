@@ -6,28 +6,28 @@ import {
   PanelContent,
   PanelDescription,
   PanelHeader,
-  PanelTitle,
+  PanelTitle
 } from '@/components/ui/panel';
 import { buildRunnerSkillEntries, ForcedPositionGroup } from './ForcedPositionGroup';
 import { useRunnersStore } from '@/store/runners.store';
 import {
   clearAllForcedPositions,
-  useForcedPositions,
+  useForcedPositions
 } from '@/modules/simulation/stores/forced-positions.store';
 
 export function ForcedPositionsPanel() {
   const { uma1Skills, uma2Skills } = useRunnersStore(
     useShallow((state) => ({
       uma1Skills: state.uma1.skills,
-      uma2Skills: state.uma2.skills,
-    })),
+      uma2Skills: state.uma2.skills
+    }))
   );
   const { uma1, uma2 } = useForcedPositions();
 
   const mappedSkills = useMemo(() => {
     return {
       uma1: buildRunnerSkillEntries(uma1Skills),
-      uma2: buildRunnerSkillEntries(uma2Skills),
+      uma2: buildRunnerSkillEntries(uma2Skills)
     };
   }, [uma1Skills, uma2Skills]);
 

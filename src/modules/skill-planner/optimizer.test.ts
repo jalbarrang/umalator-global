@@ -11,7 +11,7 @@ function createCandidate(skillId: string, cost: number, netCost: number): Candid
     netCost,
     hintLevel: 5,
     isStackable: false,
-    isGold: false,
+    isGold: false
   };
 }
 
@@ -19,7 +19,7 @@ describe('optimizer net cost usage', () => {
   it('generateCombinations uses net cost for budget checks', () => {
     const candidates: Array<CandidateWithNet> = [
       createCandidate('skill-a', 170, 90),
-      createCandidate('skill-b', 150, 95),
+      createCandidate('skill-b', 150, 95)
     ];
 
     const combinations = generateCombinations(candidates, 100);
@@ -32,7 +32,7 @@ describe('optimizer net cost usage', () => {
   it('calculateCombinationCost sums net costs (not gross costs)', () => {
     const candidates: Array<CandidateWithNet> = [
       createCandidate('skill-a', 170, 90),
-      createCandidate('skill-b', 150, 95),
+      createCandidate('skill-b', 150, 95)
     ];
 
     const total = calculateCombinationCost(['skill-a', 'skill-b'], candidates);

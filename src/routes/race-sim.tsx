@@ -13,7 +13,7 @@ import { useRaceSimRunner } from '@/modules/simulation/hooks/race-sim/useRaceSim
 import {
   setIsRunning,
   setResults as setRaceSimResults,
-  useRaceSimStore,
+  useRaceSimStore
 } from '@/modules/simulation/stores/race-sim.store';
 import { createSkillSorterByGroup, toCreateRunner } from '@/modules/simulation/simulators/shared';
 import { useSettingsStore } from '@/store/settings.store';
@@ -49,7 +49,7 @@ function RaceSimSkillPicker() {
 const tabs = [
   { label: 'Configure', to: '/race-sim' },
   { label: 'Run', to: '/race-sim/run' },
-  { label: 'Results', to: '/race-sim/results' },
+  { label: 'Results', to: '/race-sim/results' }
 ] as const;
 
 export function RaceSimRoot() {
@@ -59,16 +59,16 @@ export function RaceSimRoot() {
   const { courseId, racedef } = useSettingsStore(
     useShallow((state) => ({
       courseId: state.courseId,
-      racedef: state.racedef,
-    })),
+      racedef: state.racedef
+    }))
   );
 
   const { runners, nsamples, focusRunnerIndices } = useRaceSimStore(
     useShallow((state) => ({
       runners: state.runners,
       nsamples: state.nsamples,
-      focusRunnerIndices: state.focusRunnerIndices,
-    })),
+      focusRunnerIndices: state.focusRunnerIndices
+    }))
   );
 
   const { runSimulation, cancelSimulation, isRunning, error } = useRaceSimRunner({
@@ -76,7 +76,7 @@ export function RaceSimRoot() {
       setRaceSimResults(result);
       loadResults(result);
     },
-    onRunningChange: setIsRunning,
+    onRunningChange: setIsRunning
   });
 
   const runWithSeed = useCallback(
@@ -84,7 +84,7 @@ export function RaceSimRoot() {
       const allSkillIds = runners.flatMap((r) => r.skills);
       const sorter = createSkillSorterByGroup(allSkillIds);
       const raceRunners = runners.map((runner) =>
-        toCreateRunner(runner, runner.skills.toSorted(sorter)),
+        toCreateRunner(runner, runner.skills.toSorted(sorter))
       );
       const params: RaceSimWorkerParams = {
         course: CourseHelpers.getCourse(courseId),
@@ -92,16 +92,16 @@ export function RaceSimRoot() {
         runners: raceRunners,
         nsamples,
         masterSeed: seed,
-        focusRunnerIds: focusRunnerIndices.length > 0 ? focusRunnerIndices : undefined,
+        focusRunnerIds: focusRunnerIndices.length > 0 ? focusRunnerIndices : undefined
       };
       runSimulation(params);
     },
-    [courseId, focusRunnerIndices, nsamples, racedef, runSimulation, runners],
+    [courseId, focusRunnerIndices, nsamples, racedef, runSimulation, runners]
   );
 
   const ctx = useMemo(
     () => ({ runWithSeed, cancelSimulation, isRunning, error }),
-    [runWithSeed, cancelSimulation, isRunning, error],
+    [runWithSeed, cancelSimulation, isRunning, error]
   );
 
   return (
@@ -124,7 +124,7 @@ export function RaceSimRoot() {
                   'relative px-3 py-1.5 text-sm font-medium transition-colors',
                   active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
                   'after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:transition-opacity',
-                  active ? 'after:bg-primary after:opacity-100' : 'after:opacity-0',
+                  active ? 'after:bg-primary after:opacity-100' : 'after:opacity-0'
                 )}
               >
                 {tab.label}

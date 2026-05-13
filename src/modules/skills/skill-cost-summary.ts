@@ -3,7 +3,7 @@ import { calculateRawSkillCost } from '@/modules/skill-planner/cost-calculator';
 import {
   getRelatedSkillIds,
   getRepresentativePrerequisiteIds,
-  isSkillCoveredByOwnedFamily,
+  isSkillCoveredByOwnedFamily
 } from '@/modules/skill-planner/skill-family';
 import type { HintLevel } from '@/modules/skill-planner/types';
 import { isUniqueSkill } from '@/store/runners.store';
@@ -53,7 +53,7 @@ const hasMeaningfulMeta = (meta: SkillSummaryMeta): boolean => {
 const resolveSelfSkillMeta = (
   requestedSkillId: string,
   normalizedSkillId: string,
-  getSkillMeta: (skillId: string) => SkillSummaryMeta,
+  getSkillMeta: (skillId: string) => SkillSummaryMeta
 ): SkillSummaryMeta => {
   const requestedMeta = getSkillMeta(requestedSkillId);
 
@@ -73,7 +73,7 @@ const resolveSelfSkillMeta = (
 const upsertCoveredSkill = (
   coveredSkillMetaById: Map<string, SkillSummaryMeta>,
   skillId: string,
-  meta: SkillSummaryMeta,
+  meta: SkillSummaryMeta
 ) => {
   const existing = coveredSkillMetaById.get(skillId);
 
@@ -84,17 +84,17 @@ const upsertCoveredSkill = (
 
 const getBoughtFamilySkillIds = (
   skillId: string,
-  getSkillMeta: (skillId: string) => SkillSummaryMeta,
+  getSkillMeta: (skillId: string) => SkillSummaryMeta
 ): Array<string> => {
   return getRelatedSkillIds(skillId).filter(
-    (relatedSkillId) => getSkillMeta(relatedSkillId).bought === true,
+    (relatedSkillId) => getSkillMeta(relatedSkillId).bought === true
   );
 };
 
 export const buildSkillCostSummary = ({
   skillId,
   hasFastLearner,
-  getSkillMeta,
+  getSkillMeta
 }: BuildSkillCostSummaryOptions): SkillCostSummary => {
   const normalizedSkillId = normalizeSkillIdForCostSummary(skillId);
   const skill = dataRegistry.skills.getById(normalizedSkillId);
@@ -105,7 +105,7 @@ export const buildSkillCostSummary = ({
       netTotal: 0,
       isObtained: false,
       exactDiscountPct: 0,
-      roundedDiscountPct: 0,
+      roundedDiscountPct: 0
     };
   }
 
@@ -116,7 +116,7 @@ export const buildSkillCostSummary = ({
   let rawNetTotal = calculateRawSkillCost(
     normalizedSkillId,
     toHintLevel(selfMeta.hintLevel),
-    hasFastLearner,
+    hasFastLearner
   );
 
   const representativePrereqIds = getRepresentativePrerequisiteIds(normalizedSkillId);
@@ -137,7 +137,7 @@ export const buildSkillCostSummary = ({
     rawNetTotal += calculateRawSkillCost(
       prereqId,
       toHintLevel(prereqMeta.hintLevel),
-      hasFastLearner,
+      hasFastLearner
     );
   }
 
@@ -154,7 +154,7 @@ export const buildSkillCostSummary = ({
     netTotal,
     isObtained,
     exactDiscountPct,
-    roundedDiscountPct: Math.round(exactDiscountPct),
+    roundedDiscountPct: Math.round(exactDiscountPct)
   };
 };
 
@@ -162,7 +162,7 @@ export const buildDedupedSkillListNetTotal = ({
   visibleSkillIds,
   hasFastLearner,
   getSkillMeta,
-  includeUniqueSkills = false,
+  includeUniqueSkills = false
 }: BuildDedupedSkillListNetTotalOptions): number => {
   const coveredSkillMetaById = new Map<string, SkillSummaryMeta>();
 
@@ -206,7 +206,7 @@ export const buildDedupedSkillListNetTotal = ({
     rawTotal += calculateRawSkillCost(
       coveredSkillId,
       toHintLevel(coveredMeta.hintLevel),
-      hasFastLearner,
+      hasFastLearner
     );
   }
 

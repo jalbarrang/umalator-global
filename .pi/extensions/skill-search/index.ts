@@ -7,33 +7,33 @@ import {
   parseCommandFilters,
   searchSkills,
   type SkillSearchFilters,
-  type SkillSearchResult,
+  type SkillSearchResult
 } from './search';
 
 const SearchSkillsParams = Type.Object({
   query: Type.Optional(
     Type.String({
-      description: 'Generic text matched against skill id, name, groupId, and raw conditions.',
-    }),
+      description: 'Generic text matched against skill id, name, groupId, and raw conditions.'
+    })
   ),
   name: Type.Optional(Type.String({ description: 'Substring match against the skill name.' })),
   condition: Type.Optional(
-    Type.String({ description: 'Substring match against raw condition/precondition text.' }),
+    Type.String({ description: 'Substring match against raw condition/precondition text.' })
   ),
   groupId: Type.Optional(Type.Integer({ description: 'Exact groupId to match.' })),
   familyOf: Type.Optional(
-    Type.String({ description: 'Skill id or skill name used to resolve a whole skill family.' }),
+    Type.String({ description: 'Skill id or skill name used to resolve a whole skill family.' })
   ),
   types: Type.Optional(
     Type.Array(
       Type.String({
-        description: 'Effect type name or id, e.g. Recovery, Target Speed, Acceleration, 27, 31.',
-      }),
-    ),
+        description: 'Effect type name or id, e.g. Recovery, Target Speed, Acceleration, 27, 31.'
+      })
+    )
   ),
   limit: Type.Optional(
-    Type.Integer({ minimum: 1, maximum: 100, description: 'Maximum results to return.' }),
-  ),
+    Type.Integer({ minimum: 1, maximum: 100, description: 'Maximum results to return.' })
+  )
 });
 
 type SearchSkillsInput = {
@@ -58,7 +58,7 @@ const EFFECT_TYPE_OPTIONS = [
   'Target Speed',
   'Lane Movement Speed',
   'Acceleration',
-  'Change Lane',
+  'Change Lane'
 ];
 
 function resultLabel(result: SkillSearchResult): string {
@@ -68,7 +68,7 @@ function resultLabel(result: SkillSearchResult): string {
 async function maybeShowDetailPicker(
   pi: ExtensionAPI,
   ctx: ExtensionCommandContext,
-  results: Array<SkillSearchResult>,
+  results: Array<SkillSearchResult>
 ) {
   if (!ctx.hasUI || results.length <= 1) {
     return;
@@ -76,7 +76,7 @@ async function maybeShowDetailPicker(
 
   const selected = await ctx.ui.select(
     'Skill search results (Esc to skip details)',
-    results.slice(0, 50).map(resultLabel),
+    results.slice(0, 50).map(resultLabel)
   );
 
   if (!selected) {
@@ -92,7 +92,7 @@ async function maybeShowDetailPicker(
     customType: 'skill-search-result',
     content: formatSkillDetails(result),
     details: { mode: 'detail', result },
-    display: true,
+    display: true
   });
 }
 
@@ -100,7 +100,7 @@ async function runSearch(
   pi: ExtensionAPI,
   ctx: ExtensionCommandContext,
   filters: SkillSearchFilters,
-  pickDetails = true,
+  pickDetails = true
 ) {
   const response = searchSkills(ctx.cwd, filters);
 
@@ -108,7 +108,7 @@ async function runSearch(
     customType: 'skill-search-result',
     content: formatSkillSearchSummary(response),
     details: { mode: 'summary', response },
-    display: true,
+    display: true
   });
 
   if (pickDetails) {
@@ -127,7 +127,7 @@ async function promptForFilters(ctx: ExtensionCommandContext): Promise<SkillSear
     'type',
     'group',
     'condition',
-    'family',
+    'family'
   ]);
 
   if (!mode) {
@@ -147,7 +147,7 @@ async function promptForFilters(ctx: ExtensionCommandContext): Promise<SkillSear
     name: 'e.g. Sharp Gaze',
     group: 'e.g. 20144',
     condition: 'e.g. running_style==3',
-    family: 'e.g. Risky Business',
+    family: 'e.g. Risky Business'
   };
 
   const value = await ctx.ui.input(`Search ${mode}`, placeholderByMode[mode] ?? 'enter a value');
@@ -188,7 +188,7 @@ export default function skillSearchExtension(pi: ExtensionAPI) {
       'Search local Umamusume skill data by name, effect type, groupId, raw conditions, or family.',
     promptGuidelines: [
       'Use this tool when the user asks to identify, compare, or find skills from the local skill JSON data.',
-      'Prefer this tool over manual grep when the task is specifically about searching skills by name, types, groups, conditions, or family.',
+      'Prefer this tool over manual grep when the task is specifically about searching skills by name, types, groups, conditions, or family.'
     ],
     parameters: SearchSkillsParams,
 
@@ -197,9 +197,9 @@ export default function skillSearchExtension(pi: ExtensionAPI) {
 
       return {
         content: [{ type: 'text', text: formatSkillSearchSummary(response) }],
-        details: response,
+        details: response
       };
-    },
+    }
   });
 
   pi.registerCommand('skill-search', {
@@ -218,7 +218,7 @@ export default function skillSearchExtension(pi: ExtensionAPI) {
             customType: 'skill-search-result',
             content: getSkillSearchHelp(),
             details: { mode: 'help' },
-            display: true,
+            display: true
           });
           return;
         }
@@ -232,13 +232,13 @@ export default function skillSearchExtension(pi: ExtensionAPI) {
           customType: 'skill-search-result',
           content: getSkillSearchHelp(),
           details: { mode: 'help' },
-          display: true,
+          display: true
         });
         return;
       }
 
       await runSearch(pi, ctx, parseCommandFilters(trimmed));
-    },
+    }
   });
 
   pi.registerCommand('skill-family', {
@@ -255,12 +255,12 @@ export default function skillSearchExtension(pi: ExtensionAPI) {
           customType: 'skill-search-result',
           content: 'Usage: /skill-family <skill-id-or-name>',
           details: { mode: 'help' },
-          display: true,
+          display: true
         });
         return;
       }
 
       await runSearch(pi, ctx, { familyOf: reference, limit: 50 });
-    },
+    }
   });
 }

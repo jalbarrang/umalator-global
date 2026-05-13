@@ -4,7 +4,7 @@ import {
   completeCurrentStep,
   setCurrentStep,
   startOver,
-  useSkillPlannerStore,
+  useSkillPlannerStore
 } from '../skill-planner.store';
 import { SkillPlannerLanding } from './SkillPlannerLanding';
 import { SkillPlannerStepper } from './SkillPlannerStepper';
@@ -21,17 +21,17 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialogTitle
 } from '@/components/ui/alert-dialog';
 
 const nextStepByStep: Partial<Record<WizardStep, WizardStep>> = {
   runner: 'shop',
-  shop: 'review',
+  shop: 'review'
 };
 
 const previousStepByStep: Partial<Record<WizardStep, WizardStep>> = {
   shop: 'runner',
-  review: 'shop',
+  review: 'shop'
 };
 
 export function SkillPlannerLayout() {

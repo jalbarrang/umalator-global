@@ -3,7 +3,7 @@ import { dataRegistry } from '@/modules/data/registry';
 import {
   getExternalDebuffEffects,
   isExternalDebuffEffect,
-  isInjectableExternalDebuffSkill,
+  isInjectableExternalDebuffSkill
 } from './external-debuffs';
 
 describe('external debuff predicates', () => {
@@ -12,16 +12,16 @@ describe('external debuff predicates', () => {
       isExternalDebuffEffect({
         type: 21,
         target: 9,
-        modifier: -500,
-      }),
+        modifier: -500
+      })
     ).toBe(true);
 
     expect(
       isExternalDebuffEffect({
         type: 21,
         target: 1,
-        modifier: -500,
-      }),
+        modifier: -500
+      })
     ).toBe(false);
   });
 

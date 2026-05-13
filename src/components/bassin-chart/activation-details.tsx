@@ -7,7 +7,7 @@ import { ActivationEffectChart } from './ActivationEffectChart';
 import { LengthDifferenceChart } from './LengthDifferenceChart';
 import type {
   SkillSimulationData,
-  SkillTrackedMetaCollection,
+  SkillTrackedMetaCollection
 } from '@/modules/simulation/compare.types';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 import React from 'react';
@@ -32,17 +32,17 @@ export const ActivationDetails = React.memo((props: ActivationDetailsProps) => {
     currentSeed,
     isGlobalSimulationRunning,
     isSkillLoading = false,
-    onRunAdditionalSamples,
+    onRunAdditionalSamples
   } = props;
 
   const currentSkillActivations = useMemo(
     () => skillActivations[skillId],
-    [skillId, skillActivations],
+    [skillId, skillActivations]
   );
 
   const activationPositions = useMemo(
     () => currentSkillActivations.map((activation) => activation.positions).flat(),
-    [currentSkillActivations],
+    [currentSkillActivations]
   );
 
   const totalActivations = useMemo(() => activationPositions.length, [activationPositions]);
@@ -81,7 +81,7 @@ export const ActivationDetails = React.memo((props: ActivationDetailsProps) => {
       earliestPosition,
       latestPosition,
       averagePosition,
-      primaryPhase,
+      primaryPhase
     };
   }, [activationPositions, courseDistance, hasActivations, totalActivations]);
 

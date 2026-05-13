@@ -14,13 +14,13 @@ export const defaultRunnerState: IRunnerState = {
   strategyAptitude: 'A',
   mood: Mood.Great,
   skills: [],
-  randomMobId: Math.floor(Math.random() * 624) + 8000,
+  randomMobId: Math.floor(Math.random() * 624) + 8000
 };
 
 export const createRunnerState = (props: Partial<IRunnerState> = {}): IRunnerState => ({
   ...defaultRunnerState,
   randomMobId: Math.floor(Math.random() * 624) + 8000,
-  ...props,
+  ...props
 });
 
 export type IRunnerState = {

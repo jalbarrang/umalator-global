@@ -18,7 +18,7 @@ import type {
   IGroundCondition,
   ISeason,
   ITimeOfDay,
-  IWeather,
+  IWeather
 } from '../course/definitions';
 
 export type RunnerMap = Map<number, Runner>;
@@ -202,7 +202,7 @@ export class Race {
       this.events.on('round-start', (race, seed) => observer.onRoundStart(race, seed));
       this.events.on('before-tick', (race, dt) => observer.onBeforeTick(race, dt));
       this.events.on('after-runner-tick', (race, runner, dt) =>
-        observer.onAfterRunnerTick(race, runner, dt),
+        observer.onAfterRunnerTick(race, runner, dt)
       );
       this.events.on('runner-finished', (race, runner) => observer.onRunnerFinished(race, runner));
       this.events.on('round-end', (race) => observer.onRoundEnd(race));
@@ -286,7 +286,7 @@ export class Race {
       [Strategy.FrontRunner, 0],
       [Strategy.PaceChaser, 0],
       [Strategy.LateSurger, 0],
-      [Strategy.EndCloser, 0],
+      [Strategy.EndCloser, 0]
     ]);
 
     const runnersPerStrategy = new Map<IStrategy, Array<Runner>>([
@@ -294,7 +294,7 @@ export class Race {
       [Strategy.FrontRunner, []],
       [Strategy.PaceChaser, []],
       [Strategy.LateSurger, []],
-      [Strategy.EndCloser, []],
+      [Strategy.EndCloser, []]
     ]);
 
     for (const runner of this.runners.values()) {
@@ -384,7 +384,7 @@ export class Race {
       this.runnerSnapshots.set(runner.id, {
         position: runner.position,
         currentLane: runner.currentLane,
-        currentSpeed: runner.currentSpeed,
+        currentSpeed: runner.currentSpeed
       });
     }
 
@@ -430,7 +430,7 @@ export class Race {
     for (const strategy of [Strategy.Runaway, Strategy.FrontRunner]) {
       // ! NOTE: might revise this.
       const frontRunners = Array.from(this.runners.values()).filter(
-        (runner) => runner.positionKeepStrategy === strategy,
+        (runner) => runner.positionKeepStrategy === strategy
       );
 
       const firstRunner = frontRunners[0];
@@ -455,7 +455,7 @@ export class Race {
     for (const strategy of [Strategy.PaceChaser, Strategy.LateSurger, Strategy.EndCloser]) {
       // ! NOTE: might revise this.
       const runnersWithStrat = Array.from(this.runners.values()).filter((runner) =>
-        StrategyHelpers.strategyMatches(runner.positionKeepStrategy, strategy),
+        StrategyHelpers.strategyMatches(runner.positionKeepStrategy, strategy)
       );
 
       const firstRunner = runnersWithStrat[0];

@@ -5,7 +5,7 @@ import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import { PHASE_STYLES, RUNNER_COLORS } from '@/modules/race-sim/constants';
 import {
   getRunnerPositionsAtTick,
-  usePlaybackStore,
+  usePlaybackStore
 } from '@/modules/race-sim/stores/playback.store';
 import { useShallow } from 'zustand/shallow';
 
@@ -58,7 +58,7 @@ function buildPhaseSegments(distance: number): PhaseSegment[] {
     start: boundaries[i],
     end: boundaries[i + 1],
     fill: style.fill,
-    stroke: style.stroke,
+    stroke: style.stroke
   }));
 }
 
@@ -77,20 +77,20 @@ export const SwimLanesView = memo<SwimLanesViewProps>(function SwimLanesView(pro
     trackedRunnerIds = [],
     viewStart,
     viewEnd,
-    className,
+    className
   } = props;
 
   const { results, selectedRound, currentTick } = usePlaybackStore(
     useShallow((s) => ({
       results: s.results,
       selectedRound: s.selectedRound,
-      currentTick: s.currentTick,
-    })),
+      currentTick: s.currentTick
+    }))
   );
 
   const runnerPositions = useMemo(
     () => getRunnerPositionsAtTick(results, selectedRound, currentTick),
-    [results, selectedRound, currentTick],
+    [results, selectedRound, currentTick]
   );
 
   const courseDistance = Math.max(courseData.distance, 1);
@@ -128,14 +128,14 @@ export const SwimLanesView = memo<SwimLanesViewProps>(function SwimLanesView(pro
       const position = clamp(
         runnerPositions[runnerId] ?? clampedViewStart,
         clampedViewStart,
-        clampedViewEnd,
+        clampedViewEnd
       );
       return {
         runnerId,
         name: runnerNames[runnerId] ?? `Runner ${runnerId + 1}`,
         position,
         isTracked: trackedRunnerIds.includes(runnerId),
-        color: RUNNER_COLORS[runnerId % RUNNER_COLORS.length],
+        color: RUNNER_COLORS[runnerId % RUNNER_COLORS.length]
       };
     });
 
@@ -150,8 +150,8 @@ export const SwimLanesView = memo<SwimLanesViewProps>(function SwimLanesView(pro
       (entry): LaneEntry => ({
         ...entry,
         rank: rankMap.get(entry.runnerId) ?? entry.runnerId + 1,
-        gapFromLeader: Math.max(0, leaderDistance - entry.position),
-      }),
+        gapFromLeader: Math.max(0, leaderDistance - entry.position)
+      })
     );
   }, [runnerIds, runnerPositions, clampedViewStart, clampedViewEnd, runnerNames, trackedRunnerIds]);
 
@@ -189,7 +189,7 @@ export const SwimLanesView = memo<SwimLanesViewProps>(function SwimLanesView(pro
                     left: `${leftPercent}%`,
                     width: `${widthPercent}%`,
                     backgroundColor: phase.fill,
-                    boxShadow: `inset 0 1px 0 ${phase.stroke}, inset 0 -1px 0 ${phase.stroke}`,
+                    boxShadow: `inset 0 1px 0 ${phase.stroke}, inset 0 -1px 0 ${phase.stroke}`
                   }}
                 >
                   {widthPercent > 11 && (
@@ -217,7 +217,7 @@ export const SwimLanesView = memo<SwimLanesViewProps>(function SwimLanesView(pro
               <div
                 className={cn(
                   'truncate text-sm font-medium',
-                  lane.isTracked ? 'text-primary' : 'text-foreground',
+                  lane.isTracked ? 'text-primary' : 'text-foreground'
                 )}
               >
                 <span className="mr-2 font-mono text-xs text-muted-foreground">{lane.rank}.</span>
@@ -241,12 +241,12 @@ export const SwimLanesView = memo<SwimLanesViewProps>(function SwimLanesView(pro
                 <div
                   className={cn(
                     'absolute top-1/2 flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-background text-[10px] font-bold text-white',
-                    lane.isTracked && 'ring-2 ring-primary/40',
+                    lane.isTracked && 'ring-2 ring-primary/40'
                   )}
                   style={{
                     left: `${markerPercent}%`,
                     backgroundColor: lane.color,
-                    boxShadow: lane.isTracked ? `0 0 0 1px ${lane.color}` : undefined,
+                    boxShadow: lane.isTracked ? `0 0 0 1px ${lane.color}` : undefined
                   }}
                   aria-label={`${lane.name} at ${lane.position.toFixed(1)} meters`}
                 >

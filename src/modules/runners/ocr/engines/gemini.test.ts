@@ -6,10 +6,10 @@ function createGeminiApiResponse(text: string) {
     candidates: [
       {
         content: {
-          parts: [{ text }],
-        },
-      },
-    ],
+          parts: [{ text }]
+        }
+      }
+    ]
   };
 }
 
@@ -18,9 +18,9 @@ function mockGeminiFetch(text: string) {
     new Response(JSON.stringify(createGeminiApiResponse(text)), {
       status: 200,
       headers: {
-        'Content-Type': 'application/json',
-      },
-    }),
+        'Content-Type': 'application/json'
+      }
+    })
   );
 
   vi.stubGlobal('fetch', fetchMock);
@@ -48,7 +48,7 @@ ${JSON.stringify({
   distanceAptitude: 'A',
   strategyAptitude: 'S',
   strategy: 'Senkou',
-  skills: ['Right-Handed ○'],
+  skills: ['Right-Handed ○']
 })}
 \`\`\``;
     const fetchMock = mockGeminiFetch(fencedJson);
@@ -59,8 +59,8 @@ ${JSON.stringify({
     expect(fetchMock).toHaveBeenCalledWith(
       `${GEMINI_API_URL}?key=demo-key`,
       expect.objectContaining({
-        method: 'POST',
-      }),
+        method: 'POST'
+      })
     );
     expect(result.structured?.speed).toBe(1200);
     expect(result.structured?.wisdom).toBe(950);
@@ -81,8 +81,8 @@ ${JSON.stringify({
         distanceAptitude: 'A',
         strategyAptitude: 'S',
         strategy: 'Nige',
-        skills: [],
-      }),
+        skills: []
+      })
     );
 
     const engine = new GeminiEngine('demo-key');
@@ -106,8 +106,8 @@ ${JSON.stringify({
         distanceAptitude: 'A',
         strategyAptitude: 'S',
         strategy: 'Senkou',
-        skills: ['Shooting Star Lvl 4', 'Shooting Star', 'Right-Handed ○'],
-      }),
+        skills: ['Shooting Star Lvl 4', 'Shooting Star', 'Right-Handed ○']
+      })
     );
 
     const engine = new GeminiEngine('demo-key');
@@ -133,8 +133,8 @@ ${JSON.stringify({
         distanceAptitude: 'A',
         strategyAptitude: 'S',
         strategy: 'Senkou',
-        skills: ['Right-Handed ©', 'Right-Handed ®', 'Right-Handed ⊚'],
-      }),
+        skills: ['Right-Handed ©', 'Right-Handed ®', 'Right-Handed ⊚']
+      })
     );
 
     const engine = new GeminiEngine('demo-key');
@@ -160,8 +160,8 @@ ${JSON.stringify({
         distanceAptitude: 'A',
         strategyAptitude: 'S',
         strategy: 'Senkou',
-        skills: [],
-      }),
+        skills: []
+      })
     );
 
     const engine = new GeminiEngine('demo-key');

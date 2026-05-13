@@ -8,14 +8,14 @@ import {
   ResponsiveContainer,
   Tooltip,
   XAxis,
-  YAxis,
+  YAxis
 } from 'recharts';
 import {
   DEFAULT_BIN_SIZE,
   PHASE_COLORS,
   createDistanceBins,
   getPhaseForPosition,
-  getPhaseReferenceLines,
+  getPhaseReferenceLines
 } from './utils';
 import type { SkillTrackedMetaCollection } from '@/modules/simulation/compare.types';
 import React from 'react';
@@ -54,7 +54,7 @@ export const LengthDifferenceChart = React.memo(
         start,
         end,
         maxBasinn: 0,
-        phase: getPhaseForPosition(start, courseDistance),
+        phase: getPhaseForPosition(start, courseDistance)
       }));
 
       // Find max basinn per bin
@@ -74,7 +74,7 @@ export const LengthDifferenceChart = React.memo(
         bins,
         hasData: maxValue > 0,
         maxValue,
-        phaseStarts,
+        phaseStarts
       };
     }, [skillId, skillActivations, courseDistance]);
 
@@ -153,5 +153,5 @@ export const LengthDifferenceChart = React.memo(
         </div>
       </div>
     );
-  },
+  }
 );

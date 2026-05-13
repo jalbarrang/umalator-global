@@ -20,7 +20,7 @@ function processBatch(batch: WorkBatch): void {
     sendMessage({
       type: 'worker-error',
       workerId,
-      error: 'Worker not initialized',
+      error: 'Worker not initialized'
     });
 
     return;
@@ -39,7 +39,7 @@ function processBatch(batch: WorkBatch): void {
     course,
     racedef,
     uma: baseRunner,
-    options,
+    options
   };
 
   // Run simulation for this batch
@@ -50,7 +50,7 @@ function processBatch(batch: WorkBatch): void {
     type: 'batch-complete',
     workerId,
     batchId: batch.batchId,
-    results,
+    results
   });
 }
 
@@ -66,14 +66,13 @@ self.addEventListener('message', (event: MessageEvent<WorkerInMessage>) => {
         // Signal ready for work
         sendMessage({
           type: 'worker-ready',
-          workerId,
+          workerId
         });
       } catch (error) {
         sendMessage({
           type: 'worker-error',
           workerId,
-          error:
-            error instanceof Error ? error.message : 'Failed to initialize worker runtime data',
+          error: error instanceof Error ? error.message : 'Failed to initialize worker runtime data'
         });
       }
       break;

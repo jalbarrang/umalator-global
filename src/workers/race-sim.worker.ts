@@ -2,7 +2,7 @@ import '../polyfills';
 import {
   runRaceSim,
   type RaceSimParams,
-  type RaceSimResult,
+  type RaceSimResult
 } from '@/lib/sunday-tools/race-sim/run-race-sim';
 
 export type RaceSimWorkerParams = RaceSimParams;
@@ -62,12 +62,12 @@ self.addEventListener('message', (event: MessageEvent<RaceSimWorkerInMessage>) =
     const serializableResult = serializeMapsForPostMessage(result) as RaceSimResult;
     sendMessage({
       type: 'race-sim-complete',
-      data: serializableResult,
+      data: serializableResult
     });
   } catch (error) {
     sendMessage({
       type: 'race-sim-error',
-      error: error instanceof Error ? error.message : 'Unknown race simulation error',
+      error: error instanceof Error ? error.message : 'Unknown race simulation error'
     });
   }
 });

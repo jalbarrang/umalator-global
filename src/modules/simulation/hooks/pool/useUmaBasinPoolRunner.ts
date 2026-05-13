@@ -8,12 +8,12 @@ import {
   setIsSimulationRunning,
   setMetrics,
   setProgress,
-  setTable,
+  setTable
 } from '@/modules/simulation/stores/uma-basin.store';
 import {
   defaultSimulationOptions,
   getActivateableSkills,
-  getNullSkillComparisonRow,
+  getNullSkillComparisonRow
 } from '@/components/bassin-chart/utils';
 import { useRunner } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
@@ -85,8 +85,8 @@ export function useUmaBasinPoolRunner() {
         uma,
         options: {
           ...defaultSimulationOptions,
-          seed: simulationSeed,
-        },
+          seed: simulationSeed
+        }
       },
       {
         onProgress: (results, progress) => {
@@ -105,8 +105,8 @@ export function useUmaBasinPoolRunner() {
           console.error('Pool simulation error:', error);
           setProgress(null);
           setIsSimulationRunning(false);
-        },
-      },
+        }
+      }
     );
   };
 

@@ -3,7 +3,7 @@ import { createStore } from 'zustand/vanilla';
 import type {
   OcrMaskType,
   PreparedImage,
-  WizardStep,
+  WizardStep
 } from '@/modules/runners/components/ocr/types';
 import { parseOcrResult } from '@/modules/runners/ocr/parser';
 import type { OcrEngine } from '@/modules/runners/ocr/engine';
@@ -27,7 +27,7 @@ type OcrDialogActions = {
   processComposited: (
     blob: Blob,
     maskType: OcrMaskType,
-    existingData?: Partial<ExtractedUmaData>,
+    existingData?: Partial<ExtractedUmaData>
   ) => Promise<Partial<ExtractedUmaData> | null>;
   updateResults: (updates: Partial<ExtractedUmaData>) => void;
   removeSkill: (skillId: string) => void;
@@ -60,7 +60,7 @@ function dedupeStrings(lines: Array<string>): Array<string> {
 function mergeExtractedResults(
   baseData: Partial<ExtractedUmaData> | null,
   nextData: Partial<ExtractedUmaData> | null,
-  maskType: OcrMaskType,
+  maskType: OcrMaskType
 ): Partial<ExtractedUmaData> | null {
   if (!nextData) return baseData;
   if (!baseData) return nextData;
@@ -68,7 +68,7 @@ function mergeExtractedResults(
   const mergedSkills = dedupeSkills([...(baseData.skills ?? []), ...(nextData.skills ?? [])]);
   const mergedUnrecognized = dedupeStrings([
     ...(baseData.unrecognized ?? []),
-    ...(nextData.unrecognized ?? []),
+    ...(nextData.unrecognized ?? [])
   ]);
 
   if (maskType === 'skills-only') {
@@ -78,7 +78,7 @@ function mergeExtractedResults(
       skills: mergedSkills,
       unrecognized: mergedUnrecognized,
       imageCount: (baseData.imageCount ?? 0) + (nextData.imageCount ?? 1),
-      umaConfidence: baseData.umaConfidence ?? nextData.umaConfidence ?? 0,
+      umaConfidence: baseData.umaConfidence ?? nextData.umaConfidence ?? 0
     };
   }
 
@@ -88,7 +88,7 @@ function mergeExtractedResults(
     skills: mergedSkills,
     unrecognized: mergedUnrecognized,
     imageCount: Math.max(baseData.imageCount ?? 0, nextData.imageCount ?? 0),
-    umaConfidence: nextData.umaConfidence ?? baseData.umaConfidence ?? 0,
+    umaConfidence: nextData.umaConfidence ?? baseData.umaConfidence ?? 0
   };
 }
 
@@ -107,7 +107,7 @@ export function createOcrDialogStore(engineRef: RefObject<OcrEngine | null>) {
         results: null,
         step: INITIAL_STEP,
         preparedImages: [],
-        showSkillsEditor: false,
+        showSkillsEditor: false
       });
     };
 
@@ -142,7 +142,7 @@ export function createOcrDialogStore(engineRef: RefObject<OcrEngine | null>) {
           set({
             isProcessing: true,
             progress: 0,
-            error: null,
+            error: null
           });
 
           try {
@@ -167,7 +167,7 @@ export function createOcrDialogStore(engineRef: RefObject<OcrEngine | null>) {
 
         updateResults: (updates) => {
           set((state) => ({
-            results: state.results ? { ...state.results, ...updates } : updates,
+            results: state.results ? { ...state.results, ...updates } : updates
           }));
         },
 
@@ -192,8 +192,8 @@ export function createOcrDialogStore(engineRef: RefObject<OcrEngine | null>) {
           set({ preparedImages: [] });
         },
 
-        cleanup: resetState,
-      },
+        cleanup: resetState
+      }
     };
   });
 }

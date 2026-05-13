@@ -8,20 +8,20 @@ const EFFECT_ITEMS = [
   { label: 'Speed', type: SkillType.TargetSpeed },
   { label: 'Accel', type: SkillType.Accel },
   { label: 'Recovery / drain', type: SkillType.Recovery },
-  { label: 'Lane', type: SkillType.LaneMovementSpeed },
+  { label: 'Lane', type: SkillType.LaneMovementSpeed }
 ] as const;
 
 const RUNNER_PAIRS = [
   {
     label: 'Uma 1',
     skill: colors[0],
-    debuff: debuffColors[0],
+    debuff: debuffColors[0]
   },
   {
     label: 'Uma 2',
     skill: colors[1],
-    debuff: debuffColors[1],
-  },
+    debuff: debuffColors[1]
+  }
 ] as const;
 
 export const TrackLegend = React.memo(() => {
@@ -63,7 +63,7 @@ export const TrackLegend = React.memo(() => {
                 className="inline-flex h-2.5 w-2.5 rounded-full border"
                 style={{
                   backgroundColor: pair.skill.fill,
-                  borderColor: pair.skill.stroke,
+                  borderColor: pair.skill.stroke
                 }}
                 aria-hidden="true"
               />
@@ -74,7 +74,7 @@ export const TrackLegend = React.memo(() => {
                 className="inline-flex h-2.5 w-2.5 rounded-full border"
                 style={{
                   backgroundColor: pair.debuff.fill,
-                  borderColor: pair.debuff.stroke,
+                  borderColor: pair.debuff.stroke
                 }}
                 aria-hidden="true"
               />

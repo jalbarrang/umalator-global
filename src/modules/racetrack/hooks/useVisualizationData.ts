@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
 import type { SimulationRun, SkillEffectLog } from '@/modules/simulation/compare.types';
 import type { PosKeepLabel } from '@/utils/races';
-import { RegionDisplayType } from '@/modules/racetrack/types';
+import { IRegionDisplayType, RegionDisplayType } from '@/modules/racetrack/types';
 import { getSkillNameById } from '@/modules/skills/utils';
 import { useSettingsStore } from '@/store/settings.store';
 import { colors, debuffColors, posKeepColors, recoveryColors, rushedColors } from '@/utils/colors';
@@ -13,7 +13,7 @@ import { useDebuffs } from '@/modules/simulation/stores/compare.store';
 import { dataRegistry } from '@/modules/data/registry';
 
 export type RegionData = {
-  type: RegionDisplayType;
+  type: IRegionDisplayType;
   regions: Array<{
     start: number;
     end: number;
@@ -69,14 +69,14 @@ const getSkillActivations = (
   skillId: string,
   activations: Array<SkillEffectLog>,
   umaIndex: number,
-  injectedDebuffsForUma: Array<InjectedDebuffRegionRef>,
+  injectedDebuffsForUma: Array<InjectedDebuffRegionRef>
 ): Array<RegionData> => {
   if (activations.length === 0) return [];
 
   const buildRegions = (
     effects: Array<SkillEffectLog>,
     isDebuff: boolean,
-    resolveDebuffId?: (start: number) => string | undefined,
+    resolveDebuffId?: (start: number) => string | undefined
   ): Array<RegionData> => {
     if (effects.length === 0) return [];
 
@@ -91,7 +91,7 @@ const getSkillActivations = (
     const result: Array<RegionData> = [];
     for (const groupedEffects of grouped.values()) {
       const durationEffect = groupedEffects.find(
-        (e) => e.end - e.start > INSTANT_DURATION_THRESHOLD,
+        (e) => e.end - e.start > INSTANT_DURATION_THRESHOLD
       );
       const repr = durationEffect ?? groupedEffects[0];
       const isRecovery = repr.effectType === SkillType.Recovery;
@@ -110,7 +110,7 @@ const getSkillActivations = (
         effectType: repr.effectType,
         regions: [{ start: repr.start, end: repr.end }],
         debuffId: isDebuff ? resolveDebuffId?.(repr.start) : undefined,
-        isDebuff,
+        isDebuff
       });
     }
 
@@ -153,7 +153,7 @@ const getSkillActivations = (
 
   return [
     ...buildRegions(selfEffects, false),
-    ...buildRegions(targetedEffects, true, resolveInjectedDebuffId),
+    ...buildRegions(targetedEffects, true, resolveInjectedDebuffId)
   ];
 };
 
@@ -173,8 +173,8 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
 
   const { courseId } = useSettingsStore(
     useShallow((state) => ({
-      courseId: state.courseId,
-    })),
+      courseId: state.courseId
+    }))
   );
 
   const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
@@ -211,7 +211,7 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
           color: rushedColors[umaIndex],
           text: 'Rushed',
           umaIndex,
-          regions: [{ start: rush[0], end: rush[1] }],
+          regions: [{ start: rush[0], end: rush[1] }]
         });
       }
     }
@@ -227,7 +227,7 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
     const results: Array<RegionData> = [];
     const entries: Array<[number, typeof debuffs.uma1]> = [
       [0, debuffs.uma1],
-      [1, debuffs.uma2],
+      [1, debuffs.uma2]
     ];
 
     for (const [umaIndex, umaDebuffs] of entries) {
@@ -241,7 +241,7 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
           effectType: getDebuffIndicatorEffectType(debuff.skillId),
           debuffId: debuff.id,
           regions: [{ start: debuff.position, end: debuff.position }],
-          isDebuff: true,
+          isDebuff: true
         });
       }
     }
@@ -271,7 +271,7 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
         color: posKeepColors[umaIndex],
         start: start,
         end: end,
-        duration: end - start,
+        duration: end - start
       });
     }
 
@@ -298,7 +298,7 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
         color: posKeepColors[umaIndex],
         start: start,
         end: end,
-        duration: end - start,
+        duration: end - start
       });
     }
 
@@ -316,10 +316,10 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
           ...posKeep,
           x: (posKeep.start / course.distance) * 960,
           width: (posKeep.duration / course.distance) * 960,
-          yOffset: 0,
+          yOffset: 0
         }))
         .toSorted((a, b) => a.x - b.x),
-    [labels, course],
+    [labels, course]
   );
 
   const posKeepLabels: Array<PosKeepLabel> = useMemo(() => {
@@ -356,6 +356,6 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
     skillActivations,
     rushedIndicators,
     debuffIndicators,
-    posKeepLabels,
+    posKeepLabels
   };
 };

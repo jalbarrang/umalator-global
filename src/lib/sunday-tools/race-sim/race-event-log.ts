@@ -65,7 +65,7 @@ function cloneEventDetail(detail?: RaceEventDetail): RaceEventDetail | undefined
     skillId: detail.skillId,
     otherRunnerIds: detail.otherRunnerIds ? [...detail.otherRunnerIds] : undefined,
     finishPlace: detail.finishPlace,
-    finishTime: detail.finishTime,
+    finishTime: detail.finishTime
   };
 }
 
@@ -75,7 +75,7 @@ function cloneEvent(event: RaceEvent): RaceEvent {
     runnerId: event.runnerId,
     position: event.position,
     tick: event.tick,
-    detail: cloneEventDetail(event.detail),
+    detail: cloneEventDetail(event.detail)
   };
 }
 
@@ -87,10 +87,10 @@ export class RaceEventLogCollector {
   public subscribe(bus: RaceEventBus): () => void {
     const unsubRoundStart = bus.on('round-start', (race, seed) => this.onRoundStart(race, seed));
     const unsubAfterRunnerTick = bus.on('after-runner-tick', (race, runner, dt) =>
-      this.onAfterRunnerTick(race, runner, dt),
+      this.onAfterRunnerTick(race, runner, dt)
     );
     const unsubRunnerFinished = bus.on('runner-finished', (race, runner) =>
-      this.onRunnerFinished(race, runner),
+      this.onRunnerFinished(race, runner)
     );
     const unsubRoundEnd = bus.on('round-end', (race) => this.onRoundEnd(race));
 
@@ -174,8 +174,8 @@ export class RaceEventLogCollector {
         position,
         tick,
         detail: this.buildOtherRunnerDetail(
-          this.collectOtherRunnerIdsInState(race, runner, (candidate) => candidate.isDueling),
-        ),
+          this.collectOtherRunnerIdsInState(race, runner, (candidate) => candidate.isDueling)
+        )
       });
     }
 
@@ -186,8 +186,8 @@ export class RaceEventLogCollector {
         position,
         tick,
         detail: this.buildOtherRunnerDetail(
-          this.collectOtherRunnerIdsInState(race, runner, (candidate) => candidate.isDueling),
-        ),
+          this.collectOtherRunnerIdsInState(race, runner, (candidate) => candidate.isDueling)
+        )
       });
     }
 
@@ -198,8 +198,8 @@ export class RaceEventLogCollector {
         position,
         tick,
         detail: this.buildOtherRunnerDetail(
-          this.collectOtherRunnerIdsInState(race, runner, (candidate) => candidate.inSpotStruggle),
-        ),
+          this.collectOtherRunnerIdsInState(race, runner, (candidate) => candidate.inSpotStruggle)
+        )
       });
     }
 
@@ -210,8 +210,8 @@ export class RaceEventLogCollector {
         position,
         tick,
         detail: this.buildOtherRunnerDetail(
-          this.collectOtherRunnerIdsInState(race, runner, (candidate) => candidate.inSpotStruggle),
-        ),
+          this.collectOtherRunnerIdsInState(race, runner, (candidate) => candidate.inSpotStruggle)
+        )
       });
     }
 
@@ -234,7 +234,7 @@ export class RaceEventLogCollector {
             runnerId: runner.id,
             position,
             tick,
-            detail: { skillId },
+            detail: { skillId }
           });
         }
       }
@@ -245,7 +245,7 @@ export class RaceEventLogCollector {
           kind: 'skill-activated',
           runnerId: runner.id,
           position,
-          tick,
+          tick
         });
       }
     }
@@ -279,8 +279,8 @@ export class RaceEventLogCollector {
       tick,
       detail: {
         finishPlace,
-        finishTime: runner.finishTime,
-      },
+        finishTime: runner.finishTime
+      }
     });
   }
 
@@ -305,7 +305,7 @@ export class RaceEventLogCollector {
       positionKeepState: PositionKeepState.None,
       phase: 0,
       isOvertaking: false,
-      isSideBlocked: false,
+      isSideBlocked: false
     };
 
     this.runnerStates.set(runner.id, created);
@@ -334,7 +334,7 @@ export class RaceEventLogCollector {
   private collectOtherRunnerIdsInState(
     race: Race,
     runner: Runner,
-    isMatch: (candidate: Runner) => boolean,
+    isMatch: (candidate: Runner) => boolean
   ): number[] {
     const ids: number[] = [];
     for (const candidate of race.runners.values()) {

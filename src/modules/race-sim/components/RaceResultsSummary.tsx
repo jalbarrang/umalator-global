@@ -6,7 +6,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
+  TableRow
 } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 import { simToDisplaySeconds } from '@/modules/race-sim/constants';
@@ -38,8 +38,8 @@ export function RaceResultsSummary() {
   const { results, focusRunnerIndices } = useRaceSimStore(
     useShallow((state) => ({
       results: state.results,
-      focusRunnerIndices: state.focusRunnerIndices,
-    })),
+      focusRunnerIndices: state.focusRunnerIndices
+    }))
   );
 
   const rows = useMemo<Array<SummaryRow>>(() => {
@@ -77,7 +77,7 @@ export function RaceResultsSummary() {
             totalPosition: 0,
             totalWins: 0,
             totalFinishTime: 0,
-            totalGapBashin: 0,
+            totalGapBashin: 0
           };
           byRunnerId.set(finishEntry.runnerId, row);
         }
@@ -105,7 +105,7 @@ export function RaceResultsSummary() {
         averagePosition: row.totalPosition / row.sampleCount,
         winRate: (row.totalWins / row.sampleCount) * 100,
         averageFinishTime: row.totalFinishTime / row.sampleCount,
-        averageGapBashin: row.totalGapBashin / row.sampleCount,
+        averageGapBashin: row.totalGapBashin / row.sampleCount
       }))
       .sort((left, right) => {
         if (left.averagePosition !== right.averagePosition) {
@@ -146,7 +146,7 @@ export function RaceResultsSummary() {
                   className={cn(
                     'font-mono',
                     isFirst && 'font-bold',
-                    isTracked && 'font-semibold text-primary',
+                    isTracked && 'font-semibold text-primary'
                   )}
                 >
                   {row.name}

@@ -8,13 +8,13 @@ import {
   ResponsiveContainer,
   Tooltip,
   XAxis,
-  YAxis,
+  YAxis
 } from 'recharts';
 import {
   DEFAULT_BIN_SIZE,
   PHASE_COLORS,
   getPhaseForPosition,
-  getPhaseReferenceLines,
+  getPhaseReferenceLines
 } from './utils';
 import React from 'react';
 
@@ -36,7 +36,7 @@ export const ActivationEffectChart = React.memo(
   ({
     skillId: _skillId,
     skillActivations: activations,
-    courseDistance,
+    courseDistance
   }: ActivationEffectChartProps) => {
     const chartData = useMemo(() => {
       const data = {
@@ -44,26 +44,26 @@ export const ActivationEffectChart = React.memo(
           name: 'Early Race',
           activations: 0,
           avgProcPosition: 0,
-          avgLengthEffect: 0,
+          avgLengthEffect: 0
         },
         'mid-race': {
           name: 'Mid Race',
           activations: 0,
           avgProcPosition: 0,
-          avgLengthEffect: 0,
+          avgLengthEffect: 0
         },
         'late-race': {
           name: 'Late Race',
           activations: 0,
           avgProcPosition: 0,
-          avgLengthEffect: 0,
+          avgLengthEffect: 0
         },
         'last-spurt': {
           name: 'Last Spurt',
           activations: 0,
           avgProcPosition: 0,
-          avgLengthEffect: 0,
-        },
+          avgLengthEffect: 0
+        }
       };
 
       if (!activations || activations.length === 0) {
@@ -80,7 +80,7 @@ export const ActivationEffectChart = React.memo(
           end: i + DEFAULT_BIN_SIZE,
           maxEffect: 0,
           activationCount: 0,
-          phase: getPhaseForPosition(i, courseDistance),
+          phase: getPhaseForPosition(i, courseDistance)
         });
       }
 
@@ -102,7 +102,7 @@ export const ActivationEffectChart = React.memo(
         bins,
         hasData: true,
         phaseStarts,
-        perPhase: data,
+        perPhase: data
       };
     }, [activations, courseDistance]);
 
@@ -169,5 +169,5 @@ export const ActivationEffectChart = React.memo(
         </div>
       </div>
     );
-  },
+  }
 );

@@ -8,7 +8,7 @@ import {
   DrawerContent,
   DrawerDescription,
   DrawerHeader,
-  DrawerTitle,
+  DrawerTitle
 } from '@/components/ui/drawer';
 import { dataRegistry } from '@/modules/data/registry';
 import { AptitudesTable } from '@/modules/runners/components/runner-card/aptitudes-table';
@@ -23,7 +23,7 @@ import {
   SkillItemIdentity,
   SkillItemMain,
   SkillItemRail,
-  SkillItemRoot,
+  SkillItemRoot
 } from '@/modules/skills/components/skill-list/skill-item/primitives';
 import { SkillItemDetailsActions } from '@/modules/skills/components/skill-list/skill-item/actions';
 import { SkillItem } from '@/modules/skills/components/skill-list/skill-item/item';
@@ -88,14 +88,14 @@ export function RunnerTileEditor(props: RunnerTileEditorProps) {
 
       updateRunner(runnerIndex, partial);
     },
-    [runnerIndex],
+    [runnerIndex]
   );
 
   const handleUpdateStat = useCallback(
     (stat: StatsKey) => (value: number) => {
       applyRunnerPatch({ [stat]: value });
     },
-    [applyRunnerPatch],
+    [applyRunnerPatch]
   );
 
   const handleSetSkills = useCallback(
@@ -112,7 +112,7 @@ export function RunnerTileEditor(props: RunnerTileEditorProps) {
       applyRunnerPatch(partial);
       updateCurrentSkills(skills);
     },
-    [applyRunnerPatch, runner],
+    [applyRunnerPatch, runner]
   );
 
   const handleChangeRunner = useCallback(
@@ -133,17 +133,17 @@ export function RunnerTileEditor(props: RunnerTileEditorProps) {
 
       applyRunnerPatch({
         outfitId,
-        skills: keptSkills,
+        skills: keptSkills
       });
     },
-    [applyRunnerPatch, runner],
+    [applyRunnerPatch, runner]
   );
 
   const handleUpdateAptitudes = useCallback(
     (nextRunner: IRunnerState) => {
       applyRunnerPatch(nextRunner);
     },
-    [applyRunnerPatch],
+    [applyRunnerPatch]
   );
 
   const handleOpenSkillPicker = useCallback(() => {
@@ -156,7 +156,7 @@ export function RunnerTileEditor(props: RunnerTileEditorProps) {
       umaId: runner.outfitId,
       options: getSelectableSkillsForUma(runner.outfitId),
       currentSkills: runner.skills,
-      onSelect: handleSetSkills,
+      onSelect: handleSetSkills
     });
   }, [handleSetSkills, runner, runnerIndex]);
 
@@ -168,7 +168,7 @@ export function RunnerTileEditor(props: RunnerTileEditorProps) {
 
       handleSetSkills(runner.skills.filter((id) => id !== skillId));
     },
-    [handleSetSkills, runner],
+    [handleSetSkills, runner]
   );
 
   const handleRunawayStrategy = useCallback(() => {

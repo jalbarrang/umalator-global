@@ -7,7 +7,7 @@ import {
   toggleShowThresholds,
   toggleShowUma1,
   toggleShowUma2,
-  useSettingsStore,
+  useSettingsStore
 } from '@/store/settings.store';
 import React from 'react';
 

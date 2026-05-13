@@ -17,7 +17,7 @@ interface CompareLoadingOverlayProps {
 
 export const CompareLoadingOverlay = ({
   currentSamples,
-  totalSamples,
+  totalSamples
 }: CompareLoadingOverlayProps) => {
   const percentage = useMemo(() => {
     if (!currentSamples || !totalSamples || totalSamples === 0) return 0;

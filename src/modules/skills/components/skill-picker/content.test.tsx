@@ -21,18 +21,18 @@ vi.mock('@tanstack/react-virtual', () => ({
           size,
           start: index * size,
           end: (index + 1) * size,
-          lane: 0,
+          lane: 0
         };
       }),
-    scrollToIndex: vi.fn(),
-  }),
+    scrollToIndex: vi.fn()
+  })
 }));
 
 beforeAll(() => {
   Object.defineProperty(HTMLElement.prototype, 'scrollTo', {
     value: vi.fn(),
     configurable: true,
-    writable: true,
+    writable: true
   });
 });
 
@@ -60,7 +60,7 @@ const keyCodes: Record<string, number> = {
   ArrowLeft: 37,
   ArrowRight: 39,
   Enter: 13,
-  Escape: 27,
+  Escape: 27
 };
 
 const pressHotkey = (target: HTMLElement, key: keyof typeof keyCodes) => {
@@ -70,7 +70,7 @@ const pressHotkey = (target: HTMLElement, key: keyof typeof keyCodes) => {
     keyCode: keyCodes[key],
     which: keyCodes[key],
     bubbles: true,
-    cancelable: true,
+    cancelable: true
   });
 };
 
@@ -90,7 +90,7 @@ describe('SkillPickerContent keyboard navigation', () => {
           onSelect={onSelect}
           columnCount={1}
         />
-      </SkillPickerProvider>,
+      </SkillPickerProvider>
     );
 
     const searchInput = screen.getByPlaceholderText('Search skill by name');
@@ -140,7 +140,7 @@ describe('SkillPickerContent keyboard navigation', () => {
           onSelect={onSelect}
           columnCount={4}
         />
-      </SkillPickerProvider>,
+      </SkillPickerProvider>
     );
 
     const searchInput = screen.getByPlaceholderText('Search skill by name');
@@ -186,7 +186,7 @@ describe('SkillPickerContent keyboard navigation', () => {
       keyCode: keyCodes.Escape,
       which: keyCodes.Escape,
       bubbles: true,
-      cancelable: true,
+      cancelable: true
     });
 
     act(() => {

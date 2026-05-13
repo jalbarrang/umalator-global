@@ -22,7 +22,7 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
     isActive: false,
     currentStepIndex: 0,
     steps: [],
-    tutorialId: null,
+    tutorialId: null
   });
 
   const start = useCallback((tutorialId: TutorialId, steps: Array<TutorialStep>) => {
@@ -30,7 +30,7 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
       isActive: true,
       currentStepIndex: 0,
       steps,
-      tutorialId,
+      tutorialId
     });
   }, []);
 
@@ -72,7 +72,7 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
     next,
     previous,
     close,
-    goToStep,
+    goToStep
   };
 
   return <TutorialContext.Provider value={value}>{children}</TutorialContext.Provider>;
@@ -113,6 +113,6 @@ export function useTutorialProgress() {
     isLastStep: currentStepIndex === steps.length - 1,
     currentStep: currentStepIndex + 1,
     totalSteps: steps.length,
-    progress: steps.length > 0 ? ((currentStepIndex + 1) / steps.length) * 100 : 0,
+    progress: steps.length > 0 ? ((currentStepIndex + 1) / steps.length) * 100 : 0
   };
 }

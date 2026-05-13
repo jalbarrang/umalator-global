@@ -5,7 +5,7 @@ import { create } from 'zustand';
 function clientToSvgCoords(
   svg: SVGSVGElement,
   clientX: number,
-  clientY: number,
+  clientY: number
 ): { x: number; y: number } | null {
   const ctm = svg.getScreenCTM();
   if (!ctm) return null;
@@ -41,12 +41,12 @@ type DragPreviewState = {
 };
 
 const useDragPreviewStore = create<DragPreviewState>(() => ({
-  preview: null,
+  preview: null
 }));
 
 const previewMatchesDraggedSkill = (
   preview: DragPreview | null,
-  draggedSkill: DraggedSkill | null,
+  draggedSkill: DraggedSkill | null
 ) => {
   if (!preview || !draggedSkill) return false;
 
@@ -117,7 +117,7 @@ interface UseDragSkillParams {
     start: number,
     end: number,
     markerType: 'skill' | 'debuff',
-    debuffId?: string,
+    debuffId?: string
   ) => void;
 }
 
@@ -125,7 +125,7 @@ export function useDragSkill({
   xOffset,
   courseDistance,
   viewBoxWidth,
-  onSkillDrag,
+  onSkillDrag
 }: UseDragSkillParams) {
   const [draggedSkill, setDraggedSkill] = useState<DraggedSkill | null>(null);
   const [dragOffset, setDragOffset] = useState<DragOffset>({ x: 0 });
@@ -140,7 +140,7 @@ export function useDragSkill({
       start: number,
       end: number,
       markerType: 'skill' | 'debuff' = 'skill',
-      debuffId?: string,
+      debuffId?: string
     ) => {
       e.preventDefault();
       e.stopPropagation();
@@ -163,7 +163,7 @@ export function useDragSkill({
         originalStart: start,
         originalEnd: end,
         markerType,
-        debuffId,
+        debuffId
       });
       setDragOffset({ x: dragX - start });
 
@@ -173,7 +173,7 @@ export function useDragSkill({
         pointerCaptureTargetRef.current = mainSvg;
       }
     },
-    [xOffset, courseDistance, viewBoxWidth],
+    [xOffset, courseDistance, viewBoxWidth]
   );
 
   const handleDragMove = useCallback(
@@ -188,20 +188,20 @@ export function useDragSkill({
       const x = svgCoords.x - xOffset;
 
       const newStart = Math.round(
-        Math.max(0, Math.min(courseDistance, (x / trackWidth) * courseDistance - dragOffset.x)),
+        Math.max(0, Math.min(courseDistance, (x / trackWidth) * courseDistance - dragOffset.x))
       );
       const skillLength = Math.max(50, draggedSkill.originalEnd - draggedSkill.originalStart);
       const newEnd = Math.round(
-        Math.max(newStart + skillLength, Math.min(courseDistance, newStart + skillLength)),
+        Math.max(newStart + skillLength, Math.min(courseDistance, newStart + skillLength))
       );
 
       setDragPreview({
         ...draggedSkill,
         start: newStart,
-        end: newEnd,
+        end: newEnd
       });
     },
-    [draggedSkill, dragOffset, xOffset, courseDistance, viewBoxWidth],
+    [draggedSkill, dragOffset, xOffset, courseDistance, viewBoxWidth]
   );
 
   const handleDragEnd = useCallback(() => {
@@ -217,7 +217,7 @@ export function useDragSkill({
         previewToCommit ? previewToCommit.start : draggedSkill.originalStart,
         previewToCommit ? previewToCommit.end : draggedSkill.originalEnd,
         draggedSkill.markerType,
-        draggedSkill.debuffId,
+        draggedSkill.debuffId
       );
     }
 
@@ -242,6 +242,6 @@ export function useDragSkill({
     draggedSkill,
     handleDragStart,
     handleDragMove,
-    handleDragEnd,
+    handleDragEnd
   };
 }

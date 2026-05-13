@@ -25,7 +25,7 @@ type SkillCostMetaState = {
 };
 
 const DEFAULT_META: SkillCostMeta = {
-  hintLevel: 0,
+  hintLevel: 0
 };
 
 const getSkillKey = (runnerId: string, skillId: string) => `${runnerId}:${skillId}`;
@@ -35,7 +35,7 @@ const normalizeMeta = (meta: SkillCostMeta): SkillCostMeta | undefined => {
     hintLevel: meta.hintLevel,
     bought: meta.bought || undefined,
     received: meta.received || undefined,
-    removed: meta.removed || undefined,
+    removed: meta.removed || undefined
   };
 
   const hasFlags = next.bought || next.received || next.removed;
@@ -50,7 +50,7 @@ const normalizeMeta = (meta: SkillCostMeta): SkillCostMeta | undefined => {
 const resolveMeta = (
   state: SkillCostMetaState,
   runnerId: string,
-  skillId: string,
+  skillId: string
 ): SkillCostMeta => {
   const key = getSkillKey(runnerId, skillId);
   const meta = state.skillMetaByKey[key];
@@ -63,7 +63,7 @@ const resolveMeta = (
     hintLevel: meta.hintLevel ?? 0,
     bought: meta.bought,
     received: meta.received,
-    removed: meta.removed,
+    removed: meta.removed
   };
 };
 
@@ -71,13 +71,13 @@ export const useSkillCostMetaStore = create<SkillCostMetaState>()(
   persist(
     (_) => ({
       skillMetaByKey: {},
-      runnerSettingsById: {},
+      runnerSettingsById: {}
     }),
     {
       name: SKILL_COST_META_STORE_NAME,
-      storage: createJSONStorage(() => localStorage),
-    },
-  ),
+      storage: createJSONStorage(() => localStorage)
+    }
+  )
 );
 
 // Actions
@@ -97,8 +97,8 @@ const updateSkillMeta = (runnerId: string, skillId: string, updates: Partial<Ski
     return {
       skillMetaByKey: {
         ...state.skillMetaByKey,
-        [key]: normalized,
-      },
+        [key]: normalized
+      }
     };
   });
 };
@@ -116,7 +116,7 @@ export const setBought = (runnerId: string, skillId: string, bought: boolean) =>
       const current = resolveMeta(
         { ...state, skillMetaByKey: nextSkillMetaByKey },
         runnerId,
-        targetSkillId,
+        targetSkillId
       );
       const normalized = normalizeMeta({ ...current, bought: isBought });
 
@@ -168,7 +168,7 @@ export const getNetCostForSkill = (runnerId: string, skillId: string): number =>
   return calculateSkillCost(
     skillId,
     meta.hintLevel,
-    state.runnerSettingsById[runnerId]?.hasFastLearner ?? false,
+    state.runnerSettingsById[runnerId]?.hasFastLearner ?? false
   );
 };
 
@@ -176,7 +176,7 @@ export function computeSkillCostSummary(
   skillId: string,
   runnerId: string,
   skillMetaMap: Record<string, SkillCostMeta>,
-  hasFastLearner: boolean,
+  hasFastLearner: boolean
 ) {
   return buildSkillCostSummary({
     skillId,
@@ -184,7 +184,7 @@ export function computeSkillCostSummary(
     getSkillMeta: (targetSkillId) => {
       const key = `${runnerId}:${targetSkillId}`;
       return skillMetaMap[key] ?? DEFAULT_META;
-    },
+    }
   });
 }
 
@@ -195,7 +195,7 @@ export function computeTotalNetCost(
   skillId: string,
   runnerId: string,
   skillMetaMap: Record<string, SkillCostMeta>,
-  hasFastLearner: boolean,
+  hasFastLearner: boolean
 ): number {
   return computeSkillCostSummary(skillId, runnerId, skillMetaMap, hasFastLearner).netTotal;
 }
@@ -204,8 +204,8 @@ export const setFastLearner = (runnerId: string, hasFastLearner: boolean) => {
   useSkillCostMetaStore.setState((state) => ({
     runnerSettingsById: {
       ...state.runnerSettingsById,
-      [runnerId]: { hasFastLearner },
-    },
+      [runnerId]: { hasFastLearner }
+    }
   }));
 };
 
@@ -226,6 +226,6 @@ export const useRunnerHasFastLearner = (runnerId: string) => {
       }
 
       return runner.hasFastLearner;
-    }),
+    })
   );
 };

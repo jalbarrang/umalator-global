@@ -8,5 +8,5 @@ export {
   useCompareShareCardProps,
   copyCompareScreenshot,
   getRaceSettingsSummaryLine,
-  resolveCompareChartData,
+  resolveCompareChartData
 } from './compare-share-actions';

@@ -18,7 +18,7 @@ type ExpandedSkillDetailsProps = {
 
 function AlternativeDetails({
   alternative,
-  distanceFactor,
+  distanceFactor
 }: {
   alternative: SkillAlternative;
   distanceFactor?: number;
@@ -94,17 +94,17 @@ function AlternativeDetails({
           <div>
             {i18n.t('skilldetails.baseduration')}{' '}
             {i18n.t('skilldetails.seconds', {
-              n: alternative.baseDuration / 10000,
+              n: alternative.baseDuration / 10000
             })}
           </div>
 
           {!!distanceFactor && (
             <div>
               {i18n.t('skilldetails.effectiveduration', {
-                distance: distanceFactor,
+                distance: distanceFactor
               })}{' '}
               {i18n.t('skilldetails.seconds', {
-                n: +((alternative.baseDuration / 10000) * (distanceFactor / 1000)).toFixed(2),
+                n: +((alternative.baseDuration / 10000) * (distanceFactor / 1000)).toFixed(2)
               })}
             </div>
           )}

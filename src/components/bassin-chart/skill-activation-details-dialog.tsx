@@ -19,7 +19,7 @@ type SkillActivationDetailsDialogProps = {
 };
 
 export const SkillActivationDetailsDialog = React.memo(function SkillActivationDetailsDialog(
-  props: SkillActivationDetailsDialogProps,
+  props: SkillActivationDetailsDialogProps
 ) {
   const {
     open,
@@ -29,7 +29,7 @@ export const SkillActivationDetailsDialog = React.memo(function SkillActivationD
     currentSeed,
     isGlobalSimulationRunning,
     skillLoading,
-    onRunAdditionalSamples,
+    onRunAdditionalSamples
   } = props;
 
   const skillId = skillRow?.id;

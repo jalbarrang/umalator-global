@@ -1,16 +1,16 @@
 import { cloneDeep, merge } from 'es-toolkit';
 import type {
   SkillSimulationData,
-  SkillTrackedMetaCollection,
+  SkillTrackedMetaCollection
 } from '@/modules/simulation/compare.types';
 import type {
   SkillComparisonResponse,
-  SkillComparisonRoundResult,
+  SkillComparisonRoundResult
 } from '@/modules/simulation/types';
 
 export const mergeSkillResults = (
   resultA: SkillComparisonRoundResult,
-  resultB: SkillComparisonRoundResult,
+  resultB: SkillComparisonRoundResult
 ) => {
   const countA = resultA.results.length;
   const countB = resultB.results.length;
@@ -30,12 +30,12 @@ export const mergeSkillResults = (
 
   const mergedRunData: SkillSimulationData = merge(selectedRunData, {
     minrun,
-    maxrun,
+    maxrun
   });
 
   // Properly merge skillActivations by concatenating arrays instead of replacing by index
   const activations: Record<string, SkillTrackedMetaCollection> = cloneDeep(
-    resultA.skillActivations,
+    resultA.skillActivations
   );
 
   for (const [skillId, newActivations] of Object.entries(resultB.skillActivations)) {
@@ -61,13 +61,13 @@ export const mergeSkillResults = (
     mean: combinedMean,
     median: newMedian,
 
-    filterReason: resultB.filterReason ?? resultA.filterReason,
+    filterReason: resultB.filterReason ?? resultA.filterReason
   };
 };
 
 export const mergeResultSets = (
   resultSetA: SkillComparisonResponse,
-  resultSetB: SkillComparisonResponse,
+  resultSetB: SkillComparisonResponse
 ) => {
   Object.entries(resultSetB).forEach(([id, resultB]) => {
     const resultA = resultSetA[id];

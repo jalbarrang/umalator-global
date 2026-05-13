@@ -6,7 +6,7 @@ import { GeminiEngine } from '@/modules/runners/ocr/engines/gemini';
 import {
   createOcrDialogStore,
   type IOcrDialogStore,
-  type IOcrDialogStoreApi,
+  type IOcrDialogStoreApi
 } from '@/modules/runners/components/ocr/ocr-dialog.store';
 import { useGeminiApiKey } from '@/store/ocr.store';
 
@@ -78,8 +78,8 @@ export const useOcrProcessing = () => {
     useShallow((state) => ({
       isProcessing: state.isProcessing,
       progress: state.progress,
-      error: state.error,
-    })),
+      error: state.error
+    }))
   );
 };
 
@@ -92,7 +92,7 @@ export const useOcrWizardState = () => {
     useShallow((state) => ({
       step: state.step,
       preparedImages: state.preparedImages,
-      showSkillsEditor: state.showSkillsEditor,
-    })),
+      showSkillsEditor: state.showSkillsEditor
+    }))
   );
 };

@@ -34,12 +34,12 @@ function toStableValue(value: unknown): unknown {
 }
 
 export function buildOptimizationInputFingerprint(
-  params: OptimizationInputFingerprintParams,
+  params: OptimizationInputFingerprintParams
 ): string {
   const candidateSnapshot = Object.values(params.candidates)
     .map((candidate) => ({
       skillId: candidate.skillId,
-      hintLevel: candidate.hintLevel,
+      hintLevel: candidate.hintLevel
     }))
     .toSorted((a, b) => a.skillId.localeCompare(b.skillId));
 
@@ -53,7 +53,7 @@ export function buildOptimizationInputFingerprint(
     obtainedSkillIds: [...params.obtainedSkillIds].toSorted((a, b) => a.localeCompare(b)),
     candidates: candidateSnapshot,
     skillMetaById: params.skillMetaById,
-    staminaDrainOverrides: params.staminaDrainOverrides,
+    staminaDrainOverrides: params.staminaDrainOverrides
   };
 
   return JSON.stringify(toStableValue(snapshot));

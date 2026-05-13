@@ -3,7 +3,7 @@ import {
   getSkillPlanningMeta,
   removeCandidate,
   setCandidateHintLevel,
-  useSkillPlannerStore,
+  useSkillPlannerStore
 } from '../skill-planner.store';
 import type { CandidateSkill, HintLevel } from '../types';
 import { Separator } from '@/components/ui/separator';
@@ -12,18 +12,18 @@ import {
   SkillItemIdentity,
   SkillItemMain,
   SkillItemRail,
-  SkillItemRoot,
+  SkillItemRoot
 } from '@/modules/skills/components/skill-list/skill-item/primitives';
 import {
   SkillItemCostAction,
-  SkillItemDetailsActions,
+  SkillItemDetailsActions
 } from '@/modules/skills/components/skill-list/skill-item/actions';
 import { SkillItem } from '@/modules/skills/components/skill-list/skill-item/item';
 import type { SkillMeta } from '@/modules/skills/components/skill-list/skill-item/context';
 import {
   buildDedupedSkillListNetTotal,
   buildSkillCostSummary,
-  type SkillCostSummary,
+  type SkillCostSummary
 } from '@/modules/skills/skill-cost-summary';
 
 export function CandidateSkillList() {
@@ -46,11 +46,11 @@ export function CandidateSkillList() {
       const meta = getSkillPlanningMeta(skillId);
       return {
         hintLevel: meta.hintLevel,
-        bought: meta.bought ?? false,
+        bought: meta.bought ?? false
       };
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally re-derive when store data changes
-    [skillMetaById, obtainedSkillIds],
+    [skillMetaById, obtainedSkillIds]
   );
 
   const costSummaryBySkillId = useMemo(() => {
@@ -60,7 +60,7 @@ export function CandidateSkillList() {
       map[candidate.skillId] = buildSkillCostSummary({
         skillId: candidate.skillId,
         hasFastLearner,
-        getSkillMeta,
+        getSkillMeta
       });
     }
 
@@ -71,7 +71,7 @@ export function CandidateSkillList() {
     return buildDedupedSkillListNetTotal({
       visibleSkillIds: candidateList.map((candidate) => candidate.skillId),
       hasFastLearner,
-      getSkillMeta,
+      getSkillMeta
     });
   }, [candidateList, hasFastLearner, getSkillMeta]);
 

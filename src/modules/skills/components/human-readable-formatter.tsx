@@ -28,7 +28,7 @@ const percentConditions = new Set([
   'hp_per',
   'order_rate',
   'random_lot',
-  'running_style_count_same_rate',
+  'running_style_count_same_rate'
 ]);
 
 const secondConditions = new Set([
@@ -40,14 +40,14 @@ const secondConditions = new Set([
   'blocked_side_continuetime',
   'infront_near_lane_time',
   'overtake_target_no_order_up_time',
-  'overtake_target_time',
+  'overtake_target_time'
 ]);
 
 const meterConditions = new Set([
   'course_distance',
   'distance_diff_top',
   'remain_distance',
-  'remain_distance_viewer_id',
+  'remain_distance_viewer_id'
 ]);
 
 const enumConditions = new Set([
@@ -61,7 +61,7 @@ const enumConditions = new Set([
   'season',
   'slope',
   'time',
-  'weather',
+  'weather'
 ]);
 
 function formatDecimal(n: number) {
@@ -148,7 +148,7 @@ function interpolate(template: string, conditionName: string, arg: number) {
     floatMeters: `${formatDecimal(arg / 10)}m`,
     bashin: `${arg} bashin (~${formatDecimal(arg * 2.5)}m)`,
     track,
-    value: formatArg(conditionName, arg),
+    value: formatArg(conditionName, arg)
   };
 
   return template.replace(/\{\{(\w+)\}\}/g, (_match, variableName: string) => {
@@ -160,7 +160,7 @@ function resolveReadableText(
   translation: ConditionTranslation | undefined,
   opKey: OperatorKey,
   conditionName: string,
-  arg: number,
+  arg: number
 ) {
   if (!translation) {
     return null;
@@ -195,10 +195,10 @@ const humanReadableConditions = new Proxy(
         translation,
         formatArg(arg: number) {
           return formatArg(prop, arg);
-        },
+        }
       };
-    },
-  },
+    }
+  }
 );
 
 interface OpFormatter {
@@ -208,7 +208,7 @@ interface OpFormatter {
 class HumanAndFormatter {
   constructor(
     readonly left: OpFormatter,
-    readonly right: OpFormatter,
+    readonly right: OpFormatter
   ) {}
 
   format() {
@@ -224,7 +224,7 @@ class HumanAndFormatter {
 class HumanOrFormatter {
   constructor(
     readonly left: OpFormatter,
-    readonly right: OpFormatter,
+    readonly right: OpFormatter
   ) {}
 
   format() {
@@ -248,7 +248,7 @@ function HumanCmpFormatter(opKey: OperatorKey, opSymbol: string) {
   return class {
     constructor(
       readonly cond: HumanReadableCondition,
-      readonly arg: number,
+      readonly arg: number
     ) {}
 
     format() {
@@ -256,7 +256,7 @@ function HumanCmpFormatter(opKey: OperatorKey, opSymbol: string) {
         this.cond.translation,
         opKey,
         this.cond.name,
-        this.arg,
+        this.arg
       );
 
       const text =
@@ -282,6 +282,6 @@ export const HumanReadableParser = createTypedParser(
     lt: HumanCmpFormatter('lt', '<'),
     lte: HumanCmpFormatter('lte', '<='),
     gt: HumanCmpFormatter('gt', '>'),
-    gte: HumanCmpFormatter('gte', '>='),
-  },
+    gte: HumanCmpFormatter('gte', '>=')
+  }
 );

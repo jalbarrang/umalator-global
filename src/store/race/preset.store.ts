@@ -6,7 +6,7 @@ import cmPresets from './cm-presets.json';
 const PRESET_STORE_NAME = 'umalator-presets';
 
 const defaultPresets: Record<string, RacePreset> = Object.fromEntries(
-  cmPresets.map((p) => [p.id, p as RacePreset]),
+  cmPresets.map((p) => [p.id, p as RacePreset])
 );
 const defaultPresetOrder = cmPresets.map((p) => p.id);
 const bundledPresetIds = new Set(defaultPresetOrder);
@@ -18,7 +18,7 @@ export type IPresetStore = {
 
 function mergePresetsWithBundled(
   persisted: IPresetStore | undefined,
-  current: IPresetStore,
+  current: IPresetStore
 ): IPresetStore {
   if (!persisted?.presets) {
     return current;
@@ -53,7 +53,7 @@ export const usePresetStore = create<IPresetStore>()(
   persist(
     (_) => ({
       presetOrder: defaultPresetOrder,
-      presets: defaultPresets,
+      presets: defaultPresets
     }),
     {
       name: PRESET_STORE_NAME,
@@ -62,21 +62,21 @@ export const usePresetStore = create<IPresetStore>()(
         const state = persisted as IPresetStore | null | undefined;
         if (!state) return current;
         return mergePresetsWithBundled(state, current);
-      },
-    },
-  ),
+      }
+    }
+  )
 );
 
 export const addPreset = (preset: RacePreset) => {
   usePresetStore.setState((state) => ({
     presets: { ...state.presets, [preset.id]: preset },
-    presetOrder: [preset.id, ...state.presetOrder],
+    presetOrder: [preset.id, ...state.presetOrder]
   }));
 };
 
 export const updatePreset = (id: string, preset: RacePreset) => {
   usePresetStore.setState((state) => ({
-    presets: { ...state.presets, [id]: preset },
+    presets: { ...state.presets, [id]: preset }
   }));
 };
 
@@ -85,7 +85,7 @@ export const deletePreset = (id: string) => {
     const { [id]: _, ...remainingPresets } = state.presets;
     return {
       presets: remainingPresets,
-      presetOrder: state.presetOrder.filter((pid) => pid !== id),
+      presetOrder: state.presetOrder.filter((pid) => pid !== id)
     };
   });
 };
@@ -99,7 +99,7 @@ export const deletePresets = (ids: string[]) => {
     }
     return {
       presets: remaining,
-      presetOrder: state.presetOrder.filter((pid) => !idSet.has(pid)),
+      presetOrder: state.presetOrder.filter((pid) => !idSet.has(pid))
     };
   });
 };

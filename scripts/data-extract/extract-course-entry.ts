@@ -38,7 +38,7 @@ function parseArgs(argv: Array<string>): CliOptions {
     .option(
       '-s, --source <path>',
       `Path to course_data.json (default: ${DEFAULT_SOURCE_PATH})`,
-      DEFAULT_SOURCE_PATH,
+      DEFAULT_SOURCE_PATH
     )
     .option('--compact', 'Print compact JSON instead of pretty JSON', false)
     .showHelpAfterError();
@@ -53,7 +53,7 @@ function parseArgs(argv: Array<string>): CliOptions {
   return {
     courseId: options.courseId,
     sourcePath: options.source,
-    compact: options.compact,
+    compact: options.compact
   };
 }
 
@@ -72,7 +72,7 @@ function main() {
 
   const output = {
     courseId: options.courseId,
-    data: entry,
+    data: entry
   };
 
   const indent = options.compact ? 0 : 2;

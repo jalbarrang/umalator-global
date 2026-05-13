@@ -24,7 +24,7 @@ export interface HpPolicy {
   getLastSpurtPair: (
     state: RaceStateSlice,
     maxSpeed: number,
-    baseTargetSpeed2: number,
+    baseTargetSpeed2: number
   ) => [number, number];
   isMaxSpurt: () => boolean;
 }
@@ -45,5 +45,5 @@ export const NoopHpPolicy: HpPolicy = {
   },
   isMaxSpurt() {
     return false;
-  },
+  }
 };

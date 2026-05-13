@@ -11,7 +11,7 @@ import {
   EmptyDescription,
   EmptyHeader,
   EmptyMedia,
-  EmptyTitle,
+  EmptyTitle
 } from '@/components/ui/empty';
 
 export const RunnerStatsTab = () => {
@@ -26,7 +26,7 @@ export const RunnerStatsTab = () => {
       finishTime: simToDisplaySeconds(chartData.time[0][chartData.time[0].length - 1]),
       rushedStats: rushedStats?.uma1,
       leadCompetitionStats: leadCompetitionStats?.uma1,
-      staminaStats: staminaStats?.uma1,
+      staminaStats: staminaStats?.uma1
     };
   }, [chartData, rushedStats, leadCompetitionStats, staminaStats]);
 
@@ -38,7 +38,7 @@ export const RunnerStatsTab = () => {
       finishTime: simToDisplaySeconds(chartData.time[1][chartData.time[1].length - 1]),
       rushedStats: rushedStats?.uma2,
       leadCompetitionStats: leadCompetitionStats?.uma2,
-      staminaStats: staminaStats?.uma2,
+      staminaStats: staminaStats?.uma2
     };
   }, [chartData, rushedStats, leadCompetitionStats, staminaStats]);
 
@@ -91,7 +91,7 @@ export const RunnerStatsTab = () => {
                   <TableCell className="font-mono">
                     {uma1Stats.rushedStats && uma1Stats.rushedStats.frequency > 0
                       ? `${uma1Stats.rushedStats.frequency.toFixed(
-                          1,
+                          1
                         )}% (${uma1Stats.rushedStats.mean.toFixed(1)}m)`
                       : '0%'}
                   </TableCell>
@@ -156,7 +156,7 @@ export const RunnerStatsTab = () => {
                   <TableCell className="font-mono">
                     {uma2Stats.rushedStats && uma2Stats.rushedStats.frequency > 0
                       ? `${uma2Stats.rushedStats.frequency.toFixed(
-                          1,
+                          1
                         )}% (${uma2Stats.rushedStats.mean.toFixed(1)}m)`
                       : '0%'}
                   </TableCell>
@@ -202,7 +202,7 @@ export const RunnerStatsTab = () => {
             <span
               className={cn('text-lg font-bold', {
                 'text-[#2a77c5] dark:text-blue-500': uma1Stats.finishTime < uma2Stats.finishTime,
-                'text-[#c52a2a] dark:text-red-500': uma1Stats.finishTime > uma2Stats.finishTime,
+                'text-[#c52a2a] dark:text-red-500': uma1Stats.finishTime > uma2Stats.finishTime
               })}
             >
               {Math.abs(uma1Stats.finishTime - uma2Stats.finishTime).toFixed(3)}s
@@ -226,7 +226,7 @@ export const RunnerStatsTab = () => {
             <span
               className={cn('text-lg font-bold', {
                 'text-[#2a77c5] dark:text-blue-500': uma1Stats.topSpeed > uma2Stats.topSpeed,
-                'text-[#c52a2a] dark:text-red-500': uma1Stats.topSpeed < uma2Stats.topSpeed,
+                'text-[#c52a2a] dark:text-red-500': uma1Stats.topSpeed < uma2Stats.topSpeed
               })}
             >
               {Math.abs(uma1Stats.topSpeed - uma2Stats.topSpeed).toFixed(2)} m/s
@@ -244,7 +244,7 @@ export const RunnerStatsTab = () => {
                 'text-[#2a77c5] dark:text-blue-500':
                   chartData.startDelay[0] < chartData.startDelay[1],
                 'text-[#c52a2a] dark:text-red-500':
-                  chartData.startDelay[0] > chartData.startDelay[1],
+                  chartData.startDelay[0] > chartData.startDelay[1]
               })}
             >
               {Math.abs(chartData.startDelay[0] - chartData.startDelay[1]).toFixed(4)}s

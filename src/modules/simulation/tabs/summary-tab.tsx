@@ -10,7 +10,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
+  TableRow
 } from '@/components/ui/table';
 
 export const ResultButtonGroups = () => {
@@ -32,20 +32,20 @@ export const ResultButtonGroups = () => {
     return {
       minrun: {
         label: 'Minimum',
-        value: results[0].toFixed(2),
+        value: results[0].toFixed(2)
       },
       maxrun: {
         label: 'Maximum',
-        value: results[results.length - 1].toFixed(2),
+        value: results[results.length - 1].toFixed(2)
       },
       meanrun: {
         label: 'Mean',
-        value: mean.toFixed(2),
+        value: mean.toFixed(2)
       },
       medianrun: {
         label: 'Median',
-        value: median.toFixed(2),
-      },
+        value: median.toFixed(2)
+      }
     };
   }, [results, mean, median]);
 
@@ -61,28 +61,28 @@ export const ResultButtonGroups = () => {
               'flex flex-col items-center justify-center w-[120px] h-[100px] border border-border rounded-lg p-3 transition-all hover:bg-accent hover:border-primary',
               {
                 'ring-2 ring-primary bg-primary border-primary text-primary-foreground hover:bg-primary/90':
-                  displaying === key,
-              },
+                  displaying === key
+              }
             )}
             type="button"
           >
             <span
               className={cn('text-xs text-foreground font-medium', {
-                'text-primary-foreground!': displaying === key,
+                'text-primary-foreground!': displaying === key
               })}
             >
               {value.label}
             </span>
             <span
               className={cn('text-2xl font-bold text-foreground', {
-                'text-primary-foreground!': displaying === key,
+                'text-primary-foreground!': displaying === key
               })}
             >
               {value.value}
             </span>
             <span
               className={cn('text-xs text-foreground', {
-                'text-primary-foreground!': displaying === key,
+                'text-primary-foreground!': displaying === key
               })}
             >
               lengths
@@ -118,7 +118,7 @@ export const ResultButtonGroups = () => {
                       <TableCell
                         className={cn('font-bold font-mono', {
                           'text-[#2a77c5] dark:text-blue-500': uma1Faster,
-                          'text-[#c52a2a] dark:text-red-500': !uma1Faster,
+                          'text-[#c52a2a] dark:text-red-500': !uma1Faster
                         })}
                       >
                         {uma1Faster ? 'Umamusume 1' : 'Umamusume 2'}
@@ -126,10 +126,10 @@ export const ResultButtonGroups = () => {
                       <TableCell className="text-right font-mono">
                         {uma1Faster
                           ? formatTime(
-                              simToDisplaySeconds(chartData.time[0][chartData.time[0].length - 1]),
+                              simToDisplaySeconds(chartData.time[0][chartData.time[0].length - 1])
                             )
                           : formatTime(
-                              simToDisplaySeconds(chartData.time[1][chartData.time[1].length - 1]),
+                              simToDisplaySeconds(chartData.time[1][chartData.time[1].length - 1])
                             )}
                       </TableCell>
                     </TableRow>
@@ -138,7 +138,7 @@ export const ResultButtonGroups = () => {
                       <TableCell
                         className={cn('font-mono', {
                           'text-[#c52a2a] dark:text-red-500': uma1Faster,
-                          'text-[#2a77c5] dark:text-blue-500': !uma1Faster,
+                          'text-[#2a77c5] dark:text-blue-500': !uma1Faster
                         })}
                       >
                         {uma1Faster ? 'Umamusume 2' : 'Umamusume 1'}

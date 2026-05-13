@@ -8,7 +8,7 @@ const COLORS = {
   surface: '#171717',
   text: '#fafafa',
   textSecondary: '#a1a1a1',
-  border: '#282828',
+  border: '#282828'
 } as const;
 
 const HIGHLIGHT_ACCENT = '#57a112';
@@ -47,7 +47,7 @@ export const CompareShareCard = (props: Readonly<CompareShareCardProps>) => {
         backgroundColor: COLORS.bg,
         color: COLORS.text,
         borderRadius: 12,
-        border: `1px solid ${COLORS.border}`,
+        border: `1px solid ${COLORS.border}`
       }}
     >
       <div style={{ flexShrink: 0 }}>
@@ -63,7 +63,7 @@ export const CompareShareCard = (props: Readonly<CompareShareCardProps>) => {
           backgroundColor: COLORS.bg,
           borderRadius: 12,
           overflow: 'hidden',
-          border: `1px solid ${COLORS.border}`,
+          border: `1px solid ${COLORS.border}`
         }}
       >
         <div style={{ padding: '12px 14px 10px', borderBottom: `1px solid ${COLORS.border}` }}>
@@ -74,7 +74,7 @@ export const CompareShareCard = (props: Readonly<CompareShareCardProps>) => {
               color: COLORS.textSecondary,
               textTransform: 'uppercase',
               letterSpacing: 0.6,
-              marginBottom: 6,
+              marginBottom: 6
             }}
           >
             Race settings
@@ -90,7 +90,7 @@ export const CompareShareCard = (props: Readonly<CompareShareCardProps>) => {
             flex: 1,
             display: 'flex',
             flexDirection: 'column',
-            gap: 10,
+            gap: 10
           }}
         >
           <div>
@@ -101,7 +101,7 @@ export const CompareShareCard = (props: Readonly<CompareShareCardProps>) => {
                 color: COLORS.textSecondary,
                 textTransform: 'uppercase',
                 letterSpacing: 0.6,
-                marginBottom: 6,
+                marginBottom: 6
               }}
             >
               Result summary
@@ -136,7 +136,7 @@ export const CompareShareCard = (props: Readonly<CompareShareCardProps>) => {
                 color: COLORS.textSecondary,
                 textTransform: 'uppercase',
                 letterSpacing: 0.6,
-                marginBottom: 8,
+                marginBottom: 8
               }}
             >
               Runner stats
@@ -146,7 +146,7 @@ export const CompareShareCard = (props: Readonly<CompareShareCardProps>) => {
                 borderRadius: 8,
                 overflow: 'hidden',
                 border: `1px solid ${COLORS.border}`,
-                backgroundColor: COLORS.surface,
+                backgroundColor: COLORS.surface
               }}
             >
               {statRows.map((row, i) => (
@@ -159,7 +159,7 @@ export const CompareShareCard = (props: Readonly<CompareShareCardProps>) => {
                     borderLeft: row.highlight
                       ? `3px solid ${HIGHLIGHT_ACCENT}`
                       : '3px solid transparent',
-                    backgroundColor: row.highlight ? 'rgba(87, 161, 18, 0.08)' : 'transparent',
+                    backgroundColor: row.highlight ? 'rgba(87, 161, 18, 0.08)' : 'transparent'
                   }}
                 >
                   <div
@@ -169,7 +169,7 @@ export const CompareShareCard = (props: Readonly<CompareShareCardProps>) => {
                       fontSize: 12,
                       fontWeight: 500,
                       display: 'flex',
-                      alignItems: 'center',
+                      alignItems: 'center'
                     }}
                   >
                     {row.label}
@@ -184,7 +184,7 @@ export const CompareShareCard = (props: Readonly<CompareShareCardProps>) => {
                       alignItems: 'center',
                       justifyContent: 'flex-end',
                       textAlign: 'right',
-                      minWidth: 0,
+                      minWidth: 0
                     }}
                   >
                     {row.value}
@@ -201,7 +201,7 @@ export const CompareShareCard = (props: Readonly<CompareShareCardProps>) => {
             fontSize: 10,
             color: COLORS.textSecondary,
             fontStyle: 'italic',
-            textAlign: 'right',
+            textAlign: 'right'
           }}
         >
           Showing mean results

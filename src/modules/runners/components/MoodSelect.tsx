@@ -16,7 +16,7 @@ export function MoodSelect(props: Readonly<MoodSelectProps>) {
     { value: Mood.Good, icon: 'utx_ico_motivation_m_03', label: 'Good' },
     { value: Mood.Normal, icon: 'utx_ico_motivation_m_02', label: 'Normal' },
     { value: Mood.Bad, icon: 'utx_ico_motivation_m_01', label: 'Bad' },
-    { value: Mood.Awful, icon: 'utx_ico_motivation_m_00', label: 'Awful' },
+    { value: Mood.Awful, icon: 'utx_ico_motivation_m_00', label: 'Awful' }
   ];
 
   const handleChange = (value: string | null) => {

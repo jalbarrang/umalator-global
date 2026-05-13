@@ -12,12 +12,12 @@ interface Slope {
 
 const UPHILL_COLORS = {
   main: ['rgb(234,207,147)', 'rgb(229,196,120)'],
-  accent: ['rgb(191,143,37)', 'rgb(175,132,33)'],
+  accent: ['rgb(191,143,37)', 'rgb(175,132,33)']
 };
 
 const DOWNHILL_COLORS = {
   main: ['rgb(82,195,184)', 'rgb(116,206,198)'],
-  accent: ['rgb(42,123,115)', 'rgb(50,142,134)'],
+  accent: ['rgb(42,123,115)', 'rgb(50,142,134)']
 };
 
 type SlopeLabelBarProps = {
@@ -76,7 +76,7 @@ export const SlopeLabelBar = React.memo<SlopeLabelBarProps>((props) => {
             x={(s.start / distance) * 100}
             y={RaceTrackDimensions.SlopeLabelBarHeight}
             up={i > 0 && s.start - (slopes[i - 1].start + slopes[i - 1].length) < distance * 0.05}
-          />,
+          />
         );
       }
 
@@ -89,7 +89,7 @@ export const SlopeLabelBar = React.memo<SlopeLabelBarProps>((props) => {
             x={((s.start + s.length) / distance) * 100}
             y={RaceTrackDimensions.SlopeLabelBarHeight}
             up={markedStart && s.length < distance * 0.05}
-          />,
+          />
         );
       }
 

@@ -20,17 +20,17 @@ function useSkillCostState() {
 
   const isObtained = useMemo(
     () => costSummary?.isObtained ?? selfMeta.bought ?? false,
-    [costSummary?.isObtained, selfMeta.bought],
+    [costSummary?.isObtained, selfMeta.bought]
   );
 
   const displayedNetCost = useMemo(
     () => costSummary?.netTotal ?? spCost ?? 0,
-    [costSummary?.netTotal, spCost],
+    [costSummary?.netTotal, spCost]
   );
 
   const roundedDiscountPct = useMemo(
     () => costSummary?.roundedDiscountPct ?? 0,
-    [costSummary?.roundedDiscountPct],
+    [costSummary?.roundedDiscountPct]
   );
 
   return { isObtained, displayedNetCost, roundedDiscountPct };
@@ -136,7 +136,7 @@ export function SkillItemCostAction(props: Readonly<SkillItemCostActionProps>) {
           isObtained
             ? 'border-green-600/30 bg-green-600/5 text-green-600 dark:border-green-400/30 dark:bg-green-400/8 dark:text-green-400'
             : 'text-muted-foreground',
-          className,
+          className
         )}
       >
         {}
@@ -162,7 +162,7 @@ export function SkillItemCostAction(props: Readonly<SkillItemCostActionProps>) {
       triggerClassName={cn(
         'whitespace-nowrap',
         isObtained ? 'text-green-600 dark:text-green-400' : '',
-        className,
+        className
       )}
     >
       {isObtained ? 'Obtained' : `${displayedNetCost} SP`}

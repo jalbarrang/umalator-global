@@ -8,11 +8,11 @@ import { runAdaptiveOptimization } from './optimization-engine';
 import type { CandidateSkill } from './types';
 
 const { runSkillCombinationComparisonMock } = vi.hoisted(() => ({
-  runSkillCombinationComparisonMock: vi.fn(),
+  runSkillCombinationComparisonMock: vi.fn()
 }));
 
 vi.mock('./simulator', () => ({
-  runSkillCombinationComparison: runSkillCombinationComparisonMock,
+  runSkillCombinationComparison: runSkillCombinationComparisonMock
 }));
 
 describe('runAdaptiveOptimization', () => {
@@ -23,8 +23,8 @@ describe('runAdaptiveOptimization', () => {
         min: candidateSkills.length,
         max: candidateSkills.length,
         mean: candidateSkills.length,
-        median: candidateSkills.length,
-      }),
+        median: candidateSkills.length
+      })
     );
 
     const candidate: CandidateSkill = {
@@ -33,7 +33,7 @@ describe('runAdaptiveOptimization', () => {
       netCost: 100,
       hintLevel: 0,
       isStackable: false,
-      isGold: false,
+      isGold: false
     };
 
     runAdaptiveOptimization({
@@ -44,17 +44,17 @@ describe('runAdaptiveOptimization', () => {
       runner: createRunnerState(),
       course: CourseHelpers.getCourse(getDefaultCourseId()),
       racedef: racedefToParams(createRaceConditions()),
-      options: defaultSimulationOptions,
+      options: defaultSimulationOptions
     });
 
     expect(runSkillCombinationComparisonMock).toHaveBeenCalledTimes(5);
     expect(runSkillCombinationComparisonMock.mock.calls.map((call) => call[0].nsamples)).toEqual([
-      15, 15, 35, 35, 120,
+      15, 15, 35, 35, 120
     ]);
     expect(
       runSkillCombinationComparisonMock.mock.calls.every(
-        (call) => call[0].ignoreStaminaConsumption === false,
-      ),
+        (call) => call[0].ignoreStaminaConsumption === false
+      )
     ).toBe(true);
   });
 });

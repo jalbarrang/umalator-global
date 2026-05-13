@@ -5,7 +5,7 @@ import { RunnerEditorLayout } from '@/layout/runner-editor-layout';
 import { createRunnerState } from '@/modules/runners/components/runner-card/types';
 import { useRunnerLibraryStore } from '@/store/runner-library.store';
 
-export function RunnersNew() {
+export default function NewRunnerPage() {
   const navigate = useNavigate();
   const { addRunner } = useRunnerLibraryStore();
 
@@ -19,7 +19,7 @@ export function RunnersNew() {
 
     addRunner({
       ...runnerState,
-      notes: runnerName.trim(),
+      notes: runnerName.trim()
     });
 
     navigate('/runners');

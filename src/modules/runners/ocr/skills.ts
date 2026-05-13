@@ -39,7 +39,7 @@ const normalizeLineWithLevels = (value: string): string => {
 
 const collectSubstringCandidates = (
   normalizedLine: string,
-  skillLookup: Map<string, SkillLookupEntry>,
+  skillLookup: Map<string, SkillLookupEntry>
 ): Array<SkillLineCandidate> => {
   const candidatesById = new Map<string, SkillLineCandidate>();
 
@@ -57,7 +57,7 @@ const collectSubstringCandidates = (
       entry,
       confidence: 0.85,
       start,
-      end: start + key.length,
+      end: start + key.length
     };
 
     const existingCandidate = candidatesById.get(entry.id);
@@ -99,7 +99,7 @@ const collectSubstringCandidates = (
 
 const assignLevelMarkers = (
   normalizedLine: string,
-  candidates: Array<SkillLineCandidate>,
+  candidates: Array<SkillLineCandidate>
 ): Map<string, boolean> => {
   const hasLevelBySkillId = new Map<string, boolean>();
   const levelRegex = /(?:lvl|level)\d+/g;
@@ -187,12 +187,12 @@ export function extractSkills(text: string, imageIndex: number): Array<Extracted
               id: wholeMatch.id,
               geneId: wholeMatch.geneId,
               name: wholeMatch.name,
-              rarity: 0,
+              rarity: 0
             },
             confidence: wholeMatch.confidence,
             start: start >= 0 ? start : 0,
-            end: start >= 0 ? start + normalizedMatchName.length : normalizedMatchName.length,
-          },
+            end: start >= 0 ? start + normalizedMatchName.length : normalizedMatchName.length
+          }
         ];
       }
     }
@@ -217,7 +217,7 @@ export function extractSkills(text: string, imageIndex: number): Array<Extracted
         name: candidate.entry.name,
         confidence: candidate.confidence,
         originalText: line,
-        fromImage: imageIndex,
+        fromImage: imageIndex
       });
     }
   }

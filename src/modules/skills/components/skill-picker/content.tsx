@@ -7,7 +7,7 @@ import {
   useImperativeHandle,
   useMemo,
   useRef,
-  useState,
+  useState
 } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
@@ -21,7 +21,7 @@ import {
   SkillItemIdentity,
   SkillItemMain,
   SkillItemRail,
-  SkillItemRoot,
+  SkillItemRoot
 } from '../skill-list/skill-item/primitives';
 import { SkillItemDetailsActions } from '../skill-list/skill-item/actions';
 import { SkillItem } from '../skill-list/skill-item/item';
@@ -52,7 +52,7 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
     onSelect,
     className,
     columnCount,
-    allowDuplicateSkills = false,
+    allowDuplicateSkills = false
   } = props;
 
   const resolvedColumnCount = Math.max(1, columnCount);
@@ -60,7 +60,7 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
 
   const umaUniqueSkillId = useMemo(
     () => (umaId ? getUniqueSkillForByUmaId(umaId) : undefined),
-    [umaId],
+    [umaId]
   );
 
   const searchRef = useRef<HTMLInputElement>(null);
@@ -80,7 +80,7 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
     (skill: { iconId: string }) => {
       return allowDuplicateSkills || skill.iconId.startsWith('3');
     },
-    [allowDuplicateSkills],
+    [allowDuplicateSkills]
   );
 
   // Build selected map using the pre-built lookup
@@ -133,7 +133,7 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
       newSelected.add(skill.id);
       onSelect(Array.from(newSelected));
     },
-    [currentSkills, onSelect, selectedMap, shouldAllowDuplicateSkill, umaUniqueSkillId],
+    [currentSkills, onSelect, selectedMap, shouldAllowDuplicateSkill, umaUniqueSkillId]
   );
 
   const toggleSelected: React.MouseEventHandler<HTMLDivElement> = useCallback(
@@ -155,7 +155,7 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
 
       toggleSkillSelection(skill);
     },
-    [skillsById, toggleSkillSelection],
+    [skillsById, toggleSkillSelection]
   );
 
   useImperativeHandle(
@@ -164,9 +164,9 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
       focus: () => {
         searchRef.current?.focus();
         searchRef.current?.select();
-      },
+      }
     }),
-    [searchRef],
+    [searchRef]
   );
 
   const parentRef = useRef<HTMLDivElement>(null);
@@ -181,7 +181,7 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
     getItemKey: (index) => {
       const rowStart = index * resolvedColumnCount;
       return filteredSkills[rowStart]?.id ?? `skill-row-${index}`;
-    },
+    }
   });
   const rowVirtualizerRef = useRef(rowVirtualizer);
 
@@ -197,11 +197,11 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
     (index: number) => {
       requestAnimationFrame(() => {
         rowVirtualizerRef.current.scrollToIndex(Math.floor(index / resolvedColumnCount), {
-          align: 'auto',
+          align: 'auto'
         });
       });
     },
-    [resolvedColumnCount],
+    [resolvedColumnCount]
   );
 
   useEffect(() => {
@@ -220,10 +220,10 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
     (rowIndex: number) => {
       return Math.min(
         filteredSkillCount - 1,
-        rowIndex * resolvedColumnCount + resolvedColumnCount - 1,
+        rowIndex * resolvedColumnCount + resolvedColumnCount - 1
       );
     },
-    [resolvedColumnCount, filteredSkillCount],
+    [resolvedColumnCount, filteredSkillCount]
   );
 
   const moveFocusedHorizontally = useCallback(
@@ -241,7 +241,7 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
         return next;
       });
     },
-    [resolvedColumnCount, filteredSkillCount, getLastIndexForRow, scrollFocusedIntoView],
+    [resolvedColumnCount, filteredSkillCount, getLastIndexForRow, scrollFocusedIntoView]
   );
 
   const moveFocusedVertically = useCallback(
@@ -266,8 +266,8 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
       filteredSkillCount,
       getLastIndexForRow,
       scrollFocusedIntoView,
-      virtualRowCount,
-    ],
+      virtualRowCount
+    ]
   );
 
   const selectFocusedSkill = useCallback(() => {
@@ -350,8 +350,8 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
       moveFocusedHorizontally,
       moveFocusedVertically,
       scrollFocusedIntoView,
-      selectFocusedSkill,
-    ],
+      selectFocusedSkill
+    ]
   );
 
   const handleHighlightSkill = useCallback((skillIndex: number) => {

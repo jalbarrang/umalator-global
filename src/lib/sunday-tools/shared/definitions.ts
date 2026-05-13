@@ -9,11 +9,11 @@ export const Acceleration = {
       [0.985, 1.0, 0.996],
       [0.975, 1.0, 1.0],
       [0.945, 1.0, 0.997],
-      [1.17, 0.94, 0.956],
-    ].map((a) => Object.freeze(a)),
+      [1.17, 0.94, 0.956]
+    ].map((a) => Object.freeze(a))
   ),
   GroundTypeProficiencyModifier: Object.freeze([1.05, 1.0, 0.9, 0.8, 0.7, 0.5, 0.3, 0.1]),
-  DistanceProficiencyModifier: Object.freeze([1.0, 1.0, 1.0, 1.0, 1.0, 0.6, 0.5, 0.4]),
+  DistanceProficiencyModifier: Object.freeze([1.0, 1.0, 1.0, 1.0, 1.0, 0.6, 0.5, 0.4])
 };
 
 export const Speed = {
@@ -24,10 +24,10 @@ export const Speed = {
       [0.978, 0.991, 0.975],
       [0.938, 0.998, 0.994],
       [0.931, 1.0, 1.0],
-      [1.063, 0.962, 0.95],
-    ].map((a) => Object.freeze(a)),
+      [1.063, 0.962, 0.95]
+    ].map((a) => Object.freeze(a))
   ),
-  DistanceProficiencyModifier: Object.freeze([1.05, 1.0, 0.9, 0.8, 0.6, 0.4, 0.2, 0.1]),
+  DistanceProficiencyModifier: Object.freeze([1.05, 1.0, 0.9, 0.8, 0.6, 0.4, 0.2, 0.1])
 };
 
 export const PositionKeep = {
@@ -48,19 +48,19 @@ export const PositionKeep = {
 
   maxThreshold(strategy: IStrategy, distance: number) {
     return this.BaseMaximumThreshold[strategy] * this.courseFactor(distance);
-  },
+  }
 };
 
 export const GroundSpeedModifier = [
   null, // ground types started at 1
   [0, 0, 0, 0, -50],
-  [0, 0, 0, 0, -50],
+  [0, 0, 0, 0, -50]
 ] as const;
 
 export const GroundPowerModifier = [
   null,
   [0, 0, -50, -50, -50],
-  [0, -100, -50, -100, -100],
+  [0, -100, -50, -100, -100]
 ] as const;
 
 export const StrategyModule = {
@@ -77,10 +77,10 @@ export const StrategyModule = {
     [Strategy.FrontRunner]: 0.02,
     [Strategy.PaceChaser]: 0.01,
     [Strategy.LateSurger]: 0.01,
-    [Strategy.EndCloser]: 0.03,
+    [Strategy.EndCloser]: 0.03
   } as Readonly<Record<IStrategy, number>>,
   /**
    * Aptitude modifier for Wit
    */
-  aptitudeModifier: [1.1, 1.0, 0.85, 0.75, 0.6, 0.4, 0.2, 0.1] as Readonly<Array<number>>,
+  aptitudeModifier: [1.1, 1.0, 0.85, 0.75, 0.6, 0.4, 0.2, 0.1] as Readonly<Array<number>>
 };

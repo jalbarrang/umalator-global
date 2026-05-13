@@ -35,22 +35,22 @@ export const useUIStore = create<IUIStore>()(
       showChangelogModal: false,
       dismissals: {
         'compare-notice': false,
-        'race-sim-notice': false,
+        'race-sim-notice': false
       },
       leftSide: {
         activePanel: 'runners',
-        hidden: true,
-      },
+        hidden: true
+      }
     }),
     {
       name: 'umalator-ui',
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         leftSide: state.leftSide,
-        dismissals: state.dismissals,
-      }),
-    },
-  ),
+        dismissals: state.dismissals
+      })
+    }
+  )
 );
 
 export const setRunOnceCounter = (runOnceCounter: number) => {
@@ -59,7 +59,7 @@ export const setRunOnceCounter = (runOnceCounter: number) => {
 
 export const incrementRunOnceCounter = () => {
   useUIStore.setState((state) => ({
-    runOnceCounter: state.runOnceCounter + 1,
+    runOnceCounter: state.runOnceCounter + 1
   }));
 };
 
@@ -69,7 +69,7 @@ export const setIsPacemakerDropdownOpen = (isPacemakerDropdownOpen: boolean) => 
 
 export const toggleShowVirtualPacemakerOnGraph = () => {
   useUIStore.setState((state) => ({
-    showVirtualPacemakerOnGraph: !state.showVirtualPacemakerOnGraph,
+    showVirtualPacemakerOnGraph: !state.showVirtualPacemakerOnGraph
   }));
 };
 
@@ -85,8 +85,8 @@ export const setDismissal = (key: UIDismissalKey, dismissed: boolean) => {
   useUIStore.setState((state) => ({
     dismissals: {
       ...state.dismissals,
-      [key]: dismissed,
-    },
+      [key]: dismissed
+    }
   }));
 };
 
@@ -94,8 +94,8 @@ export const setLeftSidebar = (sidebar: Partial<ISidebar>) => {
   useUIStore.setState((state) => ({
     leftSide: {
       ...state.leftSide,
-      ...sidebar,
-    },
+      ...sidebar
+    }
   }));
 };
 

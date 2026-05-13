@@ -23,7 +23,7 @@ export function getOcrSkillOptionMeta(skill: SkillEntry): string {
 
 export function createManualOcrSkillEntry(
   skillId: string,
-  previous?: ExtractedUmaData['skills'][number],
+  previous?: ExtractedUmaData['skills'][number]
 ): ExtractedUmaData['skills'][number] | null {
   const skill = dataRegistry.skills.getById(skillId);
   if (!skill) {
@@ -35,7 +35,7 @@ export function createManualOcrSkillEntry(
     name: skill.name,
     confidence: 1,
     originalText: previous?.originalText ?? `[Manual] ${skill.name}`,
-    fromImage: previous?.fromImage ?? 0,
+    fromImage: previous?.fromImage ?? 0
   };
 }
 
@@ -52,7 +52,7 @@ export function hasDetectedData(results: Partial<ExtractedUmaData> | null): bool
       results.surfaceAptitude ||
       results.distanceAptitude ||
       results.strategyAptitude ||
-      results.strategy),
+      results.strategy)
   );
 }
 
@@ -62,6 +62,6 @@ export function toExtractedUmaData(results: Partial<ExtractedUmaData>): Extracte
     skills: [],
     imageCount: 0,
     unrecognized: [],
-    ...results,
+    ...results
   };
 }

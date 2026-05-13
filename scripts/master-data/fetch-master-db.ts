@@ -25,7 +25,7 @@ type Lz4JsModule = {
     dst: Uint8Array,
     sIndex: number,
     sLength: number,
-    dIndex: number,
+    dIndex: number
   ) => number;
 };
 const lz4js = lz4jsModule as Lz4JsModule;
@@ -137,7 +137,7 @@ function getErrorMessage(error: unknown): string {
 
 async function downloadFile(
   url: string,
-  timeoutSeconds: number = DEFAULT_TIMEOUT,
+  timeoutSeconds: number = DEFAULT_TIMEOUT
 ): Promise<Uint8Array> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutSeconds * 1000);
@@ -147,9 +147,9 @@ async function downloadFile(
       headers: {
         'User-Agent': 'UnityPlayer/2022.3.46f1 (UnityWebRequest/1.0, libcurl/8.5.0-DEV)',
         Accept: '*/*',
-        'Accept-Encoding': 'identity',
+        'Accept-Encoding': 'identity'
       },
-      signal: controller.signal,
+      signal: controller.signal
     });
 
     if (!response.ok) {
@@ -280,7 +280,7 @@ class BsvParser {
 }
 
 function parseAnonymousBsv(
-  data: Uint8Array,
+  data: Uint8Array
 ): [rows: Array<Array<BsvValue>>, schemas: Array<Schema>] {
   if (data.length < 2) {
     throw new Error('BSV data too short');
@@ -288,7 +288,7 @@ function parseAnonymousBsv(
 
   if (data[0] !== BSV_MAGIC) {
     throw new Error(
-      `Invalid BSV magic: expected 0x${BSV_MAGIC.toString(16)}, got 0x${data[0].toString(16)}`,
+      `Invalid BSV magic: expected 0x${BSV_MAGIC.toString(16)}, got 0x${data[0].toString(16)}`
     );
   }
 
@@ -407,7 +407,7 @@ async function fetchMasterDb({
   appVer,
   platform,
   outputDir,
-  verbose,
+  verbose
 }: FetchMasterDbOptions): Promise<string> {
   const log = (message: string): void => {
     if (verbose) {
@@ -418,7 +418,7 @@ async function fetchMasterDb({
   const normalizedOutputDir = outputDir.trim();
   const outputBasePath = path.resolve(
     process.cwd(),
-    normalizedOutputDir.length > 0 ? normalizedOutputDir : DEFAULT_OUTPUT_DIR,
+    normalizedOutputDir.length > 0 ? normalizedOutputDir : DEFAULT_OUTPUT_DIR
   );
   await mkdir(outputBasePath, { recursive: true });
 
@@ -443,7 +443,7 @@ async function fetchMasterDb({
   log(`\nFound ${rootEntries.length} platform(s):`);
   for (const entry of rootEntries) {
     log(
-      `  - ${entry.platform}: size=${formatBigInt(entry.size)}, checksum=0x${formatHex64(entry.checksum)}`,
+      `  - ${entry.platform}: size=${formatBigInt(entry.size)}, checksum=0x${formatHex64(entry.checksum)}`
     );
     log(`    HName: ${entry.hname}`);
   }
@@ -453,7 +453,7 @@ async function fetchMasterDb({
   log('='.repeat(70));
 
   const platformEntry = rootEntries.find(
-    (entry) => entry.platform.toLowerCase() === platform.toLowerCase(),
+    (entry) => entry.platform.toLowerCase() === platform.toLowerCase()
   );
   if (!platformEntry) {
     throw new Error(`Platform '${platform}' not found in root manifest`);
@@ -492,7 +492,7 @@ async function fetchMasterDb({
 
   const masterManifestUrl = getManifestUrl(masterEntry.hname);
   log(
-    `Master entry: size=${formatBigInt(masterEntry.size)}, checksum=0x${formatHex64(masterEntry.checksum)}`,
+    `Master entry: size=${formatBigInt(masterEntry.size)}, checksum=0x${formatHex64(masterEntry.checksum)}`
   );
   log(`HName: ${masterEntry.hname}`);
   log(`URL: ${masterManifestUrl}`);
@@ -546,7 +546,7 @@ async function fetchMasterDb({
   log('='.repeat(70));
   log(`\nmaster.mdb saved to: ${mdbPath}`);
   log(
-    `File size: ${mdbData.length.toLocaleString()} bytes (${(mdbData.length / (1024 * 1024)).toFixed(2)} MB)`,
+    `File size: ${mdbData.length.toLocaleString()} bytes (${(mdbData.length / (1024 * 1024)).toFixed(2)} MB)`
   );
 
   return mdbPath;
@@ -564,17 +564,17 @@ async function main(): Promise<number> {
     .description('Fetch master.mdb from Uma Musume manifest chain')
     .argument(
       '[appVer]',
-      'Resource version (defaults to latest resource_version from https://uma.moe/api/ver)',
+      'Resource version (defaults to latest resource_version from https://uma.moe/api/ver)'
     )
     .option(
       '-o, --output <dir>',
       `Output directory (default: ${DEFAULT_OUTPUT_DIR})`,
-      DEFAULT_OUTPUT_DIR,
+      DEFAULT_OUTPUT_DIR
     )
     .addOption(
       new Option('-p, --platform <platform>', `Target platform (default: ${DEFAULT_PLATFORM})`)
         .choices(PLATFORM_CHOICES)
-        .default(DEFAULT_PLATFORM),
+        .default(DEFAULT_PLATFORM)
     )
     .option('-q, --quiet', 'Suppress progress messages', false)
     .addHelpText(
@@ -588,12 +588,12 @@ Examples:
 
 Manifest Chain:
   Root Manifest -> Platform Manifest -> Master Manifest -> master.mdb
-`,
+`
     )
     .action(
       async (
         appVer: string | undefined,
-        options: { output: string; platform: string; quiet: boolean },
+        options: { output: string; platform: string; quiet: boolean }
       ) => {
         try {
           const resolvedVersion = await resolveResourceVersion(appVer);
@@ -601,7 +601,7 @@ Manifest Chain:
             console.log(
               appVer
                 ? `Using explicit resource version: ${resolvedVersion}`
-                : `Resolved latest resource version from ${UMA_MOE_VERSION_URL}: ${resolvedVersion}`,
+                : `Resolved latest resource version from ${UMA_MOE_VERSION_URL}: ${resolvedVersion}`
             );
           }
 
@@ -609,14 +609,14 @@ Manifest Chain:
             appVer: resolvedVersion,
             platform: options.platform,
             outputDir: options.output,
-            verbose: !options.quiet,
+            verbose: !options.quiet
           });
           console.log(`\nOutput: ${outputPath}`);
         } catch (error) {
           console.error(`\nERROR: ${getErrorMessage(error)}`);
           process.exitCode = 1;
         }
-      },
+      }
     );
 
   await program.parseAsync(process.argv);

@@ -6,7 +6,7 @@ import {
   setWitVariance,
   useSettingsStore,
   useStaminaDrainOverrides,
-  useWitVariance,
+  useWitVariance
 } from '@/store/settings.store';
 import { useRunnersStore } from '@/store/runners.store';
 import { SkillType } from '@/lib/sunday-tools/skills/definitions';
@@ -20,7 +20,7 @@ import { dataRegistry } from '@/modules/data/registry';
 import { isSupportedMultiplyRandomRecoveryDrain } from '@/lib/sunday-tools/skills/recovery-effect-utils';
 import {
   setIgnoreStaminaConsumption,
-  useSkillPlannerStore,
+  useSkillPlannerStore
 } from '@/modules/skill-planner/skill-planner.store';
 
 type DrainSkillMeta = {
@@ -37,7 +37,7 @@ const WitVarianceSettingRow = ({
   uma2Key,
   settings,
   onToggle,
-  disabled,
+  disabled
 }: {
   label: string;
   uma1Key: keyof WitVarianceSettings;
@@ -137,7 +137,7 @@ export const AdvancedSettingsPanel = () => {
         rows.push({
           skillId: baseSkillId,
           name: skill.name,
-          drainPercent: maxDrainPercent,
+          drainPercent: maxDrainPercent
         });
       } catch {
         // Ignore unknown skill IDs in persisted runner data.

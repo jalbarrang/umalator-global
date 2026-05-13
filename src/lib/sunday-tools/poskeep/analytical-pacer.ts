@@ -7,7 +7,7 @@ const START_DASH_BOOST = 24.0;
 export function analyticalPacerPosition(
   courseDistance: number,
   baseSpeed: number,
-  accumulatedTime: number,
+  accumulatedTime: number
 ): number {
   if (courseDistance <= 0 || baseSpeed <= 0 || accumulatedTime <= 0) {
     return 0;

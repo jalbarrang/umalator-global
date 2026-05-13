@@ -8,7 +8,7 @@ import {
   ImmediatePolicy,
   LogNormalRandomPolicy,
   RandomPolicy,
-  UniformRandomPolicy,
+  UniformRandomPolicy
 } from '@/lib/sunday-tools/skills/policies/ActivationSamplePolicy';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 import { calculateEarlyRaceAverageSpeed } from '@/lib/sunday-tools/common/spurt-calculator';
@@ -26,7 +26,7 @@ export const defaultRandom: ICondition = {
   filterLt: notSupported,
   filterLte: notSupported,
   filterGt: notSupported,
-  filterGte: notSupported,
+  filterGte: notSupported
 };
 
 export const defaultImmediate: ICondition = {
@@ -36,7 +36,7 @@ export const defaultImmediate: ICondition = {
   filterLt: notSupported,
   filterLte: notSupported,
   filterGt: notSupported,
-  filterGte: notSupported,
+  filterGte: notSupported
 };
 
 export function immediate(other: Partial<ICondition>): ICondition {
@@ -55,7 +55,7 @@ type DistributionRandomPolicyConstructor<TArgs extends Array<unknown>> = new (
 // or something
 // it doesnt really make sense to me
 export const distributionRandomFactory = <TArgs extends Array<unknown>>(
-  cls: DistributionRandomPolicyConstructor<TArgs>,
+  cls: DistributionRandomPolicyConstructor<TArgs>
 ) => {
   const cache = Object.create(null);
 
@@ -80,7 +80,7 @@ export const distributionRandomFactory = <TArgs extends Array<unknown>>(
       filterLt: notSupported,
       filterLte: notSupported,
       filterGt: notSupported,
-      filterGte: notSupported,
+      filterGte: notSupported
     };
 
     return { ...notSupportedCondition, ...condition };
@@ -97,7 +97,7 @@ export const noopAll: Omit<ICondition, 'samplePolicy'> = {
   filterLt: noop,
   filterLte: noop,
   filterGt: noop,
-  filterGte: noop,
+  filterGte: noop
 };
 
 export const noopLogNormalRandom = (mu: number, sigma: number) => {
@@ -120,7 +120,7 @@ export function noop(params: ConditionFilterParams) {
 
 export const noopImmediate: ICondition = {
   ...noopAll,
-  samplePolicy: ImmediatePolicy,
+  samplePolicy: ImmediatePolicy
 };
 export const noopRandom: ICondition = { ...noopAll, samplePolicy: RandomPolicy };
 
@@ -172,7 +172,7 @@ export function noopSectionRandom(start: number, end: number) {
     filterLt: sectionRandom,
     filterLte: sectionRandom,
     filterGt: sectionRandom,
-    filterGte: sectionRandom,
+    filterGte: sectionRandom
   });
 }
 
@@ -191,7 +191,7 @@ export function valueFilter(getValue: (params: ValueFilterParams) => number) {
           regions,
           runner,
           extra,
-          course,
+          course
         }) == value;
 
       return check ? regions : new RegionList();
@@ -202,7 +202,7 @@ export function valueFilter(getValue: (params: ValueFilterParams) => number) {
           regions,
           runner,
           extra,
-          course,
+          course
         }) != value;
 
       return check ? regions : new RegionList();
@@ -213,7 +213,7 @@ export function valueFilter(getValue: (params: ValueFilterParams) => number) {
           regions,
           runner,
           extra,
-          course,
+          course
         }) < value;
 
       return check ? regions : new RegionList();
@@ -224,7 +224,7 @@ export function valueFilter(getValue: (params: ValueFilterParams) => number) {
           regions,
           runner,
           extra,
-          course,
+          course
         }) <= value;
 
       return check ? regions : new RegionList();
@@ -235,7 +235,7 @@ export function valueFilter(getValue: (params: ValueFilterParams) => number) {
           regions,
           runner,
           extra,
-          course,
+          course
         }) > value;
 
       return check ? regions : new RegionList();
@@ -246,11 +246,11 @@ export function valueFilter(getValue: (params: ValueFilterParams) => number) {
           regions,
           runner,
           extra,
-          course,
+          course
         }) >= value;
 
       return check ? regions : new RegionList();
-    },
+    }
   });
 }
 
@@ -337,7 +337,7 @@ export function orderFilter(getPos: (arg: number, n: number) => number) {
         return pos <= extra.orderRange[1] ? regions : new RegionList();
       }
       return regions;
-    },
+    }
   });
 }
 
@@ -363,7 +363,7 @@ export function orderInFilter(rate: number) {
       }
 
       return regions;
-    },
+    }
   });
 }
 
@@ -385,6 +385,6 @@ export function orderOutFilter(rate: number) {
       }
 
       return regions;
-    },
+    }
   });
 }

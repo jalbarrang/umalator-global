@@ -5,14 +5,14 @@ import {
   SkillItemIdentity,
   SkillItemMain,
   SkillItemRail,
-  SkillItemRoot,
+  SkillItemRoot
 } from '@/modules/skills/components/skill-list/skill-item/primitives';
 import { SkillItemDetailsActions } from '@/modules/skills/components/skill-list/skill-item/actions';
 
 export function OcrDetectedSkillRow({
   dismissable,
   onDismiss,
-  replaceAction,
+  replaceAction
 }: Readonly<{ dismissable: boolean; onDismiss?: () => void; replaceAction?: ReactNode }>) {
   return (
     <SkillItemRoot>

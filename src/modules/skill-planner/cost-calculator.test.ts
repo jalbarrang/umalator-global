@@ -53,7 +53,7 @@ describe('cost-calculator', () => {
       netCost: baseCost,
       hintLevel: 5,
       isStackable: false,
-      isGold: false,
+      isGold: false
     };
 
     expect(getNetCost(candidate, false)).toBe(Math.ceil(baseCost * 0.6));
@@ -70,7 +70,7 @@ describe('cost-calculator', () => {
         isStackable: false,
         isGold: true,
         whiteSkillId: preparedToPassId,
-        baseTierIdForGold: preparedToPassId,
+        baseTierIdForGold: preparedToPassId
       },
       [preparedToPassId]: {
         skillId: preparedToPassId,
@@ -79,8 +79,8 @@ describe('cost-calculator', () => {
         hintLevel: 2,
         isStackable: false,
         isGold: false,
-        goldSkillId: speedStarId,
-      },
+        goldSkillId: speedStarId
+      }
     };
 
     expect(calculateDisplayCost(speedStarId, candidates, [], false)).toBe(270);
@@ -96,14 +96,14 @@ describe('cost-calculator', () => {
       isStackable: false,
       isGold: true,
       whiteSkillId: getWhiteVersion(escapeArtistId),
-      baseTierIdForGold: getWhiteVersion(escapeArtistId),
+      baseTierIdForGold: getWhiteVersion(escapeArtistId)
     };
 
     const displayCost = calculateDisplayCost(
       escapeArtistId,
       { [escapeArtistId]: goldCandidate },
       [escapeArtistId],
-      false,
+      false
     );
 
     expect(displayCost).toBe(dataRegistry.skills.getById(escapeArtistId)?.baseCost ?? 0);

@@ -18,7 +18,7 @@ const DEFAULT_MOB_STRATEGIES: IStrategy[] = [
   Strategy.LateSurger,
   Strategy.LateSurger,
   Strategy.EndCloser,
-  Strategy.EndCloser,
+  Strategy.EndCloser
 ];
 
 const DEFAULT_MOB_STATS: StatLine = {
@@ -26,13 +26,13 @@ const DEFAULT_MOB_STATS: StatLine = {
   stamina: 800,
   power: 800,
   guts: 800,
-  wit: 800,
+  wit: 800
 };
 
 const DEFAULT_MOB_APTITUDES: RunnerAptitudes = {
   distance: Aptitude.A,
   strategy: Aptitude.A,
-  surface: Aptitude.A,
+  surface: Aptitude.A
 };
 
 export function createMobRunners(configs: MobConfig[]): CreateRunner[] {
@@ -42,7 +42,7 @@ export function createMobRunners(configs: MobConfig[]): CreateRunner[] {
     strategy: config.strategy,
     aptitudes: { ...config.aptitudes },
     stats: { ...config.stats },
-    skills: [],
+    skills: []
   }));
 }
 
@@ -52,7 +52,7 @@ export function generateMobField(): CreateRunner[] {
       strategy,
       stats: { ...DEFAULT_MOB_STATS },
       mood: Mood.Normal,
-      aptitudes: { ...DEFAULT_MOB_APTITUDES },
-    })),
+      aptitudes: { ...DEFAULT_MOB_APTITUDES }
+    }))
   );
 }

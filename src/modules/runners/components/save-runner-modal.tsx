@@ -9,7 +9,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  DialogTrigger
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -27,7 +27,7 @@ export const SaveRunnerModal = ({
   onOpenChange,
   onSave,
   triggerButton,
-  showLinkOption = true,
+  showLinkOption = true
 }: SaveRunnerModalProps) => {
   const [name, setName] = useState('');
   const [shouldLink, setShouldLink] = useState(showLinkOption);

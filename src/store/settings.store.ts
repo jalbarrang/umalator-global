@@ -57,7 +57,7 @@ export const useSettingsStore = create<ISettingsStore>()(
         allowSectionModifierUma2: true,
         allowSkillCheckChanceUma1: true,
         allowSkillCheckChanceUma2: true,
-        simWitVariance: true,
+        simWitVariance: true
       },
       staminaDrainOverrides: {},
       selectedPresetId: null,
@@ -67,13 +67,13 @@ export const useSettingsStore = create<ISettingsStore>()(
       showHp: false,
       showUma1: true,
       showUma2: true,
-      showThresholds: true,
+      showThresholds: true
     }),
     {
       name: 'umalator-settings',
-      storage: createJSONStorage(() => localStorage),
-    },
-  ),
+      storage: createJSONStorage(() => localStorage)
+    }
+  )
 );
 
 export const useWitVariance = () =>
@@ -85,8 +85,8 @@ export const setWitVariance = (witVarianceSettings: Partial<WitVarianceSettings>
   useSettingsStore.setState((state) => ({
     witVarianceSettings: {
       ...state.witVarianceSettings,
-      ...witVarianceSettings,
-    },
+      ...witVarianceSettings
+    }
   }));
 };
 
@@ -133,8 +133,8 @@ export const useRaceTrackUI = () =>
       showUma2: state.showUma2,
       showLanes: state.showLanes,
       showHp: state.showHp,
-      showThresholds: state.showThresholds,
-    })),
+      showThresholds: state.showThresholds
+    }))
   );
 
 export const toggleShowUma1 = () => {
@@ -155,6 +155,6 @@ export const toggleShowHp = () => {
 
 export const toggleShowThresholds = () => {
   useSettingsStore.setState((state) => ({
-    showThresholds: !state.showThresholds,
+    showThresholds: !state.showThresholds
   }));
 };

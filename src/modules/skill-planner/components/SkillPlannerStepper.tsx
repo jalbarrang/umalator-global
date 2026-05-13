@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 const stepLabels: Record<WizardStep, string> = {
   runner: 'Runner',
   shop: 'Shop',
-  review: 'Review and Optimize',
+  review: 'Review and Optimize'
 };
 
 type SkillPlannerStepperProps = {
@@ -49,7 +49,7 @@ export function SkillPlannerStepper(props: Readonly<SkillPlannerStepperProps>) {
                   'flex size-6 items-center justify-center rounded-full text-[10px] font-medium transition-colors',
                   completed && !active && 'bg-primary text-primary-foreground',
                   active && 'bg-primary text-primary-foreground ring-2 ring-primary/30',
-                  !completed && !active && 'bg-muted text-muted-foreground',
+                  !completed && !active && 'bg-muted text-muted-foreground'
                 )}
               >
                 {completed && !active ? <Check className="size-3" /> : index + 1}
@@ -59,7 +59,7 @@ export function SkillPlannerStepper(props: Readonly<SkillPlannerStepperProps>) {
                 className={cn(
                   'hidden text-xs font-medium lg:block',
                   active ? 'text-foreground' : 'text-muted-foreground',
-                  !unlocked && 'text-muted-foreground/50',
+                  !unlocked && 'text-muted-foreground/50'
                 )}
               >
                 {stepLabels[step]}

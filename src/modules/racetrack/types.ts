@@ -1,9 +1,21 @@
-export enum RegionDisplayType {
-  Immediate,
-  Regions,
-  Textbox,
-  Marker,
-}
+// fallow-ignore-file unused-export
+
+export const RegionDisplayType = {
+  Immediate: 0,
+  Regions: 1,
+  Textbox: 2,
+  Marker: 3
+} as const;
+export type IRegionDisplayType = (typeof RegionDisplayType)[keyof typeof RegionDisplayType];
+export const RegionDisplayTypeLabel: Record<IRegionDisplayType, string> = {
+  [RegionDisplayType.Immediate]: 'Immediate',
+  [RegionDisplayType.Regions]: 'Regions',
+  [RegionDisplayType.Textbox]: 'Textbox',
+  [RegionDisplayType.Marker]: 'Marker'
+};
+
+export const regionDisplayTypes: IRegionDisplayType[] = Object.values(RegionDisplayType);
+export const regionDisplayTypeLabels = Object.values(RegionDisplayTypeLabel);
 
 export namespace RaceTrackDimensions {
   // Viewbox dimensions
@@ -58,5 +70,5 @@ export type DragStartHandler = (
   start: number,
   end: number,
   markerType?: 'skill' | 'debuff',
-  debuffId?: string,
+  debuffId?: string
 ) => void;

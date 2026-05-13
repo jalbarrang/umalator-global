@@ -11,7 +11,7 @@ import type {
   CandidateSkill,
   CombinationResult,
   OptimizationProgress,
-  OptimizationResult,
+  OptimizationResult
 } from './types';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';
@@ -62,7 +62,7 @@ export function runAdaptiveOptimization(params: OptimizationParams): Optimizatio
     course,
     racedef,
     options,
-    onProgress,
+    onProgress
   } = params;
 
   const startTime = performance.now();
@@ -90,7 +90,7 @@ export function runAdaptiveOptimization(params: OptimizationParams): Optimizatio
     ignoreStaminaConsumption,
     progressOffset: 0,
     progressTotal: combinations.length,
-    onProgress,
+    onProgress
   });
 
   // ============================================================
@@ -116,7 +116,7 @@ export function runAdaptiveOptimization(params: OptimizationParams): Optimizatio
     ignoreStaminaConsumption,
     progressOffset: combinations.length,
     progressTotal: combinations.length + topCombinations.length + 1,
-    onProgress,
+    onProgress
   });
 
   // ============================================================
@@ -140,7 +140,7 @@ export function runAdaptiveOptimization(params: OptimizationParams): Optimizatio
     racedef,
     options,
     samples: 120,
-    ignoreStaminaConsumption,
+    ignoreStaminaConsumption
   });
 
   const endTime = performance.now();
@@ -160,11 +160,11 @@ export function runAdaptiveOptimization(params: OptimizationParams): Optimizatio
       min: finalResult.min,
       max: finalResult.max,
       mean: finalResult.bashin,
-      median: finalResult.median,
+      median: finalResult.median
     },
     simulationCount: combinations.length + topCombinations.length + 1,
     timeTaken,
-    allResults,
+    allResults
   };
 
   return optimizationResult;
@@ -201,7 +201,7 @@ function evaluateCombinations(params: EvaluateCombinationsParams): Array<Combina
     ignoreStaminaConsumption,
     progressOffset,
     progressTotal,
-    onProgress,
+    onProgress
   } = params;
 
   const results: Array<CombinationResult> = [];
@@ -218,7 +218,7 @@ function evaluateCombinations(params: EvaluateCombinationsParams): Array<Combina
       racedef,
       options,
       samples,
-      ignoreStaminaConsumption,
+      ignoreStaminaConsumption
     });
 
     results.push(result);
@@ -230,7 +230,7 @@ function evaluateCombinations(params: EvaluateCombinationsParams): Array<Combina
       onProgress({
         completed: progressOffset + i + 1,
         total: progressTotal,
-        currentBest: currentBest ?? null,
+        currentBest: currentBest ?? null
       });
     }
   }
@@ -280,7 +280,7 @@ function evaluateCombination(params: EvaluateCombinationParams): EvaluationResul
     racedef,
     options,
     samples,
-    ignoreStaminaConsumption,
+    ignoreStaminaConsumption
   } = params;
   const candidateMap = new Map(candidates.map((candidate) => [candidate.skillId, candidate]));
   const skillCosts: Record<string, number> = {};
@@ -303,7 +303,7 @@ function evaluateCombination(params: EvaluateCombinationParams): EvaluationResul
     baseRunner,
     candidateSkills: combination, // Additional skills to test
     ignoreStaminaConsumption,
-    options,
+    options
   });
 
   return {
@@ -313,6 +313,6 @@ function evaluateCombination(params: EvaluateCombinationParams): EvaluationResul
     bashin: result.mean,
     min: result.min,
     max: result.max,
-    median: result.median,
+    median: result.median
   };
 }

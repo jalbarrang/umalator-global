@@ -9,7 +9,7 @@ export class Timer {
 export class CompensatedAccumulator {
   constructor(
     public acc: number,
-    public err: number = 0.0,
+    public err: number = 0.0
   ) {}
 
   add(n: number) {

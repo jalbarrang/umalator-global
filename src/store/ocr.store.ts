@@ -10,14 +10,14 @@ export const useOcrStore = create<IOcrStore>()(
   persist(
     (set) => ({
       geminiApiKey: '',
-      setGeminiApiKey: (geminiApiKey) => set({ geminiApiKey }),
+      setGeminiApiKey: (geminiApiKey) => set({ geminiApiKey })
     }),
     {
       name: 'umalator-ocr-settings',
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({ geminiApiKey: state.geminiApiKey }),
-    },
-  ),
+      partialize: (state) => ({ geminiApiKey: state.geminiApiKey })
+    }
+  )
 );
 
 export const useGeminiApiKey = () => useOcrStore((state) => state.geminiApiKey);

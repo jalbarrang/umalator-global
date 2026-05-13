@@ -15,9 +15,9 @@ export const SeasonIcon = (props: { season: number } & React.HTMLAttributes<HTML
       className={cn(
         'w-8 h-8 grayscale-100 hover:grayscale-0',
         {
-          'grayscale-0': season === racedef.season,
+          'grayscale-0': season === racedef.season
         },
-        className,
+        className
       )}
       data-season={season}
       {...rest}

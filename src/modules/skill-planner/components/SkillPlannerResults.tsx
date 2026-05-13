@@ -13,7 +13,7 @@ import {
   SkillItemIdentity,
   SkillItemMain,
   SkillItemRail,
-  SkillItemRoot,
+  SkillItemRoot
 } from '@/modules/skills/components/skill-list/skill-item/primitives';
 import { SkillItemDetailsActions } from '@/modules/skills/components/skill-list/skill-item/actions';
 import { SkillItem } from '@/modules/skills/components/skill-list/skill-item/item';
@@ -54,7 +54,7 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
     progress,
     result,
     runner,
-    lastOptimizationFingerprint,
+    lastOptimizationFingerprint
   } = useSkillPlannerStore();
   const { courseId, racedef, staminaDrainOverrides } = useSettingsStore();
   const addRunner = useRunnerLibraryStore((state) => state.addRunner);
@@ -65,7 +65,7 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
   const candidateList = useMemo(() => Object.values(candidates), [candidates]);
   const canOptimize = useMemo(
     () => candidateList.length > 0 && budget > 0,
-    [candidateList, budget],
+    [candidateList, budget]
   );
 
   const progressPercentage = useMemo(() => {
@@ -80,7 +80,7 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
 
   const visibleCombinations = useMemo(
     () => rankedCombinations.slice(0, visibleCount),
-    [rankedCombinations, visibleCount],
+    [rankedCombinations, visibleCount]
   );
 
   const hasMore = rankedCombinations.length > visibleCount;
@@ -101,7 +101,7 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
       obtainedSkillIds,
       candidates,
       skillMetaById,
-      staminaDrainOverrides,
+      staminaDrainOverrides
     });
   }, [
     budget,
@@ -113,7 +113,7 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
     racedef,
     runner,
     skillMetaById,
-    staminaDrainOverrides,
+    staminaDrainOverrides
   ]);
 
   const isResultStale = useMemo(() => {
@@ -134,9 +134,9 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
     return {
       runner: {
         ...state.runner,
-        skills: [...state.obtainedSkillIds],
+        skills: [...state.obtainedSkillIds]
       },
-      obtainedSkills: getObtainedSkills(),
+      obtainedSkills: getObtainedSkills()
     };
   }, [result]);
 
@@ -146,7 +146,7 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
 
       return resolveActiveSkills(Array.from(new Set([...obtainedSkills, ...combination.skills])));
     },
-    [optimizationContext],
+    [optimizationContext]
   );
 
   const buildRunnerSnapshot = useCallback(
@@ -155,10 +155,10 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
 
       return {
         ...baseRunner,
-        skills: buildSkills(combination),
+        skills: buildSkills(combination)
       };
     },
-    [optimizationContext, runner, buildSkills],
+    [optimizationContext, runner, buildSkills]
   );
 
   const handleOpenSaveModal = useCallback((combination: CombinationResult) => {
@@ -182,12 +182,12 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
 
       addRunner({
         ...buildRunnerSnapshot(selectedCombination),
-        notes: name,
+        notes: name
       });
 
       setSelectedCombination(null);
     },
-    [addRunner, buildRunnerSnapshot, selectedCombination],
+    [addRunner, buildRunnerSnapshot, selectedCombination]
   );
 
   const handleSendToCompare = useCallback(
@@ -195,7 +195,7 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
       setRunner(slot, buildRunnerSnapshot(combination));
       toast.success(`Loaded build into ${slot === 'uma1' ? 'Uma 1' : 'Uma 2'}`);
     },
-    [buildRunnerSnapshot],
+    [buildRunnerSnapshot]
   );
 
   return (

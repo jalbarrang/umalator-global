@@ -11,7 +11,7 @@ describe('createSkillCompareSettings', () => {
       allowSectionModifierUma1: false,
       allowSectionModifierUma2: false,
       skillCheckChanceUma1: false,
-      skillCheckChanceUma2: false,
+      skillCheckChanceUma2: false
     });
 
     expect(settings.healthSystem).toBe(false);
@@ -29,7 +29,7 @@ describe('createSkillCompareSettings', () => {
       skillCheckChanceUma1: false,
       skillCheckChanceUma2: false,
       ignoreStaminaConsumption: false,
-      staminaDrainOverrides: { '100001': 0.35 },
+      staminaDrainOverrides: { '100001': 0.35 }
     });
 
     expect(settings.healthSystem).toBe(true);

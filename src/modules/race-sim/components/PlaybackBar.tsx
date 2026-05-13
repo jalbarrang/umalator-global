@@ -6,7 +6,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
+  SelectValue
 } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import {
@@ -18,7 +18,7 @@ import {
   setSpeed,
   stepBack,
   stepForward,
-  usePlaybackStore,
+  usePlaybackStore
 } from '@/modules/race-sim/stores/playback.store';
 import { useShallow } from 'zustand/shallow';
 
@@ -28,8 +28,8 @@ function PlaybackSlider() {
       currentTick: state.currentTick,
       totalTicks: state.totalTicks,
       currentTimeDisplay: state.currentTimeDisplay,
-      totalTimeDisplay: state.totalTimeDisplay,
-    })),
+      totalTimeDisplay: state.totalTimeDisplay
+    }))
   );
 
   const [internalTick, setInternalTick] = useState<number[]>(() => {
@@ -79,15 +79,15 @@ const PlaybackTransport = memo(function PlaybackTransport() {
     useShallow((s) => ({
       totalTicks: s.totalTicks,
       isPlaying: s.isPlaying,
-      speed: s.speed,
-    })),
+      speed: s.speed
+    }))
   );
 
   const { isAtStart, isAtEnd } = usePlaybackStore(
     useShallow((s) => ({
       isAtStart: s.currentTick <= 0,
-      isAtEnd: s.currentTick >= s.totalTicks,
-    })),
+      isAtEnd: s.currentTick >= s.totalTicks
+    }))
   );
 
   const hasTimeline = totalTicks > 0;

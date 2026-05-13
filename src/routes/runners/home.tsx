@@ -9,7 +9,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
+  DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import {
   Empty,
@@ -17,14 +17,14 @@ import {
   EmptyDescription,
   EmptyHeader,
   EmptyMedia,
-  EmptyTitle,
+  EmptyTitle
 } from '@/components/ui/empty';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
+  SelectValue
 } from '@/components/ui/select';
 import { OcrImportDialog } from '@/modules/runners/components/ocr-import-dialog';
 import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
@@ -38,7 +38,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
+  DialogTitle
 } from '@/components/ui/dialog';
 import { loadRunnerFromLibrary, showRunner } from '@/store/runners.store';
 import { RosterImportDialog } from '@/modules/runners/roster/import-dialog';
@@ -48,7 +48,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
 import {
   meetsMinGrade,
-  VirtualRunnerGrid,
+  VirtualRunnerGrid
 } from '@/modules/runners/components/runner-grid/runner-grid';
 
 type IFilterSelectProps = {
@@ -87,10 +87,10 @@ const STRATEGY_OPTIONS = strategyNames.map((n) => ({ value: n, label: n }));
 
 const APTITUDE_OPTIONS = aptitudeNames.map((g) => ({
   value: g,
-  label: g,
+  label: g
 }));
 
-export function RunnersHome() {
+export default function RosterHomePage() {
   const navigate = useNavigate();
   const { runners, addRunner, deleteRunner, deleteRunners, duplicateRunner } =
     useRunnerLibraryStore();
@@ -122,7 +122,7 @@ export function RunnersHome() {
           .join(' ')
           .toLowerCase();
         return [r.id, text];
-      }),
+      })
     );
   }, [runners]);
 
@@ -160,25 +160,25 @@ export function RunnersHome() {
       strategyFilter !== 'all' ||
       distanceFilter !== 'all' ||
       surfaceFilter !== 'all',
-    [search, strategyFilter, distanceFilter, surfaceFilter],
+    [search, strategyFilter, distanceFilter, surfaceFilter]
   );
 
   const filteredIds = useMemo(() => new Set(filtered.map((r) => r.id)), [filtered]);
   const filteredSelectedCount = useMemo(
     () => [...selected].filter((id) => filteredIds.has(id)).length,
-    [selected, filteredIds],
+    [selected, filteredIds]
   );
 
   const allFilteredSelected = useMemo(
     () => filtered.length > 0 && filteredSelectedCount === filtered.length,
-    [filtered, filteredSelectedCount],
+    [filtered, filteredSelectedCount]
   );
 
   const handleAddNew = () => navigate('/runners/new');
 
   const handleEdit = useCallback(
     (runner: ISavedRunner) => navigate(`/runners/${runner.id}/edit`),
-    [navigate],
+    [navigate]
   );
 
   const handleDeleteClick = useCallback((id: string) => {
@@ -211,7 +211,7 @@ export function RunnersHome() {
       setRunnerToLoad(null);
       navigate('/');
     },
-    [navigate, runnerToLoad],
+    [navigate, runnerToLoad]
   );
 
   const toggleSelect = useCallback((id: string) => {
@@ -278,15 +278,15 @@ export function RunnersHome() {
           data.strategy && strategyNames.includes(data.strategy)
             ? data.strategy
             : baseRunnerState.strategy,
-        skills,
+        skills
       };
 
       addRunner({
         ...runnerState,
-        notes: data.outfitName || data.umaName || 'Imported Runner',
+        notes: data.outfitName || data.umaName || 'Imported Runner'
       });
     },
-    [addRunner],
+    [addRunner]
   );
 
   return (

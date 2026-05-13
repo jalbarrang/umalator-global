@@ -3,7 +3,7 @@ import type {
   FirstUMAStats,
   SimulationRun,
   StaminaStats,
-  Stats,
+  Stats
 } from '@/modules/simulation/compare.types';
 import type { CompareParams } from '@/modules/simulation/types';
 import { initializeSimulationRun } from '@/modules/simulation/compare.types';
@@ -15,7 +15,7 @@ import {
   createInitializedRace,
   createSkillSorterByGroup,
   toCreateRunner,
-  toSundayRaceParameters,
+  toSundayRaceParameters
 } from './shared';
 
 type CompareStatsAccumulator = {
@@ -61,12 +61,12 @@ export function runComparison(params: CompareParams): CompareResult {
       rushed: options.allowRushedUma1,
       downhill: options.allowDownhillUma1,
       witChecks: options.skillCheckChanceUma1,
-      staminaDrainOverrides: options.staminaDrainOverrides,
+      staminaDrainOverrides: options.staminaDrainOverrides
     }),
     duelingRates: DEFAULT_DUELING_RATES,
     skillSamples: nsamples,
     runner: toCreateRunner(uma1, runnerASortedSkills, forcedPositions?.uma1, injectedDebuffs?.uma1),
-    observer: collectorA,
+    observer: collectorA
   });
 
   const raceB = createInitializedRace({
@@ -79,12 +79,12 @@ export function runComparison(params: CompareParams): CompareResult {
       rushed: options.allowRushedUma2,
       downhill: options.allowDownhillUma2,
       witChecks: options.skillCheckChanceUma2,
-      staminaDrainOverrides: options.staminaDrainOverrides,
+      staminaDrainOverrides: options.staminaDrainOverrides
     }),
     duelingRates: DEFAULT_DUELING_RATES,
     skillSamples: nsamples,
     runner: toCreateRunner(uma2, runnerBSortedSkills, forcedPositions?.uma2, injectedDebuffs?.uma2),
-    observer: collectorB,
+    observer: collectorB
   });
 
   const sign = 1;
@@ -106,22 +106,22 @@ export function runComparison(params: CompareParams): CompareResult {
 
   const rushedStats: { uma1: CompareStatsAccumulator; uma2: CompareStatsAccumulator } = {
     uma1: { lengths: [], count: 0 },
-    uma2: { lengths: [], count: 0 },
+    uma2: { lengths: [], count: 0 }
   };
 
   const leadCompetitionStats: { uma1: CompareStatsAccumulator; uma2: CompareStatsAccumulator } = {
     uma1: { lengths: [], count: 0 },
-    uma2: { lengths: [], count: 0 },
+    uma2: { lengths: [], count: 0 }
   };
 
   const staminaCounters = {
     uma1: { total: 0, hpDiedCount: 0, fullSpurtCount: 0 },
-    uma2: { total: 0, hpDiedCount: 0, fullSpurtCount: 0 },
+    uma2: { total: 0, hpDiedCount: 0, fullSpurtCount: 0 }
   };
 
   const firstUmaCounters = {
     uma1: { total: 0, firstPlaceCount: 0 },
-    uma2: { total: 0, firstPlaceCount: 0 },
+    uma2: { total: 0, firstPlaceCount: 0 }
   };
 
   for (let i = 0; i < nsamples; ++i) {
@@ -150,7 +150,7 @@ export function runComparison(params: CompareParams): CompareResult {
       startDelay: [roundA.startDelay, roundB.startDelay],
       rushed: [roundA.rushed, roundB.rushed],
       duelingRegions: [roundA.duelingRegion, roundB.duelingRegion],
-      spotStruggleRegions: [roundA.spotStruggleRegion, roundB.spotStruggleRegion],
+      spotStruggleRegions: [roundA.spotStruggleRegion, roundB.spotStruggleRegion]
     });
 
     if (roundA.rushed.length > 0) {
@@ -243,12 +243,12 @@ export function runComparison(params: CompareParams): CompareResult {
 
   const rushedSummary: Stats = {
     uma1: calculateStats(rushedStats.uma1, nsamples),
-    uma2: calculateStats(rushedStats.uma2, nsamples),
+    uma2: calculateStats(rushedStats.uma2, nsamples)
   };
 
   const leadCompetitionSummary: Stats = {
     uma1: calculateStats(leadCompetitionStats.uma1, nsamples),
-    uma2: calculateStats(leadCompetitionStats.uma2, nsamples),
+    uma2: calculateStats(leadCompetitionStats.uma2, nsamples)
   };
 
   const staminaSummary: StaminaStats = {
@@ -262,7 +262,7 @@ export function runComparison(params: CompareParams): CompareResult {
       fullSpurtRate:
         staminaCounters.uma1.total > 0
           ? (staminaCounters.uma1.fullSpurtCount / staminaCounters.uma1.total) * 100
-          : 0,
+          : 0
     },
     uma2: {
       staminaSurvivalRate:
@@ -274,8 +274,8 @@ export function runComparison(params: CompareParams): CompareResult {
       fullSpurtRate:
         staminaCounters.uma2.total > 0
           ? (staminaCounters.uma2.fullSpurtCount / staminaCounters.uma2.total) * 100
-          : 0,
-    },
+          : 0
+    }
   };
 
   const firstUmaSummary: FirstUMAStats = {
@@ -283,14 +283,14 @@ export function runComparison(params: CompareParams): CompareResult {
       firstPlaceRate:
         firstUmaCounters.uma1.total > 0
           ? (firstUmaCounters.uma1.firstPlaceCount / firstUmaCounters.uma1.total) * 100
-          : 0,
+          : 0
     },
     uma2: {
       firstPlaceRate:
         firstUmaCounters.uma2.total > 0
           ? (firstUmaCounters.uma2.firstPlaceCount / firstUmaCounters.uma2.total) * 100
-          : 0,
-    },
+          : 0
+    }
   };
 
   return {
@@ -300,6 +300,6 @@ export function runComparison(params: CompareParams): CompareResult {
     leadCompetitionStats: leadCompetitionSummary,
     spurtInfo: null,
     staminaStats: staminaSummary,
-    firstUmaStats: firstUmaSummary,
+    firstUmaStats: firstUmaSummary
   };
 }

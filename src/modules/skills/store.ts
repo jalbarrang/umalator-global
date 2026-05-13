@@ -13,7 +13,7 @@ export const useSkillModalStore = create<SkillModalStore>()((_) => ({
   umaId: '',
   options: [],
   currentSkills: [],
-  onSelect: () => {},
+  onSelect: () => {}
 }));
 
 type OpenSkillPickerParams = {
@@ -32,7 +32,7 @@ export const openSkillPicker = (params: OpenSkillPickerParams) => {
     umaId,
     options,
     currentSkills,
-    onSelect,
+    onSelect
   });
 };
 
@@ -45,6 +45,6 @@ export const resetSkillPicker = () => {
     umaId: '',
     options: [],
     currentSkills: [],
-    onSelect: () => {},
+    onSelect: () => {}
   });
 };

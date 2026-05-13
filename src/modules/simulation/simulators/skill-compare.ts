@@ -12,17 +12,17 @@ import { cloneDeep } from 'es-toolkit';
 import type {
   Run1RoundParams,
   RunComparisonParams,
-  SkillComparisonResponse,
+  SkillComparisonResponse
 } from '@/modules/simulation/types';
 import type {
   SkillSimulationData,
   SkillSimulationRun,
-  SkillTrackedMetaCollection,
+  SkillTrackedMetaCollection
 } from '@/modules/simulation/compare.types';
 import { initializeSkillSimulationRun } from '@/modules/simulation/compare.types';
 import {
   BassinCollector,
-  SkillCompareDataCollector,
+  SkillCompareDataCollector
 } from '@/lib/sunday-tools/common/race-observer';
 import {
   DEFAULT_DUELING_RATES,
@@ -32,7 +32,7 @@ import {
   createSkillSorterByGroup,
   getFallbackEffectMeta,
   toCreateRunner,
-  toSundayRaceParameters,
+  toSundayRaceParameters
 } from './shared';
 
 export interface SkillComparisonResult {
@@ -54,7 +54,7 @@ export function createSkillCompareSettings(options: RunComparisonParams['options
   const ignoreStaminaConsumption = options.ignoreStaminaConsumption ?? true;
   return createCompareSettings({
     healthSystem: !ignoreStaminaConsumption,
-    staminaDrainOverrides: ignoreStaminaConsumption ? {} : options.staminaDrainOverrides,
+    staminaDrainOverrides: ignoreStaminaConsumption ? {} : options.staminaDrainOverrides
   });
 }
 
@@ -74,7 +74,7 @@ export function runSkillComparison(params: SkillCompareParams): SkillComparisonR
   const collectorB = new SkillCompareDataCollector({
     trackedSkillId,
     fallbackEffectType: fallbackEffectMeta.effectType,
-    fallbackEffectTarget: fallbackEffectMeta.effectTarget,
+    fallbackEffectTarget: fallbackEffectMeta.effectTarget
   });
 
   const raceA = createInitializedRace({
@@ -84,7 +84,7 @@ export function runSkillComparison(params: SkillCompareParams): SkillComparisonR
     duelingRates: DEFAULT_DUELING_RATES,
     skillSamples: nsamples,
     runner: toCreateRunner(runnerA, runnerASortedSkills),
-    observer: collectorA,
+    observer: collectorA
   });
 
   const raceB = createInitializedRace({
@@ -94,7 +94,7 @@ export function runSkillComparison(params: SkillCompareParams): SkillComparisonR
     duelingRates: DEFAULT_DUELING_RATES,
     skillSamples: nsamples,
     runner: toCreateRunner(runnerB, runnerBSortedSkills),
-    observer: collectorB,
+    observer: collectorB
   });
 
   const sign = 1;
@@ -189,7 +189,7 @@ export function runSkillComparison(params: SkillCompareParams): SkillComparisonR
     min: diff[0],
     max: diff[diff.length - 1],
     mean,
-    median,
+    median
   };
 }
 
@@ -209,7 +209,7 @@ export const runSampling = (params: Run1RoundParams): SkillComparisonResponse =>
       racedef,
       runnerA: uma,
       runnerB: runnerWithTrackedSkill,
-      options,
+      options
     });
 
     data[id] = {
@@ -221,7 +221,7 @@ export const runSampling = (params: Run1RoundParams): SkillComparisonResponse =>
       max,
       mean,
       median,
-      filterReason: undefined,
+      filterReason: undefined
     };
   }
 

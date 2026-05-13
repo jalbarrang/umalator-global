@@ -82,7 +82,7 @@ const conditionFormatters = new Proxy(
         <Tooltip
           title={i18n.t('skilldetails.order_rate', {
             cm: Math.round((arg / 100) * 9),
-            loh: Math.round((arg / 100) * 12),
+            loh: Math.round((arg / 100) * 12)
           })}
         >
           {arg}
@@ -105,7 +105,7 @@ const conditionFormatters = new Proxy(
         </Tooltip>
       );
     },
-    weather: fmtString('weather'),
+    weather: fmtString('weather')
   },
   {
     get(o: object, prop: string) {
@@ -117,10 +117,10 @@ const conditionFormatters = new Proxy(
         name: prop,
         formatArg(arg: number) {
           return arg.toString();
-        },
+        }
       };
-    },
-  },
+    }
+  }
 );
 
 interface OpFormatter {
@@ -130,7 +130,7 @@ interface OpFormatter {
 class AndFormatter {
   constructor(
     readonly left: OpFormatter,
-    readonly right: OpFormatter,
+    readonly right: OpFormatter
   ) {}
 
   format() {
@@ -149,7 +149,7 @@ class AndFormatter {
 class OrFormatter {
   constructor(
     readonly left: OpFormatter,
-    readonly right: OpFormatter,
+    readonly right: OpFormatter
   ) {}
 
   format() {
@@ -170,7 +170,7 @@ function CmpFormatter(op: string) {
   return class {
     constructor(
       readonly cond: ConditionFormatter,
-      readonly arg: number,
+      readonly arg: number
     ) {}
 
     format() {
@@ -195,8 +195,8 @@ export const FormatParser = createTypedParser(
     lt: CmpFormatter('<'),
     lte: CmpFormatter('<='),
     gt: CmpFormatter('>'),
-    gte: CmpFormatter('>='),
-  },
+    gte: CmpFormatter('>=')
+  }
 );
 
 function forceSign(n: number) {
@@ -220,5 +220,5 @@ export const formatEffect = {
   22: formatSpeed,
   27: formatSpeed,
   31: (n: number) => i18n.t('skilldetails.accel', { n: forceSign(n) }),
-  42: (n: number) => i18n.t('skilldetails.durationincrease', { n }),
+  42: (n: number) => i18n.t('skilldetails.durationincrease', { n })
 };

@@ -12,7 +12,7 @@ export const umalatorSteps: Array<TutorialStep> = [
         <p className="text-muted-foreground">Let's run your first simulation together!</p>
       </div>
     ),
-    showButtons: ['next', 'close'],
+    showButtons: ['next', 'close']
   },
   {
     element: '[data-tutorial="runner-stats"]',
@@ -75,7 +75,7 @@ export const umalatorSteps: Array<TutorialStep> = [
     ),
     side: 'right',
     align: 'start',
-    showButtons: ['previous', 'next', 'close'],
+    showButtons: ['previous', 'next', 'close']
   },
   {
     element: '[data-tutorial="skills-section"]',
@@ -98,7 +98,7 @@ export const umalatorSteps: Array<TutorialStep> = [
     ),
     side: 'right',
     align: 'start',
-    showButtons: ['previous', 'next', 'close'],
+    showButtons: ['previous', 'next', 'close']
   },
   {
     element: '[data-tutorial="race-settings"]',
@@ -125,7 +125,7 @@ export const umalatorSteps: Array<TutorialStep> = [
     ),
     side: 'top',
     align: 'center',
-    showButtons: ['previous', 'next', 'close'],
+    showButtons: ['previous', 'next', 'close']
   },
   {
     element: '[data-tutorial="simulation-controls"]',
@@ -149,7 +149,7 @@ export const umalatorSteps: Array<TutorialStep> = [
     ),
     side: 'bottom',
     align: 'start',
-    showButtons: ['previous', 'next', 'close'],
+    showButtons: ['previous', 'next', 'close']
   },
   {
     element: '[data-tutorial="race-visualization"]',
@@ -178,7 +178,7 @@ export const umalatorSteps: Array<TutorialStep> = [
     ),
     side: 'bottom',
     align: 'center',
-    showButtons: ['previous', 'next', 'close'],
+    showButtons: ['previous', 'next', 'close']
   },
   {
     element: '[data-tutorial="results-tabs"]',
@@ -203,7 +203,7 @@ export const umalatorSteps: Array<TutorialStep> = [
     ),
     side: 'top',
     align: 'center',
-    showButtons: ['previous', 'next', 'close'],
+    showButtons: ['previous', 'next', 'close']
   },
   {
     title: "You're All Set! 🎉",
@@ -251,6 +251,6 @@ export const umalatorSteps: Array<TutorialStep> = [
       </div>
     ),
     showButtons: ['close', 'next'],
-    doneBtnText: 'Get Started!',
-  },
+    doneBtnText: 'Get Started!'
+  }
 ];

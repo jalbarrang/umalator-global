@@ -23,7 +23,7 @@ export const defaultSimulationOptions = {
   useEnhancedSpurt: false,
   accuracyMode: false,
   skillCheckChanceUma1: false,
-  skillCheckChanceUma2: false,
+  skillCheckChanceUma2: false
 };
 
 const program = new Command();
@@ -77,7 +77,7 @@ program
 
     const simOptions = {
       ...defaultSimulationOptions,
-      seed,
+      seed
     };
 
     const testRunner: IRunnerState = runner;
@@ -85,7 +85,7 @@ program
     // Create runner with skill
     const runnerWithSkill: IRunnerState = {
       ...testRunner,
-      skills: [...testRunner.skills, skillId],
+      skills: [...testRunner.skills, skillId]
     };
 
     console.log('Running comparison...\n');
@@ -98,7 +98,7 @@ program
       racedef: raceParams,
       runnerA: testRunner,
       runnerB: runnerWithSkill,
-      options: simOptions,
+      options: simOptions
     });
 
     console.log('📊 Results:');
@@ -111,10 +111,10 @@ program
 
     console.log('\n🎯 Skill Activation Summary:');
     console.log(
-      `\nℹ️  Note: Activation data is captured for specific representative runs (min/max/mean/median),`,
+      `\nℹ️  Note: Activation data is captured for specific representative runs (min/max/mean/median),`
     );
     console.log(
-      `   not all ${samples} samples. Use DEBUG_SKILL_ACTIVATIONS=1 to see all activations in real-time.\n`,
+      `   not all ${samples} samples. Use DEBUG_SKILL_ACTIVATIONS=1 to see all activations in real-time.\n`
     );
 
     console.log('Runner A (base skills) - from minrun:');
@@ -143,11 +143,11 @@ program
           const skillMap = run.sk[umaIndex];
           Object.entries(skillMap).forEach(([executionId, activations]) => {
             console.log(
-              `    Uma ${umaIndex}, execution ${executionId}: ${activations.length} activations`,
+              `    Uma ${umaIndex}, execution ${executionId}: ${activations.length} activations`
             );
             activations.forEach((act, i) => {
               console.log(
-                `      [${i}] ${act.skillId} @ ${Math.round(act.start)}m-${Math.round(act.end)}m (${act.effectType})`,
+                `      [${i}] ${act.skillId} @ ${Math.round(act.start)}m-${Math.round(act.end)}m (${act.effectType})`
               );
             });
           });

@@ -4,7 +4,7 @@ import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import {
   getRunnerLanesAtTick,
   getRunnerPositionsAtTick,
-  usePlaybackStore,
+  usePlaybackStore
 } from '@/modules/race-sim/stores/playback.store';
 import { PACK_CANVAS_H, PACK_CANVAS_W } from './shared';
 import { paintTrackPackZoom } from './trackLayers';
@@ -17,7 +17,7 @@ type TrackRunnerPackZoomProps = {
 };
 
 export const TrackRunnerPackZoom = memo(function TrackRunnerPackZoom(
-  props: TrackRunnerPackZoomProps,
+  props: TrackRunnerPackZoomProps
 ) {
   const { courseData, runnerNames, trackedRunnerIds, className } = props;
   const courseDistance = Math.max(courseData.distance, 1);
@@ -30,13 +30,13 @@ export const TrackRunnerPackZoom = memo(function TrackRunnerPackZoom(
     courseWidth: courseData.courseWidth,
     courseDistance,
     runnerNames,
-    trackedRunnerIds,
+    trackedRunnerIds
   });
   configRef.current = {
     courseWidth: courseData.courseWidth,
     courseDistance,
     runnerNames,
-    trackedRunnerIds,
+    trackedRunnerIds
   };
 
   const repaintPack = useRef(() => {});
@@ -60,9 +60,9 @@ export const TrackRunnerPackZoom = memo(function TrackRunnerPackZoom(
         runnerPositions: positions,
         runnerLanes: lanes,
         runnerNames: cfg.runnerNames,
-        trackedRunnerIds: cfg.trackedRunnerIds,
+        trackedRunnerIds: cfg.trackedRunnerIds
       });
-    },
+    }
   );
 
   repaintPack.current = () => {
@@ -70,7 +70,7 @@ export const TrackRunnerPackZoom = memo(function TrackRunnerPackZoom(
     const positions = getRunnerPositionsAtTick(
       state.results,
       state.selectedRound,
-      state.currentTick,
+      state.currentTick
     );
     const lanes = getRunnerLanesAtTick(state.results, state.selectedRound, state.currentTick);
     paintWithState.current(positions, lanes);
@@ -120,7 +120,7 @@ export const TrackRunnerPackZoom = memo(function TrackRunnerPackZoom(
     });
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['class', 'data-theme', 'style'],
+      attributeFilter: ['class', 'data-theme', 'style']
     });
     return () => observer.disconnect();
   }, []);
@@ -130,7 +130,7 @@ export const TrackRunnerPackZoom = memo(function TrackRunnerPackZoom(
       ref={containerRef}
       className={cn(
         'flex h-[120px] min-h-[96px] max-h-[40vh] w-full shrink-0 items-center justify-center border-t border-border/70 bg-muted/20',
-        className,
+        className
       )}
       aria-label="Pack view (magnified)"
     >

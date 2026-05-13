@@ -14,7 +14,7 @@ export const SectionText: React.FC<SectionTextProps> = (props) => {
 
   const translationKey = useMemo(
     () => (w < 10 ? `racetrack.short.${id}` : `racetrack.${id}`),
-    [w, id],
+    [w, id]
   );
 
   return (

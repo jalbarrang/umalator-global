@@ -28,6 +28,7 @@
     "test:ocr": "bun scripts/test-ocr.ts",
     "code:health": "fallow",
     "code:dead-code": "fallow dead-code",
+    "code:dupes": "fallow dupes",
     "prepare": "husky"
   },
   "dependencies": {

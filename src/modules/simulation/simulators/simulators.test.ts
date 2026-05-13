@@ -14,11 +14,11 @@ import {
   computePositionDiff,
   DEFAULT_DUELING_RATES,
   toCreateRunner,
-  toSundayRaceParameters,
+  toSundayRaceParameters
 } from './shared';
 import {
   BassinCollector,
-  VacuumCompareDataCollector,
+  VacuumCompareDataCollector
 } from '@/lib/sunday-tools/common/race-observer';
 
 const TEST_COURSE_ID = 10101;
@@ -35,7 +35,7 @@ function createSimulationOptions(seed: number): SimulationOptions {
     allowSectionModifierUma1: false,
     allowSectionModifierUma2: false,
     skillCheckChanceUma1: false,
-    skillCheckChanceUma2: false,
+    skillCheckChanceUma2: false
   };
 }
 
@@ -54,7 +54,7 @@ describe('skill-compare simulator', () => {
       racedef,
       runnerA,
       runnerB,
-      options,
+      options
     });
 
     const second = runSkillComparison({
@@ -64,7 +64,7 @@ describe('skill-compare simulator', () => {
       racedef,
       runnerA,
       runnerB,
-      options,
+      options
     });
 
     expect(first.results).toEqual(second.results);
@@ -80,8 +80,8 @@ describe('skill-compare simulator', () => {
         ground: 4,
         weather: 3,
         season: 1,
-        time: 2,
-      }),
+        time: 2
+      })
     );
 
     const runnerA = createRunnerState({
@@ -97,7 +97,7 @@ describe('skill-compare simulator', () => {
       strategyAptitude: 'A',
       mood: 2,
       skills: ['110061', '200741', '201351', '200351'],
-      randomMobId: 8256,
+      randomMobId: 8256
     });
     const runnerB = createRunnerState({
       outfitId: '100602',
@@ -112,7 +112,7 @@ describe('skill-compare simulator', () => {
       strategyAptitude: 'A',
       mood: 2,
       skills: ['110061'],
-      randomMobId: 8256,
+      randomMobId: 8256
     });
 
     const result = runSkillComparison({
@@ -122,7 +122,7 @@ describe('skill-compare simulator', () => {
       racedef,
       runnerA,
       runnerB,
-      options: createSimulationOptions(20260306),
+      options: createSimulationOptions(20260306)
     });
 
     expect(result.mean).toBeLessThan(0);
@@ -142,7 +142,7 @@ describe('vacuum-compare simulator', () => {
       racedef,
       uma1,
       uma2,
-      options: createSimulationOptions(991),
+      options: createSimulationOptions(991)
     };
 
     const result = runComparison(params);
@@ -168,8 +168,8 @@ describe('vacuum-compare simulator', () => {
         ground: 4,
         weather: 3,
         season: 1,
-        time: 2,
-      }),
+        time: 2
+      })
     );
 
     const uma1 = createRunnerState({
@@ -185,7 +185,7 @@ describe('vacuum-compare simulator', () => {
       strategyAptitude: 'A',
       mood: 2,
       skills: ['110061', '200741', '201351', '200351'],
-      randomMobId: 8256,
+      randomMobId: 8256
     });
     const uma2 = createRunnerState({
       outfitId: '100602',
@@ -200,7 +200,7 @@ describe('vacuum-compare simulator', () => {
       strategyAptitude: 'A',
       mood: 2,
       skills: ['110061'],
-      randomMobId: 8256,
+      randomMobId: 8256
     });
 
     const result = runComparison({
@@ -209,7 +209,7 @@ describe('vacuum-compare simulator', () => {
       racedef,
       uma1,
       uma2,
-      options: createSimulationOptions(20260306),
+      options: createSimulationOptions(20260306)
     });
 
     const mean = result.results.reduce((sum, value) => sum + value, 0) / result.results.length;
@@ -261,10 +261,10 @@ describe('computePositionDiff', () => {
 
   it('throws when one of the position arrays is empty', () => {
     expect(() => computePositionDiff([], [100])).toThrow(
-      'Position data is empty while computing position difference',
+      'Position data is empty while computing position difference'
     );
     expect(() => computePositionDiff([100], [])).toThrow(
-      'Position data is empty while computing position difference',
+      'Position data is empty while computing position difference'
     );
   });
 });
@@ -275,7 +275,7 @@ describe('forced skill positions', () => {
   function runRaceAndCollectActivations(
     forcedPositions: Record<string, number> | undefined,
     skillIds: Array<string>,
-    seed: number,
+    seed: number
   ) {
     const course = CourseHelpers.getCourse(TEST_COURSE_ID);
     const racedef = racedefToParams(createRaceConditions());
@@ -284,7 +284,7 @@ describe('forced skill positions', () => {
     const runner = createRunnerState({
       outfitId: '100101',
       strategy: 'Runaway',
-      skills: skillIds,
+      skills: skillIds
     });
 
     const sortedSkills = runner.skills.toSorted(createSkillSorterByGroup(runner.skills));
@@ -298,7 +298,7 @@ describe('forced skill positions', () => {
       duelingRates: DEFAULT_DUELING_RATES,
       skillSamples: 1,
       runner: createRunnerObj,
-      observer: collector,
+      observer: collector
     });
 
     race.prepareRound(seed);
@@ -308,14 +308,14 @@ describe('forced skill positions', () => {
     return {
       usedSkills: raceRunner.usedSkills,
       pendingSkills: raceRunner.pendingSkills,
-      createRunnerObj,
+      createRunnerObj
     };
   }
 
   it('should include forcedPositions in CreateRunner when provided', () => {
     const runner = createRunnerState({
       outfitId: '100101',
-      skills: [TEST_SKILL_ID],
+      skills: [TEST_SKILL_ID]
     });
 
     const forcedPositions = { [TEST_SKILL_ID]: 500 };
@@ -327,7 +327,7 @@ describe('forced skill positions', () => {
   it('should not include forcedPositions in CreateRunner when not provided', () => {
     const runner = createRunnerState({
       outfitId: '100101',
-      skills: [TEST_SKILL_ID],
+      skills: [TEST_SKILL_ID]
     });
 
     const createRunnerObj = toCreateRunner(runner, runner.skills);
@@ -340,13 +340,13 @@ describe('forced skill positions', () => {
     const runner = createRunnerState({
       outfitId: '100101',
       strategy: 'Front Runner',
-      skills: [skillId],
+      skills: [skillId]
     });
     const sortedSkills = runner.skills.toSorted(createSkillSorterByGroup(runner.skills));
 
     const withoutForced = toCreateRunner(runner, sortedSkills);
     const withForced = toCreateRunner(runner, sortedSkills, {
-      [skillId]: 100,
+      [skillId]: 100
     });
 
     expect(withoutForced.forcedPositions).toBeUndefined();
@@ -364,7 +364,7 @@ describe('forced skill positions', () => {
     const runner = createRunnerState({
       outfitId: '100101',
       strategy: 'Runaway',
-      skills: [skillId],
+      skills: [skillId]
     });
 
     const sortedSkills = runner.skills.toSorted(createSkillSorterByGroup(runner.skills));
@@ -377,14 +377,14 @@ describe('forced skill positions', () => {
       duelingRates: DEFAULT_DUELING_RATES,
       skillSamples: 1,
       runner: toCreateRunner(runner, sortedSkills, { [skillId]: forcedPos }),
-      observer: collector,
+      observer: collector
     });
 
     race.prepareRound(42);
 
     const raceRunner = race.runners.values().toArray()[0];
     const pendingForSkill = raceRunner.pendingSkills.filter(
-      (ps) => ps.skillId === skillId || ps.skillId.startsWith(skillId),
+      (ps) => ps.skillId === skillId || ps.skillId.startsWith(skillId)
     );
 
     expect(pendingForSkill.length).toBeGreaterThan(0);
@@ -421,12 +421,12 @@ describe('forced skill positions', () => {
     const uma1 = createRunnerState({
       outfitId: '100101',
       strategy: 'Runaway',
-      skills: [impactfulSkillId],
+      skills: [impactfulSkillId]
     });
     const uma2 = createRunnerState({
       outfitId: '100201',
       strategy: 'Pace Chaser',
-      skills: [],
+      skills: []
     });
 
     const options = createSimulationOptions(42);
@@ -440,8 +440,8 @@ describe('forced skill positions', () => {
       options,
       forcedPositions: {
         uma1: { [impactfulSkillId]: 50 },
-        uma2: {},
-      },
+        uma2: {}
+      }
     });
 
     const resultForcedLate = runComparison({
@@ -453,8 +453,8 @@ describe('forced skill positions', () => {
       options,
       forcedPositions: {
         uma1: { [impactfulSkillId]: 1200 },
-        uma2: {},
-      },
+        uma2: {}
+      }
     });
 
     expect(resultForcedEarly.results).not.toEqual(resultForcedLate.results);
@@ -479,12 +479,12 @@ describe('forced skill positions', () => {
       surfaceAptitude: 'A',
       strategyAptitude: 'A',
       mood: 0,
-      skills: ['110061', '201351', '200351', skillId],
+      skills: ['110061', '201351', '200351', skillId]
     });
 
     const collectTriggerStarts = (forcedPositions?: Record<string, number>) => {
       const sortedSkills = runnerPreset.skills.toSorted(
-        createSkillSorterByGroup(runnerPreset.skills),
+        createSkillSorterByGroup(runnerPreset.skills)
       );
       const race = createInitializedRace({
         course,
@@ -492,14 +492,14 @@ describe('forced skill positions', () => {
         settings: createCompareSettings(),
         duelingRates: DEFAULT_DUELING_RATES,
         skillSamples: 1,
-        runner: toCreateRunner(runnerPreset, sortedSkills, forcedPositions),
+        runner: toCreateRunner(runnerPreset, sortedSkills, forcedPositions)
       });
 
       race.prepareRound(seed);
 
       const raceRunner = race.runners.values().toArray()[0];
       const pendingForSkill = raceRunner.pendingSkills.filter(
-        (ps) => ps.skillId === skillId || ps.skillId.startsWith(skillId),
+        (ps) => ps.skillId === skillId || ps.skillId.startsWith(skillId)
       );
 
       expect(pendingForSkill.length).toBeGreaterThan(0);
@@ -523,8 +523,8 @@ describe('forced skill positions', () => {
         weather: 3, // Rainy
         season: 1, // Spring
         time: 2, // Daytime
-        grade: 100, // Grade 1 Race
-      }),
+        grade: 100 // Grade 1 Race
+      })
     );
     const raceParameters = toSundayRaceParameters(racedef);
     const skillId = '200351'; // Swinging Maestro
@@ -543,11 +543,11 @@ describe('forced skill positions', () => {
       strategyAptitude: 'A',
       mood: 2, // Great Mood
       skills: ['110061', skillId], // [Festive Miracle, Swinging Maestro]
-      randomMobId: 8123,
+      randomMobId: 8123
     });
 
     const sortedSkills = runnerPreset.skills.toSorted(
-      createSkillSorterByGroup(runnerPreset.skills),
+      createSkillSorterByGroup(runnerPreset.skills)
     );
     const race = createInitializedRace({
       course,
@@ -555,7 +555,7 @@ describe('forced skill positions', () => {
       settings: createCompareSettings(),
       duelingRates: DEFAULT_DUELING_RATES,
       skillSamples: 1,
-      runner: toCreateRunner(runnerPreset, sortedSkills),
+      runner: toCreateRunner(runnerPreset, sortedSkills)
     });
 
     const starts: Array<number> = [];
@@ -563,7 +563,7 @@ describe('forced skill positions', () => {
       race.prepareRound(baseSeed + i);
       const raceRunner = race.runners.values().toArray()[0];
       const pendingForSkill = raceRunner.pendingSkills.filter(
-        (ps) => ps.skillId === skillId || ps.skillId.startsWith(skillId),
+        (ps) => ps.skillId === skillId || ps.skillId.startsWith(skillId)
       );
       expect(pendingForSkill).toHaveLength(1);
       starts.push(pendingForSkill[0].trigger.start);
@@ -590,7 +590,7 @@ describe('injected debuffs', () => {
   it('includes injectedDebuffs in CreateRunner when provided', () => {
     const runner = createRunnerState({
       outfitId: '100101',
-      skills: [],
+      skills: []
     });
 
     const injectedDebuffs = [{ skillId: TEST_DEBUFF_SKILL_ID, position: 700 }];
@@ -598,7 +598,7 @@ describe('injected debuffs', () => {
       runner,
       runner.skills,
       undefined,
-      injectedDebuffs,
+      injectedDebuffs
     );
 
     expect(createRunnerObj.injectedDebuffs).toEqual(injectedDebuffs);
@@ -607,7 +607,7 @@ describe('injected debuffs', () => {
   it('does not include injectedDebuffs in CreateRunner when not provided', () => {
     const runner = createRunnerState({
       outfitId: '100101',
-      skills: [],
+      skills: []
     });
 
     const createRunnerObj = toCreateRunner(runner, runner.skills);
@@ -620,12 +620,12 @@ describe('injected debuffs', () => {
     const uma1 = createRunnerState({
       outfitId: '100101',
       strategy: 'Runaway',
-      skills: [],
+      skills: []
     });
     const uma2 = createRunnerState({
       outfitId: '100201',
       strategy: 'Pace Chaser',
-      skills: [],
+      skills: []
     });
 
     const baseParams = {
@@ -634,7 +634,7 @@ describe('injected debuffs', () => {
       racedef,
       uma1,
       uma2,
-      options: createSimulationOptions(4242),
+      options: createSimulationOptions(4242)
     };
 
     const withoutDebuff = runComparison(baseParams);
@@ -642,8 +642,8 @@ describe('injected debuffs', () => {
       ...baseParams,
       injectedDebuffs: {
         uma1: [{ skillId: TEST_DEBUFF_SKILL_ID, position: 200 }],
-        uma2: [],
-      },
+        uma2: []
+      }
     } as any);
 
     expect(withDebuff.results).not.toEqual(withoutDebuff.results);
@@ -655,12 +655,12 @@ describe('injected debuffs', () => {
     const uma1 = createRunnerState({
       outfitId: '100101',
       strategy: 'Runaway',
-      skills: [],
+      skills: []
     });
     const uma2 = createRunnerState({
       outfitId: '100201',
       strategy: 'Pace Chaser',
-      skills: [],
+      skills: []
     });
 
     const withoutDebuff = runComparison({
@@ -669,7 +669,7 @@ describe('injected debuffs', () => {
       racedef,
       uma1,
       uma2,
-      options: createSimulationOptions(5511),
+      options: createSimulationOptions(5511)
     });
 
     const withDebuff = runComparison({
@@ -681,8 +681,8 @@ describe('injected debuffs', () => {
       options: createSimulationOptions(5511),
       injectedDebuffs: {
         uma1: [{ skillId: TEST_DEBUFF_SKILL_ID, position: 100 }],
-        uma2: [],
-      },
+        uma2: []
+      }
     } as any);
 
     const meanWithout =
@@ -711,7 +711,7 @@ describe('last spurt activation', () => {
       strategyAptitude: 'A',
       mood: 2,
       skills: ['100371', '210061', '200331', '900271', '200362', '900061'],
-      randomMobId: 8361,
+      randomMobId: 8361
     });
   }
 
@@ -723,8 +723,8 @@ describe('last spurt activation', () => {
         weather: 1,
         season: 1,
         time: 2,
-        grade: 100,
-      }),
+        grade: 100
+      })
     );
     const raceParameters = toSundayRaceParameters(racedef);
     const runner = createLateSurgerRunner();
@@ -738,7 +738,7 @@ describe('last spurt activation', () => {
       duelingRates: DEFAULT_DUELING_RATES,
       skillSamples: 1,
       runner: toCreateRunner(runner, sortedSkills),
-      observer: collector,
+      observer: collector
     });
 
     return { race, collector, course };
@@ -797,8 +797,8 @@ describe('last spurt activation', () => {
         weather: 1,
         season: 1,
         time: 2,
-        grade: 100,
-      }),
+        grade: 100
+      })
     );
     const raceParameters = toSundayRaceParameters(racedef);
     const runner = createLateSurgerRunner();
@@ -812,7 +812,7 @@ describe('last spurt activation', () => {
       duelingRates: DEFAULT_DUELING_RATES,
       skillSamples: 1,
       runner: toCreateRunner(runner, sortedSkills),
-      observer: collector,
+      observer: collector
     });
 
     let fullSpurtCount = 0;
@@ -842,8 +842,8 @@ describe('last spurt activation', () => {
         weather: 1,
         season: 1,
         time: 2,
-        grade: 100,
-      }),
+        grade: 100
+      })
     );
     const raceParameters = toSundayRaceParameters(racedef);
 
@@ -861,11 +861,11 @@ describe('last spurt activation', () => {
       strategyAptitude: 'A',
       mood: 2,
       skills: ['100371', '900061'],
-      randomMobId: 8361,
+      randomMobId: 8361
     });
 
     const sortedSkills = lowStaminaRunner.skills.toSorted(
-      createSkillSorterByGroup(lowStaminaRunner.skills),
+      createSkillSorterByGroup(lowStaminaRunner.skills)
     );
 
     const collector = new VacuumCompareDataCollector();
@@ -876,7 +876,7 @@ describe('last spurt activation', () => {
       duelingRates: DEFAULT_DUELING_RATES,
       skillSamples: 1,
       runner: toCreateRunner(lowStaminaRunner, sortedSkills),
-      observer: collector,
+      observer: collector
     });
 
     race.prepareRound(425546);
@@ -896,7 +896,7 @@ describe('last spurt activation', () => {
 
     // Last spurt speed should be less than or equal to the max possible spurt speed
     expect(raceRunner.lastSpurtSpeed).toBeLessThanOrEqual(
-      raceRunner.baseTargetSpeedPerPhase[2] + 5,
+      raceRunner.baseTargetSpeedPerPhase[2] + 5
     );
     expect(raceRunner.lastSpurtTransition).toBeGreaterThan(0);
   });
@@ -919,7 +919,7 @@ describe('skill-planner-compare simulator', () => {
       runnerB,
       candidateSkills: [runawaySkillId],
       ignoreStaminaConsumption: false,
-      options,
+      options
     });
 
     const second = runPlannerComparison({
@@ -930,7 +930,7 @@ describe('skill-planner-compare simulator', () => {
       runnerB,
       candidateSkills: [runawaySkillId],
       ignoreStaminaConsumption: false,
-      options,
+      options
     });
 
     expect(first.results).toEqual(second.results);
@@ -946,8 +946,8 @@ describe('skill-planner-compare simulator', () => {
         ground: 4,
         weather: 3,
         season: 1,
-        time: 2,
-      }),
+        time: 2
+      })
     );
 
     const runnerA = createRunnerState({
@@ -963,7 +963,7 @@ describe('skill-planner-compare simulator', () => {
       strategyAptitude: 'A',
       mood: 2,
       skills: ['110061', '200741', '201351', '200351'],
-      randomMobId: 8256,
+      randomMobId: 8256
     });
     const runnerB = createRunnerState({
       outfitId: '100602',
@@ -978,7 +978,7 @@ describe('skill-planner-compare simulator', () => {
       strategyAptitude: 'A',
       mood: 2,
       skills: ['110061'],
-      randomMobId: 8256,
+      randomMobId: 8256
     });
 
     const result = runPlannerComparison({
@@ -989,7 +989,7 @@ describe('skill-planner-compare simulator', () => {
       runnerB,
       candidateSkills: ['110061'],
       ignoreStaminaConsumption: false,
-      options: createSimulationOptions(20260306),
+      options: createSimulationOptions(20260306)
     });
 
     expect(result.mean).toBeLessThan(0);

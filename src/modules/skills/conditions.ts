@@ -8,7 +8,7 @@ var parser: ReturnType<typeof createParser> | null = null;
 function getParser() {
   if (!parser) {
     parser = createParser({
-      conditions: mockConditions,
+      conditions: mockConditions
     });
   }
 

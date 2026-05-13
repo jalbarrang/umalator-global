@@ -5,7 +5,7 @@ import {
   interpolateTrackPoint,
   outwardFromTrackPoint,
   type BuiltTrackPath,
-  type TrackPathPoint,
+  type TrackPathPoint
 } from '@/modules/race-sim/utils/track-path';
 import { toCanvas } from './canvasMath';
 import type { CanvasTransform, TrackMarker } from './shared';
@@ -14,7 +14,7 @@ import { clamp } from './utils';
 function representativeRaceDistanceForLoop(
   built: BuiltTrackPath,
   loopDist: number,
-  courseDistance: number,
+  courseDistance: number
 ): number {
   const { lapLength, raceStartOnTrack, wraps } = built;
   if (!wraps) return clamp(loopDist, 0, courseDistance);
@@ -41,7 +41,7 @@ function drawCheckeredLineAcrossTrack(
   ctx: CanvasRenderingContext2D,
   inner: { cx: number; cy: number },
   outer: { cx: number; cy: number },
-  squares: number,
+  squares: number
 ): void {
   const dx = outer.cx - inner.cx;
   const dy = outer.cy - inner.cy;
@@ -77,7 +77,7 @@ function drawCheckeredLineAcrossTrack(
 function drawStartGateAcrossTrack(
   ctx: CanvasRenderingContext2D,
   inner: { cx: number; cy: number },
-  outer: { cx: number; cy: number },
+  outer: { cx: number; cy: number }
 ): void {
   ctx.save();
   ctx.strokeStyle = 'rgba(245, 158, 11, 0.95)';
@@ -133,7 +133,7 @@ export function strokeTrackOutlineAndRails(
   outerPts: Array<{ x: number; y: number }>,
   transform: CanvasTransform,
   colorBorder: string,
-  colorMuted: string,
+  colorMuted: string
 ): void {
   const first = toCanvas(innerPts[0].x, innerPts[0].y, transform);
   ctx.beginPath();
@@ -186,7 +186,7 @@ type PhaseDividersSfParams = {
 export function paintPhaseDividersStartFinish(p: PhaseDividersSfParams): void {
   const { ctx, builtTrack, courseWidth, turnSign, courseDistance, transform, colorMuted } = p;
   const phaseBoundaries = [0, 1, 2, 3].map((ph) =>
-    CourseHelpers.phaseStart(courseDistance, ph as 0 | 1 | 2 | 3),
+    CourseHelpers.phaseStart(courseDistance, ph as 0 | 1 | 2 | 3)
   );
   for (const db of phaseBoundaries) {
     if (db <= 0 || db >= courseDistance) continue;
@@ -211,7 +211,7 @@ export function paintPhaseDividersStartFinish(p: PhaseDividersSfParams): void {
   drawStartGateAcrossTrack(
     ctx,
     toCanvas(pStart.x, pStart.y, transform),
-    toCanvas(pStart.x + courseWidth * oStart.x, pStart.y + courseWidth * oStart.y, transform),
+    toCanvas(pStart.x + courseWidth * oStart.x, pStart.y + courseWidth * oStart.y, transform)
   );
 
   const pFinish = interpolateTrackPoint(builtTrack, courseDistance);
@@ -220,7 +220,7 @@ export function paintPhaseDividersStartFinish(p: PhaseDividersSfParams): void {
     ctx,
     toCanvas(pFinish.x, pFinish.y, transform),
     toCanvas(pFinish.x + courseWidth * oFinish.x, pFinish.y + courseWidth * oFinish.y, transform),
-    7,
+    7
   );
 }
 
@@ -275,7 +275,7 @@ export function buildTrackMarkers(courseData: CourseData): TrackMarker[] {
       distance: c.start + len / 2,
       placement: 'outer',
       kind: 'corner',
-      label: cornerLabels[i],
+      label: cornerLabels[i]
     });
   }
 
@@ -288,7 +288,7 @@ export function buildTrackMarkers(courseData: CourseData): TrackMarker[] {
         distance: s.start + len * ((i + 0.5) / count),
         placement: 'outer',
         kind: 'straight',
-        label: '',
+        label: ''
       });
     }
   }
@@ -309,7 +309,7 @@ export function buildTrackMarkers(courseData: CourseData): TrackMarker[] {
       distance: mid,
       placement: 'surface',
       kind: sl.slope > 0 ? 'slope-up' : 'slope-down',
-      label: '',
+      label: ''
     });
   }
 
@@ -324,7 +324,7 @@ export function buildTrackMarkers(courseData: CourseData): TrackMarker[] {
       distance: flatPos,
       placement: 'surface',
       kind: 'slope-flat',
-      label: '',
+      label: ''
     });
   }
 
@@ -457,7 +457,7 @@ const iconPainters: Record<TrackMarker['kind'], IconPainter> = {
       ctx.stroke();
     }
     ctx.restore();
-  },
+  }
 };
 
 export function paintTrackMarkers(p: {
@@ -477,7 +477,7 @@ export function paintTrackMarkers(p: {
     const { cx, cy } = toCanvas(
       pt.x + courseWidth * frac * o.x,
       pt.y + courseWidth * frac * o.y,
-      transform,
+      transform
     );
     iconPainters[m.kind](ctx, cx, cy, m.label);
   }

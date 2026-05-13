@@ -39,7 +39,7 @@ export function levenshteinDistance(a: string, b: string): number {
         matrix[i][j] = Math.min(
           matrix[i - 1][j - 1] + 1, // substitution
           matrix[i][j - 1] + 1, // insertion
-          matrix[i - 1][j] + 1, // deletion
+          matrix[i - 1][j] + 1 // deletion
         );
       }
     }
@@ -159,6 +159,6 @@ export function findBestUmaMatch(outfit: string, umaName: string): UmaMatch | nu
 /** Export lookup sizes for debugging */
 export function getSearchDebugInfo() {
   return {
-    umaLookupSize: getUmaLookup().size,
+    umaLookupSize: getUmaLookup().size
   };
 }

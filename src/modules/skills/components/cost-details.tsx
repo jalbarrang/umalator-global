@@ -11,14 +11,14 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
+  SelectValue
 } from '@/components/ui/select';
 import type { HintLevel } from '@/modules/skill-planner/types';
 import { calculateSkillCost } from '@/modules/skill-planner/cost-calculator';
 import {
   getRelatedSkillIds,
   getRepresentativePrerequisiteIds,
-  isSkillCoveredByOwnedFamily,
+  isSkillCoveredByOwnedFamily
 } from '@/modules/skill-planner/skill-family';
 import { dataRegistry } from '@/modules/data/registry';
 import { buildSkillCostSummary } from '@/modules/skills/skill-cost-summary';
@@ -29,7 +29,7 @@ const HINT_LEVEL_OPTIONS: Array<{ value: HintLevel; label: string }> = [
   { value: 2, label: 'Lvl 2 (20%)' },
   { value: 3, label: 'Lvl 3 (30%)' },
   { value: 4, label: 'Lvl 4 (35%)' },
-  { value: 5, label: 'Lvl Max (40%)' },
+  { value: 5, label: 'Lvl Max (40%)' }
 ];
 
 const getHintLevelLabel = (hintLevel: HintLevel) => {
@@ -56,7 +56,7 @@ const PrereqItem = memo((props: PrereqItemProps) => {
 
   const prereqNetCost = useMemo(
     () => (bought ? 0 : calculateSkillCost(prereqId, hintLevel as HintLevel, hasFastLearner)),
-    [bought, prereqId, hintLevel, hasFastLearner],
+    [bought, prereqId, hintLevel, hasFastLearner]
   );
 
   const boughtCheckboxId = `${runnerId ?? 'runner'}-${prereqId}-bought`;
@@ -132,7 +132,7 @@ export const SkillCostDetails = () => {
     getSkillMeta,
     onHintLevelChange,
     onBoughtChange,
-    costSummary,
+    costSummary
   } = useSkillItem();
 
   const selfMeta = useMemo(() => getSkillMeta(skillId), [getSkillMeta, skillId]);
@@ -140,18 +140,18 @@ export const SkillCostDetails = () => {
 
   const representativePrereqIds = useMemo(() => {
     const boughtFamilySkillIds = getRelatedSkillIds(normalizedSkillId).filter(
-      (relatedSkillId) => getSkillMeta(relatedSkillId).bought === true,
+      (relatedSkillId) => getSkillMeta(relatedSkillId).bought === true
     );
 
     return getRepresentativePrerequisiteIds(normalizedSkillId).filter(
-      (prereqId) => !isSkillCoveredByOwnedFamily(prereqId, boughtFamilySkillIds),
+      (prereqId) => !isSkillCoveredByOwnedFamily(prereqId, boughtFamilySkillIds)
     );
   }, [getSkillMeta, normalizedSkillId]);
   const hasPrerequisites = representativePrereqIds.length > 0;
 
   const netCost = useMemo(
     () => calculateSkillCost(normalizedSkillId, hintLevel, hasFastLearner),
-    [hasFastLearner, hintLevel, normalizedSkillId],
+    [hasFastLearner, hintLevel, normalizedSkillId]
   );
 
   const resolvedCostSummary = useMemo(() => {
@@ -162,7 +162,7 @@ export const SkillCostDetails = () => {
     return buildSkillCostSummary({
       skillId,
       hasFastLearner,
-      getSkillMeta,
+      getSkillMeta
     });
   }, [costSummary, skillId, hasFastLearner, getSkillMeta]);
 

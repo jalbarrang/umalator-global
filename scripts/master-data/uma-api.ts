@@ -5,7 +5,7 @@
 export const UMA_MOE_VERSION_URL = 'https://uma.moe/api/ver';
 const UMA_MOE_REQUEST_HEADERS = {
   Accept: 'application/json',
-  'User-Agent': 'umalator-global-data-sync/1.0',
+  'User-Agent': 'umalator-global-data-sync/1.0'
 };
 const MAX_FETCH_ATTEMPTS = 3;
 const RETRY_DELAY_MS = 500;
@@ -29,7 +29,7 @@ function isGameVersionRecord(value: unknown): value is GameVersionApiRecord {
     typeof value === 'object' &&
     typeof (value as Record<string, unknown>).app_version === 'string' &&
     typeof (value as Record<string, unknown>).resource_version === 'string' &&
-    typeof (value as Record<string, unknown>).updated_at === 'string',
+    typeof (value as Record<string, unknown>).updated_at === 'string'
   );
 }
 
@@ -82,12 +82,12 @@ export async function fetchCurrentResourceVersion(): Promise<string> {
   for (let attempt = 1; attempt <= MAX_FETCH_ATTEMPTS; attempt++) {
     try {
       const response = await fetch(UMA_MOE_VERSION_URL, {
-        headers: UMA_MOE_REQUEST_HEADERS,
+        headers: UMA_MOE_REQUEST_HEADERS
       });
 
       if (!response.ok) {
         throw new Error(
-          `HTTP ${response.status}: ${response.statusText} while fetching latest version from ${UMA_MOE_VERSION_URL}`,
+          `HTTP ${response.status}: ${response.statusText} while fetching latest version from ${UMA_MOE_VERSION_URL}`
         );
       }
 
@@ -109,7 +109,7 @@ export async function fetchCurrentResourceVersion(): Promise<string> {
   }
 
   throw new Error(
-    `Failed to fetch current resource version after ${MAX_FETCH_ATTEMPTS} attempts: ${formatErrorWithCause(lastError)}`,
+    `Failed to fetch current resource version after ${MAX_FETCH_ATTEMPTS} attempts: ${formatErrorWithCause(lastError)}`
   );
 }
 

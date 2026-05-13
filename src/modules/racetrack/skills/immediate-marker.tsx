@@ -32,7 +32,7 @@ export const ImmediateMarker = React.memo<ImmediateLayout & { onDragStart: DragS
     position,
     debuffId,
     isDragging = false,
-    onDragStart,
+    onDragStart
   }) => {
     const { tooltipRef, bgRef, show, hide } = useSkillTooltip();
     const wasDraggingRef = useRef(false);
@@ -60,10 +60,10 @@ export const ImmediateMarker = React.memo<ImmediateLayout & { onDragStart: DragS
           position,
           position,
           isDebuff ? 'debuff' : 'skill',
-          debuffId,
+          debuffId
         );
       },
-      [skillId, umaIndex, position, isDebuff, debuffId, onDragStart],
+      [skillId, umaIndex, position, isDebuff, debuffId, onDragStart]
     );
 
     const handlePointerLeave = useCallback(
@@ -71,7 +71,7 @@ export const ImmediateMarker = React.memo<ImmediateLayout & { onDragStart: DragS
         if (isDragging || e.buttons !== 0) return;
         hide();
       },
-      [hide, isDragging],
+      [hide, isDragging]
     );
 
     return (
@@ -104,5 +104,5 @@ export const ImmediateMarker = React.memo<ImmediateLayout & { onDragStart: DragS
         />
       </svg>
     );
-  },
+  }
 );

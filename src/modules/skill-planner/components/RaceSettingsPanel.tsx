@@ -22,7 +22,7 @@ const groundConditions: Record<number, string> = {
   1: 'Firm',
   2: 'Good',
   3: 'Soft',
-  4: 'Heavy',
+  4: 'Heavy'
 };
 
 type RaceSettingsPanelProps = {

@@ -48,7 +48,7 @@ export function SkillPlannerShopStep() {
       setSkillPickerOpen(true);
     },
     { enableOnFormTags: true, enabled: !skillPickerOpen },
-    [skillPickerOpen],
+    [skillPickerOpen]
   );
 
   return (

@@ -279,7 +279,7 @@ export class SkillService {
           matrix[i][j] = Math.min(
             matrix[i - 1][j - 1] + 1,
             matrix[i][j - 1] + 1,
-            matrix[i - 1][j] + 1,
+            matrix[i - 1][j] + 1
           );
         }
       }
@@ -336,7 +336,7 @@ export class SkillService {
   };
 
   private selectCanonicalSkillLookupEntry = (
-    entries: Array<SkillLookupEntry>,
+    entries: Array<SkillLookupEntry>
   ): SkillLookupEntry => {
     return this.sortSkillLookupEntries(entries)[0];
   };
@@ -346,7 +346,7 @@ export class SkillService {
 
   private selectMatchedSkillLookupEntry = (
     entries: Array<SkillLookupEntry>,
-    originalText: string,
+    originalText: string
   ): SkillLookupEntry => {
     const hasLevel = this.hasSkillLevelIndicator(originalText);
     const sortedEntries = this.sortSkillLookupEntries(entries);
@@ -383,7 +383,7 @@ export class SkillService {
         id: `${skill.id}`,
         geneId: skill.gene_version?.id ? `${skill.gene_version.id}` : undefined,
         name: skill.name,
-        rarity: skill.rarity,
+        rarity: skill.rarity
       };
 
       const entries = this.skillLookupCandidates.get(key);
@@ -430,7 +430,7 @@ export class SkillService {
         geneId: exactMatch.geneId,
         name: exactMatch.name,
         confidence: 1,
-        originalText: ocrText,
+        originalText: ocrText
       };
     }
 
@@ -458,7 +458,7 @@ export class SkillService {
           geneId: entry.geneId,
           name: entry.name,
           confidence: score,
-          originalText: ocrText,
+          originalText: ocrText
         };
       }
     }

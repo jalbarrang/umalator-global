@@ -60,9 +60,9 @@ export function SkillItemRoot(props: Readonly<SkillItemRootProps>) {
         'flex min-h-[32px] rounded-md border-2 bg-background data-[size=summary]:min-h-[48px]',
         {
           'ring-2 ring-primary': selected,
-          'bg-yellow-200/70 dark:bg-yellow-800/40': isHovered || isFocused,
+          'bg-yellow-200/70 dark:bg-yellow-800/40': isHovered || isFocused
         },
-        className,
+        className
       )}
       onKeyDown={(event) => {
         if (interactive && (event.key === 'Enter' || event.key === ' ')) {
@@ -91,9 +91,9 @@ export function SkillItemRail(props: Readonly<SkillItemRailProps>) {
           'skill-white': resolvedRarity != null && isWhiteSkill(resolvedRarity),
           'skill-gold': resolvedRarity != null && isGoldSkill(resolvedRarity),
           'skill-unique': resolvedRarity != null && isUniqueSkill(resolvedRarity),
-          'skill-pink': resolvedRarity != null && isEvolutionSkill(resolvedRarity),
+          'skill-pink': resolvedRarity != null && isEvolutionSkill(resolvedRarity)
         },
-        className,
+        className
       )}
       {...rest}
     />

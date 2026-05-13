@@ -35,5 +35,5 @@ export class DataRegistry {
 export const dataRegistry = new DataRegistry({
   skills: new SkillService(skillsJson as any),
   courses: new CourseService(coursesJson as any),
-  umas: new UmaService(umasJson as any),
+  umas: new UmaService(umasJson as any)
 });

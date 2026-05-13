@@ -23,7 +23,7 @@ function parseTextResult(
   result: ExtractedUmaData,
   text: string,
   imageIndex: number,
-  existingData?: Partial<ExtractedUmaData>,
+  existingData?: Partial<ExtractedUmaData>
 ) {
   // Extract uma identity from first image only
   if (imageIndex === 0 || !existingData?.outfitId) {
@@ -62,7 +62,7 @@ function parseTextResult(
       !recognizedTexts.has(lower) &&
       line.length > 3 &&
       !line.match(
-        /^(speed|stamina|power|guts|wit|track|distance|style|skills|inspiration|career|close|select|cancel|umamusume|details|\d+|[sabcdefg]|turf|dirt|sprint|mile|medium|long|front|pace|late|end|witness|legend|change|epithet|rank|lvl\s*\d+)$/i,
+        /^(speed|stamina|power|guts|wit|track|distance|style|skills|inspiration|career|close|select|cancel|umamusume|details|\d+|[sabcdefg]|turf|dirt|sprint|mile|medium|long|front|pace|late|end|witness|legend|change|epithet|rank|lvl\s*\d+)$/i
       )
     ) {
       result.unrecognized.push(line);
@@ -74,7 +74,7 @@ function parseStructuredResult(
   result: ExtractedUmaData,
   structured: Partial<ExtractedUmaData>,
   imageIndex: number,
-  existingData?: Partial<ExtractedUmaData>,
+  existingData?: Partial<ExtractedUmaData>
 ) {
   // Keep first image ownership for identity and stats
   if (imageIndex === 0 || !existingData?.outfitId) {
@@ -104,7 +104,7 @@ function parseStructuredResult(
         name: skill.name,
         confidence: skill.confidence,
         originalText: skill.originalText,
-        fromImage: skill.fromImage,
+        fromImage: skill.fromImage
       }))
       .filter((skill) => Boolean(skill.id && skill.name))
       .map((skill) => ({
@@ -112,7 +112,7 @@ function parseStructuredResult(
         name: skill.name,
         confidence: skill.confidence ?? 1,
         originalText: skill.originalText ?? skill.name,
-        fromImage: skill.fromImage ?? imageIndex,
+        fromImage: skill.fromImage ?? imageIndex
       }));
 
     mergeSkills(result, structuredSkills);
@@ -123,7 +123,7 @@ function parseStructuredResult(
 export function parseOcrResult(
   engineResult: OcrEngineResult,
   imageIndex: number,
-  existingData?: Partial<ExtractedUmaData>,
+  existingData?: Partial<ExtractedUmaData>
 ): ExtractedUmaData {
   const result: ExtractedUmaData = {
     outfitId: existingData?.outfitId,
@@ -141,7 +141,7 @@ export function parseOcrResult(
     strategy: existingData?.strategy,
     skills: existingData?.skills ? [...existingData.skills] : [],
     imageCount: (existingData?.imageCount ?? 0) + 1,
-    unrecognized: existingData?.unrecognized ? [...existingData.unrecognized] : [],
+    unrecognized: existingData?.unrecognized ? [...existingData.unrecognized] : []
   };
 
   if (engineResult.text) {

@@ -3,7 +3,7 @@ import {
   getBaseTier,
   getGoldVersion,
   getUpgradeTier,
-  getWhiteVersion,
+  getWhiteVersion
 } from '@/modules/skills/skill-relationships';
 
 function queueIfValid(skillIds: Set<string>, queue: Array<string>, skillId?: string) {
@@ -31,8 +31,8 @@ export function getRepresentativePrerequisiteIds(skillId: string): Array<string>
 
     return Array.from(
       new Set(
-        [baseTierId, upgradeTierId].filter((id): id is string => Boolean(id && id !== skillId)),
-      ),
+        [baseTierId, upgradeTierId].filter((id): id is string => Boolean(id && id !== skillId))
+      )
     );
   }
 
@@ -55,7 +55,7 @@ export function getRepresentativePrerequisiteIds(skillId: string): Array<string>
  */
 export function isSkillCoveredByOwnedFamily(
   skillId: string,
-  ownedSkillIds: Iterable<string>,
+  ownedSkillIds: Iterable<string>
 ): boolean {
   const ownedSet = toSkillIdSet(ownedSkillIds);
   if (ownedSet.has(skillId)) {
@@ -85,12 +85,12 @@ export function isSkillCoveredByOwnedFamily(
 
 export function getUnsatisfiedRepresentativePrerequisiteIds(
   skillId: string,
-  ownedSkillIds: Iterable<string>,
+  ownedSkillIds: Iterable<string>
 ): Array<string> {
   const ownedSet = toSkillIdSet(ownedSkillIds);
 
   return getRepresentativePrerequisiteIds(skillId).filter(
-    (prereqId) => !isSkillCoveredByOwnedFamily(prereqId, ownedSet),
+    (prereqId) => !isSkillCoveredByOwnedFamily(prereqId, ownedSet)
   );
 }
 

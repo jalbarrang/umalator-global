@@ -14,7 +14,7 @@ export class ApproximateStartContinue implements ApproximateCondition {
   constructor(
     public readonly name: string,
     public readonly startRate: number,
-    public readonly continuationRate: number,
+    public readonly continuationRate: number
   ) {}
 
   get valueOnStart(): number {
@@ -41,7 +41,7 @@ export class ApproximateMultiCondition implements ApproximateCondition {
   constructor(
     public readonly name: string,
     public readonly conditions: ReadonlyArray<ConditionEntry>,
-    public readonly valueOnStart: number = 0,
+    public readonly valueOnStart: number = 0
   ) {}
 
   update(state: ConditionState, currentValue: number): number {

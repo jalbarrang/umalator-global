@@ -70,7 +70,7 @@ const STRATEGY_NAME_MAP: Record<string, IStrategyName> = {
   oikomi: 'End Closer',
   end: 'End Closer',
   'end closer': 'End Closer',
-  runaway: 'Runaway',
+  runaway: 'Runaway'
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -106,7 +106,7 @@ export async function blobToBase64(imageData: Blob | File): Promise<{
 
   return {
     base64: toBase64(buffer),
-    mimeType: imageData.type || 'image/png',
+    mimeType: imageData.type || 'image/png'
   };
 }
 
@@ -118,22 +118,22 @@ export function buildGeminiRequestBody(imageBase64: string, mimeType: string) {
           {
             inline_data: {
               mime_type: mimeType,
-              data: imageBase64,
-            },
+              data: imageBase64
+            }
           },
           {
-            text: EXTRACTION_PROMPT,
-          },
-        ],
-      },
+            text: EXTRACTION_PROMPT
+          }
+        ]
+      }
     ],
     generationConfig: {
       temperature: 0.1,
       topK: 1,
       topP: 0.8,
       maxOutputTokens: 4096,
-      responseMimeType: 'application/json',
-    },
+      responseMimeType: 'application/json'
+    }
   };
 }
 
@@ -174,7 +174,7 @@ export function stripMarkdownFences(value: string): string {
 
 function parseStringField(
   payload: Record<string, unknown>,
-  key: keyof GeminiStructuredResponse,
+  key: keyof GeminiStructuredResponse
 ): string {
   const value = payload[key];
 
@@ -187,7 +187,7 @@ function parseStringField(
 
 function parseNumberField(
   payload: Record<string, unknown>,
-  key: keyof GeminiStructuredResponse,
+  key: keyof GeminiStructuredResponse
 ): number {
   const value = payload[key];
 
@@ -207,7 +207,7 @@ function parseNumberField(
 
 function parseGradeField(
   payload: Record<string, unknown>,
-  key: keyof GeminiStructuredResponse,
+  key: keyof GeminiStructuredResponse
 ): string {
   const value = parseStringField(payload, key).toUpperCase();
 
@@ -240,7 +240,7 @@ function validateGeminiJson(value: unknown): GeminiStructuredResponse {
     distanceAptitude: parseGradeField(value, 'distanceAptitude'),
     strategyAptitude: parseGradeField(value, 'strategyAptitude'),
     strategy: parseStringField(value, 'strategy'),
-    skills: skillsValue.map((skill) => skill.trim()).filter(Boolean),
+    skills: skillsValue.map((skill) => skill.trim()).filter(Boolean)
   };
 }
 
@@ -290,7 +290,7 @@ function mapGeminiSkills(skills: Array<string>): Array<ExtractedSkill> {
       name: match.name,
       confidence: match.confidence,
       originalText: skillName,
-      fromImage: 0,
+      fromImage: 0
     });
   }
 
@@ -298,7 +298,7 @@ function mapGeminiSkills(skills: Array<string>): Array<ExtractedSkill> {
 }
 
 export function mapGeminiStructuredData(
-  payload: GeminiStructuredResponse,
+  payload: GeminiStructuredResponse
 ): Partial<ExtractedUmaData> {
   const structured: Partial<ExtractedUmaData> = {
     outfitName: payload.outfit || undefined,
@@ -313,7 +313,7 @@ export function mapGeminiStructuredData(
     distanceAptitude: payload.distanceAptitude,
     strategyAptitude: payload.strategyAptitude,
     strategy: mapGeminiStrategyName(payload.strategy),
-    skills: mapGeminiSkills(payload.skills),
+    skills: mapGeminiSkills(payload.skills)
   };
 
   const umaMatch = findBestUmaMatch(payload.outfit, payload.name);
@@ -356,9 +356,9 @@ export class GeminiEngine implements OcrEngine {
     const response = await fetch(`${GEMINI_API_URL}?key=${encodeURIComponent(this.apiKey)}`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify(buildGeminiRequestBody(base64, mimeType)),
+      body: JSON.stringify(buildGeminiRequestBody(base64, mimeType))
     });
 
     if (!response.ok) {

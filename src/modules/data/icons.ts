@@ -4,7 +4,7 @@ import rawIcons from './json/icons.json';
 type IconMap = typeof rawIcons;
 
 export const icons = Object.fromEntries(
-  Object.entries(rawIcons).map(([id, path]) => [id, getIconUrl(path)]),
+  Object.entries(rawIcons).map(([id, path]) => [id, getIconUrl(path)])
 ) as IconMap;
 
 export function getIconById(id: string | number): string | undefined {

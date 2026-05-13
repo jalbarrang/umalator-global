@@ -2,7 +2,7 @@
 export class Region {
   constructor(
     readonly start: number,
-    readonly end: number,
+    readonly end: number
   ) {}
 
   intersect(other: { start: number; end: number }) {

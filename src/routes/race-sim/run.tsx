@@ -19,7 +19,7 @@ import {
   play,
   seekTo,
   setRound,
-  usePlaybackStore,
+  usePlaybackStore
 } from '@/modules/race-sim/stores/playback.store';
 import { computeViewport } from '@/modules/race-sim/utils/viewport';
 import { getUmaDisplayInfo } from '@/modules/runners/utils';
@@ -32,8 +32,8 @@ function SamplePicker() {
   const { roundCount, selectedRound } = usePlaybackStore(
     useShallow((s) => ({
       roundCount: s.roundCount,
-      selectedRound: s.selectedRound,
-    })),
+      selectedRound: s.selectedRound
+    }))
   );
 
   return (
@@ -71,8 +71,8 @@ const VisualizationPanel = memo(function VisualizationPanel(props: Visualization
     useShallow((s) => ({
       currentTick: s.currentTick,
       results: s.results,
-      selectedRound: s.selectedRound,
-    })),
+      selectedRound: s.selectedRound
+    }))
   );
 
   const viewport = useMemo(() => {
@@ -95,7 +95,7 @@ const VisualizationPanel = memo(function VisualizationPanel(props: Visualization
   );
 });
 
-export function RaceSimRun() {
+export default function RaceSimRun() {
   const { error } = useRaceSimContext();
 
   const { results, runners, focusRunnerIndices, zoomWindowMeters } = useRaceSimStore(
@@ -103,8 +103,8 @@ export function RaceSimRun() {
       results: state.results,
       runners: state.runners,
       focusRunnerIndices: state.focusRunnerIndices,
-      zoomWindowMeters: state.zoomWindowMeters,
-    })),
+      zoomWindowMeters: state.zoomWindowMeters
+    }))
   );
 
   const { courseId } = useSettingsStore(useShallow((state) => ({ courseId: state.courseId })));
@@ -137,7 +137,7 @@ export function RaceSimRun() {
 
   const trackedRunnerIds = useMemo(
     () => focusRunnerIndices.toSorted((left, right) => left - right),
-    [focusRunnerIndices],
+    [focusRunnerIndices]
   );
 
   useHotkeys('space', (e) => {
@@ -152,7 +152,7 @@ export function RaceSimRun() {
   const playbackSkipDisplaySeconds = 5;
   const jumpTicks = Math.max(
     1,
-    Math.round((playbackSkipDisplaySeconds * TICKS_PER_SECOND) / SIM_TO_DISPLAY_SECONDS),
+    Math.round((playbackSkipDisplaySeconds * TICKS_PER_SECOND) / SIM_TO_DISPLAY_SECONDS)
   );
 
   useHotkeys(
@@ -162,7 +162,7 @@ export function RaceSimRun() {
       const { currentTick } = usePlaybackStore.getState();
       seekTo(currentTick - jumpTicks);
     },
-    { preventDefault: true },
+    { preventDefault: true }
   );
 
   useHotkeys(
@@ -172,7 +172,7 @@ export function RaceSimRun() {
       const { currentTick } = usePlaybackStore.getState();
       seekTo(currentTick + jumpTicks);
     },
-    { preventDefault: true },
+    { preventDefault: true }
   );
 
   if (!results) {
@@ -278,7 +278,7 @@ export function RaceSimRun() {
           </div>
 
           <EventLogPanel
-            className="flex w-full min-h-0 flex-col border-l md:h-full md:w-[300px] md:shrink-0"
+            className="flex w-full min-h-0 flex-col border-l md:h-full md:w-75 md:shrink-0"
             trackedRunnerIds={trackedRunnerIds}
             runnerNames={runnerNames}
           />

@@ -59,7 +59,7 @@ export function queryAll<T>(db: Database, sql: string): Array<T> {
  */
 export function queryAllWithParams<
   T,
-  TParams extends Array<SQLQueryBindings> = Array<SQLQueryBindings>,
+  TParams extends Array<SQLQueryBindings> = Array<SQLQueryBindings>
 >(db: Database, sql: string, ...params: TParams): Array<T> {
   try {
     const stmt = db.prepare(sql);
@@ -67,7 +67,7 @@ export function queryAllWithParams<
   } catch (err) {
     const error = err as Error;
     throw new Error(
-      `Query with params failed: ${error.message}\nSQL: ${sql}\nParams: ${JSON.stringify(params)}`,
+      `Query with params failed: ${error.message}\nSQL: ${sql}\nParams: ${JSON.stringify(params)}`
     );
   }
 }

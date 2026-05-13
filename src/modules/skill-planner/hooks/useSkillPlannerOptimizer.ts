@@ -21,13 +21,13 @@ import {
   setLastOptimizationFingerprint,
   setProgress,
   setResult,
-  useSkillPlannerStore,
+  useSkillPlannerStore
 } from '../skill-planner.store';
 import type {
   CandidateSkill,
   OptimizationProgress,
   OptimizationResult,
-  SkillPlanningMeta,
+  SkillPlanningMeta
 } from '../types';
 import { buildOptimizationInputFingerprint } from '../input-fingerprint';
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
@@ -67,7 +67,7 @@ function getCurrentOptimizationFingerprint() {
     skillMetaById,
     budget,
     hasFastLearner,
-    ignoreStaminaConsumption,
+    ignoreStaminaConsumption
   } = useSkillPlannerStore.getState();
   const { courseId, racedef, staminaDrainOverrides } = useSettingsStore.getState();
 
@@ -81,7 +81,7 @@ function getCurrentOptimizationFingerprint() {
     obtainedSkillIds,
     candidates,
     skillMetaById,
-    staminaDrainOverrides,
+    staminaDrainOverrides
   });
 }
 
@@ -94,7 +94,7 @@ export function useSkillPlannerOptimizer() {
     budget,
     hasFastLearner,
     ignoreStaminaConsumption,
-    seed,
+    seed
   } = useSkillPlannerStore();
   const { courseId, racedef, staminaDrainOverrides } = useSettingsStore();
 
@@ -114,7 +114,7 @@ export function useSkillPlannerOptimizer() {
 
     console.log('skill-planner:handleWorkerMessage', {
       type,
-      data: event.data,
+      data: event.data
     });
 
     switch (type) {
@@ -187,7 +187,7 @@ export function useSkillPlannerOptimizer() {
       obtainedSkillIds,
       candidates,
       skillMetaById,
-      staminaDrainOverrides,
+      staminaDrainOverrides
     });
 
     webWorkerRef.current?.postMessage({
@@ -204,9 +204,9 @@ export function useSkillPlannerOptimizer() {
         racedef: raceParams,
         options: {
           ...defaultSimulationOptions,
-          seed: seedValue,
-        },
-      },
+          seed: seedValue
+        }
+      }
     });
   };
 
@@ -241,7 +241,7 @@ export function useSkillPlannerOptimizer() {
   return {
     handleOptimize,
     handleReplay,
-    handleCancel,
+    handleCancel
   };
 }
 
@@ -258,24 +258,24 @@ export function useSkillPlannerOptimizer() {
 function expandPrerequisites(
   candidates: Record<string, CandidateSkill>,
   skillMetaById: Record<string, SkillPlanningMeta>,
-  obtainedSkills: Array<string>,
+  obtainedSkills: Array<string>
 ): Record<string, CandidateSkill> {
   const expanded: Record<string, CandidateSkill> = {};
 
   for (const candidate of Object.values(candidates)) {
     expanded[candidate.skillId] = createCandidate({
       skillId: candidate.skillId,
-      hintLevel: skillMetaById[candidate.skillId]?.hintLevel ?? candidate.hintLevel ?? 0,
+      hintLevel: skillMetaById[candidate.skillId]?.hintLevel ?? candidate.hintLevel ?? 0
     });
 
     for (const prereqId of getUnsatisfiedRepresentativePrerequisiteIds(
       candidate.skillId,
-      obtainedSkills,
+      obtainedSkills
     )) {
       if (!expanded[prereqId]) {
         expanded[prereqId] = createCandidate({
           skillId: prereqId,
-          hintLevel: skillMetaById[prereqId]?.hintLevel ?? 0,
+          hintLevel: skillMetaById[prereqId]?.hintLevel ?? 0
         });
       }
     }

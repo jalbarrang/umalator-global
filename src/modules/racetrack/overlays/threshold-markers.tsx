@@ -18,7 +18,7 @@ const ThresholdMarker = React.memo((props: ThresholdMarkerProps) => {
     strokeColor = 'rgb(239, 68, 68)',
     courseDistance,
     width,
-    height,
+    height
   } = props;
 
   const x = useMemo(() => {

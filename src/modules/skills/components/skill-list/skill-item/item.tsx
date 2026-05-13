@@ -14,7 +14,7 @@ export const SkillItem = React.memo((props: Readonly<SkillItemProps>) => {
     onHintLevelChange,
     onBoughtChange,
     onRemove,
-    getSkillMeta,
+    getSkillMeta
   } = props;
 
   return (

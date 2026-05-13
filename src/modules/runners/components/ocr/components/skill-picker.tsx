@@ -7,7 +7,7 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
-  CommandList,
+  CommandList
 } from '@/components/ui/command';
 
 type OcrSkillPickerPopoverProps = {
@@ -28,7 +28,7 @@ export function OcrSkillPickerPopover(props: Readonly<OcrSkillPickerPopoverProps
     open: controlledOpen,
     anchor,
     onOpenChange,
-    onSelectSkill,
+    onSelectSkill
   } = props;
 
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);

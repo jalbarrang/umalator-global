@@ -13,7 +13,7 @@ const PHASES = [
     width: '16.67%',
     mainColor: 'rgb(0,154,111)',
     accentColor: 'rgb(0,92,66)',
-    w: 0.1667,
+    w: 0.1667
   },
   {
     id: 'phase1',
@@ -21,7 +21,7 @@ const PHASES = [
     width: '50%',
     mainColor: 'rgb(242,233,103)',
     accentColor: 'rgb(190,179,16)',
-    w: 0.5,
+    w: 0.5
   },
   {
     id: 'phase2',
@@ -29,7 +29,7 @@ const PHASES = [
     width: '16.67%',
     mainColor: 'rgb(209,134,175)',
     accentColor: 'rgb(149,56,107)',
-    w: 0.1667,
+    w: 0.1667
   },
   {
     id: 'phase3',
@@ -37,8 +37,8 @@ const PHASES = [
     width: '16.67%',
     mainColor: 'rgb(199,109,159)',
     accentColor: 'rgb(133,51,96)',
-    w: 0.1667,
-  },
+    w: 0.1667
+  }
 ];
 
 /**

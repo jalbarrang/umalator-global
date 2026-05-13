@@ -33,7 +33,7 @@ const plainSkillId = findSkillId((skillId) => {
 
 const bundledSkillId = findSkillId(
   (skillId) => getRepresentativePrerequisiteIds(skillId).length > 1,
-  'a skill with bundled representative prerequisites',
+  'a skill with bundled representative prerequisites'
 );
 
 const fractionalDiscountSkillId = findSkillId((skillId) => {
@@ -51,7 +51,7 @@ const fractionalDiscountSkillId = findSkillId((skillId) => {
       }
 
       return { hintLevel: 0 };
-    },
+    }
   });
 
   return (
@@ -89,7 +89,7 @@ describe('buildSkillCostSummary', () => {
     const summary = buildSkillCostSummary({
       skillId: plainSkillId,
       hasFastLearner: false,
-      getSkillMeta: createGetSkillMeta({ [plainSkillId]: { hintLevel: 3 } }),
+      getSkillMeta: createGetSkillMeta({ [plainSkillId]: { hintLevel: 3 } })
     });
 
     const expectedNet = calculateSkillCost(plainSkillId, 3, false);
@@ -110,13 +110,13 @@ describe('buildSkillCostSummary', () => {
     const meta: Record<string, TestMeta> = {
       [bundledSkillId]: { hintLevel: 2 },
       [boughtPrereqId]: { hintLevel: 5, bought: true },
-      [unpaidPrereqId]: { hintLevel: 1, bought: false },
+      [unpaidPrereqId]: { hintLevel: 1, bought: false }
     };
 
     const summary = buildSkillCostSummary({
       skillId: `${bundledSkillId}-suffix`,
       hasFastLearner: false,
-      getSkillMeta: createGetSkillMeta(meta),
+      getSkillMeta: createGetSkillMeta(meta)
     });
 
     const expectedBase =
@@ -139,8 +139,8 @@ describe('buildSkillCostSummary', () => {
       hasFastLearner: false,
       getSkillMeta: createGetSkillMeta({
         [concentrationId]: { hintLevel: 0 },
-        [focusId]: { hintLevel: 0, bought: true },
-      }),
+        [focusId]: { hintLevel: 0, bought: true }
+      })
     });
 
     expect(summary.baseTotal).toBe(dataRegistry.skills.getById(concentrationId)?.baseCost ?? 0);
@@ -152,13 +152,13 @@ describe('buildSkillCostSummary', () => {
     const withFastLearner = buildSkillCostSummary({
       skillId: plainSkillId,
       hasFastLearner: true,
-      getSkillMeta: createGetSkillMeta({ [plainSkillId]: { hintLevel: 5 } }),
+      getSkillMeta: createGetSkillMeta({ [plainSkillId]: { hintLevel: 5 } })
     });
 
     const withoutFastLearner = buildSkillCostSummary({
       skillId: plainSkillId,
       hasFastLearner: false,
-      getSkillMeta: createGetSkillMeta({ [plainSkillId]: { hintLevel: 5 } }),
+      getSkillMeta: createGetSkillMeta({ [plainSkillId]: { hintLevel: 5 } })
     });
 
     expect(withFastLearner.netTotal).toBe(calculateSkillCost(plainSkillId, 5, true));
@@ -170,8 +170,8 @@ describe('buildSkillCostSummary', () => {
       skillId: bundledSkillId,
       hasFastLearner: true,
       getSkillMeta: createGetSkillMeta({
-        [bundledSkillId]: { hintLevel: 0, bought: true },
-      }),
+        [bundledSkillId]: { hintLevel: 0, bought: true }
+      })
     });
 
     expect(summary.isObtained).toBe(true);
@@ -184,8 +184,8 @@ describe('buildSkillCostSummary', () => {
       hasFastLearner: false,
       getSkillMeta: createGetSkillMeta({
         [`${plainSkillId}-instance`]: { hintLevel: 3 },
-        [plainSkillId]: { hintLevel: 0 },
-      }),
+        [plainSkillId]: { hintLevel: 0 }
+      })
     });
 
     expect(summary.netTotal).toBe(calculateSkillCost(plainSkillId, 3, false));
@@ -195,7 +195,7 @@ describe('buildSkillCostSummary', () => {
     const summary = buildSkillCostSummary({
       skillId: fractionalDiscountSkillId,
       hasFastLearner: false,
-      getSkillMeta: createGetSkillMeta({ [fractionalDiscountSkillId]: { hintLevel: 1 } }),
+      getSkillMeta: createGetSkillMeta({ [fractionalDiscountSkillId]: { hintLevel: 1 } })
     });
 
     const expectedExact =
@@ -214,7 +214,7 @@ describe('buildSkillCostSummary', () => {
 
     const metaById: Record<string, TestMeta> = {
       [bundledSkillId]: { hintLevel: 2 },
-      [sharedPrereqId]: { hintLevel: 1 },
+      [sharedPrereqId]: { hintLevel: 1 }
     };
 
     for (const prereqId of prereqIds.slice(1)) {
@@ -224,7 +224,7 @@ describe('buildSkillCostSummary', () => {
     const total = buildDedupedSkillListNetTotal({
       visibleSkillIds: [bundledSkillId, sharedPrereqId],
       hasFastLearner: false,
-      getSkillMeta: createGetSkillMeta(metaById),
+      getSkillMeta: createGetSkillMeta(metaById)
     });
 
     const expectedTotal =
@@ -242,8 +242,8 @@ describe('buildSkillCostSummary', () => {
       hasFastLearner: true,
       getSkillMeta: createGetSkillMeta({
         [firstSkillId]: { hintLevel: 2 },
-        [secondSkillId]: { hintLevel: 3 },
-      }),
+        [secondSkillId]: { hintLevel: 3 }
+      })
     });
 
     // 170 * 0.8 * 0.9 + 170 * 0.7 * 0.9 = 229.5, ceil once => 230.
@@ -260,8 +260,8 @@ describe('buildSkillCostSummary', () => {
       hasFastLearner: false,
       getSkillMeta: createGetSkillMeta({
         [speedStarId]: { hintLevel: 3 },
-        [preparedToPassId]: { hintLevel: 2 },
-      }),
+        [preparedToPassId]: { hintLevel: 2 }
+      })
     });
 
     expect(summary.baseTotal).toBe(360);
@@ -287,7 +287,7 @@ describe('buildSkillCostSummary', () => {
     const totalWithoutUnique = buildDedupedSkillListNetTotal({
       visibleSkillIds: [plainSkillId, uniqueSkillId],
       hasFastLearner: false,
-      getSkillMeta,
+      getSkillMeta
     });
 
     expect(totalWithoutUnique).toBe(calculateSkillCost(plainSkillId, 1, false));
@@ -299,7 +299,7 @@ describe('buildSkillCostSummary', () => {
       visibleSkillIds: [plainSkillId, uniqueSkillId],
       hasFastLearner: false,
       includeUniqueSkills: true,
-      getSkillMeta,
+      getSkillMeta
     });
 
     expect(lookedUpSkillIds.has(uniqueSkillId)).toBe(true);

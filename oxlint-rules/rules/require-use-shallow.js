@@ -24,7 +24,7 @@ function checkSelector(selectorArg, callNode, context) {
     context.report({
       node: selectorArg,
       message:
-        'Zustand selector returns a new object/array reference every render. Wrap it with useShallow() to prevent unnecessary re-renders.',
+        'Zustand selector returns a new object/array reference every render. Wrap it with useShallow() to prevent unnecessary re-renders.'
     });
   }
 }
@@ -34,9 +34,9 @@ export default {
     type: 'problem',
     docs: {
       description:
-        'Require useShallow for Zustand selectors that return new object/array references',
+        'Require useShallow for Zustand selectors that return new object/array references'
     },
-    schema: [],
+    schema: []
   },
   create(context) {
     return {
@@ -51,7 +51,7 @@ export default {
         if (callee.type === 'Identifier' && callee.name === 'useStore') {
           checkSelector(node.arguments[1], node, context);
         }
-      },
+      }
     };
-  },
+  }
 };

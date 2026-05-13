@@ -31,12 +31,12 @@ export const CompactSkillMarker = memo<CompactSkillMarkerProps>(
     start,
     end,
     isDragging = false,
-    onDragStart,
+    onDragStart
   }) => {
     const isDraggable = useMemo(() => !!skillId && !!onDragStart, [skillId, onDragStart]);
     const markerStyle = useMemo(
       () => ({ cursor: isDraggable ? 'grab' : 'default', touchAction: 'none' as const }),
-      [isDraggable],
+      [isDraggable]
     );
 
     const { tooltipRef, bgRef, show, hide } = useSkillTooltip();
@@ -67,7 +67,7 @@ export const CompactSkillMarker = memo<CompactSkillMarkerProps>(
         if (isDragging || e.buttons !== 0) return;
         hide();
       },
-      [hide, isDragging],
+      [hide, isDragging]
     );
 
     return (
@@ -127,5 +127,5 @@ export const CompactSkillMarker = memo<CompactSkillMarkerProps>(
         />
       </svg>
     );
-  },
+  }
 );

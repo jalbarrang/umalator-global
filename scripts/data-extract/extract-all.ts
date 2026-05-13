@@ -30,7 +30,7 @@ function parseCliArgs(argv: Array<string>): ExtractAllOptions {
 
   return {
     replaceMode: Boolean(options.replace || options.full),
-    dbPath,
+    dbPath
   };
 }
 
@@ -39,7 +39,7 @@ async function extractAll(options: ExtractAllOptions = { replaceMode: false }) {
 
   console.log('🚀 Starting full data extraction...\n');
   console.log(
-    `Mode: ${replaceMode ? '⚠️  Full Replacement' : '✓ Merge (default - preserves future content)'}`,
+    `Mode: ${replaceMode ? '⚠️  Full Replacement' : '✓ Merge (default - preserves future content)'}`
   );
   console.log('='.repeat(60));
 
@@ -53,7 +53,7 @@ async function extractAll(options: ExtractAllOptions = { replaceMode: false }) {
   }> = [
     { name: 'Skills', fn: extractSkills },
     { name: 'Uma Info', fn: extractUmaInfo },
-    { name: 'Course Data', fn: extractCourseData },
+    { name: 'Course Data', fn: extractCourseData }
   ];
 
   for (const { name, fn } of extractions) {

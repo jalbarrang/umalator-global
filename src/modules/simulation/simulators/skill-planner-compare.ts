@@ -2,7 +2,7 @@ import type { RunComparisonParams } from '@/modules/simulation/types';
 import type { SkillTrackedMetaCollection } from '@/modules/simulation/compare.types';
 import {
   BassinCollector,
-  SkillCompareDataCollector,
+  SkillCompareDataCollector
 } from '@/lib/sunday-tools/common/race-observer';
 import {
   DEFAULT_DUELING_RATES,
@@ -12,7 +12,7 @@ import {
   createSkillSorterByGroup,
   getFallbackEffectMeta,
   toCreateRunner,
-  toSundayRaceParameters,
+  toSundayRaceParameters
 } from './shared';
 
 export type PlannerCompareParams = RunComparisonParams & {
@@ -31,11 +31,11 @@ export type PlannerCompareResult = {
 
 export function createPlannerCompareSettings(
   ignoreStaminaConsumption: boolean,
-  staminaDrainOverrides: Record<string, number> | undefined,
+  staminaDrainOverrides: Record<string, number> | undefined
 ) {
   return createCompareSettings({
     healthSystem: !ignoreStaminaConsumption,
-    staminaDrainOverrides: ignoreStaminaConsumption ? {} : staminaDrainOverrides,
+    staminaDrainOverrides: ignoreStaminaConsumption ? {} : staminaDrainOverrides
   });
 }
 
@@ -48,7 +48,7 @@ export function runPlannerComparison(params: PlannerCompareParams): PlannerCompa
     runnerB,
     candidateSkills,
     ignoreStaminaConsumption,
-    options,
+    options
   } = params;
 
   const seed = options.seed ?? 0;
@@ -59,7 +59,7 @@ export function runPlannerComparison(params: PlannerCompareParams): PlannerCompa
   const raceParameters = toSundayRaceParameters(racedef);
   const settings = createPlannerCompareSettings(
     ignoreStaminaConsumption,
-    options.staminaDrainOverrides,
+    options.staminaDrainOverrides
   );
 
   const trackedSkillId = candidateSkills[0] ?? runnerB.skills[0] ?? runnerA.skills[0] ?? '0';
@@ -68,7 +68,7 @@ export function runPlannerComparison(params: PlannerCompareParams): PlannerCompa
   const collectorB = new SkillCompareDataCollector({
     trackedSkillId,
     fallbackEffectType: fallbackEffectMeta.effectType,
-    fallbackEffectTarget: fallbackEffectMeta.effectTarget,
+    fallbackEffectTarget: fallbackEffectMeta.effectTarget
   });
 
   const raceA = createInitializedRace({
@@ -78,7 +78,7 @@ export function runPlannerComparison(params: PlannerCompareParams): PlannerCompa
     duelingRates: DEFAULT_DUELING_RATES,
     skillSamples: nsamples,
     runner: toCreateRunner(runnerA, runnerASortedSkills),
-    observer: collectorA,
+    observer: collectorA
   });
 
   const raceB = createInitializedRace({
@@ -88,7 +88,7 @@ export function runPlannerComparison(params: PlannerCompareParams): PlannerCompa
     duelingRates: DEFAULT_DUELING_RATES,
     skillSamples: nsamples,
     runner: toCreateRunner(runnerB, runnerBSortedSkills),
-    observer: collectorB,
+    observer: collectorB
   });
 
   const diff: Array<number> = [];
@@ -138,6 +138,6 @@ export function runPlannerComparison(params: PlannerCompareParams): PlannerCompa
     min: diff[0] ?? 0,
     max: diff[diff.length - 1] ?? 0,
     mean: diff.length > 0 ? mean : estMean,
-    median: diff.length > 0 ? median : estMedian,
+    median: diff.length > 0 ? median : estMedian
   };
 }

@@ -12,7 +12,7 @@ import {
   setHasFastLearner,
   setObtainedSkills,
   updateRunner,
-  useSkillPlannerStore,
+  useSkillPlannerStore
 } from '../skill-planner.store';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -24,7 +24,7 @@ import {
   SkillItemIdentity,
   SkillItemMain,
   SkillItemRail,
-  SkillItemRoot,
+  SkillItemRoot
 } from '@/modules/skills/components/skill-list/skill-item/primitives';
 import { SkillItemDetailsActions } from '@/modules/skills/components/skill-list/skill-item/actions';
 import { SkillItem } from '@/modules/skills/components/skill-list/skill-item/item';
@@ -93,7 +93,7 @@ export function SkillPlannerRunnerStep() {
         data.strategy && strategyNames.includes(data.strategy) ? data.strategy : runner.strategy,
       mood: runner.mood,
       skills: importedSkillIds,
-      randomMobId: runner.randomMobId,
+      randomMobId: runner.randomMobId
     };
 
     importRunnerBaseline(runnerSnapshot);
@@ -111,7 +111,7 @@ export function SkillPlannerRunnerStep() {
       setSkillPickerOpen(true);
     },
     { enableOnFormTags: true, enabled: !skillPickerOpen },
-    [skillPickerOpen],
+    [skillPickerOpen]
   );
 
   return (

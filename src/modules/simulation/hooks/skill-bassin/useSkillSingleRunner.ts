@@ -3,13 +3,13 @@ import { useShallow } from 'zustand/shallow';
 import SkillSingleWorker from '@workers/skill-single.worker.ts?worker';
 import type {
   SingleSkillWorkerInMessage,
-  SingleSkillWorkerOutMessage,
+  SingleSkillWorkerOutMessage
 } from '@/workers/skill-single.worker';
 import type { SimulationParams } from '@/workers/pool/types';
 import {
   appendSingleSkillResult,
   setSkillLoading,
-  useSkillBasinStore,
+  useSkillBasinStore
 } from '@/modules/simulation/stores/skill-basin.store';
 import { useRunner } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
@@ -27,7 +27,7 @@ export function useSkillSingleRunner() {
   const { racedef, courseId } = useSettingsStore();
   const ignoreStaminaConsumption = useSkillPlannerStore((state) => state.ignoreStaminaConsumption);
   const { seed: currentSeed, results } = useSkillBasinStore(
-    useShallow((state) => ({ seed: state.seed, results: state.results })),
+    useShallow((state) => ({ seed: state.seed, results: state.results }))
   );
 
   const workerRef = useRef<Worker | null>(null);
@@ -119,8 +119,8 @@ export function useSkillSingleRunner() {
         uma: runner,
         options: {
           ...defaultSimulationOptions,
-          ignoreStaminaConsumption,
-        },
+          ignoreStaminaConsumption
+        }
       };
 
       // Send run message to worker
@@ -129,15 +129,15 @@ export function useSkillSingleRunner() {
         skillId,
         nsamples: additionalSamples,
         seed: newSeed,
-        params: simulationParams,
+        params: simulationParams
       };
 
       worker.postMessage(runMessage);
       console.log(
-        `Started ${additionalSamples} additional samples for skill ${skillId} with seed ${newSeed}`,
+        `Started ${additionalSamples} additional samples for skill ${skillId} with seed ${newSeed}`
       );
     },
-    [currentSeed, results, course, racedef, runner, ignoreStaminaConsumption],
+    [currentSeed, results, course, racedef, runner, ignoreStaminaConsumption]
   );
 
   /**
@@ -152,6 +152,6 @@ export function useSkillSingleRunner() {
 
   return {
     runAdditionalSamples,
-    cancelAdditionalSamples,
+    cancelAdditionalSamples
   };
 }

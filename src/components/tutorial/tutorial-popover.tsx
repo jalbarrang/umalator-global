@@ -61,7 +61,7 @@ function PopoverContent({ step }: TutorialPopoverProps) {
               'bg-background ring-foreground/10',
               'flex flex-col gap-2 rounded-lg p-0 text-sm shadow-lg ring-1',
               'max-w-[500px] w-full',
-              'animate-in fade-in-0 zoom-in-95 duration-200',
+              'animate-in fade-in-0 zoom-in-95 duration-200'
             )}
           >
             {/* Header */}
@@ -82,7 +82,7 @@ function PopoverContent({ step }: TutorialPopoverProps) {
             {/* Footer with navigation buttons */}
             <div
               className={cn(
-                'grid grid-cols-3 items-center justify-between gap-2 border-t border-border p-2 bg-muted/50',
+                'grid grid-cols-3 items-center justify-between gap-2 border-t border-border p-2 bg-muted/50'
               )}
             >
               <div>
@@ -144,7 +144,7 @@ function DialogContent({ step }: TutorialPopoverProps) {
           className={cn(
             'data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0',
             'bg-black/10 duration-100',
-            'fixed inset-0 isolate z-5000',
+            'fixed inset-0 isolate z-5000'
           )}
         />
 
@@ -158,7 +158,7 @@ function DialogContent({ step }: TutorialPopoverProps) {
             'data-closed:zoom-out-95 data-open:zoom-in-95',
             'flex flex-col gap-4 rounded-xl ring-1 duration-100',
             'fixed top-1/2 left-1/2 z-5100 w-full max-w-[500px]',
-            '-translate-x-1/2 -translate-y-1/2 outline-none',
+            '-translate-x-1/2 -translate-y-1/2 outline-none'
           )}
         >
           {/* Header */}
@@ -177,7 +177,7 @@ function DialogContent({ step }: TutorialPopoverProps) {
           {/* Footer */}
           <div
             className={cn(
-              'grid grid-cols-3 items-center justify-between gap-2 border-t border-border p-2 bg-muted/50',
+              'grid grid-cols-3 items-center justify-between gap-2 border-t border-border p-2 bg-muted/50'
             )}
           >
             <div>

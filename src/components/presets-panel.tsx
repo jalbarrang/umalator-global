@@ -5,14 +5,14 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  type DragEndEvent,
+  type DragEndEvent
 } from '@dnd-kit/core';
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
-  verticalListSortingStrategy,
+  verticalListSortingStrategy
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import dayjs from 'dayjs';
@@ -28,7 +28,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
+  SelectValue
 } from '@/components/ui/select';
 import {
   AlertDialog,
@@ -38,20 +38,20 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialogTitle
 } from '@/components/ui/alert-dialog';
 import {
   deletePreset,
   deletePresets,
   reorderPresets,
   resetPresets,
-  usePresetStore,
+  usePresetStore
 } from '@/store/race/preset.store';
 import {
   setCourseId,
   setRaceParams,
   setSelectedPresetId,
-  useSettingsStore,
+  useSettingsStore
 } from '@/store/settings.store';
 import { createRaceConditions } from '@/utils/races';
 import { cn } from '@/lib/utils';
@@ -62,7 +62,7 @@ import {
   WeatherName,
   type IGroundCondition,
   type ISeason,
-  type IWeather,
+  type IWeather
 } from '@/lib/sunday-tools/course/definitions';
 import { getCourseById, getDistanceCategory } from '@/modules/racetrack/courses';
 import { trackDescription } from '@/modules/racetrack/labels';
@@ -114,15 +114,15 @@ const SortablePresetItem = ({
   selectionMode,
   onLoad,
   onDeleteClick,
-  onToggleCheck,
+  onToggleCheck
 }: SortablePresetItemProps) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: preset.id,
+    id: preset.id
   });
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
+    transition
   };
 
   return (
@@ -132,7 +132,7 @@ const SortablePresetItem = ({
       className={cn(
         'flex items-center gap-2 p-4 border-b hover:bg-accent/50 cursor-pointer transition-colors',
         isSelected && 'bg-accent',
-        isDragging && 'z-10 bg-accent/80 shadow-md',
+        isDragging && 'z-10 bg-accent/80 shadow-md'
       )}
       onClick={() => {
         if (selectionMode) {
@@ -243,7 +243,7 @@ export const PresetsPanel = () => {
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
   const handleLoadPreset = (presetId: string) => {
@@ -254,8 +254,8 @@ export const PresetsPanel = () => {
         ground: preset.ground,
         weather: preset.weather,
         season: preset.season,
-        time: preset.time,
-      }),
+        time: preset.time
+      })
     );
     setSelectedPresetId(presetId);
     toast.success(`Loaded preset: ${preset.name}`);

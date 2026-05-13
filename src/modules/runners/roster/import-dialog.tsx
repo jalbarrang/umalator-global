@@ -5,7 +5,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
+  DialogTitle
 } from '@/components/ui/dialog';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { IAptitudeFilters, IAptitudeSlotKey, IDecodedRunner } from './types';
@@ -91,7 +91,7 @@ export function RosterImportDialog({ open, onOpenChange }: Readonly<IRosterImpor
 
   const filteredSelectedCount = useMemo(
     () => filtered.filter((f) => selected.has(f.index)).length,
-    [filtered, selected],
+    [filtered, selected]
   );
 
   const isMobile = useIsMobile();
@@ -104,7 +104,7 @@ export function RosterImportDialog({ open, onOpenChange }: Readonly<IRosterImpor
     getItemKey: (index) => {
       const item = filtered[index];
       return `${item.runner.source.card_id}-${item.index}`;
-    },
+    }
   });
 
   const handleOpenChange = useCallback(
@@ -119,7 +119,7 @@ export function RosterImportDialog({ open, onOpenChange }: Readonly<IRosterImpor
       }
       onOpenChange(next);
     },
-    [onOpenChange],
+    [onOpenChange]
   );
 
   const toggleOne = useCallback((index: number) => {
@@ -197,17 +197,17 @@ export function RosterImportDialog({ open, onOpenChange }: Readonly<IRosterImpor
         notes: 'Imported from RosterView',
         id: `${now}-${idx}-${Math.random().toString(36).substring(2, 9)}`,
         createdAt: now,
-        updatedAt: now,
+        updatedAt: now
       });
       idx++;
     }
 
     useRunnerLibraryStore.setState((state) => ({
-      runners: [...state.runners, ...newRunners],
+      runners: [...state.runners, ...newRunners]
     }));
 
     toast.success(
-      `Imported ${newRunners.length} runner${newRunners.length === 1 ? '' : 's'} to library`,
+      `Imported ${newRunners.length} runner${newRunners.length === 1 ? '' : 's'} to library`
     );
     handleOpenChange(false);
   }, [decoded, selected, handleOpenChange]);
@@ -319,7 +319,7 @@ export function RosterImportDialog({ open, onOpenChange }: Readonly<IRosterImpor
                         className="absolute left-0 w-full"
                         style={{
                           height: isMobile ? MOBILE_ROW_HEIGHT : DESKTOP_ROW_HEIGHT,
-                          transform: `translateY(${virtualRow.start}px)`,
+                          transform: `translateY(${virtualRow.start}px)`
                         }}
                       >
                         <RunnerRow

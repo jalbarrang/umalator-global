@@ -39,5 +39,5 @@ export const SkillMarker = React.memo<SkillMarkerProps>(
         </text>
       </svg>
     );
-  },
+  }
 );

@@ -39,7 +39,7 @@ export const VirtualRunnerGrid = (props: Readonly<IVirtualRunnerGridProps>) => {
     count: rowCount,
     getScrollElement: () => containerRef.current,
     estimateSize: () => ROW_HEIGHT, // CARD_HEIGHT + GAP
-    overscan: OVERSCAN,
+    overscan: OVERSCAN
   });
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -49,7 +49,7 @@ export const VirtualRunnerGrid = (props: Readonly<IVirtualRunnerGridProps>) => {
     const totalHeight = totalRows * ROW_HEIGHT;
 
     return {
-      totalHeight,
+      totalHeight
     };
   }, [items.length, columns]);
 
@@ -59,7 +59,7 @@ export const VirtualRunnerGrid = (props: Readonly<IVirtualRunnerGridProps>) => {
         style={{
           height: totalHeight,
           position: 'relative',
-          boxSizing: 'border-box',
+          boxSizing: 'border-box'
         }}
       >
         {rowVirtualizer.getVirtualItems().map((virtualRow) => {
@@ -75,7 +75,7 @@ export const VirtualRunnerGrid = (props: Readonly<IVirtualRunnerGridProps>) => {
                 top: virtualRow.start,
                 left: 0,
                 height: CARD_HEIGHT,
-                gridTemplateColumns: `repeat(${columns}, 1fr)`,
+                gridTemplateColumns: `repeat(${columns}, 1fr)`
               }}
             >
               {rowItems.map((runner) => {
@@ -83,7 +83,7 @@ export const VirtualRunnerGrid = (props: Readonly<IVirtualRunnerGridProps>) => {
                   <div key={runner.id} className="relative">
                     <div
                       className={cn('h-full transition-opacity', {
-                        'opacity-40': isSelecting && !selected.has(runner.id),
+                        'opacity-40': isSelecting && !selected.has(runner.id)
                       })}
                     >
                       <SavedRunnerCard

@@ -21,6 +21,6 @@ export function useRoosterImport() {
     importCode,
     dialogOpen,
     setDialogOpen,
-    clearImportCode: () => setImportCode(null),
+    clearImportCode: () => setImportCode(null)
   };
 }

@@ -8,9 +8,9 @@ import { toast } from 'sonner';
 import { OcrSkillPickerPopover } from './skill-picker';
 import { Button } from '@/components/ui/button';
 import { Pencil, Plus } from 'lucide-react';
-import { SkillItem } from '@/modules/skills/components/skill-list/SkillItem';
 import { OcrDetectedSkillRow } from './skill-row';
 import { OcrSkillDebugPanel } from './debug-panel';
+import { SkillItem } from '@/modules/skills/components/skill-list/skill-item/item';
 
 type IOcrSkillsListProps = {
   results: Partial<ExtractedUmaData> | null;
@@ -24,7 +24,7 @@ export function OcrSkillsList(props: Readonly<IOcrSkillsListProps>) {
 
   const uniqueSkillId = useMemo(
     () => (results?.outfitId ? getUniqueSkillForByUmaId(results.outfitId) : null),
-    [results?.outfitId],
+    [results?.outfitId]
   );
   const currentSkills = useMemo(() => results?.skills ?? [], [results?.skills]);
 
@@ -45,7 +45,7 @@ export function OcrSkillsList(props: Readonly<IOcrSkillsListProps>) {
         id: skill.id,
         name: skill.name,
         meta: getOcrSkillOptionMeta(skill),
-        searchValue: `${skill.name} ${skill.id} ${getOcrSkillOptionMeta(skill)}`,
+        searchValue: `${skill.name} ${skill.id} ${getOcrSkillOptionMeta(skill)}`
       }))
       .sort((a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
   }, [results?.outfitId]);

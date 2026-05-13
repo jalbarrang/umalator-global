@@ -5,7 +5,7 @@ import {
   GroundCondition,
   Season,
   TimeOfDay,
-  Weather,
+  Weather
 } from '@/lib/sunday-tools/course/definitions';
 import { Aptitude, Mood, Strategy } from '@/lib/sunday-tools/runner/definitions';
 import { SkillPerspective, SkillTarget, SkillType } from '@/lib/sunday-tools/skills/definitions';
@@ -25,7 +25,7 @@ const TEST_SETTINGS: SimulationSettings = {
   spotStruggle: false,
   dueling: false,
   witChecks: false,
-  positionKeepMode: 0,
+  positionKeepMode: 0
 };
 
 const TEST_RACE_PARAMS: RaceParameters = {
@@ -33,7 +33,7 @@ const TEST_RACE_PARAMS: RaceParameters = {
   weather: Weather.Sunny,
   season: Season.Spring,
   timeOfDay: TimeOfDay.Midday,
-  grade: Grade.G1,
+  grade: Grade.G1
 };
 
 const TEST_RUNNER: CreateRunner = {
@@ -43,16 +43,16 @@ const TEST_RUNNER: CreateRunner = {
   aptitudes: {
     distance: Aptitude.S,
     surface: Aptitude.A,
-    strategy: Aptitude.A,
+    strategy: Aptitude.A
   },
   stats: {
     speed: 1200,
     stamina: 1200,
     power: 800,
     guts: 400,
-    wit: 400,
+    wit: 400
   },
-  skills: [],
+  skills: []
 };
 
 function createRaceWithCollector(
@@ -60,23 +60,23 @@ function createRaceWithCollector(
   options?: {
     settings?: Partial<SimulationSettings>;
     runner?: Partial<CreateRunner>;
-  },
+  }
 ) {
   const settings: SimulationSettings = {
     ...TEST_SETTINGS,
-    ...options?.settings,
+    ...options?.settings
   };
   const runner: CreateRunner = {
     ...TEST_RUNNER,
     ...options?.runner,
     aptitudes: {
       ...TEST_RUNNER.aptitudes,
-      ...(options?.runner?.aptitudes ?? {}),
+      ...(options?.runner?.aptitudes ?? {})
     },
     stats: {
       ...TEST_RUNNER.stats,
-      ...(options?.runner?.stats ?? {}),
-    },
+      ...(options?.runner?.stats ?? {})
+    }
   };
 
   const race = new Race({
@@ -89,9 +89,9 @@ function createRaceWithCollector(
       frontRunner: 10,
       paceChaser: 10,
       lateSurger: 10,
-      endCloser: 10,
+      endCloser: 10
     },
-    collector,
+    collector
   });
 
   race.onInitialize();
@@ -128,7 +128,7 @@ describe('Race observer lifecycle', () => {
       },
       onRoundEnd: () => {
         events.push('round-end');
-      },
+      }
     };
 
     const race = createRaceWithCollector(observer);
@@ -183,7 +183,7 @@ describe('SkillCompareDataCollector fallback path', () => {
     const collector = new SkillCompareDataCollector({
       trackedSkillId: '999999',
       fallbackEffectType: SkillType.Noop,
-      fallbackEffectTarget: SkillTarget.Self,
+      fallbackEffectTarget: SkillTarget.Self
     });
 
     collector.onRoundStart(createRaceWithCollector(), 42);
@@ -212,11 +212,11 @@ describe('SkillCompareDataCollector fallback path', () => {
         firstPositionInLateRace: false,
         usedSkills: ['999999'],
         finished: true,
-        finishPosition: 875,
+        finishPosition: 875
       },
       openEffectsByKey: new Map(),
       effectSequence: 0,
-      seenUsedSkills: new Set(['999999']),
+      seenUsedSkills: new Set(['999999'])
     });
 
     collector.finalizeCurrentTrackedMeta(1.5);
@@ -242,9 +242,9 @@ describe('targeted skill observation', () => {
     const race = createRaceWithCollector(collector, {
       runner: {
         ...({
-          injectedDebuffs: [{ skillId: '201082', position: 120 }],
-        } as any),
-      },
+          injectedDebuffs: [{ skillId: '201082', position: 120 }]
+        } as any)
+      }
     });
 
     race.prepareRound(9090);
@@ -264,9 +264,9 @@ describe('targeted skill observation', () => {
     const race = createRaceWithCollector(collector, {
       runner: {
         ...({
-          injectedDebuffs: [{ skillId: '201082', position: 150 }],
-        } as any),
-      },
+          injectedDebuffs: [{ skillId: '201082', position: 150 }]
+        } as any)
+      }
     });
 
     race.prepareRound(9091);

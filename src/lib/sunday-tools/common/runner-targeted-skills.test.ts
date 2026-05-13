@@ -5,7 +5,7 @@ import {
   GroundCondition,
   Season,
   TimeOfDay,
-  Weather,
+  Weather
 } from '@/lib/sunday-tools/course/definitions';
 import { Aptitude, Mood, Strategy } from '@/lib/sunday-tools/runner/definitions';
 import { SkillTarget, SkillType } from '@/lib/sunday-tools/skills/definitions';
@@ -25,7 +25,7 @@ const TEST_SETTINGS: SimulationSettings = {
   spotStruggle: false,
   dueling: false,
   witChecks: false,
-  positionKeepMode: 0,
+  positionKeepMode: 0
 };
 
 const TEST_RACE_PARAMS: RaceParameters = {
@@ -33,7 +33,7 @@ const TEST_RACE_PARAMS: RaceParameters = {
   weather: Weather.Sunny,
   season: Season.Spring,
   timeOfDay: TimeOfDay.Midday,
-  grade: Grade.G1,
+  grade: Grade.G1
 };
 
 const TEST_RUNNER: CreateRunner = {
@@ -43,16 +43,16 @@ const TEST_RUNNER: CreateRunner = {
   aptitudes: {
     distance: Aptitude.S,
     surface: Aptitude.A,
-    strategy: Aptitude.A,
+    strategy: Aptitude.A
   },
   stats: {
     speed: 1200,
     stamina: 1200,
     power: 800,
     guts: 400,
-    wit: 400,
+    wit: 400
   },
-  skills: [],
+  skills: []
 };
 
 function createRace(options?: { runner?: Partial<CreateRunner> & Record<string, unknown> }) {
@@ -66,8 +66,8 @@ function createRace(options?: { runner?: Partial<CreateRunner> & Record<string, 
       frontRunner: 10,
       paceChaser: 10,
       lateSurger: 10,
-      endCloser: 10,
-    },
+      endCloser: 10
+    }
   });
 
   race.onInitialize();
@@ -77,12 +77,12 @@ function createRace(options?: { runner?: Partial<CreateRunner> & Record<string, 
     ...options?.runner,
     aptitudes: {
       ...TEST_RUNNER.aptitudes,
-      ...options?.runner?.aptitudes,
+      ...options?.runner?.aptitudes
     },
     stats: {
       ...TEST_RUNNER.stats,
-      ...options?.runner?.stats,
-    },
+      ...options?.runner?.stats
+    }
   } as CreateRunner);
   race.prepareRace().validateRaceSetup();
   return race;
@@ -117,8 +117,8 @@ describe('targeted skill initialization', () => {
   it('populates pendingTargetedSkills from injectedDebuffs', () => {
     const race = createRace({
       runner: {
-        injectedDebuffs: [{ skillId: TEST_DEBUFF_SKILL_ID, position: 800 }],
-      },
+        injectedDebuffs: [{ skillId: TEST_DEBUFF_SKILL_ID, position: 800 }]
+      }
     });
 
     race.prepareRound(1001);
@@ -141,25 +141,25 @@ describe('targeted skill initialization', () => {
     const race = createRace({
       runner: {
         skills: ['110061'],
-        injectedDebuffs: [{ skillId: TEST_DEBUFF_SKILL_ID, position: 850 }],
-      },
+        injectedDebuffs: [{ skillId: TEST_DEBUFF_SKILL_ID, position: 850 }]
+      }
     });
 
     race.prepareRound(1003);
     const raceRunner = race.runners.values().toArray()[0] as any;
 
     expect(
-      raceRunner.pendingSkills.some((skill: { skillId: string }) => skill.skillId === '110061'),
+      raceRunner.pendingSkills.some((skill: { skillId: string }) => skill.skillId === '110061')
     ).toBe(true);
     expect(
       raceRunner.pendingSkills.some(
-        (skill: { skillId: string }) => skill.skillId.split('-')[0] === TEST_DEBUFF_SKILL_ID,
-      ),
+        (skill: { skillId: string }) => skill.skillId.split('-')[0] === TEST_DEBUFF_SKILL_ID
+      )
     ).toBe(false);
     expect(
       raceRunner.pendingTargetedSkills.some(
-        (skill: { skillId: string }) => skill.skillId.split('-')[0] === TEST_DEBUFF_SKILL_ID,
-      ),
+        (skill: { skillId: string }) => skill.skillId.split('-')[0] === TEST_DEBUFF_SKILL_ID
+      )
     ).toBe(true);
   });
 });
@@ -168,8 +168,8 @@ describe('targeted skill activation', () => {
   it('activates targeted skill when runner reaches trigger position', () => {
     const race = createRace({
       runner: {
-        injectedDebuffs: [{ skillId: TEST_DEBUFF_SKILL_ID, position: 100 }],
-      },
+        injectedDebuffs: [{ skillId: TEST_DEBUFF_SKILL_ID, position: 100 }]
+      }
     });
 
     race.prepareRound(2001);
@@ -181,8 +181,8 @@ describe('targeted skill activation', () => {
   it('does not increment skillsActivatedCount for targeted effects and does not add to usedSkills', () => {
     const race = createRace({
       runner: {
-        injectedDebuffs: [{ skillId: TEST_DEBUFF_SKILL_ID, position: 100 }],
-      },
+        injectedDebuffs: [{ skillId: TEST_DEBUFF_SKILL_ID, position: 100 }]
+      }
     });
 
     race.prepareRound(2002);
@@ -199,8 +199,8 @@ describe('targeted effect duration', () => {
   it('removes targeted effect modifier when duration expires', () => {
     const race = createRace({
       runner: {
-        injectedDebuffs: [{ skillId: TEST_DEBUFF_SKILL_ID, position: 10 }],
-      },
+        injectedDebuffs: [{ skillId: TEST_DEBUFF_SKILL_ID, position: 10 }]
+      }
     });
 
     race.prepareRound(3001);
@@ -230,8 +230,8 @@ describe('external-only effect filtering for injected skills', () => {
   it('injecting mixed skills applies only external harmful effects', () => {
     const race = createRace({
       runner: {
-        injectedDebuffs: [{ skillId: TEST_DEBUFF_SKILL_ID, position: 100 }],
-      },
+        injectedDebuffs: [{ skillId: TEST_DEBUFF_SKILL_ID, position: 100 }]
+      }
     });
 
     race.prepareRound(5001);
@@ -261,10 +261,10 @@ describe('receiveTargetedEffect', () => {
           target: SkillTarget.All,
           type: SkillType.TargetSpeed,
           baseDuration: 3,
-          modifier: -0.2,
-        },
+          modifier: -0.2
+        }
       ],
-      99,
+      99
     );
 
     expect(raceRunner.pendingTargetedSkills.length).toBe(initialPending);

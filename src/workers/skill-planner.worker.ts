@@ -69,7 +69,7 @@ function runOptimization(params: OptimizeParams) {
     runner,
     course,
     racedef,
-    options,
+    options
   } = params;
 
   // Convert candidates Record to Array, excluding obtained skills
@@ -77,7 +77,7 @@ function runOptimization(params: OptimizeParams) {
     .filter((c) => !obtainedSkills.includes(c.skillId))
     .map((candidate) => ({
       ...candidate,
-      netCost: getNetCost(candidate, hasFastLearner),
+      netCost: getNetCost(candidate, hasFastLearner)
     }));
 
   // Run optimization with progress callbacks
@@ -91,23 +91,23 @@ function runOptimization(params: OptimizeParams) {
     racedef,
     options: {
       ...options,
-      staminaDrainOverrides,
+      staminaDrainOverrides
     },
     onProgress: (progress) => {
       sendMessage({
         type: 'skill-planner-progress',
-        progress,
+        progress
       });
-    },
+    }
   });
 
   sendMessage({
     type: 'skill-planner-result',
-    result,
+    result
   });
 
   sendMessage({
-    type: 'skill-planner-done',
+    type: 'skill-planner-done'
   });
 }
 
@@ -127,7 +127,7 @@ self.addEventListener('message', (event: MessageEvent<SkillPlannerWorkerInMessag
   } catch (error) {
     sendMessage({
       type: 'skill-planner-error',
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 });

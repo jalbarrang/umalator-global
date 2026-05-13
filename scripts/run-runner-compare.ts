@@ -15,7 +15,7 @@ import type { CreateRunner, RunnerAptitudes, StatLine } from '@/lib/sunday-tools
 import type {
   DuelingRates,
   RaceParameters,
-  SimulationSettings,
+  SimulationSettings
 } from '@/lib/sunday-tools/common/race';
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import { Race } from '@/lib/sunday-tools/common/race';
@@ -82,7 +82,7 @@ const DEFAULT_SETTINGS: SimulationSettings = {
   spotStruggle: true,
   dueling: true,
   witChecks: true,
-  positionKeepMode: 0,
+  positionKeepMode: 0
 };
 
 const DEFAULT_DUELING_RATES: DuelingRates = {
@@ -90,14 +90,14 @@ const DEFAULT_DUELING_RATES: DuelingRates = {
   frontRunner: 10,
   paceChaser: 10,
   lateSurger: 10,
-  endCloser: 10,
+  endCloser: 10
 };
 
 function toCreateRunner(input: RunnerConfigInput): CreateRunner {
   const aptitudes: RunnerAptitudes = {
     distance: parseAptitudeName(input.distanceAptitude),
     surface: parseAptitudeName(input.surfaceAptitude),
-    strategy: parseAptitudeName(input.strategyAptitude),
+    strategy: parseAptitudeName(input.strategyAptitude)
   };
 
   const stats: StatLine = {
@@ -105,7 +105,7 @@ function toCreateRunner(input: RunnerConfigInput): CreateRunner {
     stamina: input.stamina,
     power: input.power,
     guts: input.guts,
-    wit: input.wisdom,
+    wit: input.wisdom
   };
 
   return {
@@ -114,7 +114,7 @@ function toCreateRunner(input: RunnerConfigInput): CreateRunner {
     strategy: parseStrategyName(input.strategy),
     aptitudes,
     stats,
-    skills: input.skills,
+    skills: input.skills
   };
 }
 
@@ -124,7 +124,7 @@ function toRaceParameters(input: ConfigInput['raceConditions']): RaceParameters 
     weather: input.weather as any,
     season: input.season as any,
     timeOfDay: input.time as any,
-    grade: input.grade as any,
+    grade: input.grade as any
   };
 }
 
@@ -141,7 +141,7 @@ function createInitializedRace(params: {
     parameters: params.raceParameters,
     settings: params.settings,
     skillSamples: params.skillSamples,
-    duelingRates: params.duelingRates,
+    duelingRates: params.duelingRates
   });
 
   // Current Race API still requires explicit bootstrap for parser/ids/sample fields.
@@ -191,7 +191,7 @@ async function runRunnerCompare(options: {
 
   if (configRunner1.courseId !== configRunner2.courseId) {
     throw new Error(
-      `Course mismatch: ${CONFIG_RUNNER_1}=${configRunner1.courseId}, ${CONFIG_RUNNER_2}=${configRunner2.courseId}`,
+      `Course mismatch: ${CONFIG_RUNNER_1}=${configRunner1.courseId}, ${CONFIG_RUNNER_2}=${configRunner2.courseId}`
     );
   }
 
@@ -217,7 +217,7 @@ async function runRunnerCompare(options: {
       settings: DEFAULT_SETTINGS,
       duelingRates: DEFAULT_DUELING_RATES,
       skillSamples: options.samples,
-      runner: runnerAConfig,
+      runner: runnerAConfig
     });
 
     const raceB = createInitializedRace({
@@ -226,7 +226,7 @@ async function runRunnerCompare(options: {
       settings: DEFAULT_SETTINGS,
       duelingRates: DEFAULT_DUELING_RATES,
       skillSamples: options.samples,
-      runner: runnerBConfig,
+      runner: runnerBConfig
     });
 
     raceA.prepareRound(sampleSeed);
@@ -256,7 +256,7 @@ async function runRunnerCompare(options: {
       finalPosA,
       finalPosB,
       posDelta,
-      posDiffAbs,
+      posDiffAbs
     });
   }
 
@@ -309,7 +309,7 @@ program
 
     const { results } = await runRunnerCompare({
       samples,
-      seed,
+      seed
     });
 
     const timeDeltas = results.map((r) => r.timeDelta);
@@ -358,7 +358,7 @@ program
         console.log('\nLargest |time delta| samples:');
         for (const sample of strongestSamples) {
           console.log(
-            `  seed=${sample.seed} timeDelta=${sample.timeDelta} posDelta=${sample.posDelta}`,
+            `  seed=${sample.seed} timeDelta=${sample.timeDelta} posDelta=${sample.posDelta}`
           );
         }
       }

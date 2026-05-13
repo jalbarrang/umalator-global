@@ -7,7 +7,7 @@ import {
   EmptyDescription,
   EmptyHeader,
   EmptyMedia,
-  EmptyTitle,
+  EmptyTitle
 } from '@/components/ui/empty';
 
 export const DistributionTab = () => {
@@ -42,9 +42,9 @@ export const DistributionTab = () => {
       winRates: {
         uma1: ((uma1Wins / n) * 100).toFixed(1),
         uma2: ((uma2Wins / n) * 100).toFixed(1),
-        tie: ((ties / n) * 100).toFixed(1),
+        tie: ((ties / n) * 100).toFixed(1)
       },
-      sampleSize: n,
+      sampleSize: n
     };
   }, [results]);
 

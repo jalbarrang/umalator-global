@@ -36,7 +36,7 @@ export function buildRunnerOrderRows(
   runnerPositions: Record<number, number>,
   runnerLanes: Record<number, number>,
   trackedRunnerIds: number[],
-  finishRanks: FinishRankEntry[],
+  finishRanks: FinishRankEntry[]
 ): RunnerOrderRow[] {
   const ids = new Set<number>();
 
@@ -74,7 +74,7 @@ export function buildRunnerOrderRows(
         lane: runnerLanes[runnerId],
         isTracked: trackedRunnerIds.includes(runnerId),
         color: RUNNER_COLORS[runnerId % RUNNER_COLORS.length],
-        finished,
+        finished
       };
     });
 
@@ -95,6 +95,6 @@ export function buildRunnerOrderRows(
     isTracked: entry.isTracked,
     color: entry.color,
     rank: i + 1,
-    gapFromLeader: Math.max(0, leaderDistance - entry.position),
+    gapFromLeader: Math.max(0, leaderDistance - entry.position)
   }));
 }

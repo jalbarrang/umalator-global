@@ -3,7 +3,7 @@ export const Mood = {
   Bad: -1,
   Normal: 0,
   Good: 1,
-  Great: 2,
+  Great: 2
 } as const;
 export type IMood = (typeof Mood)[keyof typeof Mood];
 export const moods = Object.values(Mood);
@@ -12,7 +12,7 @@ export const MoodName = {
   [Mood.Bad]: 'Bad',
   [Mood.Normal]: 'Normal',
   [Mood.Good]: 'Good',
-  [Mood.Great]: 'Great',
+  [Mood.Great]: 'Great'
 } as const;
 export const moodNames = Object.values(MoodName);
 
@@ -24,7 +24,7 @@ export const Aptitude = {
   D: 4,
   E: 5,
   F: 6,
-  G: 7,
+  G: 7
 } as const;
 export type IAptitude = (typeof Aptitude)[keyof typeof Aptitude];
 export const aptitudes = Object.values(Aptitude);
@@ -36,7 +36,7 @@ export const AptitudeName = {
   [Aptitude.D]: 'D',
   [Aptitude.E]: 'E',
   [Aptitude.F]: 'F',
-  [Aptitude.G]: 'G',
+  [Aptitude.G]: 'G'
 } as const;
 export const aptitudeNames = Object.values(AptitudeName);
 
@@ -45,7 +45,7 @@ export const Strategy = {
   PaceChaser: 2,
   LateSurger: 3,
   EndCloser: 4,
-  Runaway: 5,
+  Runaway: 5
 } as const;
 export type IStrategy = (typeof Strategy)[keyof typeof Strategy];
 export const strategies = Object.values(Strategy);
@@ -54,7 +54,7 @@ export const StrategyName = {
   [Strategy.PaceChaser]: 'Pace Chaser',
   [Strategy.LateSurger]: 'Late Surger',
   [Strategy.EndCloser]: 'End Closer',
-  [Strategy.Runaway]: 'Runaway',
+  [Strategy.Runaway]: 'Runaway'
 } as const;
 export type IStrategyName = (typeof StrategyName)[keyof typeof StrategyName];
 export const strategyNames = Object.values(StrategyName);

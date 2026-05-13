@@ -6,7 +6,7 @@ import type {
   Operator,
   OperatorsConfig,
   ParseNode,
-  Parser,
+  Parser
 } from './definitions';
 
 class ParseError extends Error {
@@ -31,7 +31,7 @@ interface Token<TCondition, TOperator> {
   lbp: number;
   led: (
     state: ParserState<TCondition, TOperator>,
-    left: ParseNode<TCondition, TOperator>,
+    left: ParseNode<TCondition, TOperator>
   ) => ParseNode<TCondition, TOperator>;
   nud: (state: ParserState<TCondition, TOperator>) => ParseNode<TCondition, TOperator>;
 }
@@ -52,7 +52,7 @@ class IntValue<TCondition, TOperator> implements Token<TCondition, TOperator> {
 
   led(
     _state: ParserState<TCondition, TOperator>,
-    _left: ParseNode<TCondition, TOperator>,
+    _left: ParseNode<TCondition, TOperator>
   ): ParseNode<TCondition, TOperator> {
     throw new ParseError('unexpected integer literal');
   }
@@ -74,7 +74,7 @@ export type CreateParserOptions<TCondition, TOperator> = {
 // Implementation
 function generateParser<TCondition = ICondition, TOperator = Operator>(
   conditions: ConditionsMap<TCondition>,
-  operators: OperatorsConfig<TCondition, TOperator>,
+  operators: OperatorsConfig<TCondition, TOperator>
 ): Parser<TCondition, TOperator> {
   const endOfFile: Token<TCondition, TOperator> = {
     lbp: 0,
@@ -83,7 +83,7 @@ function generateParser<TCondition = ICondition, TOperator = Operator>(
     },
     nud: () => {
       throw new ParseError('unexpected eof');
-    },
+    }
   };
 
   class Identifier implements Token<TCondition, TOperator> {
@@ -103,12 +103,12 @@ function generateParser<TCondition = ICondition, TOperator = Operator>(
   class CmpOp implements Token<TCondition, TOperator> {
     constructor(
       readonly lbp: number,
-      readonly opclass: new (cond: TCondition, arg: number) => TOperator,
+      readonly opclass: new (cond: TCondition, arg: number) => TOperator
     ) {}
 
     led(
       state: ParserState<TCondition, TOperator>,
-      left: ParseNode<TCondition, TOperator>,
+      left: ParseNode<TCondition, TOperator>
     ): ParseNode<TCondition, TOperator> {
       if (left.type !== 'cond')
         throw new ParseError('expected condition on left hand side of comparison');
@@ -126,12 +126,12 @@ function generateParser<TCondition = ICondition, TOperator = Operator>(
   class LogicalOp implements Token<TCondition, TOperator> {
     constructor(
       readonly lbp: number,
-      readonly opclass: new (left: TOperator, right: TOperator) => TOperator,
+      readonly opclass: new (left: TOperator, right: TOperator) => TOperator
     ) {}
 
     led(
       state: ParserState<TCondition, TOperator>,
-      left: ParseNode<TCondition, TOperator>,
+      left: ParseNode<TCondition, TOperator>
     ): ParseNode<TCondition, TOperator> {
       if (left.type !== 'op')
         throw new ParseError('expected comparison on left hand side of operator');
@@ -156,7 +156,7 @@ function generateParser<TCondition = ICondition, TOperator = Operator>(
   const OperatorOr = new LogicalOp(10, operators.or);
 
   function* tokenize(
-    conditionString: string,
+    conditionString: string
   ): Generator<Token<TCondition, TOperator>, Token<TCondition, TOperator>> {
     let i = 0;
 
@@ -231,7 +231,7 @@ function generateParser<TCondition = ICondition, TOperator = Operator>(
 
   function expression(
     state: ParserState<TCondition, TOperator>,
-    rbp: number,
+    rbp: number
   ): ParseNode<TCondition, TOperator> {
     state.current = state.next;
     state.next = state.tokens.next().value;
@@ -245,7 +245,7 @@ function generateParser<TCondition = ICondition, TOperator = Operator>(
   }
 
   function internalParseAny(
-    tokens: Iterator<Token<TCondition, TOperator>, Token<TCondition, TOperator>>,
+    tokens: Iterator<Token<TCondition, TOperator>, Token<TCondition, TOperator>>
   ): ParseNode<TCondition, TOperator> {
     const state = { current: endOfFile, next: tokens.next().value, tokens };
     return expression(state, 0);
@@ -263,7 +263,7 @@ function generateParser<TCondition = ICondition, TOperator = Operator>(
 
     parseAny(conditionString: string): ParseNode<TCondition, TOperator> {
       return internalParseAny(tokenize(conditionString));
-    },
+    }
   };
 }
 
@@ -276,7 +276,7 @@ export const createParser = (options: CreateParserOptions<ICondition, Operator> 
 // Public: Typed parser for custom use cases (formatters, etc.)
 export const createTypedParser = <TCondition, TOperator>(
   conditions: ConditionsMap<TCondition>,
-  operators: OperatorsConfig<TCondition, TOperator>,
+  operators: OperatorsConfig<TCondition, TOperator>
 ): Parser<TCondition, TOperator> => {
   return generateParser(conditions, operators);
 };

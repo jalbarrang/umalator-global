@@ -126,7 +126,7 @@ export function decodeSingleUma(encoded: string): ISingleExportData | null {
       proper_running_style_oikomi,
       create_time,
       rank_score,
-      skill_array,
+      skill_array
     };
   } catch {
     return null;

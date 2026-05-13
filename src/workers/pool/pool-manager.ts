@@ -5,7 +5,7 @@ import type {
   SimulationProgress,
   WorkerInMessage,
   WorkerOutMessage,
-  WorkerState,
+  WorkerState
 } from './types';
 
 export type PoolManagerCallbacks = {
@@ -13,7 +13,7 @@ export type PoolManagerCallbacks = {
   onStageComplete?: (
     stage: number,
     results: SkillComparisonResponse,
-    progress: SimulationProgress,
+    progress: SimulationProgress
   ) => void;
   onComplete?: (results: SkillComparisonResponse, metrics: PoolMetrics) => void;
   onError?: (error: Error) => void;
@@ -32,7 +32,7 @@ export class PoolManager {
 
   constructor(
     workerGenerator: (options: { name: string }) => Worker,
-    poolSize = navigator.hardwareConcurrency || 4,
+    poolSize = navigator.hardwareConcurrency || 4
   ) {
     this.workerGenerator = workerGenerator;
     this.poolSize = Math.max(2, Math.min(poolSize, 16)); // Clamp between 2 and 16
@@ -46,7 +46,7 @@ export class PoolManager {
 
     this.workers = Array.from({ length: this.poolSize }, (_, id) => {
       const worker = this.workerGenerator({
-        name: `pool-worker-${id}`,
+        name: `pool-worker-${id}`
       });
 
       worker.addEventListener('message', (event: MessageEvent<WorkerOutMessage>) => {
@@ -187,7 +187,7 @@ export class PoolManager {
       timeTaken: Math.round(timeTaken),
       totalSamples,
       workerCount: this.poolSize,
-      skillsProcessed: this.totalSkills,
+      skillsProcessed: this.totalSkills
     };
 
     this.callbacks.onComplete?.(results, metrics);
@@ -231,7 +231,7 @@ export class PoolManager {
       worker.postMessage({
         type: 'init',
         workerId: id,
-        params,
+        params
       } as WorkerInMessage);
     });
   }

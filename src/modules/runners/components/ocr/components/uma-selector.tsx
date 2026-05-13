@@ -4,7 +4,7 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
-  CommandList,
+  CommandList
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { getIconById } from '@/modules/data/icons';
@@ -34,7 +34,7 @@ export function OcrUmaSelector(props: Readonly<OcrUmaSelectorProps>) {
       outfitId: uma.id,
       outfitName: uma.outfit,
       umaName: uma.name,
-      umaConfidence: 1,
+      umaConfidence: 1
     });
 
     setUmaSelectOpen(false);

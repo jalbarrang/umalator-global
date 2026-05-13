@@ -11,7 +11,7 @@ export type RecoveryEffectLike = {
 const MULTIPLY_RANDOM_RECOVERY_FACTORS = {
   none: 0,
   low: 0.02,
-  high: 0.04,
+  high: 0.04
 } as const;
 
 export function isSupportedMultiplyRandomRecovery(effect: RecoveryEffectLike): boolean {
@@ -38,14 +38,14 @@ export function describeRecoveryEffect(effect: RecoveryEffectLike): string | nul
   return [
     `60% chance to ${verb} nothing`,
     `30% to ${verb} ${formatRecoveryPercent(effect.modifier * MULTIPLY_RANDOM_RECOVERY_FACTORS.low)}`,
-    `10% to ${verb} ${formatRecoveryPercent(effect.modifier * MULTIPLY_RANDOM_RECOVERY_FACTORS.high)}`,
+    `10% to ${verb} ${formatRecoveryPercent(effect.modifier * MULTIPLY_RANDOM_RECOVERY_FACTORS.high)}`
   ].join(', ');
 }
 
 export function resolveRecoveryModifier(
   effect: RecoveryEffectLike,
   skillRng?: Pick<PRNG, 'random'> | null,
-  override?: number | null,
+  override?: number | null
 ): number {
   if (effect.type !== SkillType.Recovery) {
     return effect.modifier;
