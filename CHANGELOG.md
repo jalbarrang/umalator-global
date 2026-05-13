@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.6.1](https://github.com/jalbarrang/umalator-global/compare/v0.6.0...v0.6.1) (2026-05-13)
+
+
+### Bug Fixes
+
+* changelog view ([27cf4ff](https://github.com/jalbarrang/umalator-global/commit/27cf4ffcee628bb083ff2b98f611afbe40854416))
+
 ## [0.6.0](https://github.com/jalbarrang/umalator-global/compare/v0.5.0...v0.6.0) (2026-05-13)
 
 ### Features
