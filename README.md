@@ -52,12 +52,27 @@ This script downloads `master.mdb` to `db/master.mdb`, which extraction scripts 
 
 ## Deployment
 
-Production deploys run on **GitHub Pages** via `.github/workflows/deploy-pages.yml`.
+Production deploys are triggered automatically when a new **GitHub Release** is published (via [release-please](https://github.com/googleapis/release-please)).
 
-- Auto-deploy triggers on pushes to `main`.
-- Build-time PostHog values are read from repository variables:
-  - `VITE_PUBLIC_POSTHOG_KEY`
-  - `VITE_PUBLIC_POSTHOG_HOST`
+Two deploy targets run in parallel:
+
+| Target           | Workflow                               | URL                                |
+| ---------------- | -------------------------------------- | ---------------------------------- |
+| **GitHub Pages** | `.github/workflows/deploy-pages.yml`   | Configured in repo Pages settings  |
+| **Netlify**      | `.github/workflows/deploy-netlify.yml` | https://sundays-shadow.netlify.app |
+
+Both workflows can also be triggered manually via `workflow_dispatch`.
+
+### Required Secrets & Variables
+
+| Name                       | Type     | Used by                                                                                                   |
+| -------------------------- | -------- | --------------------------------------------------------------------------------------------------------- |
+| `DATA_UPDATE_PAT`          | Secret   | `versioning.yml` — PAT used by release-please so the `release: published` event triggers deploy workflows |
+| `NETLIFY_AUTH_TOKEN`       | Secret   | Netlify deploy                                                                                            |
+| `NETLIFY_SITE_ID`          | Secret   | Netlify deploy                                                                                            |
+| `VITE_PUBLIC_POSTHOG_KEY`  | Secret   | Build-time analytics key                                                                                  |
+| `VITE_PUBLIC_POSTHOG_HOST` | Variable | Build-time analytics host                                                                                 |
+| `VITE_BASE_PATH`           | Variable | GitHub Pages base path                                                                                    |
 
 ## Useful Commands
 
