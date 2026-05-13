@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.6.2](https://github.com/jalbarrang/umalator-global/compare/v0.6.1...v0.6.2) (2026-05-13)
+
+
+### Bug Fixes
+
+* **ci:** use PAT in release-please to trigger deploy workflows ([477f961](https://github.com/jalbarrang/umalator-global/commit/477f961abb3bf1d8fa904f156f9dead9ae19c839))
+
 ## [0.6.1](https://github.com/jalbarrang/umalator-global/compare/v0.6.0...v0.6.1) (2026-05-13)
 
 
