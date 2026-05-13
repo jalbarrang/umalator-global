@@ -60,7 +60,7 @@ export const TrackLegend = React.memo(() => {
             <span className="mx-0.5 h-3 w-px bg-border/70" aria-hidden="true" />
             <span className="inline-flex items-center gap-1 rounded-sm border border-zinc-300 bg-zinc-50 px-1.5 py-0.5 text-[10px] text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800/70 dark:text-zinc-200">
               <span
-                className="inline-flex h-2.5 w-2.5 rounded-full border"
+                className="inline-flex size-2.5 rounded-full border"
                 style={{
                   backgroundColor: pair.skill.fill,
                   borderColor: pair.skill.stroke
@@ -71,7 +71,7 @@ export const TrackLegend = React.memo(() => {
             </span>
             <span className="inline-flex items-center gap-1 rounded-sm border border-zinc-300 bg-zinc-50 px-1.5 py-0.5 text-[10px] text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800/70 dark:text-zinc-200">
               <span
-                className="inline-flex h-2.5 w-2.5 rounded-full border"
+                className="inline-flex size-2.5 rounded-full border"
                 style={{
                   backgroundColor: pair.debuff.fill,
                   borderColor: pair.debuff.stroke

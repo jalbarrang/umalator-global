@@ -32,7 +32,7 @@ const ExpandCell = React.memo(({ skillId, hasRunData }: ExpandCellProps) => {
       data-skill-id={skillId}
       className="cursor-pointer"
     >
-      <ChartBar className="h-4 w-4" />
+      <ChartBar className="size-4" />
     </Button>
   );
 });
@@ -47,12 +47,12 @@ const ActionsCell = React.memo(({ skillId }: ActionsCellProps) => {
       type="button"
       variant="outline"
       size="sm"
-      className="h-8 w-8 p-0"
+      className="size-8 p-0"
       data-event={BASSIN_DATA_EVENT_OPEN_SKILL_ACTIONS}
       data-skill-id={skillId}
       title="Skill actions"
     >
-      <ArrowLeft className="h-4 w-4" />
+      <ArrowLeft className="size-4" />
     </Button>
   );
 });

@@ -28,7 +28,7 @@ export function HelpDialog({ open, onOpenChange }: HelpDialogProps) {
       <DialogContent className="max-w-2xl sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <HelpCircleIcon className="w-5 h-5" />
+            <HelpCircleIcon className="size-5" />
             How to Use Skill Planner
           </DialogTitle>
           <DialogDescription>

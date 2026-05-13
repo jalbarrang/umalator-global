@@ -104,7 +104,7 @@ export function SkillPlannerLayout() {
             <SkillPlannerStepper currentStep={currentStep} onStepSelect={setCurrentStep} />
 
             {/* <Button variant="outline" size="sm" onClick={() => setStartOverOpen(true)}>
-              <RotateCcwIcon className="mr-2 h-4 w-4" />
+              <RotateCcwIcon className="mr-2 size-4" />
               Start over
             </Button> */}
           </div>
@@ -128,13 +128,13 @@ export function SkillPlannerLayout() {
                 onClick={handleBack}
                 disabled={!previousStepByStep[currentStep]}
               >
-                <ArrowLeftIcon className="mr-2 h-4 w-4" />
+                <ArrowLeftIcon className="mr-2 size-4" />
                 Back
               </Button>
 
               <Button size="sm" onClick={handleNext} disabled={!canContinue}>
                 Next
-                <ArrowRightIcon className="ml-2 h-4 w-4" />
+                <ArrowRightIcon className="ml-2 size-4" />
               </Button>
             </div>
           )}

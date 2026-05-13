@@ -27,9 +27,7 @@ export const AptitudeSelect = (props: AptitudeSelectProps) => {
   return (
     <Select value={value} onValueChange={handleChange}>
       <SelectTrigger className="border-none rounded-none shadow-none w-full">
-        <SelectValue>
-          {(value) => <AptitudeIcon aptitude={value} className="w-4 h-4" />}
-        </SelectValue>
+        <SelectValue>{(value) => <AptitudeIcon aptitude={value} className="size-4" />}</SelectValue>
       </SelectTrigger>
 
       <SelectContent>

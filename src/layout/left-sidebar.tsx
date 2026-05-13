@@ -115,7 +115,7 @@ export const LeftSidebar = () => {
                   <Button
                     variant={activePanel === panel.id ? 'secondary' : 'ghost'}
                     size="icon"
-                    className={cn('relative h-9 w-9', activePanel === panel.id && 'bg-accent')}
+                    className={cn('relative size-9', activePanel === panel.id && 'bg-accent')}
                     onClick={() => {
                       if (activePanel === panel.id && !hidden) {
                         setLeftSidebar({ hidden: true });
@@ -124,9 +124,9 @@ export const LeftSidebar = () => {
                       }
                     }}
                   >
-                    <panel.icon className="h-4 w-4" />
+                    <panel.icon className="size-4" />
                     {panel.hasBadge && (
-                      <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-primary ring-1 ring-background" />
+                      <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-primary ring-1 ring-background" />
                     )}
                   </Button>
                 }
@@ -142,13 +142,8 @@ export const LeftSidebar = () => {
           <Tooltip>
             <TooltipTrigger
               render={
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-9 w-9"
-                  onClick={handleCloseSidebar}
-                >
-                  <SidebarClose className="h-4 w-4" />
+                <Button variant="ghost" size="icon" className="size-9" onClick={handleCloseSidebar}>
+                  <SidebarClose className="size-4" />
                 </Button>
               }
             />

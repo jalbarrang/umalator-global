@@ -56,7 +56,7 @@ export const RaceSettingsPanel = React.memo(({ open }: RaceSettingsPanelProps) =
   return (
     <Collapsible {...collapsibleProps}>
       <CollapsibleTrigger className="group flex w-full items-center gap-2 bg-card px-4 py-2 text-sm hover:bg-accent/50 cursor-pointer">
-        <Settings className="h-4 w-4 shrink-0" />
+        <Settings className="size-4 shrink-0" />
         <span>{summary}</span>
       </CollapsibleTrigger>
 

@@ -142,17 +142,17 @@ export default function CompareHomePage() {
             render={
               <Button variant="outline" size="sm" disabled={isSimulationRunning}>
                 Share settings
-                <ChevronDown className="w-3 h-3" />
+                <ChevronDown className="size-3" />
               </Button>
             }
           />
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => downloadSnapshot()}>
-              <Download className="h-4 w-4 mr-2" />
+              <Download className="size-4 mr-2" />
               Export simulation settings
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setImportSnapshotOpen(true)}>
-              <Upload className="h-4 w-4 mr-2" />
+              <Upload className="size-4 mr-2" />
               Import simulation settings
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -166,9 +166,9 @@ export default function CompareHomePage() {
                 size="sm"
                 disabled={isSimulationRunning || !compareShareProps}
               >
-                <Share2 className="w-3 h-3 mr-1" />
+                <Share2 className="size-3 mr-1" />
                 Share compare
-                <ChevronDown className="w-3 h-3" />
+                <ChevronDown className="size-3" />
               </Button>
             }
           />
@@ -179,7 +179,7 @@ export default function CompareHomePage() {
                 if (compareShareRef.current) void copyCompareScreenshot(compareShareRef.current);
               }}
             >
-              <Camera className="h-4 w-4 mr-2" />
+              <Camera className="size-4 mr-2" />
               Copy compare screenshot
             </DropdownMenuItem>
           </DropdownMenuContent>

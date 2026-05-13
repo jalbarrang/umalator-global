@@ -30,7 +30,7 @@ export function OcrResultPreviewPanel({
 
       {!hasResults && !isProcessing && (
         <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground gap-2">
-          <ImageIcon className="w-12 h-12" />
+          <ImageIcon className="size-12" />
           <p>{emptyMessage}</p>
         </div>
       )}

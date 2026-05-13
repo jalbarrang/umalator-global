@@ -60,7 +60,7 @@ export const SavedRunnerCard = memo((props: SavedRunnerCardProps) => {
         <div className="flex gap-4">
           {/* Uma Portrait */}
           <div className="shrink">
-            <div className="w-18 h-18">
+            <div className="size-18">
               <img src={imageUrl} alt={runner.notes} className="w-full h-full object-cover" />
             </div>
           </div>
@@ -101,7 +101,7 @@ export const SavedRunnerCard = memo((props: SavedRunnerCardProps) => {
 
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={() => copyRosterViewCode(runner, runner.createdAt)}>
-                      <Code className="h-4 w-4 mr-2" />
+                      <Code className="size-4 mr-2" />
                       Copy RosterView Code
                     </DropdownMenuItem>
                     <DropdownMenuItem
@@ -113,7 +113,7 @@ export const SavedRunnerCard = memo((props: SavedRunnerCardProps) => {
                         )
                       }
                     >
-                      <Download className="h-4 w-4 mr-2" />
+                      <Download className="size-4 mr-2" />
                       Download JSON
                     </DropdownMenuItem>
                     <DropdownMenuItem
@@ -121,7 +121,7 @@ export const SavedRunnerCard = memo((props: SavedRunnerCardProps) => {
                         if (shareCardRef.current) copyScreenshot(shareCardRef.current);
                       }}
                     >
-                      <Camera className="h-4 w-4 mr-2" />
+                      <Camera className="size-4 mr-2" />
                       Copy Screenshot
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -144,25 +144,25 @@ export const SavedRunnerCard = memo((props: SavedRunnerCardProps) => {
             <div className="grid grid-cols-1 rounded-sm border-2">
               <div className="grid grid-cols-5">
                 <div className="flex items-center justify-center gap-2 bg-primary rounded-tl-sm">
-                  <img src={getIconUrl('status_00.png')} className="w-4 h-4" />
+                  <img src={getIconUrl('status_00.png')} className="size-4" />
                   <span className="text-white text-xs">Speed</span>
                 </div>
                 <div className="flex items-center justify-center gap-2 bg-primary">
-                  <img src={getIconUrl('status_01.png')} className="w-4 h-4" />
+                  <img src={getIconUrl('status_01.png')} className="size-4" />
                   <span className="text-white text-xs">Stamina</span>
                 </div>
                 <div className="flex items-center justify-center gap-2 bg-primary">
-                  <img src={getIconUrl('status_02.png')} className="w-4 h-4" />
+                  <img src={getIconUrl('status_02.png')} className="size-4" />
                   <span className="text-white text-xs">Power</span>
                 </div>
 
                 <div className="flex items-center justify-center gap-2 bg-primary">
-                  <img src={getIconUrl('status_03.png')} className="w-4 h-4" />
+                  <img src={getIconUrl('status_03.png')} className="size-4" />
                   <span className="text-white text-xs">Guts</span>
                 </div>
 
                 <div className="flex items-center justify-center gap-2 bg-primary rounded-tr-sm">
-                  <img src={getIconUrl('status_04.png')} className="w-4 h-4" />
+                  <img src={getIconUrl('status_04.png')} className="size-4" />
                   <span className="text-white text-xs">Wit</span>
                 </div>
               </div>
@@ -170,35 +170,35 @@ export const SavedRunnerCard = memo((props: SavedRunnerCardProps) => {
               <div className="grid grid-cols-5">
                 <div className="flex items-center">
                   <div className="flex items-center justify-center p-1">
-                    <StatImage value={runner.speed} className="w-4 h-4" />
+                    <StatImage value={runner.speed} className="size-4" />
                   </div>
                   <span className="p-1 text-sm font-mono">{runner.speed}</span>
                 </div>
 
                 <div className="flex items-center">
                   <div className="flex items-center justify-center p-1">
-                    <StatImage value={runner.stamina} className="w-4 h-4" />
+                    <StatImage value={runner.stamina} className="size-4" />
                   </div>
                   <span className="p-1 text-sm font-mono">{runner.stamina}</span>
                 </div>
 
                 <div className="flex items-center">
                   <div className="flex items-center justify-center p-1">
-                    <StatImage value={runner.power} className="w-4 h-4" />
+                    <StatImage value={runner.power} className="size-4" />
                   </div>
                   <span className="p-1 text-sm font-mono">{runner.power}</span>
                 </div>
 
                 <div className="flex items-center">
                   <div className="flex items-center justify-center p-1">
-                    <StatImage value={runner.guts} className="w-4 h-4" />
+                    <StatImage value={runner.guts} className="size-4" />
                   </div>
                   <span className="p-1 text-sm font-mono">{runner.guts}</span>
                 </div>
 
                 <div className="flex items-center">
                   <div className="flex items-center justify-center p-1">
-                    <StatImage value={runner.wisdom} className="w-4 h-4" />
+                    <StatImage value={runner.wisdom} className="size-4" />
                   </div>
                   <span className="p-1 text-sm font-mono">{runner.wisdom}</span>
                 </div>

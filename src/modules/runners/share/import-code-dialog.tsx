@@ -92,7 +92,7 @@ export function ImportCodeDialog({
           {decoded && (
             <div className="flex flex-col gap-3 p-3 border rounded-md">
               <div className="flex items-center gap-3">
-                {decoded.outfitId && <img src={imageUrl} alt="" className="w-12 h-12 rounded" />}
+                {decoded.outfitId && <img src={imageUrl} alt="" className="size-12 rounded" />}
                 <div>
                   {umaInfo ? (
                     <>
@@ -133,7 +133,7 @@ export function ImportCodeDialog({
                       i === 0 ? 'rounded-bl' : i === 4 ? 'rounded-br' : ''
                     }`}
                   >
-                    <StatImage value={val ?? 0} className="w-3 h-3" />
+                    <StatImage value={val ?? 0} className="size-3" />
                     <span>{val ?? '-'}</span>
                   </div>
                 ))}

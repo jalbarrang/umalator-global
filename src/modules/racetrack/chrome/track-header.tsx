@@ -46,14 +46,14 @@ export const TrackHeader = React.memo((props: TrackHeaderProps) => {
         </div>
 
         <a href={raceTrackUrl} target="_blank" rel="noopener noreferrer">
-          <ExternalLinkIcon className="w-4 h-4" />
+          <ExternalLinkIcon className="size-4" />
         </a>
       </div>
 
       <div className="flex">
         <div className="flex items-center gap-2">
-          <SeasonIcon season={racedef.season} className="w-6 h-6" />
-          <WeatherIcon weather={racedef.weather} className="w-6 h-6" />
+          <SeasonIcon season={racedef.season} className="size-6" />
+          <WeatherIcon weather={racedef.weather} className="size-6" />
           <div className="font-bold">{i18n.t(`racetrack.ground.${racedef.ground}`)}</div>
         </div>
       </div>

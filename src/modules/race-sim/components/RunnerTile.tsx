@@ -61,7 +61,7 @@ export function RunnerTile({
       <div className="flex flex-col gap-4 p-2">
         <div className="flex items-center gap-4">
           <div className="shrink-0">
-            <div className="w-16 h-16">
+            <div className="size-16">
               <img
                 src={imageUrl}
                 alt={`Runner ${index + 1}`}
@@ -95,23 +95,23 @@ export function RunnerTile({
         <div className="grid grid-cols-1 rounded-sm border-2">
           <div className="grid grid-cols-5">
             <div className="flex items-center justify-center gap-1 bg-primary py-1 rounded-tl-sm">
-              <img src={getIconUrl('status_00.png')} className="w-3.5 h-3.5" />
+              <img src={getIconUrl('status_00.png')} className="size-3.5" />
               <span className="text-white text-[10px]">Spd</span>
             </div>
             <div className="flex items-center justify-center gap-1 bg-primary py-1">
-              <img src={getIconUrl('status_01.png')} className="w-3.5 h-3.5" />
+              <img src={getIconUrl('status_01.png')} className="size-3.5" />
               <span className="text-white text-[10px]">Sta</span>
             </div>
             <div className="flex items-center justify-center gap-1 bg-primary py-1">
-              <img src={getIconUrl('status_02.png')} className="w-3.5 h-3.5" />
+              <img src={getIconUrl('status_02.png')} className="size-3.5" />
               <span className="text-white text-[10px]">Pow</span>
             </div>
             <div className="flex items-center justify-center gap-1 bg-primary py-1">
-              <img src={getIconUrl('status_03.png')} className="w-3.5 h-3.5" />
+              <img src={getIconUrl('status_03.png')} className="size-3.5" />
               <span className="text-white text-[10px]">Gut</span>
             </div>
             <div className="flex items-center justify-center gap-1 bg-primary py-1 rounded-tr-sm">
-              <img src={getIconUrl('status_04.png')} className="w-3.5 h-3.5" />
+              <img src={getIconUrl('status_04.png')} className="size-3.5" />
               <span className="text-white text-[10px]">Wit</span>
             </div>
           </div>
@@ -120,7 +120,7 @@ export function RunnerTile({
             {[runner.speed, runner.stamina, runner.power, runner.guts, runner.wisdom].map(
               (stat, i) => (
                 <div key={i} className="flex items-center gap-1 p-1">
-                  <StatImage value={stat} className="w-3.5 h-3.5" />
+                  <StatImage value={stat} className="size-3.5" />
                   <span className="text-xs">{stat}</span>
                 </div>
               )

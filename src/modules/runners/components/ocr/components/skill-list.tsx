@@ -107,7 +107,7 @@ export function OcrSkillsList(props: Readonly<IOcrSkillsListProps>) {
             onSelectSkill={handleAddSkill}
             trigger={
               <Button type="button" variant="outline" size="sm" disabled={isProcessing}>
-                <Plus className="h-4 w-4" />
+                <Plus className="size-4" />
                 Add Skill
               </Button>
             }
@@ -137,7 +137,7 @@ export function OcrSkillsList(props: Readonly<IOcrSkillsListProps>) {
                         handleOpenReplaceSkillPicker(index, event.currentTarget);
                       }}
                     >
-                      <Pencil className="h-4 w-4" />
+                      <Pencil className="size-4" />
                     </Button>
                   }
                 />

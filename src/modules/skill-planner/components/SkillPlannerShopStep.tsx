@@ -72,7 +72,7 @@ export function SkillPlannerShopStep() {
               className="justify-start sm:flex-1"
               onClick={() => toast.info('Shop screenshot import is next up in this refactor.')}
             >
-              <ImageIcon className="mr-2 h-4 w-4" />
+              <ImageIcon className="mr-2 size-4" />
               Import shop screenshots
             </Button>
 
@@ -83,7 +83,7 @@ export function SkillPlannerShopStep() {
               onClick={() => setSkillPickerOpen(true)}
               disabled={!runner.outfitId}
             >
-              <PlusIcon className="mr-2 h-4 w-4" />
+              <PlusIcon className="mr-2 size-4" />
               Add skills manually
             </Button>
           </div>

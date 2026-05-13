@@ -376,19 +376,19 @@ export const RunnerCard = (props: RunnerCardProps) => {
               <DropdownMenuTrigger
                 render={
                   <Button size="sm" variant="outline">
-                    <Upload className="w-4 h-4" />
+                    <Upload className="size-4" />
                     <span className="hidden md:inline!">Import</span>
-                    <ChevronDown className="w-3 h-3" />
+                    <ChevronDown className="size-3" />
                   </Button>
                 }
               />
               <DropdownMenuContent align="start">
                 <DropdownMenuItem onClick={() => setImportDialogOpen(true)}>
-                  <Upload className="h-4 w-4 mr-2" />
+                  <Upload className="size-4 mr-2" />
                   From Screenshot (OCR)
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setCodeImportDialogOpen(true)}>
-                  <ClipboardPaste className="h-4 w-4 mr-2" />
+                  <ClipboardPaste className="size-4 mr-2" />
                   From Code
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -397,7 +397,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
 
           {props.runnerId !== 'pacer' && onCopy && (
             <Button onClick={onCopy} size="sm" variant="outline" title="Copy to other runner">
-              <CopyPlus className="w-4 h-4" />
+              <CopyPlus className="size-4" />
               <span className="hidden md:inline!">Duplicate</span>
             </Button>
           )}
@@ -407,21 +407,21 @@ export const RunnerCard = (props: RunnerCardProps) => {
               <DropdownMenuTrigger
                 render={
                   <Button size="sm" variant="outline" title="Share runner">
-                    <Share2 className="w-4 h-4" />
+                    <Share2 className="size-4" />
                     <span className="hidden md:inline!">Share</span>
-                    <ChevronDown className="w-3 h-3" />
+                    <ChevronDown className="size-3" />
                   </Button>
                 }
               />
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => copyRosterViewCode(state)}>
-                  <Code className="h-4 w-4 mr-2" />
+                  <Code className="size-4 mr-2" />
                   Copy RosterView Code
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => downloadJson(state, `runner-${umaInfo?.name ?? 'unknown'}.json`)}
                 >
-                  <Download className="h-4 w-4 mr-2" />
+                  <Download className="size-4 mr-2" />
                   Download JSON
                 </DropdownMenuItem>
                 <DropdownMenuItem
@@ -429,7 +429,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
                     if (shareCardRef.current) copyScreenshot(shareCardRef.current);
                   }}
                 >
-                  <Camera className="h-4 w-4 mr-2" />
+                  <Camera className="size-4 mr-2" />
                   Copy Screenshot
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -438,7 +438,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
 
           <Button onClick={onReset} title="Reset runner" size="sm">
             <span className="hidden md:inline!">Reset</span>
-            <TrashIcon className="w-4 h-4" />
+            <TrashIcon className="size-4" />
           </Button>
         </div>
       </div>
@@ -496,7 +496,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
 
           <Button variant="default" onClick={handleOpenSkillPicker} className="cursor-pointer">
             Add Skills
-            <PlusIcon className="w-4 h-4" />
+            <PlusIcon className="size-4" />
           </Button>
         </div>
       )}

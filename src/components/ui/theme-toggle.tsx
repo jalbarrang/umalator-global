@@ -25,9 +25,9 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({ className }) => {
   const getIcon = () => {
     switch (theme) {
       case 'light':
-        return <SunIcon className="h-4 w-4" />;
+        return <SunIcon className="size-4" />;
       case 'dark':
-        return <MoonIcon className="h-4 w-4" />;
+        return <MoonIcon className="size-4" />;
     }
   };
 
@@ -46,7 +46,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({ className }) => {
       onClick={handleToggle}
       aria-label={getLabel()}
       title={getLabel()}
-      className={cn('flex h-9 w-9 items-center justify-center', className)}
+      className={cn('flex size-9 items-center justify-center', className)}
     >
       {getIcon()}
     </Button>

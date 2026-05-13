@@ -34,7 +34,7 @@ export const StatInput = (props: StatInputProps) => {
   return (
     <div className="flex items-center gap-2">
       <div className="flex items-center justify-center p-1">
-        <StatImage value={innerValue} className="w-4 h-4" />
+        <StatImage value={innerValue} className="size-4" />
       </div>
 
       <Input

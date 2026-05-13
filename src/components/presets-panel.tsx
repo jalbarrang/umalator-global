@@ -148,7 +148,7 @@ const SortablePresetItem = ({
         {...attributes}
         {...listeners}
       >
-        <GripVertical className="h-4 w-4" />
+        <GripVertical className="size-4" />
       </button>
 
       {selectionMode && (
@@ -167,7 +167,7 @@ const SortablePresetItem = ({
 
       {!selectionMode && (
         <Button variant="destructive" size="icon" onClick={(e) => onDeleteClick(preset.id, e)}>
-          <Trash2 className="h-4 w-4" />
+          <Trash2 className="size-4" />
         </Button>
       )}
     </div>
@@ -351,7 +351,7 @@ export const PresetsPanel = () => {
                       disabled={checkedIds.size === 0}
                       onClick={handleBulkDelete}
                     >
-                      <Trash2 className="h-8 w-8 mr-1" />
+                      <Trash2 className="size-8 mr-1" />
                       Delete ({checkedIds.size})
                     </Button>
                     <Button variant="outline" size="sm" onClick={exitSelectionMode}>
@@ -361,7 +361,7 @@ export const PresetsPanel = () => {
                 ) : (
                   <>
                     <Button variant="outline" size="sm" onClick={() => setResetDialogOpen(true)}>
-                      <RotateCcw className="h-4 w-4 mr-1" />
+                      <RotateCcw className="size-4 mr-1" />
                       Reset
                     </Button>
                     <Button variant="outline" size="sm" onClick={() => setSelectionMode(true)}>

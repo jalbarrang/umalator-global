@@ -53,7 +53,7 @@ export const UmaSelector = (props: UmaSelectorProps) => {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger className="flex flex-1 gap-2 cursor-pointer">
-        <div className="w-18 h-18">
+        <div className="size-18">
           <img src={imageUrl} alt={selectedUma?.name || 'Runner'} />
         </div>
 
@@ -82,7 +82,7 @@ export const UmaSelector = (props: UmaSelectorProps) => {
                   value={`${uma.outfit} ${uma.name}`}
                   onSelect={() => handleSelectedItem(uma.id)}
                 >
-                  <img src={getUmaImageUrl(uma.id)} className="w-16 h-16" alt={uma.name} />
+                  <img src={getUmaImageUrl(uma.id)} className="size-16" alt={uma.name} />
                   <div>
                     <div className="text-xs font-bold">{uma.outfit}</div>
                     <div className="text-sm">{uma.name}</div>

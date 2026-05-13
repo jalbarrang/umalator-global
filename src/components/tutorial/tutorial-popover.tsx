@@ -71,7 +71,7 @@ function PopoverContent({ step }: TutorialPopoverProps) {
               {/* Close button */}
               {showClose && (
                 <Button onClick={close} variant="ghost" size="icon-sm" aria-label="Close tutorial">
-                  <XIcon className="w-4 h-4" />
+                  <XIcon className="size-4" />
                 </Button>
               )}
             </div>
@@ -167,7 +167,7 @@ function DialogContent({ step }: TutorialPopoverProps) {
 
             {showClose && (
               <Button onClick={close} variant="ghost" size="icon-sm" aria-label="Close tutorial">
-                <XIcon className="w-4 h-4" />
+                <XIcon className="size-4" />
               </Button>
             )}
           </div>

@@ -264,7 +264,7 @@ function HumanCmpFormatter(opKey: OperatorKey, opSymbol: string) {
 
       return (
         <div className="flex items-start gap-1.5 py-px">
-          <span className="shrink-0 mt-[7px] w-1 h-1 rounded-full bg-foreground/40" />
+          <span className="shrink-0 mt-[7px] size-1 rounded-full bg-foreground/40" />
           <span>{text}</span>
         </div>
       );

@@ -135,7 +135,7 @@ export function SkillPlannerRunnerStep() {
         <div className="rounded-lg border bg-card p-4">
           <div className="mb-4 flex items-center justify-between gap-2">
             <Button variant="outline" size="sm" onClick={() => setOcrImportOpen(true)}>
-              <UploadIcon className="mr-2 h-4 w-4" />
+              <UploadIcon className="mr-2 size-4" />
               Import from Screenshot
             </Button>
           </div>
@@ -153,7 +153,7 @@ export function SkillPlannerRunnerStep() {
             <div className="text-sm font-medium">Obtained skills</div>
 
             <Button size="sm" onClick={() => setSkillPickerOpen(true)} disabled={!runner.outfitId}>
-              <PlusIcon className="mr-2 h-4 w-4" />
+              <PlusIcon className="mr-2 size-4" />
               Add obtained skills (f)
             </Button>
           </div>

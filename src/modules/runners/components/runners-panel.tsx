@@ -127,7 +127,7 @@ export const RunnersPanel = () => {
           <div className="flex items-center justify-between gap-2 p-2 bg-muted/50 border-b">
             <div className="flex items-center gap-2">
               <Badge variant="secondary" className="gap-1">
-                <Link2 className="w-3 h-3" />
+                <Link2 className="size-3" />
                 Linked to: {linkedRunner.notes}
               </Badge>
             </div>
@@ -136,7 +136,7 @@ export const RunnersPanel = () => {
                 <TooltipTrigger
                   render={
                     <Button size="sm" variant="ghost" onClick={handleSyncToLibrary}>
-                      <Save className="w-4 h-4" />
+                      <Save className="size-4" />
                     </Button>
                   }
                 />
@@ -147,7 +147,7 @@ export const RunnersPanel = () => {
                 <TooltipTrigger
                   render={
                     <Button size="sm" variant="ghost" onClick={handleUnlink}>
-                      <Link2Off className="w-4 h-4" />
+                      <Link2Off className="size-4" />
                     </Button>
                   }
                 />
@@ -161,7 +161,7 @@ export const RunnersPanel = () => {
         {!isLinked && (
           <div className="flex items-center justify-end gap-2 p-2 bg-muted/50 border-b">
             <Button size="sm" variant="secondary" onClick={() => setSaveModalOpen(true)}>
-              <Save className="w-4 h-4 mr-2" />
+              <Save className="size-4 mr-2" />
               Save to Veterans
             </Button>
           </div>

@@ -38,7 +38,7 @@ export const RunnerRow = memo(function RunnerRow(props: Readonly<IRunnerRowProps
         onClick={(e) => e.stopPropagation()}
       />
 
-      <img src={runner.imageUrl} alt="" className="w-10 h-10 rounded shrink-0" />
+      <img src={runner.imageUrl} alt="" className="size-10 rounded shrink-0" />
 
       <div className="flex flex-col flex-1 min-w-0 gap-1">
         <div className="flex items-center gap-2">
@@ -61,23 +61,23 @@ export const RunnerRow = memo(function RunnerRow(props: Readonly<IRunnerRowProps
         <div className="flex flex-col md:flex-row items-center gap-2">
           <div className="flex items-center gap-2 text-xs">
             <div className="flex items-center gap-0.5">
-              <StatImage value={runner.state.speed} className="w-3 h-3" />
+              <StatImage value={runner.state.speed} className="size-3" />
               <span>{runner.state.speed}</span>
             </div>
             <div className="flex items-center gap-0.5">
-              <StatImage value={runner.state.stamina} className="w-3 h-3" />
+              <StatImage value={runner.state.stamina} className="size-3" />
               <span>{runner.state.stamina}</span>
             </div>
             <div className="flex items-center gap-0.5">
-              <StatImage value={runner.state.power} className="w-3 h-3" />
+              <StatImage value={runner.state.power} className="size-3" />
               <span>{runner.state.power}</span>
             </div>
             <div className="flex items-center gap-0.5">
-              <StatImage value={runner.state.guts} className="w-3 h-3" />
+              <StatImage value={runner.state.guts} className="size-3" />
               <span>{runner.state.guts}</span>
             </div>
             <div className="flex items-center gap-0.5">
-              <StatImage value={runner.state.wisdom} className="w-3 h-3" />
+              <StatImage value={runner.state.wisdom} className="size-3" />
               <span>{runner.state.wisdom}</span>
             </div>
           </div>

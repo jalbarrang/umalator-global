@@ -104,7 +104,7 @@ export const SaveRunnerModal = ({
             Cancel
           </Button>
           <Button onClick={handleSave} disabled={!name.trim()}>
-            <BookmarkPlus className="w-4 h-4 mr-2" />
+            <BookmarkPlus className="size-4 mr-2" />
             Save
           </Button>
         </DialogFooter>

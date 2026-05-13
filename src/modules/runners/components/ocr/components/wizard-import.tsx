@@ -66,7 +66,7 @@ function DropZone({
   if (noKey) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed p-4 text-center">
-        <KeyRound className="w-8 h-8 text-muted-foreground" />
+        <KeyRound className="size-8 text-muted-foreground" />
         <div className="space-y-1">
           <p className="text-sm font-medium">Gemini API key required</p>
           <p className="text-xs text-muted-foreground max-w-[220px]">
@@ -98,7 +98,7 @@ function DropZone({
           {thumbnails.map((img, i) => (
             <div
               key={`${img.preview}-${i}`}
-              className="w-12 h-12 rounded border overflow-hidden shrink-0"
+              className="size-12 rounded border overflow-hidden shrink-0"
             >
               <img src={img.preview} className="w-full h-full object-cover" />
             </div>
@@ -183,7 +183,7 @@ export function WizardImport() {
           <DropZone
             label="Drop here"
             description="The screenshots of your runner, add more if she has a lot of skills."
-            icon={<ScanLine className="w-8 h-8" />}
+            icon={<ScanLine className="size-8" />}
             disabled={isProcessing}
             noKey={!hasApiKey}
             thumbnails={preparedImages}
@@ -225,7 +225,7 @@ export function WizardImport() {
               <h3 className="font-medium">Import Summary</h3>
               {hasDetectedData(results) && (
                 <div className="text-green-600 flex items-center gap-1 text-sm">
-                  <CheckCircle2 className="h-4 w-4" />
+                  <CheckCircle2 className="size-4" />
                   Ready to apply
                 </div>
               )}
@@ -238,7 +238,7 @@ export function WizardImport() {
                     <img
                       src={getIconById(results.outfitId)}
                       alt={results.umaName}
-                      className="w-10 h-10 rounded"
+                      className="size-10 rounded"
                     />
                     <div>
                       <p className="font-medium">{results.outfitName}</p>
@@ -290,7 +290,7 @@ export function WizardImport() {
       {/* Error */}
       {error && (
         <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-md text-red-500 text-sm flex items-start gap-2">
-          <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+          <AlertCircle className="size-4 mt-0.5 shrink-0" />
           <span>{error}</span>
         </div>
       )}

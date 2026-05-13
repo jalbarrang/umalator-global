@@ -37,7 +37,7 @@ export const StatsTable = (props: StatsTableProps) => {
         {statTable.map((stat) => (
           <div key={stat.key} className="grid grid-cols-2 items-center">
             <div className="flex items-center justify-center gap-2 h-full">
-              <img src={stat.icon} className="w-4 h-4" />
+              <img src={stat.icon} className="size-4" />
               <span className="text-white text-sm">{stat.label}</span>
             </div>
 
@@ -53,23 +53,23 @@ export const StatsTable = (props: StatsTableProps) => {
   return (
     <div className={cn('grid grid-cols-5 rounded-sm border-2', className)} {...rest}>
       <div className="flex items-center justify-center gap-2 bg-primary rounded-tl-sm">
-        <img src={getIconUrl('status_00.png')} className="w-4 h-4" />
+        <img src={getIconUrl('status_00.png')} className="size-4" />
         <span className="text-white">Speed</span>
       </div>
       <div className="flex items-center justify-center gap-2 bg-primary">
-        <img src={getIconUrl('status_01.png')} className="w-4 h-4" />
+        <img src={getIconUrl('status_01.png')} className="size-4" />
         <span className="text-white">Stamina</span>
       </div>
       <div className="flex items-center justify-center gap-2 bg-primary">
-        <img src={getIconUrl('status_02.png')} className="w-4 h-4" />
+        <img src={getIconUrl('status_02.png')} className="size-4" />
         <span className="text-white">Power</span>
       </div>
       <div className="flex items-center justify-center gap-2 bg-primary">
-        <img src={getIconUrl('status_03.png')} className="w-4 h-4" />
+        <img src={getIconUrl('status_03.png')} className="size-4" />
         <span className="text-white">Guts</span>
       </div>
       <div className="flex items-center justify-center gap-2 bg-primary rounded-tr-sm">
-        <img src={getIconUrl('status_04.png')} className="w-4 h-4" />
+        <img src={getIconUrl('status_04.png')} className="size-4" />
         <span className="text-white">Wit</span>
       </div>
 

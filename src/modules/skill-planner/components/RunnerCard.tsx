@@ -67,7 +67,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
               onClick={() => setImportDialogOpen(true)}
               disabled={!onImportVeteran}
             >
-              <Import className="mr-2 h-4 w-4" />
+              <Import className="mr-2 size-4" />
               Import from Veterans
             </Button>
 

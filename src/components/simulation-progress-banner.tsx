@@ -22,7 +22,7 @@ export function SimulationProgressBanner({ useStore }: Readonly<SimulationProgre
     return (
       <div className="mb-4 p-3 bg-primary/5 rounded-md border border-primary/20">
         <div className="flex items-center gap-4 text-sm">
-          <Activity className="w-4 h-4 text-primary shrink-0" />
+          <Activity className="size-4 text-primary shrink-0" />
           <span className="font-medium text-muted-foreground">Preparing simulation…</span>
         </div>
       </div>
@@ -33,7 +33,7 @@ export function SimulationProgressBanner({ useStore }: Readonly<SimulationProgre
     return (
       <div className="mb-4 p-3 bg-primary/5 rounded-md border border-primary/20">
         <div className="flex items-center gap-4 text-sm">
-          <Loader2 className="w-4 h-4 animate-spin text-primary shrink-0" />
+          <Loader2 className="size-4 animate-spin text-primary shrink-0" />
           <span className="font-medium">
             Stage {progress.currentStage}/{progress.totalStages}
           </span>

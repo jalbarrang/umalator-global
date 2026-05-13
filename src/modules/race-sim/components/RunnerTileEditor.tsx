@@ -196,7 +196,7 @@ export function RunnerTileEditor(props: RunnerTileEditorProps) {
           </div>
 
           <DrawerClose tabIndex={-1} aria-label="Close runner editor">
-            <XIcon className="w-4 h-4" />
+            <XIcon className="size-4" />
           </DrawerClose>
         </DrawerHeader>
 
@@ -231,7 +231,7 @@ export function RunnerTileEditor(props: RunnerTileEditorProps) {
 
               <Button variant="default" onClick={handleOpenSkillPicker}>
                 Add Skills
-                <PlusIcon className="w-4 h-4" />
+                <PlusIcon className="size-4" />
               </Button>
             </div>
 

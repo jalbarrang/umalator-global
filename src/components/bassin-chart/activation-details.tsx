@@ -138,7 +138,7 @@ export const ActivationDetails = React.memo((props: ActivationDetailsProps) => {
 
             {isSkillLoading && (
               <Badge variant="secondary" className="gap-1">
-                <Loader2 className="h-3 w-3 animate-spin" />
+                <Loader2 className="size-3 animate-spin" />
                 Running...
               </Badge>
             )}
@@ -158,7 +158,7 @@ export const ActivationDetails = React.memo((props: ActivationDetailsProps) => {
             >
               {isSkillLoading ? (
                 <>
-                  <Loader2 className="h-3 w-3 animate-spin" />
+                  <Loader2 className="size-3 animate-spin" />
                   Running...
                 </>
               ) : (
@@ -190,22 +190,22 @@ export const ActivationDetails = React.memo((props: ActivationDetailsProps) => {
         <div className="border-t flex flex-col gap-2 pt-2">
           <div className="flex items-center gap-3 text-xs">
             <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded" style={{ backgroundColor: 'rgb(0,154,111)' }} />
+              <div className="size-3 rounded" style={{ backgroundColor: 'rgb(0,154,111)' }} />
               <span className="text-muted-foreground">Early Race</span>
             </div>
 
             <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded" style={{ backgroundColor: 'rgb(242,233,103)' }} />
+              <div className="size-3 rounded" style={{ backgroundColor: 'rgb(242,233,103)' }} />
               <span className="text-muted-foreground">Mid Race</span>
             </div>
 
             <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded" style={{ backgroundColor: 'rgb(209,134,175)' }} />
+              <div className="size-3 rounded" style={{ backgroundColor: 'rgb(209,134,175)' }} />
               <span className="text-muted-foreground">Late Race</span>
             </div>
 
             <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded" style={{ backgroundColor: 'rgb(255,130,130)' }} />
+              <div className="size-3 rounded" style={{ backgroundColor: 'rgb(255,130,130)' }} />
               <span className="text-muted-foreground">Last Spurt</span>
             </div>
           </div>

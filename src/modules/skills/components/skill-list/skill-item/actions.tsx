@@ -81,7 +81,7 @@ export function SkillItemDetailsActions(props: Readonly<SkillItemDetailsActionsP
               title="Show skill details"
               onClick={(event) => event.stopPropagation()}
             >
-              <CircleHelp className="h-4 w-4" />
+              <CircleHelp className="size-4" />
             </Button>
           }
         />
@@ -112,7 +112,7 @@ export function SkillItemDetailsActions(props: Readonly<SkillItemDetailsActionsP
             onRemove?.(skillId);
           }}
         >
-          <X className="w-4 h-4" />
+          <X className="size-4" />
         </Button>
       )}
     </>

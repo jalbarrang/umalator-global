@@ -121,7 +121,7 @@ export function ImportVeteranDialog(props: Readonly<ImportVeteranDialogProps>) {
 
         <div className="flex flex-col gap-3">
           <div className="relative">
-            <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <SearchIcon className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -167,7 +167,7 @@ export function ImportVeteranDialog(props: Readonly<ImportVeteranDialogProps>) {
                       <img
                         src={imageUrl}
                         alt={runnerLabel}
-                        className="h-16 w-16 rounded-md object-cover"
+                        className="size-16 rounded-md object-cover"
                       />
 
                       <div className="min-w-0 flex-1">
@@ -179,7 +179,7 @@ export function ImportVeteranDialog(props: Readonly<ImportVeteranDialogProps>) {
                             <div className="truncate font-medium">{runnerLabel}</div>
                           </div>
 
-                          {isSelected && <CheckIcon className="h-4 w-4 shrink-0 text-primary" />}
+                          {isSelected && <CheckIcon className="size-4 shrink-0 text-primary" />}
                         </div>
 
                         <div className="truncate text-sm text-muted-foreground">

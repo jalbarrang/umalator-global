@@ -25,7 +25,7 @@ export function SkillPickerDrawer(props: SkillPickerDrawerProps) {
         <DrawerContent className="px-2 w-full! md:w-1/2! max-w-none!" data-vaul-no-drag>
           <DrawerHeader className="flex-row items-center justify-between">
             <DrawerClose tabIndex={-1} aria-label="Close skill picker">
-              <XIcon className="w-4 h-4" />
+              <XIcon className="size-4" />
             </DrawerClose>
           </DrawerHeader>
 

@@ -54,7 +54,7 @@ export function Navbar() {
             render={
               <Button
                 variant="outline"
-                className="flex h-9 w-9 items-center justify-center"
+                className="flex size-9 items-center justify-center"
                 aria-label="Open credits"
                 nativeButton={false}
                 render={
@@ -67,7 +67,7 @@ export function Navbar() {
                     <img
                       src={`${config.basePath}svg/github.svg`}
                       alt=""
-                      className="h-4 w-4 dark:invert"
+                      className="size-4 dark:invert"
                     />
                   </a>
                 }
@@ -81,13 +81,13 @@ export function Navbar() {
             render={
               <Button
                 variant="outline"
-                className="flex h-9 w-9 items-center justify-center"
+                className="flex size-9 items-center justify-center"
                 onClick={() => setShowCreditsModal(true)}
                 aria-label="Open credits"
               />
             }
           >
-            <UsersIcon className="h-4 w-4" />
+            <UsersIcon className="size-4" />
           </TooltipTrigger>
           <TooltipContent>Credits</TooltipContent>
         </Tooltip>
@@ -96,13 +96,13 @@ export function Navbar() {
             render={
               <Button
                 variant="outline"
-                className="flex h-9 w-9 items-center justify-center"
+                className="flex size-9 items-center justify-center"
                 onClick={() => setShowChangelogModal(true)}
                 aria-label="Open changelog"
               />
             }
           >
-            <ScrollTextIcon className="h-4 w-4" />
+            <ScrollTextIcon className="size-4" />
           </TooltipTrigger>
           <TooltipContent>Changelog</TooltipContent>
         </Tooltip>
@@ -130,7 +130,7 @@ const MobileNavbar = (props: MobileNavbarProps) => {
     <Drawer open={mobileMenuOpen} onOpenChange={setMobileMenuOpen} direction="top">
       <DrawerTrigger asChild>
         <Button variant="ghost" size="icon" aria-label="Open navigation menu">
-          <MenuIcon className="h-5 w-5" />
+          <MenuIcon className="size-5" />
         </Button>
       </DrawerTrigger>
 

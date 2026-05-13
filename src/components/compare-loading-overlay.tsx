@@ -29,7 +29,7 @@ export const CompareLoadingOverlay = ({
   return (
     <div className="flex flex-1 items-center justify-center bg-background">
       <Card className="p-8 flex flex-col items-center gap-4 min-w-[300px]">
-        <Loader2 className="w-12 h-12 animate-spin text-primary" />
+        <Loader2 className="size-12 animate-spin text-primary" />
 
         <div className="text-center space-y-3 w-full">
           <p className="text-lg font-semibold">Running Simulation...</p>

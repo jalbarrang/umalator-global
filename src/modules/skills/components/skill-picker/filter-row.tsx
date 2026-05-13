@@ -58,7 +58,7 @@ const IconFilterButton = ({ type, group, filterState, onChecked }: IconFilterBut
       variant="ghost"
       size="icon"
       className={cn(
-        'h-8 w-8 rounded-md border border-border bg-background p-0 [&_img]:h-7 [&_img]:w-7',
+        'size-8 rounded-md border border-border bg-background p-0 [&_img]:h-7 [&_img]:w-7',
         isActive
           ? 'border-primary/60 bg-muted opacity-100'
           : 'opacity-45 hover:opacity-80 hover:border-muted-foreground/30'
@@ -149,11 +149,11 @@ export const SkillPickerFilterRow = () => {
           onClick={() => setMobileOpen((current) => !current)}
         >
           <span className="flex items-center gap-2 text-xs">
-            <FilterIcon className="h-3.5 w-3.5" />
+            <FilterIcon className="size-3.5" />
             Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
           </span>
           <ChevronDownIcon
-            className={cn('h-4 w-4 transition-transform', mobileOpen && 'rotate-180')}
+            className={cn('size-4 transition-transform', mobileOpen && 'rotate-180')}
           />
         </Button>
       </div>

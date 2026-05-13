@@ -363,7 +363,7 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
       <div data-filter-group="search">
         <InputGroup>
           <InputGroupAddon>
-            <SearchIcon className="w-4 h-4" />
+            <SearchIcon className="size-4" />
           </InputGroupAddon>
           <InputGroupInput
             ref={searchRef}

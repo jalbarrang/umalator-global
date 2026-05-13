@@ -34,7 +34,7 @@ export function TableSearchBar({
   return (
     <div className="flex items-center gap-2 p-2 border-b bg-muted/30">
       <div className="flex items-center gap-2 flex-1">
-        <SearchIcon className="w-4 h-4 text-muted-foreground" />
+        <SearchIcon className="size-4 text-muted-foreground" />
         <Input
           ref={searchInputRef}
           type="text"
@@ -63,7 +63,7 @@ export function TableSearchBar({
           disabled={!hasMatches}
           title="Previous match (Shift+Enter)"
         >
-          <ChevronUp className="h-4 w-4" />
+          <ChevronUp className="size-4" />
         </Button>
         <Button
           variant="ghost"
@@ -72,10 +72,10 @@ export function TableSearchBar({
           disabled={!hasMatches}
           title="Next match (Enter)"
         >
-          <ChevronDown className="h-4 w-4" />
+          <ChevronDown className="size-4" />
         </Button>
         <Button variant="ghost" size="icon-sm" onClick={onClose} title="Close (Escape)">
-          <XIcon className="h-4 w-4" />
+          <XIcon className="size-4" />
         </Button>
       </div>
     </div>

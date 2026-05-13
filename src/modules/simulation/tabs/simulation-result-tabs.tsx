@@ -19,7 +19,7 @@ export const SimulationResultTabs = () => {
           })}
         >
           <span className="hidden md:inline!">Runner Stats</span>
-          <ChartBarIcon className="w-4 h-4" />
+          <ChartBarIcon className="size-4" />
         </TabsTrigger>
 
         <TabsTrigger
@@ -29,7 +29,7 @@ export const SimulationResultTabs = () => {
           })}
         >
           <span className="hidden md:inline!">Distribution</span>
-          <BarChartIcon className="w-4 h-4" />
+          <BarChartIcon className="size-4" />
         </TabsTrigger>
 
         <TabsTrigger
@@ -39,7 +39,7 @@ export const SimulationResultTabs = () => {
           })}
         >
           <span className="hidden md:inline!">Skills</span>
-          <BrainIcon className="w-4 h-4" />
+          <BrainIcon className="size-4" />
         </TabsTrigger>
       </TabsList>
 

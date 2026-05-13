@@ -116,7 +116,7 @@ const OcrImportContent = ({ open, onOpenChange, onApply }: Readonly<OcrImportCon
               onClick={() => setShowGeminiApiKey((show) => !show)}
               aria-label={showGeminiApiKey ? 'Hide Gemini API key' : 'Show Gemini API key'}
             >
-              {showGeminiApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {showGeminiApiKey ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
             </Button>
           </div>
 
@@ -128,7 +128,7 @@ const OcrImportContent = ({ open, onOpenChange, onApply }: Readonly<OcrImportCon
               className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1 shrink-0"
             >
               Get key
-              <ExternalLink className="h-3.5 w-3.5" />
+              <ExternalLink className="size-3.5" />
             </a>
           </div>
         </div>

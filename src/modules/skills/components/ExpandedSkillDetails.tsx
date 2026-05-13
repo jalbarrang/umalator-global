@@ -35,7 +35,7 @@ function AlternativeDetails({
           <div className="pl-1">{HumanReadableParser.parse(precondition).format()}</div>
           <Collapsible>
             <CollapsibleTrigger className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors cursor-pointer mt-1">
-              <Code className="w-3 h-3" />
+              <Code className="size-3" />
               Raw
             </CollapsibleTrigger>
             <CollapsibleContent>
@@ -54,7 +54,7 @@ function AlternativeDetails({
         <div className="pl-1">{HumanReadableParser.parse(alternative.condition).format()}</div>
         <Collapsible>
           <CollapsibleTrigger className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors cursor-pointer mt-1">
-            <Code className="w-3 h-3" />
+            <Code className="size-3" />
             Raw
           </CollapsibleTrigger>
           <CollapsibleContent>

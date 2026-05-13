@@ -28,7 +28,7 @@ export function SkillPlannerLanding() {
 
           <div className="grid gap-3 md:grid-cols-2">
             <Button size="lg" className="justify-start h-12" onClick={startFreshSession}>
-              <PlusIcon className="mr-2 h-4 w-4" />
+              <PlusIcon className="mr-2 size-4" />
               Start fresh
             </Button>
 
@@ -38,7 +38,7 @@ export function SkillPlannerLanding() {
               className="justify-start h-12"
               onClick={() => setImportDialogOpen(true)}
             >
-              <BookmarkIcon className="mr-2 h-4 w-4" />
+              <BookmarkIcon className="mr-2 size-4" />
               Import from Veterans
             </Button>
           </div>

@@ -98,7 +98,7 @@ export function DebuffGroup({ runnerId, title, debuffs, onAdd }: DebuffGroupProp
           {title}
         </Label>
         <Button size="sm" variant="outline" onClick={() => onAdd(runnerId)}>
-          <PlusIcon className="mr-1 h-4 w-4" />
+          <PlusIcon className="mr-1 size-4" />
           Add Debuff
         </Button>
       </div>

@@ -296,18 +296,18 @@ export default function RosterHomePage() {
         {!isMobile && (
           <div className="flex items-center gap-2">
             <Button size="default" variant="outline" onClick={() => setRosterImportOpen(true)}>
-              <Import className="w-4 h-4" />
+              <Import className="size-4" />
               Import Roster
             </Button>
 
             <Button size="default" variant="outline" onClick={() => setOcrImportOpen(true)}>
-              <Camera className="w-4 h-4" />
+              <Camera className="size-4" />
               Import Screenshot
             </Button>
 
             <Activity mode={runners.length > 0 ? 'visible' : 'hidden'}>
               <Button size="default" onClick={handleAddNew}>
-                <Plus className="w-4 h-4" />
+                <Plus className="size-4" />
                 Add Runner
               </Button>
             </Activity>
@@ -351,7 +351,7 @@ export default function RosterHomePage() {
 
           {hasActiveFilters && (
             <Button variant="ghost" size="icon-sm" onClick={clearAllFilters}>
-              <X className="w-3.5 h-3.5" />
+              <X className="size-3.5" />
             </Button>
           )}
         </div>
@@ -412,7 +412,7 @@ export default function RosterHomePage() {
               onClick={() => setBulkDeleteDialogOpen(true)}
               disabled={selected.size === 0}
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash2 className="size-4" />
               Delete ({selected.size})
             </Button>
 
@@ -446,11 +446,11 @@ export default function RosterHomePage() {
           <EmptyContent>
             <div className="flex items-center gap-2">
               <Button variant="outline" onClick={() => setOcrImportOpen(true)}>
-                <Camera className="w-4 h-4 mr-2" />
+                <Camera className="size-4 mr-2" />
                 Import Screenshot
               </Button>
               <Button onClick={handleAddNew}>
-                <Plus className="w-4 h-4 mr-2" />
+                <Plus className="size-4 mr-2" />
                 Add Runner
               </Button>
             </div>

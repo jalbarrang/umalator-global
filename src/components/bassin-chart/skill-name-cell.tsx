@@ -36,12 +36,12 @@ const SkillNameTableCell = React.memo((props: SkillNameTableCellProps) => {
         type="button"
         variant="ghost"
         size="icon-sm"
-        className="h-6 w-6 shrink-0 text-muted-foreground"
+        className="size-6 shrink-0 text-muted-foreground"
         title="Show skill details"
         data-event={BASSIN_DATA_EVENT_TOGGLE_SKILL_DETAILS}
         data-skill-id={id}
       >
-        <CircleHelp className="h-3.5 w-3.5" />
+        <CircleHelp className="size-3.5" />
       </Button>
     </div>
   );
@@ -68,7 +68,7 @@ export const skillNameCell = ({
     }, [id, translatedName]);
 
     const iconSrc = useMemo(() => {
-      if (!skill) return { src: null, className: 'w-4 h-4' };
+      if (!skill) return { src: null, className: 'size-4' };
 
       if (showUmaIcons) {
         const umaId = dataRegistry.umas.umaForUniqueSkill(id);
@@ -76,14 +76,14 @@ export const skillNameCell = ({
         if (umaIcon) {
           return {
             src: umaIcon,
-            className: 'w-8 h-8'
+            className: 'size-8'
           };
         }
       }
 
       return {
         src: getIconUrl(`${skill.iconId}.png`),
-        className: 'w-4 h-4'
+        className: 'size-4'
       };
     }, [id, skill]);
 

@@ -116,7 +116,7 @@ export function ImportSnapshotDialog({ open, onOpenChange }: ImportSnapshotDialo
           onDrop={handleDrop}
           onClick={() => document.getElementById('snapshot-file-input')?.click()}
         >
-          <Upload className="w-8 h-8 text-muted-foreground" />
+          <Upload className="size-8 text-muted-foreground" />
           <span className="text-sm text-muted-foreground">
             Drop a .json file or click to browse
           </span>

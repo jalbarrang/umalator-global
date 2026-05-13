@@ -45,11 +45,7 @@ export function OcrUmaSelector(props: Readonly<OcrUmaSelectorProps>) {
       type="button"
       className="flex items-center gap-3 p-2 border rounded-md cursor-pointer hover:bg-muted/50 transition-colors w-full text-left"
     >
-      <img
-        src={getIconById(results.outfitId)}
-        alt={results.umaName}
-        className="w-12 h-12 rounded"
-      />
+      <img src={getIconById(results.outfitId)} alt={results.umaName} className="size-12 rounded" />
       <div>
         <p className="font-medium">{results.outfitName}</p>
         <p className="text-sm text-muted-foreground">{results.umaName}</p>
@@ -82,7 +78,7 @@ export function OcrUmaSelector(props: Readonly<OcrUmaSelectorProps>) {
                     value={`${uma.outfit} ${uma.name}`}
                     onSelect={() => handleSelectUma(uma.id)}
                   >
-                    <img src={getIconById(uma.id)} className="w-10 h-10 rounded mr-2" />
+                    <img src={getIconById(uma.id)} className="size-10 rounded mr-2" />
                     <div>
                       <div className="text-xs font-bold">{uma.outfit}</div>
                       <div className="text-sm">{uma.name}</div>

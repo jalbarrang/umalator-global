@@ -116,14 +116,14 @@ export function CostModifiersPanel(props: CostModifiersPanelProps) {
             disabled={!canOptimize}
             className="flex-1"
           >
-            <PlayIcon className="w-4 h-4 mr-2" />
+            <PlayIcon className="size-4 mr-2" />
             Optimize
           </Button>
         )}
 
         {isOptimizing && (
           <Button onClick={handleCancel} variant="destructive" size="lg" className="flex-1">
-            <XIcon className="w-4 h-4 mr-2" />
+            <XIcon className="size-4 mr-2" />
             Cancel
           </Button>
         )}
@@ -155,7 +155,7 @@ export function CostModifiersPanel(props: CostModifiersPanelProps) {
           onClick={handleReplayClick}
           disabled={isOptimizing || seedInput.trim() === '' || !canOptimize}
         >
-          <RotateCcwIcon className="w-4 h-4 mr-1" />
+          <RotateCcwIcon className="size-4 mr-1" />
           Replay
         </Button>
       </div>
