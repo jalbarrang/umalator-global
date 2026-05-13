@@ -2,7 +2,8 @@ name: Deploy to GitHub Pages
 
 on:
   release:
-    types: [published]
+    types:
+      - published
   workflow_dispatch:
 
 permissions:
@@ -19,7 +20,7 @@ jobs:
     name: Build site
     runs-on: ubuntu-latest
     env:
-      VITE_PUBLIC_POSTHOG_KEY: ${{ vars.VITE_PUBLIC_POSTHOG_KEY }}
+      VITE_PUBLIC_POSTHOG_KEY: ${{ secrets.VITE_PUBLIC_POSTHOG_KEY }}
       VITE_PUBLIC_POSTHOG_HOST: ${{ vars.VITE_PUBLIC_POSTHOG_HOST }}
       VITE_BASE_PATH: ${{ vars.VITE_BASE_PATH }}
 
