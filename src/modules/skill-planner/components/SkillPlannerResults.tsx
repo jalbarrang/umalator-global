@@ -233,7 +233,7 @@ export function SkillPlannerResults(props: SkillPlannerResultsProps) {
       {result && (
         <div className="border rounded-lg bg-card overflow-hidden">
           {/* Header */}
-          <div className="border-b bg-primary/10 px-4 py-4 sticky top-0 z-10">
+          <div className="border-b bg-primary/10 p-4 sticky top-0 z-10">
             <div className="flex items-center justify-between">
               <div className="font-semibold text-sm flex items-center gap-2">
                 Simulation Complete

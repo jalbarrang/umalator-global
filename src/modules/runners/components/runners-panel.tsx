@@ -109,7 +109,7 @@ export const RunnersPanel = () => {
             </button>
           </div>
 
-          <div className="flex items-center px-2 py-2">
+          <div className="flex items-center p-2">
             <Button
               onClick={resetAllRunners}
               title="Reset all runners to default stats and skills"
