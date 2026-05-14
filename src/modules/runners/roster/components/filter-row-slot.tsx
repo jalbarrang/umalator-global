@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { IAptitudeFilters, IAptitudeSlotKey } from '../types';
 import {
   Select,
@@ -18,8 +18,6 @@ type IAptitudeFilterRowSlotProps = {
 
 export const AptitudeFilterRowSlot = (props: Readonly<IAptitudeFilterRowSlotProps>) => {
   const { slot, filters, onChange } = props;
-
-  const current = useMemo(() => filters[slot.key], [filters, slot.key]);
 
   const [value] = useState<string>(() => {
     const current = filters[slot.key];

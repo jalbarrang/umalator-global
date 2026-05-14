@@ -1,5 +1,4 @@
 import { IShareCardProps, ShareCard } from '@/modules/runners/share/share-card';
-import { forwardRef, type ComponentProps } from 'react';
 
 const FONT_STACK = 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
 
@@ -32,7 +31,10 @@ export type CompareShareCardProps = {
 export const CompareShareCard = (props: Readonly<CompareShareCardProps>) => {
   const { ref, shareCard, raceSummary, meanLengths, sampleCount, seedDisplay, statRows } = props;
 
+  // This card is rendered as a fixed-size share image. Inline styles keep the
+  // exported image self-contained, and 10px labels preserve the compact layout.
   return (
+    // react-doctor-disable-next-line react-doctor/no-inline-exhaustive-style
     <div
       ref={ref}
       style={{
@@ -54,6 +56,7 @@ export const CompareShareCard = (props: Readonly<CompareShareCardProps>) => {
         <ShareCard {...shareCard} />
       </div>
 
+      {/* react-doctor-disable-next-line react-doctor/no-inline-exhaustive-style */}
       <div
         style={{
           flex: 1,
@@ -67,6 +70,7 @@ export const CompareShareCard = (props: Readonly<CompareShareCardProps>) => {
         }}
       >
         <div style={{ padding: '12px 14px 10px', borderBottom: `1px solid ${COLORS.border}` }}>
+          {/* react-doctor-disable-next-line react-doctor/no-tiny-text */}
           <div
             style={{
               fontSize: 10,
@@ -94,6 +98,7 @@ export const CompareShareCard = (props: Readonly<CompareShareCardProps>) => {
           }}
         >
           <div>
+            {/* react-doctor-disable-next-line react-doctor/no-tiny-text */}
             <div
               style={{
                 fontSize: 10,
@@ -129,6 +134,7 @@ export const CompareShareCard = (props: Readonly<CompareShareCardProps>) => {
           </div>
 
           <div>
+            {/* react-doctor-disable-next-line react-doctor/no-tiny-text */}
             <div
               style={{
                 fontSize: 10,
@@ -195,6 +201,7 @@ export const CompareShareCard = (props: Readonly<CompareShareCardProps>) => {
           </div>
         </div>
 
+        {/* react-doctor-disable-next-line react-doctor/no-inline-exhaustive-style, react-doctor/no-tiny-text */}
         <div
           style={{
             padding: '4px 14px 10px',

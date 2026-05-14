@@ -75,7 +75,7 @@ export default function RaceSimHome() {
           <div className="absolute inset-0 z-10 grid place-items-center bg-background/50">
             <div className="flex items-center gap-2.5 rounded-lg border bg-card px-4 py-2.5 text-sm shadow-md">
               <Loader2 className="size-4 animate-spin text-primary" />
-              Running race simulation...
+              Running race simulation…
             </div>
           </div>
         )}

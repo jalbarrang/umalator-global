@@ -32,7 +32,7 @@ export const CompareLoadingOverlay = ({
         <Loader2 className="size-12 animate-spin text-primary" />
 
         <div className="text-center space-y-3 w-full">
-          <p className="text-lg font-semibold">Running Simulation...</p>
+          <p className="text-lg font-semibold">Running Simulation…</p>
 
           {hasProgress && (
             <div className="text-sm text-muted-foreground space-y-2">

@@ -72,7 +72,7 @@ export default function EditRunnerPage() {
   if (!runnerState) {
     return (
       <div className="flex flex-col flex-1 items-center justify-center p-4">
-        <div className="text-muted-foreground">Loading...</div>
+        <div className="text-muted-foreground">Loading…</div>
       </div>
     );
   }

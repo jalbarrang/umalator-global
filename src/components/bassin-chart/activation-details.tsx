@@ -45,8 +45,8 @@ export const ActivationDetails = React.memo((props: ActivationDetailsProps) => {
     [currentSkillActivations]
   );
 
-  const totalActivations = useMemo(() => activationPositions.length, [activationPositions]);
-  const hasActivations = useMemo(() => totalActivations > 0, [totalActivations]);
+  const totalActivations = activationPositions.length;
+  const hasActivations = totalActivations > 0;
 
   const stats = useMemo(() => {
     let earliestPosition = 0;
@@ -139,7 +139,7 @@ export const ActivationDetails = React.memo((props: ActivationDetailsProps) => {
             {isSkillLoading && (
               <Badge variant="secondary" className="gap-1">
                 <Loader2 className="size-3 animate-spin" />
-                Running...
+                Running…
               </Badge>
             )}
           </div>
@@ -159,7 +159,7 @@ export const ActivationDetails = React.memo((props: ActivationDetailsProps) => {
               {isSkillLoading ? (
                 <>
                   <Loader2 className="size-3 animate-spin" />
-                  Running...
+                  Running…
                 </>
               ) : (
                 <>Run +1000 Samples</>

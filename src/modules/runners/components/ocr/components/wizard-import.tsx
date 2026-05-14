@@ -57,7 +57,7 @@ function DropZone({
     }
   };
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const selectScreenshotFiles = (e: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []).filter((file) => file.type.startsWith('image/'));
     if (files.length > 0) {
       onFiles(files);
@@ -130,7 +130,7 @@ function DropZone({
         accept={accept}
         multiple
         className="hidden"
-        onChange={handleChange}
+        onChange={selectScreenshotFiles}
         disabled={disabled}
       />
     </div>
@@ -293,7 +293,7 @@ export function WizardImport() {
       {isProcessing && (
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
-            <span>Processing screenshot...</span>
+            <span>Processing screenshot…</span>
             <span>{progress}%</span>
           </div>
           <div className="w-full bg-muted rounded-full h-2">
