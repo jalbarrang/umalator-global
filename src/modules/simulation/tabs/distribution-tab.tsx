@@ -144,7 +144,7 @@ export const DistributionTab = () => {
                   {distributionStats.winRates.uma1}%
                 </span>
               </div>
-              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
                 <div
                   className="h-full bg-[#2a77c5] transition-all"
                   style={{ width: `${distributionStats.winRates.uma1}%` }}
@@ -158,7 +158,7 @@ export const DistributionTab = () => {
                   {distributionStats.winRates.uma2}%
                 </span>
               </div>
-              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
                 <div
                   className="h-full bg-[#c52a2a] transition-all"
                   style={{ width: `${distributionStats.winRates.uma2}%` }}
@@ -168,14 +168,14 @@ export const DistributionTab = () => {
             {parseFloat(distributionStats.winRates.tie) > 0 && (
               <div>
                 <div className="flex justify-between text-sm mb-1">
-                  <span className="text-gray-500 font-medium">Ties</span>
-                  <span className="font-mono font-bold text-gray-500">
+                  <span className="text-muted-foreground font-medium">Ties</span>
+                  <span className="font-mono font-bold text-muted-foreground">
                     {distributionStats.winRates.tie}%
                   </span>
                 </div>
-                <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div className="h-2 bg-muted rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gray-400 transition-all"
+                    className="h-full bg-muted-foreground transition-all"
                     style={{ width: `${distributionStats.winRates.tie}%` }}
                   />
                 </div>

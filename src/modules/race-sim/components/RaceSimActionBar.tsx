@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -45,7 +45,7 @@ export function RaceSimActionBar({ isRunning, onRun, onCancel, onReplay }: RaceS
     setNsamples(parsed);
   };
 
-  const clearDisabled = useMemo(() => results === null, [results]);
+  const clearDisabled = results === null;
 
   return (
     <div className="flex flex-wrap items-center gap-2">

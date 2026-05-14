@@ -1,5 +1,6 @@
 {
   "ignore": {
+    "files": ["src/components/ui/**"],
     "overrides": [
       {
         "files": ["src/modules/simulation/share/compare-share-card.tsx"],
@@ -8,6 +9,17 @@
       {
         "files": ["src/modules/runners/components/ocr/components/wizard-import.tsx"],
         "rules": ["react-doctor/async-await-in-loop"]
+      },
+      {
+        "files": ["src/polyfills.ts"],
+        "rules": ["react-doctor/js-tosorted-immutable"]
+      },
+      {
+        "files": ["src/modules/race-sim/components/track-view/top-down/TrackTopDownView.tsx"],
+        "rules": [
+          "react-doctor/client-passive-event-listeners",
+          "react-doctor/no-cascading-set-state"
+        ]
       }
     ]
   }

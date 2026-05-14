@@ -222,9 +222,17 @@ export const PresetsPanel = () => {
   const [filterRaceType, setFilterRaceType] = useState<FilterRaceType>('all');
 
   const allPresets = useMemo(() => {
-    const ordered = presetOrder.map((id) => presets[id]).filter((p): p is RacePreset => p != null);
+    const ordered: RacePreset[] = [];
+
+    for (const id of presetOrder) {
+      const preset = presets[id];
+      if (preset) {
+        ordered.push(preset);
+      }
+    }
+
     const orderSet = new Set(presetOrder);
-    const extra = Object.values(presets).filter((p) => !orderSet.has(p.id));
+    const extra = Object.values(presets).filter((preset) => !orderSet.has(preset.id));
     return [...ordered, ...extra];
   }, [presets, presetOrder]);
 

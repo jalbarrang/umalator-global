@@ -31,7 +31,7 @@ export const VirtualRunnerGrid = (props: Readonly<IVirtualRunnerGridProps>) => {
     props;
 
   const isMobile = useIsMobile();
-  const columns = useMemo(() => (isMobile ? 1 : 4), [isMobile]);
+  const columns = isMobile ? 1 : 4;
 
   const rowCount = Math.ceil(items.length / columns);
 

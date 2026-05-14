@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { DragStartHandler } from '../types';
 import { IMMEDIATE_HIT_PADDING, IMMEDIATE_SYMBOL_SIZE } from './definitions';
 import { EffectSymbol } from '../primitives/effect-symbol';
@@ -36,7 +36,7 @@ export const ImmediateMarker = React.memo<ImmediateLayout & { onDragStart: DragS
   }) => {
     const { tooltipRef, bgRef, show, hide } = useSkillTooltip();
     const wasDraggingRef = useRef(false);
-    const label = useMemo(() => `${text} @ ${Math.round(position)}m`, [text, position]);
+    const label = `${text} @ ${Math.round(position)}m`;
 
     useEffect(() => {
       if (isDragging) {

@@ -58,8 +58,8 @@ export function TrackSelect(props: TrackSelectProps) {
         </SelectTrigger>
 
         <SelectContent>
-          {trackIds.map((trackId, i) => (
-            <SelectItem key={`track-${i}`} value={trackId}>
+          {trackIds.map((trackId) => (
+            <SelectItem key={`track-${trackId}`} value={trackId}>
               {getTrackName(+trackId)}
             </SelectItem>
           ))}

@@ -19,7 +19,7 @@ export default function RaceSimResultsPage() {
 
   const focusRunnerIndex = useMemo(() => {
     if (focusRunnerIndices.length === 0) return null;
-    return [...focusRunnerIndices].sort((a, b) => a - b)[0] ?? null;
+    return Math.min(...focusRunnerIndices);
   }, [focusRunnerIndices]);
 
   const hasFocusData = useMemo(() => {

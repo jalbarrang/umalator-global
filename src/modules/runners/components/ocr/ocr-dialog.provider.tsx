@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { createContext, use, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from 'zustand';
 import { useShallow } from 'zustand/shallow';
 import type { OcrEngine } from '@/modules/runners/ocr/engine';
@@ -12,11 +12,12 @@ import { useGeminiApiKey } from '@/store/ocr.store';
 
 const OcrDialogStoreContext = createContext<IOcrDialogStoreApi | null>(null);
 
-interface OcrDialogProviderProps {
+type OcrDialogProviderProps = {
   children: React.ReactNode;
-}
+};
 
-export function OcrDialogProvider({ children }: Readonly<OcrDialogProviderProps>) {
+export function OcrDialogProvider(props: Readonly<OcrDialogProviderProps>) {
+  const { children } = props;
   const geminiApiKey = useGeminiApiKey();
 
   const normalizedKey = useMemo(() => {
@@ -60,7 +61,7 @@ export function OcrDialogProvider({ children }: Readonly<OcrDialogProviderProps>
 }
 
 export function useOcrDialogStore<T>(selector: (state: IOcrDialogStore) => T): T {
-  const store = useContext(OcrDialogStoreContext);
+  const store = use(OcrDialogStoreContext);
 
   if (!store) {
     throw new Error('useOcrDialogStore must be used within OcrDialogProvider');

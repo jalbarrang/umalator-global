@@ -416,7 +416,6 @@ function resolveSkillMatches(dataset: SkillDataset, reference: string): Array<Sk
 
 function scoreSkill(skill: SkillEntry, dataset: SkillDataset, filters: SkillSearchFilters): number {
   let score = 0;
-  const normalizedName = normalize(skill.name);
   const joinedConditions = getSkillConditions(skill).join(' ');
   const normalizedConditions = normalize(joinedConditions);
 

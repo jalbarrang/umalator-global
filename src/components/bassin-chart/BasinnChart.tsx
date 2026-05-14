@@ -64,38 +64,40 @@ type IconTypeFilterButtonProps = {
   onToggle: (iconType: IconTypeFilterKey) => void;
 };
 
-const IconTypeFilterButton = React.memo(
-  ({ iconType, iconTypeFilters, onToggle }: IconTypeFilterButtonProps) => {
-    const handleClick = useCallback(() => {
-      onToggle(iconType as IconTypeFilterKey);
-    }, [iconType, onToggle]);
+const IconTypeFilterButton = React.memo((props: IconTypeFilterButtonProps) => {
+  const { iconType, iconTypeFilters, onToggle } = props;
 
-    const classNameObject = useMemo(() => {
-      return cn('border rounded-none', {
-        'border-primary': iconTypeFilters[iconType as IconTypeFilterKey]
-      });
-    }, [iconTypeFilters, iconType]);
+  const toggleIconTypeFilter = useCallback(() => {
+    onToggle(iconType as IconTypeFilterKey);
+  }, [iconType, onToggle]);
 
-    const imgSrc = useMemo(() => {
-      return getIconUrl(`${iconType}1.png`);
-    }, [iconType]);
+  const classNameObject = useMemo(() => {
+    return cn('border rounded-none', {
+      'border-primary': iconTypeFilters[iconType as IconTypeFilterKey]
+    });
+  }, [iconTypeFilters, iconType]);
 
-    return (
-      <Button
-        key={iconType}
-        variant="ghost"
-        size="icon"
-        className={classNameObject}
-        onClick={handleClick}
-        title={`Filter by icon type ${iconType}`}
-      >
-        <img src={imgSrc} alt="" className="size-6" />
-      </Button>
-    );
-  }
-);
+  const imgSrc = useMemo(() => {
+    return getIconUrl(`${iconType}1.png`);
+  }, [iconType]);
 
-const IconTypeFilterBar = React.memo(({ iconTypeFilters, onToggle }: IconTypeFilterBarProps) => {
+  return (
+    <Button
+      key={iconType}
+      variant="ghost"
+      size="icon"
+      className={classNameObject}
+      onClick={toggleIconTypeFilter}
+      title={`Filter by icon type ${iconType}`}
+    >
+      <img src={imgSrc} alt="" className="size-6" />
+    </Button>
+  );
+});
+
+const IconTypeFilterBar = React.memo((props: IconTypeFilterBarProps) => {
+  const { iconTypeFilters, onToggle } = props;
+
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       {groups_filters.icontype.map((iconType) => (
@@ -114,7 +116,7 @@ const sortableHeader = (name: string, _key: string) => {
   return React.memo(({ column }: { column: Column<SkillComparisonRoundResult> }) => {
     const isSorted = useMemo(() => column.getIsSorted(), [column]);
 
-    const handleClick = useCallback(() => {
+    const toggleColumnSort = useCallback(() => {
       if (!isSorted) {
         // If not sorted, sort by descending by default.
         column.toggleSorting(true);
@@ -125,7 +127,7 @@ const sortableHeader = (name: string, _key: string) => {
     }, [column, isSorted]);
 
     return (
-      <Button variant="ghost" onClick={handleClick} className="cursor-pointer p-0">
+      <Button variant="ghost" onClick={toggleColumnSort} className="cursor-pointer p-0">
         {name}
 
         {isSorted === 'asc' && <ArrowUp />}
@@ -233,14 +235,16 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
   });
 
   const skillMetadataById = useMemo(() => {
-    return new Map(
-      props.data
-        .map((row) => {
-          const skill = dataRegistry.skills.getById(row.id);
-          return skill ? ([row.id, skill] as const) : null;
-        })
-        .filter((entry): entry is [string, SkillEntry] => entry !== null)
-    );
+    const entries: Array<[string, SkillEntry]> = [];
+
+    for (const row of props.data) {
+      const skill = dataRegistry.skills.getById(row.id);
+      if (skill) {
+        entries.push([row.id, skill]);
+      }
+    }
+
+    return new Map(entries);
   }, [props.data]);
 
   const activeIconTypeFilters = useMemo(() => {

@@ -5,19 +5,20 @@
  * This replaces the driver.js instance management with React context.
  */
 
-import { createContext, useCallback, useContext, useState } from 'react';
+import { createContext, use, useCallback, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { TutorialActions, TutorialId, TutorialState, TutorialStep } from './types';
 
-interface TutorialContextValue extends TutorialState, TutorialActions {}
+type TutorialContextValue = TutorialState & TutorialActions;
 
 const TutorialContext = createContext<TutorialContextValue | null>(null);
 
-interface TutorialProviderProps {
+type TutorialProviderProps = {
   children: ReactNode;
-}
+};
 
-export function TutorialProvider({ children }: TutorialProviderProps) {
+export function TutorialProvider(props: TutorialProviderProps) {
+  const { children } = props;
   const [state, setState] = useState<TutorialState>({
     isActive: false,
     currentStepIndex: 0,
@@ -84,7 +85,7 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
  * @throws Error if used outside TutorialProvider
  */
 export function useTutorial() {
-  const context = useContext(TutorialContext);
+  const context = use(TutorialContext);
   if (!context) {
     throw new Error('useTutorial must be used within a TutorialProvider');
   }

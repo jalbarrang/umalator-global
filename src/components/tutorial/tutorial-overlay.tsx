@@ -45,8 +45,10 @@ function restoreTargetElement(element: Element | null) {
   const originalZIndex = el.dataset.originalZIndex || '';
   const originalPosition = el.dataset.originalPosition || '';
 
-  el.style.zIndex = originalZIndex;
-  el.style.position = originalPosition;
+  Object.assign(el.style, {
+    zIndex: originalZIndex,
+    position: originalPosition
+  });
   delete el.dataset.tutorialHighlighted;
   delete el.dataset.originalZIndex;
   delete el.dataset.originalPosition;
@@ -85,8 +87,10 @@ export function TutorialOverlay({
       const originalZIndex = htmlEl.style.zIndex;
       const originalPosition = htmlEl.style.position;
 
-      htmlEl.style.zIndex = '5050';
-      htmlEl.style.position = 'relative'; // Create stacking context for children
+      Object.assign(htmlEl.style, {
+        zIndex: '5050',
+        position: 'relative' // Create stacking context for children
+      });
       htmlEl.dataset.tutorialHighlighted = 'true';
 
       // Store original values for cleanup

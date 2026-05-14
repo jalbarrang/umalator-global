@@ -120,7 +120,9 @@ export const SwimLanesView = memo<SwimLanesViewProps>(function SwimLanesView(pro
     for (let runnerId = 0; runnerId < 9; runnerId++) {
       ids.add(runnerId);
     }
-    return [...ids].sort((left, right) => left - right).slice(0, 9);
+    return Array.from(ids)
+      .toSorted((left, right) => left - right)
+      .slice(0, 9);
   }, [runnerNames, runnerPositions, trackedRunnerIds]);
 
   const lanes = useMemo(() => {
@@ -140,7 +142,7 @@ export const SwimLanesView = memo<SwimLanesViewProps>(function SwimLanesView(pro
     });
 
     const leaderDistance = Math.max(...base.map((e) => e.position), clampedViewStart);
-    const sorted = [...base].sort((left, right) => right.position - left.position);
+    const sorted = base.toSorted((left, right) => right.position - left.position);
     const rankMap = new Map<number, number>();
     for (let i = 0; i < sorted.length; i++) {
       rankMap.set(sorted[i].runnerId, i + 1);
@@ -164,7 +166,7 @@ export const SwimLanesView = memo<SwimLanesViewProps>(function SwimLanesView(pro
       ticks.add(Math.round(tick));
     }
 
-    return [...ticks].sort((left, right) => left - right);
+    return Array.from(ticks).toSorted((left, right) => left - right);
   }, [clampedViewStart, clampedViewEnd, viewDistance]);
 
   return (

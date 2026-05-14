@@ -20,17 +20,16 @@ export const SectionNumbersBar = React.memo(() => {
       <rect x="0" y="0" height="100%" width="100%" fill={BG_COLOR} />
 
       {/* Section divider lines */}
-      {/* eslint-disable-next-line react/no-array-index-key -- section dividers are a fixed visual sequence */}
-      {Array.from({ length: 25 }, (_, i) => {
-        const x1 = (i / 24) * 100;
-        const x2 = (i / 24) * 100;
+      {Array.from({ length: 25 }, (_, sectionLine) => sectionLine).map((sectionLine) => {
+        const x1 = (sectionLine / 24) * 100;
+        const x2 = (sectionLine / 24) * 100;
         const y1 = RaceTrackDimensions.SectionNumbersBarHeight - 4;
         const y2 = RaceTrackDimensions.SectionNumbersBarHeight;
-        const strokeWidth = i === 0 || i === 24 ? '4' : '2';
+        const strokeWidth = sectionLine === 0 || sectionLine === 24 ? '4' : '2';
 
         return (
           <line
-            key={`section-line-${i}`}
+            key={`section-line-${sectionLine}`}
             x1={`${x1}%`}
             y1={y1}
             x2={`${x2}%`}
@@ -42,14 +41,13 @@ export const SectionNumbersBar = React.memo(() => {
       })}
 
       {/* Section numbers */}
-      {/* eslint-disable-next-line react/no-array-index-key -- section labels are a fixed visual sequence */}
-      {Array.from({ length: 24 }, (_, i) => {
-        const x1 = (1 / 48 + i / 24) * 100;
+      {Array.from({ length: 24 }, (_, sectionNumber) => sectionNumber + 1).map((sectionNumber) => {
+        const x1 = (1 / 48 + (sectionNumber - 1) / 24) * 100;
         const y1 = RaceTrackDimensions.SectionNumbersBarHeight / 2;
 
         return (
           <text
-            key={`section-num-${i + 1}`}
+            key={`section-num-${sectionNumber}`}
             x={`${x1}%`}
             y={y1}
             fontSize="10px"
@@ -57,7 +55,7 @@ export const SectionNumbersBar = React.memo(() => {
             dominantBaseline="central"
             fill={SECTION_COLOR}
           >
-            {i + 1}
+            {sectionNumber}
           </text>
         );
       })}

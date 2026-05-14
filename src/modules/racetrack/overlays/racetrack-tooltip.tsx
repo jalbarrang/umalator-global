@@ -24,7 +24,6 @@ export type RaceTrackTooltipHandle = {
 export function RaceTrackTooltip(props: RaceTrackTooltipProps) {
   const { chartData, course, ref } = props;
   const [tooltipData, setTooltipData] = useState<TooltipData | null>(null);
-  const [tooltipVisible, setTooltipVisible] = useState(false);
   const lastIndicesRef = useRef<{ i0: number; i1: number } | null>(null);
 
   const updateFromPositionRatio = useCallback(
@@ -40,7 +39,6 @@ export function RaceTrackTooltip(props: RaceTrackTooltipProps) {
       const t2 = chartData.time[1][safeI1];
 
       if (t1 == null || t2 == null) return;
-      setTooltipVisible(true);
 
       const last = lastIndicesRef.current;
       if (last && last.i0 === safeI0 && last.i1 === safeI1) {
@@ -66,7 +64,7 @@ export function RaceTrackTooltip(props: RaceTrackTooltipProps) {
   );
 
   const hide = useCallback(() => {
-    setTooltipVisible(false);
+    setTooltipData(null);
     lastIndicesRef.current = null;
   }, []);
 
@@ -79,7 +77,7 @@ export function RaceTrackTooltip(props: RaceTrackTooltipProps) {
     [updateFromPositionRatio, hide]
   );
 
-  if (!tooltipVisible) {
+  if (!tooltipData) {
     return null;
   }
 
@@ -102,10 +100,10 @@ export function RaceTrackTooltip(props: RaceTrackTooltipProps) {
         strokeWidth="1"
       />
       <text x={5} y={12} fill="#2a77c5" fontSize="8px">
-        {tooltipData?.v1Text ?? ''}
+        {tooltipData.v1Text}
       </text>
       <text x={5} y={23} fill="#c52a2a" fontSize="8px">
-        {tooltipData?.v2Text ?? ''}
+        {tooltipData.v2Text}
       </text>
     </svg>
   );

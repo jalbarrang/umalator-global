@@ -207,23 +207,32 @@ export function FocusRunnerDetailPanel({ runnerIndex }: FocusRunnerDetailPanelPr
     }
 
     const rows = Object.entries(selectedData.data.skillActivations)
-      .map(([skillId, logs]) => ({
-        skillId,
-        name: (() => {
-          try {
-            return getSkillNameById(skillId);
-          } catch {
-            return skillId;
-          }
-        })(),
-        logs: logs
+      .flatMap(([skillId, logs]) => {
+        const sortedLogs = logs
           .map((log) => ({
             start: log.start,
             end: Math.max(log.end, log.start)
           }))
-          .toSorted((a, b) => a.start - b.start)
-      }))
-      .filter((entry) => entry.logs.length > 0)
+          .toSorted((a, b) => a.start - b.start);
+
+        if (sortedLogs.length === 0) {
+          return [];
+        }
+
+        return [
+          {
+            skillId,
+            name: (() => {
+              try {
+                return getSkillNameById(skillId);
+              } catch {
+                return skillId;
+              }
+            })(),
+            logs: sortedLogs
+          }
+        ];
+      })
       .toSorted((a, b) => {
         const startA = a.logs[0]?.start ?? Number.MAX_SAFE_INTEGER;
         const startB = b.logs[0]?.start ?? Number.MAX_SAFE_INTEGER;

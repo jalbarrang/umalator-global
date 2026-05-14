@@ -63,9 +63,7 @@ export const skillNameCell = ({
 
     const translatedName = i18n.t(`skillnames.${id}`);
 
-    const displayedName = useMemo(() => {
-      return showSkillIds ? `${translatedName} (${id})` : translatedName;
-    }, [id, translatedName]);
+    const displayedName = showSkillIds ? `${translatedName} (${id})` : translatedName;
 
     const iconSrc = useMemo(() => {
       if (!skill) return { src: null, className: 'size-4' };

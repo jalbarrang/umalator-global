@@ -57,6 +57,31 @@ const STAT_DEFS = [
   { key: 'wisdom', label: 'Wit', icon: getIconUrl('status_04.png') }
 ] as const;
 
+const STAT_CARD_STYLE: React.CSSProperties = {
+  flex: 1,
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  gap: 4,
+  backgroundColor: COLORS.muted,
+  borderRadius: 8,
+  padding: '8px 2px 6px'
+};
+
+const SKILL_PILL_STYLE: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'stretch',
+  fontSize: 12,
+  lineHeight: 1.3,
+  borderRadius: 5,
+  backgroundColor: COLORS.surface,
+  border: `1px solid ${COLORS.border}`,
+  borderLeft: 'none',
+  color: COLORS.text,
+  whiteSpace: 'nowrap',
+  overflow: 'hidden'
+};
+
 function rankForStat(x: number): number {
   if (x > 1200) {
     return Math.min(18 + Math.floor((x - 1200) / 100) * 10 + (Math.floor(x / 10) % 10), 97);
@@ -155,19 +180,7 @@ export const ShareCard = memo(function ShareCard(props: IShareCardProps) {
           const rank = rankForStat(value);
 
           return (
-            <div
-              key={stat.key}
-              style={{
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 4,
-                backgroundColor: COLORS.muted,
-                borderRadius: 8,
-                padding: '8px 2px 6px'
-              }}
-            >
+            <div key={stat.key} style={STAT_CARD_STYLE}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                 <img src={stat.icon} alt="" style={{ width: 18, height: 18 }} />
                 <img
@@ -235,7 +248,7 @@ export const ShareCard = memo(function ShareCard(props: IShareCardProps) {
                 border: `1px solid ${COLORS.border}`
               }}
             >
-              <span style={{ color: COLORS.textSecondary, fontSize: 11 }}>{label}</span>
+              <span style={{ color: COLORS.textSecondary, fontSize: 12 }}>{label}</span>
               <img
                 src={aptitudeIconPath(grade)}
                 alt={grade}
@@ -250,7 +263,7 @@ export const ShareCard = memo(function ShareCard(props: IShareCardProps) {
       <div style={{ padding: '12px 20px 8px' }}>
         <div
           style={{
-            fontSize: 11,
+            fontSize: 12,
             fontWeight: 600,
             color: COLORS.textSecondary,
             textTransform: 'uppercase' as const,
@@ -262,22 +275,7 @@ export const ShareCard = memo(function ShareCard(props: IShareCardProps) {
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
           {skills.map((skill) => (
-            <span
-              key={skill.id}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'stretch',
-                fontSize: 12,
-                lineHeight: 1.3,
-                borderRadius: 5,
-                backgroundColor: COLORS.surface,
-                border: `1px solid ${COLORS.border}`,
-                borderLeft: 'none',
-                color: COLORS.text,
-                whiteSpace: 'nowrap',
-                overflow: 'hidden'
-              }}
-            >
+            <span key={skill.id} style={SKILL_PILL_STYLE}>
               <span style={rarityBarStyle(skill.rarity)} />
               <span
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 8px' }}

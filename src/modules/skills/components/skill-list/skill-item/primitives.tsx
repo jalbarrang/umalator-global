@@ -48,24 +48,30 @@ export function SkillItemRoot(props: Readonly<SkillItemRootProps>) {
   const context = useSkillItem();
   const resolvedSkillId = skillId ?? context.skillId;
 
+  const rootClassName = cn(
+    'flex min-h-[32px] rounded-md border-2 bg-background data-[size=summary]:min-h-[48px]',
+    {
+      'ring-2 ring-primary': selected,
+      'bg-yellow-200/70 dark:bg-yellow-800/40': isHovered || isFocused
+    },
+    className
+  );
+
+  if (!interactive) {
+    return <div data-slot="skill-item" data-size={size} className={rootClassName} {...rest} />;
+  }
+
   return (
     <div
       data-slot="skill-item"
       data-size={size}
-      role={interactive ? 'button' : undefined}
-      tabIndex={interactive ? 0 : undefined}
-      data-skillid={interactive ? resolvedSkillId : undefined}
-      data-event={interactive ? 'select-skill' : undefined}
-      className={cn(
-        'flex min-h-[32px] rounded-md border-2 bg-background data-[size=summary]:min-h-[48px]',
-        {
-          'ring-2 ring-primary': selected,
-          'bg-yellow-200/70 dark:bg-yellow-800/40': isHovered || isFocused
-        },
-        className
-      )}
+      role="button"
+      tabIndex={0}
+      data-skillid={resolvedSkillId}
+      data-event="select-skill"
+      className={rootClassName}
       onKeyDown={(event) => {
-        if (interactive && (event.key === 'Enter' || event.key === ' ')) {
+        if (event.key === 'Enter' || event.key === ' ') {
           event.preventDefault();
           event.currentTarget.click();
         }

@@ -194,7 +194,7 @@ export const SkillCostDetails = () => {
       <div className="p-2 text-xs">
         {isObtained ? (
           <div className="text-center text-muted-foreground py-2">
-            Skill already obtained — no cost.
+            Skill already obtained, no cost.
           </div>
         ) : !hasPrerequisites ? (
           <div className="flex flex-col gap-2">

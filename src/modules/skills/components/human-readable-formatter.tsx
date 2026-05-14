@@ -86,8 +86,12 @@ function ordinal(n: number) {
 function humanizeConditionName(name: string) {
   return name
     .split('_')
-    .filter(Boolean)
-    .map((part) => part[0]?.toUpperCase() + part.slice(1))
+    .reduce<string[]>((parts, part) => {
+      if (part) {
+        parts.push(part[0]?.toUpperCase() + part.slice(1));
+      }
+      return parts;
+    }, [])
     .join(' ');
 }
 

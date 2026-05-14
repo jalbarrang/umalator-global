@@ -98,16 +98,21 @@ export function RaceResultsSummary() {
     }
 
     return Array.from(byRunnerId.values())
-      .filter((row) => row.sampleCount > 0)
-      .map((row) => ({
-        runnerId: row.runnerId,
-        name: row.name,
-        averagePosition: row.totalPosition / row.sampleCount,
-        winRate: (row.totalWins / row.sampleCount) * 100,
-        averageFinishTime: row.totalFinishTime / row.sampleCount,
-        averageGapBashin: row.totalGapBashin / row.sampleCount
-      }))
-      .sort((left, right) => {
+      .reduce<Array<SummaryRow>>((rows, row) => {
+        if (row.sampleCount > 0) {
+          rows.push({
+            runnerId: row.runnerId,
+            name: row.name,
+            averagePosition: row.totalPosition / row.sampleCount,
+            winRate: (row.totalWins / row.sampleCount) * 100,
+            averageFinishTime: row.totalFinishTime / row.sampleCount,
+            averageGapBashin: row.totalGapBashin / row.sampleCount
+          });
+        }
+
+        return rows;
+      }, [])
+      .toSorted((left, right) => {
         if (left.averagePosition !== right.averagePosition) {
           return left.averagePosition - right.averagePosition;
         }

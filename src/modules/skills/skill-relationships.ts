@@ -249,11 +249,17 @@ export function getWhiteVersion(goldSkillId: string): string | undefined {
   }
 
   // Return the base tier (lowest cost)
-  const baseTier = whiteSkills.sort((a, b) => {
-    const costA = a.baseCost ?? Infinity;
-    const costB = b.baseCost ?? Infinity;
-    return costA - costB;
-  })[0];
+  let baseTier = whiteSkills[0];
+  let lowestCost = baseTier?.baseCost ?? Infinity;
+
+  for (let i = 1; i < whiteSkills.length; i += 1) {
+    const skill = whiteSkills[i]!;
+    const cost = skill.baseCost ?? Infinity;
+    if (cost < lowestCost) {
+      baseTier = skill;
+      lowestCost = cost;
+    }
+  }
 
   return baseTier ? baseTier.id.toString() : undefined;
 }

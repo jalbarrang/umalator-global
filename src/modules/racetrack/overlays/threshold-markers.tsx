@@ -1,5 +1,5 @@
 import { useSettingsStore } from '@/store/settings.store';
-import React, { Activity, useMemo } from 'react';
+import React, { Activity } from 'react';
 import { RaceTrackDimensions } from '../types';
 
 type ThresholdMarkerProps = {
@@ -21,9 +21,7 @@ const ThresholdMarker = React.memo((props: ThresholdMarkerProps) => {
     height
   } = props;
 
-  const x = useMemo(() => {
-    return ((courseDistance - threshold) / courseDistance) * width;
-  }, [courseDistance, threshold, width]);
+  const x = ((courseDistance - threshold) / courseDistance) * width;
 
   return (
     <g className="threshold-marker">

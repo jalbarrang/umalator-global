@@ -117,7 +117,7 @@ export function FinishOrderTable(_props: FinishOrderTableProps) {
   }, [results, runners]);
 
   const sortedRows = useMemo(() => {
-    return [...rows].sort((left, right) => compareValues(sortKey, sortDirection, left, right));
+    return rows.toSorted((left, right) => compareValues(sortKey, sortDirection, left, right));
   }, [rows, sortKey, sortDirection]);
 
   if (!results) {

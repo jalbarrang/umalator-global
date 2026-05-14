@@ -6,19 +6,47 @@ type InlineMarkdownProps = {
   text: string;
 };
 
+const INLINE_MARKDOWN_PATTERN = /(\[[^\]]+\]\([^)]+\)|`[^`]+`|\*\*[^*]+\*\*)/g;
+
+type InlineMarkdownToken = {
+  key: string;
+  value: string;
+};
+
+function tokenizeInlineMarkdown(text: string): InlineMarkdownToken[] {
+  const tokens: InlineMarkdownToken[] = [];
+  let cursor = 0;
+
+  for (const match of text.matchAll(INLINE_MARKDOWN_PATTERN)) {
+    const start = match.index ?? cursor;
+    if (start > cursor) {
+      tokens.push({ key: `text-${cursor}`, value: text.slice(cursor, start) });
+    }
+
+    tokens.push({ key: `token-${start}`, value: match[0] });
+    cursor = start + match[0].length;
+  }
+
+  if (cursor < text.length) {
+    tokens.push({ key: `text-${cursor}`, value: text.slice(cursor) });
+  }
+
+  return tokens;
+}
+
 function InlineMarkdown(props: InlineMarkdownProps) {
   const { text } = props;
-  const parts = text.split(/(\[[^\]]+\]\([^)]+\)|`[^`]+`|\*\*[^*]+\*\*)/g);
+  const tokens = tokenizeInlineMarkdown(text);
 
   return (
     <>
-      {parts.map((part, idx) => {
+      {tokens.map((token) => {
+        const part = token.value;
         const linkMatch = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
         if (linkMatch) {
-          // eslint-disable-next-line react/no-array-index-key -- inline markdown tokens are a fixed parse order
           return (
             <a
-              key={idx}
+              key={token.key}
               href={linkMatch[2]}
               target="_blank"
               rel="noreferrer"
@@ -30,18 +58,16 @@ function InlineMarkdown(props: InlineMarkdownProps) {
         }
 
         if (part.startsWith('`') && part.endsWith('`')) {
-          // eslint-disable-next-line react/no-array-index-key -- inline markdown tokens are a fixed parse order
           return (
-            <code key={idx} className="rounded bg-muted px-1 py-0.5 text-xs text-foreground">
+            <code key={token.key} className="rounded bg-muted px-1 py-0.5 text-xs text-foreground">
               {part.slice(1, -1)}
             </code>
           );
         }
 
         if (part.startsWith('**') && part.endsWith('**')) {
-          // eslint-disable-next-line react/no-array-index-key -- inline markdown tokens are a fixed parse order
           return (
-            <strong key={idx} className="font-medium text-foreground">
+            <strong key={token.key} className="font-medium text-foreground">
               {part.slice(2, -2)}
             </strong>
           );

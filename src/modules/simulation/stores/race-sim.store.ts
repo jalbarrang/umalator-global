@@ -180,9 +180,13 @@ const MIN_ZOOM_WINDOW = 100;
 const MAX_ZOOM_WINDOW = 1000;
 const ZOOM_STEP = 100;
 
-export const setZoomWindowMeters = (meters: number) => {
-  const clamped = Math.round(meters / ZOOM_STEP) * ZOOM_STEP;
-  useRaceSimStore.setState({
-    zoomWindowMeters: Math.min(MAX_ZOOM_WINDOW, Math.max(MIN_ZOOM_WINDOW, clamped))
+export const setZoomWindowMeters = (meters: number | ((currentMeters: number) => number)) => {
+  useRaceSimStore.setState((state) => {
+    const nextMeters = typeof meters === 'function' ? meters(state.zoomWindowMeters) : meters;
+    const clamped = Math.round(nextMeters / ZOOM_STEP) * ZOOM_STEP;
+
+    return {
+      zoomWindowMeters: Math.min(MAX_ZOOM_WINDOW, Math.max(MIN_ZOOM_WINDOW, clamped))
+    };
   });
 };

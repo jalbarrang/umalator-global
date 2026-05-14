@@ -109,7 +109,7 @@ export default function RosterHomePage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
 
-  const isSelecting = useMemo(() => selected.size > 0, [selected]);
+  const isSelecting = selected.size > 0;
 
   const isMobile = useIsMobile();
 

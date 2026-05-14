@@ -40,18 +40,21 @@ function SamplePicker() {
     <div className="flex items-center gap-2">
       <span className="text-xs text-muted-foreground">Sample</span>
       <ButtonGroup>
-        {/* eslint-disable-next-line react/no-array-index-key -- sample buttons are a fixed round sequence */}
-        {Array.from({ length: roundCount }, (_, index) => (
-          <Button
-            key={`sample-${index}`}
-            type="button"
-            size="xs"
-            variant={index === selectedRound ? 'secondary' : 'ghost'}
-            onClick={() => setRound(index)}
-          >
-            S{index + 1}
-          </Button>
-        ))}
+        {Array.from({ length: roundCount }, (_, index) => index + 1).map((sampleNumber) => {
+          const sampleIndex = sampleNumber - 1;
+
+          return (
+            <Button
+              key={`sample-${sampleNumber}`}
+              type="button"
+              size="xs"
+              variant={sampleIndex === selectedRound ? 'secondary' : 'ghost'}
+              onClick={() => setRound(sampleIndex)}
+            >
+              S{sampleNumber}
+            </Button>
+          );
+        })}
       </ButtonGroup>
     </div>
   );
@@ -230,7 +233,7 @@ export default function RaceSimRun() {
               variant="outline"
               size="icon-sm"
               onClick={() => {
-                setZoomWindowMeters(zoomWindowMeters - 100);
+                setZoomWindowMeters((currentZoomWindowMeters) => currentZoomWindowMeters - 100);
                 setZoomMode('zoom');
               }}
               disabled={zoomMode === 'zoom' && zoomWindowMeters <= 100}
@@ -248,7 +251,7 @@ export default function RaceSimRun() {
               variant="outline"
               size="icon-sm"
               onClick={() => {
-                setZoomWindowMeters(zoomWindowMeters + 100);
+                setZoomWindowMeters((currentZoomWindowMeters) => currentZoomWindowMeters + 100);
                 setZoomMode('zoom');
               }}
               disabled={zoomMode === 'zoom' && zoomWindowMeters >= 1000}

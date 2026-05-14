@@ -3,7 +3,6 @@ import { getSelectableSkillsForUma, getUniqueSkillForByUmaId } from '@/modules/s
 import { useMemo, useState } from 'react';
 import { createManualOcrSkillEntry, getOcrSkillOptionMeta, OcrSkillPickerOption } from '../helpers';
 import { dataRegistry } from '@/modules/data/registry';
-import { SkillEntry } from '@/modules/data/services/SkillService';
 import { toast } from 'sonner';
 import { OcrSkillPickerPopover } from './skill-picker';
 import { Button } from '@/components/ui/button';
@@ -39,14 +38,22 @@ export function OcrSkillsList(props: Readonly<IOcrSkillsListProps>) {
       : dataRegistry.skills.getAll().map((skill) => skill.id);
 
     return selectableSkillIds
-      .map((skillId) => dataRegistry.skills.getById(skillId))
-      .filter((skill): skill is SkillEntry => skill !== undefined)
-      .map((skill) => ({
-        id: skill.id,
-        name: skill.name,
-        meta: getOcrSkillOptionMeta(skill),
-        searchValue: `${skill.name} ${skill.id} ${getOcrSkillOptionMeta(skill)}`
-      }))
+      .flatMap((skillId) => {
+        const skill = dataRegistry.skills.getById(skillId);
+        if (!skill) {
+          return [];
+        }
+
+        const meta = getOcrSkillOptionMeta(skill);
+        return [
+          {
+            id: skill.id,
+            name: skill.name,
+            meta,
+            searchValue: `${skill.name} ${skill.id} ${meta}`
+          }
+        ];
+      })
       .sort((a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
   }, [results?.outfitId]);
 

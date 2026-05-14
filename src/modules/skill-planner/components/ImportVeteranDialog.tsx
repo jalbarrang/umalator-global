@@ -57,7 +57,7 @@ export function ImportVeteranDialog(props: Readonly<ImportVeteranDialogProps>) {
   }, [open]);
 
   const sortedRunners = useMemo(() => {
-    return [...runners].sort((a, b) => b.updatedAt - a.updatedAt);
+    return runners.toSorted((a, b) => b.updatedAt - a.updatedAt);
   }, [runners]);
 
   const searchIndex = useMemo(() => {
