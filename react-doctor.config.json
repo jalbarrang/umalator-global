@@ -3,10 +3,7 @@
     "overrides": [
       {
         "files": ["src/modules/simulation/share/compare-share-card.tsx"],
-        "rules": [
-          "react-doctor/no-inline-exhaustive-style",
-          "react-doctor/no-tiny-text"
-        ]
+        "rules": ["react-doctor/no-inline-exhaustive-style", "react-doctor/no-tiny-text"]
       },
       {
         "files": ["src/modules/runners/components/ocr/components/wizard-import.tsx"],

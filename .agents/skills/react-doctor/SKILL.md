@@ -1,7 +1,7 @@
 ---
 name: react-doctor
 description: Use when finishing a feature, fixing a bug, before committing React code, or when the user wants to improve code quality or clean up a codebase. Checks for score regression. Covers lint, dead code, accessibility, bundle size, architecture diagnostics.
-version: "1.0.0"
+version: '1.0.0'
 ---
 
 # React Doctor
