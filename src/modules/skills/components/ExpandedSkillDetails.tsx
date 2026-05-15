@@ -10,19 +10,13 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { SkillIcon } from './skill-list/skill-item/SkillIcon';
 
-type ExpandedSkillDetailsProps = {
-  id: string;
-  skill: SkillEntry;
+type IAlternativeDetailsProps = {
+  alternative: SkillAlternative;
   distanceFactor?: number;
 };
 
-function AlternativeDetails({
-  alternative,
-  distanceFactor
-}: {
-  alternative: SkillAlternative;
-  distanceFactor?: number;
-}) {
+export function AlternativeDetails(props: Readonly<IAlternativeDetailsProps>) {
+  const { alternative, distanceFactor } = props;
   const precondition = alternative.precondition ?? '';
 
   return (
@@ -81,9 +75,11 @@ function AlternativeDetails({
             const effectKey = `${ef.type}-${ef.target}-${ef.modifier}-${ef.valueUsage ?? ''}-${ef.valueLevelUsage ?? ''}`;
 
             return (
-              <div key={effectKey} className="flex items-center gap-2">
-                <div>{effectLabel}</div>
-                <div>{effectValue}</div>
+              <div key={effectKey} className="flex items-center gap-1 py-px">
+                <span className="shrink-0 size-1 rounded-full bg-foreground/40"></span>
+                <span>
+                  {effectLabel}: {effectValue}
+                </span>
               </div>
             );
           })}
@@ -115,6 +111,13 @@ function AlternativeDetails({
   );
 }
 
+type ExpandedSkillDetailsProps = {
+  id: string;
+  skill: SkillEntry;
+  distanceFactor?: number;
+  className?: string;
+};
+
 export function ExpandedSkillDetails(props: ExpandedSkillDetailsProps) {
   const { skill: skillData } = props;
 
@@ -126,6 +129,7 @@ export function ExpandedSkillDetails(props: ExpandedSkillDetailsProps) {
             <SkillIcon iconId={skillData.iconId} />
             <div className="text-sm font-medium">{skillData.name}</div>
           </div>
+
           <div className="text-xs text-muted-foreground">
             {i18n.t('skilldetails.id')}
             {props.id}
@@ -145,6 +149,7 @@ export function ExpandedSkillDetails(props: ExpandedSkillDetailsProps) {
                 );
               })}
             </TabsList>
+
             {skillData.alternatives.map((alternative, index) => {
               const alternativeKey = `${alternative.precondition ?? ''}-${alternative.condition}-${alternative.baseDuration}`;
 

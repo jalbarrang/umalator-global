@@ -38,6 +38,7 @@ import RaceSimHome from './race-sim/home';
 import RaceSimRun from './race-sim/run';
 import RaceSimResults from './race-sim/results';
 // Tools
+import { SkillsPage } from './_tools/skills';
 import { SparkOddsPage } from './_tools/spark-odds';
 
 type RoutePageProps = {
@@ -162,6 +163,15 @@ export function RootComponent() {
               element={
                 <RoutePage title="Skill Planner" description="">
                   <SkillPlanner />
+                </RoutePage>
+              }
+            />
+
+            <Route
+              path="/skills"
+              element={
+                <RoutePage title="Skills" description="Browse all skills">
+                  <SkillsPage />
                 </RoutePage>
               }
             />
