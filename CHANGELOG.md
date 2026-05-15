@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.7.1](https://github.com/jalbarrang/umalator-global/compare/v0.7.0...v0.7.1) (2026-05-15)
+
+
+### Bug Fixes
+
+* 0 showing on duration skills ([e55856d](https://github.com/jalbarrang/umalator-global/commit/e55856dd769b9e70ccfb726d3171175b37427c4b))
+* some conditions and style on each row ([575767f](https://github.com/jalbarrang/umalator-global/commit/575767fff57decf6b3ff6eb997b8e2eb24d5ad0c))
+
 ## [0.7.0](https://github.com/jalbarrang/umalator-global/compare/v0.6.2...v0.7.0) (2026-05-15)
 
 
