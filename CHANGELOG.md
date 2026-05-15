@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.7.0](https://github.com/jalbarrang/umalator-global/compare/v0.6.2...v0.7.0) (2026-05-15)
+
+
+### Features
+
+* added dedicate skills page ([a0633e1](https://github.com/jalbarrang/umalator-global/commit/a0633e1c191de01294adaef9948ce51225f02487))
+
 ## [0.6.2](https://github.com/jalbarrang/umalator-global/compare/v0.6.1...v0.6.2) (2026-05-13)
 
 
