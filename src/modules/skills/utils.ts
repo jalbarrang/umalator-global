@@ -156,7 +156,6 @@ export const conditionFilterMap = {
   ],
   phase2: [
     parseSkillCondition('phase==2'),
-    parseSkillCondition('phase>=2'),
     parseSkillCondition('phase_random==2'),
     parseSkillCondition('phase_firsthalf_random==2'),
     parseSkillCondition('phase_laterhalf_random==2'),
@@ -165,6 +164,7 @@ export const conditionFilterMap = {
   ],
   phase3: [
     parseSkillCondition('phase==3'),
+    parseSkillCondition('phase>=2'),
     parseSkillCondition('phase_random==3'),
     parseSkillCondition('phase_firsthalf_random==3'),
     parseSkillCondition('phase_laterhalf_random==3')
@@ -175,8 +175,9 @@ export const conditionFilterMap = {
     parseSkillCondition('is_finalcorner_random==1')
   ],
   finalstraight: [
-    parseSkillCondition('is_last_straight==1'),
-    parseSkillCondition('is_last_straight_onetime==1')
+    parseSkillCondition('is_finalcorner==1'),
+    parseSkillCondition('is_last_straight_onetime==1'),
+    parseSkillCondition('is_finalcorner==1&corner==0')
   ]
 };
 

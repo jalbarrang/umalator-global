@@ -66,6 +66,7 @@ export type RawSkillEffect = {
 
 export type SkillAlternative = {
   baseDuration: number;
+  cooldownTime?: number;
   condition: string;
   precondition?: string;
   effects: Array<RawSkillEffect>;

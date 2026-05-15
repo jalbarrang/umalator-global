@@ -22,6 +22,7 @@ interface SkillRow {
   precondition_1: string;
   condition_1: string;
   float_ability_time_1: number;
+  float_cooldown_time_1: number;
   ability_type_1_1: number;
   float_ability_value_1_1: number;
   target_type_1_1: number;
@@ -40,6 +41,7 @@ interface SkillRow {
   precondition_2: string;
   condition_2: string;
   float_ability_time_2: number;
+  float_cooldown_time_2: number;
   ability_type_2_1: number;
   float_ability_value_2_1: number;
   target_type_2_1: number;
@@ -88,6 +90,7 @@ type SkillAlternative = {
   precondition: string;
   condition: string;
   baseDuration: number;
+  cooldownTime?: number;
   effects: Array<SkillEffect>;
 };
 
@@ -264,6 +267,7 @@ function buildAlternatives(row: SkillRow): Array<SkillAlternative> {
       precondition: row.precondition_1 === '0' ? '' : row.precondition_1,
       condition: row.condition_1,
       baseDuration: row.float_ability_time_1,
+      cooldownTime: row.float_cooldown_time_1,
       effects: buildEffects(row, '1')
     }
   ];
@@ -273,6 +277,7 @@ function buildAlternatives(row: SkillRow): Array<SkillAlternative> {
       precondition: row.precondition_2 === '0' ? '' : row.precondition_2,
       condition: row.condition_2,
       baseDuration: row.float_ability_time_2,
+      cooldownTime: row.float_cooldown_time_2,
       effects: buildEffects(row, '2')
     });
   }
@@ -325,6 +330,7 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
               s.precondition_1,
               s.condition_1,
               s.float_ability_time_1,
+              s.float_cooldown_time_1,
               s.ability_type_1_1, s.float_ability_value_1_1, s.target_type_1_1,
               s.ability_value_usage_1_1, s.ability_value_level_usage_1_1,
               s.ability_type_1_2, s.float_ability_value_1_2, s.target_type_1_2,
@@ -334,6 +340,7 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
               s.precondition_2,
               s.condition_2,
               s.float_ability_time_2,
+              s.float_cooldown_time_2,
               s.ability_type_2_1, s.float_ability_value_2_1, s.target_type_2_1,
               s.ability_value_usage_2_1, s.ability_value_level_usage_2_1,
               s.ability_type_2_2, s.float_ability_value_2_2, s.target_type_2_2,

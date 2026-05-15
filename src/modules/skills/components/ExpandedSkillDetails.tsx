@@ -20,13 +20,14 @@ export function AlternativeDetails(props: Readonly<IAlternativeDetailsProps>) {
   const precondition = alternative.precondition ?? '';
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col text-xs gap-2">
       {precondition.length > 0 && (
         <div>
           <div className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground mb-1">
             {i18n.t('skilldetails.preconditions')}
           </div>
           <div className="pl-1">{HumanReadableParser.parse(precondition).format()}</div>
+
           <Collapsible>
             <CollapsibleTrigger className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors cursor-pointer mt-1">
               <Code className="size-3" />
@@ -105,6 +106,15 @@ export function AlternativeDetails(props: Readonly<IAlternativeDetailsProps>) {
               })}
             </div>
           )}
+        </div>
+      )}
+
+      {alternative.cooldownTime && (
+        <div>
+          Cooldown:{' '}
+          {i18n.t('skilldetails.seconds', {
+            n: alternative.cooldownTime / 10000
+          })}
         </div>
       )}
     </div>

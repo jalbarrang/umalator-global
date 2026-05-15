@@ -20,7 +20,7 @@ import { SkillPickerFilterRow } from '@/modules/skills/components/skill-picker/f
 import { SkillPickerProvider } from '@/modules/skills/components/skill-picker/provider';
 import { useFilteredSkills } from '@/modules/skills/components/skill-picker/store';
 import { SkillIcon } from '@/modules/skills/components/skill-list/skill-item/SkillIcon';
-import { AlternativeDetails } from '@/modules/skills/components/ExpandedSkillDetails';
+import { SkillDetails } from '@/modules/skills/components/skill-details';
 import { formatEffect } from '@/modules/skills/components/formatters';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -83,6 +83,15 @@ function SkillEffectSummary(props: SkillEffectSummaryProps) {
 
   return (
     <div className="grid gap-1.5">
+      {!!alternative.cooldownTime && alternative.cooldownTime > 0 && (
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 text-xs">
+          <span className="min-w-0 text-muted-foreground">Cooldown</span>
+          <span className="text-right font-medium">
+            {i18n.t('skilldetails.seconds', { n: alternative.cooldownTime / 10000 })}
+          </span>
+        </div>
+      )}
+
       {alternative.effects.map((effect) => {
         const modifier = effect.modifier / 10000;
         const effectType = formatEffect[effect.type as keyof typeof formatEffect];
@@ -202,7 +211,7 @@ function SkillFamily(props: SkillFamilyProps) {
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col md:flex-row gap-2">
       {familySkills.map((familySkill) => (
         <RelatedSkillPopover key={familySkill.id} skill={familySkill} />
       ))}
@@ -218,59 +227,38 @@ function SkillBrowserItem(props: SkillBrowserItemProps) {
   const { skill } = props;
 
   return (
-    <div className="grid grid-cols-1 gap-1 rounded-lg border bg-card md:grid-cols-[minmax(220px,280px)_minmax(160px,220px)_minmax(0,1fr)] md:gap-4">
-      <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-4 border-b px-4 py-2 md:border-none">
-        <SkillIcon iconId={skill.iconId} />
+    <div className="flex flex-col gap-1 rounded-lg border bg-card">
+      <div className="flex flex-col md:flex-row md:items-center">
+        <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-4 border-b px-4 py-2 md:border-none">
+          <SkillIcon iconId={skill.iconId} />
 
-        <div className="flex flex-col gap-2">
-          <div className="truncate text-sm">{skill.name}</div>
-          <div className="flex gap-2 text-xs text-muted-foreground">
-            <span>ID:</span>
-            <code>{skill.id}</code>
-          </div>
+          <div className="flex flex-col gap-2">
+            <div className="text-sm">{skill.name}</div>
 
-          <div className="flex gap-2">
-            {skill.baseCost > 0 && <Badge variant="outline">{skill.baseCost} SP</Badge>}
-            <Badge variant="outline">{getRarityLabel(skill.rarity)}</Badge>
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Badge variant="outline">
+                <span>ID:</span>
+                <span>{skill.id}</span>
+              </Badge>
+
+              <div className="flex gap-2">
+                {skill.baseCost > 0 && <Badge variant="outline">{skill.baseCost} SP</Badge>}
+                <Badge variant="outline">{getRarityLabel(skill.rarity)}</Badge>
+              </div>
+            </div>
           </div>
+        </div>
+
+        <div className="flex flex-col gap-4 px-4 py-2 border-b md:border-none">
+          <section className="flex flex-col gap-2">
+            <div className="text-xs text-muted-foreground">Related skills</div>
+            <SkillFamily skill={skill} />
+          </section>
         </div>
       </div>
 
-      <div className="flex flex-col gap-4 px-4 py-2 border-b md:border-none">
-        <section className="flex flex-col gap-2">
-          <div className="text-xs text-muted-foreground">Related skills</div>
-          <SkillFamily skill={skill} />
-        </section>
-      </div>
-
       <div className="flex flex-col px-4 text-xs md:py-2">
-        {skill.alternatives.length > 1 ? (
-          <Tabs defaultValue={0}>
-            <TabsList>
-              {skill.alternatives.map((alternative, index) => {
-                const alternativeKey = `${alternative.precondition ?? ''}-${alternative.condition}-${alternative.baseDuration}`;
-
-                return (
-                  <TabsTrigger key={alternativeKey} value={index}>
-                    Alt {index + 1}
-                  </TabsTrigger>
-                );
-              })}
-            </TabsList>
-
-            {skill.alternatives.map((alternative, index) => {
-              const alternativeKey = `${alternative.precondition ?? ''}-${alternative.condition}-${alternative.baseDuration}`;
-
-              return (
-                <TabsContent key={alternativeKey} value={index}>
-                  <AlternativeDetails alternative={alternative} />
-                </TabsContent>
-              );
-            })}
-          </Tabs>
-        ) : (
-          <AlternativeDetails alternative={skill.alternatives[0]} />
-        )}
+        <SkillDetails skill={skill} />
       </div>
     </div>
   );
