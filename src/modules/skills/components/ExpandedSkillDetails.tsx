@@ -109,14 +109,14 @@ export function AlternativeDetails(props: Readonly<IAlternativeDetailsProps>) {
         </div>
       )}
 
-      {alternative.cooldownTime && (
+      {alternative.cooldownTime ? (
         <div>
           Cooldown:{' '}
           {i18n.t('skilldetails.seconds', {
             n: alternative.cooldownTime / 10000
           })}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

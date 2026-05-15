@@ -94,16 +94,16 @@ function SkillTiming(props: { alternative: SkillAlternative; distanceFactor?: nu
   return (
     <SkillDetailSection title="Timing">
       <div className="space-y-1 text-xs">
-        {hasBaseDuration && (
+        {hasBaseDuration ? (
           <div className="flex items-center gap-1">
             <span className="text-muted-foreground">{i18n.t('skilldetails.baseduration')}</span>
             <span className="font-medium">
               {i18n.t('skilldetails.seconds', { n: alternative.baseDuration / 10000 })}
             </span>
           </div>
-        )}
+        ) : null}
 
-        {hasBaseDuration && !!distanceFactor && (
+        {hasBaseDuration && !!distanceFactor ? (
           <div className="flex items-center gap-1">
             <span className="text-muted-foreground">
               {i18n.t('skilldetails.effectiveduration', { distance: distanceFactor })}
@@ -114,16 +114,16 @@ function SkillTiming(props: { alternative: SkillAlternative; distanceFactor?: nu
               })}
             </span>
           </div>
-        )}
+        ) : null}
 
-        {hasCooldown && (
+        {hasCooldown ? (
           <div className="flex items-center gap-1">
             <span className="text-muted-foreground">Cooldown</span>
             <span className="font-medium">
               {i18n.t('skilldetails.seconds', { n: (alternative.cooldownTime ?? 0) / 10000 })}
             </span>
           </div>
-        )}
+        ) : null}
       </div>
     </SkillDetailSection>
   );
