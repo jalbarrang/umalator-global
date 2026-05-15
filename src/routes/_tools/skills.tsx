@@ -4,6 +4,16 @@ import { SearchIcon } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
+import {
+  Popover,
+  PopoverContent,
+  PopoverDescription,
+  PopoverHeader,
+  PopoverTitle,
+  PopoverTrigger
+} from '@/components/ui/popover';
+import i18n from '@/i18n';
+import { describeRecoveryEffect } from '@/lib/sunday-tools/skills/recovery-effect-utils';
 import { dataRegistry } from '@/modules/data/registry';
 import type { SkillEntry } from '@/modules/data/services/SkillService';
 import { SkillPickerFilterRow } from '@/modules/skills/components/skill-picker/filter-row';
@@ -11,10 +21,12 @@ import { SkillPickerProvider } from '@/modules/skills/components/skill-picker/pr
 import { useFilteredSkills } from '@/modules/skills/components/skill-picker/store';
 import { SkillIcon } from '@/modules/skills/components/skill-list/skill-item/SkillIcon';
 import { AlternativeDetails } from '@/modules/skills/components/ExpandedSkillDetails';
-import { cn } from '@/lib/utils';
+import { formatEffect } from '@/modules/skills/components/formatters';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 
-const SKILL_CARD_HEIGHT = 300;
+const SKILL_CARD_ESTIMATED_HEIGHT = 360;
+const SKILL_CARD_GAP = 12;
 const SKILL_LIST_OVERSCAN = 4;
 
 function getRarityLabel(rarity: number) {
@@ -32,15 +44,158 @@ type SkillFamilyProps = {
   skill: SkillEntry;
 };
 
+function getRelatedSkills(skill: SkillEntry) {
+  const relatedById = new Map<string, SkillEntry>();
+
+  for (const familySkill of dataRegistry.skills.getByGroupId(skill.groupId)) {
+    relatedById.set(familySkill.id, familySkill);
+  }
+
+  const geneSkillId = skill.gene_version?.id;
+  if (geneSkillId) {
+    const geneSkill = dataRegistry.skills.getById(`${geneSkillId}`);
+    if (geneSkill) {
+      relatedById.set(geneSkill.id, geneSkill);
+    }
+  }
+
+  for (const candidate of dataRegistry.skills.getAll()) {
+    if (`${candidate.gene_version?.id ?? ''}` === skill.id) {
+      relatedById.set(candidate.id, candidate);
+    }
+  }
+
+  relatedById.delete(skill.id);
+
+  return Array.from(relatedById.values()).sort((a, b) => b.rarity - a.rarity);
+}
+
+type SkillEffectSummaryProps = {
+  alternative: SkillEntry['alternatives'][number] | undefined;
+};
+
+function SkillEffectSummary(props: SkillEffectSummaryProps) {
+  const { alternative } = props;
+
+  if (!alternative) {
+    return <div className="text-xs text-muted-foreground">No effects.</div>;
+  }
+
+  return (
+    <div className="grid gap-1.5">
+      {alternative.effects.map((effect) => {
+        const modifier = effect.modifier / 10000;
+        const effectType = formatEffect[effect.type as keyof typeof formatEffect];
+        const effectValue =
+          describeRecoveryEffect({ ...effect, modifier }) ??
+          (effectType ? effectType(modifier) : modifier);
+        const effectLabel =
+          effect.type === 9 && modifier < 0
+            ? 'HP Drain'
+            : i18n.t(`skilleffecttypes.${effect.type}`);
+        const effectKey = `${effect.type}-${effect.target}-${effect.modifier}-${effect.valueUsage ?? ''}-${effect.valueLevelUsage ?? ''}`;
+
+        return (
+          <div key={effectKey} className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 text-xs">
+            <span className="min-w-0 text-muted-foreground">{effectLabel}</span>
+            <span className="text-right font-medium">{effectValue}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+type SkillAlternativeEffectSummaryProps = {
+  skill: SkillEntry;
+};
+
+function SkillAlternativeEffectSummary(props: SkillAlternativeEffectSummaryProps) {
+  const { skill } = props;
+
+  if (skill.alternatives.length <= 1) {
+    return <SkillEffectSummary alternative={skill.alternatives[0]} />;
+  }
+
+  return (
+    <Tabs defaultValue={0}>
+      <TabsList>
+        {skill.alternatives.map((alternative, index) => {
+          const alternativeKey = `${alternative.precondition ?? ''}-${alternative.condition}-${alternative.baseDuration}`;
+
+          return (
+            <TabsTrigger key={alternativeKey} value={index}>
+              Alt {index + 1}
+            </TabsTrigger>
+          );
+        })}
+      </TabsList>
+
+      {skill.alternatives.map((alternative, index) => {
+        const alternativeKey = `${alternative.precondition ?? ''}-${alternative.condition}-${alternative.baseDuration}`;
+
+        return (
+          <TabsContent key={alternativeKey} value={index}>
+            <SkillEffectSummary alternative={alternative} />
+          </TabsContent>
+        );
+      })}
+    </Tabs>
+  );
+}
+
+type RelatedSkillPopoverProps = {
+  skill: SkillEntry;
+};
+
+function RelatedSkillPopover(props: RelatedSkillPopoverProps) {
+  const { skill } = props;
+
+  return (
+    <Popover>
+      <PopoverTrigger
+        render={
+          <Button variant="outline" size="sm">
+            <span className="[&_img]:size-4">
+              <SkillIcon iconId={skill.iconId} />
+            </span>
+            <span className="min-w-0 truncate">{skill.name}</span>
+          </Button>
+        }
+      />
+      <PopoverContent align="start" className="min-w-50">
+        <PopoverHeader>
+          <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2">
+            <SkillIcon iconId={skill.iconId} />
+
+            <div className="min-w-0">
+              <PopoverTitle className="truncate">{skill.name}</PopoverTitle>
+              <PopoverDescription className="font-mono text-xs">{skill.id}</PopoverDescription>
+            </div>
+          </div>
+        </PopoverHeader>
+
+        <div className="flex gap-1">
+          {skill.baseCost > 0 && <Badge variant="outline">{skill.baseCost} SP</Badge>}
+          <Badge variant="outline">{getRarityLabel(skill.rarity)}</Badge>
+        </div>
+
+        <section className="grid gap-1.5">
+          <div className="text-xs font-medium text-muted-foreground">Effects</div>
+
+          <SkillAlternativeEffectSummary skill={skill} />
+        </section>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 function SkillFamily(props: SkillFamilyProps) {
   const { skill } = props;
 
   const familySkills = useMemo(() => {
-    return dataRegistry.skills
-      .getByGroupId(skill.groupId)
-      .filter((familySkill) => familySkill.id !== skill.id)
-      .sort((a, b) => b.rarity - a.rarity);
-  }, [skill.groupId, skill.id]);
+    return getRelatedSkills(skill);
+  }, [skill]);
 
   if (familySkills.length === 0) {
     return <div className="text-xs text-muted-foreground">None</div>;
@@ -49,13 +204,7 @@ function SkillFamily(props: SkillFamilyProps) {
   return (
     <div className="flex flex-col gap-2">
       {familySkills.map((familySkill) => (
-        <Badge key={familySkill.id} variant="outline" className="gap-2 rounded-md py-2 pl-1 pr-2">
-          <span className="[&_img]:size-5">
-            <SkillIcon iconId={familySkill.iconId} />
-          </span>
-
-          <span className="min-w-0 truncate">{familySkill.name}</span>
-        </Badge>
+        <RelatedSkillPopover key={familySkill.id} skill={familySkill} />
       ))}
     </div>
   );
@@ -69,8 +218,8 @@ function SkillBrowserItem(props: SkillBrowserItemProps) {
   const { skill } = props;
 
   return (
-    <div className="flex flex-col md:flex-row gap-1 md:gap-4 rounded-lg border bg-card">
-      <div className="flex items-center gap-4 px-4 py-2 border-b md:border-none">
+    <div className="grid grid-cols-1 gap-1 rounded-lg border bg-card md:grid-cols-[minmax(220px,280px)_minmax(160px,220px)_minmax(0,1fr)] md:gap-4">
+      <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-4 border-b px-4 py-2 md:border-none">
         <SkillIcon iconId={skill.iconId} />
 
         <div className="flex flex-col gap-2">
@@ -94,7 +243,7 @@ function SkillBrowserItem(props: SkillBrowserItemProps) {
         </section>
       </div>
 
-      <div className={cn('flex flex-col text-xs px-4 md:py-2')}>
+      <div className="flex flex-col px-4 text-xs md:py-2">
         {skill.alternatives.length > 1 ? (
           <Tabs defaultValue={0}>
             <TabsList>
@@ -138,7 +287,8 @@ function SkillsBrowserContent() {
   const rowVirtualizer = useVirtualizer({
     count: filteredSkills.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => SKILL_CARD_HEIGHT,
+    estimateSize: () => SKILL_CARD_ESTIMATED_HEIGHT,
+    gap: SKILL_CARD_GAP,
     overscan: SKILL_LIST_OVERSCAN,
     getItemKey: (index) => filteredSkills[index]?.id ?? `skill-${index}`
   });
@@ -178,6 +328,7 @@ function SkillsBrowserContent() {
               return (
                 <div
                   key={virtualRow.key}
+                  ref={rowVirtualizer.measureElement}
                   className="absolute left-0 top-0 w-full"
                   style={{ transform: `translateY(${virtualRow.start}px)` }}
                   data-index={virtualRow.index}

@@ -16,6 +16,7 @@ export default {
     unique: 'Unique skills',
     inherit: 'Inherited uniques',
     // Running Styles
+    oonige: 'Runaway',
     nige: 'Front Runner',
     senkou: 'Pace Chaser',
     sasi: 'Late Surger',
@@ -37,12 +38,21 @@ export default {
     finalstraight: 'Final straight'
   },
   skilleffecttypes: {
-    '1': 'Speed up',
-    '2': 'Stamina up',
-    '3': 'Power up',
-    '4': 'Guts up',
-    '5': 'Wisdom up',
+    // Stats
+    '1': 'Speed',
+    '2': 'Stamina',
+    '3': 'Power',
+    '4': 'Guts',
+    '5': 'Wisdom',
+    '6': 'Change Strategy',
+
+    '8': 'Field of View',
     '9': 'Recovery',
+
+    '10': 'Start Reaction Time',
+    '13': 'Rushed Duration',
+    '14': 'Start Delay',
+
     '21': 'Current speed',
     '22': 'Current speed with natural deceleration',
     '27': 'Target speed',
@@ -58,7 +68,7 @@ export default {
     distance_type: ['', 'Short', 'Mile', 'Medium', 'Long'],
     baseduration: 'Base duration:',
     effectiveduration: 'Effective duration ({{distance}}m):',
-    durationincrease: '{{n}}×',
+    durationincrease: '{{n}}x',
     effects: 'Effects:',
     grade: {
       100: 'G1',
