@@ -1,11 +1,11 @@
 import { useDeferredValue, useMemo, useState } from 'react';
-import { SearchIcon, XIcon } from 'lucide-react';
+import { SlidersHorizontalIcon, SearchIcon, XIcon } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Combobox,
-  ComboboxClear,
   ComboboxContent,
   ComboboxEmpty,
   ComboboxInput,
@@ -14,14 +14,22 @@ import {
   ComboboxList,
   ComboboxTrigger
 } from '@/components/ui/combobox';
-import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from '@/components/ui/dialog';
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
+import { config } from '@/config';
+import { cn } from '@/lib/utils';
+import { dataRegistry } from '@/modules/data/registry';
+import { SkillIcon } from '@/modules/skills/components/skill-list/skill-item/SkillIcon';
 import supportCardsJson from '@/modules/data/json/support-cards.json';
 
 type SupportSkill = {
@@ -64,6 +72,10 @@ const supportSkillOptions = Array.from(
 const supportSkillLabelById = new Map(
   supportSkillOptions.map((skill) => [skill.value, skill.label] as const)
 );
+
+function getSupportCardImageUrl(cardId: number) {
+  return `${config.basePath}img/support-cards/support_card_s_${cardId}.png`;
+}
 
 function getSupportCardTypeLabel(type: number) {
   if (type === 1) return 'Speed';
@@ -112,61 +124,61 @@ const cardRarityOptions = [
   { value: '3', label: 'SSR' }
 ];
 
-type FilterSelectProps = {
-  label: string;
-  value: string;
-  onValueChange: (value: string) => void;
-  options: Array<{ value: string; label: string }>;
+type SkillSourceSelectProps = {
+  values: string[];
+  onValuesChange: (values: string[]) => void;
 };
 
-function FilterSelect(props: FilterSelectProps) {
-  const { label, value, onValueChange, options } = props;
+type FilterCheckboxGridProps = {
+  title: string;
+  options: Array<{ value: string; label: string }>;
+  values: string[];
+  onValuesChange: (values: string[]) => void;
+};
+
+function toggleFilterValue(values: string[], value: string) {
+  return values.includes(value) ? values.filter((item) => item !== value) : [...values, value];
+}
+
+function FilterCheckboxGrid(props: FilterCheckboxGridProps) {
+  const { title, options, values, onValuesChange } = props;
 
   return (
-    <Select value={value} onValueChange={(nextValue) => onValueChange(nextValue ?? 'all')}>
-      <SelectTrigger size="sm" className="h-9 w-full">
-        <SelectValue>
-          {value === 'all'
-            ? label
-            : (options.find((option) => option.value === value)?.label ?? label)}
-        </SelectValue>
-      </SelectTrigger>
-
-      <SelectContent>
-        <SelectItem value="all">{label}</SelectItem>
+    <section className="grid gap-3">
+      <div className="border-b border-primary pb-1 text-sm font-semibold text-primary">{title}</div>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {options.map((option) => (
-          <SelectItem key={option.value} value={option.value}>
-            {option.label}
-          </SelectItem>
+          <label key={option.value} className="flex items-center gap-2 text-sm font-medium">
+            <Checkbox
+              checked={values.includes(option.value)}
+              onCheckedChange={() => onValuesChange(toggleFilterValue(values, option.value))}
+            />
+            <span>{option.label}</span>
+          </label>
         ))}
-      </SelectContent>
-    </Select>
+      </div>
+    </section>
   );
 }
 
-type SkillSourceSelectProps = {
-  value: string | null;
-  onValueChange: (value: string | null) => void;
-};
-
 type ActiveFilterChipsProps = {
   searchText: string;
-  cardTypeFilter: string;
-  cardRarityFilter: string;
-  selectedSkillSourceId: string | null;
+  cardTypeFilters: string[];
+  cardRarityFilters: string[];
+  selectedSkillSourceIds: string[];
   onClearSearch: () => void;
-  onClearCardType: () => void;
-  onClearCardRarity: () => void;
-  onClearSkill: () => void;
+  onClearCardType: (value: string) => void;
+  onClearCardRarity: (value: string) => void;
+  onClearSkill: (value: string) => void;
   onClearAll: () => void;
 };
 
 function ActiveFilterChips(props: ActiveFilterChipsProps) {
   const {
     searchText,
-    cardTypeFilter,
-    cardRarityFilter,
-    selectedSkillSourceId,
+    cardTypeFilters,
+    cardRarityFilters,
+    selectedSkillSourceIds,
     onClearSearch,
     onClearCardType,
     onClearCardRarity,
@@ -178,27 +190,21 @@ function ActiveFilterChips(props: ActiveFilterChipsProps) {
     searchText.trim()
       ? { key: 'search', label: `Search: ${searchText.trim()}`, onClear: onClearSearch }
       : null,
-    cardTypeFilter !== 'all'
-      ? {
-          key: 'type',
-          label: `Type: ${getSupportCardTypeLabel(Number(cardTypeFilter))}`,
-          onClear: onClearCardType
-        }
-      : null,
-    cardRarityFilter !== 'all'
-      ? {
-          key: 'rarity',
-          label: `Rarity: ${getSupportCardRarityLabel(Number(cardRarityFilter))}`,
-          onClear: onClearCardRarity
-        }
-      : null,
-    selectedSkillSourceId
-      ? {
-          key: 'skill',
-          label: `Has Skill: ${supportSkillLabelById.get(selectedSkillSourceId) ?? selectedSkillSourceId}`,
-          onClear: onClearSkill
-        }
-      : null
+    ...cardTypeFilters.map((value) => ({
+      key: `type-${value}`,
+      label: `Type: ${getSupportCardTypeLabel(Number(value))}`,
+      onClear: () => onClearCardType(value)
+    })),
+    ...cardRarityFilters.map((value) => ({
+      key: `rarity-${value}`,
+      label: `Rarity: ${getSupportCardRarityLabel(Number(value))}`,
+      onClear: () => onClearCardRarity(value)
+    })),
+    ...selectedSkillSourceIds.map((value) => ({
+      key: `skill-${value}`,
+      label: `Has Skill: ${supportSkillLabelById.get(value) ?? value}`,
+      onClear: () => onClearSkill(value)
+    }))
   ].filter((filter) => filter !== null);
 
   if (activeFilters.length === 0) {
@@ -230,9 +236,137 @@ function ActiveFilterChips(props: ActiveFilterChipsProps) {
   );
 }
 
+type SupportCardFiltersDialogProps = {
+  cardTypeFilters: string[];
+  cardRarityFilters: string[];
+  selectedSkillSourceIds: string[];
+  activeFilterCount: number;
+  onCardTypeFiltersChange: (values: string[]) => void;
+  onCardRarityFiltersChange: (values: string[]) => void;
+  onSelectedSkillSourceIdsChange: (values: string[]) => void;
+};
+
+function SupportCardFiltersDialog(props: SupportCardFiltersDialogProps) {
+  const {
+    cardTypeFilters,
+    cardRarityFilters,
+    selectedSkillSourceIds,
+    activeFilterCount,
+    onCardTypeFiltersChange,
+    onCardRarityFiltersChange,
+    onSelectedSkillSourceIdsChange
+  } = props;
+  const [open, setOpen] = useState(false);
+  const [draftCardTypeFilters, setDraftCardTypeFilters] = useState(cardTypeFilters);
+  const [draftCardRarityFilters, setDraftCardRarityFilters] = useState(cardRarityFilters);
+  const [draftSelectedSkillSourceIds, setDraftSelectedSkillSourceIds] =
+    useState(selectedSkillSourceIds);
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      setDraftCardTypeFilters(cardTypeFilters);
+      setDraftCardRarityFilters(cardRarityFilters);
+      setDraftSelectedSkillSourceIds(selectedSkillSourceIds);
+    }
+
+    setOpen(nextOpen);
+  };
+
+  const handleApplyFilters = () => {
+    onCardTypeFiltersChange(draftCardTypeFilters);
+    onCardRarityFiltersChange(draftCardRarityFilters);
+    onSelectedSkillSourceIdsChange(draftSelectedSkillSourceIds);
+  };
+
+  const handleResetDraftFilters = () => {
+    setDraftCardTypeFilters([]);
+    setDraftCardRarityFilters([]);
+    setDraftSelectedSkillSourceIds([]);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger
+        render={
+          <Button variant="outline" className="h-9 w-full md:w-auto justify-center">
+            <SlidersHorizontalIcon className="size-4" />
+            Filters
+            {activeFilterCount > 0 ? <Badge variant="secondary">{activeFilterCount}</Badge> : null}
+          </Button>
+        }
+      />
+      <DialogContent className="max-h-[min(42rem,calc(100dvh-2rem))] gap-0 overflow-hidden p-0 sm:max-w-2xl">
+        <DialogHeader className="border-b bg-card p-4">
+          <DialogTitle>Support Card Filters</DialogTitle>
+          <DialogDescription>
+            Filter support cards by rarity, specialty, and skills.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="grid max-h-[calc(100dvh-12rem)] gap-5 overflow-y-auto p-4">
+          <FilterCheckboxGrid
+            title="Rarity"
+            options={cardRarityOptions}
+            values={draftCardRarityFilters}
+            onValuesChange={setDraftCardRarityFilters}
+          />
+
+          <FilterCheckboxGrid
+            title="Specialty"
+            options={cardTypeOptions}
+            values={draftCardTypeFilters}
+            onValuesChange={setDraftCardTypeFilters}
+          />
+
+          <section className="grid gap-3">
+            <div className="border-b border-primary pb-1 text-sm font-semibold text-primary">
+              Has Skill
+            </div>
+            <SkillSourceSelect
+              values={draftSelectedSkillSourceIds}
+              onValuesChange={setDraftSelectedSkillSourceIds}
+            />
+            {draftSelectedSkillSourceIds.length > 0 ? (
+              <div className="flex flex-wrap gap-1.5">
+                {draftSelectedSkillSourceIds.map((skillId) => (
+                  <button
+                    key={skillId}
+                    type="button"
+                    className="inline-flex min-h-6 items-center gap-1 rounded-full border border-border bg-background px-2 py-0.5 text-xs font-medium hover:bg-accent hover:text-accent-foreground"
+                    onClick={() =>
+                      setDraftSelectedSkillSourceIds((skillIds) =>
+                        skillIds.filter((selectedSkillId) => selectedSkillId !== skillId)
+                      )
+                    }
+                  >
+                    <span>{supportSkillLabelById.get(skillId) ?? skillId}</span>
+                    <XIcon className="size-3" />
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </section>
+        </div>
+
+        <DialogFooter className="m-0">
+          <Button variant="outline" onClick={handleResetDraftFilters}>
+            Reset Filters
+          </Button>
+          <DialogClose render={<Button variant="outline" />}>Cancel</DialogClose>
+          <DialogClose render={<Button onClick={handleApplyFilters} />}>OK</DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function SkillSourceSelect(props: SkillSourceSelectProps) {
-  const { value, onValueChange } = props;
+  const { values, onValuesChange } = props;
   const [inputValue, setInputValue] = useState('');
+
+  const selectedSkillOptions = useMemo(() => {
+    return supportSkillOptions.filter((skill) => values.includes(skill.value));
+  }, [values]);
 
   const filteredSkillOptions = useMemo(() => {
     const normalizedInput = inputValue.trim().toLowerCase();
@@ -248,10 +382,15 @@ function SkillSourceSelect(props: SkillSourceSelectProps) {
 
   return (
     <Combobox
-      value={value}
-      onValueChange={(nextValue) => onValueChange(nextValue)}
+      items={supportSkillOptions}
+      filteredItems={filteredSkillOptions}
+      multiple
+      value={selectedSkillOptions}
+      onValueChange={(nextValue) => onValuesChange(nextValue.map((skill) => skill.value))}
       onInputValueChange={setInputValue}
-      itemToStringLabel={(skillId) => supportSkillLabelById.get(skillId) ?? skillId}
+      itemToStringLabel={(skill) => skill.label}
+      itemToStringValue={(skill) => skill.value}
+      isItemEqualToValue={(item, selectedItem) => item.value === selectedItem.value}
     >
       <div className="flex h-9 w-full items-center rounded-lg border border-input dark:bg-input/30">
         <SearchIcon className="ml-2.5 size-4 shrink-0 text-muted-foreground" />
@@ -259,15 +398,14 @@ function SkillSourceSelect(props: SkillSourceSelectProps) {
           className="h-8 border-0 bg-transparent focus-visible:ring-0"
           placeholder="Has Skill"
         />
-        <ComboboxClear onClick={() => onValueChange(null)} />
         <ComboboxTrigger />
       </div>
 
       <ComboboxContent className="max-h-80">
         <ComboboxEmpty>No skills found.</ComboboxEmpty>
         <ComboboxList>
-          {filteredSkillOptions.map((skill, index) => (
-            <ComboboxItem key={skill.value} value={skill.value} index={index}>
+          {(skill, index) => (
+            <ComboboxItem key={skill.value} value={skill} index={index}>
               <div className="grid min-w-0 flex-1 gap-0.5">
                 <span>{skill.label}</span>
                 <span className="text-xs text-muted-foreground">
@@ -276,23 +414,60 @@ function SkillSourceSelect(props: SkillSourceSelectProps) {
               </div>
               <ComboboxItemIndicator />
             </ComboboxItem>
-          ))}
+          )}
         </ComboboxList>
       </ComboboxContent>
     </Combobox>
   );
 }
 
-type SkillChipListProps = {
+type SupportSkillListProps = {
   title: string;
   skills: SupportSkill[];
   columns?: 1 | 2;
   showRarity?: boolean;
-  highlightedSkillId?: string | null;
+  highlightedSkillIds?: string[];
 };
 
-function SkillChipList(props: SkillChipListProps) {
-  const { title, skills, columns = 1, showRarity = true, highlightedSkillId = null } = props;
+type SupportSkillItemProps = {
+  skill: SupportSkill;
+  showRarity: boolean;
+  highlighted: boolean;
+};
+
+function SupportSkillItem(props: SupportSkillItemProps) {
+  const { skill, showRarity, highlighted } = props;
+  const skillEntry = dataRegistry.skills.getById(`${skill.id}`);
+
+  return (
+    <div
+      className={cn(
+        'grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2 rounded-md border bg-background p-2 text-xs',
+        highlighted && 'border-primary bg-primary/10'
+      )}
+    >
+      {skillEntry ? (
+        <span className="[&_img]:size-6">
+          <SkillIcon iconId={skillEntry.iconId} />
+        </span>
+      ) : (
+        <div className="size-6 rounded bg-muted" />
+      )}
+
+      <div className="grid min-w-0 gap-0.5">
+        <span className="font-medium leading-tight">{skill.name}</span>
+        {showRarity ? (
+          <span className="text-[11px] leading-tight text-muted-foreground">
+            {getSkillRarityLabel(skill.rarity)}
+          </span>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function SupportSkillList(props: SupportSkillListProps) {
+  const { title, skills, columns = 1, showRarity = true, highlightedSkillIds = [] } = props;
 
   return (
     <section className="grid gap-2">
@@ -300,23 +475,15 @@ function SkillChipList(props: SkillChipListProps) {
         {title} ({skills.length})
       </div>
       {skills.length > 0 ? (
-        <div className={columns === 2 ? 'grid grid-cols-2 gap-1.5' : 'flex flex-wrap gap-1.5'}>
-          {skills.map((skill) => {
-            const isHighlighted = highlightedSkillId === `${skill.id}`;
-
-            return (
-              <Badge
-                key={skill.id}
-                variant={isHighlighted ? 'secondary' : 'outline'}
-                className="h-auto min-h-5 max-w-full justify-start py-1"
-              >
-                <span>{skill.name}</span>
-                {showRarity ? (
-                  <span className="text-muted-foreground">{getSkillRarityLabel(skill.rarity)}</span>
-                ) : null}
-              </Badge>
-            );
-          })}
+        <div className={columns === 2 ? 'grid grid-cols-2 gap-1.5' : 'grid gap-1.5'}>
+          {skills.map((skill) => (
+            <SupportSkillItem
+              key={skill.id}
+              skill={skill}
+              showRarity={showRarity}
+              highlighted={highlightedSkillIds.includes(`${skill.id}`)}
+            />
+          ))}
         </div>
       ) : (
         <div className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">
@@ -329,20 +496,29 @@ function SkillChipList(props: SkillChipListProps) {
 
 type SupportCardItemProps = {
   card: SupportCardEntry;
-  highlightedSkillId?: string | null;
+  highlightedSkillIds?: string[];
 };
 
 function SupportCardItem(props: SupportCardItemProps) {
-  const { card, highlightedSkillId = null } = props;
+  const { card, highlightedSkillIds = [] } = props;
 
   return (
     <Card size="sm">
-      <CardHeader className="border-b">
-        <CardTitle className="flex min-w-0 items-center gap-2">
+      <CardHeader className="grid grid-cols-[5rem_minmax(0,1fr)] gap-3 border-b">
+        <div className="row-span-2 overflow-hidden rounded-md border bg-muted">
+          <img
+            src={getSupportCardImageUrl(card.id)}
+            alt=""
+            className="aspect-square h-full w-full object-cover"
+            loading="lazy"
+          />
+        </div>
+
+        <CardTitle className="flex min-w-0 items-start gap-2">
           <span>{card.name}</span>
           <Badge variant="secondary">{getSupportCardRarityLabel(card.rarity)}</Badge>
         </CardTitle>
-        <CardDescription className="flex flex-wrap gap-1.5">
+        <CardDescription className="flex flex-wrap content-start gap-1.5">
           <Badge variant="outline">ID {card.id}</Badge>
           <Badge variant="outline">{card.charaName}</Badge>
           <Badge variant="outline">{getSupportCardTypeLabel(card.supportCardType)}</Badge>
@@ -350,17 +526,17 @@ function SupportCardItem(props: SupportCardItemProps) {
       </CardHeader>
 
       <CardContent className="grid gap-4">
-        <SkillChipList
+        <SupportSkillList
           title="Hint skills"
           skills={card.hintSkills}
           columns={2}
           showRarity={false}
-          highlightedSkillId={highlightedSkillId}
+          highlightedSkillIds={highlightedSkillIds}
         />
-        <SkillChipList
+        <SupportSkillList
           title="Event skills"
           skills={card.eventSkills}
-          highlightedSkillId={highlightedSkillId}
+          highlightedSkillIds={highlightedSkillIds}
         />
       </CardContent>
     </Card>
@@ -369,20 +545,22 @@ function SupportCardItem(props: SupportCardItemProps) {
 
 export function SupportCardsPage() {
   const [searchText, setSearchText] = useState('');
-  const [selectedSkillSourceId, setSelectedSkillSourceId] = useState<string | null>(null);
-  const [cardTypeFilter, setCardTypeFilter] = useState('all');
-  const [cardRarityFilter, setCardRarityFilter] = useState('all');
+  const [selectedSkillSourceIds, setSelectedSkillSourceIds] = useState<string[]>([]);
+  const [cardTypeFilters, setCardTypeFilters] = useState<string[]>([]);
+  const [cardRarityFilters, setCardRarityFilters] = useState<string[]>([]);
   const deferredSearchText = useDeferredValue(searchText);
+  const activeFilterCount =
+    cardTypeFilters.length + cardRarityFilters.length + selectedSkillSourceIds.length;
 
   const filteredCards = useMemo(() => {
     const normalizedSearch = deferredSearchText.trim().toLowerCase();
 
     return supportCards.filter((card) => {
-      if (cardTypeFilter !== 'all' && `${card.supportCardType}` !== cardTypeFilter) {
+      if (cardTypeFilters.length > 0 && !cardTypeFilters.includes(`${card.supportCardType}`)) {
         return false;
       }
 
-      if (cardRarityFilter !== 'all' && `${card.rarity}` !== cardRarityFilter) {
+      if (cardRarityFilters.length > 0 && !cardRarityFilters.includes(`${card.rarity}`)) {
         return false;
       }
 
@@ -405,19 +583,22 @@ export function SupportCardsPage() {
         }
       }
 
-      if (selectedSkillSourceId) {
-        const hasSelectedSkill = [...card.hintSkills, ...card.eventSkills].some(
-          (skill) => `${skill.id}` === selectedSkillSourceId
+      if (selectedSkillSourceIds.length > 0) {
+        const cardSkillIds = new Set(
+          [...card.hintSkills, ...card.eventSkills].map((skill) => `${skill.id}`)
+        );
+        const hasAllSelectedSkills = selectedSkillSourceIds.every((skillId) =>
+          cardSkillIds.has(skillId)
         );
 
-        if (!hasSelectedSkill) {
+        if (!hasAllSelectedSkills) {
           return false;
         }
       }
 
       return true;
     });
-  }, [cardRarityFilter, cardTypeFilter, deferredSearchText, selectedSkillSourceId]);
+  }, [cardRarityFilters, cardTypeFilters, deferredSearchText, selectedSkillSourceIds]);
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col gap-3 p-3 md:p-4">
@@ -432,7 +613,7 @@ export function SupportCardsPage() {
           </div>
         </div>
 
-        <div className="grid gap-2 md:grid-cols-[minmax(16rem,1fr)_9rem_9rem_minmax(16rem,0.8fr)] md:items-center">
+        <div className="grid gap-2 md:grid-cols-[minmax(16rem,32rem)_auto] md:items-center">
           <InputGroup className="h-9">
             <InputGroupAddon>
               <SearchIcon className="size-4" />
@@ -445,38 +626,39 @@ export function SupportCardsPage() {
             />
           </InputGroup>
 
-          <FilterSelect
-            label="Card Type"
-            value={cardTypeFilter}
-            onValueChange={setCardTypeFilter}
-            options={cardTypeOptions}
-          />
-          <FilterSelect
-            label="Card Rarity"
-            value={cardRarityFilter}
-            onValueChange={setCardRarityFilter}
-            options={cardRarityOptions}
-          />
-          <SkillSourceSelect
-            value={selectedSkillSourceId}
-            onValueChange={setSelectedSkillSourceId}
-          />
+          <div className="w-full md:w-auto">
+            <SupportCardFiltersDialog
+              cardTypeFilters={cardTypeFilters}
+              cardRarityFilters={cardRarityFilters}
+              selectedSkillSourceIds={selectedSkillSourceIds}
+              activeFilterCount={activeFilterCount}
+              onCardTypeFiltersChange={setCardTypeFilters}
+              onCardRarityFiltersChange={setCardRarityFilters}
+              onSelectedSkillSourceIdsChange={setSelectedSkillSourceIds}
+            />
+          </div>
         </div>
 
         <ActiveFilterChips
           searchText={searchText}
-          cardTypeFilter={cardTypeFilter}
-          cardRarityFilter={cardRarityFilter}
-          selectedSkillSourceId={selectedSkillSourceId}
+          cardTypeFilters={cardTypeFilters}
+          cardRarityFilters={cardRarityFilters}
+          selectedSkillSourceIds={selectedSkillSourceIds}
           onClearSearch={() => setSearchText('')}
-          onClearCardType={() => setCardTypeFilter('all')}
-          onClearCardRarity={() => setCardRarityFilter('all')}
-          onClearSkill={() => setSelectedSkillSourceId(null)}
+          onClearCardType={(value) =>
+            setCardTypeFilters((filters) => filters.filter((filter) => filter !== value))
+          }
+          onClearCardRarity={(value) =>
+            setCardRarityFilters((filters) => filters.filter((filter) => filter !== value))
+          }
+          onClearSkill={(value) =>
+            setSelectedSkillSourceIds((skillIds) => skillIds.filter((skillId) => skillId !== value))
+          }
           onClearAll={() => {
             setSearchText('');
-            setCardTypeFilter('all');
-            setCardRarityFilter('all');
-            setSelectedSkillSourceId(null);
+            setCardTypeFilters([]);
+            setCardRarityFilters([]);
+            setSelectedSkillSourceIds([]);
           }}
         />
       </header>
@@ -488,7 +670,7 @@ export function SupportCardsPage() {
               <SupportCardItem
                 key={card.id}
                 card={card}
-                highlightedSkillId={selectedSkillSourceId}
+                highlightedSkillIds={selectedSkillSourceIds}
               />
             ))}
           </div>
