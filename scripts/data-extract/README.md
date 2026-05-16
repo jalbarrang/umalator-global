@@ -164,7 +164,7 @@ Extracts support card data with denormalized skill references.
 
 **Event skill limitation:**
 
-The current Global `master.mdb` snapshot has support-card event stories in `single_mode_story_data`, but does not expose a reliable `story_id -> skill reward` relation in the available reward/conclusion tables. The extractor therefore preserves existing `eventSkills` in merge mode and emits an empty array in replace mode, leaving the schema ready for a future external/manual mapping.
+The current Global `master.mdb` snapshot has support-card event stories in `single_mode_story_data`, but does not expose a reliable `story_id -> skill reward` relation in the available reward/conclusion tables. The extractor therefore preserves existing `eventSkills` in merge mode and emits an empty array in replace mode, leaving the schema ready for a future external/manual mapping. See `docs/guides/support-card-skill-sources.md` for the investigation notes and SQL joins checked.
 
 **Usage:**
 
