@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "uma_sim",
+  "project_id": "514dbc23-8ff6-4837-9cc9-6c5e6af1cc05"
+}
