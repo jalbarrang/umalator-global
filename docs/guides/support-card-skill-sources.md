@@ -129,6 +129,30 @@ Tables with both support-card-ish or skill-ish schemas were also reviewed:
 
 None provide a support-card-event `story_id/support_card_id -> skill_id` mapping.
 
+## Concrete trace: Kitasan SSR final event
+
+Known external/game behavior: SSR Kitasan Black `[Fire at My Heels]` final event `We Walk Together` grants either 1 hint or 3 hints for `Professor of Curvature`.
+
+Master data trace:
+
+```sql
+SELECT * FROM text_data WHERE text = 'We Walk Together';
+-- category=181, index=830028003
+
+SELECT * FROM single_mode_story_data WHERE story_id = 830028003;
+-- support_card_id=30028, show_progress_1=3, show_progress_2=3
+
+SELECT * FROM single_mode_conclusion_set WHERE story_id = 830028003;
+-- root_id=0, conclusion_id=1
+
+SELECT * FROM text_data WHERE category = 47 AND text = 'Professor of Curvature';
+-- index=200331
+```
+
+A full integer-column scan for `830028003` only finds `single_mode_story_data`, `single_mode_conclusion_set`, and `text_data`. A full integer-column scan for `200331` finds skill/mission/NPC/available-skill references, but no row linked to `story_id=830028003` or `support_card_id=30028`.
+
+This confirms the event title and owning support card are in `master.mdb`; the reward branch `Professor of Curvature hint level 1 or 3` is not in the relational master tables available here.
+
 ## Current extraction behavior
 
 `extract-support-cards.ts` emits:
