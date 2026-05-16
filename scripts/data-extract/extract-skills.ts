@@ -76,6 +76,7 @@ interface UniqueSkillOwnerRow {
 interface SkillUmaSourceRow {
   skillId: number;
   outfitId: number;
+  needRank: number;
 }
 
 interface GeneVersionRow {
@@ -315,8 +316,10 @@ function reduceUniqueSkillOwners(rows: Array<UniqueSkillOwnerRow>): Map<string, 
   return owners;
 }
 
-function reduceSkillUmaSources(rows: Array<SkillUmaSourceRow>): Map<string, Array<number>> {
-  const sources = new Map<string, Set<number>>();
+function reduceSkillUmaSources(
+  rows: Array<SkillUmaSourceRow>
+): Map<string, Array<SkillUmaSourceRow>> {
+  const sources = new Map<string, Map<number, SkillUmaSourceRow>>();
 
   for (const row of rows) {
     if (!isConcreteOutfitId(row.outfitId)) {
@@ -324,17 +327,22 @@ function reduceSkillUmaSources(rows: Array<SkillUmaSourceRow>): Map<string, Arra
     }
 
     const skillId = row.skillId.toString();
-    const skillSources = sources.get(skillId) ?? new Set<number>();
-    skillSources.add(row.outfitId);
+    const skillSources = sources.get(skillId) ?? new Map<number, SkillUmaSourceRow>();
+    const current = skillSources.get(row.outfitId);
+
+    if (!current || row.needRank < current.needRank) {
+      skillSources.set(row.outfitId, row);
+    }
+
     sources.set(skillId, skillSources);
   }
 
-  const result = new Map<string, Array<number>>();
+  const result = new Map<string, Array<SkillUmaSourceRow>>();
 
-  for (const [skillId, outfitIds] of sources) {
+  for (const [skillId, outfitSources] of sources) {
     result.set(
       skillId,
-      Array.from(outfitIds).sort((a, b) => a - b)
+      Array.from(outfitSources.values()).sort((a, b) => a.outfitId - b.outfitId)
     );
   }
 
@@ -479,14 +487,16 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
        )
        SELECT DISTINCT
          avs.skill_id AS skillId,
-         cd.id AS outfitId
+         cd.id AS outfitId,
+         avs.need_rank AS needRank
        FROM card_data cd
        JOIN available_skill_set avs
          ON avs.available_skill_set_id = cd.available_skill_set_id
        UNION
        SELECT DISTINCT
          ss.skill_id AS skillId,
-         crd.card_id AS outfitId
+         crd.card_id AS outfitId,
+         0 AS needRank
        FROM card_rarity_data crd
        JOIN skill_slots ss
          ON ss.skill_set_id = crd.skill_set`
@@ -494,13 +504,17 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
     const skillUmaSources = reduceSkillUmaSources(skillUmaSourceRows);
     let sourceCount = 0;
 
-    for (const [skillId, outfitIds] of skillUmaSources) {
+    for (const [skillId, sources] of skillUmaSources) {
       const skill = extractedSkills[skillId];
       if (!skill) {
         continue;
       }
 
-      skill.character = outfitIds;
+      skill.character = sources.map((source) => source.outfitId);
+      skill.sources = sources.map((source) => ({
+        outfitId: source.outfitId,
+        needRank: source.needRank
+      }));
       sourceCount++;
     }
 
@@ -517,6 +531,7 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
 
       // Only unique skills are safe to tie to a single uma outfit.
       skill.character = [outfitId];
+      skill.sources = [{ outfitId, needRank: 0 }];
       ownerCount++;
     }
 
@@ -539,6 +554,7 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
       }
       if (geneSkill && uniqueSkill) {
         geneSkill.character = [...uniqueSkill.character];
+        geneSkill.sources = uniqueSkill.sources?.map((source) => ({ ...source }));
       }
     }
 

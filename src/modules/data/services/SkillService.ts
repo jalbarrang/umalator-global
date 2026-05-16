@@ -10,6 +10,11 @@ export type SkillGeneVersionEntry = {
   id: number;
 };
 
+export type SkillUmaSourceEntry = {
+  outfitId: number;
+  needRank: number;
+};
+
 export type SkillEntry = {
   id: string;
   rarity: number;
@@ -25,6 +30,7 @@ export type SkillEntry = {
    * Support-card source extraction is not included yet.
    */
   character: Array<number>;
+  sources?: Array<SkillUmaSourceEntry>;
   gene_version?: SkillGeneVersionEntry;
 };
 

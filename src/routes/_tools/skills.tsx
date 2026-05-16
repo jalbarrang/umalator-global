@@ -164,9 +164,10 @@ type UmaSource = {
   name: string;
   outfit: string;
   iconUrl: string;
+  needRank: number;
 };
 
-function resolveUmaSource(outfitId: number): UmaSource | null {
+function resolveUmaSource(outfitId: number, needRank: number): UmaSource | null {
   const outfitKey = `${outfitId}`;
   const umaId = outfitKey.slice(0, 4);
   const uma = dataRegistry.umas.getById(umaId);
@@ -180,8 +181,13 @@ function resolveUmaSource(outfitId: number): UmaSource | null {
     umaId,
     name: uma.name[1] || uma.name[0] || umaId,
     outfit: uma.outfits[outfitKey] ?? outfitKey,
-    iconUrl: getUmaImageUrl(outfitKey)
+    iconUrl: getUmaImageUrl(outfitKey),
+    needRank
   };
+}
+
+function getSourceRequirementLabel(needRank: number) {
+  return needRank > 0 ? `Potential ${needRank}` : 'Base';
 }
 
 type SkillSourcesPopoverProps = {
@@ -192,8 +198,14 @@ function SkillSourcesPopover(props: SkillSourcesPopoverProps) {
   const { skill } = props;
 
   const umaSources = useMemo(() => {
-    return skill.character.map(resolveUmaSource).filter((source) => source !== null);
-  }, [skill.character]);
+    const sourceEntries = skill.sources?.length
+      ? skill.sources
+      : skill.character.map((outfitId) => ({ outfitId, needRank: 0 }));
+
+    return sourceEntries
+      .map((source) => resolveUmaSource(source.outfitId, source.needRank))
+      .filter((source) => source !== null);
+  }, [skill.character, skill.sources]);
 
   return (
     <Popover>
@@ -231,8 +243,15 @@ function SkillSourcesPopover(props: SkillSourcesPopoverProps) {
                   />
 
                   <div className="min-w-0">
-                    <div className="text-xs text-muted-foreground">{source.outfit}</div>
-                    <div className="text-sm font-semibold leading-tight">{source.name}</div>
+                    <div className="flex min-w-0 items-center gap-2">
+                      <div className="truncate text-xs text-muted-foreground">{source.outfit}</div>
+                      <Badge variant="outline" className="h-4 rounded px-1 text-[10px]">
+                        {getSourceRequirementLabel(source.needRank)}
+                      </Badge>
+                    </div>
+                    <div className="truncate text-sm font-semibold leading-tight">
+                      {source.name}
+                    </div>
                   </div>
                 </div>
               ))}
