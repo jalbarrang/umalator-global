@@ -15,6 +15,7 @@
     "version:current": "bun scripts/master-data/get-current-resource-version.ts",
     "db:fetch": "bun ./scripts/master-data/fetch-master-db.ts",
     "extract:all": "bun scripts/data-extract/extract-all.ts",
+    "extract:support-cards": "bun scripts/data-extract/extract-support-cards.ts",
     "transform:cm-presets": "bun scripts/transform-cm-presets.ts",
     "skill:compare": "bun scripts/run-skill-compare.ts",
     "runner:compare": "bun scripts/run-runner-compare.ts",

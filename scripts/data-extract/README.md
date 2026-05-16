@@ -34,6 +34,7 @@ Or run individual extraction scripts:
 
 ```bash
 bun run extract:skills          # Unified skill data (meta + names + mechanics)
+bun run extract:support-cards   # Support card data with hint/event skill arrays
 bun run extract:uma-info        # Uma musume data
 bun run extract:course-data     # Course/track data
 ```
@@ -143,6 +144,33 @@ Extracts unified skill data (metadata, names, and mechanics). Applies scenario s
 ```bash
 bun run extract:skills                # Merge mode (default)
 bun run extract:skills -- --replace   # Full replacement
+```
+
+### extract-support-cards.ts
+
+Extracts support card data with denormalized skill references.
+
+**Output:** `src/modules/data/json/support-cards.json`
+
+**Default:** Merge mode (preserves future content and any manually/externally supplied `eventSkills`)
+
+**Features:**
+
+- Extracts card name from `text_data` category 76
+- Extracts support character name from `text_data` category 77
+- Maps hint skills from `single_mode_hint_gain` where `hint_gain_type = 0`
+- Joins hint rows through `support_card_data.skill_set_id = single_mode_hint_gain.hint_id`
+- Emits stable `hintSkills` and `eventSkills` arrays on every card
+
+**Event skill limitation:**
+
+The current Global `master.mdb` snapshot has support-card event stories in `single_mode_story_data`, but does not expose a reliable `story_id -> skill reward` relation in the available reward/conclusion tables. The extractor therefore preserves existing `eventSkills` in merge mode and emits an empty array in replace mode, leaving the schema ready for a future external/manual mapping.
+
+**Usage:**
+
+```bash
+bun run extract:support-cards                # Merge mode (default)
+bun run extract:support-cards -- --replace   # Full replacement
 ```
 
 ### extract-uma-info.ts

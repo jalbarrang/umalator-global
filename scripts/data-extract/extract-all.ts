@@ -4,6 +4,7 @@
  */
 
 import { extractSkills } from './extract-skills';
+import { extractSupportCards } from './extract-support-cards';
 import { extractUmaInfo } from './extract-uma-info';
 import { extractCourseData } from './extract-course-data';
 import { Command } from 'commander';
@@ -52,6 +53,7 @@ async function extractAll(options: ExtractAllOptions = { replaceMode: false }) {
     fn: (options: { replaceMode: boolean; dbPath?: string }) => Promise<void>;
   }> = [
     { name: 'Skills', fn: extractSkills },
+    { name: 'Support Cards', fn: extractSupportCards },
     { name: 'Uma Info', fn: extractUmaInfo },
     { name: 'Course Data', fn: extractCourseData }
   ];
