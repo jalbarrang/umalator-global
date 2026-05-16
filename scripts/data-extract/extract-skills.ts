@@ -79,6 +79,16 @@ interface SkillUmaSourceRow {
   needRank: number;
 }
 
+interface SkillSupportCardSourceRow {
+  skillId: number;
+  supportCardId: number;
+  charaId: number;
+  rarity: number;
+  supportCardType: number;
+  name: string;
+  sourceType: 'hint' | 'event';
+}
+
 interface GeneVersionRow {
   unique_id: number;
   gene_id: number;
@@ -349,6 +359,32 @@ function reduceSkillUmaSources(
   return result;
 }
 
+function reduceSkillSupportCardSources(
+  rows: Array<SkillSupportCardSourceRow>
+): Map<string, Array<SkillSupportCardSourceRow>> {
+  const sources = new Map<string, Map<number, SkillSupportCardSourceRow>>();
+
+  for (const row of rows) {
+    const skillId = row.skillId.toString();
+    const skillSources = sources.get(skillId) ?? new Map<number, SkillSupportCardSourceRow>();
+    skillSources.set(row.supportCardId, row);
+    sources.set(skillId, skillSources);
+  }
+
+  const result = new Map<string, Array<SkillSupportCardSourceRow>>();
+
+  for (const [skillId, supportSources] of sources) {
+    result.set(
+      skillId,
+      Array.from(supportSources.values()).sort(
+        (a, b) => b.rarity - a.rarity || a.supportCardId - b.supportCardId
+      )
+    );
+  }
+
+  return result;
+}
+
 async function extractSkills(options: ExtractSkillsOptions = { replaceMode: false }) {
   console.log('📖 Extracting unified skills...\n');
 
@@ -519,6 +555,47 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
     }
 
     console.log(`Mapped ${sourceCount} skills to uma outfit sources`);
+
+    const skillSupportCardSourceRows = queryAll<SkillSupportCardSourceRow>(
+      db,
+      `SELECT DISTINCT
+         h.hint_value_1 AS skillId,
+         sc.id AS supportCardId,
+         sc.chara_id AS charaId,
+         sc.rarity AS rarity,
+         sc.support_card_type AS supportCardType,
+         COALESCE(t.text, '') AS name,
+         'hint' AS sourceType
+       FROM single_mode_hint_gain h
+       JOIN support_card_data sc
+         ON sc.skill_set_id = h.hint_id
+       LEFT JOIN text_data t
+         ON t.category = 76
+        AND t.[index] = sc.id
+       WHERE h.hint_gain_type = 0
+         AND h.hint_value_1 <> 0`
+    );
+    const skillSupportCardSources = reduceSkillSupportCardSources(skillSupportCardSourceRows);
+    let supportSourceCount = 0;
+
+    for (const [skillId, sources] of skillSupportCardSources) {
+      const skill = extractedSkills[skillId];
+      if (!skill) {
+        continue;
+      }
+
+      skill.supportSources = sources.map((source) => ({
+        supportCardId: source.supportCardId,
+        charaId: source.charaId,
+        rarity: source.rarity,
+        supportCardType: source.supportCardType,
+        name: source.name,
+        sourceType: source.sourceType
+      }));
+      supportSourceCount++;
+    }
+
+    console.log(`Mapped ${supportSourceCount} skills to support card sources`);
 
     const uniqueSkillOwners = reduceUniqueSkillOwners(uniqueSkillOwnerRows);
     let ownerCount = 0;

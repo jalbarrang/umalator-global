@@ -194,6 +194,13 @@ type SkillSourcesPopoverProps = {
   skill: SkillEntry;
 };
 
+function getSupportCardRarityLabel(rarity: number) {
+  if (rarity === 1) return 'R';
+  if (rarity === 2) return 'SR';
+  if (rarity === 3) return 'SSR';
+  return `Rarity ${rarity}`;
+}
+
 function SkillSourcesPopover(props: SkillSourcesPopoverProps) {
   const { skill } = props;
 
@@ -207,13 +214,16 @@ function SkillSourcesPopover(props: SkillSourcesPopoverProps) {
       .filter((source) => source !== null);
   }, [skill.character, skill.sources]);
 
+  const supportSources = skill.supportSources ?? [];
+  const sourceCount = umaSources.length + supportSources.length;
+
   return (
     <Popover>
       <PopoverTrigger
         render={
-          <Button variant="outline" size="sm" disabled={umaSources.length === 0}>
+          <Button variant="outline" size="sm" disabled={sourceCount === 0}>
             <UsersIcon className="size-3" />
-            Sources{umaSources.length > 0 ? ` (${umaSources.length})` : ''}
+            Sources{sourceCount > 0 ? ` (${sourceCount})` : ''}
           </Button>
         }
       />
@@ -226,37 +236,72 @@ function SkillSourcesPopover(props: SkillSourcesPopoverProps) {
           <PopoverDescription className="sr-only">{skill.name}</PopoverDescription>
         </PopoverHeader>
 
-        {umaSources.length > 0 ? (
-          <section className="grid gap-1">
-            <div className="text-xs font-medium">Umas</div>
-            <div className="grid gap-1">
-              {umaSources.map((source) => (
-                <div
-                  key={source.outfitId}
-                  className="flex items-center gap-4 rounded-md bg-background p-2 text-foreground"
-                >
-                  <img
-                    src={source.iconUrl}
-                    alt=""
-                    className="size-16 rounded-full object-cover"
-                    loading="lazy"
-                  />
+        {sourceCount > 0 ? (
+          <div className="grid gap-3">
+            {umaSources.length > 0 ? (
+              <section className="grid gap-1">
+                <div className="text-xs font-medium">Umas</div>
+                <div className="grid gap-1">
+                  {umaSources.map((source) => (
+                    <div
+                      key={source.outfitId}
+                      className="flex items-center gap-4 rounded-md bg-background p-2 text-foreground"
+                    >
+                      <img
+                        src={source.iconUrl}
+                        alt=""
+                        className="size-16 rounded-full object-cover"
+                        loading="lazy"
+                      />
 
-                  <div className="min-w-0">
-                    <div className="flex min-w-0 items-center gap-2">
-                      <div className="truncate text-xs text-muted-foreground">{source.outfit}</div>
-                      <Badge variant="outline" className="h-4 rounded px-1 text-[10px]">
-                        {getSourceRequirementLabel(source.needRank)}
-                      </Badge>
+                      <div className="min-w-0">
+                        <div className="flex min-w-0 items-center gap-2">
+                          <div className="truncate text-xs text-muted-foreground">
+                            {source.outfit}
+                          </div>
+                          <Badge variant="outline" className="h-4 rounded px-1 text-[10px]">
+                            {getSourceRequirementLabel(source.needRank)}
+                          </Badge>
+                        </div>
+                        <div className="truncate text-sm font-semibold leading-tight">
+                          {source.name}
+                        </div>
+                      </div>
                     </div>
-                    <div className="truncate text-sm font-semibold leading-tight">
-                      {source.name}
-                    </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </section>
+              </section>
+            ) : null}
+
+            {supportSources.length > 0 ? (
+              <section className="grid gap-1">
+                <div className="text-xs font-medium">Support cards</div>
+                <div className="grid gap-1">
+                  {supportSources.map((source) => (
+                    <div
+                      key={source.supportCardId}
+                      className="grid gap-1 rounded-md bg-background p-2 text-foreground"
+                    >
+                      <div className="flex min-w-0 items-center gap-2">
+                        <Badge variant="outline" className="h-4 rounded px-1 text-[10px]">
+                          {getSupportCardRarityLabel(source.rarity)}
+                        </Badge>
+                        <div className="truncate text-xs text-muted-foreground">
+                          Card {source.supportCardId}
+                        </div>
+                        <Badge variant="outline" className="h-4 rounded px-1 text-[10px]">
+                          {source.sourceType === 'event' ? 'Event' : 'Hint'}
+                        </Badge>
+                      </div>
+                      <div className="truncate text-sm font-semibold leading-tight">
+                        {source.name || `Support ${source.supportCardId}`}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+          </div>
         ) : (
           <div className="text-sm text-muted-foreground">No known sources.</div>
         )}

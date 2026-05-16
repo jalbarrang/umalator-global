@@ -15,6 +15,15 @@ export type SkillUmaSourceEntry = {
   needRank: number;
 };
 
+export type SkillSupportCardSourceEntry = {
+  supportCardId: number;
+  charaId: number;
+  rarity: number;
+  supportCardType: number;
+  name: string;
+  sourceType?: 'hint' | 'event';
+};
+
 export type SkillEntry = {
   id: string;
   rarity: number;
@@ -31,6 +40,7 @@ export type SkillEntry = {
    */
   character: Array<number>;
   sources?: Array<SkillUmaSourceEntry>;
+  supportSources?: Array<SkillSupportCardSourceEntry>;
   gene_version?: SkillGeneVersionEntry;
 };
 
