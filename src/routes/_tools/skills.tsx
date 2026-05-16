@@ -1,6 +1,6 @@
 import { useDeferredValue, useMemo, useRef, useState } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { SearchIcon } from 'lucide-react';
+import { SearchIcon, UsersIcon } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
@@ -16,6 +16,7 @@ import i18n from '@/i18n';
 import { describeRecoveryEffect } from '@/lib/sunday-tools/skills/recovery-effect-utils';
 import { dataRegistry } from '@/modules/data/registry';
 import type { SkillEntry } from '@/modules/data/services/SkillService';
+import { getUmaImageUrl } from '@/modules/runners/utils';
 import { SkillPickerFilterRow } from '@/modules/skills/components/skill-picker/filter-row';
 import { SkillPickerProvider } from '@/modules/skills/components/skill-picker/provider';
 import { useFilteredSkills } from '@/modules/skills/components/skill-picker/store';
@@ -157,6 +158,94 @@ type RelatedSkillPopoverProps = {
   skill: SkillEntry;
 };
 
+type UmaSource = {
+  outfitId: number;
+  umaId: string;
+  name: string;
+  outfit: string;
+  iconUrl: string;
+};
+
+function resolveUmaSource(outfitId: number): UmaSource | null {
+  const outfitKey = `${outfitId}`;
+  const umaId = outfitKey.slice(0, 4);
+  const uma = dataRegistry.umas.getById(umaId);
+
+  if (!uma) {
+    return null;
+  }
+
+  return {
+    outfitId,
+    umaId,
+    name: uma.name[1] || uma.name[0] || umaId,
+    outfit: uma.outfits[outfitKey] ?? outfitKey,
+    iconUrl: getUmaImageUrl(outfitKey)
+  };
+}
+
+type SkillSourcesPopoverProps = {
+  skill: SkillEntry;
+};
+
+function SkillSourcesPopover(props: SkillSourcesPopoverProps) {
+  const { skill } = props;
+
+  const umaSources = useMemo(() => {
+    return skill.character.map(resolveUmaSource).filter((source) => source !== null);
+  }, [skill.character]);
+
+  return (
+    <Popover>
+      <PopoverTrigger
+        render={
+          <Button variant="outline" size="sm" disabled={umaSources.length === 0}>
+            <UsersIcon className="size-3" />
+            Sources{umaSources.length > 0 ? ` (${umaSources.length})` : ''}
+          </Button>
+        }
+      />
+      <PopoverContent
+        align="start"
+        className="w-95 border border-border bg-card p-4 text-card-foreground ring-0"
+      >
+        <PopoverHeader className="border-b border-border pb-3">
+          <PopoverTitle className="text-xs">Sources</PopoverTitle>
+          <PopoverDescription className="sr-only">{skill.name}</PopoverDescription>
+        </PopoverHeader>
+
+        {umaSources.length > 0 ? (
+          <section className="grid gap-1">
+            <div className="text-xs font-medium">Umas</div>
+            <div className="grid gap-1">
+              {umaSources.map((source) => (
+                <div
+                  key={source.outfitId}
+                  className="flex items-center gap-4 rounded-md bg-background p-2 text-foreground"
+                >
+                  <img
+                    src={source.iconUrl}
+                    alt=""
+                    className="size-16 rounded-full object-cover"
+                    loading="lazy"
+                  />
+
+                  <div className="min-w-0">
+                    <div className="text-xs text-muted-foreground">{source.outfit}</div>
+                    <div className="text-sm font-semibold leading-tight">{source.name}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        ) : (
+          <div className="text-sm text-muted-foreground">No known sources.</div>
+        )}
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 function RelatedSkillPopover(props: RelatedSkillPopoverProps) {
   const { skill } = props;
 
@@ -244,6 +333,7 @@ function SkillBrowserItem(props: SkillBrowserItemProps) {
               <div className="flex gap-2">
                 {skill.baseCost > 0 && <Badge variant="outline">{skill.baseCost} SP</Badge>}
                 <Badge variant="outline">{getRarityLabel(skill.rarity)}</Badge>
+                <SkillSourcesPopover skill={skill} />
               </div>
             </div>
           </div>

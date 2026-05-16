@@ -73,6 +73,11 @@ interface UniqueSkillOwnerRow {
   outfitId: number;
 }
 
+interface SkillUmaSourceRow {
+  skillId: number;
+  outfitId: number;
+}
+
 interface GeneVersionRow {
   unique_id: number;
   gene_id: number;
@@ -310,6 +315,32 @@ function reduceUniqueSkillOwners(rows: Array<UniqueSkillOwnerRow>): Map<string, 
   return owners;
 }
 
+function reduceSkillUmaSources(rows: Array<SkillUmaSourceRow>): Map<string, Array<number>> {
+  const sources = new Map<string, Set<number>>();
+
+  for (const row of rows) {
+    if (!isConcreteOutfitId(row.outfitId)) {
+      continue;
+    }
+
+    const skillId = row.skillId.toString();
+    const skillSources = sources.get(skillId) ?? new Set<number>();
+    skillSources.add(row.outfitId);
+    sources.set(skillId, skillSources);
+  }
+
+  const result = new Map<string, Array<number>>();
+
+  for (const [skillId, outfitIds] of sources) {
+    result.set(
+      skillId,
+      Array.from(outfitIds).sort((a, b) => a - b)
+    );
+  }
+
+  return result;
+}
+
 async function extractSkills(options: ExtractSkillsOptions = { replaceMode: false }) {
   console.log('📖 Extracting unified skills...\n');
 
@@ -431,6 +462,50 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
          ON sd.id = ss.skill_id
        WHERE sd.rarity = 5`
     );
+
+    const skillUmaSourceRows = queryAll<SkillUmaSourceRow>(
+      db,
+      `WITH skill_slots AS (
+         SELECT id AS skill_set_id, skill_id1 AS skill_id FROM skill_set WHERE skill_id1 <> 0
+         UNION ALL SELECT id, skill_id2 FROM skill_set WHERE skill_id2 <> 0
+         UNION ALL SELECT id, skill_id3 FROM skill_set WHERE skill_id3 <> 0
+         UNION ALL SELECT id, skill_id4 FROM skill_set WHERE skill_id4 <> 0
+         UNION ALL SELECT id, skill_id5 FROM skill_set WHERE skill_id5 <> 0
+         UNION ALL SELECT id, skill_id6 FROM skill_set WHERE skill_id6 <> 0
+         UNION ALL SELECT id, skill_id7 FROM skill_set WHERE skill_id7 <> 0
+         UNION ALL SELECT id, skill_id8 FROM skill_set WHERE skill_id8 <> 0
+         UNION ALL SELECT id, skill_id9 FROM skill_set WHERE skill_id9 <> 0
+         UNION ALL SELECT id, skill_id10 FROM skill_set WHERE skill_id10 <> 0
+       )
+       SELECT DISTINCT
+         avs.skill_id AS skillId,
+         cd.id AS outfitId
+       FROM card_data cd
+       JOIN available_skill_set avs
+         ON avs.available_skill_set_id = cd.available_skill_set_id
+       UNION
+       SELECT DISTINCT
+         ss.skill_id AS skillId,
+         crd.card_id AS outfitId
+       FROM card_rarity_data crd
+       JOIN skill_slots ss
+         ON ss.skill_set_id = crd.skill_set`
+    );
+    const skillUmaSources = reduceSkillUmaSources(skillUmaSourceRows);
+    let sourceCount = 0;
+
+    for (const [skillId, outfitIds] of skillUmaSources) {
+      const skill = extractedSkills[skillId];
+      if (!skill) {
+        continue;
+      }
+
+      skill.character = outfitIds;
+      sourceCount++;
+    }
+
+    console.log(`Mapped ${sourceCount} skills to uma outfit sources`);
+
     const uniqueSkillOwners = reduceUniqueSkillOwners(uniqueSkillOwnerRows);
     let ownerCount = 0;
 

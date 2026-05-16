@@ -21,9 +21,8 @@ export type SkillEntry = {
   order: number;
   name: string;
   /**
-   * Associated character source ids for this skill.
-   * Unique skills use owning uma outfit ids; other skills default to an empty array until
-   * broader uma/support-card source extraction is added.
+   * Uma outfit ids that can provide this skill.
+   * Support-card source extraction is not included yet.
    */
   character: Array<number>;
   gene_version?: SkillGeneVersionEntry;

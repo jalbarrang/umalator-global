@@ -1,3 +1,7 @@
+if (import.meta.env.DEV) {
+  import('react-grab');
+}
+
 import './polyfills';
 
 // Supports weights 100-900
