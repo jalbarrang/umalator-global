@@ -77,4 +77,25 @@ function PopoverDescription({ className, ...props }: PopoverPrimitive.Descriptio
   );
 }
 
-export { Popover, PopoverContent, PopoverDescription, PopoverHeader, PopoverTitle, PopoverTrigger };
+function PopoverArrow({ className, ...props }: PopoverPrimitive.Arrow.Props) {
+  return (
+    <PopoverPrimitive.Arrow
+      data-slot="popover-arrow"
+      className={cn(
+        'size-2.5 -z-10 rotate-45 rounded-[2px] bg-popover fill-popover data-[side=bottom]:-top-1 data-[side=left]:-right-1 data-[side=left]:top-1/2! data-[side=left]:-translate-y-1/2 data-[side=right]:-left-1 data-[side=right]:top-1/2! data-[side=right]:-translate-y-1/2 data-[side=top]:-bottom-1',
+        className
+      )}
+      {...props}
+    />
+  );
+}
+
+export {
+  Popover,
+  PopoverArrow,
+  PopoverContent,
+  PopoverDescription,
+  PopoverHeader,
+  PopoverTitle,
+  PopoverTrigger
+};

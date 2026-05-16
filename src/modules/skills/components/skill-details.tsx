@@ -9,15 +9,19 @@ import type { SkillEntry } from '@/modules/data/services/SkillService';
 import { formatEffect, FormatParser } from './formatters';
 import { HumanReadableParser } from './human-readable-formatter';
 
+type SkillDetailsVariant = 'default' | 'compact';
+
 type SkillDetailsProps = {
   skill: SkillEntry;
   distanceFactor?: number;
+  variant?: SkillDetailsVariant;
 };
 
 type SkillAlternativeDetailsProps = {
   alternative: SkillAlternative;
   title?: string;
   distanceFactor?: number;
+  variant?: SkillDetailsVariant;
 };
 
 function getAlternativeKey(alternative: SkillAlternative) {
@@ -130,14 +134,15 @@ function SkillTiming(props: { alternative: SkillAlternative; distanceFactor?: nu
 }
 
 function SkillAlternativeDetails(props: SkillAlternativeDetailsProps) {
-  const { alternative, title, distanceFactor } = props;
+  const { alternative, title, distanceFactor, variant = 'default' } = props;
   const precondition = alternative.precondition ?? '';
+  const compact = variant === 'compact';
 
   return (
     <div className="grid min-w-0 gap-2 rounded-lg border bg-background p-3 text-xs">
       {title && <div className="text-sm font-medium">{title}</div>}
 
-      <div className="grid md:grid-cols-3 gap-2">
+      <div className={compact ? 'grid gap-2 md:grid-cols-2' : 'grid gap-2 md:grid-cols-3'}>
         <div className="flex flex-col">
           {precondition.length > 0 && (
             <SkillDetailSection title={i18n.t('skilldetails.preconditions')}>
@@ -154,23 +159,40 @@ function SkillAlternativeDetails(props: SkillAlternativeDetailsProps) {
           </SkillDetailSection>
         </div>
 
-        <SkillDetailSection title={i18n.t('skilldetails.effects')}>
-          <SkillEffects alternative={alternative} />
-        </SkillDetailSection>
+        {compact ? (
+          <div className="grid content-start gap-2">
+            <SkillDetailSection title={i18n.t('skilldetails.effects')}>
+              <SkillEffects alternative={alternative} />
+            </SkillDetailSection>
+            <SkillTiming alternative={alternative} distanceFactor={distanceFactor} />
+          </div>
+        ) : (
+          <>
+            <SkillDetailSection title={i18n.t('skilldetails.effects')}>
+              <SkillEffects alternative={alternative} />
+            </SkillDetailSection>
 
-        <SkillTiming alternative={alternative} distanceFactor={distanceFactor} />
+            <SkillTiming alternative={alternative} distanceFactor={distanceFactor} />
+          </>
+        )}
       </div>
     </div>
   );
 }
 
 export function SkillDetails(props: SkillDetailsProps) {
-  const { skill, distanceFactor } = props;
+  const { skill, distanceFactor, variant = 'default' } = props;
 
   if (skill.alternatives.length === 1) {
     const alternative = skill.alternatives[0];
 
-    return <SkillAlternativeDetails alternative={alternative} distanceFactor={distanceFactor} />;
+    return (
+      <SkillAlternativeDetails
+        alternative={alternative}
+        distanceFactor={distanceFactor}
+        variant={variant}
+      />
+    );
   }
 
   return (
@@ -187,7 +209,11 @@ export function SkillDetails(props: SkillDetailsProps) {
 
           {skill.alternatives.map((alternative, index) => (
             <TabsContent key={getAlternativeKey(alternative)} value={index}>
-              <SkillAlternativeDetails alternative={alternative} distanceFactor={distanceFactor} />
+              <SkillAlternativeDetails
+                alternative={alternative}
+                distanceFactor={distanceFactor}
+                variant={variant}
+              />
             </TabsContent>
           ))}
         </Tabs>
@@ -200,6 +226,7 @@ export function SkillDetails(props: SkillDetailsProps) {
             alternative={alternative}
             title={`Alternative ${index + 1}`}
             distanceFactor={distanceFactor}
+            variant={variant}
           />
         ))}
       </div>

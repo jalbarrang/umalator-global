@@ -3,7 +3,6 @@ import { SlidersHorizontalIcon, SearchIcon, XIcon } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Combobox,
   ComboboxContent,
@@ -26,11 +25,13 @@ import {
   DialogTrigger
 } from '@/components/ui/dialog';
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { config } from '@/config';
-import { cn } from '@/lib/utils';
 import { dataRegistry } from '@/modules/data/registry';
+import { SkillDetails } from '@/modules/skills/components/skill-details';
 import { SkillIcon } from '@/modules/skills/components/skill-list/skill-item/SkillIcon';
 import supportCardsJson from '@/modules/data/json/support-cards.json';
+import { cn } from '@/lib/utils';
 
 type SupportSkill = {
   id: number;
@@ -93,17 +94,6 @@ function getSupportCardRarityLabel(rarity: number) {
   if (rarity === 1) return 'R';
   if (rarity === 2) return 'SR';
   if (rarity === 3) return 'SSR';
-
-  return `Rarity ${rarity}`;
-}
-
-function getSkillRarityLabel(rarity: number) {
-  if (rarity === 1) return 'White';
-  if (rarity === 2) return 'Gold';
-  if (rarity === 3) return 'Lesser Unique';
-  if (rarity === 4) return 'Unique';
-  if (rarity === 5) return 'Unique';
-  if (rarity === 6) return 'Evolved';
 
   return `Rarity ${rarity}`;
 }
@@ -425,49 +415,55 @@ type SupportSkillListProps = {
   title: string;
   skills: SupportSkill[];
   columns?: 1 | 2;
-  showRarity?: boolean;
-  highlightedSkillIds?: string[];
 };
 
 type SupportSkillItemProps = {
   skill: SupportSkill;
-  showRarity: boolean;
-  highlighted: boolean;
 };
 
 function SupportSkillItem(props: SupportSkillItemProps) {
-  const { skill, showRarity, highlighted } = props;
+  const { skill } = props;
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const skillEntry = dataRegistry.skills.getById(`${skill.id}`);
 
-  return (
-    <div
-      className={cn(
-        'grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2 rounded-md border bg-background p-2 text-xs',
-        highlighted && 'border-primary bg-primary/10'
-      )}
-    >
+  const skillItem = (
+    <button className={cn('flex flex-row items-center gap-2 border bg-background py-1 px-2')}>
       {skillEntry ? (
-        <span className="[&_img]:size-6">
+        <span className="[&_img]:size-7">
           <SkillIcon iconId={skillEntry.iconId} />
         </span>
       ) : (
-        <div className="size-6 rounded bg-muted" />
+        <span className="size-6 rounded bg-muted" />
       )}
 
-      <div className="grid min-w-0 gap-0.5">
-        <span className="font-medium leading-tight">{skill.name}</span>
-        {showRarity ? (
-          <span className="text-[11px] leading-tight text-muted-foreground">
-            {getSkillRarityLabel(skill.rarity)}
-          </span>
-        ) : null}
-      </div>
-    </div>
+      <span>
+        <span className="text-sm wrap-break-word font-medium">{skill.name}</span>
+      </span>
+    </button>
+  );
+
+  if (!skillEntry) {
+    return skillItem;
+  }
+
+  return (
+    <Popover open={detailsOpen} onOpenChange={setDetailsOpen}>
+      <PopoverTrigger render={skillItem} />
+
+      <PopoverContent
+        align="start"
+        side="bottom"
+        sideOffset={8}
+        className="max-h-[min(36rem,calc(100dvh-2rem))] w-[400px] border p-0 text-card-foreground"
+      >
+        {detailsOpen ? <SkillDetails skill={skillEntry} variant="compact" /> : null}
+      </PopoverContent>
+    </Popover>
   );
 }
 
 function SupportSkillList(props: SupportSkillListProps) {
-  const { title, skills, columns = 1, showRarity = true, highlightedSkillIds = [] } = props;
+  const { title, skills, columns = 1 } = props;
 
   return (
     <section className="grid gap-2">
@@ -477,12 +473,7 @@ function SupportSkillList(props: SupportSkillListProps) {
       {skills.length > 0 ? (
         <div className={columns === 2 ? 'grid grid-cols-2 gap-1.5' : 'grid gap-1.5'}>
           {skills.map((skill) => (
-            <SupportSkillItem
-              key={skill.id}
-              skill={skill}
-              showRarity={showRarity}
-              highlighted={highlightedSkillIds.includes(`${skill.id}`)}
-            />
+            <SupportSkillItem key={skill.id} skill={skill} />
           ))}
         </div>
       ) : (
@@ -496,50 +487,42 @@ function SupportSkillList(props: SupportSkillListProps) {
 
 type SupportCardItemProps = {
   card: SupportCardEntry;
-  highlightedSkillIds?: string[];
 };
 
 function SupportCardItem(props: SupportCardItemProps) {
-  const { card, highlightedSkillIds = [] } = props;
+  const { card } = props;
 
   return (
-    <Card size="sm">
-      <CardHeader className="grid grid-cols-[5rem_minmax(0,1fr)] gap-3 border-b">
-        <div className="row-span-2 overflow-hidden rounded-md border bg-muted">
+    <div className="rounded-lg border bg-card text-card-foreground shadow-xs">
+      <div className="flex gap-3 px-2 py-2 border-b">
+        <div className="rounded-md border bg-muted">
           <img
             src={getSupportCardImageUrl(card.id)}
             alt=""
-            className="aspect-square h-full w-full object-cover"
+            className="aspect-square size-20 object-cover"
             loading="lazy"
           />
         </div>
 
-        <CardTitle className="flex min-w-0 items-start gap-2">
-          <span>{card.name}</span>
-          <Badge variant="secondary">{getSupportCardRarityLabel(card.rarity)}</Badge>
-        </CardTitle>
-        <CardDescription className="flex flex-wrap content-start gap-1.5">
-          <Badge variant="outline">ID {card.id}</Badge>
-          <Badge variant="outline">{card.charaName}</Badge>
-          <Badge variant="outline">{getSupportCardTypeLabel(card.supportCardType)}</Badge>
-        </CardDescription>
-      </CardHeader>
+        <div className="space-y-2">
+          <div className="text-sm">
+            <span className="font-semibold">{card.name} - </span>
+            <span>{card.charaName}</span>
+          </div>
 
-      <CardContent className="grid gap-4">
-        <SupportSkillList
-          title="Hint skills"
-          skills={card.hintSkills}
-          columns={2}
-          showRarity={false}
-          highlightedSkillIds={highlightedSkillIds}
-        />
-        <SupportSkillList
-          title="Event skills"
-          skills={card.eventSkills}
-          highlightedSkillIds={highlightedSkillIds}
-        />
-      </CardContent>
-    </Card>
+          <div className="flex flex-wrap content-start gap-1.5">
+            <Badge variant="secondary">{getSupportCardRarityLabel(card.rarity)}</Badge>
+            <Badge variant="outline">ID {card.id}</Badge>
+            <Badge variant="outline">{getSupportCardTypeLabel(card.supportCardType)}</Badge>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-4 p-3">
+        <SupportSkillList title="Hint skills" skills={card.hintSkills} columns={2} />
+        <SupportSkillList title="Event skills" skills={card.eventSkills} />
+      </div>
+    </div>
   );
 }
 
@@ -667,11 +650,7 @@ export function SupportCardsPage() {
         {filteredCards.length > 0 ? (
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
             {filteredCards.map((card) => (
-              <SupportCardItem
-                key={card.id}
-                card={card}
-                highlightedSkillIds={selectedSkillSourceIds}
-              />
+              <SupportCardItem key={card.id} card={card} />
             ))}
           </div>
         ) : (
