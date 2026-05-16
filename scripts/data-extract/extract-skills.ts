@@ -94,6 +94,11 @@ interface GeneVersionRow {
   gene_id: number;
 }
 
+interface TextRow {
+  index: number;
+  text: string;
+}
+
 type SkillEffect = {
   type: number;
   modifier: number;
@@ -305,6 +310,15 @@ function isConcreteOutfitId(outfitId: number): boolean {
   return outfitId >= 100000;
 }
 
+function createSkillReference(skill: SkillEntry) {
+  return {
+    id: Number(skill.id),
+    name: skill.name,
+    rarity: skill.rarity,
+    iconId: skill.iconId
+  };
+}
+
 function reduceUniqueSkillOwners(rows: Array<UniqueSkillOwnerRow>): Map<string, number> {
   const owners = new Map<string, number>();
 
@@ -457,6 +471,7 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
         groupId: row.group_id,
         versions: [],
         iconId: row.icon_id.toString(),
+        family: [],
         baseCost: row.need_skill_point,
         order: row.disp_order,
         name,
@@ -537,6 +552,17 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
        JOIN skill_slots ss
          ON ss.skill_set_id = crd.skill_set`
     );
+    const umaNameRows = queryAll<TextRow>(
+      db,
+      `SELECT [index], text FROM text_data WHERE category = 6 AND [index] < 2000`
+    );
+    const outfitNameRows = queryAll<TextRow>(
+      db,
+      `SELECT [index], text FROM text_data WHERE category = 5`
+    );
+    const umaNamesById = new Map(umaNameRows.map((row) => [row.index.toString(), row.text]));
+    const outfitNamesById = new Map(outfitNameRows.map((row) => [row.index.toString(), row.text]));
+
     const skillUmaSources = reduceSkillUmaSources(skillUmaSourceRows);
     let sourceCount = 0;
 
@@ -547,10 +573,16 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
       }
 
       skill.character = sources.map((source) => source.outfitId);
-      skill.sources = sources.map((source) => ({
-        outfitId: source.outfitId,
-        needRank: source.needRank
-      }));
+      skill.sources = sources.map((source) => {
+        const outfitKey = source.outfitId.toString();
+        const umaId = outfitKey.slice(0, 4);
+        return {
+          outfitId: source.outfitId,
+          needRank: source.needRank,
+          name: umaNamesById.get(umaId) ?? umaId,
+          outfit: outfitNamesById.get(outfitKey) ?? outfitKey
+        };
+      });
       sourceCount++;
     }
 
@@ -608,7 +640,18 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
 
       // Only unique skills are safe to tie to a single uma outfit.
       skill.character = [outfitId];
-      skill.sources = [{ outfitId, needRank: 0 }];
+      {
+        const outfitKey = outfitId.toString();
+        const umaId = outfitKey.slice(0, 4);
+        skill.sources = [
+          {
+            outfitId,
+            needRank: 0,
+            name: umaNamesById.get(umaId) ?? umaId,
+            outfit: outfitNamesById.get(outfitKey) ?? outfitKey
+          }
+        ];
+      }
       ownerCount++;
     }
 
@@ -626,12 +669,13 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
     for (const row of geneVersionRows) {
       const uniqueSkill = extractedSkills[row.unique_id.toString()];
       const geneSkill = extractedSkills[row.gene_id.toString()];
-      if (uniqueSkill) {
-        uniqueSkill.gene_version = { id: row.gene_id };
-      }
-      if (geneSkill && uniqueSkill) {
+      if (uniqueSkill && geneSkill) {
+        uniqueSkill.gene_version = createSkillReference(geneSkill);
+        geneSkill.unique_version = createSkillReference(uniqueSkill);
         geneSkill.character = [...uniqueSkill.character];
         geneSkill.sources = uniqueSkill.sources?.map((source) => ({ ...source }));
+      } else if (uniqueSkill) {
+        uniqueSkill.gene_version = { id: row.gene_id, name: '', rarity: 1, iconId: '' };
       }
     }
 
@@ -656,7 +700,12 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
       for (const id of members) {
         const skill = extractedSkills[id];
         if (skill) {
-          skill.versions = members.filter((memberId) => memberId !== id).map(Number);
+          const siblingIds = members.filter((memberId) => memberId !== id);
+          skill.versions = siblingIds.map(Number);
+          skill.family = siblingIds
+            .map((memberId) => extractedSkills[memberId])
+            .filter((member): member is SkillEntry => member !== undefined)
+            .map(createSkillReference);
           versionCount++;
         }
       }
@@ -690,9 +739,21 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
       }
     }
 
+    const finalSkillsByGroupId = new Map<number, Array<SkillEntry>>();
+    for (const skill of Object.values(finalSkills)) {
+      const groupSkills = finalSkillsByGroupId.get(skill.groupId) ?? [];
+      groupSkills.push(skill);
+      finalSkillsByGroupId.set(skill.groupId, groupSkills);
+    }
+
     for (const skill of Object.values(finalSkills)) {
       if (!Array.isArray(skill.versions)) {
         skill.versions = [];
+      }
+      if (!Array.isArray(skill.family)) {
+        skill.family = (finalSkillsByGroupId.get(skill.groupId) ?? [])
+          .filter((member) => member.id !== skill.id)
+          .map(createSkillReference);
       }
     }
 

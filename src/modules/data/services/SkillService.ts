@@ -6,13 +6,20 @@ import type { SkillMatch } from '@/modules/runners/data/types';
 // Types
 // =======
 
-export type SkillGeneVersionEntry = {
+export type SkillReferenceEntry = {
   id: number;
+  name: string;
+  rarity: number;
+  iconId: string;
 };
+
+export type SkillGeneVersionEntry = SkillReferenceEntry;
 
 export type SkillUmaSourceEntry = {
   outfitId: number;
   needRank: number;
+  name: string;
+  outfit: string;
 };
 
 export type SkillSupportCardSourceEntry = {
@@ -30,6 +37,7 @@ export type SkillEntry = {
   alternatives: Array<SkillAlternative>;
   groupId: number;
   versions: Array<number>;
+  family: Array<SkillReferenceEntry>;
   iconId: string;
   baseCost: number;
   order: number;
@@ -42,6 +50,7 @@ export type SkillEntry = {
   sources?: Array<SkillUmaSourceEntry>;
   supportSources?: Array<SkillSupportCardSourceEntry>;
   gene_version?: SkillGeneVersionEntry;
+  unique_version?: SkillGeneVersionEntry;
 };
 
 export type SkillsMap = Record<string, SkillEntry>;

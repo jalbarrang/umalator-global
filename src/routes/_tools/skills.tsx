@@ -46,27 +46,19 @@ type SkillFamilyProps = {
 };
 
 function getRelatedSkills(skill: SkillEntry) {
+  const relatedIds = [
+    ...skill.family.map((familySkill) => familySkill.id),
+    skill.gene_version?.id,
+    skill.unique_version?.id
+  ].filter((id) => id !== undefined);
+
   const relatedById = new Map<string, SkillEntry>();
-
-  for (const familySkill of dataRegistry.skills.getByGroupId(skill.groupId)) {
-    relatedById.set(familySkill.id, familySkill);
-  }
-
-  const geneSkillId = skill.gene_version?.id;
-  if (geneSkillId) {
-    const geneSkill = dataRegistry.skills.getById(`${geneSkillId}`);
-    if (geneSkill) {
-      relatedById.set(geneSkill.id, geneSkill);
+  for (const relatedId of relatedIds) {
+    const relatedSkill = dataRegistry.skills.getById(`${relatedId}`);
+    if (relatedSkill && relatedSkill.id !== skill.id) {
+      relatedById.set(relatedSkill.id, relatedSkill);
     }
   }
-
-  for (const candidate of dataRegistry.skills.getAll()) {
-    if (`${candidate.gene_version?.id ?? ''}` === skill.id) {
-      relatedById.set(candidate.id, candidate);
-    }
-  }
-
-  relatedById.delete(skill.id);
 
   return Array.from(relatedById.values()).sort((a, b) => b.rarity - a.rarity);
 }
@@ -158,34 +150,6 @@ type RelatedSkillPopoverProps = {
   skill: SkillEntry;
 };
 
-type UmaSource = {
-  outfitId: number;
-  umaId: string;
-  name: string;
-  outfit: string;
-  iconUrl: string;
-  needRank: number;
-};
-
-function resolveUmaSource(outfitId: number, needRank: number): UmaSource | null {
-  const outfitKey = `${outfitId}`;
-  const umaId = outfitKey.slice(0, 4);
-  const uma = dataRegistry.umas.getById(umaId);
-
-  if (!uma) {
-    return null;
-  }
-
-  return {
-    outfitId,
-    umaId,
-    name: uma.name[1] || uma.name[0] || umaId,
-    outfit: uma.outfits[outfitKey] ?? outfitKey,
-    iconUrl: getUmaImageUrl(outfitKey),
-    needRank
-  };
-}
-
 function getSourceRequirementLabel(needRank: number) {
   return needRank > 0 ? `Potential ${needRank}` : 'Base';
 }
@@ -207,11 +171,19 @@ function SkillSourcesPopover(props: SkillSourcesPopoverProps) {
   const umaSources = useMemo(() => {
     const sourceEntries = skill.sources?.length
       ? skill.sources
-      : skill.character.map((outfitId) => ({ outfitId, needRank: 0 }));
+      : skill.character.map((outfitId) => ({
+          outfitId,
+          needRank: 0,
+          name: `${outfitId}`,
+          outfit: `${outfitId}`
+        }));
 
-    return sourceEntries
-      .map((source) => resolveUmaSource(source.outfitId, source.needRank))
-      .filter((source) => source !== null);
+    return sourceEntries.map((source) => ({
+      ...source,
+      name: source.name ?? `${source.outfitId}`,
+      outfit: source.outfit ?? `${source.outfitId}`,
+      iconUrl: getUmaImageUrl(`${source.outfitId}`)
+    }));
   }, [skill.character, skill.sources]);
 
   const supportSources = skill.supportSources ?? [];
