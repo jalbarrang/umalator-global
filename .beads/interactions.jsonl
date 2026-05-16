@@ -6,3 +6,5 @@
 {"id":"int-b9068c9e","kind":"field_change","created_at":"2026-05-16T04:07:28.394862Z","actor":"Juan Andrés","issue_id":"uma-sim-66p","extra":{"field":"status","new_value":"closed","old_value":"open"}}
 {"id":"int-c1ec67ac","kind":"field_change","created_at":"2026-05-16T04:11:25.9052535Z","actor":"Juan Andrés","issue_id":"uma-sim-66p","extra":{"field":"status","new_value":"open","old_value":"closed"}}
 {"id":"int-1b3edeae","kind":"field_change","created_at":"2026-05-16T04:12:39.508488Z","actor":"Juan Andrés","issue_id":"uma-sim-66p","extra":{"field":"status","new_value":"closed","old_value":"in_progress"}}
+{"id":"int-a6f5d7a7","kind":"field_change","created_at":"2026-05-16T04:13:57.2552077Z","actor":"Juan Andrés","issue_id":"uma-sim-66p","extra":{"field":"status","new_value":"open","old_value":"closed"}}
+{"id":"int-f1fc305a","kind":"field_change","created_at":"2026-05-16T04:14:19.0285586Z","actor":"Juan Andrés","issue_id":"uma-sim-66p","extra":{"field":"status","new_value":"closed","old_value":"in_progress"}}

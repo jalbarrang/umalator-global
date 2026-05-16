@@ -49,9 +49,9 @@ Findings in the current DB:
 
 ## Event skills
 
-Support-card event story metadata is present, but event rewards are not represented as a reliable `story_id -> skill_id` relation in this DB snapshot.
+Support-card event story metadata is present, but event rewards are not represented as a reliable `story_id -> skill_id` relation in this DB snapshot. This was checked both by following tables that look semantically relevant and by brute-force scanning every integer column in every table for known ids.
 
-Relevant tables checked:
+Relevant tables checked by schema/semantics:
 
 - `single_mode_story_data`
   - Contains support-card event story ids.
@@ -82,6 +82,52 @@ Brute-force integer search for `Professor of Curvature` (`200331`) found only:
 - `text_data`
 
 No support-card event reward table in the current DB references that skill id.
+
+## Broad table scan
+
+Because the obvious reward/conclusion tables did not contain the mapping, the investigation also scanned all integer columns in all tables for representative values:
+
+- Kitasan SSR story ids: `830028001`, `830028002`, `830028003`
+- Kitasan SSR support card id: `30028`
+- Known Kitasan event skill id: `200331` (`Professor of Curvature`)
+
+Results for the story ids were limited to:
+
+- `single_mode_story_data`
+- `single_mode_conclusion_set`
+- `text_data` category `181`
+
+Results for support card id `30028` included support-card ownership/display/gacha/effect tables, but no skill reward relation:
+
+- `single_mode_hint_gain` (hint skills only)
+- `single_mode_story_data` (story ids only)
+- `single_mode_scout_chara`
+- `single_mode_tag_card_pos`
+- `support_card_data`
+- `support_card_effect_table`
+- `support_card_unique_effect`
+- `story_event_bonus_support_card`
+- gacha/banner/announce/exchange/login bonus/text tables
+
+Tables with both support-card-ish or skill-ish schemas were also reviewed:
+
+- `announce_support_card`
+- `available_skill_set`
+- `challenge_match_data`
+- `fan_raid_bonus_support_card`
+- `single_mode_difficulty_data`
+- `single_mode_hint_gain`
+- `single_mode_restrict_support`
+- `single_mode_scout_chara`
+- `single_mode_story_data`
+- `story_event_bonus_group_support_card`
+- `story_event_bonus_support_card`
+- `support_card_data`
+- `support_card_group`
+- `team_building_collection_set`
+- NPC/race `skill_set_id` tables
+
+None provide a support-card-event `story_id/support_card_id -> skill_id` mapping.
 
 ## Current extraction behavior
 
