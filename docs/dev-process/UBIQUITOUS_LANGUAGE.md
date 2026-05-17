@@ -103,3 +103,4 @@
 - **"Uma"** and **"Runner"** should not be treated as perfect synonyms. Use **Uma** for the game-domain participant and **Runner** for the simulator/runtime representation.
 - **"Blocked"** is too broad when precision matters. Prefer **Front blocked**, **Side blocked**, or **Surrounded** as appropriate.
 - **"Lane"** and **"Horse lane"** are distinct units. Use **Lane** for absolute lateral position and **Horse lane** for relative spacing.
+- **Provenance is per data-point, not per entity.** A released outfit can have upcoming changes attached to it (new event skills, evolved skills with new conditions). The question is not "is this outfit released?" but "is this specific skill/attribute on this outfit released?" Services must expose provenance at the field level, not just tag entities as released or upcoming.
