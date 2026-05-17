@@ -20,6 +20,7 @@
 | **Late Surger**          | The strategy that advances from the middle/back in later phases (`差し`).                                                                                        | Sashi, stalker                          |
 | **End Closer**           | The strategy that closes from deep in the field (`追込`).                                                                                                        | Oikomi, deep closer                     |
 | **Unique skill**         | A character-specific skill with its own activation conditions and scaling rules.                                                                                 | Ultimate, signature passive             |
+| **Activation check**     | The gate that determines whether a skill fires when its conditions are met: either guaranteed (no check) or a wit-check (roll against Wit stat).                | Wisdom check, activate_lot              |
 | **Speed skill**          | A skill that increases target speed or actual speed.                                                                                                             | Velocity buff, haste                    |
 | **Acceleration skill**   | A skill that increases acceleration toward target speed.                                                                                                         | Accel buff, launch skill                |
 | **Debuff skill**         | A skill that negatively affects opponents rather than the user.                                                                                                  | Curse, enemy-only skill                 |
@@ -80,6 +81,17 @@
 - **Front blocked**, **Side blocked**, and **Surrounded** are distinct race states and should not be used interchangeably.
 - **Last spurt state ** and **Last spurt section ** are distinct concepts.
 - **Last spurt section ** is discussed as part of **Late-race ** in this project's current terminology.
+
+## Data provenance
+
+| Term                   | Definition                                                                                             | Aliases to avoid             |
+| ---------------------- | ------------------------------------------------------------------------------------------------------ | ---------------------------- |
+| **Released**           | Content currently available in the Global version of the game. An entity is released if it has a `release_en` date in the GameTora snapshot. | Live, current, global-only |
+| **Upcoming**           | Content not yet available on Global. Includes JP-only, datamined, and future content. Everything without a `release_en` date. | Future, JP-only, datamined, unreleased |
+| **Activation check**   | The gate that determines whether a skill fires when its conditions are met: either `guaranteed` (no check) or `wit-check` (roll against Wit stat). Stored as `activate_lot` in master.mdb, `activation` in GameTora. | Wisdom check, activate_lot |
+| **Simulatable**        | A skill whose condition tokens are all recognized by the current simulation engine. Non-simulatable skills can be displayed but must not enter the simulator. | Supported, parseable |
+| **Data manifest**      | The local `data-manifest.json` file that records which content-hash version of each data source was last synced. Used by `sync:data` to detect stale data. | Version file, sync state |
+| **Skill group**        | A family of related skills sharing the same activation conditions but differing in effect magnitude. Members include grade variants (◎/○/×) and upgraded versions (Demon). | Skill family, group |
 
 ## Flagged ambiguities
 
