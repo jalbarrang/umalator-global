@@ -2,7 +2,7 @@
 # Injected by beads (GH#3132): husky helper layout not mirrored into this dir.
 export PATH="$PWD/node_modules/.bin:$PATH"
 
-# --- BEGIN BEADS INTEGRATION v1.0.4 ---
+# --- BEGIN BEADS INTEGRATION v1.0.3 ---
 # This section is managed by beads. Do not remove these markers.
 if command -v bd >/dev/null 2>&1; then
   export BD_GIT_HOOK=1
@@ -24,4 +24,4 @@ if command -v bd >/dev/null 2>&1; then
   fi
   if [ $_bd_exit -ne 0 ]; then exit $_bd_exit; fi
 fi
-# --- END BEADS INTEGRATION v1.0.4 ---
+# --- END BEADS INTEGRATION v1.0.3 ---
