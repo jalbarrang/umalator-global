@@ -42,7 +42,8 @@ type SupportCardRow = {
   charaId: number;
   charaName: string | null;
   rarity: number;
-  supportCardType: number;
+  rawSupportCardType: number;
+  commandId: number;
 };
 
 type SupportSkillRow = {
@@ -89,6 +90,19 @@ function appendSkill(
   skillsByCard.set(supportCardId, skills);
 }
 
+function deriveSupportCardType(row: SupportCardRow): number {
+  if (row.rawSupportCardType === 2) return 6;
+  if (row.rawSupportCardType === 3) return 7;
+
+  if (row.commandId === 101) return 1;
+  if (row.commandId === 105) return 2;
+  if (row.commandId === 102) return 3;
+  if (row.commandId === 103) return 4;
+  if (row.commandId === 106) return 5;
+
+  return row.rawSupportCardType;
+}
+
 function collectHintSkills(rows: Array<SupportSkillRow>): Map<number, Array<SupportSkillEntry>> {
   const skillsByCard = new Map<number, Array<SupportSkillEntry>>();
 
@@ -128,7 +142,8 @@ async function extractSupportCards(options: ExtractSupportCardsOptions = { repla
          sc.chara_id AS charaId,
          COALESCE(chara_name.text, '') AS charaName,
          sc.rarity,
-         sc.support_card_type AS supportCardType
+         sc.support_card_type AS rawSupportCardType,
+         sc.command_id AS commandId
        FROM support_card_data sc
        LEFT JOIN text_data card_name
          ON card_name.category = 76 AND card_name."index" = sc.id
@@ -167,7 +182,7 @@ async function extractSupportCards(options: ExtractSupportCardsOptions = { repla
         charaId: row.charaId,
         charaName: row.charaName ?? existing?.charaName ?? '',
         rarity: row.rarity,
-        supportCardType: row.supportCardType,
+        supportCardType: deriveSupportCardType(row),
         hintSkills: hintSkillsByCard.get(row.id) ?? [],
         // Global master data exposes support-card event story metadata, but this
         // database snapshot does not include a story -> skill reward relation.
