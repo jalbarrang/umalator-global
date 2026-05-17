@@ -1,6 +1,8 @@
 # Support Card Skill Source Investigation
 
-This note records how support-card skill sources are represented in the Global `master.mdb` snapshot used by the extraction pipeline.
+> **Status: Resolved.** Event skills are now populated via GameTora's manifest API. See [data-pipeline.md](data-pipeline.md) for the full picture of how data flows into the project.
+
+This note records the investigation into how support-card skill sources are represented in the Global `master.mdb` snapshot, and why event rewards needed an external source.
 
 ## Hint skills
 
@@ -153,28 +155,6 @@ A full integer-column scan for `830028003` only finds `single_mode_story_data`, 
 
 This confirms the event title and owning support card are in `master.mdb`; the reward branch `Professor of Curvature hint level 1 or 3` is not in the relational master tables available here.
 
-## Current extraction behavior
+## Conclusion
 
-`extract-support-cards.ts` emits:
-
-```ts
-{
-  hintSkills: [...],
-  eventSkills: [...]
-}
-```
-
-`eventSkills` behavior:
-
-- Replace mode: emits an empty array because master data does not contain a reliable mapping.
-- Merge mode: preserves existing `eventSkills`, so an external/manual mapping can be layered in without changing the JSON schema or downstream consumers.
-
-## If event skills are needed later
-
-Likely next places to investigate are outside `master.mdb`:
-
-1. Story/event asset bundles referenced by the game client.
-2. Any extracted story script files that may encode event outcomes/rewards.
-3. External curated datasets for support-card event choices and rewards.
-
-Once a source exists, the extractor can merge a map keyed by either `supportCardId` or `storyId` into `eventSkills`.
+`master.mdb` provides hint skills directly but does not contain event reward → skill mappings. The gap was resolved by fetching event data from [GameTora's](https://gametora.com/) public manifest API via `fetch-support-events.ts`. See [data-pipeline.md](data-pipeline.md) for how this fits into the full extraction pipeline.

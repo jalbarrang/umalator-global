@@ -37,7 +37,7 @@
 | **Mid-race**           | The middle phase where positioning logic dominates.                                              | Middle, midgame                 |
 | **Late-race**          | The race portion after mid-race that includes the homestretch context discussed in guides.       | Back half, endgame, second half |
 | **Last spurt state**   | The sprint state where the runner tries to accelerate toward maximum finishing speed if allowed. | Final dash, sprint mode         |
-| **Last spurt section** | The homestretch section near the end of the race, treated in docs/guides as part of Late-race.   | Final stretch, homestretch      |
+| **Last spurt section** | The homestretch section near the end of the race, treated in docs/simulation-learnings as part of Late-race.   | Final stretch, homestretch      |
 | **Activation point**   | The exact race moment when a skill's conditions are checked and it triggers.                     | Proc frame, trigger tick        |
 | **Rushed state**       | The Kakari state that disrupts pacing and alters consumption/behavior.                           | Kakari, temptation, panic       |
 | **Blocked**            | A state where nearby runners prevent optimal forward or lateral movement.                        | Jammed, body-blocked            |

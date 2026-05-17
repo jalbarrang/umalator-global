@@ -62,9 +62,10 @@ export function CreditsModal() {
                 rel="noopener noreferrer"
                 className="font-medium text-primary hover:underline"
               >
-                Gametora
+                GameTora
               </a>{' '}
-              for all the data used in this project.
+              for game data, including support card event rewards and skill hint mappings that power
+              the support card features in this tool.
             </li>
           </ul>
         </div>

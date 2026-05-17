@@ -8,7 +8,7 @@ English translation of the Japanese article at:
 - This is a translation/adaptation of the source article, not a full re-validation against the latest reverse-engineering notes.
 - The original article assumes **9-runner Champion's Meeting races**.
 - I kept skill names in Japanese where an official Global name was not obvious, and translated the mechanics around them.
-- I cross-checked the translation against `docs/guides/quick-reference.md` and `docs/guides/race-mechanics.md`.
+- I cross-checked the translation against `docs/simulation-learnings/quick-reference.md` and `docs/simulation-learnings/race-mechanics.md`.
 - Where the source appears older or more heuristic than the current simulator docs, I call that out explicitly.
 
 ## Table of Contents
@@ -57,7 +57,7 @@ HP is calculated as:
 HP = 0.8 × strategy coefficient × (stamina stat × motivation coefficient + green-skill bonus) + course distance
 ```
 
-Because of that, this unique generally lasts longer in longer races. For a fuller HP explanation, see the original linked article chain or this repo's `docs/guides/race-mechanics.md`.
+Because of that, this unique generally lasts longer in longer races. For a fuller HP explanation, see the original linked article chain or this repo's `docs/simulation-learnings/race-mechanics.md`.
 
 The HP value checked is the HP **at the activation point**. So when using Mejiro Bright, stacking more recovery skills that activate in the first half of the race can lengthen this unique further.
 
@@ -91,7 +91,7 @@ HP depends on strategy, distance, and stamina. Because Front Runner and Pace Cha
 
 The source article explains "3 or more runners are nearby" as at least 3 runners within a circle of radius `1.5 m` centered on your runner.
 
-> **Cross-check note:** our current `docs/guides/race-mechanics.md` defines `near_count` using the post-1st-anniversary values: `abs(DistanceGap) < 3m` and `abs(LaneGap) < 3HorseLane`. So treat the article's `1.5 m` circle explanation as a historical or simplified visualization rather than the current canonical simulator definition.
+> **Cross-check note:** our current `docs/simulation-learnings/race-mechanics.md` defines `near_count` using the post-1st-anniversary values: `abs(DistanceGap) < 3m` and `abs(LaneGap) < 3HorseLane`. So treat the article's `1.5 m` circle explanation as a historical or simplified visualization rather than the current canonical simulator definition.
 
 The original article includes a diagram that simplifies this into 8 nearby zones around the runner. Practically speaking, you can think of it as: if at least 3 runners are occupying those nearby zones, the skill can activate.
 
@@ -175,7 +175,7 @@ It has good synergy with **Prudent Positioning**, another early-race lateral-mov
 - **Hidden effect:** effect magnitude is scaled by the team's total `stat × motivation coefficient`
 - **Duration does not increase**
 
-In current repo terminology, this corresponds to scaling by the team's total **base stats**, matching the `Aoharu Skills (3-7)` section in `docs/guides/race-mechanics.md`.
+In current repo terminology, this corresponds to scaling by the team's total **base stats**, matching the `Aoharu Skills (3-7)` section in `docs/simulation-learnings/race-mechanics.md`.
 
 | Team total     | Effect multiplier |
 | -------------- | ----------------: |
@@ -213,7 +213,7 @@ In current repo terminology, this corresponds to scaling by the team's total **b
 
 ## Cross-check summary against local docs
 
-- **Mejiro Bright / Swimsuit Mejiro McQueen:** the remaining-HP duration table matches `MultiplyRemainHp (3)` in `docs/guides/race-mechanics.md`.
+- **Mejiro Bright / Swimsuit Mejiro McQueen:** the remaining-HP duration table matches `MultiplyRemainHp (3)` in `docs/simulation-learnings/race-mechanics.md`.
 - **Aoharu scenario skills:** the effect table matches the `Aoharu Skills (3-7)` scaling used in the simulator docs.
 - **Risky Business / Nothing Ventured:** the `60% / 30% / 10%` drawback split is consistent with the generic `Multiply Random (8, 9)` table in the simulator mechanics reference.
 - **Sharp Gaze / All-Seeing Eyes:** the source article's note about vision-limited targeting aligns with the simulator doc's default `20m` vision model.

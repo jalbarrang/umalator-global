@@ -26,4 +26,4 @@
 
 ### Issue Tracker
 
-For tracking issues and work items we use `Beads` see `docs/issue-tracker.md`
+For tracking issues and work items we use `Beads` see `docs/dev-process/issue-tracker.md`
