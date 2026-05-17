@@ -1,5 +1,9 @@
 import { ISkillType } from '@/lib/sunday-tools/skills/definitions';
 import type { SkillAlternative } from '@/lib/sunday-tools/skills/skill.types';
+import {
+  areAlternativesSimulatable,
+  findUnknownConditionTokens
+} from '@/lib/sunday-tools/skills/simulatability';
 import type { SkillMatch } from '@/modules/runners/data/types';
 
 // =======
@@ -70,10 +74,56 @@ export class SkillService {
   private readonly skillCollection: SkillsMap;
   private skillLookup: Map<string, SkillLookupEntry> | null = null;
   private skillLookupCandidates: Map<string, Array<SkillLookupEntry>> | null = null;
+  private simulatabilityCache: Map<string, boolean> | null = null;
 
   constructor(skillsData: SkillsMap) {
     this.skillCollection = skillsData;
   }
+
+  // ============
+  // Simulatability
+  // ============
+
+  /**
+   * Whether a skill's conditions can be fully parsed by the simulation engine.
+   * Skills with unknown condition tokens return false — they can be displayed
+   * but must not enter the simulator.
+   */
+  isSimulatable = (skillId: string): boolean => {
+    if (!this.simulatabilityCache) {
+      this.simulatabilityCache = new Map();
+    }
+
+    const cached = this.simulatabilityCache.get(skillId);
+    if (cached !== undefined) return cached;
+
+    const skill = this.skillCollection[skillId];
+    if (!skill) {
+      this.simulatabilityCache.set(skillId, false);
+      return false;
+    }
+
+    const result = areAlternativesSimulatable(skill.alternatives);
+    this.simulatabilityCache.set(skillId, result);
+    return result;
+  };
+
+  /**
+   * Returns unknown condition tokens for a skill, or an empty array if fully supported.
+   * Useful for debug/UI display of why a skill can't be simulated.
+   */
+  getUnsupportedTokens = (skillId: string): Array<string> => {
+    const skill = this.skillCollection[skillId];
+    if (!skill) return [];
+    return findUnknownConditionTokens(skill.alternatives);
+  };
+
+  /**
+   * Filter a list of skill IDs to only those that are simulatable.
+   */
+  filterSimulatable = (skillIds: Array<string>): Array<string> => {
+    return skillIds.filter(this.isSimulatable);
+  };
 
   // ============
   // Utils

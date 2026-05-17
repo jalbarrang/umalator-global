@@ -977,3 +977,11 @@ export const defaultConditions: ConditionsMap<ICondition> = {
   is_exist_chara_id: noopImmediate,
   remain_distance_viewer_id: noopImmediate
 };
+
+/**
+ * Set of all condition token names recognized by the simulation engine.
+ * Used to validate whether a skill's conditions can be parsed without crashing.
+ */
+export const knownConditionTokens: ReadonlySet<string> = new Set(
+  Object.keys(defaultConditions)
+);
