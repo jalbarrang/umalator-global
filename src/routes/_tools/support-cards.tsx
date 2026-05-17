@@ -52,23 +52,42 @@ type SupportCardEntry = {
 
 const supportCards = Object.values(supportCardsJson) as SupportCardEntry[];
 
-const supportSkillOptions = Array.from(
-  new Map(
-    supportCards
-      .flatMap((card) => [...card.hintSkills, ...card.eventSkills])
-      .map((skill) => {
-        const skillId = `${skill.id}`;
-        const hintCount = supportCards.filter((card) =>
-          card.hintSkills.some((hintSkill) => `${hintSkill.id}` === skillId)
-        ).length;
-        const eventCount = supportCards.filter((card) =>
-          card.eventSkills.some((eventSkill) => `${eventSkill.id}` === skillId)
-        ).length;
+const supportSkillStatsById = new Map<
+  string,
+  { value: string; label: string; hintCount: number; eventCount: number }
+>();
 
-        return [skillId, { value: skillId, label: skill.name, hintCount, eventCount }];
-      })
-  ).values()
-).sort((a, b) => a.label.localeCompare(b.label));
+for (const card of supportCards) {
+  for (const skill of card.hintSkills) {
+    const skillId = `${skill.id}`;
+    const stats = supportSkillStatsById.get(skillId) ?? {
+      value: skillId,
+      label: skill.name,
+      hintCount: 0,
+      eventCount: 0
+    };
+
+    stats.hintCount += 1;
+    supportSkillStatsById.set(skillId, stats);
+  }
+
+  for (const skill of card.eventSkills) {
+    const skillId = `${skill.id}`;
+    const stats = supportSkillStatsById.get(skillId) ?? {
+      value: skillId,
+      label: skill.name,
+      hintCount: 0,
+      eventCount: 0
+    };
+
+    stats.eventCount += 1;
+    supportSkillStatsById.set(skillId, stats);
+  }
+}
+
+const supportSkillOptions = Array.from(supportSkillStatsById.values()).sort((a, b) =>
+  a.label.localeCompare(b.label)
+);
 
 const supportSkillLabelById = new Map(
   supportSkillOptions.map((skill) => [skill.value, skill.label] as const)
@@ -494,7 +513,7 @@ function SupportCardItem(props: SupportCardItemProps) {
 
   return (
     <div className="rounded-lg border bg-card text-card-foreground shadow-xs">
-      <div className="flex gap-3 px-2 py-2 border-b">
+      <div className="flex gap-3 border-b p-2">
         <div className="rounded-md border bg-muted">
           <img
             src={getSupportCardImageUrl(card.id)}
