@@ -17,6 +17,7 @@
     "extract:all": "bun scripts/data-extract/extract-all.ts",
     "extract:support-cards": "bun scripts/data-extract/extract-support-cards.ts",
     "fetch:support-events": "bun scripts/data-extract/fetch-support-events.ts",
+    "sync:data": "bun scripts/data-extract/sync-gametora.ts",
     "images:support-cards": "bun scripts/data-extract/download-support-card-images.ts",
     "transform:cm-presets": "bun scripts/transform-cm-presets.ts",
     "skill:compare": "bun scripts/run-skill-compare.ts",

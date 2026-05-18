@@ -18,6 +18,8 @@ CLAUDE.md
 scripts/runners/*.json
 scripts/skill-lists/*.json
 
+data-manifest.json
+
 # Test artifacts
 /test-results/
 
