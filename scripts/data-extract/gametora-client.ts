@@ -74,15 +74,5 @@ async function loadManifestData<T>(manifest: Manifest, key: string): Promise<T |
   return fetchJsonCached<T>(url);
 }
 
-export {
-  BASE_URL,
-  CACHE_DIR,
-  USER_AGENT,
-  cachePathFor,
-  ensureDir,
-  fetchJsonCached,
-  loadManifest,
-  loadManifestData,
-  manifestUrl
-};
+export { loadManifest, loadManifestData };
 export type { Manifest };
