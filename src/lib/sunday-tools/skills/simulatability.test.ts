@@ -124,14 +124,16 @@ describe('SkillService.isSimulatable', () => {
     expect(dataRegistry.skills.isSimulatable('999999999')).toBe(false);
   });
 
-  it('all skills in current dataset are simulatable', () => {
-    const allSkills = dataRegistry.skills.getAll();
-    const nonSimulatable = allSkills.filter(
+  it('all released skills in the current dataset are simulatable', () => {
+    const releasedSkills = dataRegistry.skills
+      .getAll()
+      .filter((skill) => dataRegistry.skills.isReleased(skill.id));
+    const nonSimulatable = releasedSkills.filter(
       (skill) => !dataRegistry.skills.isSimulatable(skill.id)
     );
 
-    // Current dataset should be fully simulatable — if this fails, a new
-    // skill was added with an unimplemented condition token.
+    // Released skills should remain fully simulatable even as the GameTora
+    // snapshot adds upcoming/datamined entries with newer condition tokens.
     expect(nonSimulatable).toEqual([]);
   });
 });

@@ -35,6 +35,8 @@ export type SkillSupportCardSourceEntry = {
   sourceType?: 'hint' | 'event';
 };
 
+export type SkillActivationCheck = 'guaranteed' | 'wit-check';
+
 export type SkillEntry = {
   id: string;
   rarity: number;
@@ -55,16 +57,23 @@ export type SkillEntry = {
   supportSources?: Array<SkillSupportCardSourceEntry>;
   gene_version?: SkillGeneVersionEntry;
   unique_version?: SkillGeneVersionEntry;
+  type?: string | Array<string>;
 };
 
 export type SkillsMap = Record<string, SkillEntry>;
 
-export interface SkillLookupEntry {
+export type SkillLookupEntry = {
   id: string;
   geneId?: string;
   name: string;
   rarity: number;
-}
+  released: boolean;
+};
+
+export type SkillServiceOptions = {
+  releasedSkillIds?: Iterable<string>;
+  activationChecks?: Record<string, SkillActivationCheck>;
+};
 
 // =======
 // Service
@@ -72,12 +81,18 @@ export interface SkillLookupEntry {
 
 export class SkillService {
   private readonly skillCollection: SkillsMap;
+  private readonly releasedSkillIds: Set<string>;
+  private readonly activationChecks: Map<string, SkillActivationCheck>;
   private skillLookup: Map<string, SkillLookupEntry> | null = null;
   private skillLookupCandidates: Map<string, Array<SkillLookupEntry>> | null = null;
   private simulatabilityCache: Map<string, boolean> | null = null;
 
-  constructor(skillsData: SkillsMap) {
+  constructor(skillsData: SkillsMap, options: SkillServiceOptions = {}) {
+    const { releasedSkillIds, activationChecks } = options;
+
     this.skillCollection = skillsData;
+    this.releasedSkillIds = new Set(releasedSkillIds ?? Object.keys(skillsData));
+    this.activationChecks = new Map(Object.entries(activationChecks ?? {}));
   }
 
   // ============
@@ -123,6 +138,14 @@ export class SkillService {
    */
   filterSimulatable = (skillIds: Array<string>): Array<string> => {
     return skillIds.filter(this.isSimulatable);
+  };
+
+  isReleased = (skillId: string): boolean => {
+    return this.releasedSkillIds.has(skillId);
+  };
+
+  getActivationCheck = (skillId: string): SkillActivationCheck | undefined => {
+    return this.activationChecks.get(skillId);
   };
 
   // ============
@@ -395,6 +418,11 @@ export class SkillService {
 
   private sortSkillLookupEntries = (entries: Array<SkillLookupEntry>): Array<SkillLookupEntry> => {
     return [...entries].sort((a, b) => {
+      const releaseRank = Number(b.released) - Number(a.released);
+      if (releaseRank !== 0) {
+        return releaseRank;
+      }
+
       const prefixRank = this.skillIdPrefixRank(a.id) - this.skillIdPrefixRank(b.id);
       if (prefixRank !== 0) {
         return prefixRank;
@@ -457,7 +485,8 @@ export class SkillService {
         id: `${skill.id}`,
         geneId: skill.gene_version?.id ? `${skill.gene_version.id}` : undefined,
         name: skill.name,
-        rarity: skill.rarity
+        rarity: skill.rarity,
+        released: this.isReleased(skill.id)
       };
 
       const entries = this.skillLookupCandidates.get(key);

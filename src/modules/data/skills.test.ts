@@ -58,3 +58,33 @@ describe('resolveSkillId', () => {
     expect(resolveSkillId('200012', false)).toBe('200012');
   });
 });
+
+describe('GameTora skill loading', () => {
+  it('preserves released skills and adds upcoming skills', () => {
+    expect(dataRegistry.skills.getById('10351')).toBeDefined();
+    expect(dataRegistry.skills.getById('110031')).toBeDefined();
+    expect(dataRegistry.skills.getById('910031')).toBeDefined();
+  });
+
+  it('applies loc.en condition overrides for base and gene versions', () => {
+    expect(dataRegistry.skills.getById('110031')?.alternatives[0]?.condition).toBe(
+      'is_finalcorner==1&corner==0'
+    );
+    expect(dataRegistry.skills.getById('910031')?.alternatives[0]?.condition).toBe(
+      'is_finalcorner==1&corner==0'
+    );
+  });
+
+  it('exposes release provenance and activation metadata', () => {
+    expect(dataRegistry.skills.isReleased('10351')).toBe(true);
+    expect(dataRegistry.skills.isReleased('110221')).toBe(false);
+    expect(dataRegistry.skills.getActivationCheck('110221')).toBe('guaranteed');
+    expect(dataRegistry.skills.getActivationCheck('910221')).toBe('wit-check');
+  });
+
+  it('preserves master-only effect metadata when GameTora omits it', () => {
+    const skill = dataRegistry.skills.getById('202031');
+    expect(skill?.alternatives[0]?.effects[1]?.valueUsage).toBe(8);
+    expect(skill?.alternatives[0]?.effects[1]?.valueLevelUsage).toBe(1);
+  });
+});

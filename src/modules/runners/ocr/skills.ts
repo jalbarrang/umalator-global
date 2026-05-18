@@ -187,7 +187,8 @@ export function extractSkills(text: string, imageIndex: number): Array<Extracted
               id: wholeMatch.id,
               geneId: wholeMatch.geneId,
               name: wholeMatch.name,
-              rarity: 0
+              rarity: 0,
+              released: dataRegistry.skills.isReleased(wholeMatch.id)
             },
             confidence: wholeMatch.confidence,
             start: start >= 0 ? start : 0,
