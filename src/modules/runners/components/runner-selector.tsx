@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 
-import { getUmaImageUrl, useUmasForSearch } from '@/modules/runners/utils';
+import { UpcomingToggle } from '@/components/upcoming-toggle';
+import { getUmaDisplayInfo, getUmaImageUrl, useUmasForSearch } from '@/modules/runners/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Command,
@@ -10,6 +11,7 @@ import {
   CommandItem,
   CommandList
 } from '@/components/ui/command';
+import { useUIStore } from '@/store/ui.store';
 
 type UmaSelectorProps = {
   value: string;
@@ -23,20 +25,18 @@ export const UmaSelector = (props: UmaSelectorProps) => {
   const { value, randomMobId, select } = props;
   const [open, setOpen] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
-  const umasForSearch = useUmasForSearch();
+  const showUpcoming = useUIStore((state) => state.showUpcoming);
+  const umasForSearch = useUmasForSearch(showUpcoming);
 
   const imageUrl = useMemo(() => getUmaImageUrl(value, randomMobId), [value, randomMobId]);
 
   const selectedUma = useMemo(() => {
-    const uma = umasForSearch.find((uma) => uma.id === value);
+    if (!value) {
+      return null;
+    }
 
-    if (!uma) return null;
-
-    return {
-      outfit: uma.outfit,
-      name: uma.name
-    };
-  }, [value, umasForSearch]);
+    return getUmaDisplayInfo(value);
+  }, [value]);
 
   const handleSelectedItem = (outfitId: string) => {
     select(outfitId);
@@ -73,6 +73,9 @@ export const UmaSelector = (props: UmaSelectorProps) => {
       <PopoverContent className="p-0">
         <Command>
           <CommandInput placeholder="Search" onValueChange={handleSearchChange} />
+          <div className="border-b px-3 py-2">
+            <UpcomingToggle />
+          </div>
           <CommandList ref={listRef}>
             <CommandEmpty>No results found.</CommandEmpty>
             <CommandGroup>

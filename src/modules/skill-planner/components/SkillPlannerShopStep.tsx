@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { ImageIcon, PlusIcon } from 'lucide-react';
+import { useUIStore } from '@/store/ui.store';
 import { toast } from 'sonner';
 import { addCandidate, removeCandidate, useSkillPlannerStore } from '../skill-planner.store';
 import { CandidateSkillList } from './CandidateSkillList';
@@ -11,6 +12,7 @@ import { SkillPickerModal } from '@/modules/skills/components/skill-picker/modal
 export function SkillPlannerShopStep() {
   const { runner, candidates } = useSkillPlannerStore();
   const [skillPickerOpen, setSkillPickerOpen] = useState(false);
+  const showUpcoming = useUIStore((state) => state.showUpcoming);
 
   const candidateIds = useMemo(() => Object.keys(candidates), [candidates]);
 
@@ -19,8 +21,8 @@ export function SkillPlannerShopStep() {
       return [];
     }
 
-    return getSelectableSkillsForUma(runner.outfitId);
-  }, [runner.outfitId]);
+    return getSelectableSkillsForUma(runner.outfitId, showUpcoming);
+  }, [runner.outfitId, showUpcoming]);
 
   const handleSelectSkills = (skills: Array<string>) => {
     const nextSkillIds = new Set(skills);

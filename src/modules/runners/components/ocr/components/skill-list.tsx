@@ -5,6 +5,7 @@ import { createManualOcrSkillEntry, getOcrSkillOptionMeta, OcrSkillPickerOption 
 import { dataRegistry } from '@/modules/data/registry';
 import { toast } from 'sonner';
 import { OcrSkillPickerPopover } from './skill-picker';
+import { useUIStore } from '@/store/ui.store';
 import { Button } from '@/components/ui/button';
 import { Pencil, Plus } from 'lucide-react';
 import { OcrDetectedSkillRow } from './skill-row';
@@ -20,6 +21,7 @@ type IOcrSkillsListProps = {
 
 export function OcrSkillsList(props: Readonly<IOcrSkillsListProps>) {
   const { results, isProcessing, onRemoveSkill, onUpdateResults } = props;
+  const showUpcoming = useUIStore((state) => state.showUpcoming);
 
   const uniqueSkillId = useMemo(
     () => (results?.outfitId ? getUniqueSkillForByUmaId(results.outfitId) : null),
@@ -34,8 +36,11 @@ export function OcrSkillsList(props: Readonly<IOcrSkillsListProps>) {
 
   const skillOptions = useMemo<Array<OcrSkillPickerOption>>(() => {
     const selectableSkillIds = results?.outfitId
-      ? getSelectableSkillsForUma(results.outfitId)
-      : dataRegistry.skills.getAll().map((skill) => skill.id);
+      ? getSelectableSkillsForUma(results.outfitId, showUpcoming)
+      : dataRegistry.skills
+          .getAll()
+          .filter((skill) => showUpcoming || dataRegistry.skills.isReleased(skill.id))
+          .map((skill) => skill.id);
 
     return selectableSkillIds
       .flatMap((skillId) => {
@@ -55,7 +60,7 @@ export function OcrSkillsList(props: Readonly<IOcrSkillsListProps>) {
         ];
       })
       .sort((a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
-  }, [results?.outfitId]);
+  }, [results?.outfitId, showUpcoming]);
 
   const handleAddSkill = (skillId: string) => {
     if (currentSkills.some((skill) => skill.id === skillId)) {

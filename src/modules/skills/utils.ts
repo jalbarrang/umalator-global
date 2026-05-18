@@ -78,7 +78,7 @@ export const getBaseSkillsToTest = () => {
   return skillsToTest;
 };
 
-export const getSelectableSkillsForUma = (umaId: UmaAltId) => {
+export const getSelectableSkillsForUma = (umaId: UmaAltId, includeUpcoming = false) => {
   const ids: Array<string> = [];
 
   // White, Gold, Upgraded Unique (2* Umas), Unique (3* Umas)
@@ -86,6 +86,7 @@ export const getSelectableSkillsForUma = (umaId: UmaAltId) => {
 
   for (const skill of dataRegistry.skills.getAll()) {
     if (!allowedRarities.includes(skill.rarity)) continue;
+    if (!includeUpcoming && !dataRegistry.skills.isReleased(skill.id)) continue;
 
     // Inherited uniques (9xxxxx) are added via the gene_version redirect
     // on their parent unique skill — skip them to avoid duplicates.
@@ -98,7 +99,9 @@ export const getSelectableSkillsForUma = (umaId: UmaAltId) => {
     }
 
     if (skill.gene_version?.id) {
-      ids.push(`${skill.gene_version.id}`);
+      const geneVersionId = `${skill.gene_version.id}`;
+      if (!includeUpcoming && !dataRegistry.skills.isReleased(geneVersionId)) continue;
+      ids.push(geneVersionId);
       continue;
     }
 

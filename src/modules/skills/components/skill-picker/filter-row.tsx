@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils';
+import { UpcomingToggle } from '@/components/upcoming-toggle';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
@@ -244,6 +245,10 @@ export const SkillPickerFilterRow = () => {
             })}
           </div>
         </FilterSection>
+
+        <div className="flex items-center justify-end">
+          <UpcomingToggle />
+        </div>
       </div>
     </div>
   );

@@ -22,6 +22,7 @@ import { openSkillPicker, updateCurrentSkills } from '@/modules/skills/store';
 import { getSelectableSkillsForUma, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import { updateRunner, useRaceSimStore } from '@/modules/simulation/stores/race-sim.store';
 import { cn } from '@/lib/utils';
+import { useUIStore } from '@/store/ui.store';
 
 type RunnerDetailPanelProps = {
   runnerIndex: number;
@@ -54,6 +55,7 @@ export function RunnerDetailPanel({
     if (runnerIndex < 0 || runnerIndex >= state.runners.length) return null;
     return state.runners[runnerIndex];
   });
+  const showUpcoming = useUIStore((state) => state.showUpcoming);
 
   const runnerDisplayName = useMemo(() => {
     if (!runner) return 'Runner';
@@ -128,11 +130,11 @@ export function RunnerDetailPanel({
     openSkillPicker({
       runnerId: `race-sim-runner-${runnerIndex}`,
       umaId: runner.outfitId,
-      options: getSelectableSkillsForUma(runner.outfitId),
+      options: getSelectableSkillsForUma(runner.outfitId, showUpcoming),
       currentSkills: runner.skills,
       onSelect: handleSetSkills
     });
-  }, [handleSetSkills, runner, runnerIndex]);
+  }, [handleSetSkills, runner, runnerIndex, showUpcoming]);
 
   const handleRemoveSkill = useCallback(
     (skillId: string) => {

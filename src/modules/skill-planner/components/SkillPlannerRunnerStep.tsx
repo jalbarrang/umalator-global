@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { PlusIcon, UploadIcon } from 'lucide-react';
+import { useUIStore } from '@/store/ui.store';
 import { strategyNames } from '@/lib/sunday-tools/runner/definitions';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
@@ -52,14 +53,15 @@ export function SkillPlannerRunnerStep() {
   const { runner, obtainedSkillIds, hasFastLearner } = useSkillPlannerStore();
   const [skillPickerOpen, setSkillPickerOpen] = useState(false);
   const [ocrImportOpen, setOcrImportOpen] = useState(false);
+  const showUpcoming = useUIStore((state) => state.showUpcoming);
 
   const availableSkills = useMemo(() => {
     if (!runner.outfitId) {
       return [];
     }
 
-    return getSelectableSkillsForUma(runner.outfitId);
-  }, [runner.outfitId]);
+    return getSelectableSkillsForUma(runner.outfitId, showUpcoming);
+  }, [runner.outfitId, showUpcoming]);
 
   const uniqueSkillId = useMemo(() => {
     if (!runner.outfitId) {

@@ -1,6 +1,7 @@
 import { useDeferredValue, useMemo, useState } from 'react';
 import { SlidersHorizontalIcon, SearchIcon, XIcon } from 'lucide-react';
 
+import { UpcomingToggle } from '@/components/upcoming-toggle';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -32,6 +33,7 @@ import type { SupportCardEntry } from '@/modules/data/services/SupportCardServic
 import { SkillDetails } from '@/modules/skills/components/skill-details';
 import { SkillIcon } from '@/modules/skills/components/skill-list/skill-item/SkillIcon';
 import { cn } from '@/lib/utils';
+import { useUIStore } from '@/store/ui.store';
 
 type SupportSkill = SupportCardEntry['hintSkills'][number];
 
@@ -535,6 +537,7 @@ export function SupportCardsPage() {
   const [selectedSkillSourceIds, setSelectedSkillSourceIds] = useState<string[]>([]);
   const [cardTypeFilters, setCardTypeFilters] = useState<string[]>([]);
   const [cardRarityFilters, setCardRarityFilters] = useState<string[]>([]);
+  const showUpcoming = useUIStore((state) => state.showUpcoming);
   const deferredSearchText = useDeferredValue(searchText);
   const activeFilterCount =
     cardTypeFilters.length + cardRarityFilters.length + selectedSkillSourceIds.length;
@@ -543,6 +546,10 @@ export function SupportCardsPage() {
     const normalizedSearch = deferredSearchText.trim().toLowerCase();
 
     return supportCards.filter((card) => {
+      if (!showUpcoming && !card.released) {
+        return false;
+      }
+
       if (cardTypeFilters.length > 0 && !cardTypeFilters.includes(`${card.supportCardType}`)) {
         return false;
       }
@@ -585,7 +592,7 @@ export function SupportCardsPage() {
 
       return true;
     });
-  }, [cardRarityFilters, cardTypeFilters, deferredSearchText, selectedSkillSourceIds]);
+  }, [cardRarityFilters, cardTypeFilters, deferredSearchText, selectedSkillSourceIds, showUpcoming]);
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col gap-3 p-3 md:p-4">
@@ -613,16 +620,20 @@ export function SupportCardsPage() {
             />
           </InputGroup>
 
-          <div className="w-full md:w-auto">
-            <SupportCardFiltersDialog
-              cardTypeFilters={cardTypeFilters}
-              cardRarityFilters={cardRarityFilters}
-              selectedSkillSourceIds={selectedSkillSourceIds}
-              activeFilterCount={activeFilterCount}
-              onCardTypeFiltersChange={setCardTypeFilters}
-              onCardRarityFiltersChange={setCardRarityFilters}
-              onSelectedSkillSourceIdsChange={setSelectedSkillSourceIds}
-            />
+          <div className="flex w-full flex-col gap-2 md:w-auto md:flex-row md:items-center">
+            <UpcomingToggle className="h-9 rounded-md border px-3" labelClassName="text-sm" />
+
+            <div className="w-full md:w-auto">
+              <SupportCardFiltersDialog
+                cardTypeFilters={cardTypeFilters}
+                cardRarityFilters={cardRarityFilters}
+                selectedSkillSourceIds={selectedSkillSourceIds}
+                activeFilterCount={activeFilterCount}
+                onCardTypeFiltersChange={setCardTypeFilters}
+                onCardRarityFiltersChange={setCardRarityFilters}
+                onSelectedSkillSourceIdsChange={setSelectedSkillSourceIds}
+              />
+            </div>
           </div>
         </div>
 
