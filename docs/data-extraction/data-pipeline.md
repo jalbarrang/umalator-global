@@ -1,104 +1,144 @@
 # Data Pipeline
 
-How game data gets into the project — what we extract, where it comes from, and how the pieces fit together.
+How game data gets into the project, and which source owns which data.
+
+See also:
+
+- [ADR-0001: Data Source Separation](../adr/0001-data-source-separation.md)
+- [scripts/data-extract/README.md](../../scripts/data-extract/README.md)
 
 ## Overview
 
-Game data is assembled from two complementary sources:
+The project now uses a split-source pipeline with clear ownership:
 
-| Source | What it provides | How we access it |
+| Source | Owns | Access path |
 | --- | --- | --- |
-| **master.mdb** | Skills, support cards, characters, courses | Local SQLite queries via `bun:sqlite` |
-| **GameTora** | Support card event rewards, event skill hints | Public manifest API (HTTP + JSON) |
+| **GameTora snapshots** | entity catalog data: skills, character cards, support cards, support effects, training events, reward/name dictionaries | `bun run sync:data` |
+| **master.mdb** | simulation internals: course geometry | `bun run extract:all` or `bun run extract:course-data` |
 
-Neither source is complete on its own. `master.mdb` has authoritative skill mechanics and card metadata but lacks event reward mappings. GameTora's manifest fills that gap with decoded event data including skill hint rewards.
+GameTora is the authoritative source for entity catalog data. `master.mdb` is now only used for course geometry needed by the simulator.
 
 ## Recommended Pipeline Order
 
 ```bash
-# 1. Extract base data from master.mdb
-bun run extract:all
+# 1. Sync GameTora snapshots
+bun run sync:data
 
-# 2. Fetch event rewards from GameTora and merge into support cards
-bun run fetch:support-events
+# 2. Extract course geometry from master.mdb
+bun run extract:all
 ```
 
-Step 1 populates skills, support cards (with `hintSkills`), characters, and courses. Step 2 then populates `eventSkills` and writes the full event data for each support card. Running step 2 after step 1 ensures the skill name map is available for resolving event skill IDs into human-readable names.
+Recommended order:
+
+1. **`sync:data` first** so the entity catalog snapshots are fresh.
+2. **`extract:all` second** to refresh course geometry and stamp `data-manifest.json` with the latest course extraction time.
+
+If you know the `master.mdb` resource version, or want to resolve it from `uma.moe`, pass one of these when extracting courses:
+
+```bash
+bun run extract:all -- --resource-version 10004010
+bun run extract:all -- --resolve-resource-version
+```
+
+## Source: GameTora Snapshots
+
+GameTora is the primary source for the entity catalog.
+
+### What `sync:data` writes
+
+`bun run sync:data` snapshots these manifest keys into `src/modules/data/json/gametora/`:
+
+| Manifest key | Output file |
+| --- | --- |
+| `skills` | `skills.json` |
+| `character-cards` | `character-cards.json` |
+| `support-cards` | `support-cards.json` |
+| `support_effects` | `support-effects.json` |
+| `training_events/ssr` | `training-events-ssr.json` |
+| `training_events/sr` | `training-events-sr.json` |
+| `training_events/shared` | `training-events-shared.json` |
+| `training_events/friend` | `training-events-friend.json` |
+| `training_events/group` | `training-events-group.json` |
+| `dict/evrew` | `evrew.json` |
+| `dict/te_names_en` | `te-names-en.json` |
+| `dict/te_names_ja` | `te-names-ja.json` |
+
+### Why GameTora owns the catalog
+
+GameTora gives us:
+
+- released and upcoming content in one catalog
+- server-specific overrides such as `loc.en`
+- support card event data and reward dictionaries
+- provenance fields such as `release_en`
+
+This avoids the old reconciliation problem where entity data was split between `master.mdb` and external event lookups.
 
 ## Source: master.mdb
 
-The game's local SQLite database, shipped with the Uma Musume client. Contains the canonical definitions for game mechanics.
+`master.mdb` is now only used for course geometry.
 
 ### What we extract
 
-| Script | Output | Key tables |
+| Script | Output | Inputs |
 | --- | --- | --- |
-| `extract-skills.ts` | `skills.json` | `skill_data`, `single_mode_skill`, `text_data` (category 47) |
-| `extract-support-cards.ts` | `support-cards.json` | `support_card_data`, `single_mode_hint_gain`, `text_data` (76, 77) |
-| `extract-uma-info.ts` | `umas.json` | `card_data`, `text_data`, cross-ref with `skills.json` |
-| `extract-course-data.ts` | `course_data.json` | `race_course_set`, `course_event_params` JSON files |
+| `extract-course-data.ts` | `src/modules/data/json/course_data.json` | `race_course_set`, `race_course_set_status`, `courseeventparams/*.json` |
+| `extract-all.ts` | `src/modules/data/json/course_data.json` | same as above; currently a wrapper around course extraction |
+
+### Manifest tracking
+
+After a successful course extraction, `data-manifest.json` is updated:
+
+- `masterDb.extractedAt` — set to the extraction timestamp
+- `masterDb.resourceVersion` — updated when provided explicitly or resolved from `uma.moe`
 
 ### Merge vs Replace
 
-All `extract:*` scripts default to **merge mode** — they update entries found in `master.mdb` while preserving entries that only exist in the current JSON files (e.g., future/datamined content). Pass `--replace` for a clean slate.
+Course extraction still defaults to **merge mode** and preserves entries not present in the current `master.mdb`. Pass `--replace` for a clean rebuild.
 
-### What master.mdb does NOT have
+## Standalone Fallback Tools
 
-Support card event rewards. The database has event story metadata (`single_mode_story_data`) and event titles (`text_data` category 181), but no reliable `story_id → skill_id` reward mapping. See [support-card-skill-sources.md](./support-card-skill-sources.md) for the full investigation.
+These scripts still exist and still work against `master.mdb`, but they are no longer part of the primary pipeline:
 
-## Source: GameTora
-
-[GameTora](https://gametora.com/) is a community resource for Uma Musume game data. We use their public manifest API to fetch support card event data that isn't available in `master.mdb`.
-
-### What we fetch
-
-| Script | Output | Manifest keys |
-| --- | --- | --- |
-| `fetch-support-events.ts` | `support-cards.json` (`eventSkills`), `support-events.json` | See below |
-
-**Manifest keys used:**
-
-| Key | Description |
+| Script | Purpose |
 | --- | --- |
-| `training_events/ssr` | SSR support card events, keyed by support card ID |
-| `training_events/sr` | SR support card events, keyed by support card ID |
-| `training_events/shared` | Character-level events, keyed by character ID — applies to all cards (R, SR, SSR) for that character |
-| `training_events/friend` | Friend-type card events, keyed by character ID |
-| `training_events/group` | Group-type card events, keyed by support card ID |
-| `dict/te_names_en` | XOR-encrypted English event names |
-| `dict/te_names_ja` | XOR-encrypted Japanese event names (fallback) |
-| `dict/evrew` | Event reward dictionary (stat keys, values, skill IDs) |
+| `extract-skills.ts` | Direct `master.mdb` skill extraction |
+| `extract-support-cards.ts` | Direct `master.mdb` support card extraction |
+| `extract-uma-info.ts` | Direct `master.mdb` uma extraction |
 
-### How event mapping works
+They are useful as fallback/debugging tools when comparing GameTora snapshots against raw `master.mdb` data.
 
-1. **Fetch the manifest** from `gametora.com/data/manifests/umamusume.json` — an index of content-hashed URLs.
-2. **Load training events** for each category (SSR, SR, shared, friend, group).
-3. **Decrypt event names** — GameTora XOR-encodes names as `base64(plaintext XOR repeat("k" + key))`.
-4. **Decode rewards** from the `evrew` dictionary — entries with key `"sk"` contain skill IDs.
-5. **Map to support cards:**
-   - SSR/SR/group events are keyed by support card ID → direct match.
-   - Shared events are keyed by character ID → applied to every support card with that `charaId`.
-   - Friend events are keyed by character ID → applied only to friend-type cards (type 6).
-6. **Write results** — `eventSkills` merged into `support-cards.json`, full event data to `support-events.json`.
+## `fetch-support-events` Status
 
-### Caching
+`fetch-support-events.ts` is now redundant for the main pipeline.
 
-Fetched JSON is cached in `.cache/gametora/` (gitignored). On network failure, the script falls back to cached data automatically.
+Support card events now come from GameTora snapshots fetched by `sync:data`, so `fetch-support-events` is no longer required for standard data refreshes. It remains in the repo for now as a standalone helper.
 
 ## Output Files
 
-All extracted data lands in `src/modules/data/json/`:
+### Primary Pipeline Outputs
 
-| File | Source | Description |
+| File | Source | Produced by |
 | --- | --- | --- |
-| `skills.json` | master.mdb | Unified skill data (metadata, names, activation mechanics) |
-| `support-cards.json` | master.mdb + GameTora | Support card data with `hintSkills` (master.mdb) and `eventSkills` (GameTora) |
-| `support-events.json` | GameTora | Full event data per support card (event names, choices, rewards) |
-| `umas.json` | master.mdb | Uma musume character data (names, outfits) |
-| `course_data.json` | master.mdb | Course/track geometry (corners, straights, slopes) |
+| `src/modules/data/json/gametora/*.json` | GameTora | `bun run sync:data` |
+| `src/modules/data/json/course_data.json` | master.mdb | `bun run extract:all` / `bun run extract:course-data` |
+| `data-manifest.json` | manifest tracking | `bun run sync:data`, then updated by course extraction |
 
-## Acknowledgements
+### Standalone / Legacy Outputs
 
-This project relies on data from [GameTora](https://gametora.com/) for support card event rewards and skill hint mappings. GameTora is an essential community resource for the Uma Musume community, and we are grateful for the data they make available. Their work makes it possible for tools like this to provide complete support card information.
+| File | Source | Produced by |
+| --- | --- | --- |
+| `src/modules/data/json/skills.json` | master.mdb | `bun run extract:skills` |
+| `src/modules/data/json/support-cards.json` | master.mdb | `bun run extract:support-cards` |
+| `src/modules/data/json/umas.json` | master.mdb | `bun run extract:uma-info` |
+| `src/modules/data/json/support-events.json` | GameTora | `bun run fetch:support-events` |
 
-Game data originates from **Uma Musume: Pretty Derby** by **Cygames, Inc.** — see the project's copyright notice for full attribution.
+## Consequence of the Split
+
+The pipeline is now intentionally simple:
+
+- **GameTora owns the catalog**
+- **master.mdb owns course geometry**
+- **`extract:all` means the primary remaining `master.mdb` extraction path, not “extract every entity”**
+
+That separation matches [ADR-0001](../adr/0001-data-source-separation.md).

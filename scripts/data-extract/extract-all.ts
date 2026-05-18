@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 /**
- * Master script to run all data extraction scripts
+ * Primary master.mdb extraction entrypoint.
+ * Currently runs course extraction only.
  */
 
-import { extractSkills } from './extract-skills';
-import { extractSupportCards } from './extract-support-cards';
-import { extractUmaInfo } from './extract-uma-info';
 import { extractCourseData } from './extract-course-data';
 import { Command } from 'commander';
 
 type ExtractAllOptions = {
   replaceMode: boolean;
   dbPath?: string;
+  resourceVersion?: string;
+  resolveResourceVersion: boolean;
 };
 
 function parseCliArgs(argv: Array<string>): ExtractAllOptions {
@@ -19,26 +19,40 @@ function parseCliArgs(argv: Array<string>): ExtractAllOptions {
 
   program
     .name('extract-all')
-    .description('Run all data extraction scripts in sequence')
+    .description('Run the primary master.mdb extraction pipeline (course data only)')
     .option('-r, --replace', 'replace existing extracted data')
     .option('--full', 'alias for --replace')
+    .option('--resource-version <version>', 'master.mdb resource version for data-manifest.json')
+    .option(
+      '--resolve-resource-version',
+      'fetch the latest resource version from uma.moe for data-manifest.json'
+    )
     .argument('[dbPath]', 'path to master.mdb');
 
   program.parse(argv);
 
-  const options = program.opts<{ replace?: boolean; full?: boolean }>();
+  const options = program.opts<{
+    replace?: boolean;
+    full?: boolean;
+    resourceVersion?: string;
+    resolveResourceVersion?: boolean;
+  }>();
   const [dbPath] = program.args as Array<string>;
 
   return {
     replaceMode: Boolean(options.replace || options.full),
-    dbPath
+    dbPath,
+    resourceVersion: options.resourceVersion?.trim() || undefined,
+    resolveResourceVersion: Boolean(options.resolveResourceVersion)
   };
 }
 
-async function extractAll(options: ExtractAllOptions = { replaceMode: false }) {
-  const { replaceMode, dbPath } = options;
+async function extractAll(
+  options: ExtractAllOptions = { replaceMode: false, resolveResourceVersion: false }
+) {
+  const { replaceMode, dbPath, resourceVersion, resolveResourceVersion } = options;
 
-  console.log('🚀 Starting full data extraction...\n');
+  console.log('🚀 Starting primary master.mdb extraction...\n');
   console.log(
     `Mode: ${replaceMode ? '⚠️  Full Replacement' : '✓ Merge (default - preserves future content)'}`
   );
@@ -47,23 +61,22 @@ async function extractAll(options: ExtractAllOptions = { replaceMode: false }) {
   const startTime = Date.now();
   const results: Array<{ name: string; success: boolean; error?: string }> = [];
 
-  // Run extractions in sequence
   const extractions: Array<{
     name: string;
-    fn: (options: { replaceMode: boolean; dbPath?: string }) => Promise<void>;
-  }> = [
-    { name: 'Skills', fn: extractSkills },
-    { name: 'Support Cards', fn: extractSupportCards },
-    { name: 'Uma Info', fn: extractUmaInfo },
-    { name: 'Course Data', fn: extractCourseData }
-  ];
+    fn: (options: {
+      replaceMode: boolean;
+      dbPath?: string;
+      resourceVersion?: string;
+      resolveResourceVersion: boolean;
+    }) => Promise<void>;
+  }> = [{ name: 'Course Data', fn: extractCourseData }];
 
   for (const { name, fn } of extractions) {
     try {
       console.log(`\n${'='.repeat(60)}`);
       console.log(`📦 ${name}`);
       console.log('='.repeat(60));
-      await fn({ replaceMode, dbPath });
+      await fn({ replaceMode, dbPath, resourceVersion, resolveResourceVersion });
       results.push({ name, success: true });
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);

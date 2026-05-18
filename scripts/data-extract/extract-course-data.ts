@@ -4,9 +4,11 @@
  * Ports make_global_course_data.pl to TypeScript
  */
 
+import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { Command } from 'commander';
 import { closeDatabase, openDatabase, queryAll } from '../master-data/database';
+import { fetchCurrentResourceVersion } from '../master-data/uma-api';
 import {
   readJsonFile,
   readJsonFileIfExists,
@@ -14,6 +16,7 @@ import {
   sortByNumericKey,
   writeJsonFile
 } from '../master-data/shared';
+import type { DataManifest } from './sync-gametora';
 
 interface CourseSetStatusRow {
   course_set_status_id: number;
@@ -81,7 +84,12 @@ type ExtractCourseDataOptions = {
   replaceMode: boolean;
   dbPath?: string;
   courseEventParamsPath?: string;
+  resourceVersion?: string;
+  resolveResourceVersion: boolean;
 };
+
+const ROOT_DIR = path.resolve(import.meta.dirname, '..', '..');
+const DATA_MANIFEST_PATH = path.join(ROOT_DIR, 'data-manifest.json');
 
 function parseCliArgs(argv: Array<string>): ExtractCourseDataOptions {
   const program = new Command();
@@ -91,19 +99,69 @@ function parseCliArgs(argv: Array<string>): ExtractCourseDataOptions {
     .description('Extract course data from master.mdb and courseeventparams')
     .option('-r, --replace', 'replace existing extracted data')
     .option('--full', 'alias for --replace')
+    .option('--resource-version <version>', 'master.mdb resource version for data-manifest.json')
+    .option(
+      '--resolve-resource-version',
+      'fetch the latest resource version from uma.moe for data-manifest.json'
+    )
     .argument('[dbPath]', 'path to master.mdb')
     .argument('[courseEventParamsPath]', 'path to courseeventparams directory');
 
   program.parse(argv);
 
-  const options = program.opts<{ replace?: boolean; full?: boolean }>();
+  const options = program.opts<{
+    replace?: boolean;
+    full?: boolean;
+    resourceVersion?: string;
+    resolveResourceVersion?: boolean;
+  }>();
   const [dbPath, courseEventParamsPath] = program.args as Array<string>;
 
   return {
     replaceMode: Boolean(options.replace || options.full),
     dbPath,
-    courseEventParamsPath
+    courseEventParamsPath,
+    resourceVersion: options.resourceVersion?.trim() || undefined,
+    resolveResourceVersion: Boolean(options.resolveResourceVersion)
   };
+}
+
+async function resolveManifestResourceVersion(
+  options: Pick<ExtractCourseDataOptions, 'resourceVersion' | 'resolveResourceVersion'>
+): Promise<string | null> {
+  if (options.resourceVersion) {
+    return options.resourceVersion;
+  }
+
+  if (!options.resolveResourceVersion) {
+    return null;
+  }
+
+  try {
+    return await fetchCurrentResourceVersion();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(`Warning: Could not resolve latest resource version from uma.moe: ${message}`);
+    return null;
+  }
+}
+
+async function updateDataManifest(resourceVersion: string | null): Promise<void> {
+  const existingManifest = await readJsonFileIfExists<DataManifest>(DATA_MANIFEST_PATH);
+
+  const nextManifest: DataManifest = {
+    syncedAt: existingManifest?.syncedAt ?? new Date().toISOString(),
+    gametora: {
+      keys: existingManifest?.gametora?.keys ?? {}
+    },
+    masterDb: {
+      resourceVersion: resourceVersion ?? existingManifest?.masterDb?.resourceVersion ?? null,
+      extractedAt: new Date().toISOString()
+    }
+  };
+
+  await writeFile(DATA_MANIFEST_PATH, `${JSON.stringify(nextManifest, null, 2)}\n`, 'utf8');
+  console.log(`✓ Updated ${path.relative(process.cwd(), DATA_MANIFEST_PATH)}`);
 }
 
 /**
@@ -116,13 +174,17 @@ function distanceType(distance: number): number {
   return 4; // Long
 }
 
-async function extractCourseData(options: ExtractCourseDataOptions = { replaceMode: false }) {
+async function extractCourseData(
+  options: ExtractCourseDataOptions = { replaceMode: false, resolveResourceVersion: false }
+) {
   console.log('📖 Extracting course data...\n');
 
   const {
     replaceMode,
     dbPath: cliDbPath,
-    courseEventParamsPath: cliCourseEventParamsPath
+    courseEventParamsPath: cliCourseEventParamsPath,
+    resourceVersion: explicitResourceVersion,
+    resolveResourceVersion
   } = options;
   const dbPath = await resolveMasterDbPath(cliDbPath);
   const courseEventParamsPath =
@@ -297,6 +359,12 @@ async function extractCourseData(options: ExtractCourseDataOptions = { replaceMo
     const sorted = sortByNumericKey(finalCourses);
     await writeJsonFile(outputPath, sorted);
     console.log(`\n✓ Written to ${outputPath}`);
+
+    const resourceVersion = await resolveManifestResourceVersion({
+      resourceVersion: explicitResourceVersion,
+      resolveResourceVersion
+    });
+    await updateDataManifest(resourceVersion);
   } finally {
     closeDatabase(db);
   }

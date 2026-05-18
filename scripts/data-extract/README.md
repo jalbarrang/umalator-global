@@ -1,43 +1,59 @@
 # Data Extraction Scripts
 
-Scripts for extracting and assembling game data from multiple sources into the JSON files consumed by the application.
+Scripts for syncing game data into the JSON files consumed by the app.
 
-For the full picture of what data comes from where (master.mdb vs GameTora), see **[docs/data-extraction/data-pipeline.md](../../docs/data-extraction/data-pipeline.md)**.
+For the end-to-end pipeline and source ownership, see:
+
+- [docs/data-extraction/data-pipeline.md](../../docs/data-extraction/data-pipeline.md)
+- [docs/adr/0001-data-source-separation.md](../../docs/adr/0001-data-source-separation.md)
+
+## Primary Pipeline
+
+The main data flow is now split by source:
+
+1. `bun run sync:data` — snapshot the **GameTora entity catalog**
+2. `bun run extract:all` — extract **course geometry only** from `master.mdb`
+
+```bash
+bun run sync:data
+bun run extract:all
+```
+
+What that produces:
+
+- `sync:data` writes GameTora snapshots under `src/modules/data/json/gametora/`
+- `extract:all` writes `src/modules/data/json/course_data.json`
+- course extraction also updates `data-manifest.json` (`masterDb.extractedAt`, and `masterDb.resourceVersion` when provided or resolved)
+
+## Current Source Ownership
+
+| Source | Owns | Command |
+| --- | --- | --- |
+| **GameTora snapshots** | skills, character cards, support cards, support effects, training events, reward dictionaries | `bun run sync:data` |
+| **master.mdb** | course geometry only | `bun run extract:all` or `bun run extract:course-data` |
 
 ## Prerequisites
 
-- **bun** (project package manager)
-- **master.mdb** — game database file (for `extract:*` scripts)
-- **Network access** — for `fetch:support-events` (GameTora manifest API)
-
-## Quick Start
-
-```bash
-# 1. Extract base data from master.mdb
-bun run extract:all
-
-# 2. Fetch event rewards from GameTora and merge into support cards
-bun run fetch:support-events
-```
-
-Step 1 extracts skills, support cards, characters, and courses from `master.mdb`. Step 2 fetches support card event data (including skill hints from events) from GameTora's manifest API and merges it into `support-cards.json`.
+- **bun**
+- **master.mdb** — required for `extract:all` / `extract:course-data`
+- **Network access** — required for `sync:data`; optional for `fetch:support-events`
 
 ## Database Location
 
 Place `master.mdb` in a `db/` directory at the project root (gitignored):
 
-```
-umalator-global/
+```text
+uma-sim/
 ├── db/
 │   └── master.mdb
 ├── scripts/
 └── ...
 ```
 
-All scripts auto-detect this path. You can also pass a custom path:
+All extract scripts auto-detect this path. You can also pass a custom path:
 
 ```bash
-bun scripts/data-extract/extract-skills.ts /path/to/master.mdb
+bun scripts/data-extract/extract-course-data.ts /path/to/master.mdb
 ```
 
 Platform defaults:
@@ -47,75 +63,88 @@ Platform defaults:
 
 ## Scripts
 
-### master.mdb Extraction
+### Primary Commands
 
-These scripts read the local SQLite database. All default to **merge mode** (preserves entries not in `master.mdb`). Pass `--replace` for a clean slate.
+| Script | Command | Role |
+| --- | --- | --- |
+| `sync-gametora.ts` | `bun run sync:data` | Sync GameTora snapshots for the entity catalog |
+| `extract-all.ts` | `bun run extract:all` | Primary `master.mdb` pipeline; currently runs course extraction only |
+| `extract-course-data.ts` | `bun run extract:course-data` | Extract course geometry directly |
+
+### Standalone master.mdb Fallback Tools
+
+These scripts still work, but they are no longer part of the recommended pipeline because entity catalog data now comes from GameTora snapshots.
 
 | Script | Command | Output |
 | --- | --- | --- |
-| `extract-skills.ts` | `bun run extract:skills` | `skills.json` |
-| `extract-support-cards.ts` | `bun run extract:support-cards` | `support-cards.json` |
-| `extract-uma-info.ts` | `bun run extract:uma-info` | `umas.json` |
-| `extract-course-data.ts` | `bun run extract:course-data` | `course_data.json` |
-| `extract-all.ts` | `bun run extract:all` | All of the above |
+| `extract-skills.ts` | `bun run extract:skills` | `src/modules/data/json/skills.json` |
+| `extract-support-cards.ts` | `bun run extract:support-cards` | `src/modules/data/json/support-cards.json` |
+| `extract-uma-info.ts` | `bun run extract:uma-info` | `src/modules/data/json/umas.json` |
 
-### GameTora Fetch
+### Legacy / Redundant Helper
 
-| Script | Command | Output |
+| Script | Command | Status |
 | --- | --- | --- |
-| `fetch-support-events.ts` | `bun run fetch:support-events` | `support-cards.json` (eventSkills), `support-events.json` |
+| `fetch-support-events.ts` | `bun run fetch:support-events` | Redundant for the main pipeline; support card events now come from GameTora snapshots |
 
-Fetches support card event data from GameTora's public manifest API. Populates `eventSkills` on each support card — the skill hints granted by card events that `master.mdb` does not expose.
+`fetch:support-events` is kept for now as a standalone utility, but it is no longer required for normal data syncs.
 
-Fetches five event categories and maps them to support cards:
+## Resource Version Tracking
 
-| Category | Keyed by | Applies to |
-| --- | --- | --- |
-| `training_events/ssr` | support card ID | SSR cards |
-| `training_events/sr` | support card ID | SR cards |
-| `training_events/shared` | character ID | All cards for that character |
-| `training_events/friend` | character ID | Friend-type cards |
-| `training_events/group` | support card ID | Group-type cards |
+Course extraction updates `data-manifest.json` after a successful run.
 
-Use `--dry-run` to preview without writing files.
+```bash
+# Use a known resource version
+bun run extract:all -- --resource-version 10004010
 
-**Requires:** `support-cards.json` and `skills.json` to already exist (run `extract:all` first).
+# Resolve the latest version from uma.moe before writing the manifest
+bun run extract:all -- --resolve-resource-version
+```
+
+The same flags also work with `bun run extract:course-data`.
 
 ## Output Files
 
-All output goes to `src/modules/data/json/`:
+### Primary Pipeline Outputs
 
-| File | Source(s) | Description |
+| File | Source | Produced by |
 | --- | --- | --- |
-| `skills.json` | master.mdb | Skill metadata, names, and activation mechanics |
-| `support-cards.json` | master.mdb + GameTora | Card data with `hintSkills` and `eventSkills` |
-| `support-events.json` | GameTora | Full event data (names, choices, rewards) |
-| `umas.json` | master.mdb | Character data (names, outfits) |
-| `course_data.json` | master.mdb | Course geometry (corners, straights, slopes) |
+| `src/modules/data/json/gametora/*.json` | GameTora | `bun run sync:data` |
+| `src/modules/data/json/course_data.json` | master.mdb | `bun run extract:all` / `bun run extract:course-data` |
+| `data-manifest.json` | sync metadata | `bun run sync:data`, then updated by course extraction |
+
+### Standalone Fallback Outputs
+
+| File | Source | Produced by |
+| --- | --- | --- |
+| `src/modules/data/json/skills.json` | master.mdb | `bun run extract:skills` |
+| `src/modules/data/json/support-cards.json` | master.mdb | `bun run extract:support-cards` |
+| `src/modules/data/json/umas.json` | master.mdb | `bun run extract:uma-info` |
+| `src/modules/data/json/support-events.json` | GameTora | `bun run fetch:support-events` |
 
 ## Merge vs Replace
 
+Course extraction still supports the existing modes:
+
 | Mode | Behavior | Use when |
 | --- | --- | --- |
-| **Merge** (default) | Updates master.mdb entries, preserves others | Regular updates, keeping future/datamined content |
-| **Replace** (`--replace`) | Overwrites with only master.mdb content | Fresh start, cleaning corrupted data |
+| **Merge** (default) | Updates courses found in `master.mdb`, preserves others | Regular updates |
+| **Replace** (`--replace`) | Overwrites with only current `master.mdb` courses | Clean rebuild |
 
 ```bash
-bun run extract:all                # Merge (default)
-bun run extract:all -- --replace   # Replace
+bun run extract:all
+bun run extract:all -- --replace
 ```
 
 ## Shared Libraries
 
-- **`scripts/master-data/shared.ts`** — JSON I/O, key sorting, DB path resolution
-- **`scripts/master-data/database.ts`** — SQLite helpers (`openDatabase`, `queryAll`, etc.)
+- `scripts/master-data/shared.ts` — JSON I/O, key sorting, DB path resolution
+- `scripts/master-data/database.ts` — SQLite helpers
+- `scripts/master-data/uma-api.ts` — latest resource version lookup via `uma.moe`
 
 ## Troubleshooting
 
-- **"Failed to open database"** — check path, ensure game is not running (file lock), verify permissions.
-- **"Could not read courseeventparams"** — ensure `courseeventparams/` directory exists with course JSON files.
-- **`fetch:support-events` network errors** — the script falls back to `.cache/gametora/` automatically. Re-run when connectivity is restored to refresh the cache.
-
-## Acknowledgements
-
-Support card event data is sourced from [GameTora](https://gametora.com/), an invaluable community resource for Uma Musume game data. We are grateful for the data they make available, which allows us to provide complete support card event and skill hint information that is not available in `master.mdb` alone.
+- **"Failed to open database"** — check the `master.mdb` path, permissions, and whether the game is locking the file.
+- **"Could not read courseeventparams"** — ensure the `courseeventparams/` directory exists with course JSON files.
+- **`sync:data` network errors** — retry when connectivity is restored.
+- **`fetch:support-events` network errors** — the script falls back to `.cache/gametora/` automatically.
