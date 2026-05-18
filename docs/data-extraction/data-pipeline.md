@@ -18,20 +18,15 @@ The project now uses a split-source pipeline with clear ownership:
 
 GameTora is the authoritative source for entity catalog data. `master.mdb` is now only used for course geometry needed by the simulator.
 
-## Recommended Pipeline Order
+## Pipeline Commands
+
+The two sources are independent — run either or both as needed, in any order:
 
 ```bash
-# 1. Sync GameTora snapshots
-bun run sync:data
-
-# 2. Extract course geometry from master.mdb
-bun run extract:all
+bun run sync:data       # Entity catalog from GameTora
+bun run db:fetch        # Download latest master.mdb
+bun run extract:all     # Extract course geometry from master.mdb
 ```
-
-Recommended order:
-
-1. **`sync:data` first** so the entity catalog snapshots are fresh.
-2. **`extract:all` second** to refresh course geometry and stamp `data-manifest.json` with the latest course extraction time.
 
 If you know the `master.mdb` resource version, or want to resolve it from `uma.moe`, pass one of these when extracting courses:
 

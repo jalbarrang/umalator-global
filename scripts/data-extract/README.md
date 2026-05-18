@@ -9,14 +9,12 @@ For the end-to-end pipeline and source ownership, see:
 
 ## Primary Pipeline
 
-The main data flow is now split by source:
-
-1. `bun run sync:data` — snapshot the **GameTora entity catalog**
-2. `bun run extract:all` — extract **course geometry only** from `master.mdb`
+The main data flow is split by two independent sources — run either or both as needed, in any order:
 
 ```bash
-bun run sync:data
-bun run extract:all
+bun run sync:data       # Entity catalog (skills, umas, cards) from GameTora
+bun run db:fetch        # Download latest master.mdb
+bun run extract:all     # Extract course geometry from master.mdb
 ```
 
 What that produces:
