@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.8.0](https://github.com/jalbarrang/umalator-global/compare/v0.7.1...v0.8.0) (2026-05-18)
+
+
+### Features
+
+* added umas that have those skills ([b372444](https://github.com/jalbarrang/umalator-global/commit/b3724444ce55b7e37662f72dcf1b4ac2cff5cf98))
+* **data:** extract support cards ([fd88921](https://github.com/jalbarrang/umalator-global/commit/fd88921b9179b97637f85ccb417350445418f283))
+* embed skill relationship metadata ([70c08b3](https://github.com/jalbarrang/umalator-global/commit/70c08b3a16612baac806c20e20cec16825211d93))
+* made it so it shows lock level on skill ([7cbb26c](https://github.com/jalbarrang/umalator-global/commit/7cbb26c54758f3dd9c43952b507c2be99c7662bc))
+
+
+### Bug Fixes
+
+* resolve support cards react doctor issues ([f963f88](https://github.com/jalbarrang/umalator-global/commit/f963f8867d7893f896d54336b57aebc0f3bd3c14))
+
 ## [0.7.1](https://github.com/jalbarrang/umalator-global/compare/v0.7.0...v0.7.1) (2026-05-15)
 
 
