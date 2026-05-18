@@ -42,15 +42,15 @@ Open the local URL printed by Vite to use the simulator UI.
 
 ### Sync Game Data
 
-Game data comes from two independent sources. Run either or both as needed:
-
 ```bash
-bun run sync:data       # Entity catalog (skills, umas, cards) from GameTora
-bun run db:fetch        # Download latest master.mdb to ./db
-bun run extract:all     # Extract course geometry from master.mdb
+bun run db:fetch        # 1. Download latest master.mdb to ./db
+bun run extract:all     # 2. Extract course geometry from master.mdb
+bun run sync:data       # 3. Sync entity catalog (skills, umas, cards) from GameTora
 ```
 
-`sync:data` only re-fetches data that changed since the last sync. See [docs/data-extraction/data-pipeline.md](docs/data-extraction/data-pipeline.md) for details.
+Start with `master.mdb` to establish what's live on Global, then sync GameTora to overlay the full catalog (including upcoming content). `sync:data` only re-fetches data that changed since the last sync.
+
+See [docs/data-extraction/data-pipeline.md](docs/data-extraction/data-pipeline.md) for details.
 
 ## Deployment
 

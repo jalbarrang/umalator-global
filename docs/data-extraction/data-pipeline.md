@@ -20,13 +20,15 @@ GameTora is the authoritative source for entity catalog data. `master.mdb` is no
 
 ## Pipeline Commands
 
-The two sources are independent — run either or both as needed, in any order:
+Start with `master.mdb` to establish what's live on Global, then sync GameTora to overlay the full catalog:
 
 ```bash
-bun run sync:data       # Entity catalog from GameTora
-bun run db:fetch        # Download latest master.mdb
-bun run extract:all     # Extract course geometry from master.mdb
+bun run db:fetch        # 1. Download latest master.mdb
+bun run extract:all     # 2. Extract course geometry from master.mdb
+bun run sync:data       # 3. Sync entity catalog (skills, umas, cards) from GameTora
 ```
+
+`master.mdb` is the Global ground truth. GameTora layers on top with the complete catalog (including upcoming content, `loc.en` condition overrides, and provenance flags).
 
 If you know the `master.mdb` resource version, or want to resolve it from `uma.moe`, pass one of these when extracting courses:
 

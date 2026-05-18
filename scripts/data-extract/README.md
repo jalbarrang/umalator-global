@@ -9,12 +9,12 @@ For the end-to-end pipeline and source ownership, see:
 
 ## Primary Pipeline
 
-The main data flow is split by two independent sources — run either or both as needed, in any order:
+Start with `master.mdb` to establish what's live on Global, then sync GameTora for the full catalog:
 
 ```bash
-bun run sync:data       # Entity catalog (skills, umas, cards) from GameTora
-bun run db:fetch        # Download latest master.mdb
-bun run extract:all     # Extract course geometry from master.mdb
+bun run db:fetch        # 1. Download latest master.mdb
+bun run extract:all     # 2. Extract course geometry from master.mdb
+bun run sync:data       # 3. Sync entity catalog (skills, umas, cards) from GameTora
 ```
 
 What that produces:
