@@ -28,29 +28,14 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/in
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { config } from '@/config';
 import { dataRegistry } from '@/modules/data/registry';
+import type { SupportCardEntry } from '@/modules/data/services/SupportCardService';
 import { SkillDetails } from '@/modules/skills/components/skill-details';
 import { SkillIcon } from '@/modules/skills/components/skill-list/skill-item/SkillIcon';
-import supportCardsJson from '@/modules/data/json/support-cards.json';
 import { cn } from '@/lib/utils';
 
-type SupportSkill = {
-  id: number;
-  name: string;
-  rarity: number;
-};
+type SupportSkill = SupportCardEntry['hintSkills'][number];
 
-type SupportCardEntry = {
-  id: number;
-  name: string;
-  charaId: number;
-  charaName: string;
-  rarity: number;
-  supportCardType: number;
-  hintSkills: SupportSkill[];
-  eventSkills: SupportSkill[];
-};
-
-const supportCards = Object.values(supportCardsJson) as SupportCardEntry[];
+const supportCards = dataRegistry.supportCards.getAll();
 
 const supportSkillStatsById = new Map<
   string,

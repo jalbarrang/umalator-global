@@ -13,11 +13,31 @@ export type UmasMap = Record<string, UmaEntry>;
 // Service
 // =======
 
+export type UmaServiceOptions = {
+  releasedOutfits?: Iterable<string>;
+};
+
+function collectOutfitIds(umasData: UmasMap): Set<string> {
+  const outfitIds = new Set<string>();
+
+  for (const uma of Object.values(umasData)) {
+    for (const outfitId of Object.keys(uma.outfits)) {
+      outfitIds.add(outfitId);
+    }
+  }
+
+  return outfitIds;
+}
+
 export class UmaService {
   private readonly umas: UmasMap;
+  private readonly releasedOutfits: Set<string>;
 
-  constructor(umasData: UmasMap) {
+  constructor(umasData: UmasMap, options: UmaServiceOptions = {}) {
+    const { releasedOutfits } = options;
+
     this.umas = umasData;
+    this.releasedOutfits = new Set(releasedOutfits ?? collectOutfitIds(umasData));
   }
 
   // =====
@@ -31,13 +51,11 @@ export class UmaService {
   getById = (id: string): UmaEntry | undefined => this.umas[id];
 
   getByOutfitId = (outfitId: string): UmaEntry | undefined => {
-    const uma = this.umas[outfitId];
+    return Object.values(this.umas).find((uma) => uma.outfits[outfitId] !== undefined);
+  };
 
-    if (uma === undefined) {
-      return undefined;
-    }
-
-    return uma;
+  isReleased = (outfitId: string): boolean => {
+    return this.releasedOutfits.has(outfitId);
   };
 
   umaForUniqueSkill = (skillId: string): string | null => {
