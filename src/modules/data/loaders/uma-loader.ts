@@ -1,7 +1,7 @@
 import characterCardsJson from '@/modules/data/json/gametora/character-cards.json';
 import type { UmasMap } from '@/modules/data/services/UmaService';
 
-type GameToraCharacterCardSnapshot = {
+type CharacterCardSnapshot = {
   card_id: number;
   char_id: number;
   name_en?: string | null;
@@ -11,15 +11,14 @@ type GameToraCharacterCardSnapshot = {
   release_en?: string | null;
 };
 
-export type LoadGameToraUmasResult = {
+export type LoadUmasResult = {
   umas: UmasMap;
   releasedOutfits: Set<string>;
 };
 
-export function loadGameToraUmas(
-  characterCards: Array<GameToraCharacterCardSnapshot> =
-    characterCardsJson as Array<GameToraCharacterCardSnapshot>
-): LoadGameToraUmasResult {
+export function loadUmas(
+  characterCards: Array<CharacterCardSnapshot> = characterCardsJson as Array<CharacterCardSnapshot>
+): LoadUmasResult {
   const umas: UmasMap = {};
   const releasedOutfits = new Set<string>();
 

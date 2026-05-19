@@ -1,8 +1,8 @@
 import coursesJson from '@/modules/data/json/course_data.json';
 
-import { loadGameToraSkills } from './loaders/skill-loader';
-import { loadGameToraSupportCards } from './loaders/support-card-loader';
-import { loadGameToraUmas } from './loaders/uma-loader';
+import { loadSkills } from './loaders/skill-loader';
+import { loadSupportCards } from './loaders/support-card-loader';
+import { loadUmas } from './loaders/uma-loader';
 import { CourseService } from './services/CourseService';
 import { GameToraSkillService } from './services/GameToraSkillService';
 import { SkillService } from './services/SkillService';
@@ -40,18 +40,26 @@ export class DataRegistry {
   }
 }
 
-const loadedSkills = loadGameToraSkills();
-const loadedUmas = loadGameToraUmas();
-const loadedSupportCards = loadGameToraSupportCards(loadedSkills.skills);
+export const createDataRegistry = (): DataRegistry => {
+  const loadedSkills = loadSkills();
+  const loadedUmas = loadUmas();
+  const loadedSupportCards = loadSupportCards(loadedSkills.skills);
 
-export const dataRegistry = new DataRegistry({
-  skills: new GameToraSkillService(loadedSkills.skills, {
-    releasedSkillIds: loadedSkills.releasedSkillIds,
-    activationChecks: loadedSkills.activationChecks
-  }),
-  courses: new CourseService(coursesJson as any),
-  umas: new UmaService(loadedUmas.umas, {
-    releasedOutfits: loadedUmas.releasedOutfits
-  }),
-  supportCards: new SupportCardService(loadedSupportCards)
-});
+  const dataRegistry = new DataRegistry({
+    skills: new GameToraSkillService(loadedSkills.skills, {
+      releasedSkillIds: loadedSkills.releasedSkillIds,
+      activationChecks: loadedSkills.activationChecks
+    }),
+
+    courses: new CourseService(coursesJson as any),
+    umas: new UmaService(loadedUmas.umas, {
+      releasedOutfits: loadedUmas.releasedOutfits
+    }),
+
+    supportCards: new SupportCardService(loadedSupportCards)
+  });
+
+  return dataRegistry;
+};
+
+export const dataRegistry = createDataRegistry();

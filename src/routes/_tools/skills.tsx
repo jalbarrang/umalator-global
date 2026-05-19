@@ -25,6 +25,7 @@ import { SkillDetails } from '@/modules/skills/components/skill-details';
 import { formatEffect } from '@/modules/skills/components/formatters';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
+import { useUIStore } from '@/store/ui.store';
 
 const SKILL_CARD_ESTIMATED_HEIGHT = 360;
 const SKILL_CARD_GAP = 12;
@@ -393,9 +394,10 @@ function SkillBrowserItem(props: SkillBrowserItemProps) {
 function SkillsBrowserContent() {
   const [searchText, setSearchText] = useState('');
   const deferredSearchText = useDeferredValue(searchText);
+  const showUpcoming = useUIStore((state) => state.showUpcoming);
 
   const allSkills = useMemo(() => dataRegistry.skills.getAll(), []);
-  const filteredSkills = useFilteredSkills(deferredSearchText, allSkills);
+  const filteredSkills = useFilteredSkills(deferredSearchText, allSkills, { showUpcoming });
   const parentRef = useRef<HTMLDivElement>(null);
 
   const rowVirtualizer = useVirtualizer({

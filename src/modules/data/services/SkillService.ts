@@ -75,14 +75,11 @@ export type SkillServiceOptions = {
   activationChecks?: Record<string, SkillActivationCheck>;
 };
 
-// =======
-// Service
-// =======
-
 export class SkillService {
   private readonly skillCollection: SkillsMap;
   private readonly releasedSkillIds: Set<string>;
   private readonly activationChecks: Map<string, SkillActivationCheck>;
+
   private skillLookup: Map<string, SkillLookupEntry> | null = null;
   private skillLookupCandidates: Map<string, Array<SkillLookupEntry>> | null = null;
   private simulatabilityCache: Map<string, boolean> | null = null;
@@ -91,6 +88,7 @@ export class SkillService {
     const { releasedSkillIds, activationChecks } = options;
 
     this.skillCollection = skillsData;
+
     this.releasedSkillIds = new Set(releasedSkillIds ?? Object.keys(skillsData));
     this.activationChecks = new Map(Object.entries(activationChecks ?? {}));
   }

@@ -1,12 +1,12 @@
 import gameToraSupportCardsJson from '@/modules/data/json/gametora/support-cards.json';
-import { loadGameToraSkills } from '@/modules/data/loaders/skill-loader';
+import { loadSkills } from '@/modules/data/loaders/skill-loader';
 import type { SkillsMap } from '@/modules/data/services/SkillService';
 import type {
   SupportCardSkillEntry,
   SupportCardsMap
 } from '@/modules/data/services/SupportCardService';
 
-type GameToraSupportCardSnapshot = {
+type SupportCardSnapshot = {
   support_id: number;
   char_id: number;
   char_name?: string | null;
@@ -38,7 +38,7 @@ function getDefaultSkills(): SkillsMap {
     return cachedSkills;
   }
 
-  cachedSkills = loadGameToraSkills().skills;
+  cachedSkills = loadSkills().skills;
   return cachedSkills;
 }
 
@@ -50,10 +50,7 @@ function resolveSupportCardType(type: string | null | undefined): number {
   return supportCardTypeMap[type] ?? 0;
 }
 
-function toSupportCardSkillEntry(
-  skillId: number,
-  skills: SkillsMap
-): SupportCardSkillEntry {
+function toSupportCardSkillEntry(skillId: number, skills: SkillsMap): SupportCardSkillEntry {
   const skillEntry = skills[String(skillId)];
 
   return {
@@ -63,10 +60,9 @@ function toSupportCardSkillEntry(
   };
 }
 
-export function loadGameToraSupportCards(
+export function loadSupportCards(
   skills: SkillsMap = getDefaultSkills(),
-  supportCards: Array<GameToraSupportCardSnapshot> =
-    gameToraSupportCardsJson as Array<GameToraSupportCardSnapshot>
+  supportCards: Array<SupportCardSnapshot> = gameToraSupportCardsJson as Array<SupportCardSnapshot>
 ): SupportCardsMap {
   const supportCardMap: SupportCardsMap = {};
 

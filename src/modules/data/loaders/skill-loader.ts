@@ -1,5 +1,5 @@
 import masterSkillsJson from '@/modules/data/json/skills.json';
-import gameToraSkillsJson from '@/modules/data/json/gametora/skills.json';
+import fetchedSkillsJson from '@/modules/data/json/gametora/skills.json';
 import type {
   SkillActivationCheck,
   SkillEntry,
@@ -48,7 +48,7 @@ type GameToraLocalizedSkill = {
   name_en?: string;
 };
 
-type GameToraSkillSnapshot = {
+type SkillSnapshot = {
   id: number;
   rarity: number;
   activation: number;
@@ -66,11 +66,11 @@ type GameToraSkillSnapshot = {
   };
 };
 
-type ResolvedGameToraSkillSnapshot = Omit<GameToraSkillSnapshot, 'gene_version'> & {
+type ResolvedGameToraSkillSnapshot = Omit<SkillSnapshot, 'gene_version'> & {
   gene_version?: GameToraGeneVersion;
 };
 
-export type LoadGameToraSkillsResult = {
+export type LoadSkillsResult = {
   skills: SkillsMap;
   releasedSkillIds: Set<string>;
   activationChecks: Record<string, SkillActivationCheck>;
@@ -93,9 +93,7 @@ function cloneSkillEntry(entry: SkillEntry): SkillEntry {
   };
 }
 
-function resolveLocalizedGeneVersion(
-  skill: GameToraSkillSnapshot
-): GameToraGeneVersion | undefined {
+function resolveLocalizedGeneVersion(skill: SkillSnapshot): GameToraGeneVersion | undefined {
   const { gene_version: geneVersion } = skill;
 
   if (!geneVersion) {
@@ -114,7 +112,7 @@ function resolveLocalizedGeneVersion(
   };
 }
 
-function resolveLocalizedSkill(skill: GameToraSkillSnapshot): ResolvedGameToraSkillSnapshot {
+function resolveLocalizedSkill(skill: SkillSnapshot): ResolvedGameToraSkillSnapshot {
   const localizedSkill = skill.loc?.en;
 
   return {
@@ -147,10 +145,12 @@ function mergeAlternatives(
   existingAlternatives: Array<SkillAlternative> | undefined
 ): Array<SkillAlternative> {
   if (!groups || groups.length === 0) {
-    return existingAlternatives?.map((alternative) => ({
-      ...alternative,
-      effects: alternative.effects.map((effect) => ({ ...effect }))
-    })) ?? [];
+    return (
+      existingAlternatives?.map((alternative) => ({
+        ...alternative,
+        effects: alternative.effects.map((effect) => ({ ...effect }))
+      })) ?? []
+    );
   }
 
   return groups.map((group, groupIndex) => {
@@ -193,7 +193,7 @@ function toReferenceEntry(value: {
   };
 }
 
-function buildMergedSkillEntry(params: {
+type BuildMergedSkillEntryParams = {
   resolvedSkill: ResolvedGameToraSkillSnapshot | GameToraGeneVersion;
   existingEntry?: SkillEntry;
   character: Array<number>;
@@ -201,10 +201,19 @@ function buildMergedSkillEntry(params: {
   defaultOrder?: number;
   defaultBaseCost?: number;
   defaultType?: string | Array<string>;
-}): SkillEntry {
-  const { resolvedSkill, existingEntry, character, defaultGroupId = 0, defaultOrder = 0 } = params;
-  const baseCost = params.defaultBaseCost ?? 0;
-  const defaultType = params.defaultType;
+};
+
+function buildMergedSkillEntry(params: BuildMergedSkillEntryParams): SkillEntry {
+  const {
+    resolvedSkill,
+    existingEntry,
+    character,
+    defaultGroupId = 0,
+    defaultOrder = 0,
+    defaultBaseCost = 0,
+    defaultType = ''
+  } = params;
+
   const resolvedIconId =
     existingEntry?.iconId ??
     ('iconid' in resolvedSkill && resolvedSkill.iconid !== undefined
@@ -215,15 +224,14 @@ function buildMergedSkillEntry(params: {
     ...existingEntry,
     id: String(resolvedSkill.id),
     rarity: resolvedSkill.rarity,
-    alternatives: mergeAlternatives(
-      resolvedSkill.condition_groups,
-      existingEntry?.alternatives
-    ),
+    alternatives: mergeAlternatives(resolvedSkill.condition_groups, existingEntry?.alternatives),
     groupId: existingEntry?.groupId ?? defaultGroupId,
     versions: existingEntry?.versions ? [...existingEntry.versions] : [],
     family: existingEntry?.family ? existingEntry.family.map((entry) => ({ ...entry })) : [],
     iconId: resolvedIconId,
-    baseCost: existingEntry?.baseCost ?? ('cost' in resolvedSkill ? resolvedSkill.cost ?? baseCost : baseCost),
+    baseCost:
+      existingEntry?.baseCost ??
+      ('cost' in resolvedSkill ? (resolvedSkill.cost ?? defaultBaseCost) : defaultBaseCost),
     order: existingEntry?.order ?? defaultOrder,
     name: resolveSkillName(resolvedSkill, existingEntry?.name),
     character: character.length > 0 ? [...character] : [...(existingEntry?.character ?? [])],
@@ -239,10 +247,10 @@ function compareParentReferences(a: SkillReferenceEntry, b: SkillReferenceEntry)
   return b.rarity - a.rarity || String(a.id).localeCompare(String(b.id));
 }
 
-export function loadGameToraSkills(
+export function loadSkills(
   masterSkills: SkillsMap = masterSkillsJson as SkillsMap,
-  gameToraSkills: Array<GameToraSkillSnapshot> = gameToraSkillsJson as Array<GameToraSkillSnapshot>
-): LoadGameToraSkillsResult {
+  gameToraSkills: Array<SkillSnapshot> = fetchedSkillsJson as Array<SkillSnapshot>
+): LoadSkillsResult {
   const releasedSkillIds = new Set(Object.keys(masterSkills));
   const activationChecks: Record<string, SkillActivationCheck> = {};
   const mergedSkills: SkillsMap = Object.fromEntries(

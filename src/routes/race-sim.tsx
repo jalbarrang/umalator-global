@@ -19,11 +19,18 @@ import { createSkillSorterByGroup, toCreateRunner } from '@/modules/simulation/s
 import { useSettingsStore } from '@/store/settings.store';
 import { setDismissal, useUIStore } from '@/store/ui.store';
 import { useSkillModalStore } from '@/modules/skills/store';
+import { getSelectableSkillsForUma } from '@/modules/skills/utils';
 import type { RaceSimWorkerParams } from '@/workers/race-sim.worker';
 import { SkillPickerModal } from '@/modules/skills/components/skill-picker/modal';
 
 function RaceSimSkillPicker() {
-  const { open, umaId, options, currentSkills, onSelect } = useSkillModalStore();
+  const { open, umaId, currentSkills, onSelect } = useSkillModalStore();
+  const showUpcoming = useUIStore((state) => state.showUpcoming);
+
+  const options = useMemo(
+    () => (umaId ? getSelectableSkillsForUma(umaId, showUpcoming) : []),
+    [umaId, showUpcoming]
+  );
 
   const handleOpenChange = useCallback((value: boolean) => {
     useSkillModalStore.setState({ open: value });

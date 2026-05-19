@@ -132,7 +132,13 @@ export const useSkillPickerActions = () => {
 
 type IconIdPrefix = keyof typeof iconIdPrefixes;
 
-export const useFilteredSkills = (deferredSearchText: string, skills: Array<SkillEntry>) => {
+export const useFilteredSkills = (
+  deferredSearchText: string,
+  skills: Array<SkillEntry>,
+  options: { showUpcoming?: boolean } = {}
+) => {
+  const { showUpcoming = false } = options;
+
   const filters = useSkillPickerStore((state) => state.filters);
 
   return useMemo(() => {
@@ -145,6 +151,7 @@ export const useFilteredSkills = (deferredSearchText: string, skills: Array<Skil
 
     return SkillQuery.from(skills)
       .whereValid()
+      .whereIsUpcoming(showUpcoming)
       .whereText(deferredSearchText)
       .whereAny(activeRarities, (skill, r) => matchRarity(skill.id, r))
       .whereAny(activeIconTypes, (skill, iconKey) =>
@@ -155,7 +162,7 @@ export const useFilteredSkills = (deferredSearchText: string, skills: Array<Skil
       .whereConditionMatch(activeSurfaces)
       .whereConditionMatch(activeLocations)
       .execute();
-  }, [deferredSearchText, filters, skills]);
+  }, [deferredSearchText, filters, skills, showUpcoming]);
 };
 
 export const useSelectedOtherFiltersCount = () => {

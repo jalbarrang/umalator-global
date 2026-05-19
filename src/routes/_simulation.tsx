@@ -1,10 +1,11 @@
-import { Activity, Suspense, useCallback, useState } from 'react';
+import { Activity, Suspense, useCallback, useMemo, useState } from 'react';
 import { Outlet } from 'react-router';
 import { Construction, SidebarOpen, XIcon } from 'lucide-react';
 
 import { LeftSidebar } from '@/layout/left-sidebar';
 import { SimulationModeToggle } from '@/components/simulation-mode-toggle';
 import { useSkillModalStore } from '@/modules/skills/store';
+import { getSelectableSkillsForUma } from '@/modules/skills/utils';
 import { Alert, AlertTitle, AlertDescription, AlertAction } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { setDismissal, setLeftSidebar, useLeftSidebar, useUIStore } from '@/store/ui.store';
@@ -67,7 +68,13 @@ const CompareAlert = ({ onDismiss }: CompareAlertProps) => {
 export function SimulationLayout() {
   const { hidden } = useLeftSidebar();
   const dismissed = useUIStore((state) => state.dismissals['compare-notice']);
-  const { open, umaId, options, currentSkills, onSelect } = useSkillModalStore();
+  const { open, umaId, currentSkills, onSelect } = useSkillModalStore();
+  const showUpcoming = useUIStore((state) => state.showUpcoming);
+
+  const options = useMemo(
+    () => (umaId ? getSelectableSkillsForUma(umaId, showUpcoming) : []),
+    [umaId, showUpcoming]
+  );
 
   const handleOpenChange = (value: boolean) => {
     useSkillModalStore.setState({ open: value });
