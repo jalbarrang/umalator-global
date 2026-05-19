@@ -4,8 +4,8 @@ import {
   useDeferredValue,
   useEffect,
   useMemo,
-  useRef,
-  useState
+  useReducer,
+  useRef
 } from 'react';
 import { FilterIcon, SearchIcon } from 'lucide-react';
 import { useVirtualizer } from '@tanstack/react-virtual';
@@ -84,6 +84,83 @@ type AptitudeFilterGridProps = {
   onChange: (key: UmaAptitudeKey, value: number | null) => void;
 };
 
+type UmaSelectorUiState = {
+  open: boolean;
+  selectedOutfitId: string;
+  filtersOpen: boolean;
+  search: string;
+  aptitudeFilters: UmaAptitudeFilters;
+  scrollElement: HTMLDivElement | null;
+};
+
+type UmaSelectorAction =
+  | { type: 'dialog:openChange'; open: boolean; selectedOutfitId?: string }
+  | { type: 'uma:select'; outfitId: string }
+  | { type: 'search:set'; value: string }
+  | { type: 'filters:openChange'; open: boolean }
+  | { type: 'filters:aptitude:set'; key: UmaAptitudeKey; value: number | null }
+  | { type: 'scroll:set'; element: HTMLDivElement | null };
+
+function createInitialUmaSelectorState(value: string): UmaSelectorUiState {
+  return {
+    open: false,
+    selectedOutfitId: value,
+    filtersOpen: false,
+    search: '',
+    aptitudeFilters: {},
+    scrollElement: null
+  };
+}
+
+function umaSelectorReducer(state: UmaSelectorUiState, action: UmaSelectorAction): UmaSelectorUiState {
+  switch (action.type) {
+    case 'dialog:openChange':
+      return {
+        ...state,
+        open: action.open,
+        ...(action.selectedOutfitId !== undefined
+          ? { selectedOutfitId: action.selectedOutfitId }
+          : {})
+      };
+    case 'uma:select':
+      return {
+        ...state,
+        open: false,
+        search: '',
+        selectedOutfitId: action.outfitId
+      };
+    case 'search:set':
+      return {
+        ...state,
+        search: action.value
+      };
+    case 'filters:openChange':
+      return {
+        ...state,
+        filtersOpen: action.open
+      };
+    case 'filters:aptitude:set': {
+      const next = { ...state.aptitudeFilters };
+
+      if (action.value == null) {
+        delete next[action.key];
+      } else {
+        next[action.key] = action.value;
+      }
+
+      return {
+        ...state,
+        aptitudeFilters: next
+      };
+    }
+    case 'scroll:set':
+      return {
+        ...state,
+        scrollElement: action.element
+      };
+  }
+}
+
 const AptitudeFilterGrid = (props: AptitudeFilterGridProps) => {
   const { filters, onChange } = props;
 
@@ -129,14 +206,14 @@ const AptitudeFilterGrid = (props: AptitudeFilterGridProps) => {
 
 export const UmaSelector = (props: UmaSelectorProps) => {
   const { value, randomMobId, select } = props;
-  const [open, setOpen] = useState(false);
-  const [selectedOutfitId, setSelectedOutfitId] = useState(value);
-  const [filtersOpen, setFiltersOpen] = useState(false);
-  const [search, setSearch] = useState('');
-  const [aptitudeFilters, setAptitudeFilters] = useState<UmaAptitudeFilters>({});
+  const [state, dispatch] = useReducer(
+    umaSelectorReducer,
+    value,
+    createInitialUmaSelectorState
+  );
+  const { open, selectedOutfitId, filtersOpen, search, aptitudeFilters, scrollElement } = state;
   const deferredSearch = useDeferredValue(search);
   const searchRef = useRef<HTMLInputElement>(null);
-  const [scrollElement, setScrollElement] = useState<HTMLDivElement | null>(null);
   const isMobile = useIsMobile();
   const columns = isMobile ? 3 : 4;
   const showUpcoming = useUIStore((state) => state.showUpcoming);
@@ -187,10 +264,8 @@ export const UmaSelector = (props: UmaSelectorProps) => {
         return;
       }
 
-      setSelectedOutfitId(uma.id);
+      dispatch({ type: 'uma:select', outfitId: uma.id });
       select(uma.id);
-      setOpen(false);
-      setSearch('');
     },
     [filteredUmas, select]
   );
@@ -213,21 +288,22 @@ export const UmaSelector = (props: UmaSelectorProps) => {
   });
 
   const handleOpenChange = (isOpen: boolean) => {
-    setOpen(isOpen);
+    dispatch({
+      type: 'dialog:openChange',
+      open: isOpen,
+      selectedOutfitId: isOpen ? value : undefined
+    });
 
     if (isOpen) {
       const selectedIndex = filteredUmas.findIndex((uma) => uma.id === value);
 
-      setSelectedOutfitId(value);
       resetKeyboardNavigation(Math.max(0, selectedIndex));
     }
   };
 
   const handleSelectedItem = (outfitId: string) => {
-    setSelectedOutfitId(outfitId);
+    dispatch({ type: 'uma:select', outfitId });
     select(outfitId);
-    setOpen(false);
-    setSearch('');
   };
 
   const resetScroll = () => {
@@ -238,23 +314,13 @@ export const UmaSelector = (props: UmaSelectorProps) => {
 
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
     resetBrowsing();
-    setSearch(event.target.value);
+    dispatch({ type: 'search:set', value: event.target.value });
     resetScroll();
   };
 
   const handleAptitudeFilterChange = (key: UmaAptitudeKey, filterValue: number | null) => {
     resetBrowsing();
-    setAptitudeFilters((current) => {
-      const next = { ...current };
-
-      if (filterValue == null) {
-        delete next[key];
-      } else {
-        next[key] = filterValue;
-      }
-
-      return next;
-    });
+    dispatch({ type: 'filters:aptitude:set', key, value: filterValue });
     resetScroll();
   };
 
@@ -300,7 +366,10 @@ export const UmaSelector = (props: UmaSelectorProps) => {
             />
           </InputGroup>
 
-          <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>
+          <Collapsible
+            open={filtersOpen}
+            onOpenChange={(nextOpen) => dispatch({ type: 'filters:openChange', open: nextOpen })}
+          >
             <div className="flex items-center justify-between gap-2">
               <UpcomingToggle />
 
@@ -328,7 +397,7 @@ export const UmaSelector = (props: UmaSelectorProps) => {
             No results found.
           </div>
         ) : (
-          <div ref={setScrollElement} className="flex-1 min-h-0 overflow-y-auto">
+          <div ref={(element) => dispatch({ type: 'scroll:set', element })} className="flex-1 min-h-0 overflow-y-auto">
             <div style={{ height: rowVirtualizer.getTotalSize() }} className="relative w-full">
               {rowVirtualizer.getVirtualItems().map((virtualRow) => {
                 const rowStart = virtualRow.index * columns;
