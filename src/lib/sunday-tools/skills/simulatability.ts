@@ -30,7 +30,11 @@ export function extractConditionTokens(condition: string): Array<string> {
 
     // Skip digits (integer literals)
     if (ch >= 48 && ch <= 57) {
-      while (i < condition.length && condition.charCodeAt(i) >= 48 && condition.charCodeAt(i) <= 57) {
+      while (
+        i < condition.length &&
+        condition.charCodeAt(i) >= 48 &&
+        condition.charCodeAt(i) <= 57
+      ) {
         i++;
       }
       continue;
@@ -103,9 +107,7 @@ export function areAlternativesSimulatable(alternatives: Array<SkillAlternative>
  * Find unknown condition tokens across a skill's alternatives.
  * Returns an empty array if all tokens are recognized.
  */
-export function findUnknownConditionTokens(
-  alternatives: Array<SkillAlternative>,
-): Array<string> {
+export function findUnknownConditionTokens(alternatives: Array<SkillAlternative>): Array<string> {
   const unknown = new Set<string>();
 
   for (const alt of alternatives) {

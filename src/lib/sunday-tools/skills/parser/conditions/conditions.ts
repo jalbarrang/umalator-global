@@ -982,6 +982,4 @@ export const defaultConditions: ConditionsMap<ICondition> = {
  * Set of all condition token names recognized by the simulation engine.
  * Used to validate whether a skill's conditions can be parsed without crashing.
  */
-export const knownConditionTokens: ReadonlySet<string> = new Set(
-  Object.keys(defaultConditions)
-);
+export const knownConditionTokens: ReadonlySet<string> = new Set(Object.keys(defaultConditions));

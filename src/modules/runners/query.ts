@@ -85,10 +85,12 @@ export class UmaQuery {
    * Filters are ANDed together.
    */
   whereAptitudes(filters: UmaAptitudeFilters): this {
-    const activeFilters = Object.entries(filters).filter((entry): entry is [UmaAptitudeKey, number] => {
-      const [, minGrade] = entry;
-      return minGrade != null;
-    });
+    const activeFilters = Object.entries(filters).filter(
+      (entry): entry is [UmaAptitudeKey, number] => {
+        const [, minGrade] = entry;
+        return minGrade != null;
+      }
+    );
 
     if (activeFilters.length === 0) return this;
 

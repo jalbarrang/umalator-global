@@ -11,10 +11,10 @@ See also:
 
 The project now uses a split-source pipeline with clear ownership:
 
-| Source | Owns | Access path |
-| --- | --- | --- |
-| **GameTora snapshots** | entity catalog data: skills, character cards, support cards, support effects, training events, reward/name dictionaries | `bun run sync:data` |
-| **master.mdb** | simulation internals: course geometry | `bun run extract:all` or `bun run extract:course-data` |
+| Source                 | Owns                                                                                                                    | Access path                                            |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| **GameTora snapshots** | entity catalog data: skills, character cards, support cards, support effects, training events, reward/name dictionaries | `bun run sync:data`                                    |
+| **master.mdb**         | simulation internals: course geometry                                                                                   | `bun run extract:all` or `bun run extract:course-data` |
 
 GameTora is the authoritative source for entity catalog data. `master.mdb` is now only used for course geometry needed by the simulator.
 
@@ -45,20 +45,20 @@ GameTora is the primary source for the entity catalog.
 
 `bun run sync:data` snapshots these manifest keys into `src/modules/data/json/gametora/`:
 
-| Manifest key | Output file |
-| --- | --- |
-| `skills` | `skills.json` |
-| `character-cards` | `character-cards.json` |
-| `support-cards` | `support-cards.json` |
-| `support_effects` | `support-effects.json` |
-| `training_events/ssr` | `training-events-ssr.json` |
-| `training_events/sr` | `training-events-sr.json` |
+| Manifest key             | Output file                   |
+| ------------------------ | ----------------------------- |
+| `skills`                 | `skills.json`                 |
+| `character-cards`        | `character-cards.json`        |
+| `support-cards`          | `support-cards.json`          |
+| `support_effects`        | `support-effects.json`        |
+| `training_events/ssr`    | `training-events-ssr.json`    |
+| `training_events/sr`     | `training-events-sr.json`     |
 | `training_events/shared` | `training-events-shared.json` |
 | `training_events/friend` | `training-events-friend.json` |
-| `training_events/group` | `training-events-group.json` |
-| `dict/evrew` | `evrew.json` |
-| `dict/te_names_en` | `te-names-en.json` |
-| `dict/te_names_ja` | `te-names-ja.json` |
+| `training_events/group`  | `training-events-group.json`  |
+| `dict/evrew`             | `evrew.json`                  |
+| `dict/te_names_en`       | `te-names-en.json`            |
+| `dict/te_names_ja`       | `te-names-ja.json`            |
 
 ### Why GameTora owns the catalog
 
@@ -77,10 +77,10 @@ This avoids the old reconciliation problem where entity data was split between `
 
 ### What we extract
 
-| Script | Output | Inputs |
-| --- | --- | --- |
+| Script                   | Output                                   | Inputs                                                                  |
+| ------------------------ | ---------------------------------------- | ----------------------------------------------------------------------- |
 | `extract-course-data.ts` | `src/modules/data/json/course_data.json` | `race_course_set`, `race_course_set_status`, `courseeventparams/*.json` |
-| `extract-all.ts` | `src/modules/data/json/course_data.json` | same as above; currently a wrapper around course extraction |
+| `extract-all.ts`         | `src/modules/data/json/course_data.json` | same as above; currently a wrapper around course extraction             |
 
 ### Manifest tracking
 
@@ -97,11 +97,11 @@ Course extraction still defaults to **merge mode** and preserves entries not pre
 
 These scripts still exist and still work against `master.mdb`, but they are no longer part of the primary pipeline:
 
-| Script | Purpose |
-| --- | --- |
-| `extract-skills.ts` | Direct `master.mdb` skill extraction |
+| Script                     | Purpose                                     |
+| -------------------------- | ------------------------------------------- |
+| `extract-skills.ts`        | Direct `master.mdb` skill extraction        |
 | `extract-support-cards.ts` | Direct `master.mdb` support card extraction |
-| `extract-uma-info.ts` | Direct `master.mdb` uma extraction |
+| `extract-uma-info.ts`      | Direct `master.mdb` uma extraction          |
 
 They are useful as fallback/debugging tools when comparing GameTora snapshots against raw `master.mdb` data.
 
@@ -115,20 +115,20 @@ Support card events now come from GameTora snapshots fetched by `sync:data`, so 
 
 ### Primary Pipeline Outputs
 
-| File | Source | Produced by |
-| --- | --- | --- |
-| `src/modules/data/json/gametora/*.json` | GameTora | `bun run sync:data` |
-| `src/modules/data/json/course_data.json` | master.mdb | `bun run extract:all` / `bun run extract:course-data` |
-| `data-manifest.json` | manifest tracking | `bun run sync:data`, then updated by course extraction |
+| File                                     | Source            | Produced by                                            |
+| ---------------------------------------- | ----------------- | ------------------------------------------------------ |
+| `src/modules/data/json/gametora/*.json`  | GameTora          | `bun run sync:data`                                    |
+| `src/modules/data/json/course_data.json` | master.mdb        | `bun run extract:all` / `bun run extract:course-data`  |
+| `data-manifest.json`                     | manifest tracking | `bun run sync:data`, then updated by course extraction |
 
 ### Standalone / Legacy Outputs
 
-| File | Source | Produced by |
-| --- | --- | --- |
-| `src/modules/data/json/skills.json` | master.mdb | `bun run extract:skills` |
-| `src/modules/data/json/support-cards.json` | master.mdb | `bun run extract:support-cards` |
-| `src/modules/data/json/umas.json` | master.mdb | `bun run extract:uma-info` |
-| `src/modules/data/json/support-events.json` | GameTora | `bun run fetch:support-events` |
+| File                                        | Source     | Produced by                     |
+| ------------------------------------------- | ---------- | ------------------------------- |
+| `src/modules/data/json/skills.json`         | master.mdb | `bun run extract:skills`        |
+| `src/modules/data/json/support-cards.json`  | master.mdb | `bun run extract:support-cards` |
+| `src/modules/data/json/umas.json`           | master.mdb | `bun run extract:uma-info`      |
+| `src/modules/data/json/support-events.json` | GameTora   | `bun run fetch:support-events`  |
 
 ## Consequence of the Split
 

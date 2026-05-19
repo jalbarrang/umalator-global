@@ -35,12 +35,18 @@ export function OcrSkillsList(props: Readonly<IOcrSkillsListProps>) {
   } | null>(null);
 
   const skillOptions = useMemo<Array<OcrSkillPickerOption>>(() => {
-    const selectableSkillIds = results?.outfitId
-      ? getSelectableSkillsForUma(results.outfitId, showUpcoming)
-      : dataRegistry.skills
-          .getAll()
-          .filter((skill) => showUpcoming || dataRegistry.skills.isReleased(skill.id))
-          .map((skill) => skill.id);
+    let selectableSkillIds: string[];
+
+    if (results?.outfitId) {
+      selectableSkillIds = getSelectableSkillsForUma(results.outfitId, showUpcoming);
+    } else {
+      selectableSkillIds = [];
+      for (const skill of dataRegistry.skills.getAll()) {
+        if (showUpcoming || dataRegistry.skills.isReleased(skill.id)) {
+          selectableSkillIds.push(skill.id);
+        }
+      }
+    }
 
     return selectableSkillIds
       .flatMap((skillId) => {

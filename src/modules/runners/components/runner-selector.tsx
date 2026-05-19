@@ -112,7 +112,10 @@ function createInitialUmaSelectorState(value: string): UmaSelectorUiState {
   };
 }
 
-function umaSelectorReducer(state: UmaSelectorUiState, action: UmaSelectorAction): UmaSelectorUiState {
+function umaSelectorReducer(
+  state: UmaSelectorUiState,
+  action: UmaSelectorAction
+): UmaSelectorUiState {
   switch (action.type) {
     case 'dialog:openChange':
       return {
@@ -154,6 +157,10 @@ function umaSelectorReducer(state: UmaSelectorUiState, action: UmaSelectorAction
       };
     }
     case 'scroll:set':
+      if (state.scrollElement === action.element) {
+        return state;
+      }
+
       return {
         ...state,
         scrollElement: action.element
@@ -164,16 +171,63 @@ function umaSelectorReducer(state: UmaSelectorUiState, action: UmaSelectorAction
 const AptitudeFilterGrid = (props: AptitudeFilterGridProps) => {
   const { filters, onChange } = props;
 
-  return (
-    <div className="flex flex-col gap-2 rounded-lg border p-2">
-      {APTITUDE_ROWS.map((row) => (
-        <div key={row.label} className="flex flex-col gap-1 md:flex-row md:items-center md:gap-2">
-          <span className="text-xs w-[52px] text-muted-foreground">{row.label}:</span>
+  const isMobile = useIsMobile();
 
-          <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+  if (isMobile) {
+    return (
+      <div className="space-y-2 rounded-lg border p-2">
+        {APTITUDE_ROWS.map((row) => (
+          <div key={row.label} className="space-y-1">
+            <div>
+              <span className="text-xs font-bold text-muted-foreground">{row.label}:</span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              {row.slots.map((slot) => (
+                <div key={slot.key} className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground w-[76px]">{slot.name}</span>
+
+                  <Select
+                    value={filters[slot.key] == null ? 'any' : String(filters[slot.key])}
+                    onValueChange={(newValue) => {
+                      onChange(slot.key, newValue === 'any' ? null : Number(newValue));
+                    }}
+                  >
+                    <SelectTrigger size="sm" className="w-auto min-w-18 gap-1 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+
+                    <SelectContent className="text-xs">
+                      <SelectItem value="any">All</SelectItem>
+
+                      {MIN_GRADES.map((grade) => (
+                        <SelectItem key={grade} value={String(grade)}>
+                          {encodingToAptitude(grade)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols rounded-lg border p-2 gap-2">
+      {APTITUDE_ROWS.map((row) => (
+        <div key={row.label} className="grid grid-cols-6 gap-2">
+          <div className="col-span-1">
+            <span className="text-xs text-muted-foreground">{row.label}:</span>
+          </div>
+
+          <div className="col-span-5 grid grid-cols-4 gap-2">
             {row.slots.map((slot) => (
-              <div key={slot.key} className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground w-[76px] truncate">{slot.name}</span>
+              <div key={slot.key} className="flex flex-row items-center gap-2">
+                <span className="text-xs text-muted-foreground w-[76px]">{slot.name}</span>
 
                 <Select
                   value={filters[slot.key] == null ? 'any' : String(filters[slot.key])}
@@ -206,11 +260,7 @@ const AptitudeFilterGrid = (props: AptitudeFilterGridProps) => {
 
 export const UmaSelector = (props: UmaSelectorProps) => {
   const { value, randomMobId, select } = props;
-  const [state, dispatch] = useReducer(
-    umaSelectorReducer,
-    value,
-    createInitialUmaSelectorState
-  );
+  const [state, dispatch] = useReducer(umaSelectorReducer, value, createInitialUmaSelectorState);
   const { open, selectedOutfitId, filtersOpen, search, aptitudeFilters, scrollElement } = state;
   const deferredSearch = useDeferredValue(search);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -256,6 +306,10 @@ export const UmaSelector = (props: UmaSelectorProps) => {
   useEffect(() => {
     rowVirtualizerRef.current = rowVirtualizer;
   }, [rowVirtualizer]);
+
+  const setScrollElement = useCallback((element: HTMLDivElement | null) => {
+    dispatch({ type: 'scroll:set', element });
+  }, []);
 
   const selectFocusedUma = useCallback(
     (index: number) => {
@@ -377,7 +431,7 @@ export const UmaSelector = (props: UmaSelectorProps) => {
                 render={
                   <Button type="button" variant="outline" size="sm">
                     <FilterIcon className="size-3.5" />
-                    Aptitudes
+                    Base Aptitudes
                     {activeAptitudeFilterCount > 0 && (
                       <Badge variant="secondary">{activeAptitudeFilterCount}</Badge>
                     )}
@@ -397,7 +451,7 @@ export const UmaSelector = (props: UmaSelectorProps) => {
             No results found.
           </div>
         ) : (
-          <div ref={(element) => dispatch({ type: 'scroll:set', element })} className="flex-1 min-h-0 overflow-y-auto">
+          <div ref={setScrollElement} className="flex-1 min-h-0 overflow-y-auto">
             <div style={{ height: rowVirtualizer.getTotalSize() }} className="relative w-full">
               {rowVirtualizer.getVirtualItems().map((virtualRow) => {
                 const rowStart = virtualRow.index * columns;

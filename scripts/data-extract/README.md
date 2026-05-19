@@ -25,10 +25,10 @@ What that produces:
 
 ## Current Source Ownership
 
-| Source | Owns | Command |
-| --- | --- | --- |
-| **GameTora snapshots** | skills, character cards, support cards, support effects, training events, reward dictionaries | `bun run sync:data` |
-| **master.mdb** | course geometry only | `bun run extract:all` or `bun run extract:course-data` |
+| Source                 | Owns                                                                                          | Command                                                |
+| ---------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| **GameTora snapshots** | skills, character cards, support cards, support effects, training events, reward dictionaries | `bun run sync:data`                                    |
+| **master.mdb**         | course geometry only                                                                          | `bun run extract:all` or `bun run extract:course-data` |
 
 ## Prerequisites
 
@@ -63,26 +63,26 @@ Platform defaults:
 
 ### Primary Commands
 
-| Script | Command | Role |
-| --- | --- | --- |
-| `sync-gametora.ts` | `bun run sync:data` | Sync GameTora snapshots for the entity catalog |
-| `extract-all.ts` | `bun run extract:all` | Primary `master.mdb` pipeline; currently runs course extraction only |
-| `extract-course-data.ts` | `bun run extract:course-data` | Extract course geometry directly |
+| Script                   | Command                       | Role                                                                 |
+| ------------------------ | ----------------------------- | -------------------------------------------------------------------- |
+| `sync-gametora.ts`       | `bun run sync:data`           | Sync GameTora snapshots for the entity catalog                       |
+| `extract-all.ts`         | `bun run extract:all`         | Primary `master.mdb` pipeline; currently runs course extraction only |
+| `extract-course-data.ts` | `bun run extract:course-data` | Extract course geometry directly                                     |
 
 ### Standalone master.mdb Fallback Tools
 
 These scripts still work, but they are no longer part of the recommended pipeline because entity catalog data now comes from GameTora snapshots.
 
-| Script | Command | Output |
-| --- | --- | --- |
-| `extract-skills.ts` | `bun run extract:skills` | `src/modules/data/json/skills.json` |
+| Script                     | Command                         | Output                                     |
+| -------------------------- | ------------------------------- | ------------------------------------------ |
+| `extract-skills.ts`        | `bun run extract:skills`        | `src/modules/data/json/skills.json`        |
 | `extract-support-cards.ts` | `bun run extract:support-cards` | `src/modules/data/json/support-cards.json` |
-| `extract-uma-info.ts` | `bun run extract:uma-info` | `src/modules/data/json/umas.json` |
+| `extract-uma-info.ts`      | `bun run extract:uma-info`      | `src/modules/data/json/umas.json`          |
 
 ### Legacy / Redundant Helper
 
-| Script | Command | Status |
-| --- | --- | --- |
+| Script                    | Command                        | Status                                                                                |
+| ------------------------- | ------------------------------ | ------------------------------------------------------------------------------------- |
 | `fetch-support-events.ts` | `bun run fetch:support-events` | Redundant for the main pipeline; support card events now come from GameTora snapshots |
 
 `fetch:support-events` is kept for now as a standalone utility, but it is no longer required for normal data syncs.
@@ -105,29 +105,29 @@ The same flags also work with `bun run extract:course-data`.
 
 ### Primary Pipeline Outputs
 
-| File | Source | Produced by |
-| --- | --- | --- |
-| `src/modules/data/json/gametora/*.json` | GameTora | `bun run sync:data` |
-| `src/modules/data/json/course_data.json` | master.mdb | `bun run extract:all` / `bun run extract:course-data` |
-| `data-manifest.json` | sync metadata | `bun run sync:data`, then updated by course extraction |
+| File                                     | Source        | Produced by                                            |
+| ---------------------------------------- | ------------- | ------------------------------------------------------ |
+| `src/modules/data/json/gametora/*.json`  | GameTora      | `bun run sync:data`                                    |
+| `src/modules/data/json/course_data.json` | master.mdb    | `bun run extract:all` / `bun run extract:course-data`  |
+| `data-manifest.json`                     | sync metadata | `bun run sync:data`, then updated by course extraction |
 
 ### Standalone Fallback Outputs
 
-| File | Source | Produced by |
-| --- | --- | --- |
-| `src/modules/data/json/skills.json` | master.mdb | `bun run extract:skills` |
-| `src/modules/data/json/support-cards.json` | master.mdb | `bun run extract:support-cards` |
-| `src/modules/data/json/umas.json` | master.mdb | `bun run extract:uma-info` |
-| `src/modules/data/json/support-events.json` | GameTora | `bun run fetch:support-events` |
+| File                                        | Source     | Produced by                     |
+| ------------------------------------------- | ---------- | ------------------------------- |
+| `src/modules/data/json/skills.json`         | master.mdb | `bun run extract:skills`        |
+| `src/modules/data/json/support-cards.json`  | master.mdb | `bun run extract:support-cards` |
+| `src/modules/data/json/umas.json`           | master.mdb | `bun run extract:uma-info`      |
+| `src/modules/data/json/support-events.json` | GameTora   | `bun run fetch:support-events`  |
 
 ## Merge vs Replace
 
 Course extraction still supports the existing modes:
 
-| Mode | Behavior | Use when |
-| --- | --- | --- |
-| **Merge** (default) | Updates courses found in `master.mdb`, preserves others | Regular updates |
-| **Replace** (`--replace`) | Overwrites with only current `master.mdb` courses | Clean rebuild |
+| Mode                      | Behavior                                                | Use when        |
+| ------------------------- | ------------------------------------------------------- | --------------- |
+| **Merge** (default)       | Updates courses found in `master.mdb`, preserves others | Regular updates |
+| **Replace** (`--replace`) | Overwrites with only current `master.mdb` courses       | Clean rebuild   |
 
 ```bash
 bun run extract:all

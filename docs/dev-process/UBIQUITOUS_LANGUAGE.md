@@ -20,7 +20,7 @@
 | **Late Surger**          | The strategy that advances from the middle/back in later phases (`差し`).                                                                                        | Sashi, stalker                          |
 | **End Closer**           | The strategy that closes from deep in the field (`追込`).                                                                                                        | Oikomi, deep closer                     |
 | **Unique skill**         | A character-specific skill with its own activation conditions and scaling rules.                                                                                 | Ultimate, signature passive             |
-| **Activation check**     | The gate that determines whether a skill fires when its conditions are met: either guaranteed (no check) or a wit-check (roll against Wit stat).                | Wisdom check, activate_lot              |
+| **Activation check**     | The gate that determines whether a skill fires when its conditions are met: either guaranteed (no check) or a wit-check (roll against Wit stat).                 | Wisdom check, activate_lot              |
 | **Speed skill**          | A skill that increases target speed or actual speed.                                                                                                             | Velocity buff, haste                    |
 | **Acceleration skill**   | A skill that increases acceleration toward target speed.                                                                                                         | Accel buff, launch skill                |
 | **Debuff skill**         | A skill that negatively affects opponents rather than the user.                                                                                                  | Curse, enemy-only skill                 |
@@ -32,20 +32,20 @@
 
 ## Race phases and race states
 
-| Term                   | Definition                                                                                       | Aliases to avoid                |
-| ---------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------- |
-| **Early-race**         | The opening phase of the race.                                                                   | Opening, start phase            |
-| **Mid-race**           | The middle phase where positioning logic dominates.                                              | Middle, midgame                 |
-| **Late-race**          | The race portion after mid-race that includes the homestretch context discussed in guides.       | Back half, endgame, second half |
-| **Last spurt state**   | The sprint state where the runner tries to accelerate toward maximum finishing speed if allowed. | Final dash, sprint mode         |
-| **Last spurt section** | The homestretch section near the end of the race, treated in docs/simulation-learnings as part of Late-race.   | Final stretch, homestretch      |
-| **Activation point**   | The exact race moment when a skill's conditions are checked and it triggers.                     | Proc frame, trigger tick        |
-| **Rushed state**       | The Kakari state that disrupts pacing and alters consumption/behavior.                           | Kakari, temptation, panic       |
-| **Blocked**            | A state where nearby runners prevent optimal forward or lateral movement.                        | Jammed, body-blocked            |
-| **Front blocked**      | A blocked state caused by a runner directly ahead.                                               | Head blocked, nose blocked      |
-| **Side blocked**       | A blocked state caused by a runner preventing lateral movement.                                  | Lane blocked, flank blocked     |
-| **Surrounded**         | A state where runners occupy the required front/outside/behind zones around a runner.            | Boxed in, trapped               |
-| **Vision**             | The range and cone within which another runner is considered visible.                            | Sight, detection range          |
+| Term                   | Definition                                                                                                   | Aliases to avoid                |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------- |
+| **Early-race**         | The opening phase of the race.                                                                               | Opening, start phase            |
+| **Mid-race**           | The middle phase where positioning logic dominates.                                                          | Middle, midgame                 |
+| **Late-race**          | The race portion after mid-race that includes the homestretch context discussed in guides.                   | Back half, endgame, second half |
+| **Last spurt state**   | The sprint state where the runner tries to accelerate toward maximum finishing speed if allowed.             | Final dash, sprint mode         |
+| **Last spurt section** | The homestretch section near the end of the race, treated in docs/simulation-learnings as part of Late-race. | Final stretch, homestretch      |
+| **Activation point**   | The exact race moment when a skill's conditions are checked and it triggers.                                 | Proc frame, trigger tick        |
+| **Rushed state**       | The Kakari state that disrupts pacing and alters consumption/behavior.                                       | Kakari, temptation, panic       |
+| **Blocked**            | A state where nearby runners prevent optimal forward or lateral movement.                                    | Jammed, body-blocked            |
+| **Front blocked**      | A blocked state caused by a runner directly ahead.                                                           | Head blocked, nose blocked      |
+| **Side blocked**       | A blocked state caused by a runner preventing lateral movement.                                              | Lane blocked, flank blocked     |
+| **Surrounded**         | A state where runners occupy the required front/outside/behind zones around a runner.                        | Boxed in, trapped               |
+| **Vision**             | The range and cone within which another runner is considered visible.                                        | Sight, detection range          |
 
 ## Positioning and movement
 
@@ -84,14 +84,14 @@
 
 ## Data provenance
 
-| Term                   | Definition                                                                                             | Aliases to avoid             |
-| ---------------------- | ------------------------------------------------------------------------------------------------------ | ---------------------------- |
-| **Released**           | Content currently available in the Global version of the game. An entity is released if it has a `release_en` date in the GameTora snapshot. | Live, current, global-only |
-| **Upcoming**           | Content not yet available on Global. Includes JP-only, datamined, and future content. Everything without a `release_en` date. | Future, JP-only, datamined, unreleased |
-| **Activation check**   | The gate that determines whether a skill fires when its conditions are met: either `guaranteed` (no check) or `wit-check` (roll against Wit stat). Stored as `activate_lot` in master.mdb, `activation` in GameTora. | Wisdom check, activate_lot |
-| **Simulatable**        | A skill whose condition tokens are all recognized by the current simulation engine. Non-simulatable skills can be displayed but must not enter the simulator. | Supported, parseable |
-| **Data manifest**      | The local `data-manifest.json` file that records which content-hash version of each data source was last synced. Used by `sync:data` to detect stale data. | Version file, sync state |
-| **Skill group**        | A family of related skills sharing the same activation conditions but differing in effect magnitude. Members include grade variants (◎/○/×) and upgraded versions (Demon). | Skill family, group |
+| Term                 | Definition                                                                                                                                                                                                           | Aliases to avoid                       |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
+| **Released**         | Content currently available in the Global version of the game. An entity is released if it has a `release_en` date in the GameTora snapshot.                                                                         | Live, current, global-only             |
+| **Upcoming**         | Content not yet available on Global. Includes JP-only, datamined, and future content. Everything without a `release_en` date.                                                                                        | Future, JP-only, datamined, unreleased |
+| **Activation check** | The gate that determines whether a skill fires when its conditions are met: either `guaranteed` (no check) or `wit-check` (roll against Wit stat). Stored as `activate_lot` in master.mdb, `activation` in GameTora. | Wisdom check, activate_lot             |
+| **Simulatable**      | A skill whose condition tokens are all recognized by the current simulation engine. Non-simulatable skills can be displayed but must not enter the simulator.                                                        | Supported, parseable                   |
+| **Data manifest**    | The local `data-manifest.json` file that records which content-hash version of each data source was last synced. Used by `sync:data` to detect stale data.                                                           | Version file, sync state               |
+| **Skill group**      | A family of related skills sharing the same activation conditions but differing in effect magnitude. Members include grade variants (◎/○/×) and upgraded versions (Demon).                                           | Skill family, group                    |
 
 ## Flagged ambiguities
 

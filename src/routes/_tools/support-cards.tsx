@@ -592,7 +592,13 @@ export function SupportCardsPage() {
 
       return true;
     });
-  }, [cardRarityFilters, cardTypeFilters, deferredSearchText, selectedSkillSourceIds, showUpcoming]);
+  }, [
+    cardRarityFilters,
+    cardTypeFilters,
+    deferredSearchText,
+    selectedSkillSourceIds,
+    showUpcoming
+  ]);
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col gap-3 p-3 md:p-4">
