@@ -11,6 +11,7 @@ import {
 } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
+import { useGridKeyboardNavigation } from '@/hooks/use-grid-keyboard-navigation';
 import { cn } from '@/lib/utils';
 import { dataRegistry } from '@/modules/data/registry';
 import type { SkillEntry } from '@/modules/data/services/SkillService';
@@ -186,174 +187,39 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
   const rowVirtualizerRef = useRef(rowVirtualizer);
 
   const filteredSkillCount = filteredSkills.length;
-  const [browseState, setBrowseState] = useState({ focusedIndex: 0, isBrowsing: false });
-  const previousFilteredSkillsRef = useRef(filteredSkills);
-
-  if (previousFilteredSkillsRef.current !== filteredSkills) {
-    previousFilteredSkillsRef.current = filteredSkills;
-    if (browseState.focusedIndex !== 0 || browseState.isBrowsing) {
-      setBrowseState({ focusedIndex: 0, isBrowsing: false });
-    }
-  }
-
-  const { focusedIndex, isBrowsing } = browseState;
 
   useEffect(() => {
     rowVirtualizerRef.current = rowVirtualizer;
   }, [rowVirtualizer]);
 
-  const scrollFocusedIntoView = useCallback(
+  const selectFocusedSkill = useCallback(
     (index: number) => {
-      requestAnimationFrame(() => {
-        rowVirtualizerRef.current.scrollToIndex(Math.floor(index / resolvedColumnCount), {
-          align: 'auto'
-        });
-      });
+      const skill = filteredSkills[index];
+      if (!skill) {
+        return;
+      }
+
+      toggleSkillSelection(skill);
     },
-    [resolvedColumnCount]
+    [filteredSkills, toggleSkillSelection]
   );
 
-  const getLastIndexForRow = useCallback(
-    (rowIndex: number) => {
-      return Math.min(
-        filteredSkillCount - 1,
-        rowIndex * resolvedColumnCount + resolvedColumnCount - 1
-      );
+  const {
+    focusedIndex,
+    isBrowsing,
+    handleSearchKeyDown,
+    resetBrowsing,
+    setFocusedIndex: handleHighlightSkill
+  } = useGridKeyboardNavigation({
+    itemCount: filteredSkillCount,
+    columnCount: resolvedColumnCount,
+    rowCount: virtualRowCount,
+    scrollToRow: (rowIndex) => {
+      rowVirtualizerRef.current.scrollToIndex(rowIndex, { align: 'auto' });
     },
-    [resolvedColumnCount, filteredSkillCount]
-  );
-
-  const moveFocusedHorizontally = useCallback(
-    (delta: number) => {
-      if (filteredSkillCount === 0) {
-        return;
-      }
-
-      setBrowseState((prev) => {
-        const rowIndex = Math.floor(prev.focusedIndex / resolvedColumnCount);
-        const rowStart = rowIndex * resolvedColumnCount;
-        const rowEnd = getLastIndexForRow(rowIndex);
-        const next = Math.max(rowStart, Math.min(rowEnd, prev.focusedIndex + delta));
-        scrollFocusedIntoView(next);
-        return { ...prev, focusedIndex: next };
-      });
-    },
-    [resolvedColumnCount, filteredSkillCount, getLastIndexForRow, scrollFocusedIntoView]
-  );
-
-  const moveFocusedVertically = useCallback(
-    (rowDelta: number) => {
-      if (filteredSkillCount === 0) {
-        return;
-      }
-
-      setBrowseState((prev) => {
-        const currentRowIndex = Math.floor(prev.focusedIndex / resolvedColumnCount);
-        const currentColumnIndex = prev.focusedIndex % resolvedColumnCount;
-        const nextRowIndex = Math.max(0, Math.min(virtualRowCount - 1, currentRowIndex + rowDelta));
-        const nextRowStart = nextRowIndex * resolvedColumnCount;
-        const nextRowEnd = getLastIndexForRow(nextRowIndex);
-        const next = Math.min(nextRowEnd, nextRowStart + currentColumnIndex);
-        scrollFocusedIntoView(next);
-        return { ...prev, focusedIndex: next };
-      });
-    },
-    [
-      resolvedColumnCount,
-      filteredSkillCount,
-      getLastIndexForRow,
-      scrollFocusedIntoView,
-      virtualRowCount
-    ]
-  );
-
-  const selectFocusedSkill = useCallback(() => {
-    if (filteredSkillCount === 0 || !isBrowsing) {
-      return;
-    }
-
-    const skill = filteredSkills[focusedIndex];
-    if (!skill) {
-      return;
-    }
-
-    toggleSkillSelection(skill);
-  }, [filteredSkillCount, filteredSkills, focusedIndex, isBrowsing, toggleSkillSelection]);
-
-  const hasRows = filteredSkillCount > 0;
-
-  const handleSearchKeyDown: React.KeyboardEventHandler<HTMLInputElement> = useCallback(
-    (event) => {
-      if (event.key === 'Escape' && isBrowsing) {
-        event.preventDefault();
-        event.stopPropagation();
-        setBrowseState((prev) => ({ ...prev, isBrowsing: false }));
-        searchRef.current?.focus();
-        return;
-      }
-
-      if (!hasRows) {
-        return;
-      }
-
-      if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
-        event.preventDefault();
-        event.stopPropagation();
-
-        if (!isBrowsing) {
-          setBrowseState((prev) => ({ ...prev, isBrowsing: true }));
-          scrollFocusedIntoView(focusedIndex);
-          return;
-        }
-
-        moveFocusedVertically(event.key === 'ArrowUp' ? -1 : 1);
-        return;
-      }
-
-      if (
-        isDesktopLayout &&
-        isBrowsing &&
-        (event.key === 'ArrowLeft' || event.key === 'ArrowRight')
-      ) {
-        event.preventDefault();
-        event.stopPropagation();
-        moveFocusedHorizontally(event.key === 'ArrowLeft' ? -1 : 1);
-        return;
-      }
-
-      if (event.key === 'Enter' && isBrowsing) {
-        event.preventDefault();
-        event.stopPropagation();
-        selectFocusedSkill();
-        return;
-      }
-
-      if (
-        isBrowsing &&
-        (event.key === 'Backspace' ||
-          event.key === 'Delete' ||
-          event.key === 'Home' ||
-          event.key === 'End' ||
-          (!event.altKey && !event.ctrlKey && !event.metaKey && event.key.length === 1))
-      ) {
-        setBrowseState((prev) => ({ ...prev, isBrowsing: false }));
-      }
-    },
-    [
-      focusedIndex,
-      hasRows,
-      isBrowsing,
-      isDesktopLayout,
-      moveFocusedHorizontally,
-      moveFocusedVertically,
-      scrollFocusedIntoView,
-      selectFocusedSkill
-    ]
-  );
-
-  const handleHighlightSkill = useCallback((skillIndex: number) => {
-    setBrowseState((prev) => ({ ...prev, focusedIndex: skillIndex }));
-  }, []);
+    onSelectFocused: selectFocusedSkill,
+    enableHorizontalNavigation: isDesktopLayout
+  });
 
   return (
     <div className={cn('flex flex-col min-h-0 max-h-full gap-2', className)}>
@@ -368,12 +234,10 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
             value={searchText}
             placeholder="Search skill by name"
             onChange={(e) => {
-              setBrowseState((prev) => ({ ...prev, isBrowsing: false }));
+              resetBrowsing();
               setSearchText(e.target.value);
             }}
-            onPointerDown={() => {
-              setBrowseState((prev) => ({ ...prev, isBrowsing: false }));
-            }}
+            onPointerDown={resetBrowsing}
             onKeyDown={handleSearchKeyDown}
           />
         </InputGroup>

@@ -1,7 +1,10 @@
 import characterCardsJson from '@/modules/data/json/gametora/character-cards.json';
-import type { UmasMap } from '@/modules/data/services/UmaService';
+import type { UmaAptitudes, UmasMap } from '@/modules/data/services/UmaService';
+
+const DEFAULT_APTITUDE = 'G';
 
 type CharacterCardSnapshot = {
+  aptitude?: Array<string>;
   card_id: number;
   char_id: number;
   name_en?: string | null;
@@ -16,6 +19,21 @@ export type LoadUmasResult = {
   releasedOutfits: Set<string>;
 };
 
+function normalizeAptitudes(aptitude: Array<string> = []): UmaAptitudes {
+  return {
+    turf: aptitude[0] ?? DEFAULT_APTITUDE,
+    dirt: aptitude[1] ?? DEFAULT_APTITUDE,
+    sprint: aptitude[2] ?? DEFAULT_APTITUDE,
+    mile: aptitude[3] ?? DEFAULT_APTITUDE,
+    medium: aptitude[4] ?? DEFAULT_APTITUDE,
+    long: aptitude[5] ?? DEFAULT_APTITUDE,
+    frontRunner: aptitude[6] ?? DEFAULT_APTITUDE,
+    paceChaser: aptitude[7] ?? DEFAULT_APTITUDE,
+    lateSurger: aptitude[8] ?? DEFAULT_APTITUDE,
+    endCloser: aptitude[9] ?? DEFAULT_APTITUDE
+  };
+}
+
 export function loadUmas(
   characterCards: Array<CharacterCardSnapshot> = characterCardsJson as Array<CharacterCardSnapshot>
 ): LoadUmasResult {
@@ -25,6 +43,7 @@ export function loadUmas(
   for (const characterCard of characterCards) {
     const baseUmaId = String(characterCard.char_id);
     const outfitId = String(characterCard.card_id);
+    const aptitudes = normalizeAptitudes(characterCard.aptitude);
     const existingEntry = umas[baseUmaId];
 
     if (!existingEntry) {
@@ -32,6 +51,9 @@ export function loadUmas(
         name: [characterCard.name_jp || '', characterCard.name_en || ''],
         outfits: {
           [outfitId]: characterCard.title_en_gl || characterCard.title_jp || ''
+        },
+        aptitudes: {
+          [outfitId]: aptitudes
         }
       };
     } else {
@@ -44,6 +66,7 @@ export function loadUmas(
       }
 
       existingEntry.outfits[outfitId] = characterCard.title_en_gl || characterCard.title_jp || '';
+      existingEntry.aptitudes[outfitId] = aptitudes;
     }
 
     if (characterCard.release_en) {

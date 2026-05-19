@@ -2,9 +2,23 @@
 // Types
 // =======
 
+export type UmaAptitudes = {
+  turf: string;
+  dirt: string;
+  sprint: string;
+  mile: string;
+  medium: string;
+  long: string;
+  frontRunner: string;
+  paceChaser: string;
+  lateSurger: string;
+  endCloser: string;
+};
+
 export type UmaEntry = {
   name: Array<string>; // [Japanese name, English name]
   outfits: Record<string, string>; // { outfitId: "epithet" }
+  aptitudes: Record<string, UmaAptitudes>; // { outfitId: innate aptitudes }
 };
 
 export type UmasMap = Record<string, UmaEntry>;

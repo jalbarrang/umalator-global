@@ -2,11 +2,13 @@ import { getIconUrl } from '@/assets/icons';
 import { useMemo } from 'react';
 import { getIconById } from '@/modules/data/icons';
 import { dataRegistry } from '@/modules/data/registry';
+import type { UmaAptitudes } from '@/modules/data/services/UmaService';
 
 export type UmaSearchEntry = {
   id: string;
   name: string;
   outfit: string;
+  aptitudes: UmaAptitudes;
 };
 
 export type Uma = {
@@ -61,7 +63,8 @@ function buildUmaSearchData(includeUpcoming = false): UmaSearchData {
       return {
         id,
         name: uma.name[1],
-        outfit: uma.outfits[id]
+        outfit: uma.outfits[id],
+        aptitudes: uma.aptitudes[id]
       };
     })
     .filter((entry): entry is UmaSearchEntry => entry !== null);
