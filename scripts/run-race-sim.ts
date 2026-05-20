@@ -1,5 +1,3 @@
-// fallow-ignore-file unused-file
-
 /**
  * Race sim CLI for testing the full 9-runner simulation.
  *

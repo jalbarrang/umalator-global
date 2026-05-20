@@ -1,6 +1,12 @@
 {
   "ignore": {
-    "files": ["src/components/ui/**"],
+    "files": [
+      "src/components/ui/**",
+      "src/styles/**",
+      "scripts/**",
+      ".pi/**"
+    ],
+    "rules": ["knip/exports", "knip/types", "knip/files", "knip/duplicates"],
     "overrides": [
       {
         "files": ["src/modules/simulation/share/compare-share-card.tsx"],

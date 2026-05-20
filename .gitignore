@@ -33,7 +33,6 @@ docs/prd/
 .prd/
 .plans/
 .issues/
-.fallow/
 .asset-bot/
 
 # Beads / Dolt files (added by bd init)

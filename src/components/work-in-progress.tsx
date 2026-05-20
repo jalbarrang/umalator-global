@@ -1,5 +1,3 @@
-// fallow-ignore-file unused-file
-
 import { Construction } from 'lucide-react';
 import { Card } from './ui/card';
 
