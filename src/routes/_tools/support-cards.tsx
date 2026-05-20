@@ -28,7 +28,7 @@ import {
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { config } from '@/config';
-import { dataRegistry } from '@/modules/data/registry';
+import { skillsService, supportCardsService } from '@/modules/data/registry';
 import type { SupportCardEntry } from '@/modules/data/services/SupportCardService';
 import { SkillDetails } from '@/modules/skills/components/skill-details';
 import { SkillIcon } from '@/modules/skills/components/skill-list/skill-item/SkillIcon';
@@ -37,7 +37,7 @@ import { useUIStore } from '@/store/ui.store';
 
 type SupportSkill = SupportCardEntry['hintSkills'][number];
 
-const supportCards = dataRegistry.supportCards.getAll();
+const supportCards = supportCardsService.getAll();
 
 const supportSkillStatsById = new Map<
   string,
@@ -430,7 +430,7 @@ type SupportSkillItemProps = {
 function SupportSkillItem(props: SupportSkillItemProps) {
   const { skill } = props;
   const [detailsOpen, setDetailsOpen] = useState(false);
-  const skillEntry = dataRegistry.skills.getById(`${skill.id}`);
+  const skillEntry = skillsService.getById(`${skill.id}`);
 
   const skillItem = (
     <button className={cn('flex flex-row items-center gap-2 border bg-background py-1 px-2')}>

@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/ui/panel';
 import { Separator } from '@/components/ui/separator';
-import { dataRegistry } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/registry';
 import { isSupportedMultiplyRandomRecoveryDrain } from '@/lib/sunday-tools/skills/recovery-effect-utils';
 import {
   setIgnoreStaminaConsumption,
@@ -110,7 +110,7 @@ export const AdvancedSettingsPanel = () => {
       uniqueSkillIds.add(baseSkillId);
 
       try {
-        const skill = dataRegistry.skills.getById(baseSkillId);
+        const skill = skillsService.getById(baseSkillId);
         if (!skill) {
           continue;
         }

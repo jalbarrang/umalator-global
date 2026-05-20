@@ -4,7 +4,7 @@ import '@testing-library/jest-dom/vitest';
 import { act, cleanup, createEvent, fireEvent, render, screen } from '@testing-library/react';
 import { createRef } from 'react';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
-import { dataRegistry } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/registry';
 import { SkillPickerContent } from './content';
 import { SkillPickerProvider } from './provider';
 
@@ -42,7 +42,7 @@ afterEach(() => {
 });
 
 const getOptionIds = (count = 3) =>
-  dataRegistry.skills
+  skillsService
     .getAll()
     .filter((skill) => skill.name.length > 0 && skill.iconId.length > 0)
     .slice(0, count)

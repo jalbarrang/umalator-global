@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/popover';
 import i18n from '@/i18n';
 import { describeRecoveryEffect } from '@/lib/sunday-tools/skills/recovery-effect-utils';
-import { dataRegistry, umasService } from '@/modules/data/registry';
+import { skillsService, supportCardsService, umasService } from '@/modules/data/registry';
 import type { SkillEntry, SkillUmaSourceEntry } from '@/modules/data/services/SkillService';
 import { getUmaImageUrl } from '@/modules/runners/utils';
 import { SkillPickerFilterRow } from '@/modules/skills/components/skill-picker/filter-row';
@@ -56,7 +56,7 @@ function getRelatedSkills(skill: SkillEntry) {
 
   const relatedById = new Map<string, SkillEntry>();
   for (const relatedId of relatedIds) {
-    const relatedSkill = dataRegistry.skills.getById(`${relatedId}`);
+    const relatedSkill = skillsService.getById(`${relatedId}`);
     if (relatedSkill && relatedSkill.id !== skill.id) {
       relatedById.set(relatedSkill.id, relatedSkill);
     }
@@ -173,6 +173,7 @@ function getSupportCardImageUrl(cardId: number) {
 
 function SkillSourcesPopover(props: SkillSourcesPopoverProps) {
   const { skill } = props;
+  const showUpcoming = useUIStore((state) => state.showUpcoming);
 
   const umaSources = useMemo(() => {
     const outfitIds = new Set<string>();
@@ -181,7 +182,7 @@ function SkillSourcesPopover(props: SkillSourcesPopoverProps) {
     if (skill.sources?.length) {
       for (const source of skill.sources) {
         const outfitId = source.outfitId.toString();
-        if (!umasService.isReleased(outfitId) || outfitIds.has(outfitId)) {
+        if ((!showUpcoming && !umasService.isReleased(outfitId)) || outfitIds.has(outfitId)) {
           continue;
         }
 
@@ -190,9 +191,17 @@ function SkillSourcesPopover(props: SkillSourcesPopoverProps) {
     }
 
     return sourceEntries;
-  }, [skill.sources]);
+  }, [skill.sources, showUpcoming]);
 
-  const supportSources = skill.supportSources ?? [];
+  const supportSources = useMemo(() => {
+    const sources = skill.supportSources ?? [];
+
+    if (showUpcoming) {
+      return sources;
+    }
+
+    return sources.filter((source) => supportCardsService.isReleased(String(source.supportCardId)));
+  }, [skill.supportSources, showUpcoming]);
   const sourceCount = umaSources.length + supportSources.length;
   const defaultSourceTab = umaSources.length > 0 ? 'umas' : 'support';
 
@@ -229,6 +238,7 @@ function SkillSourcesPopover(props: SkillSourcesPopoverProps) {
                 </TabsTrigger>
               ) : null}
             </TabsList>
+
             {umaSources.length > 0 ? (
               <TabsContent value="umas" className="mt-0">
                 <div className="grid gap-1">
@@ -268,7 +278,7 @@ function SkillSourcesPopover(props: SkillSourcesPopoverProps) {
                 <div className="grid max-h-60 gap-1 overflow-y-auto pr-1">
                   {supportSources.map((source) => (
                     <div
-                      key={source.supportCardId}
+                      key={`${source.supportCardId}-${source.sourceType ?? 'hint'}`}
                       className="flex items-center gap-4 rounded-md bg-background p-2 text-foreground"
                     >
                       <img
@@ -286,10 +296,12 @@ function SkillSourcesPopover(props: SkillSourcesPopoverProps) {
                           <div className="truncate text-xs text-muted-foreground">
                             Card {source.supportCardId}
                           </div>
+
                           <Badge variant="outline" className="h-4 rounded px-1 text-[10px]">
                             {source.sourceType === 'event' ? 'Event' : 'Hint'}
                           </Badge>
                         </div>
+
                         <div className="truncate text-sm font-semibold leading-tight">
                           {source.name || `Support ${source.supportCardId}`}
                         </div>
@@ -421,7 +433,7 @@ function SkillsBrowserContent() {
   const deferredSearchText = useDeferredValue(searchText);
   const showUpcoming = useUIStore((state) => state.showUpcoming);
 
-  const allSkills = useMemo(() => dataRegistry.skills.getAll(), []);
+  const allSkills = useMemo(() => skillsService.getAll(), []);
   const filteredSkills = useFilteredSkills(deferredSearchText, allSkills, { showUpcoming });
   const parentRef = useRef<HTMLDivElement>(null);
 

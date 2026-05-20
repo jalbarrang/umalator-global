@@ -24,7 +24,7 @@ import type {
 } from '@tanstack/react-table';
 import type { SkillComparisonRoundResult } from '@/modules/simulation/types';
 
-import { dataRegistry } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/registry';
 import type { SkillEntry } from '@/modules/data/services/SkillService';
 import { groups_filters } from '@/modules/skills/filters';
 import { iconIdPrefixes } from '@/modules/skills/icons';
@@ -238,7 +238,7 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
     const entries: Array<[string, SkillEntry]> = [];
 
     for (const row of props.data) {
-      const skill = dataRegistry.skills.getById(row.id);
+      const skill = skillsService.getById(row.id);
       if (skill) {
         entries.push([row.id, skill]);
       }
@@ -379,8 +379,8 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
           const skillIdA = a.getValue('id');
           const skillIdB = b.getValue('id');
 
-          const skillNameA = dataRegistry.skills.getNameById(`${skillIdA}`);
-          const skillNameB = dataRegistry.skills.getNameById(`${skillIdB}`);
+          const skillNameA = skillsService.getNameById(`${skillIdA}`);
+          const skillNameB = skillsService.getNameById(`${skillIdB}`);
 
           return skillNameA < skillNameB ? -1 : 1;
         }
@@ -571,7 +571,7 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
         >
           {skillDetailsAnchor &&
             (() => {
-              const skill = dataRegistry.skills.getById(skillDetailsAnchor.skillId);
+              const skill = skillsService.getById(skillDetailsAnchor.skillId);
               if (!skill) {
                 return (
                   <div className="p-3 text-sm text-muted-foreground">

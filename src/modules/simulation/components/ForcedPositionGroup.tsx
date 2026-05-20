@@ -2,7 +2,7 @@ import { useCallback, type ChangeEvent } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import i18n from '@/i18n';
-import { dataRegistry } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/registry';
 import {
   SkillItemAccessory,
   SkillItemBody,
@@ -75,7 +75,7 @@ function ForcedPositionRow({
                 min={0}
                 step={10}
                 placeholder="Auto"
-                aria-label={`${i18n.t(`skillnames.${dataRegistry.skills.normalizeSkillId(skill.skillId)}`)} forced position`}
+                aria-label={`${i18n.t(`skillnames.${skillsService.normalizeSkillId(skill.skillId)}`)} forced position`}
                 value={positions[skill.normalizedSkillId]?.toString() ?? ''}
                 onChange={handlePositionChange}
               />
@@ -97,7 +97,7 @@ type ForcedPositionGroupProps = Readonly<{
 export function buildRunnerSkillEntries(skills: Array<string>): Array<RunnerSkillEntry> {
   return skills.map((skillId) => ({
     skillId,
-    normalizedSkillId: dataRegistry.skills.normalizeSkillId(skillId)
+    normalizedSkillId: skillsService.normalizeSkillId(skillId)
   }));
 }
 

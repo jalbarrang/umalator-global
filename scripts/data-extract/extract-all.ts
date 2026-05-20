@@ -1,10 +1,13 @@
 #!/usr/bin/env node
 /**
  * Primary master.mdb extraction entrypoint.
- * Currently runs course extraction only.
+ * Extracts course geometry and Global live cutover artifacts.
  */
 
 import { extractCourseData } from './extract-course-data';
+import { extractSkills } from './extract-skills';
+import { extractSupportCards } from './extract-support-cards';
+import { extractUmaInfo } from './extract-uma-info';
 import { Command } from 'commander';
 
 type ExtractAllOptions = {
@@ -19,7 +22,7 @@ function parseCliArgs(argv: Array<string>): ExtractAllOptions {
 
   program
     .name('extract-all')
-    .description('Run the primary master.mdb extraction pipeline (course data only)')
+    .description('Run the primary master.mdb extraction pipeline (courses + Global cutover)')
     .option('-r, --replace', 'replace existing extracted data')
     .option('--full', 'alias for --replace')
     .option('--resource-version <version>', 'master.mdb resource version for data-manifest.json')
@@ -69,7 +72,21 @@ async function extractAll(
       resourceVersion?: string;
       resolveResourceVersion: boolean;
     }) => Promise<void>;
-  }> = [{ name: 'Course Data', fn: extractCourseData }];
+  }> = [
+    {
+      name: 'Skills (Global cutover)',
+      fn: ({ replaceMode, dbPath }) => extractSkills({ replaceMode, dbPath })
+    },
+    {
+      name: 'Umas (Global cutover)',
+      fn: ({ replaceMode, dbPath }) => extractUmaInfo({ replaceMode, dbPath })
+    },
+    {
+      name: 'Support Cards (Global cutover)',
+      fn: ({ replaceMode, dbPath }) => extractSupportCards({ replaceMode, dbPath })
+    },
+    { name: 'Course Data', fn: extractCourseData }
+  ];
 
   for (const { name, fn } of extractions) {
     try {

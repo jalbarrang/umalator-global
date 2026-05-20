@@ -1,7 +1,7 @@
 import type { Operator } from '@/lib/sunday-tools/skills/parser/definitions';
 import { createParser } from '@/lib/sunday-tools/skills/parser/ConditionParser';
 import { mockConditions } from '@/lib/sunday-tools/skills/parser/ConditionMatcher';
-import { dataRegistry } from '@/modules/data/registry';
+import type { SkillService } from '@/modules/data/services/SkillService';
 
 var parser: ReturnType<typeof createParser> | null = null;
 
@@ -19,8 +19,8 @@ export function parseSkillCondition(skillCondition: string) {
   return getParser().parseAny(skillCondition);
 }
 
-function tokenizeSkillsConditions() {
-  const skills = dataRegistry.skills.getAll();
+function tokenizeSkillsConditions(skillsService: SkillService) {
+  const skills = skillsService.getAll();
   const acc: Record<string, Array<Operator>> = {};
 
   for (const skillData of skills) {
@@ -44,10 +44,8 @@ function tokenizeSkillsConditions() {
 
 export var tokenizedConditions: Record<string, Array<Operator>> = {};
 
-export function rebuildTokenizedConditionsCache(): void {
-  tokenizedConditions = tokenizeSkillsConditions();
+export function rebuildTokenizedConditionsCache(skillsService: SkillService): void {
+  tokenizedConditions = tokenizeSkillsConditions(skillsService);
 }
-
-rebuildTokenizedConditionsCache();
 
 // Operation Parser

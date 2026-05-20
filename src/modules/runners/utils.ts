@@ -1,7 +1,7 @@
 import { getIconUrl } from '@/assets/icons';
 import { useMemo } from 'react';
 import { getIconById } from '@/modules/data/icons';
-import { dataRegistry } from '@/modules/data/registry';
+import { umasService } from '@/modules/data/registry';
 import type { UmaAptitudes } from '@/modules/data/services/UmaService';
 
 export type UmaSearchEntry = {
@@ -30,20 +30,20 @@ function buildUmaSearchData(includeUpcoming = false): UmaSearchData {
     return cached;
   }
 
-  const altIds = dataRegistry.umas.getAllEntries().flatMap(([_id, uma]) => {
+  const altIds = umasService.getAllEntries().flatMap(([_id, uma]) => {
     if (!uma) {
       return [];
     }
 
     return Object.keys(uma.outfits).filter(
-      (outfitId) => includeUpcoming || dataRegistry.umas.isReleased(outfitId)
+      (outfitId) => includeUpcoming || umasService.isReleased(outfitId)
     );
   });
 
   const namesForSearch = Object.fromEntries(
     altIds.map((id) => {
       const baseId = getUmaBaseId(id);
-      const uma = dataRegistry.umas.getById(baseId);
+      const uma = umasService.getById(baseId);
       if (!uma) {
         return [id, ''];
       }
@@ -55,7 +55,7 @@ function buildUmaSearchData(includeUpcoming = false): UmaSearchData {
   const umasForSearch = altIds
     .map((id) => {
       const baseId = getUmaBaseId(id);
-      const uma = dataRegistry.umas.getById(baseId);
+      const uma = umasService.getById(baseId);
       if (!uma) {
         return null;
       }
@@ -93,7 +93,7 @@ export const getUmaBaseId = (id: string) => {
 export const getUmaById = (id: string) => {
   const baseId = getUmaBaseId(id);
 
-  const uma = dataRegistry.umas.getById(baseId);
+  const uma = umasService.getById(baseId);
 
   if (!uma) {
     throw new Error(`Uma with id ${id} not found`);

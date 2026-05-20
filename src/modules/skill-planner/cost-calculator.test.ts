@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { calculateDisplayCost, calculateSkillCost, getNetCost } from './cost-calculator';
 import type { CandidateSkill } from './types';
-import { dataRegistry } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/registry';
 import { runawaySkillId } from '@/modules/runners/components/runner-card/types';
 import { getWhiteVersion } from '@/modules/skills/skill-relationships';
 
 const getSkillIdByName = (name: string): string => {
-  const allSkills = dataRegistry.skills.getAll();
+  const allSkills = skillsService.getAll();
   const skill = allSkills.find((skill) => skill.name === name);
 
   if (!skill) {
@@ -18,7 +18,7 @@ const getSkillIdByName = (name: string): string => {
 
 describe('cost-calculator', () => {
   const skillId = runawaySkillId;
-  const baseCost = dataRegistry.skills.getById(skillId)?.baseCost ?? 0;
+  const baseCost = skillsService.getById(skillId)?.baseCost ?? 0;
   const speedStarId = '200581';
   const preparedToPassId = '200582';
 
@@ -41,7 +41,7 @@ describe('cost-calculator', () => {
   });
 
   it('does not undercount floating-point exact integer discounts', () => {
-    expect(dataRegistry.skills.getById(speedStarId)?.baseCost).toBe(180);
+    expect(skillsService.getById(speedStarId)?.baseCost).toBe(180);
     expect(calculateSkillCost(speedStarId, 3, false)).toBe(126);
     expect(calculateSkillCost(preparedToPassId, 2, false)).toBe(144);
   });
@@ -64,8 +64,8 @@ describe('cost-calculator', () => {
     const candidates: Record<string, CandidateSkill> = {
       [speedStarId]: {
         skillId: speedStarId,
-        cost: dataRegistry.skills.getById(speedStarId)?.baseCost ?? 0,
-        netCost: dataRegistry.skills.getById(speedStarId)?.baseCost ?? 0,
+        cost: skillsService.getById(speedStarId)?.baseCost ?? 0,
+        netCost: skillsService.getById(speedStarId)?.baseCost ?? 0,
         hintLevel: 3,
         isStackable: false,
         isGold: true,
@@ -74,8 +74,8 @@ describe('cost-calculator', () => {
       },
       [preparedToPassId]: {
         skillId: preparedToPassId,
-        cost: dataRegistry.skills.getById(preparedToPassId)?.baseCost ?? 0,
-        netCost: dataRegistry.skills.getById(preparedToPassId)?.baseCost ?? 0,
+        cost: skillsService.getById(preparedToPassId)?.baseCost ?? 0,
+        netCost: skillsService.getById(preparedToPassId)?.baseCost ?? 0,
         hintLevel: 2,
         isStackable: false,
         isGold: false,
@@ -90,8 +90,8 @@ describe('cost-calculator', () => {
     const escapeArtistId = getSkillIdByName('Escape Artist');
     const goldCandidate: CandidateSkill = {
       skillId: escapeArtistId,
-      cost: dataRegistry.skills.getById(escapeArtistId)?.baseCost ?? 0,
-      netCost: dataRegistry.skills.getById(escapeArtistId)?.baseCost ?? 0,
+      cost: skillsService.getById(escapeArtistId)?.baseCost ?? 0,
+      netCost: skillsService.getById(escapeArtistId)?.baseCost ?? 0,
       hintLevel: 0,
       isStackable: false,
       isGold: true,
@@ -106,6 +106,6 @@ describe('cost-calculator', () => {
       false
     );
 
-    expect(displayCost).toBe(dataRegistry.skills.getById(escapeArtistId)?.baseCost ?? 0);
+    expect(displayCost).toBe(skillsService.getById(escapeArtistId)?.baseCost ?? 0);
   });
 });

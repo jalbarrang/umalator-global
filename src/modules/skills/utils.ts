@@ -1,12 +1,6 @@
-import { parseSkillCondition, tokenizedConditions } from './conditions';
 import type { UmaAltId } from '@/modules/runners/utils';
 import { SkillRarity } from '@/lib/sunday-tools/skills/definitions';
-import { dataRegistry } from '@/modules/data/registry';
-import type { SkillsMap } from '@/modules/data/services/SkillService';
-
-// ===== Utils =====
-
-import { treeMatch } from '@/lib/sunday-tools/skills/parser/ConditionMatcher';
+import { skillsService } from '@/modules/data/registry';
 
 // Types
 
@@ -24,7 +18,7 @@ export const getBaseSkillId = (id: string): string => {
 
 export const getSkillNameById = (id: string): string => {
   const baseId = getBaseSkillId(id);
-  const skill = dataRegistry.skills.getById(baseId);
+  const skill = skillsService.getById(baseId);
   if (skill?.name) {
     return skill.name;
   }
@@ -32,7 +26,7 @@ export const getSkillNameById = (id: string): string => {
   // Master data doesn't always include inherited aliases. Resolve those from their original unique.
   if (baseId.startsWith('9')) {
     const originalId = `1${baseId.slice(1)}`;
-    const originalSkill = dataRegistry.skills.getById(originalId);
+    const originalSkill = skillsService.getById(originalId);
     if (originalSkill?.name) {
       return `${originalSkill.name} (inherited)`;
     }
@@ -56,13 +50,13 @@ export function getUniqueSkillForByUmaId(outfitId: UmaAltId): string {
 const nonMeasurableSkills = ['300051', '300061'];
 
 export const getBaseSkillsToTest = () => {
-  const skillIds = dataRegistry.skills.getAll().map((skill) => skill.id);
+  const skillIds = skillsService.getAll().map((skill) => skill.id);
   const skillsToTest = [];
 
   for (const id of skillIds) {
     if (nonMeasurableSkills.includes(id)) continue;
 
-    const skillData = dataRegistry.skills.getById(id);
+    const skillData = skillsService.getById(id);
 
     if (!skillData) continue;
 
@@ -84,9 +78,9 @@ export const getSelectableSkillsForUma = (umaId: UmaAltId, includeUpcoming = fal
   // White, Gold, Upgraded Unique (2* Umas), Unique (3* Umas)
   const allowedRarities = [1, 2, 4, 5];
 
-  for (const skill of dataRegistry.skills.getAll()) {
+  for (const skill of skillsService.getAll()) {
     if (!allowedRarities.includes(skill.rarity)) continue;
-    if (!includeUpcoming && !dataRegistry.skills.isReleased(skill.id)) continue;
+    if (!includeUpcoming && !skillsService.isReleased(skill.id)) continue;
 
     // Inherited uniques (9xxxxx) are added via the gene_version redirect
     // on their parent unique skill — skip them to avoid duplicates.
@@ -100,7 +94,7 @@ export const getSelectableSkillsForUma = (umaId: UmaAltId, includeUpcoming = fal
 
     if (skill.gene_version?.id) {
       const geneVersionId = `${skill.gene_version.id}`;
-      if (!includeUpcoming && !dataRegistry.skills.isReleased(geneVersionId)) continue;
+      if (!includeUpcoming && !skillsService.isReleased(geneVersionId)) continue;
       ids.push(geneVersionId);
       continue;
     }
@@ -112,7 +106,7 @@ export const getSelectableSkillsForUma = (umaId: UmaAltId, includeUpcoming = fal
 };
 
 export const matchRarity = (skillId: string, rarityB: string) => {
-  const skill = dataRegistry.skills.getById(skillId);
+  const skill = skillsService.getById(skillId);
   if (!skill) return false;
 
   const rarity = skill.rarity;
@@ -133,88 +127,6 @@ export const matchRarity = (skillId: string, rarityB: string) => {
   }
 };
 
-export const conditionFilterMap = {
-  nige: [parseSkillCondition('running_style==1')],
-  senkou: [parseSkillCondition('running_style==2')],
-  sasi: [parseSkillCondition('running_style==3')],
-  oikomi: [parseSkillCondition('running_style==4')],
-  short: [parseSkillCondition('distance_type==1')],
-  mile: [parseSkillCondition('distance_type==2')],
-  medium: [parseSkillCondition('distance_type==3')],
-  long: [parseSkillCondition('distance_type==4')],
-  turf: [parseSkillCondition('ground_type==1')],
-  dirt: [parseSkillCondition('ground_type==2')],
-  phase0: [
-    parseSkillCondition('phase==0'),
-    parseSkillCondition('phase_random==0'),
-    parseSkillCondition('phase_firsthalf_random==0'),
-    parseSkillCondition('phase_laterhalf_random==0')
-  ],
-  phase1: [
-    parseSkillCondition('phase==1'),
-    parseSkillCondition('phase>=1'),
-    parseSkillCondition('phase_random==1'),
-    parseSkillCondition('phase_firsthalf_random==1'),
-    parseSkillCondition('phase_laterhalf_random==1')
-  ],
-  phase2: [
-    parseSkillCondition('phase==2'),
-    parseSkillCondition('phase_random==2'),
-    parseSkillCondition('phase_firsthalf_random==2'),
-    parseSkillCondition('phase_laterhalf_random==2'),
-    parseSkillCondition('phase_firstquarter_random==2'),
-    parseSkillCondition('is_lastspurt==1')
-  ],
-  phase3: [
-    parseSkillCondition('phase==3'),
-    parseSkillCondition('phase>=2'),
-    parseSkillCondition('phase_random==3'),
-    parseSkillCondition('phase_firsthalf_random==3'),
-    parseSkillCondition('phase_laterhalf_random==3')
-  ],
-  finalcorner: [
-    parseSkillCondition('is_finalcorner==1'),
-    parseSkillCondition('is_finalcorner_laterhalf==1'),
-    parseSkillCondition('is_finalcorner_random==1')
-  ],
-  finalstraight: [
-    parseSkillCondition('is_finalcorner==1'),
-    parseSkillCondition('is_last_straight_onetime==1'),
-    parseSkillCondition('is_finalcorner==1&corner==0')
-  ]
-};
-
-export const generateSkillFilterLookUp = (skillsToMatch: SkillsMap) => {
-  const filterLookup: Record<string, Set<string>> = {};
-  const filterMapEntries = Object.entries(conditionFilterMap);
-
-  for (const [filterKey, ops] of filterMapEntries) {
-    filterLookup[filterKey] = new Set();
-
-    for (const id of Object.keys(skillsToMatch)) {
-      const conditions = tokenizedConditions[id];
-      if (!conditions) continue;
-
-      const matches = ops.some((op) => conditions.some((alt) => treeMatch(op, alt)));
-
-      if (matches) {
-        filterLookup[filterKey].add(id);
-      }
-    }
-  }
-
-  return filterLookup;
-};
-
-const skillCollectionAsMap = dataRegistry.skills.getAll().reduce((acc, skill) => {
-  acc[skill.id] = skill;
-  return acc;
-}, {} as SkillsMap);
-
-export let skillFilterLookUp: Record<string, Set<string>> = generateSkillFilterLookUp(
-  skillCollectionAsMap
-);
-
 /**
  * Estimate skill activation phase from skill condition
  * Returns phase number (0-3) or null if undeterminable
@@ -226,7 +138,7 @@ export let skillFilterLookUp: Record<string, Set<string>> = generateSkillFilterL
  * - Phase 3 (Last Spurt): Sections 21-24 (~83.3% to 100%)
  */
 export function estimateSkillActivationPhase(skillId: string): number | null {
-  const data = dataRegistry.skills.getById(skillId);
+  const data = skillsService.getById(skillId);
   if (!data?.alternatives?.[0]?.condition) return null;
 
   const condition = data.alternatives[0].condition;
@@ -265,7 +177,7 @@ export function estimateSkillActivationPhase(skillId: string): number | null {
 
 export const getGeneVersionSkillId = (skillId: string): string => {
   const baseSkillId = getBaseSkillId(skillId);
-  const skill = dataRegistry.skills.getById(baseSkillId);
+  const skill = skillsService.getById(baseSkillId);
   if (!skill) return skillId;
 
   const geneVersionId = skill.gene_version?.id;
@@ -277,7 +189,7 @@ export const getGeneVersionSkillId = (skillId: string): string => {
 
 export const getUmaForUniqueSkill = (skillId: string): string => {
   const baseSkillId = getBaseSkillId(skillId);
-  const skill = dataRegistry.skills.getById(baseSkillId);
+  const skill = skillsService.getById(baseSkillId);
   if (!skill) {
     throw new Error(`Skill not found: ${skillId}`);
   }

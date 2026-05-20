@@ -48,12 +48,10 @@ export type SkillEntry = {
   baseCost: number;
   order: number;
   name: string;
-  /**
-   * Uma outfit ids that can provide this skill.
-   * Support-card source extraction is not included yet.
-   */
+  /** Uma outfit ids that can provide this skill. */
   character: Array<number>;
   sources?: Array<SkillUmaSourceEntry>;
+  /** Support cards that grant this skill (hints from master extract, events from GameTora). */
   supportSources?: Array<SkillSupportCardSourceEntry>;
   gene_version?: SkillGeneVersionEntry;
   unique_version?: SkillGeneVersionEntry;

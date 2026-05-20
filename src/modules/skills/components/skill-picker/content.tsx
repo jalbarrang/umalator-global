@@ -13,7 +13,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
 import { useGridKeyboardNavigation } from '@/hooks/use-grid-keyboard-navigation';
 import { cn } from '@/lib/utils';
-import { dataRegistry } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/registry';
 import type { SkillEntry } from '@/modules/data/services/SkillService';
 import { getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import {
@@ -69,7 +69,7 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
   const deferredSearchText = useDeferredValue(searchText);
 
   const skills = useMemo(() => {
-    return dataRegistry.skills.getMany(options);
+    return skillsService.getMany(options);
   }, [options]);
 
   const filteredSkills = useFilteredSkills(deferredSearchText, skills);

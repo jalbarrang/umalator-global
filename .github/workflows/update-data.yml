@@ -42,6 +42,9 @@ jobs:
       - name: Extract data
         run: bun run extract:all
 
+      - name: Sync GameTora catalog
+        run: bun run sync:data
+
       - name: Check for changes
         id: changes
         run: |
@@ -59,7 +62,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -b chore/update-data-v${{ steps.version.outputs.value }}
-          git add src/modules/data/skills.json src/modules/data/umas.json src/modules/data/course_data.json
+          git add src/modules/data/skills.json src/modules/data/umas.json src/modules/data/support-cards.json src/modules/data/course_data.json src/modules/data/json/gametora/
           git commit -m "chore: update game data to version ${{ steps.version.outputs.value }}"
           git push -u origin chore/update-data-v${{ steps.version.outputs.value }}
 
@@ -76,7 +79,9 @@ jobs:
           Updated files:
           - `src/modules/data/skills.json`
           - `src/modules/data/umas.json`
+          - `src/modules/data/support-cards.json`
           - `src/modules/data/course_data.json`
+          - `src/modules/data/json/gametora/*`
 
           Triggered by: @${{ github.actor }} via workflow_dispatch
           EOF

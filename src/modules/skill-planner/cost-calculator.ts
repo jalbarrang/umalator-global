@@ -1,5 +1,5 @@
 import type { CandidateSkill, CostBreakdown, HintLevel } from './types';
-import { dataRegistry } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/registry';
 import { getBaseTier, getUpgradeTier } from '@/modules/skills/skill-relationships';
 import { isSkillCoveredByOwnedFamily } from './skill-family';
 
@@ -22,7 +22,7 @@ export function calculateRawSkillCost(
   hintLevel: HintLevel,
   hasFastLearner: boolean
 ): number {
-  const skill = dataRegistry.skills.getById(skillId);
+  const skill = skillsService.getById(skillId);
   if (!skill) {
     throw new Error(`Skill not found: ${skillId}`);
   }
@@ -57,7 +57,7 @@ export function getNetCost(candidate: CandidateSkill, hasFastLearner: boolean): 
  * Get the base cost of a skill without any discounts
  */
 export function getBaseCost(skillId: string): number {
-  const skill = dataRegistry.skills.getById(skillId);
+  const skill = skillsService.getById(skillId);
   if (!skill) {
     throw new Error(`Skill not found: ${skillId}`);
   }

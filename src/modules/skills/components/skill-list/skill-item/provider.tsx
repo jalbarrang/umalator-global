@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { dataRegistry } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/registry';
 import { normalizeSkillIdForCostSummary } from '@/modules/skills/skill-cost-summary';
 import { isUniqueSkill } from '@/store/runners.store';
 import {
@@ -28,7 +28,7 @@ export function SkillItemProvider({
   const normalizedSkillId = useMemo(() => normalizeSkillIdForCostSummary(skillId), [skillId]);
 
   const skill = useMemo(() => {
-    const s = dataRegistry.skills.getById(normalizedSkillId);
+    const s = skillsService.getById(normalizedSkillId);
     if (!s) throw new Error(`Skill not found: ${normalizedSkillId}`);
     return s;
   }, [normalizedSkillId]);

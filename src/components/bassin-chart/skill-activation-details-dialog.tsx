@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { dataRegistry } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/registry';
 import type { SkillComparisonRoundResult } from '@/modules/simulation/types';
 import React from 'react';
 import { ActivationDetails } from './activation-details';
@@ -44,9 +44,7 @@ export const SkillActivationDetailsDialog = React.memo(function SkillActivationD
         {skillId && runData && (
           <>
             <DialogHeader className="border-b px-4 py-3">
-              <DialogTitle className="text-base">
-                {dataRegistry.skills.getNameById(skillId)}
-              </DialogTitle>
+              <DialogTitle className="text-base">{skillsService.getNameById(skillId)}</DialogTitle>
             </DialogHeader>
             <div className="max-h-[min(80vh,calc(90vh-4rem))] overflow-y-auto p-4">
               <ActivationDetails

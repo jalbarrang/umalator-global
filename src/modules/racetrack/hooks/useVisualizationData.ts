@@ -10,7 +10,7 @@ import { SkillPerspective, SkillTarget, SkillType } from '@/lib/sunday-tools/ski
 import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
 import { isExternalDebuffEffect } from '@/lib/sunday-tools/skills/external-debuffs';
 import { useDebuffs } from '@/modules/simulation/stores/compare.store';
-import { dataRegistry } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/registry';
 
 export type RegionData = {
   type: IRegionDisplayType;
@@ -42,7 +42,7 @@ type InjectedDebuffRegionRef = {
 
 const getDebuffIndicatorEffectType = (skillId: string): number => {
   try {
-    const skillData = dataRegistry.skills.getById(skillId);
+    const skillData = skillsService.getById(skillId);
     if (!skillData) {
       return SkillType.Noop;
     }

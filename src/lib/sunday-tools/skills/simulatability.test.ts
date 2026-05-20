@@ -5,7 +5,7 @@ import {
   findUnknownConditionTokens,
   isConditionSimulatable
 } from './simulatability';
-import { dataRegistry } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/registry';
 
 describe('extractConditionTokens', () => {
   it('extracts identifier tokens from a condition string', () => {
@@ -117,20 +117,18 @@ describe('findUnknownConditionTokens', () => {
 describe('SkillService.isSimulatable', () => {
   it('returns true for known skills in the current dataset', () => {
     // Kitasan Black unique — uses well-known conditions
-    expect(dataRegistry.skills.isSimulatable('10351')).toBe(true);
+    expect(skillsService.isSimulatable('10351')).toBe(true);
   });
 
   it('returns false for non-existent skill IDs', () => {
-    expect(dataRegistry.skills.isSimulatable('999999999')).toBe(false);
+    expect(skillsService.isSimulatable('999999999')).toBe(false);
   });
 
   it('all released skills in the current dataset are simulatable', () => {
-    const releasedSkills = dataRegistry.skills
+    const releasedSkills = skillsService
       .getAll()
-      .filter((skill) => dataRegistry.skills.isReleased(skill.id));
-    const nonSimulatable = releasedSkills.filter(
-      (skill) => !dataRegistry.skills.isSimulatable(skill.id)
-    );
+      .filter((skill) => skillsService.isReleased(skill.id));
+    const nonSimulatable = releasedSkills.filter((skill) => !skillsService.isSimulatable(skill.id));
 
     // Released skills should remain fully simulatable even as the GameTora
     // snapshot adds upcoming/datamined entries with newer condition tokens.

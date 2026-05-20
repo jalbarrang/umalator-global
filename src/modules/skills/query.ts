@@ -1,6 +1,6 @@
-import { dataRegistry } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/registry';
 import type { SkillEntry } from '@/modules/data/services/SkillService';
-import { skillFilterLookUp } from '@/modules/skills/utils';
+import { skillFilterLookUp } from '@/modules/skills/skill-filter-lookup';
 
 // A predicate that takes a skill and returns whether it passes
 type SkillPredicate = (skill: SkillEntry) => boolean;
@@ -72,7 +72,7 @@ export class SkillQuery {
   whereIsUpcoming(isUpcoming: boolean): this {
     if (isUpcoming) return this;
 
-    this.predicates.push((skill) => dataRegistry.skills.isReleased(skill.id));
+    this.predicates.push((skill) => skillsService.isReleased(skill.id));
 
     return this;
   }

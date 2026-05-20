@@ -3,6 +3,7 @@ if (import.meta.env.DEV) {
 }
 
 import './polyfills';
+import '@/modules/data/bootstrap-skill-indexes';
 
 // Supports weights 100-900
 import '@fontsource-variable/inter/wght.css';

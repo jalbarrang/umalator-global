@@ -1,4 +1,4 @@
-import { dataRegistry } from '@/modules/data/registry';
+import { umasService } from '@/modules/data/registry';
 import type { UmaAptitudes } from '@/modules/data/services/UmaService';
 import { aptitudeToEncoding } from '@/modules/runners/share/converters';
 import type { UmaSearchEntry } from '@/modules/runners/utils';
@@ -54,7 +54,7 @@ export class UmaQuery {
   whereIsUpcoming(isUpcoming: boolean): this {
     if (isUpcoming) return this;
 
-    this.predicates.push((uma) => dataRegistry.umas.isReleased(uma.id));
+    this.predicates.push((uma) => umasService.isReleased(uma.id));
 
     return this;
   }

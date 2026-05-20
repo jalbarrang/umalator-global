@@ -2,7 +2,7 @@ import { ExtractedUmaData } from '@/modules/runners/ocr/types';
 import { getSelectableSkillsForUma, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import { useMemo, useState } from 'react';
 import { createManualOcrSkillEntry, getOcrSkillOptionMeta, OcrSkillPickerOption } from '../helpers';
-import { dataRegistry } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/registry';
 import { toast } from 'sonner';
 import { OcrSkillPickerPopover } from './skill-picker';
 import { useUIStore } from '@/store/ui.store';
@@ -41,8 +41,8 @@ export function OcrSkillsList(props: Readonly<IOcrSkillsListProps>) {
       selectableSkillIds = getSelectableSkillsForUma(results.outfitId, showUpcoming);
     } else {
       selectableSkillIds = [];
-      for (const skill of dataRegistry.skills.getAll()) {
-        if (showUpcoming || dataRegistry.skills.isReleased(skill.id)) {
+      for (const skill of skillsService.getAll()) {
+        if (showUpcoming || skillsService.isReleased(skill.id)) {
           selectableSkillIds.push(skill.id);
         }
       }
@@ -50,7 +50,7 @@ export function OcrSkillsList(props: Readonly<IOcrSkillsListProps>) {
 
     return selectableSkillIds
       .flatMap((skillId) => {
-        const skill = dataRegistry.skills.getById(skillId);
+        const skill = skillsService.getById(skillId);
         if (!skill) {
           return [];
         }

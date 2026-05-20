@@ -7,7 +7,7 @@ import { cloneDeep } from 'es-toolkit';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import { createRunnerState, runawaySkillId } from '@/modules/runners/components/runner-card/types';
 import { getGeneVersionSkillId, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
-import { dataRegistry } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/registry';
 
 type RunnerType = 'uma1' | 'uma2';
 
@@ -50,7 +50,7 @@ export const useRunner = () => {
   };
 
   const handleAddSkill = (skillId: string) => {
-    const skill = dataRegistry.skills.getById(skillId);
+    const skill = skillsService.getById(skillId);
     const skillRarity = skill?.rarity;
     let newSkillId = skillId;
 
@@ -155,7 +155,7 @@ export const replaceRunnerOutfit = (
   const newSkills: Array<string> = [];
 
   for (const skillId of currentSkills) {
-    const skillData = dataRegistry.skills.getById(skillId);
+    const skillData = skillsService.getById(skillId);
 
     // Clean up skills that are not 3* or lower
     if (skillData?.rarity && skillData.rarity < 3) {

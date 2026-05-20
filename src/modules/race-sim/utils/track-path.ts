@@ -5,7 +5,7 @@ import {
   type IOrientation
 } from '@/lib/sunday-tools/course/definitions';
 import { getCourseGeometry } from '@/modules/data/course-geometry';
-import { dataRegistry } from '@/modules/data/registry';
+import { coursesService } from '@/modules/data/registry';
 
 export type TrackPathPoint = {
   distance: number;
@@ -337,7 +337,7 @@ export async function buildCourseTrackPath(course: CourseData): Promise<BuiltTra
     return buildFromLapCorners(lapCorners, lapPeriod, course.turn, start1);
   }
 
-  const ref = dataRegistry.courses.findReferenceCourse(course.raceTrackId, course.surface);
+  const ref = coursesService.findReferenceCourse(course.raceTrackId, course.surface);
   if (ref) {
     const refSorted = [...ref.corners].sort((a, b) => a.start - b.start);
     const refLap = refSorted.slice(0, 4);

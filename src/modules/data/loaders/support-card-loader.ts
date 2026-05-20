@@ -1,5 +1,5 @@
 import gameToraSupportCardsJson from '@/modules/data/json/gametora/support-cards.json';
-import { loadSkills } from '@/modules/data/loaders/skill-loader';
+import { collectReleasedSupportCardIds } from '@/modules/data/loaders/global-cutover';
 import type { SkillsMap } from '@/modules/data/services/SkillService';
 import type {
   SupportCardSkillEntry,
@@ -14,7 +14,6 @@ type SupportCardSnapshot = {
   rarity: number;
   title_en?: string | null;
   title_ja?: string | null;
-  release_en?: string | null;
   hints?: {
     hint_skills?: Array<number>;
   } | null;
@@ -30,17 +29,6 @@ const supportCardTypeMap: Record<string, number> = {
   friend: 6,
   group: 7
 };
-
-let cachedSkills: SkillsMap | null = null;
-
-function getDefaultSkills(): SkillsMap {
-  if (cachedSkills) {
-    return cachedSkills;
-  }
-
-  cachedSkills = loadSkills().skills;
-  return cachedSkills;
-}
 
 function resolveSupportCardType(type: string | null | undefined): number {
   if (!type) {
@@ -61,8 +49,9 @@ function toSupportCardSkillEntry(skillId: number, skills: SkillsMap): SupportCar
 }
 
 export function loadSupportCards(
-  skills: SkillsMap = getDefaultSkills(),
-  supportCards: Array<SupportCardSnapshot> = gameToraSupportCardsJson as Array<SupportCardSnapshot>
+  skills: SkillsMap,
+  supportCards: Array<SupportCardSnapshot> = gameToraSupportCardsJson as Array<SupportCardSnapshot>,
+  releasedCardIds: Set<string> = collectReleasedSupportCardIds()
 ): SupportCardsMap {
   const supportCardMap: SupportCardsMap = {};
 
@@ -76,7 +65,7 @@ export function loadSupportCards(
       charaName: supportCard.char_name ?? '',
       rarity: supportCard.rarity,
       supportCardType: resolveSupportCardType(supportCard.type),
-      released: !!supportCard.release_en,
+      released: releasedCardIds.has(cardId),
       hintSkills: (supportCard.hints?.hint_skills ?? []).map((skillId) =>
         toSupportCardSkillEntry(skillId, skills)
       ),

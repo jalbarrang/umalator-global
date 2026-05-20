@@ -46,7 +46,7 @@
  * - 4 = Gold (in Pattern 1)
  */
 
-import { dataRegistry } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/registry';
 import type { SkillEntry } from '@/modules/data/services/SkillService';
 
 // ============================================================================
@@ -56,7 +56,7 @@ import type { SkillEntry } from '@/modules/data/services/SkillService';
 /** Map of skill ID to all family member IDs (including self) */
 const skillFamilyMap = new Map<string, Array<string>>();
 
-for (const skill of dataRegistry.skills.getAll()) {
+for (const skill of skillsService.getAll()) {
   if (skill.versions && skill.versions.length > 0) {
     const family = [skill.id, ...skill.versions.map(String)];
     skillFamilyMap.set(skill.id, family);
@@ -93,7 +93,7 @@ function hasPositiveEffects(skill: SkillEntry): boolean {
  * Useful for identifying self-debuff skills even when icon metadata is inconsistent.
  */
 export function hasPositiveSkillEffects(skillId: string): boolean {
-  const skill = dataRegistry.skills.getById(skillId);
+  const skill = skillsService.getById(skillId);
 
   if (!skill) {
     return false;
@@ -109,7 +109,7 @@ function getWhiteSkillsInFamily(familyIds: Array<string>): Array<SkillEntry> {
   const whiteSkills: Array<SkillEntry> = [];
 
   for (const id of familyIds) {
-    const skill = dataRegistry.skills.getById(id);
+    const skill = skillsService.getById(id);
     if (skill && skill.rarity === 1 && hasPositiveEffects(skill)) {
       whiteSkills.push(skill);
     }
@@ -123,7 +123,7 @@ function getWhiteSkillsInFamily(familyIds: Array<string>): Array<SkillEntry> {
  */
 function getGoldSkillInFamily(familyIds: Array<string>): SkillEntry | undefined {
   for (const id of familyIds) {
-    const skill = dataRegistry.skills.getById(id);
+    const skill = skillsService.getById(id);
     if (skill && skill.rarity === 2) {
       return skill;
     }
@@ -173,7 +173,7 @@ export function getSkillFamily(skillId: string): Array<string> {
  * isStackableSkill("200332") // false (Corner Adept ○ has no ◎ version)
  */
 export function isStackableSkill(skillId: string): boolean {
-  const skill = dataRegistry.skills.getById(skillId);
+  const skill = skillsService.getById(skillId);
 
   if (!skill || skill.rarity !== 1) {
     return false;
@@ -205,7 +205,7 @@ export function isStackableSkill(skillId: string): boolean {
  * getGoldVersion("200332") // "200331" (gold version of Corner Adept)
  */
 export function getGoldVersion(whiteSkillId: string): string | undefined {
-  const skill = dataRegistry.skills.getById(whiteSkillId);
+  const skill = skillsService.getById(whiteSkillId);
 
   if (!skill || skill.rarity !== 1) {
     return undefined;
@@ -231,7 +231,7 @@ export function getGoldVersion(whiteSkillId: string): string | undefined {
  * getWhiteVersion("200331") // "200332" (white ○ version of Archline Professor)
  */
 export function getWhiteVersion(goldSkillId: string): string | undefined {
-  const skill = dataRegistry.skills.getById(goldSkillId);
+  const skill = skillsService.getById(goldSkillId);
 
   if (!skill || skill.rarity !== 2) {
     return undefined;
@@ -276,7 +276,7 @@ export function getWhiteVersion(goldSkillId: string): string | undefined {
  * getBaseTier("200333") // "200332" (base tier of the upgrade)
  */
 export function getBaseTier(skillId: string): string {
-  const skill = dataRegistry.skills.getById(skillId);
+  const skill = skillsService.getById(skillId);
 
   if (!skill || skill.rarity !== 1) {
     return skillId;
@@ -315,7 +315,7 @@ export function getBaseTier(skillId: string): string {
  * getUpgradeTier("200011") // undefined (no upgrade tier)
  */
 export function getUpgradeTier(skillId: string): string | undefined {
-  const skill = dataRegistry.skills.getById(skillId);
+  const skill = skillsService.getById(skillId);
 
   if (!skill || skill.rarity !== 1) {
     return undefined;
@@ -329,7 +329,7 @@ export function getUpgradeTier(skillId: string): string | undefined {
   const whiteSkills = getWhiteSkillsInFamily(family);
 
   // Sort by ID (Lowest is upgrade, highest is base / debuff)
-  const sorted = whiteSkills.toSorted((a, b) => dataRegistry.skills.skillComparator(a.id, b.id));
+  const sorted = whiteSkills.toSorted((a, b) => skillsService.skillComparator(a.id, b.id));
 
   // Find current skill in sorted list
   const currentIndex = sorted.findIndex((s) => s.id === skillId);

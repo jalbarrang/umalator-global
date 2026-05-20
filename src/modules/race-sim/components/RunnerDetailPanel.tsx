@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import { PlusIcon, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { dataRegistry } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/registry';
 import { AptitudesTable } from '@/modules/runners/components/runner-card/aptitudes-table';
 import { StatsTable, type StatsKey } from '@/modules/runners/components/runner-card/stats-table';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
@@ -107,7 +107,7 @@ export function RunnerDetailPanel({
       if (!runner) return;
       const keptSkills = runner.skills.filter((skillId) => {
         const baseSkillId = skillId.split('-')[0] ?? skillId;
-        const skillData = dataRegistry.skills.getById(baseSkillId);
+        const skillData = skillsService.getById(baseSkillId);
         return Boolean(skillData?.rarity && skillData.rarity < 3);
       });
       if (outfitId) {

@@ -1,4 +1,4 @@
-import { dataRegistry } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/registry';
 import { ExtractedUmaData } from '../../ocr/types';
 import { SkillEntry } from '@/modules/data/services/SkillService';
 
@@ -25,7 +25,7 @@ export function createManualOcrSkillEntry(
   skillId: string,
   previous?: ExtractedUmaData['skills'][number]
 ): ExtractedUmaData['skills'][number] | null {
-  const skill = dataRegistry.skills.getById(skillId);
+  const skill = skillsService.getById(skillId);
   if (!skill) {
     return null;
   }

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import i18n from '@/i18n';
-import { dataRegistry } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/registry';
 import {
   SkillItemAccessory,
   SkillItemActions,
@@ -76,7 +76,7 @@ function DebuffRow({
                 min={0}
                 step={10}
                 value={debuff.position}
-                aria-label={`${i18n.t(`skillnames.${dataRegistry.skills.normalizeSkillId(debuff.skillId)}`)} position`}
+                aria-label={`${i18n.t(`skillnames.${skillsService.normalizeSkillId(debuff.skillId)}`)} position`}
                 onChange={handlePositionChange}
               />
             </SkillItemAccessory>

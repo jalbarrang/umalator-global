@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { dataRegistry } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/registry';
 
-const findBestSkillMatch = dataRegistry.skills.findBestSkillMatch;
-const normalizeSkillName = dataRegistry.skills.normalizeSkillName;
-const resolveSkillId = dataRegistry.skills.resolveSkillId;
+const findBestSkillMatch = skillsService.findBestSkillMatch;
+const normalizeSkillName = skillsService.normalizeSkillName;
+const resolveSkillId = skillsService.resolveSkillId;
 
 describe('normalizeSkillName', () => {
   it('normalizes grade symbol variants while preserving grade semantics', () => {
@@ -61,29 +61,35 @@ describe('resolveSkillId', () => {
 
 describe('GameTora skill loading', () => {
   it('preserves released skills and adds upcoming skills', () => {
-    expect(dataRegistry.skills.getById('10351')).toBeDefined();
-    expect(dataRegistry.skills.getById('110031')).toBeDefined();
-    expect(dataRegistry.skills.getById('910031')).toBeDefined();
+    expect(skillsService.getById('10351')).toBeDefined();
+    expect(skillsService.getById('110031')).toBeDefined();
+    expect(skillsService.getById('910031')).toBeDefined();
   });
 
   it('applies loc.en condition overrides for base and gene versions', () => {
-    expect(dataRegistry.skills.getById('110031')?.alternatives[0]?.condition).toBe(
+    expect(skillsService.getById('110031')?.alternatives[0]?.condition).toBe(
       'is_finalcorner==1&corner==0'
     );
-    expect(dataRegistry.skills.getById('910031')?.alternatives[0]?.condition).toBe(
+    expect(skillsService.getById('910031')?.alternatives[0]?.condition).toBe(
       'is_finalcorner==1&corner==0'
     );
   });
 
   it('exposes release provenance and activation metadata', () => {
-    expect(dataRegistry.skills.isReleased('10351')).toBe(true);
-    expect(dataRegistry.skills.isReleased('110221')).toBe(false);
-    expect(dataRegistry.skills.getActivationCheck('110221')).toBe('guaranteed');
-    expect(dataRegistry.skills.getActivationCheck('910221')).toBe('wit-check');
+    expect(skillsService.isReleased('10351')).toBe(true);
+
+    const upcomingSkill = skillsService
+      .getAll()
+      .find((skill) => !skillsService.isReleased(skill.id));
+    expect(upcomingSkill).toBeDefined();
+    expect(skillsService.isReleased(upcomingSkill!.id)).toBe(false);
+
+    expect(skillsService.getActivationCheck('110221')).toBe('guaranteed');
+    expect(skillsService.getActivationCheck('910221')).toBe('wit-check');
   });
 
   it('preserves master-only effect metadata when GameTora omits it', () => {
-    const skill = dataRegistry.skills.getById('202031');
+    const skill = skillsService.getById('202031');
     expect(skill?.alternatives[0]?.effects[1]?.valueUsage).toBe(8);
     expect(skill?.alternatives[0]?.effects[1]?.valueLevelUsage).toBe(1);
   });
