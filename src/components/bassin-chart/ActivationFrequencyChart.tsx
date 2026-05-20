@@ -1,3 +1,4 @@
+/** Import via `LazyActivationFrequencyChart` from `./lazy-bassin-charts` (not wired in UI yet). */
 import { useMemo } from 'react';
 import {
   Bar,

@@ -1,10 +1,10 @@
-import { useMemo } from 'react';
+import { Suspense, useMemo } from 'react';
 import { Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { ActivationEffectChart } from './ActivationEffectChart';
-import { LengthDifferenceChart } from './LengthDifferenceChart';
+import { ChartLoadingFallback } from '@/components/charts/chart-loading-fallback';
+import { LazyActivationEffectChart, LazyLengthDifferenceChart } from './lazy-bassin-charts';
 import type {
   SkillSimulationData,
   SkillTrackedMetaCollection
@@ -174,18 +174,27 @@ export const ActivationDetails = React.memo((props: ActivationDetailsProps) => {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          <ActivationEffectChart
-            skillId={skillId}
-            skillActivations={activationPositions}
-            courseDistance={courseDistance}
-          />
-          <LengthDifferenceChart
-            skillId={skillId}
-            skillActivations={skillActivations}
-            courseDistance={courseDistance}
-          />
-        </div>
+        <Suspense
+          fallback={
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <ChartLoadingFallback height={240} />
+              <ChartLoadingFallback height={240} />
+            </div>
+          }
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <LazyActivationEffectChart
+              skillId={skillId}
+              skillActivations={activationPositions}
+              courseDistance={courseDistance}
+            />
+            <LazyLengthDifferenceChart
+              skillId={skillId}
+              skillActivations={skillActivations}
+              courseDistance={courseDistance}
+            />
+          </div>
+        </Suspense>
 
         <div className="border-t flex flex-col gap-2 pt-2">
           <div className="flex items-center gap-3 text-xs">

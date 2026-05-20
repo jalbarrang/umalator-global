@@ -26,6 +26,15 @@
           "react-doctor/client-passive-event-listeners",
           "react-doctor/no-cascading-set-state"
         ]
+      },
+      {
+        "files": [
+          "src/components/Histogram.tsx",
+          "src/components/bassin-chart/ActivationEffectChart.tsx",
+          "src/components/bassin-chart/LengthDifferenceChart.tsx",
+          "src/components/bassin-chart/ActivationFrequencyChart.tsx"
+        ],
+        "rules": ["react-doctor/prefer-dynamic-import"]
       }
     ]
   }
