@@ -58,21 +58,27 @@ export class UmaService {
   // Query Methods
   // =====
 
-  getAll = (): Array<UmaEntry> => Object.values(this.umas);
+  getAll(): Array<UmaEntry> {
+    return Object.values(this.umas);
+  }
 
-  getAllEntries = (): Array<[string, UmaEntry]> => Object.entries(this.umas);
+  getAllEntries(): Array<[string, UmaEntry]> {
+    return Object.entries(this.umas);
+  }
 
-  getById = (id: string): UmaEntry | undefined => this.umas[id];
+  getById(id: string): UmaEntry | undefined {
+    return this.umas[id];
+  }
 
-  getByOutfitId = (outfitId: string): UmaEntry | undefined => {
+  getByOutfitId(outfitId: string): UmaEntry | undefined {
     return Object.values(this.umas).find((uma) => uma.outfits[outfitId] !== undefined);
-  };
+  }
 
-  isReleased = (outfitId: string): boolean => {
+  isReleased(outfitId: string): boolean {
     return this.releasedOutfits.has(outfitId);
-  };
+  }
 
-  umaForUniqueSkill = (skillId: string): string | null => {
+  umaForUniqueSkill(skillId: string): string | null {
     const sid = parseInt(skillId);
     if (sid < 100000 || sid >= 200000) return null;
 
@@ -92,5 +98,5 @@ export class UmaService {
     }
 
     return null;
-  };
+  }
 }

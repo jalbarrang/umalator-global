@@ -2,6 +2,7 @@ import { useDeferredValue, useMemo, useRef, useState } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { SearchIcon, UsersIcon } from 'lucide-react';
 
+import { config } from '@/config';
 import { Badge } from '@/components/ui/badge';
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
 import {
@@ -14,8 +15,8 @@ import {
 } from '@/components/ui/popover';
 import i18n from '@/i18n';
 import { describeRecoveryEffect } from '@/lib/sunday-tools/skills/recovery-effect-utils';
-import { dataRegistry } from '@/modules/data/registry';
-import type { SkillEntry } from '@/modules/data/services/SkillService';
+import { dataRegistry, umasService } from '@/modules/data/registry';
+import type { SkillEntry, SkillUmaSourceEntry } from '@/modules/data/services/SkillService';
 import { getUmaImageUrl } from '@/modules/runners/utils';
 import { SkillPickerFilterRow } from '@/modules/skills/components/skill-picker/filter-row';
 import { SkillPickerProvider } from '@/modules/skills/components/skill-picker/provider';
@@ -166,29 +167,34 @@ function getSupportCardRarityLabel(rarity: number) {
   return `Rarity ${rarity}`;
 }
 
+function getSupportCardImageUrl(cardId: number) {
+  return `${config.basePath}img/support-cards/support_card_s_${cardId}.png`;
+}
+
 function SkillSourcesPopover(props: SkillSourcesPopoverProps) {
   const { skill } = props;
 
   const umaSources = useMemo(() => {
-    const sourceEntries = skill.sources?.length
-      ? skill.sources
-      : skill.character.map((outfitId) => ({
-          outfitId,
-          needRank: 0,
-          name: `${outfitId}`,
-          outfit: `${outfitId}`
-        }));
+    const outfitIds = new Set<string>();
+    const sourceEntries: SkillUmaSourceEntry[] = [];
 
-    return sourceEntries.map((source) => ({
-      ...source,
-      name: source.name ?? `${source.outfitId}`,
-      outfit: source.outfit ?? `${source.outfitId}`,
-      iconUrl: getUmaImageUrl(`${source.outfitId}`)
-    }));
-  }, [skill.character, skill.sources]);
+    if (skill.sources?.length) {
+      for (const source of skill.sources) {
+        const outfitId = source.outfitId.toString();
+        if (!umasService.isReleased(outfitId) || outfitIds.has(outfitId)) {
+          continue;
+        }
+
+        sourceEntries.push(source);
+      }
+    }
+
+    return sourceEntries;
+  }, [skill.sources]);
 
   const supportSources = skill.supportSources ?? [];
   const sourceCount = umaSources.length + supportSources.length;
+  const defaultSourceTab = umaSources.length > 0 ? 'umas' : 'support';
 
   return (
     <Popover>
@@ -210,10 +216,21 @@ function SkillSourcesPopover(props: SkillSourcesPopoverProps) {
         </PopoverHeader>
 
         {sourceCount > 0 ? (
-          <div className="grid gap-3">
+          <Tabs defaultValue={defaultSourceTab} className="gap-2">
+            <TabsList className="w-full">
+              {umaSources.length > 0 ? (
+                <TabsTrigger value="umas" className="flex-1">
+                  Umas ({umaSources.length})
+                </TabsTrigger>
+              ) : null}
+              {supportSources.length > 0 ? (
+                <TabsTrigger value="support" className="flex-1">
+                  Support cards ({supportSources.length})
+                </TabsTrigger>
+              ) : null}
+            </TabsList>
             {umaSources.length > 0 ? (
-              <section className="grid gap-1">
-                <div className="text-xs font-medium">Umas</div>
+              <TabsContent value="umas" className="mt-0">
                 <div className="grid gap-1">
                   {umaSources.map((source) => (
                     <div
@@ -221,9 +238,9 @@ function SkillSourcesPopover(props: SkillSourcesPopoverProps) {
                       className="flex items-center gap-4 rounded-md bg-background p-2 text-foreground"
                     >
                       <img
-                        src={source.iconUrl}
+                        src={getUmaImageUrl(source.outfitId.toString())}
                         alt=""
-                        className="size-16 rounded-full object-cover"
+                        className="size-16 shrink-0 rounded-full object-cover"
                         loading="lazy"
                       />
 
@@ -243,38 +260,46 @@ function SkillSourcesPopover(props: SkillSourcesPopoverProps) {
                     </div>
                   ))}
                 </div>
-              </section>
+              </TabsContent>
             ) : null}
 
             {supportSources.length > 0 ? (
-              <section className="grid gap-1">
-                <div className="text-xs font-medium">Support cards</div>
-                <div className="grid gap-1">
+              <TabsContent value="support" className="mt-0">
+                <div className="grid max-h-60 gap-1 overflow-y-auto pr-1">
                   {supportSources.map((source) => (
                     <div
                       key={source.supportCardId}
-                      className="grid gap-1 rounded-md bg-background p-2 text-foreground"
+                      className="flex items-center gap-4 rounded-md bg-background p-2 text-foreground"
                     >
-                      <div className="flex min-w-0 items-center gap-2">
-                        <Badge variant="outline" className="h-4 rounded px-1 text-[10px]">
-                          {getSupportCardRarityLabel(source.rarity)}
-                        </Badge>
-                        <div className="truncate text-xs text-muted-foreground">
-                          Card {source.supportCardId}
+                      <img
+                        src={getSupportCardImageUrl(source.supportCardId)}
+                        alt=""
+                        className="size-16 shrink-0 rounded-md object-cover"
+                        loading="lazy"
+                      />
+
+                      <div className="min-w-0">
+                        <div className="flex min-w-0 items-center gap-2">
+                          <Badge variant="outline" className="h-4 rounded px-1 text-[10px]">
+                            {getSupportCardRarityLabel(source.rarity)}
+                          </Badge>
+                          <div className="truncate text-xs text-muted-foreground">
+                            Card {source.supportCardId}
+                          </div>
+                          <Badge variant="outline" className="h-4 rounded px-1 text-[10px]">
+                            {source.sourceType === 'event' ? 'Event' : 'Hint'}
+                          </Badge>
                         </div>
-                        <Badge variant="outline" className="h-4 rounded px-1 text-[10px]">
-                          {source.sourceType === 'event' ? 'Event' : 'Hint'}
-                        </Badge>
-                      </div>
-                      <div className="truncate text-sm font-semibold leading-tight">
-                        {source.name || `Support ${source.supportCardId}`}
+                        <div className="truncate text-sm font-semibold leading-tight">
+                          {source.name || `Support ${source.supportCardId}`}
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
-              </section>
+              </TabsContent>
             ) : null}
-          </div>
+          </Tabs>
         ) : (
           <div className="text-sm text-muted-foreground">No known sources.</div>
         )}
@@ -410,8 +435,8 @@ function SkillsBrowserContent() {
   });
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col gap-3 p-3 md:p-4">
-      <header className="flex shrink-0 flex-col gap-2">
+    <div className="grid grid-cols md:grid-cols-12 h-full min-h-0 w-full gap-3 p-3 md:p-4">
+      <header className="col-span-4 flex shrink-0 flex-col gap-2">
         <div className="flex flex-col gap-1">
           <h1 className="text-xl font-semibold leading-tight">Skills</h1>
           <div className="text-sm text-muted-foreground">
@@ -434,7 +459,7 @@ function SkillsBrowserContent() {
         <SkillPickerFilterRow />
       </header>
 
-      <div ref={parentRef} className="min-h-0 flex-1 overflow-y-auto pr-1">
+      <div ref={parentRef} className="col-span-8 min-h-0 flex-1 overflow-y-auto pr-1">
         {filteredSkills.length > 0 ? (
           <div className="relative w-full" style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
             {rowVirtualizer.getVirtualItems().map((virtualRow) => {

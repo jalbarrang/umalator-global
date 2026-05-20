@@ -40,26 +40,23 @@ export class DataRegistry {
   }
 }
 
-export const createDataRegistry = (): DataRegistry => {
-  const loadedSkills = loadSkills();
-  const loadedUmas = loadUmas();
-  const loadedSupportCards = loadSupportCards(loadedSkills.skills);
+const loadedSkills = loadSkills();
+const loadedUmas = loadUmas();
+const loadedSupportCards = loadSupportCards(loadedSkills.skills);
 
-  const dataRegistry = new DataRegistry({
-    skills: new GameToraSkillService(loadedSkills.skills, {
-      releasedSkillIds: loadedSkills.releasedSkillIds,
-      activationChecks: loadedSkills.activationChecks
-    }),
+export const skillsService = new GameToraSkillService(loadedSkills.skills, {
+  releasedSkillIds: loadedSkills.releasedSkillIds,
+  activationChecks: loadedSkills.activationChecks
+});
+export const umasService = new UmaService(loadedUmas.umas, {
+  releasedOutfits: loadedUmas.releasedOutfits
+});
+export const supportCardsService = new SupportCardService(loadedSupportCards);
+export const coursesService = new CourseService(coursesJson as any);
 
-    courses: new CourseService(coursesJson as any),
-    umas: new UmaService(loadedUmas.umas, {
-      releasedOutfits: loadedUmas.releasedOutfits
-    }),
-
-    supportCards: new SupportCardService(loadedSupportCards)
-  });
-
-  return dataRegistry;
-};
-
-export const dataRegistry = createDataRegistry();
+export const dataRegistry = new DataRegistry({
+  skills: skillsService,
+  courses: coursesService,
+  umas: umasService,
+  supportCards: supportCardsService
+});

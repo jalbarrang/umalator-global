@@ -80,7 +80,7 @@ const supportSkillLabelById = new Map(
   supportSkillOptions.map((skill) => [skill.value, skill.label] as const)
 );
 
-function getSupportCardImageUrl(cardId: number) {
+export function getSupportCardImageUrl(cardId: number) {
   return `${config.basePath}img/support-cards/support_card_s_${cardId}.png`;
 }
 
