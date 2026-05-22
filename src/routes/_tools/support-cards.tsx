@@ -1,4 +1,5 @@
-import { useDeferredValue, useMemo, useState } from 'react';
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { SlidersHorizontalIcon, SearchIcon, XIcon } from 'lucide-react';
 
 import { UpcomingToggle } from '@/components/upcoming-toggle';
@@ -34,6 +35,10 @@ import { SkillDetails } from '@/modules/skills/components/skill-details';
 import { SkillIcon } from '@/modules/skills/components/skill-list/skill-item/SkillIcon';
 import { cn } from '@/lib/utils';
 import { useUIStore } from '@/store/ui.store';
+
+const CARD_ROW_ESTIMATED_HEIGHT = 280;
+const CARD_ROW_GAP = 12;
+const CARD_ROW_OVERSCAN = 3;
 
 type SupportSkill = SupportCardEntry['hintSkills'][number];
 
@@ -532,6 +537,44 @@ function SupportCardItem(props: SupportCardItemProps) {
   );
 }
 
+function getGridColumns() {
+  if (typeof window === 'undefined') return 1;
+  if (window.innerWidth >= 1280) return 4;
+  if (window.innerWidth >= 768) return 2;
+  return 1;
+}
+
+function useGridColumns() {
+  const [columns, setColumns] = useState(getGridColumns);
+
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') {
+      setColumns(getGridColumns());
+      return;
+    }
+
+    const xlMql = window.matchMedia('(min-width: 1280px)');
+    const mdMql = window.matchMedia('(min-width: 768px)');
+
+    const update = () => {
+      if (xlMql.matches) setColumns(4);
+      else if (mdMql.matches) setColumns(2);
+      else setColumns(1);
+    };
+
+    xlMql.addEventListener('change', update);
+    mdMql.addEventListener('change', update);
+    update();
+
+    return () => {
+      xlMql.removeEventListener('change', update);
+      mdMql.removeEventListener('change', update);
+    };
+  }, []);
+
+  return columns;
+}
+
 export function SupportCardsPage() {
   const [searchText, setSearchText] = useState('');
   const [selectedSkillSourceIds, setSelectedSkillSourceIds] = useState<string[]>([]);
@@ -539,6 +582,8 @@ export function SupportCardsPage() {
   const [cardRarityFilters, setCardRarityFilters] = useState<string[]>([]);
   const showUpcoming = useUIStore((state) => state.showUpcoming);
   const deferredSearchText = useDeferredValue(searchText);
+  const columns = useGridColumns();
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const activeFilterCount =
     cardTypeFilters.length + cardRarityFilters.length + selectedSkillSourceIds.length;
 
@@ -599,6 +644,20 @@ export function SupportCardsPage() {
     selectedSkillSourceIds,
     showUpcoming
   ]);
+
+  const rowCount = Math.ceil(filteredCards.length / columns);
+
+  const rowVirtualizer = useVirtualizer({
+    count: rowCount,
+    getScrollElement: () => scrollContainerRef.current,
+    estimateSize: () => CARD_ROW_ESTIMATED_HEIGHT,
+    gap: CARD_ROW_GAP,
+    overscan: CARD_ROW_OVERSCAN,
+    getItemKey: (index) => {
+      const startIdx = index * columns;
+      return filteredCards[startIdx]?.id ?? `row-${index}`;
+    }
+  });
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col gap-3 p-3 md:p-4">
@@ -667,12 +726,35 @@ export function SupportCardsPage() {
         />
       </header>
 
-      <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+      <div ref={scrollContainerRef} className="min-h-0 flex-1 overflow-y-auto pr-1">
         {filteredCards.length > 0 ? (
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-            {filteredCards.map((card) => (
-              <SupportCardItem key={card.id} card={card} />
-            ))}
+          <div className="relative w-full" style={{ height: rowVirtualizer.getTotalSize() }}>
+            {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+              const rowStartIndex = virtualRow.index * columns;
+              const rowCards = filteredCards.slice(
+                rowStartIndex,
+                Math.min(rowStartIndex + columns, filteredCards.length)
+              );
+
+              return (
+                <div
+                  key={virtualRow.key}
+                  ref={rowVirtualizer.measureElement}
+                  className="absolute left-0 top-0 w-full"
+                  style={{ transform: `translateY(${virtualRow.start}px)` }}
+                  data-index={virtualRow.index}
+                >
+                  <div
+                    className="grid gap-3"
+                    style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}
+                  >
+                    {rowCards.map((card) => (
+                      <SupportCardItem key={card.id} card={card} />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         ) : (
           <div className="flex h-full items-center justify-center rounded-lg border">
