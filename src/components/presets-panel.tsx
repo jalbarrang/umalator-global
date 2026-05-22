@@ -17,7 +17,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import dayjs from 'dayjs';
 import { GripVertical, RotateCcw, Trash2 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo, useReducer } from 'react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -206,20 +206,123 @@ function getPresetDistanceCategory(preset: RacePreset): string | null {
   }
 }
 
+type PresetsPanelState = {
+  deleteDialogOpen: boolean;
+  presetToDelete: string | null;
+  selectionMode: boolean;
+  checkedIds: Set<string>;
+  bulkDeleteDialogOpen: boolean;
+  resetDialogOpen: boolean;
+  filterSurface: FilterSurface;
+  filterDistance: FilterDistanceType;
+  filterRaceType: FilterRaceType;
+};
+
+type PresetsPanelAction =
+  | { type: 'delete:open'; presetId: string }
+  | { type: 'delete:dialogOpenChange'; open: boolean }
+  | { type: 'delete:confirmed' }
+  | { type: 'selection:enter' }
+  | { type: 'selection:exit' }
+  | { type: 'selection:toggle'; id: string }
+  | { type: 'selection:selectAll'; ids: string[] }
+  | { type: 'bulkDelete:open' }
+  | { type: 'bulkDelete:dialogOpenChange'; open: boolean }
+  | { type: 'bulkDelete:confirmed' }
+  | { type: 'reset:dialogOpenChange'; open: boolean }
+  | { type: 'reset:confirmed' }
+  | { type: 'filter:surface'; value: FilterSurface }
+  | { type: 'filter:distance'; value: FilterDistanceType }
+  | { type: 'filter:raceType'; value: FilterRaceType }
+  | { type: 'filters:clear' };
+
+function createInitialPresetsPanelState(): PresetsPanelState {
+  return {
+    deleteDialogOpen: false,
+    presetToDelete: null,
+    selectionMode: false,
+    checkedIds: new Set(),
+    bulkDeleteDialogOpen: false,
+    resetDialogOpen: false,
+    filterSurface: 'all',
+    filterDistance: 'all',
+    filterRaceType: 'all'
+  };
+}
+
+function presetsPanelReducer(state: PresetsPanelState, action: PresetsPanelAction): PresetsPanelState {
+  switch (action.type) {
+    case 'delete:open':
+      return { ...state, presetToDelete: action.presetId, deleteDialogOpen: true };
+    case 'delete:dialogOpenChange':
+      return {
+        ...state,
+        deleteDialogOpen: action.open,
+        presetToDelete: action.open ? state.presetToDelete : null
+      };
+    case 'delete:confirmed':
+      return { ...state, deleteDialogOpen: false, presetToDelete: null };
+    case 'selection:enter':
+      return { ...state, selectionMode: true };
+    case 'selection:exit':
+      return { ...state, selectionMode: false, checkedIds: new Set() };
+    case 'selection:toggle': {
+      const next = new Set(state.checkedIds);
+      if (next.has(action.id)) next.delete(action.id);
+      else next.add(action.id);
+      return { ...state, checkedIds: next };
+    }
+    case 'selection:selectAll': {
+      const allSelected =
+        state.checkedIds.size === action.ids.length &&
+        action.ids.every((id) => state.checkedIds.has(id));
+      return {
+        ...state,
+        checkedIds: allSelected ? new Set() : new Set(action.ids)
+      };
+    }
+    case 'bulkDelete:open':
+      return state.checkedIds.size > 0 ? { ...state, bulkDeleteDialogOpen: true } : state;
+    case 'bulkDelete:dialogOpenChange':
+      return { ...state, bulkDeleteDialogOpen: action.open };
+    case 'bulkDelete:confirmed':
+      return {
+        ...state,
+        bulkDeleteDialogOpen: false,
+        selectionMode: false,
+        checkedIds: new Set()
+      };
+    case 'reset:dialogOpenChange':
+      return { ...state, resetDialogOpen: action.open };
+    case 'reset:confirmed':
+      return { ...state, resetDialogOpen: false };
+    case 'filter:surface':
+      return { ...state, filterSurface: action.value };
+    case 'filter:distance':
+      return { ...state, filterDistance: action.value };
+    case 'filter:raceType':
+      return { ...state, filterRaceType: action.value };
+    case 'filters:clear':
+      return {
+        ...state,
+        filterSurface: 'all',
+        filterDistance: 'all',
+        filterRaceType: 'all'
+      };
+    default:
+      return state;
+  }
+}
+
 export const PresetsPanel = () => {
   const { presets, presetOrder } = usePresetStore();
   const selectedPresetId = useSettingsStore((state) => state.selectedPresetId);
 
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [presetToDelete, setPresetToDelete] = useState<string | null>(null);
-  const [selectionMode, setSelectionMode] = useState(false);
-  const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
-  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
-  const [resetDialogOpen, setResetDialogOpen] = useState(false);
-
-  const [filterSurface, setFilterSurface] = useState<FilterSurface>('all');
-  const [filterDistance, setFilterDistance] = useState<FilterDistanceType>('all');
-  const [filterRaceType, setFilterRaceType] = useState<FilterRaceType>('all');
+  const [panel, dispatch] = useReducer(
+    presetsPanelReducer,
+    undefined,
+    createInitialPresetsPanelState
+  );
 
   const allPresets = useMemo(() => {
     const ordered: RacePreset[] = [];
@@ -237,27 +340,35 @@ export const PresetsPanel = () => {
   }, [presets, presetOrder]);
 
   const hasActiveFilter =
-    filterSurface !== 'all' || filterDistance !== 'all' || filterRaceType !== 'all';
+    panel.filterSurface !== 'all' ||
+    panel.filterDistance !== 'all' ||
+    panel.filterRaceType !== 'all';
 
   const presetList = useMemo(() => {
     if (!hasActiveFilter) return allPresets;
     return allPresets.filter((p) => {
-      if (filterRaceType !== 'all') {
+      if (panel.filterRaceType !== 'all') {
         const isMatch =
-          filterRaceType === 'cm' ? p.type === EventType.CM : p.type === EventType.LOH;
+          panel.filterRaceType === 'cm' ? p.type === EventType.CM : p.type === EventType.LOH;
         if (!isMatch) return false;
       }
-      if (filterSurface !== 'all') {
+      if (panel.filterSurface !== 'all') {
         const surface = getPresetSurface(p);
-        if (surface !== filterSurface) return false;
+        if (surface !== panel.filterSurface) return false;
       }
-      if (filterDistance !== 'all') {
+      if (panel.filterDistance !== 'all') {
         const cat = getPresetDistanceCategory(p);
-        if (cat !== filterDistance) return false;
+        if (cat !== panel.filterDistance) return false;
       }
       return true;
     });
-  }, [allPresets, hasActiveFilter, filterSurface, filterDistance, filterRaceType]);
+  }, [
+    allPresets,
+    hasActiveFilter,
+    panel.filterSurface,
+    panel.filterDistance,
+    panel.filterRaceType
+  ]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -281,22 +392,20 @@ export const PresetsPanel = () => {
 
   const handleDeleteClick = (presetId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setPresetToDelete(presetId);
-    setDeleteDialogOpen(true);
+    dispatch({ type: 'delete:open', presetId });
   };
 
   const handleConfirmDelete = () => {
-    if (presetToDelete) {
-      const preset = presets[presetToDelete];
-      deletePreset(presetToDelete);
+    if (panel.presetToDelete) {
+      const preset = presets[panel.presetToDelete];
+      deletePreset(panel.presetToDelete);
 
-      if (selectedPresetId === presetToDelete) {
+      if (selectedPresetId === panel.presetToDelete) {
         setSelectedPresetId(null);
       }
 
       toast.success(`Deleted preset: ${preset.name}`);
-      setPresetToDelete(null);
-      setDeleteDialogOpen(false);
+      dispatch({ type: 'delete:confirmed' });
     }
   };
 
@@ -311,43 +420,27 @@ export const PresetsPanel = () => {
   };
 
   const handleToggleCheck = (id: string) => {
-    setCheckedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+    dispatch({ type: 'selection:toggle', id });
   };
 
   const handleToggleSelectAll = () => {
-    if (checkedIds.size === presetList.length) {
-      setCheckedIds(new Set());
-    } else {
-      setCheckedIds(new Set(presetList.map((p) => p.id)));
-    }
-  };
-
-  const exitSelectionMode = () => {
-    setSelectionMode(false);
-    setCheckedIds(new Set());
+    dispatch({ type: 'selection:selectAll', ids: presetList.map((p) => p.id) });
   };
 
   const handleBulkDelete = () => {
-    if (checkedIds.size === 0) return;
-    setBulkDeleteDialogOpen(true);
+    dispatch({ type: 'bulkDelete:open' });
   };
 
   const handleConfirmBulkDelete = () => {
-    const ids = [...checkedIds];
+    const ids = [...panel.checkedIds];
     deletePresets(ids);
 
-    if (selectedPresetId && checkedIds.has(selectedPresetId)) {
+    if (selectedPresetId && panel.checkedIds.has(selectedPresetId)) {
       setSelectedPresetId(null);
     }
 
     toast.success(`Deleted ${ids.length} preset${ids.length > 1 ? 's' : ''}`);
-    setBulkDeleteDialogOpen(false);
-    exitSelectionMode();
+    dispatch({ type: 'bulkDelete:confirmed' });
   };
 
   return (
@@ -358,31 +451,43 @@ export const PresetsPanel = () => {
             <PanelTitle>Presets</PanelTitle>
             {presetList.length > 0 && (
               <div className="flex items-center gap-1">
-                {selectionMode ? (
+                {panel.selectionMode ? (
                   <>
                     <Button variant="outline" size="sm" onClick={handleToggleSelectAll}>
-                      {checkedIds.size === presetList.length ? 'Deselect All' : 'Select All'}
+                      {panel.checkedIds.size === presetList.length ? 'Deselect All' : 'Select All'}
                     </Button>
                     <Button
                       variant="destructive"
                       size="sm"
-                      disabled={checkedIds.size === 0}
+                      disabled={panel.checkedIds.size === 0}
                       onClick={handleBulkDelete}
                     >
                       <Trash2 className="size-8 mr-1" />
-                      Delete ({checkedIds.size})
+                      Delete ({panel.checkedIds.size})
                     </Button>
-                    <Button variant="outline" size="sm" onClick={exitSelectionMode}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => dispatch({ type: 'selection:exit' })}
+                    >
                       Cancel
                     </Button>
                   </>
                 ) : (
                   <>
-                    <Button variant="outline" size="sm" onClick={() => setResetDialogOpen(true)}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => dispatch({ type: 'reset:dialogOpenChange', open: true })}
+                    >
                       <RotateCcw className="size-4 mr-1" />
                       Reset
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => setSelectionMode(true)}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => dispatch({ type: 'selection:enter' })}
+                    >
                       Bulk actions
                     </Button>
                   </>
@@ -393,7 +498,10 @@ export const PresetsPanel = () => {
         </PanelHeader>
 
         <div className="flex items-center gap-2 px-4 py-2 border-b">
-          <Select value={filterSurface} onValueChange={(v) => setFilterSurface(v as FilterSurface)}>
+          <Select
+            value={panel.filterSurface}
+            onValueChange={(v) => dispatch({ type: 'filter:surface', value: v as FilterSurface })}
+          >
             <SelectTrigger size="sm" className="w-20">
               <SelectValue />
             </SelectTrigger>
@@ -405,8 +513,10 @@ export const PresetsPanel = () => {
           </Select>
 
           <Select
-            value={filterDistance}
-            onValueChange={(v) => setFilterDistance(v as FilterDistanceType)}
+            value={panel.filterDistance}
+            onValueChange={(v) =>
+              dispatch({ type: 'filter:distance', value: v as FilterDistanceType })
+            }
           >
             <SelectTrigger size="sm" className="w-24">
               <SelectValue />
@@ -421,8 +531,8 @@ export const PresetsPanel = () => {
           </Select>
 
           <Select
-            value={filterRaceType}
-            onValueChange={(v) => setFilterRaceType(v as FilterRaceType)}
+            value={panel.filterRaceType}
+            onValueChange={(v) => dispatch({ type: 'filter:raceType', value: v as FilterRaceType })}
           >
             <SelectTrigger size="sm" className="w-18">
               <SelectValue />
@@ -439,11 +549,7 @@ export const PresetsPanel = () => {
               variant="ghost"
               size="sm"
               className="text-xs h-7 px-2"
-              onClick={() => {
-                setFilterSurface('all');
-                setFilterDistance('all');
-                setFilterRaceType('all');
-              }}
+              onClick={() => dispatch({ type: 'filters:clear' })}
             >
               Clear
             </Button>
@@ -482,8 +588,8 @@ export const PresetsPanel = () => {
                       key={preset.id}
                       preset={preset}
                       isSelected={selectedPresetId === preset.id}
-                      isChecked={checkedIds.has(preset.id)}
-                      selectionMode={selectionMode}
+                      isChecked={panel.checkedIds.has(preset.id)}
+                      selectionMode={panel.selectionMode}
                       onLoad={handleLoadPreset}
                       onDeleteClick={handleDeleteClick}
                       onToggleCheck={handleToggleCheck}
@@ -496,14 +602,17 @@ export const PresetsPanel = () => {
         </PanelContent>
       </Panel>
 
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      <AlertDialog
+        open={panel.deleteDialogOpen}
+        onOpenChange={(open) => dispatch({ type: 'delete:dialogOpenChange', open })}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Preset</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete{' '}
               <span className="font-semibold">
-                {presetToDelete ? presets[presetToDelete]?.name : ''}
+                {panel.presetToDelete ? presets[panel.presetToDelete]?.name : ''}
               </span>
               ? This action cannot be undone.
             </AlertDialogDescription>
@@ -520,15 +629,18 @@ export const PresetsPanel = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
+      <AlertDialog
+        open={panel.bulkDeleteDialogOpen}
+        onOpenChange={(open) => dispatch({ type: 'bulkDelete:dialogOpenChange', open })}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              Delete {checkedIds.size} Preset{checkedIds.size > 1 ? 's' : ''}
+              Delete {panel.checkedIds.size} Preset{panel.checkedIds.size > 1 ? 's' : ''}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete {checkedIds.size} selected preset
-              {checkedIds.size > 1 ? 's' : ''}? This action cannot be undone.
+              Are you sure you want to delete {panel.checkedIds.size} selected preset
+              {panel.checkedIds.size > 1 ? 's' : ''}? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -543,7 +655,10 @@ export const PresetsPanel = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
+      <AlertDialog
+        open={panel.resetDialogOpen}
+        onOpenChange={(open) => dispatch({ type: 'reset:dialogOpenChange', open })}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Reset to Default Presets</AlertDialogTitle>
@@ -558,7 +673,7 @@ export const PresetsPanel = () => {
               onClick={() => {
                 resetPresets();
                 setSelectedPresetId(null);
-                setResetDialogOpen(false);
+                dispatch({ type: 'reset:confirmed' });
                 toast.success('Presets reset to defaults');
               }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"

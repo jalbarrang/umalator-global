@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router';
 
-import { Activity, useState, useMemo, useCallback } from 'react';
+import { Activity, useReducer, useMemo, useCallback } from 'react';
 import { Camera, Import, Plus, Search, Trash2, Users, X } from 'lucide-react';
 import type { ISavedRunner } from '@/store/runner-library.store';
 import { Button } from '@/components/ui/button';
@@ -90,26 +90,147 @@ const APTITUDE_OPTIONS = aptitudeNames.map((g) => ({
   label: g
 }));
 
+type RosterHomeState = {
+  deleteDialogOpen: boolean;
+  runnerToDelete: string | null;
+  loadDialogOpen: boolean;
+  runnerToLoad: ISavedRunner | null;
+  rosterImportOpen: boolean;
+  ocrImportOpen: boolean;
+  search: string;
+  strategyFilter: string;
+  distanceFilter: string;
+  surfaceFilter: string;
+  selected: Set<string>;
+  bulkDeleteDialogOpen: boolean;
+};
+
+type RosterHomeAction =
+  | { type: 'delete:open'; runnerId: string }
+  | { type: 'delete:dialogOpenChange'; open: boolean }
+  | { type: 'delete:confirmed'; runnerId: string | null }
+  | { type: 'load:open'; runner: ISavedRunner }
+  | { type: 'load:dialogOpenChange'; open: boolean }
+  | { type: 'load:completed' }
+  | { type: 'rosterImport:openChange'; open: boolean }
+  | { type: 'ocrImport:openChange'; open: boolean }
+  | { type: 'search:set'; value: string }
+  | { type: 'filter:strategy'; value: string }
+  | { type: 'filter:distance'; value: string }
+  | { type: 'filter:surface'; value: string }
+  | { type: 'filters:clear' }
+  | { type: 'selection:toggle'; id: string }
+  | { type: 'selection:selectMany'; ids: string[] }
+  | { type: 'selection:deselectMany'; ids: string[] }
+  | { type: 'selection:clear' }
+  | { type: 'bulkDelete:open' }
+  | { type: 'bulkDelete:dialogOpenChange'; open: boolean }
+  | { type: 'bulkDelete:confirmed' };
+
+function createInitialRosterHomeState(): RosterHomeState {
+  return {
+    deleteDialogOpen: false,
+    runnerToDelete: null,
+    loadDialogOpen: false,
+    runnerToLoad: null,
+    rosterImportOpen: false,
+    ocrImportOpen: false,
+    search: '',
+    strategyFilter: 'all',
+    distanceFilter: 'all',
+    surfaceFilter: 'all',
+    selected: new Set(),
+    bulkDeleteDialogOpen: false
+  };
+}
+
+function rosterHomeReducer(state: RosterHomeState, action: RosterHomeAction): RosterHomeState {
+  switch (action.type) {
+    case 'delete:open':
+      return { ...state, runnerToDelete: action.runnerId, deleteDialogOpen: true };
+    case 'delete:dialogOpenChange':
+      return {
+        ...state,
+        deleteDialogOpen: action.open,
+        runnerToDelete: action.open ? state.runnerToDelete : null
+      };
+    case 'delete:confirmed': {
+      const nextSelected = new Set(state.selected);
+      if (action.runnerId) nextSelected.delete(action.runnerId);
+      return {
+        ...state,
+        deleteDialogOpen: false,
+        runnerToDelete: null,
+        selected: nextSelected
+      };
+    }
+    case 'load:open':
+      return { ...state, runnerToLoad: action.runner, loadDialogOpen: true };
+    case 'load:dialogOpenChange':
+      return {
+        ...state,
+        loadDialogOpen: action.open,
+        runnerToLoad: action.open ? state.runnerToLoad : null
+      };
+    case 'load:completed':
+      return { ...state, loadDialogOpen: false, runnerToLoad: null };
+    case 'rosterImport:openChange':
+      return { ...state, rosterImportOpen: action.open };
+    case 'ocrImport:openChange':
+      return { ...state, ocrImportOpen: action.open };
+    case 'search:set':
+      return { ...state, search: action.value };
+    case 'filter:strategy':
+      return { ...state, strategyFilter: action.value };
+    case 'filter:distance':
+      return { ...state, distanceFilter: action.value };
+    case 'filter:surface':
+      return { ...state, surfaceFilter: action.value };
+    case 'filters:clear':
+      return {
+        ...state,
+        search: '',
+        strategyFilter: 'all',
+        distanceFilter: 'all',
+        surfaceFilter: 'all'
+      };
+    case 'selection:toggle': {
+      const next = new Set(state.selected);
+      if (next.has(action.id)) next.delete(action.id);
+      else next.add(action.id);
+      return { ...state, selected: next };
+    }
+    case 'selection:selectMany': {
+      const next = new Set(state.selected);
+      for (const id of action.ids) next.add(id);
+      return { ...state, selected: next };
+    }
+    case 'selection:deselectMany': {
+      const next = new Set(state.selected);
+      for (const id of action.ids) next.delete(id);
+      return { ...state, selected: next };
+    }
+    case 'selection:clear':
+      return { ...state, selected: new Set() };
+    case 'bulkDelete:open':
+      return { ...state, bulkDeleteDialogOpen: true };
+    case 'bulkDelete:dialogOpenChange':
+      return { ...state, bulkDeleteDialogOpen: action.open };
+    case 'bulkDelete:confirmed':
+      return { ...state, bulkDeleteDialogOpen: false, selected: new Set() };
+    default:
+      return state;
+  }
+}
+
 export default function RosterHomePage() {
   const navigate = useNavigate();
   const { runners, addRunner, deleteRunner, deleteRunners, duplicateRunner } =
     useRunnerLibraryStore();
 
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [runnerToDelete, setRunnerToDelete] = useState<string | null>(null);
-  const [loadDialogOpen, setLoadDialogOpen] = useState(false);
-  const [runnerToLoad, setRunnerToLoad] = useState<ISavedRunner | null>(null);
-  const [rosterImportOpen, setRosterImportOpen] = useState(false);
-  const [ocrImportOpen, setOcrImportOpen] = useState(false);
+  const [page, dispatch] = useReducer(rosterHomeReducer, undefined, createInitialRosterHomeState);
 
-  const [search, setSearch] = useState('');
-  const [strategyFilter, setStrategyFilter] = useState('all');
-  const [distanceFilter, setDistanceFilter] = useState('all');
-  const [surfaceFilter, setSurfaceFilter] = useState('all');
-  const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
-
-  const isSelecting = selected.size > 0;
+  const isSelecting = page.selected.size > 0;
 
   const isMobile = useIsMobile();
 
@@ -127,7 +248,7 @@ export default function RosterHomePage() {
   }, [runners]);
 
   const filtered = useMemo(() => {
-    const query = search.toLowerCase().trim();
+    const query = page.search.toLowerCase().trim();
 
     return runners.filter((r) => {
       if (query) {
@@ -138,35 +259,45 @@ export default function RosterHomePage() {
         }
       }
 
-      if (strategyFilter !== 'all' && r.strategy !== strategyFilter) {
+      if (page.strategyFilter !== 'all' && r.strategy !== page.strategyFilter) {
         return false;
       }
 
-      if (distanceFilter !== 'all' && !meetsMinGrade(r.distanceAptitude, distanceFilter)) {
+      if (
+        page.distanceFilter !== 'all' &&
+        !meetsMinGrade(r.distanceAptitude, page.distanceFilter)
+      ) {
         return false;
       }
 
-      if (surfaceFilter !== 'all' && !meetsMinGrade(r.surfaceAptitude, surfaceFilter)) {
+      if (page.surfaceFilter !== 'all' && !meetsMinGrade(r.surfaceAptitude, page.surfaceFilter)) {
         return false;
       }
 
       return true;
     });
-  }, [runners, search, strategyFilter, distanceFilter, surfaceFilter, searchIndex]);
+  }, [
+    runners,
+    page.search,
+    page.strategyFilter,
+    page.distanceFilter,
+    page.surfaceFilter,
+    searchIndex
+  ]);
 
   const hasActiveFilters = useMemo(
     () =>
-      !!search.trim() ||
-      strategyFilter !== 'all' ||
-      distanceFilter !== 'all' ||
-      surfaceFilter !== 'all',
-    [search, strategyFilter, distanceFilter, surfaceFilter]
+      !!page.search.trim() ||
+      page.strategyFilter !== 'all' ||
+      page.distanceFilter !== 'all' ||
+      page.surfaceFilter !== 'all',
+    [page.search, page.strategyFilter, page.distanceFilter, page.surfaceFilter]
   );
 
   const filteredIds = useMemo(() => new Set(filtered.map((r) => r.id)), [filtered]);
   const filteredSelectedCount = useMemo(
-    () => [...selected].filter((id) => filteredIds.has(id)).length,
-    [selected, filteredIds]
+    () => [...page.selected].filter((id) => filteredIds.has(id)).length,
+    [page.selected, filteredIds]
   );
 
   const allFilteredSelected = useMemo(
@@ -182,77 +313,54 @@ export default function RosterHomePage() {
   );
 
   const handleDeleteClick = useCallback((id: string) => {
-    setRunnerToDelete(id);
-    setDeleteDialogOpen(true);
+    dispatch({ type: 'delete:open', runnerId: id });
   }, []);
 
   const handleDeleteConfirm = useCallback(() => {
-    if (runnerToDelete) {
-      deleteRunner(runnerToDelete);
-      setRunnerToDelete(null);
-      selected.delete(runnerToDelete);
-      setSelected(new Set(selected));
+    if (page.runnerToDelete) {
+      deleteRunner(page.runnerToDelete);
+      dispatch({ type: 'delete:confirmed', runnerId: page.runnerToDelete });
+    } else {
+      dispatch({ type: 'delete:dialogOpenChange', open: false });
     }
-    setDeleteDialogOpen(false);
-  }, [deleteRunner, selected, runnerToDelete]);
+  }, [deleteRunner, page.runnerToDelete]);
 
   const handleLoadClick = useCallback((runner: ISavedRunner) => {
-    setRunnerToLoad(runner);
-    setLoadDialogOpen(true);
+    dispatch({ type: 'load:open', runner });
   }, []);
 
   const handleLoadToSlot = useCallback(
     (slot: 'uma1' | 'uma2') => {
-      if (!runnerToLoad) return;
+      if (!page.runnerToLoad) return;
 
-      loadRunnerFromLibrary(slot, runnerToLoad);
+      loadRunnerFromLibrary(slot, page.runnerToLoad);
       showRunner(slot);
-      setLoadDialogOpen(false);
-      setRunnerToLoad(null);
+      dispatch({ type: 'load:completed' });
       navigate('/');
     },
-    [navigate, runnerToLoad]
+    [navigate, page.runnerToLoad]
   );
 
   const toggleSelect = useCallback((id: string) => {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+    dispatch({ type: 'selection:toggle', id });
   }, []);
 
   const selectAllFiltered = useCallback(() => {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      for (const r of filtered) next.add(r.id);
-      return next;
-    });
+    dispatch({ type: 'selection:selectMany', ids: filtered.map((r) => r.id) });
   }, [filtered]);
 
   const deselectAllFiltered = useCallback(() => {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      for (const r of filtered) next.delete(r.id);
-      return next;
-    });
+    dispatch({ type: 'selection:deselectMany', ids: filtered.map((r) => r.id) });
   }, [filtered]);
 
-  const clearSelection = useCallback(() => setSelected(new Set()), []);
+  const clearSelection = useCallback(() => dispatch({ type: 'selection:clear' }), []);
 
   const handleBulkDeleteConfirm = useCallback(() => {
-    deleteRunners(selected);
-    setSelected(new Set());
-    setBulkDeleteDialogOpen(false);
-  }, [selected, deleteRunners]);
+    deleteRunners(page.selected);
+    dispatch({ type: 'bulkDelete:confirmed' });
+  }, [page.selected, deleteRunners]);
 
-  const clearAllFilters = useCallback(() => {
-    setSearch('');
-    setStrategyFilter('all');
-    setDistanceFilter('all');
-    setSurfaceFilter('all');
-  }, []);
+  const clearAllFilters = useCallback(() => dispatch({ type: 'filters:clear' }), []);
 
   const handleOcrImportApply = useCallback(
     (data: ExtractedUmaData) => {
@@ -295,12 +403,20 @@ export default function RosterHomePage() {
         {/* [Desktop] Actions */}
         {!isMobile && (
           <div className="flex items-center gap-2">
-            <Button size="default" variant="outline" onClick={() => setRosterImportOpen(true)}>
+            <Button
+              size="default"
+              variant="outline"
+              onClick={() => dispatch({ type: 'rosterImport:openChange', open: true })}
+            >
               <Import className="size-4" />
               Import Roster
             </Button>
 
-            <Button size="default" variant="outline" onClick={() => setOcrImportOpen(true)}>
+            <Button
+              size="default"
+              variant="outline"
+              onClick={() => dispatch({ type: 'ocrImport:openChange', open: true })}
+            >
               <Camera className="size-4" />
               Import Screenshot
             </Button>
@@ -318,8 +434,8 @@ export default function RosterHomePage() {
           <InputGroup className="max-w-sm">
             <InputGroupInput
               placeholder="Search runners..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              value={page.search}
+              onChange={(e) => dispatch({ type: 'search:set', value: e.target.value })}
             />
             <InputGroupAddon>
               <Search />
@@ -329,22 +445,22 @@ export default function RosterHomePage() {
           <div className="flex gap-2">
             <FilterSelect
               label="Strategy"
-              value={strategyFilter}
-              onValueChange={setStrategyFilter}
+              value={page.strategyFilter}
+              onValueChange={(value) => dispatch({ type: 'filter:strategy', value })}
               options={STRATEGY_OPTIONS}
             />
 
             <FilterSelect
               label="Distance"
-              value={distanceFilter}
-              onValueChange={setDistanceFilter}
+              value={page.distanceFilter}
+              onValueChange={(value) => dispatch({ type: 'filter:distance', value })}
               options={APTITUDE_OPTIONS}
             />
 
             <FilterSelect
               label="Surface"
-              value={surfaceFilter}
-              onValueChange={setSurfaceFilter}
+              value={page.surfaceFilter}
+              onValueChange={(value) => dispatch({ type: 'filter:surface', value })}
               options={APTITUDE_OPTIONS}
             />
           </div>
@@ -373,11 +489,15 @@ export default function RosterHomePage() {
                 <Plus className="size-4" />
                 Add Runner
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setRosterImportOpen(true)}>
+              <DropdownMenuItem
+                onClick={() => dispatch({ type: 'rosterImport:openChange', open: true })}
+              >
                 <Import className="size-4" />
                 Import Roster
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setOcrImportOpen(true)}>
+              <DropdownMenuItem
+                onClick={() => dispatch({ type: 'ocrImport:openChange', open: true })}
+              >
                 <Camera className="size-4" />
                 Import Screenshot
               </DropdownMenuItem>
@@ -409,24 +529,24 @@ export default function RosterHomePage() {
             <Button
               variant="destructive"
               size="sm"
-              onClick={() => setBulkDeleteDialogOpen(true)}
-              disabled={selected.size === 0}
+              onClick={() => dispatch({ type: 'bulkDelete:open' })}
+              disabled={page.selected.size === 0}
             >
               <Trash2 className="size-4" />
-              Delete ({selected.size})
+              Delete ({page.selected.size})
             </Button>
 
             <Button
               variant="outline"
               size="sm"
               onClick={clearSelection}
-              disabled={selected.size === 0}
+              disabled={page.selected.size === 0}
             >
               Cancel
             </Button>
 
             {isSelecting && (
-              <span className="text-xs text-muted-foreground"> {selected.size} selected</span>
+              <span className="text-xs text-muted-foreground"> {page.selected.size} selected</span>
             )}
           </div>
         </div>
@@ -445,7 +565,10 @@ export default function RosterHomePage() {
 
           <EmptyContent>
             <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={() => setOcrImportOpen(true)}>
+              <Button
+                variant="outline"
+                onClick={() => dispatch({ type: 'ocrImport:openChange', open: true })}
+              >
                 <Camera className="size-4 mr-2" />
                 Import Screenshot
               </Button>
@@ -470,7 +593,7 @@ export default function RosterHomePage() {
       {filtered.length > 0 && (
         <VirtualRunnerGrid
           items={filtered}
-          selected={selected}
+          selected={page.selected}
           isSelecting={isSelecting}
           onToggleSelect={toggleSelect}
           onEdit={handleEdit}
@@ -481,7 +604,10 @@ export default function RosterHomePage() {
       )}
 
       {/* Delete Confirmation Dialog (single) */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      <Dialog
+        open={page.deleteDialogOpen}
+        onOpenChange={(open) => dispatch({ type: 'delete:dialogOpenChange', open })}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete Runner</DialogTitle>
@@ -490,7 +616,10 @@ export default function RosterHomePage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => dispatch({ type: 'delete:dialogOpenChange', open: false })}
+            >
               Cancel
             </Button>
             <Button variant="destructive" onClick={handleDeleteConfirm}>
@@ -501,28 +630,37 @@ export default function RosterHomePage() {
       </Dialog>
 
       {/* Bulk Delete Confirmation Dialog */}
-      <Dialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
+      <Dialog
+        open={page.bulkDeleteDialogOpen}
+        onOpenChange={(open) => dispatch({ type: 'bulkDelete:dialogOpenChange', open })}
+      >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete {selected.size} Runners</DialogTitle>
+            <DialogTitle>Delete {page.selected.size} Runners</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete {selected.size} runner
-              {selected.size === 1 ? '' : 's'}? This action cannot be undone.
+              Are you sure you want to delete {page.selected.size} runner
+              {page.selected.size === 1 ? '' : 's'}? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setBulkDeleteDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => dispatch({ type: 'bulkDelete:dialogOpenChange', open: false })}
+            >
               Cancel
             </Button>
             <Button variant="destructive" onClick={handleBulkDeleteConfirm}>
-              Delete {selected.size} Runner{selected.size === 1 ? '' : 's'}
+              Delete {page.selected.size} Runner{page.selected.size === 1 ? '' : 's'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Load to Simulation Dialog */}
-      <Dialog open={loadDialogOpen} onOpenChange={setLoadDialogOpen}>
+      <Dialog
+        open={page.loadDialogOpen}
+        onOpenChange={(open) => dispatch({ type: 'load:dialogOpenChange', open })}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Load Runner to Compare pages</DialogTitle>
@@ -548,11 +686,14 @@ export default function RosterHomePage() {
         </DialogContent>
       </Dialog>
 
-      <RosterImportDialog open={rosterImportOpen} onOpenChange={setRosterImportOpen} />
+      <RosterImportDialog
+        open={page.rosterImportOpen}
+        onOpenChange={(open) => dispatch({ type: 'rosterImport:openChange', open })}
+      />
 
       <OcrImportDialog
-        open={ocrImportOpen}
-        onOpenChange={setOcrImportOpen}
+        open={page.ocrImportOpen}
+        onOpenChange={(open) => dispatch({ type: 'ocrImport:openChange', open })}
         onApply={handleOcrImportApply}
       />
     </div>

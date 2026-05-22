@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 import { BookmarkPlus, CalendarIcon } from 'lucide-react';
-import { useState } from 'react';
+import { useReducer } from 'react';
 import { toast } from 'sonner';
 import type { IEventType } from '@/lib/sunday-tools/course/definitions';
 import { Button } from '@/components/ui/button';
@@ -29,16 +29,94 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { addPreset, updatePreset, usePresetStore } from '@/store/race/preset.store';
 import { setSelectedPresetId, useSettingsStore } from '@/store/settings.store';
 import { EventType } from '@/lib/sunday-tools/course/definitions';
+import type { RacePreset } from '@/utils/races';
 
 type SaveMode = 'edit' | 'new';
 
+type SavePresetFormState = {
+  open: boolean;
+  mode: SaveMode;
+  name: string;
+  date: Date | undefined;
+  eventType: IEventType;
+  calendarOpen: boolean;
+};
+
+type SavePresetFormAction =
+  | { type: 'dialog:openChange'; open: boolean; preset?: RacePreset | null }
+  | { type: 'mode:set'; mode: SaveMode; preset?: RacePreset | null }
+  | { type: 'name:set'; name: string }
+  | { type: 'date:set'; date: Date | undefined }
+  | { type: 'eventType:set'; eventType: IEventType }
+  | { type: 'calendar:openChange'; open: boolean }
+  | { type: 'dialog:close' };
+
+function createNewFormFields(): Pick<SavePresetFormState, 'mode' | 'name' | 'date' | 'eventType'> {
+  return {
+    mode: 'new',
+    name: '',
+    date: new Date(),
+    eventType: EventType.CM
+  };
+}
+
+function fieldsFromPreset(preset: RacePreset): Pick<
+  SavePresetFormState,
+  'mode' | 'name' | 'date' | 'eventType'
+> {
+  return {
+    mode: 'edit',
+    name: preset.name,
+    date: dayjs(preset.date).toDate(),
+    eventType: preset.type
+  };
+}
+
+function createInitialSavePresetState(): SavePresetFormState {
+  return {
+    open: false,
+    calendarOpen: false,
+    ...createNewFormFields()
+  };
+}
+
+function savePresetFormReducer(
+  state: SavePresetFormState,
+  action: SavePresetFormAction
+): SavePresetFormState {
+  switch (action.type) {
+    case 'dialog:openChange':
+      if (action.open) {
+        return {
+          ...state,
+          open: true,
+          calendarOpen: false,
+          ...(action.preset ? fieldsFromPreset(action.preset) : createNewFormFields())
+        };
+      }
+      return { ...state, open: false };
+    case 'mode:set':
+      if (action.mode === 'edit' && action.preset) {
+        return { ...state, ...fieldsFromPreset(action.preset) };
+      }
+      return { ...state, ...createNewFormFields() };
+    case 'name:set':
+      return { ...state, name: action.name };
+    case 'date:set':
+      return { ...state, date: action.date };
+    case 'eventType:set':
+      return { ...state, eventType: action.eventType };
+    case 'calendar:openChange':
+      return { ...state, calendarOpen: action.open };
+    case 'dialog:close':
+      return { ...state, open: false };
+    default:
+      return state;
+  }
+}
+
 export const SavePresetModal = () => {
-  const [open, setOpen] = useState(false);
-  const [mode, setMode] = useState<SaveMode>('new');
-  const [name, setName] = useState('');
-  const [date, setDate] = useState<Date | undefined>(new Date());
-  const [eventType, setEventType] = useState<IEventType>(EventType.CM);
-  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [form, dispatch] = useReducer(savePresetFormReducer, undefined, createInitialSavePresetState);
 
   const { courseId, racedef } = useSettingsStore();
   const { selectedPresetId } = useSettingsStore();
@@ -47,51 +125,35 @@ export const SavePresetModal = () => {
   const existingPreset = selectedPresetId ? presets[selectedPresetId] : null;
 
   const handleOpen = (isOpen: boolean) => {
-    if (isOpen) {
-      if (existingPreset) {
-        setMode('edit');
-        setName(existingPreset.name);
-        setDate(dayjs(existingPreset.date).toDate());
-        setEventType(existingPreset.type);
-      } else {
-        setMode('new');
-        setName('');
-        setDate(new Date());
-        setEventType(EventType.CM);
-      }
-    }
-
-    setOpen(isOpen);
+    dispatch({
+      type: 'dialog:openChange',
+      open: isOpen,
+      preset: isOpen && existingPreset ? existingPreset : null
+    });
   };
 
   const handleModeChange = (nextMode: SaveMode) => {
-    setMode(nextMode);
-
-    if (nextMode === 'edit' && existingPreset) {
-      setName(existingPreset.name);
-      setDate(dayjs(existingPreset.date).toDate());
-      setEventType(existingPreset.type);
-    } else {
-      setName('');
-      setDate(new Date());
-      setEventType(EventType.CM);
-    }
+    dispatch({
+      type: 'mode:set',
+      mode: nextMode,
+      preset: nextMode === 'edit' ? existingPreset : null
+    });
   };
 
   const handleUpdate = () => {
     if (!selectedPresetId) return;
 
-    if (!date) {
+    if (!form.date) {
       toast.error('Please select a date');
       return;
     }
 
-    const dateStr = dayjs(date).format('YYYY-MM-DD');
+    const dateStr = dayjs(form.date).format('YYYY-MM-DD');
 
     updatePreset(selectedPresetId, {
       id: selectedPresetId,
       name: existingPreset!.name,
-      type: eventType,
+      type: form.eventType,
       date: dateStr,
       courseId,
       ground: racedef.ground,
@@ -101,27 +163,27 @@ export const SavePresetModal = () => {
     });
 
     toast.success('Preset updated successfully!');
-    setOpen(false);
+    dispatch({ type: 'dialog:close' });
   };
 
   const handleSaveAsNew = () => {
-    if (!name.trim()) {
+    if (!form.name.trim()) {
       toast.error('Please enter a preset name');
       return;
     }
 
-    if (!date) {
+    if (!form.date) {
       toast.error('Please select a date');
       return;
     }
 
-    const dateStr = dayjs(date).format('YYYY-MM-DD');
+    const dateStr = dayjs(form.date).format('YYYY-MM-DD');
     const newId = crypto.randomUUID();
 
     addPreset({
       id: newId,
-      name: name.trim(),
-      type: eventType,
+      name: form.name.trim(),
+      type: form.eventType,
       date: dateStr,
       courseId,
       ground: racedef.ground,
@@ -132,13 +194,13 @@ export const SavePresetModal = () => {
 
     setSelectedPresetId(newId);
     toast.success('Preset saved successfully!');
-    setOpen(false);
+    dispatch({ type: 'dialog:close' });
   };
 
-  const isEditMode = mode === 'edit' && !!existingPreset;
+  const isEditMode = form.mode === 'edit' && !!existingPreset;
 
   return (
-    <Dialog open={open} onOpenChange={handleOpen}>
+    <Dialog open={form.open} onOpenChange={handleOpen}>
       <DialogTrigger
         render={
           <Button variant="outline">
@@ -159,7 +221,7 @@ export const SavePresetModal = () => {
         </DialogHeader>
 
         {existingPreset ? (
-          <Tabs value={mode} onValueChange={(v) => handleModeChange(v as SaveMode)}>
+          <Tabs value={form.mode} onValueChange={(v) => handleModeChange(v as SaveMode)}>
             <TabsList className="w-full">
               <TabsTrigger value="edit">Edit</TabsTrigger>
               <TabsTrigger value="new">Create New</TabsTrigger>
@@ -168,40 +230,40 @@ export const SavePresetModal = () => {
             <TabsContent value="edit">
               <PresetForm
                 name={existingPreset.name}
-                date={date}
-                eventType={eventType}
-                calendarOpen={calendarOpen}
+                date={form.date}
+                eventType={form.eventType}
+                calendarOpen={form.calendarOpen}
                 nameReadOnly
                 onNameChange={() => {}}
-                onDateChange={setDate}
-                onEventTypeChange={setEventType}
-                onCalendarOpenChange={setCalendarOpen}
+                onDateChange={(date) => dispatch({ type: 'date:set', date })}
+                onEventTypeChange={(eventType) => dispatch({ type: 'eventType:set', eventType })}
+                onCalendarOpenChange={(open) => dispatch({ type: 'calendar:openChange', open })}
               />
             </TabsContent>
 
             <TabsContent value="new">
               <PresetForm
-                name={name}
-                date={date}
-                eventType={eventType}
-                calendarOpen={calendarOpen}
-                onNameChange={setName}
-                onDateChange={setDate}
-                onEventTypeChange={setEventType}
-                onCalendarOpenChange={setCalendarOpen}
+                name={form.name}
+                date={form.date}
+                eventType={form.eventType}
+                calendarOpen={form.calendarOpen}
+                onNameChange={(name) => dispatch({ type: 'name:set', name })}
+                onDateChange={(date) => dispatch({ type: 'date:set', date })}
+                onEventTypeChange={(eventType) => dispatch({ type: 'eventType:set', eventType })}
+                onCalendarOpenChange={(open) => dispatch({ type: 'calendar:openChange', open })}
               />
             </TabsContent>
           </Tabs>
         ) : (
           <PresetForm
-            name={name}
-            date={date}
-            eventType={eventType}
-            calendarOpen={calendarOpen}
-            onNameChange={setName}
-            onDateChange={setDate}
-            onEventTypeChange={setEventType}
-            onCalendarOpenChange={setCalendarOpen}
+            name={form.name}
+            date={form.date}
+            eventType={form.eventType}
+            calendarOpen={form.calendarOpen}
+            onNameChange={(name) => dispatch({ type: 'name:set', name })}
+            onDateChange={(date) => dispatch({ type: 'date:set', date })}
+            onEventTypeChange={(eventType) => dispatch({ type: 'eventType:set', eventType })}
+            onCalendarOpenChange={(open) => dispatch({ type: 'calendar:openChange', open })}
           />
         )}
 
