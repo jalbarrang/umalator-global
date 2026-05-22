@@ -10,7 +10,7 @@
 
 import { Command } from 'commander';
 
-import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { coursesService } from '@/modules/data/services/CourseService';
 import { generateMobField } from '@/lib/sunday-tools/race-sim/mob-factory';
 import { runRaceSim, type RaceSimResult } from '@/lib/sunday-tools/race-sim/run-race-sim';
 import { StrategyName } from '@/lib/sunday-tools/runner/definitions';
@@ -104,7 +104,7 @@ async function main() {
   console.log(`Samples: ${nsamples}`);
   console.log(`Seed: ${masterSeed}`);
 
-  const course = CourseHelpers.getCourse(courseId);
+  const course = coursesService.getSimCourse(courseId);
   console.log(`Distance: ${course.distance}m`);
 
   const runners = generateMobField();

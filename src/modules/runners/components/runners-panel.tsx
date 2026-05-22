@@ -19,7 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Panel, PanelContent, PanelHeader } from '@/components/ui/panel';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { coursesService } from '@/modules/data/services/CourseService';
 import { useRunnerLibraryStore } from '@/store/runner-library.store';
 import './style.css';
 
@@ -32,7 +32,7 @@ export const RunnersPanel = () => {
     addRunner
   } = useRunnerLibraryStore();
 
-  const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
+  const course = useMemo(() => coursesService.getSimCourse(courseId), [courseId]);
 
   const isLinked = !!runner.linkedRunnerId;
   const linkedRunner = isLinked ? getLibraryRunner(runner.linkedRunnerId!) : null;

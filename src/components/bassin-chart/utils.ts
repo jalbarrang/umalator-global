@@ -7,7 +7,7 @@ import { parseStrategyName } from '@/lib/sunday-tools/runner/runner.types';
 import { Region, RegionList } from '@/lib/sunday-tools/shared/region';
 import { createParser } from '@/lib/sunday-tools/skills/parser/ConditionParser';
 import type { SkillEvalRunner } from '@/lib/sunday-tools/skills/parser/definitions';
-import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { CourseService } from '@/modules/data/services/CourseService';
 import { buildBaseStats } from '@/lib/sunday-tools/common/runner';
 
 // ===== Shared Chart Utilities =====
@@ -25,9 +25,9 @@ export const DEFAULT_BIN_SIZE = 10;
 
 // Helper function to determine which phase a position belongs to
 export function getPhaseForPosition(position: number, courseDistance: number): number {
-  const phase1Start = CourseHelpers.phaseStart(courseDistance, 1);
-  const phase2Start = CourseHelpers.phaseStart(courseDistance, 2);
-  const phase3Start = CourseHelpers.phaseStart(courseDistance, 3);
+  const phase1Start = CourseService.phaseStart(courseDistance, 1);
+  const phase2Start = CourseService.phaseStart(courseDistance, 2);
+  const phase3Start = CourseService.phaseStart(courseDistance, 3);
 
   if (position < phase1Start) return 0;
   if (position < phase2Start) return 1;
@@ -38,9 +38,9 @@ export function getPhaseForPosition(position: number, courseDistance: number): n
 // Helper to get phase reference lines for charts
 export function getPhaseReferenceLines(courseDistance: number) {
   return [
-    { position: CourseHelpers.phaseStart(courseDistance, 1), label: 'Mid' },
-    { position: CourseHelpers.phaseStart(courseDistance, 2), label: 'Final' },
-    { position: CourseHelpers.phaseStart(courseDistance, 3), label: 'Last' }
+    { position: CourseService.phaseStart(courseDistance, 1), label: 'Mid' },
+    { position: CourseService.phaseStart(courseDistance, 2), label: 'Final' },
+    { position: CourseService.phaseStart(courseDistance, 3), label: 'Last' }
   ];
 }
 

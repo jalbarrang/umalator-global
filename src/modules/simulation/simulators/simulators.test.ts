@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { cloneDeep } from 'es-toolkit';
-import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { coursesService } from '@/modules/data/services/CourseService';
 import { createRunnerState, runawaySkillId } from '@/modules/runners/components/runner-card/types';
 import { createRaceConditions, racedefToParams } from '@/utils/races';
 import type { CompareParams, SimulationOptions } from '@/modules/simulation/types';
@@ -41,7 +41,7 @@ function createSimulationOptions(seed: number): SimulationOptions {
 
 describe('skill-compare simulator', () => {
   it('is deterministic for the same input seed', () => {
-    const course = CourseHelpers.getCourse(TEST_COURSE_ID);
+    const course = coursesService.getSimCourse(TEST_COURSE_ID);
     const racedef = racedefToParams(createRaceConditions());
     const runnerA = createRunnerState({ outfitId: '100101', skills: [] });
     const runnerB = cloneDeep(runnerA);
@@ -74,7 +74,7 @@ describe('skill-compare simulator', () => {
   });
 
   it('keeps basin sign consistent when runnerA is faster than runnerB', () => {
-    const course = CourseHelpers.getCourse(10914);
+    const course = coursesService.getSimCourse(10914);
     const racedef = racedefToParams(
       createRaceConditions({
         ground: 4,
@@ -131,7 +131,7 @@ describe('skill-compare simulator', () => {
 
 describe('vacuum-compare simulator', () => {
   it('returns sorted basins and populated run snapshots', () => {
-    const course = CourseHelpers.getCourse(TEST_COURSE_ID);
+    const course = coursesService.getSimCourse(TEST_COURSE_ID);
     const racedef = racedefToParams(createRaceConditions());
     const uma1 = createRunnerState({ outfitId: '100101', strategy: 'Front Runner' });
     const uma2 = createRunnerState({ outfitId: '100201', strategy: 'Pace Chaser' });
@@ -162,7 +162,7 @@ describe('vacuum-compare simulator', () => {
   });
 
   it('keeps basin sign aligned with finish times for provided race presets', () => {
-    const course = CourseHelpers.getCourse(10914);
+    const course = coursesService.getSimCourse(10914);
     const racedef = racedefToParams(
       createRaceConditions({
         ground: 4,
@@ -277,7 +277,7 @@ describe('forced skill positions', () => {
     skillIds: Array<string>,
     seed: number
   ) {
-    const course = CourseHelpers.getCourse(TEST_COURSE_ID);
+    const course = coursesService.getSimCourse(TEST_COURSE_ID);
     const racedef = racedefToParams(createRaceConditions());
     const raceParameters = toSundayRaceParameters(racedef);
 
@@ -354,7 +354,7 @@ describe('forced skill positions', () => {
   });
 
   it('should override skill trigger position when forced position is set', () => {
-    const course = CourseHelpers.getCourse(TEST_COURSE_ID);
+    const course = coursesService.getSimCourse(TEST_COURSE_ID);
     const racedef = racedefToParams(createRaceConditions());
     const raceParameters = toSundayRaceParameters(racedef);
 
@@ -414,7 +414,7 @@ describe('forced skill positions', () => {
   });
 
   it('should produce different results when forced to different positions', () => {
-    const course = CourseHelpers.getCourse(TEST_COURSE_ID);
+    const course = coursesService.getSimCourse(TEST_COURSE_ID);
     const racedef = racedefToParams(createRaceConditions());
 
     const impactfulSkillId = '200531';
@@ -461,7 +461,7 @@ describe('forced skill positions', () => {
   });
 
   it('respects forced trigger position for pace chaser skill 200741', () => {
-    const course = CourseHelpers.getCourse(TEST_COURSE_ID);
+    const course = coursesService.getSimCourse(TEST_COURSE_ID);
     const racedef = racedefToParams(createRaceConditions());
     const raceParameters = toSundayRaceParameters(racedef);
     const skillId = '200741';
@@ -515,7 +515,7 @@ describe('forced skill positions', () => {
 
   it('samples Swinging Maestro trigger from first eligible corner branch', () => {
     // CM: Pisces Cup
-    const course = CourseHelpers.getCourse(10914); // Hanshin Turf 3200m
+    const course = coursesService.getSimCourse(10914); // Hanshin Turf 3200m
     const racedef = racedefToParams(
       createRaceConditions({
         mood: 0, // Not applied
@@ -615,7 +615,7 @@ describe('injected debuffs', () => {
   });
 
   it('runComparison with injectedDebuffs produces different results than without', () => {
-    const course = CourseHelpers.getCourse(TEST_COURSE_ID);
+    const course = coursesService.getSimCourse(TEST_COURSE_ID);
     const racedef = racedefToParams(createRaceConditions());
     const uma1 = createRunnerState({
       outfitId: '100101',
@@ -650,7 +650,7 @@ describe('injected debuffs', () => {
   });
 
   it('injected debuff at a fixed position slows the affected uma', () => {
-    const course = CourseHelpers.getCourse(TEST_COURSE_ID);
+    const course = coursesService.getSimCourse(TEST_COURSE_ID);
     const racedef = racedefToParams(createRaceConditions());
     const uma1 = createRunnerState({
       outfitId: '100101',
@@ -716,7 +716,7 @@ describe('last spurt activation', () => {
   }
 
   function createLateSurgerRace() {
-    const course = CourseHelpers.getCourse(LATE_SURGER_COURSE_ID);
+    const course = coursesService.getSimCourse(LATE_SURGER_COURSE_ID);
     const racedef = racedefToParams(
       createRaceConditions({
         ground: 1,
@@ -790,7 +790,7 @@ describe('last spurt activation', () => {
   });
 
   it('achieves full spurt at a plausible rate across multiple seeds', () => {
-    const course = CourseHelpers.getCourse(LATE_SURGER_COURSE_ID);
+    const course = coursesService.getSimCourse(LATE_SURGER_COURSE_ID);
     const racedef = racedefToParams(
       createRaceConditions({
         ground: 1,
@@ -835,7 +835,7 @@ describe('last spurt activation', () => {
   });
 
   it('recalculates spurt correctly via forceState for non-max-spurt horse with HP recovery', () => {
-    const course = CourseHelpers.getCourse(LATE_SURGER_COURSE_ID);
+    const course = coursesService.getSimCourse(LATE_SURGER_COURSE_ID);
     const racedef = racedefToParams(
       createRaceConditions({
         ground: 1,
@@ -904,7 +904,7 @@ describe('last spurt activation', () => {
 
 describe('skill-planner-compare simulator', () => {
   it('is deterministic and returns sorted basinn deltas', () => {
-    const course = CourseHelpers.getCourse(TEST_COURSE_ID);
+    const course = coursesService.getSimCourse(TEST_COURSE_ID);
     const racedef = racedefToParams(createRaceConditions());
     const runnerA = createRunnerState({ outfitId: '100101', skills: [] });
     const runnerB = cloneDeep(runnerA);
@@ -940,7 +940,7 @@ describe('skill-planner-compare simulator', () => {
   });
 
   it('keeps basin sign consistent when runnerA is faster than runnerB', () => {
-    const course = CourseHelpers.getCourse(10914);
+    const course = coursesService.getSimCourse(10914);
     const racedef = racedefToParams(
       createRaceConditions({
         ground: 4,

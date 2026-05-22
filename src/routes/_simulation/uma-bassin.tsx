@@ -8,7 +8,7 @@ import {
   useUniqueSkillBasinStore
 } from '@/modules/simulation/stores/uma-basin.store';
 import { BasinnChart } from '@/components/bassin-chart/BasinnChart';
-import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { coursesService } from '@/modules/data/services/CourseService';
 import { replaceRunnerOutfit, useRunner } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
 import { useUmaBasinPoolRunner } from '@/modules/simulation/hooks/pool/useUmaBasinPoolRunner';
@@ -41,7 +41,7 @@ export default function UmaComparePage() {
 
   const { runner, updateRunner, addSkill } = useRunner();
 
-  const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
+  const course = useMemo(() => coursesService.getSimCourse(courseId), [courseId]);
 
   const arrayResults = useMemo(() => {
     return Object.values(umaBasinResults);

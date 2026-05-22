@@ -1,5 +1,3 @@
-import coursesJson from '@/modules/data/json/course_data.json';
-
 import {
   attachSupportCardEventSources,
   attachSupportCardHintSources
@@ -7,7 +5,7 @@ import {
 import { loadSkills } from './loaders/skill-loader';
 import { loadSupportCards } from './loaders/support-card-loader';
 import { loadUmas } from './loaders/uma-loader';
-import { CourseService } from './services/CourseService';
+import { coursesService } from './services/CourseService';
 import { GameToraSkillService } from './services/GameToraSkillService';
 import { SupportCardService } from './services/SupportCardService';
 import { UmaService } from './services/UmaService';
@@ -26,4 +24,4 @@ export const umasService = new UmaService(loadedUmas.umas, {
   releasedOutfits: loadedUmas.releasedOutfits
 });
 export const supportCardsService = new SupportCardService(loadedSupportCards);
-export const coursesService = new CourseService(coursesJson as any);
+export { coursesService };

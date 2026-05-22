@@ -12,7 +12,7 @@ import {
   YAxis
 } from 'recharts';
 import type { SkillEffectLog, SkillSimulationData } from '@/modules/simulation/compare.types';
-import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { CourseService } from '@/modules/data/services/CourseService';
 
 interface ActivationFrequencyChartProps {
   skillId: string;
@@ -100,9 +100,9 @@ export function ActivationFrequencyChart({
 
     // Get phase boundaries
     const phaseStarts = [
-      { position: CourseHelpers.phaseStart(courseDistance, 1), label: 'Mid' },
-      { position: CourseHelpers.phaseStart(courseDistance, 2), label: 'Final' },
-      { position: CourseHelpers.phaseStart(courseDistance, 3), label: 'Last' }
+      { position: CourseService.phaseStart(courseDistance, 1), label: 'Mid' },
+      { position: CourseService.phaseStart(courseDistance, 2), label: 'Final' },
+      { position: CourseService.phaseStart(courseDistance, 3), label: 'Last' }
     ];
 
     return { bins, totalActivations, phaseStarts };
@@ -117,8 +117,8 @@ export function ActivationFrequencyChart({
   }
 
   const getBarColor = (binStart: number) => {
-    const phase1 = CourseHelpers.phaseStart(courseDistance, 1);
-    const phase2 = CourseHelpers.phaseStart(courseDistance, 2);
+    const phase1 = CourseService.phaseStart(courseDistance, 1);
+    const phase2 = CourseService.phaseStart(courseDistance, 2);
 
     if (binStart < phase1) return PHASE_COLORS.phase0;
     if (binStart < phase2) return PHASE_COLORS.phase1;

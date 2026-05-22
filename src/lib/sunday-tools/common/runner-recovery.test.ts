@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { coursesService } from '@/modules/data/services/CourseService';
 import {
   Grade,
   GroundCondition,
@@ -58,7 +58,7 @@ const TEST_RUNNER: CreateRunner = {
 
 function createRace(skillIds: Array<string>, overrides?: Record<string, number>) {
   const race = new Race({
-    course: CourseHelpers.getCourse(TEST_COURSE_ID),
+    course: coursesService.getSimCourse(TEST_COURSE_ID),
     parameters: TEST_RACE_PARAMS,
     settings: {
       ...TEST_SETTINGS,

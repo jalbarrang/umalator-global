@@ -1,6 +1,6 @@
 import { memo, useMemo } from 'react';
 import { cn } from '@/lib/utils';
-import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { CourseService } from '@/modules/data/services/CourseService';
 import { PHASE_LABELS } from '@/modules/race-sim/constants';
 import { usePlaybackStore } from '@/modules/race-sim/stores/playback.store';
 
@@ -41,9 +41,9 @@ function getPhaseLabel(position: number | null, courseDistance?: number): string
   }
 
   const clampedPosition = clamp(position, 0, courseDistance);
-  const phase1Start = CourseHelpers.phaseStart(courseDistance, 1);
-  const phase2Start = CourseHelpers.phaseStart(courseDistance, 2);
-  const phase3Start = CourseHelpers.phaseStart(courseDistance, 3);
+  const phase1Start = CourseService.phaseStart(courseDistance, 1);
+  const phase2Start = CourseService.phaseStart(courseDistance, 2);
+  const phase3Start = CourseService.phaseStart(courseDistance, 3);
 
   if (clampedPosition < phase1Start) {
     return PHASE_LABELS[0];

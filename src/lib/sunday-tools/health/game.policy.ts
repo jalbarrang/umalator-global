@@ -1,4 +1,4 @@
-import { CourseHelpers } from '../course/CourseData';
+import { CourseService } from '@/modules/data/services/CourseService';
 import { PositionKeepState } from '../skills/definitions';
 import { Strategy } from '../runner/definitions';
 import type { Runner } from '../common/runner';
@@ -123,7 +123,7 @@ export class GameHpPolicy implements HpPolicy {
   }
 
   getLastSpurtPair(state: RaceStateSlice, maxSpeed: number, baseTargetSpeed2: number) {
-    const maxDist = this.distance - CourseHelpers.phaseStart(this.distance, 2);
+    const maxDist = this.distance - CourseService.phaseStart(this.distance, 2);
     const s = (maxDist - 60) / maxSpeed;
 
     const lastleg: RaceStateSlice = {

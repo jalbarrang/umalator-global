@@ -15,7 +15,7 @@ import { useSettingsStore } from '@/store/settings.store';
 import { RaceSettingsPanel } from '@/modules/skill-planner/components/RaceSettingsPanel';
 import { useSkillSingleRunner } from '@/modules/simulation/hooks/skill-bassin/useSkillSingleRunner';
 import { skillBassinSteps } from '@/modules/tutorial/steps/skill-bassin-steps';
-import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { coursesService } from '@/modules/data/services/CourseService';
 import { TutorialId } from '@/components/tutorial/types';
 import { SimulationProgressBanner } from '@/components/simulation-progress-banner';
 
@@ -40,7 +40,7 @@ export default function SkillComparePage() {
   const courseId = useSettingsStore(useShallow((state) => state.courseId));
   const { runnerId, runner } = useRunner();
 
-  const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
+  const course = useMemo(() => coursesService.getSimCourse(courseId), [courseId]);
 
   const basinnChartSelection = (skillId: string) => {
     const results = skillBasinResults[skillId];

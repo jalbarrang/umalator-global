@@ -25,6 +25,7 @@ data-manifest.json
 
 
 docs/reports/
+.reports/
 docs/prd/
 .mockups/
 /tests/roster/
@@ -39,3 +40,5 @@ docs/prd/
 .dolt/
 *.db
 .beads-credential-key
+.fallow/cache.bin
+.fallow/churn.bin

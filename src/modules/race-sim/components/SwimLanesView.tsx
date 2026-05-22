@@ -1,6 +1,6 @@
 import { memo, useMemo } from 'react';
 import { cn } from '@/lib/utils';
-import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { CourseService } from '@/modules/data/services/CourseService';
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import { PHASE_STYLES, RUNNER_COLORS } from '@/modules/race-sim/constants';
 import {
@@ -48,9 +48,9 @@ function formatGap(distance: number): string {
 }
 
 function buildPhaseSegments(distance: number): PhaseSegment[] {
-  const phase1Start = CourseHelpers.phaseStart(distance, 1);
-  const phase2Start = CourseHelpers.phaseStart(distance, 2);
-  const phase3Start = CourseHelpers.phaseStart(distance, 3);
+  const phase1Start = CourseService.phaseStart(distance, 1);
+  const phase2Start = CourseService.phaseStart(distance, 2);
+  const phase3Start = CourseService.phaseStart(distance, 3);
   const boundaries = [0, phase1Start, phase2Start, phase3Start, distance];
 
   return PHASE_STYLES.map((style, i) => ({

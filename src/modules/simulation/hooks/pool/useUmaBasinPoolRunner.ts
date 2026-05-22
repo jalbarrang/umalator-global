@@ -19,7 +19,7 @@ import { useRunner } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
 import { racedefToParams } from '@/utils/races';
 import { PoolManager } from '@/workers/pool/pool-manager';
-import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { coursesService } from '@/modules/data/services/CourseService';
 import { skillsService } from '@/modules/data/registry';
 
 const uniqueSkillIds = skillsService.getUniqueSkillIds();
@@ -38,7 +38,7 @@ export function useUmaBasinPoolRunner() {
 
   const poolManagerRef = useRef<PoolManager | null>(null);
 
-  const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
+  const course = useMemo(() => coursesService.getSimCourse(courseId), [courseId]);
 
   // Initialize pool manager on mount
   useEffect(() => {

@@ -20,7 +20,7 @@ import {
   getNullSkillComparisonRow
 } from '@/components/bassin-chart/utils';
 import { PoolManager } from '@/workers/pool/pool-manager';
-import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { coursesService } from '@/modules/data/services/CourseService';
 
 const createSkillBasinPoolWorker = (options: { name: string }) => new SkillBasinPoolWorker(options);
 
@@ -31,7 +31,7 @@ export function useSkillBasinPoolRunner() {
 
   const poolManagerRef = useRef<PoolManager | null>(null);
 
-  const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
+  const course = useMemo(() => coursesService.getSimCourse(courseId), [courseId]);
 
   // Initialize pool manager on mount
   useEffect(() => {

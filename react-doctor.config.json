@@ -1,40 +1,20 @@
 {
   "ignore": {
-    "files": [
-      "src/components/ui/**",
-      "src/styles/**",
-      "scripts/**",
-      ".pi/**"
+    "files": ["src/components/ui/**", "src/styles/**", "scripts/**", ".pi/**"],
+    "rules": [
+      "knip/exports",
+      "knip/types",
+      "knip/files",
+      "knip/duplicates",
+      "knip/dependencies",
+      "knip/enumMembers",
+      "knip/classMembers",
+      "knip/unlisted"
     ],
-    "rules": ["knip/exports", "knip/types", "knip/files", "knip/duplicates"],
     "overrides": [
-      {
-        "files": ["src/modules/simulation/share/compare-share-card.tsx"],
-        "rules": ["react-doctor/no-inline-exhaustive-style", "react-doctor/no-tiny-text"]
-      },
-      {
-        "files": ["src/modules/runners/components/ocr/components/wizard-import.tsx"],
-        "rules": ["react-doctor/async-await-in-loop"]
-      },
       {
         "files": ["src/polyfills.ts"],
         "rules": ["react-doctor/js-tosorted-immutable"]
-      },
-      {
-        "files": ["src/modules/race-sim/components/track-view/top-down/TrackTopDownView.tsx"],
-        "rules": [
-          "react-doctor/client-passive-event-listeners",
-          "react-doctor/no-cascading-set-state"
-        ]
-      },
-      {
-        "files": [
-          "src/components/Histogram.tsx",
-          "src/components/bassin-chart/ActivationEffectChart.tsx",
-          "src/components/bassin-chart/LengthDifferenceChart.tsx",
-          "src/components/bassin-chart/ActivationFrequencyChart.tsx"
-        ],
-        "rules": ["react-doctor/prefer-dynamic-import"]
       }
     ]
   }

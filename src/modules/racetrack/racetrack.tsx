@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useRef } from 'react';
 import { initializeSimulationRun, SimulationRun } from '../simulation/compare.types';
 import { getActiveDragPreview, useDragSkill } from './hooks/useDragSkill';
-import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { coursesService } from '@/modules/data/services/CourseService';
 import { useSettingsStore } from '@/store/settings.store';
 import { useVisualizationData } from './hooks/useVisualizationData';
 import { updateDebuffPosition } from '../simulation/stores/compare.store';
@@ -39,7 +39,7 @@ export const RaceTrack = (props: RaceTrackProps) => {
     return incomingChartData ?? initializeSimulationRun();
   }, [incomingChartData]);
 
-  const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
+  const course = useMemo(() => coursesService.getSimCourse(courseId), [courseId]);
   const { showUma1, showUma2 } = useSettingsStore();
 
   const mouseLineRef = useRef<SVGLineElement>(null);
