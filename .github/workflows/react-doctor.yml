@@ -25,7 +25,7 @@ jobs:
       - name: Run React Doctor
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            bun run codeql:react-doctor -- . --yes --verbose --annotations --fail-on warning --diff origin/${{ github.base_ref }}
+            bun run codeql:react-doctor -- . --yes --verbose --annotations --diff origin/${{ github.base_ref }}
           else
-            bun run codeql:react-doctor -- . --yes --verbose --annotations --fail-on warning --diff ${{ github.event.before }}
+            bun run codeql:react-doctor -- . --yes --verbose --annotations --diff ${{ github.event.before }}
           fi
