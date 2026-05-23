@@ -47,6 +47,44 @@ import { CourseService } from '@/modules/data/services/CourseService';
 import { Region, RegionList } from '@/lib/sunday-tools/shared/region';
 import { Strategy } from '@/lib/sunday-tools/runner/definitions';
 
+function getCornerRegionsForArg(params: ConditionFilterParams): RegionList {
+  const { arg: cornerNum, course } = params;
+
+  if (!CourseService.isSortedByStart(course.corners)) {
+    throw new Error('course corners must be sorted by start');
+  }
+
+  if (cornerNum === 0) {
+    // Can't simply use straights here as there may be parts of a course which are neither corners nor straights.
+    const nonCorners = new RegionList();
+    let lastEnd = 0;
+
+    for (const corner of course.corners) {
+      nonCorners.push(new Region(lastEnd, corner.start));
+      lastEnd = corner.start + corner.length;
+    }
+
+    if (lastEnd !== course.distance) {
+      nonCorners.push(new Region(lastEnd, course.distance));
+    }
+
+    return nonCorners;
+  }
+
+  if (course.corners.length + cornerNum >= 5) {
+    const corners = new RegionList();
+
+    for (let cornerIdx = course.corners.length + cornerNum - 5; cornerIdx >= 0; cornerIdx -= 4) {
+      const corner = course.corners[cornerIdx];
+      corners.push(new Region(corner.start, corner.start + corner.length));
+    }
+
+    return new RegionList(...corners.reverse());
+  }
+
+  return new RegionList();
+}
+
 function valueFilterOrNoop(
   getValue: (params: ConditionFilterParams) => number | undefined
 ): ICondition {
@@ -240,48 +278,13 @@ export const defaultConditions: ConditionsMap<ICondition> = {
     'compete_fight_count'
   ),
   corner: immediate({
-    filterEq({ regions, arg: cornerNum, course }: ConditionFilterParams) {
-      if (!CourseService.isSortedByStart(course.corners)) {
-        throw new Error('course corners must be sorted by start');
-      }
-
-      if (cornerNum == 0) {
-        // can't simply use straights here as there may be parts of a course which are neither corners nor straights
-        let lastEnd = 0;
-        const nonCorners = course.corners.map((c) => {
-          const r = new Region(lastEnd, c.start);
-          lastEnd = c.start + c.length;
-          return r;
-        });
-        if (lastEnd != course.distance) {
-          nonCorners.push(new Region(lastEnd, course.distance));
-        }
-        return regions.rmap((r) => nonCorners.map((s) => r.intersect(s)));
-      } else if (course.corners.length + cornerNum >= 5) {
-        const corners: Array<Region> = [];
-
-        for (
-          let cornerIdx = course.corners.length + cornerNum - 5;
-          cornerIdx >= 0;
-          cornerIdx -= 4
-        ) {
-          const corner = course.corners[cornerIdx];
-          corners.push(new Region(corner.start, corner.start + corner.length));
-        }
-
-        corners.reverse();
-
-        return regions.rmap((r) => corners.map((c) => r.intersect(c)));
-      } else {
-        return new RegionList();
-      }
+    filterEq(params: ConditionFilterParams) {
+      const cornerRegions = getCornerRegionsForArg(params);
+      return params.regions.rmap((r) => cornerRegions.map((c) => r.intersect(c)));
     },
-    filterNeq({ regions, arg: cornerNum, course }: ConditionFilterParams) {
-      if (cornerNum !== 0) {
-        throw new Error('only supports corner!=0');
-      }
-      const corners = course.corners.map((c) => new Region(c.start, c.start + c.length));
-      return regions.rmap((r) => corners.map((c) => r.intersect(c)));
+    filterNeq(params: ConditionFilterParams) {
+      const cornerRegions = getCornerRegionsForArg(params);
+      return params.regions.subtract(cornerRegions);
     }
   }),
   corner_count: valueFilter(({ course }) => course.corners.length),
