@@ -8,7 +8,15 @@ import { Region, RegionList } from '@/lib/sunday-tools/shared/region';
 import { createParser } from '@/lib/sunday-tools/skills/parser/ConditionParser';
 import type { SkillEvalRunner } from '@/lib/sunday-tools/skills/parser/definitions';
 import { CourseService } from '@/modules/data/services/CourseService';
+import { skillsService } from '@/modules/data/registry';
 import { buildBaseStats } from '@/lib/sunday-tools/common/runner';
+
+export type GetActivateableSkillsOptions = {
+  /** When true (default), exclude skills the simulator cannot parse. */
+  simulatableOnly?: boolean;
+  /** When true, exclude unreleased / datamined skills. */
+  releasedOnly?: boolean;
+};
 
 // ===== Shared Chart Utilities =====
 
@@ -78,8 +86,22 @@ export function getActivateableSkills(
   skills: Array<string>,
   runner: IRunnerState,
   course: CourseData,
-  raceParams: RaceParameters
+  raceParams: RaceParameters,
+  options: GetActivateableSkillsOptions = {}
 ) {
+  const { simulatableOnly = true, releasedOnly = false } = options;
+
+  let candidateSkills = skills;
+  if (simulatableOnly) {
+    candidateSkills = skillsService.filterSimulatable(candidateSkills);
+  }
+  if (releasedOnly) {
+    candidateSkills = candidateSkills.filter((skillId) => {
+      const [baseSkillId] = skillId.split('-');
+      return baseSkillId !== undefined && skillsService.isReleased(baseSkillId);
+    });
+  }
+
   const parser = createParser();
   const baseStats = buildBaseStats(
     {
@@ -102,7 +124,7 @@ export function getActivateableSkills(
 
   const activableSkills = [];
 
-  for (const skillId of skills) {
+  for (const skillId of candidateSkills) {
     const skillTriggers = buildSkillData({
       runner: skillEvalRunner,
       raceParams,
