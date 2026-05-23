@@ -5,6 +5,7 @@ import {
   findUnknownConditionTokens
 } from '@/lib/sunday-tools/skills/simulatability';
 import type { SkillMatch } from '@/modules/runners/data/types';
+import { SkillFilterer, type SkillFiltererConfig } from './SkillFilterer';
 
 // =======
 // Types
@@ -142,6 +143,14 @@ export class SkillService {
 
   getActivationCheck = (skillId: string): SkillActivationCheck | undefined => {
     return this.activationChecks.get(skillId);
+  };
+
+  // ============
+  // Filterer Factory
+  // ============
+
+  createFilterer = (config: SkillFiltererConfig): SkillFilterer => {
+    return new SkillFilterer(this, config);
   };
 
   // ============

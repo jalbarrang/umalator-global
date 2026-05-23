@@ -1,22 +1,5 @@
 import type { RoundResult, SkillComparisonRoundResult } from '@/modules/simulation/types';
-import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
-import type { CourseData } from '@/lib/sunday-tools/course/definitions';
-import type { RaceParameters } from '@/lib/sunday-tools/common/race';
-import { buildSkillData } from '@/lib/sunday-tools/runner/runner.utils';
-import { parseStrategyName } from '@/lib/sunday-tools/runner/runner.types';
-import { Region, RegionList } from '@/lib/sunday-tools/shared/region';
-import { createParser } from '@/lib/sunday-tools/skills/parser/ConditionParser';
-import type { SkillEvalRunner } from '@/lib/sunday-tools/skills/parser/definitions';
 import { CourseService } from '@/modules/data/services/CourseService';
-import { skillsService } from '@/modules/data/registry';
-import { buildBaseStats } from '@/lib/sunday-tools/common/runner';
-
-export type GetActivateableSkillsOptions = {
-  /** When true (default), exclude skills the simulator cannot parse. */
-  simulatableOnly?: boolean;
-  /** When true, exclude unreleased / datamined skills. */
-  releasedOnly?: boolean;
-};
 
 // ===== Shared Chart Utilities =====
 
@@ -69,83 +52,6 @@ export function createDistanceBins<T extends { start: number; end: number }>(
 }
 
 // ===== End Shared Chart Utilities =====
-
-/**
- * Gets the skills that are activateable for a given horse, course, and race definition.
- *
- * This is useful for filtering out early the skills that don't trigger during the race.
- *
- * @param skills - The skills to check.
- * @param runner - The runner to use.
- * @param course - The course to use.
- * @param raceParams - The race parameters to use.
- *
- * @returns The skills that are activateable.
- */
-export function getActivateableSkills(
-  skills: Array<string>,
-  runner: IRunnerState,
-  course: CourseData,
-  raceParams: RaceParameters,
-  options: GetActivateableSkillsOptions = {}
-) {
-  const { simulatableOnly = true, releasedOnly = false } = options;
-
-  let candidateSkills = skills;
-  if (simulatableOnly) {
-    candidateSkills = skillsService.filterSimulatable(candidateSkills);
-  }
-  if (releasedOnly) {
-    candidateSkills = candidateSkills.filter((skillId) => {
-      const [baseSkillId] = skillId.split('-');
-      return baseSkillId !== undefined && skillsService.isReleased(baseSkillId);
-    });
-  }
-
-  const parser = createParser();
-  const baseStats = buildBaseStats(
-    {
-      speed: runner.speed,
-      stamina: runner.stamina,
-      power: runner.power,
-      guts: runner.guts,
-      wit: runner.wisdom
-    },
-    runner.mood
-  );
-  const skillEvalRunner: SkillEvalRunner = {
-    baseStats,
-    strategy: parseStrategyName(runner.strategy),
-    mood: runner.mood
-  };
-
-  const wholeCourse = new RegionList();
-  wholeCourse.push(new Region(0, course.distance));
-
-  const activableSkills = [];
-
-  for (const skillId of candidateSkills) {
-    const skillTriggers = buildSkillData({
-      runner: skillEvalRunner,
-      raceParams,
-      course,
-      wholeCourse,
-      parser,
-      skillId,
-      ignoreNullEffects: false
-    });
-
-    const isActivable = skillTriggers.some(
-      (trigger) => trigger.regions.length > 0 && trigger.regions[0].start < 9999
-    );
-
-    if (isActivable) {
-      activableSkills.push(skillId);
-    }
-  }
-
-  return activableSkills;
-}
 
 export function getNullRow(skillid: string): RoundResult {
   return {

@@ -12,7 +12,6 @@ import {
 } from '@/modules/simulation/stores/uma-basin.store';
 import {
   defaultSimulationOptions,
-  getActivateableSkills,
   getNullSkillComparisonRow
 } from '@/components/bassin-chart/utils';
 import { useRunner } from '@/store/runners.store';
@@ -61,7 +60,9 @@ export function useUmaBasinPoolRunner() {
 
     const params = racedefToParams(racedef, runner.strategy);
 
-    const skills = getActivateableSkills(uniqueSkillIds, runner, course, params);
+    const filterer = skillsService.createFilterer({ runner, course, raceParams: params });
+    const candidates = filterer.filterCandidates(uniqueSkillIds);
+    const skills = filterer.probeActivation(candidates);
 
     const umaWithoutUniques = removeUniqueSkillsFromRunner(runner);
     const uma = umaWithoutUniques;
