@@ -31,9 +31,9 @@ function buildSkillReleaseDateMap(): Map<string, string> {
     }
   }
 
-  // Character cards
+  // Character cards — only use global (EN) release dates
   for (const card of characterCardsJson as Array<CharacterCard>) {
-    const date = card.release_en ?? card.release;
+    const date = card.release_en;
     if (!date) continue;
 
     for (const id of card.skills_unique ?? []) trackEarliest(id, date);
@@ -48,9 +48,9 @@ function buildSkillReleaseDateMap(): Map<string, string> {
     for (const id of card.skills_event ?? []) trackEarliest(id, date);
   }
 
-  // Support cards
+  // Support cards — only use global (EN) release dates
   for (const card of supportCardsJson as Array<SupportCard>) {
-    const date = card.release_en ?? card.release;
+    const date = card.release_en;
     if (!date) continue;
 
     for (const id of card.hints?.hint_skills ?? []) trackEarliest(id, date);
