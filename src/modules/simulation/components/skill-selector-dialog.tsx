@@ -25,10 +25,8 @@ import { SkillIcon } from '@/modules/skills/components/skill-list/skill-item/Ski
 import { getBaseSkillsToTest } from '@/modules/skills/utils';
 import {
   clearSelection,
-  deselectAllSkills,
   initializeSkillSelection,
   selectAll,
-  selectAllSkills,
   selectReleasedOnly,
   selectUpcomingOnly,
   toggleSkillSelected,
@@ -140,14 +138,6 @@ export function SkillSelectorDialog() {
     toggleSkillSelected(skillId);
   }, []);
 
-  const handleSelectVisible = useCallback(() => {
-    selectAllSkills(filteredSkills.map((s) => s.id));
-  }, [filteredSkills]);
-
-  const handleDeselectVisible = useCallback(() => {
-    deselectAllSkills(filteredSkills.map((s) => s.id));
-  }, [filteredSkills]);
-
   const rowVirtualizer = useVirtualizer({
     count: filteredSkills.length,
     enabled: open && scrollElement !== null,
@@ -185,15 +175,6 @@ export function SkillSelectorDialog() {
           <PresetButton label="All" active={isAll} onClick={selectAll} />
           <PresetButton label="Upcoming" active={isUpcomingOnly} onClick={selectUpcomingOnly} />
           <PresetButton label="Clear" active={selectedCount === 0} onClick={clearSelection} />
-
-          <div className="ml-auto flex gap-1.5">
-            <Button variant="ghost" size="xs" onClick={handleSelectVisible}>
-              Select visible
-            </Button>
-            <Button variant="ghost" size="xs" onClick={handleDeselectVisible}>
-              Deselect visible
-            </Button>
-          </div>
         </div>
 
         {/* Search */}
