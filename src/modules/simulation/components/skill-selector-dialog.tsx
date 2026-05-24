@@ -104,7 +104,7 @@ export function SkillSelectorDialog() {
     return simulatable
       .map((id) => skillsService.getById(id))
       .filter((s): s is SkillEntry => s !== undefined)
-      .sort((a, b) => a.name.localeCompare(b.name));
+      .sort((a, b) => Number(a.id) - Number(b.id));
   }, []);
 
   const releasedIds = useMemo(
