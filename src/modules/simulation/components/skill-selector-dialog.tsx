@@ -105,21 +105,10 @@ export function SkillSelectorDialog() {
       .map((id) => skillsService.getById(id))
       .filter((s): s is SkillEntry => s !== undefined)
       .sort((a, b) => {
-        const dateA = a.releaseDate ?? '';
-        const dateB = b.releaseDate ?? '';
+        const dateCmp = (a.releaseDate ?? '').localeCompare(b.releaseDate ?? '');
+        if (dateCmp !== 0) return dateCmp;
 
-        // Skills with dates come before those without
-        if (dateA && !dateB) return -1;
-        if (!dateA && dateB) return 1;
-
-        // Both have dates: sort chronologically
-        if (dateA && dateB) {
-          const cmp = dateA.localeCompare(dateB);
-          if (cmp !== 0) return cmp;
-        }
-
-        // Fallback: ID order
-        return Number(a.id) - Number(b.id);
+        return a.name.localeCompare(b.name);
       });
   }, []);
 
