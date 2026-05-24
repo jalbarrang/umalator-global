@@ -22,7 +22,6 @@ import { getSelectableSkillsForUma, getUniqueSkillForByUmaId } from '@/modules/s
 import { skillsService } from '@/modules/data/registry';
 import { getRelatedSkillIds, isSkillCoveredByOwnedFamily } from './skill-family';
 import { resolveActiveSkills } from './optimizer';
-import { useUIStore } from '@/store/ui.store';
 
 const DEFAULT_BUDGET = 1000;
 export const skillPlannerSteps: Array<WizardStep> = ['runner', 'shop', 'review'];
@@ -195,9 +194,7 @@ const isSelectableForRunner = (skillId: string, outfitId: string) => {
     return false;
   }
 
-  const includeUpcoming = useUIStore.getState().showUpcoming;
-
-  return getSelectableSkillsForUma(outfitId, includeUpcoming).includes(skillId);
+  return getSelectableSkillsForUma(outfitId, true).includes(skillId);
 };
 
 const getUniqueSkillId = (outfitId: string) => {

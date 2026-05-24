@@ -20,13 +20,12 @@ import type { SkillEntry, SkillUmaSourceEntry } from '@/modules/data/services/Sk
 import { getUmaImageUrl } from '@/modules/runners/utils';
 import { SkillPickerFilterRow } from '@/modules/skills/components/skill-picker/filter-row';
 import { SkillPickerProvider } from '@/modules/skills/components/skill-picker/provider';
-import { useFilteredSkills } from '@/modules/skills/components/skill-picker/store';
+import { useFilteredSkills, useSkillPickerStore } from '@/modules/skills/components/skill-picker/store';
 import { SkillIcon } from '@/modules/skills/components/skill-list/skill-item/SkillIcon';
 import { SkillDetails } from '@/modules/skills/components/skill-details';
 import { formatEffect } from '@/modules/skills/components/formatters';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { useUIStore } from '@/store/ui.store';
 
 const SKILL_CARD_ESTIMATED_HEIGHT = 360;
 const SKILL_CARD_GAP = 12;
@@ -173,7 +172,7 @@ function getSupportCardImageUrl(cardId: number) {
 
 function SkillSourcesPopover(props: SkillSourcesPopoverProps) {
   const { skill } = props;
-  const showUpcoming = useUIStore((state) => state.showUpcoming);
+  const showUpcoming = useSkillPickerStore((state) => state.showUpcoming);
 
   const umaSources = useMemo(() => {
     const outfitIds = new Set<string>();
@@ -431,10 +430,9 @@ function SkillBrowserItem(props: SkillBrowserItemProps) {
 function SkillsBrowserContent() {
   const [searchText, setSearchText] = useState('');
   const deferredSearchText = useDeferredValue(searchText);
-  const showUpcoming = useUIStore((state) => state.showUpcoming);
 
   const allSkills = useMemo(() => skillsService.getAll(), []);
-  const filteredSkills = useFilteredSkills(deferredSearchText, allSkills, { showUpcoming });
+  const filteredSkills = useFilteredSkills(deferredSearchText, allSkills);
   const parentRef = useRef<HTMLDivElement>(null);
 
   const rowVirtualizer = useVirtualizer({

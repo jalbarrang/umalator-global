@@ -1,8 +1,6 @@
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
+import { useId, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { SlidersHorizontalIcon, SearchIcon, XIcon } from 'lucide-react';
-
-import { UpcomingToggle } from '@/components/upcoming-toggle';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -34,7 +32,7 @@ import type { SupportCardEntry } from '@/modules/data/services/SupportCardServic
 import { SkillDetails } from '@/modules/skills/components/skill-details';
 import { SkillIcon } from '@/modules/skills/components/skill-list/skill-item/SkillIcon';
 import { cn } from '@/lib/utils';
-import { useUIStore } from '@/store/ui.store';
+import { Label } from '@/components/ui/label';
 
 const CARD_ROW_ESTIMATED_HEIGHT = 280;
 const CARD_ROW_GAP = 12;
@@ -575,12 +573,30 @@ function useGridColumns() {
   return columns;
 }
 
+function SupportCardsUpcomingToggle(props: { checked: boolean; onToggle: () => void }) {
+  const { checked, onToggle } = props;
+  const checkboxId = useId();
+
+  return (
+    <div className="flex h-9 items-center gap-2 rounded-md border px-3">
+      <Checkbox
+        id={checkboxId}
+        checked={checked}
+        onCheckedChange={() => onToggle()}
+      />
+      <Label htmlFor={checkboxId} className="text-sm font-normal">
+        Show upcoming
+      </Label>
+    </div>
+  );
+}
+
 export function SupportCardsPage() {
   const [searchText, setSearchText] = useState('');
   const [selectedSkillSourceIds, setSelectedSkillSourceIds] = useState<string[]>([]);
   const [cardTypeFilters, setCardTypeFilters] = useState<string[]>([]);
   const [cardRarityFilters, setCardRarityFilters] = useState<string[]>([]);
-  const showUpcoming = useUIStore((state) => state.showUpcoming);
+  const [showUpcoming, setShowUpcoming] = useState(false);
   const deferredSearchText = useDeferredValue(searchText);
   const columns = useGridColumns();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -686,7 +702,7 @@ export function SupportCardsPage() {
           </InputGroup>
 
           <div className="flex w-full flex-col gap-2 md:w-auto md:flex-row md:items-center">
-            <UpcomingToggle className="h-9 rounded-md border px-3" labelClassName="text-sm" />
+            <SupportCardsUpcomingToggle checked={showUpcoming} onToggle={() => setShowUpcoming((v) => !v)} />
 
             <div className="w-full md:w-auto">
               <SupportCardFiltersDialog

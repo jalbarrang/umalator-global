@@ -69,11 +69,9 @@ export function SimulationLayout() {
   const { hidden } = useLeftSidebar();
   const dismissed = useUIStore((state) => state.dismissals['compare-notice']);
   const { open, umaId, currentSkills, onSelect } = useSkillModalStore();
-  const showUpcoming = useUIStore((state) => state.showUpcoming);
-
   const options = useMemo(
-    () => (umaId ? getSelectableSkillsForUma(umaId, showUpcoming) : []),
-    [umaId, showUpcoming]
+    () => (umaId ? getSelectableSkillsForUma(umaId, true) : []),
+    [umaId]
   );
 
   const handleOpenChange = (value: boolean) => {

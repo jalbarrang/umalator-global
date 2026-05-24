@@ -3,6 +3,7 @@ import {
   useCallback,
   useDeferredValue,
   useEffect,
+  useId,
   useMemo,
   useReducer,
   useRef
@@ -13,7 +14,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { UpcomingToggle } from '@/components/upcoming-toggle';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -34,7 +35,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { UmaQuery, type UmaAptitudeFilters, type UmaAptitudeKey } from '@/modules/runners/query';
 import { encodingToAptitude } from '@/modules/runners/share/converters';
 import { getUmaDisplayInfo, getUmaImageUrl, useUmasForSearch } from '@/modules/runners/utils';
-import { useUIStore } from '@/store/ui.store';
+import { Label } from '@/components/ui/label';
 
 const ROW_HEIGHT = 108;
 const VIRTUAL_OVERSCAN = 3;
@@ -89,6 +90,7 @@ type UmaSelectorUiState = {
   selectedOutfitId: string;
   filtersOpen: boolean;
   search: string;
+  showUpcoming: boolean;
   aptitudeFilters: UmaAptitudeFilters;
   scrollElement: HTMLDivElement | null;
 };
@@ -99,6 +101,7 @@ type UmaSelectorAction =
   | { type: 'search:set'; value: string }
   | { type: 'filters:openChange'; open: boolean }
   | { type: 'filters:aptitude:set'; key: UmaAptitudeKey; value: number | null }
+  | { type: 'upcoming:toggle' }
   | { type: 'scroll:set'; element: HTMLDivElement | null };
 
 function createInitialUmaSelectorState(value: string): UmaSelectorUiState {
@@ -107,6 +110,7 @@ function createInitialUmaSelectorState(value: string): UmaSelectorUiState {
     selectedOutfitId: value,
     filtersOpen: false,
     search: '',
+    showUpcoming: false,
     aptitudeFilters: {},
     scrollElement: null
   };
@@ -142,6 +146,8 @@ function umaSelectorReducer(
         ...state,
         filtersOpen: action.open
       };
+    case 'upcoming:toggle':
+      return { ...state, showUpcoming: !state.showUpcoming };
     case 'filters:aptitude:set': {
       const next = { ...state.aptitudeFilters };
 
@@ -258,15 +264,32 @@ const AptitudeFilterGrid = (props: AptitudeFilterGridProps) => {
   );
 };
 
+function RunnerSelectorUpcomingToggle(props: { checked: boolean; onToggle: () => void }) {
+  const { checked, onToggle } = props;
+  const checkboxId = useId();
+
+  return (
+    <div className="flex items-center gap-2">
+      <Checkbox
+        id={checkboxId}
+        checked={checked}
+        onCheckedChange={() => onToggle()}
+      />
+      <Label htmlFor={checkboxId} className="text-xs font-normal">
+        Show upcoming
+      </Label>
+    </div>
+  );
+}
+
 export const UmaSelector = (props: UmaSelectorProps) => {
   const { value, randomMobId, select } = props;
   const [state, dispatch] = useReducer(umaSelectorReducer, value, createInitialUmaSelectorState);
-  const { open, selectedOutfitId, filtersOpen, search, aptitudeFilters, scrollElement } = state;
+  const { open, selectedOutfitId, filtersOpen, search, showUpcoming, aptitudeFilters, scrollElement } = state;
   const deferredSearch = useDeferredValue(search);
   const searchRef = useRef<HTMLInputElement>(null);
   const isMobile = useIsMobile();
   const columns = isMobile ? 3 : 4;
-  const showUpcoming = useUIStore((state) => state.showUpcoming);
   const umasForSearch = useUmasForSearch(true);
 
   const imageUrl = useMemo(() => getUmaImageUrl(value, randomMobId), [value, randomMobId]);
@@ -425,7 +448,10 @@ export const UmaSelector = (props: UmaSelectorProps) => {
             onOpenChange={(nextOpen) => dispatch({ type: 'filters:openChange', open: nextOpen })}
           >
             <div className="flex items-center justify-between gap-2">
-              <UpcomingToggle />
+              <RunnerSelectorUpcomingToggle
+                checked={showUpcoming}
+                onToggle={() => dispatch({ type: 'upcoming:toggle' })}
+              />
 
               <CollapsibleTrigger
                 render={

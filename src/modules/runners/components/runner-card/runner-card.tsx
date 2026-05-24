@@ -67,7 +67,6 @@ import {
   type SkillCostSummary
 } from '@/modules/skills/skill-cost-summary';
 import { cn } from '@/lib/utils';
-import { useUIStore } from '@/store/ui.store';
 import {
   copyRosterViewCode,
   copyScreenshot,
@@ -148,7 +147,6 @@ export const RunnerCard = (props: RunnerCardProps) => {
   } = props;
 
   const isMobile = useIsMobile();
-  const showUpcoming = useUIStore((state) => state.showUpcoming);
 
   const umaId = state.outfitId;
 
@@ -318,8 +316,8 @@ export const RunnerCard = (props: RunnerCardProps) => {
       return [];
     }
 
-    return getSelectableSkillsForUma(umaId, showUpcoming);
-  }, [umaId, onOpenSkillPicker, showUpcoming]);
+    return getSelectableSkillsForUma(umaId, true);
+  }, [umaId, onOpenSkillPicker]);
 
   const handleOpenSkillPicker = useCallback(() => {
     if (onOpenSkillPicker) {

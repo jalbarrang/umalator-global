@@ -15,8 +15,6 @@ export type IUIStore = {
   // UI counter state
   runOnceCounter: number;
 
-  // Global UI preferences
-  showUpcoming: boolean;
 
   // Dropdown/modal state (ephemeral)
   isPacemakerDropdownOpen: boolean;
@@ -32,7 +30,6 @@ export const useUIStore = create<IUIStore>()(
   persist(
     (_) => ({
       runOnceCounter: 0,
-      showUpcoming: false,
       isPacemakerDropdownOpen: false,
       showVirtualPacemakerOnGraph: false,
       showCreditsModal: false,
@@ -52,7 +49,6 @@ export const useUIStore = create<IUIStore>()(
       partialize: (state) => ({
         leftSide: state.leftSide,
         dismissals: state.dismissals,
-        showUpcoming: state.showUpcoming
       })
     }
   )
@@ -68,9 +64,8 @@ export const incrementRunOnceCounter = () => {
   }));
 };
 
-export const setShowUpcoming = (showUpcoming: boolean) => {
-  useUIStore.setState({ showUpcoming });
-};
+
+
 
 export const setIsPacemakerDropdownOpen = (isPacemakerDropdownOpen: boolean) => {
   useUIStore.setState({ isPacemakerDropdownOpen });

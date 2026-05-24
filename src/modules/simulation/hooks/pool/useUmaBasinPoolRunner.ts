@@ -21,6 +21,7 @@ import { PoolManager } from '@/workers/pool/pool-manager';
 import { coursesService } from '@/modules/data/services/CourseService';
 import { skillsService } from '@/modules/data/registry';
 
+
 const uniqueSkillIds = skillsService.getUniqueSkillIds();
 
 const createUmaBasinPoolWorker = (options: { name: string }) => new UmaBasinPoolWorker(options);

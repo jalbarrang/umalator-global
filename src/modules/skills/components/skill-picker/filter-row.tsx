@@ -1,5 +1,6 @@
+import { useId } from 'react';
 import { cn } from '@/lib/utils';
-import { UpcomingToggle } from '@/components/upcoming-toggle';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
@@ -8,7 +9,7 @@ import { ChevronDownIcon, FilterIcon } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { SkillIcon } from '../skill-list/skill-item/SkillIcon';
 import { groups_filters } from '../../filters';
-import { useSkillPickerActions, useSkillPickerState } from './store';
+import { useSkillPickerActions, useSkillPickerState, useSkillPickerStore } from './store';
 import { FilterState } from './types';
 
 type FilterButtonProps = {
@@ -247,9 +248,28 @@ export const SkillPickerFilterRow = () => {
         </FilterSection>
 
         <div className="flex items-center justify-end">
-          <UpcomingToggle />
+          <SkillPickerUpcomingToggle />
         </div>
       </div>
     </div>
   );
 };
+
+function SkillPickerUpcomingToggle() {
+  const checkboxId = useId();
+  const showUpcoming = useSkillPickerStore((state) => state.showUpcoming);
+  const { setShowUpcoming } = useSkillPickerActions();
+
+  return (
+    <div className="flex items-center gap-2">
+      <Checkbox
+        id={checkboxId}
+        checked={showUpcoming}
+        onCheckedChange={(checked) => setShowUpcoming(checked === true)}
+      />
+      <Label htmlFor={checkboxId} className="text-xs font-normal">
+        Show upcoming
+      </Label>
+    </div>
+  );
+}

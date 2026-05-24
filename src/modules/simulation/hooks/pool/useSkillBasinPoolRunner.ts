@@ -19,6 +19,7 @@ import {
   getNullSkillComparisonRow
 } from '@/components/bassin-chart/utils';
 import { skillsService } from '@/modules/data/registry';
+
 import { PoolManager } from '@/workers/pool/pool-manager';
 import { coursesService } from '@/modules/data/services/CourseService';
 

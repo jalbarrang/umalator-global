@@ -10,7 +10,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { getIconById } from '@/modules/data/icons';
 import { ExtractedUmaData } from '@/modules/runners/ocr/types';
 import { useUmasForSearch } from '@/modules/runners/utils';
-import { useUIStore } from '@/store/ui.store';
 import { useState } from 'react';
 
 interface OcrUmaSelectorProps {
@@ -21,8 +20,7 @@ interface OcrUmaSelectorProps {
 
 export function OcrUmaSelector(props: Readonly<OcrUmaSelectorProps>) {
   const { results, isProcessing, onUpdateResults } = props;
-  const showUpcoming = useUIStore((state) => state.showUpcoming);
-  const umasForSearch = useUmasForSearch(showUpcoming);
+  const umasForSearch = useUmasForSearch(true);
   const [umaSelectOpen, setUmaSelectOpen] = useState(false);
 
   const handleSelectUma = (outfitId: string) => {

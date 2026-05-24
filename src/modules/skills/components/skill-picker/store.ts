@@ -11,12 +11,14 @@ import type { SkillEntry } from '@/modules/data/services/SkillService';
 type ISkillPickerState = {
   filters: FilterState;
   groups: typeof groups_filters;
+  showUpcoming: boolean;
 };
 
 type ISkillPickerActions = {
   clearFilters: () => void;
   toggleIconType: (filter: string) => void;
   setExclusiveFilter: (group: string, filter: string) => void;
+  setShowUpcoming: (showUpcoming: boolean) => void;
 };
 
 type ISkillPickerStore = ISkillPickerState & {
@@ -47,6 +49,7 @@ export const createSkillPickerStore = () => {
     return {
       filters: createInitialFilterState(),
       groups: groups_filters,
+      showUpcoming: false,
       actions: {
         clearFilters: () => {
           set({ filters: createInitialFilterState() });
@@ -96,6 +99,10 @@ export const createSkillPickerStore = () => {
           });
 
           set({ filters: { ...filters, [group]: newGroupFilters } });
+        },
+
+        setShowUpcoming: (showUpcoming: boolean) => {
+          set({ showUpcoming });
         }
       }
     };
@@ -137,7 +144,8 @@ export const useFilteredSkills = (
   skills: Array<SkillEntry>,
   options: { showUpcoming?: boolean } = {}
 ) => {
-  const { showUpcoming = false } = options;
+  const storeShowUpcoming = useSkillPickerStore((state) => state.showUpcoming);
+  const showUpcoming = options.showUpcoming ?? storeShowUpcoming;
 
   const filters = useSkillPickerStore((state) => state.filters);
 

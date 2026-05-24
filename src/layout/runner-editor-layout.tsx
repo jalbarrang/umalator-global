@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
-import { useUIStore } from '@/store/ui.store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -32,11 +31,9 @@ export const RunnerEditorLayout = (props: RunnerEditorLayoutProps) => {
   } = props;
 
   const [skillPickerOpen, setSkillPickerOpen] = useState(false);
-  const showUpcoming = useUIStore((state) => state.showUpcoming);
-
   const selectableSkills = useMemo(
-    () => getSelectableSkillsForUma(runnerState.outfitId, showUpcoming),
-    [runnerState.outfitId, showUpcoming]
+    () => getSelectableSkillsForUma(runnerState.outfitId, true),
+    [runnerState.outfitId]
   );
 
   const handleSetSkills = (skills: Array<string>) => {
