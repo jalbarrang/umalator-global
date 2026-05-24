@@ -57,6 +57,8 @@ export type SkillEntry = {
   gene_version?: SkillGeneVersionEntry;
   unique_version?: SkillGeneVersionEntry;
   type?: string | Array<string>;
+  /** Earliest known release date (YYYY-MM-DD) from character/support card data. */
+  releaseDate?: string;
 };
 
 export type SkillsMap = Record<string, SkillEntry>;

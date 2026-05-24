@@ -1,3 +1,4 @@
+import { attachReleaseDates } from './loaders/attach-release-dates';
 import {
   attachSupportCardEventSources,
   attachSupportCardHintSources
@@ -15,6 +16,7 @@ const loadedUmas = loadUmas();
 const loadedSupportCards = loadSupportCards(loadedSkills.skills);
 attachSupportCardHintSources(loadedSkills.skills, loadedSupportCards);
 attachSupportCardEventSources(loadedSkills.skills, loadedSupportCards);
+attachReleaseDates(loadedSkills.skills);
 
 export const skillsService = new GameToraSkillService(loadedSkills.skills, {
   releasedSkillIds: loadedSkills.releasedSkillIds,

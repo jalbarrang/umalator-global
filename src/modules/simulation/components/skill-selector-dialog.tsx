@@ -104,7 +104,23 @@ export function SkillSelectorDialog() {
     return simulatable
       .map((id) => skillsService.getById(id))
       .filter((s): s is SkillEntry => s !== undefined)
-      .sort((a, b) => Number(a.id) - Number(b.id));
+      .sort((a, b) => {
+        const dateA = a.releaseDate ?? '';
+        const dateB = b.releaseDate ?? '';
+
+        // Skills with dates come before those without
+        if (dateA && !dateB) return -1;
+        if (!dateA && dateB) return 1;
+
+        // Both have dates: sort chronologically
+        if (dateA && dateB) {
+          const cmp = dateA.localeCompare(dateB);
+          if (cmp !== 0) return cmp;
+        }
+
+        // Fallback: ID order
+        return Number(a.id) - Number(b.id);
+      });
   }, []);
 
   const releasedIds = useMemo(
