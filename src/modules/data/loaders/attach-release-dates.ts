@@ -19,60 +19,112 @@ type SupportCard = {
   event_skills?: Array<number>;
 };
 
-function buildSkillReleaseDateMap(): Map<string, string> {
-  const skillDates = new Map<string, string>();
+const MS_PER_DAY = 86_400_000;
 
-  function trackEarliest(skillId: number, date: string) {
-    const id = String(skillId);
-    const existing = skillDates.get(id);
+/**
+ * Compute the JP→Global lag in days from character cards that have both dates.
+ * Returns the median offset, or a sensible fallback.
+ */
+function computeJpToGlobalLagDays(): number {
+  const diffs: Array<number> = [];
 
-    if (!existing || date < existing) {
-      skillDates.set(id, date);
+  for (const card of characterCardsJson as Array<CharacterCard>) {
+    if (card.release && card.release_en) {
+      const jp = new Date(card.release).getTime();
+      const en = new Date(card.release_en).getTime();
+      diffs.push(Math.round((en - jp) / MS_PER_DAY));
     }
   }
 
-  // Character cards — only use global (EN) release dates
-  for (const card of characterCardsJson as Array<CharacterCard>) {
-    const date = card.release_en;
-    if (!date) continue;
+  if (diffs.length === 0) return 1550; // ~4.2 years fallback
 
-    for (const id of card.skills_unique ?? []) trackEarliest(id, date);
-    for (const id of card.skills_awakening ?? []) trackEarliest(id, date);
-    for (const id of card.skills_innate ?? []) trackEarliest(id, date);
+  diffs.sort((a, b) => a - b);
+  return diffs[Math.floor(diffs.length / 2)];
+}
+
+function addDays(dateStr: string, days: number): string {
+  const d = new Date(dateStr);
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+type SkillDateSource = {
+  dateEn?: string;
+  dateJp?: string;
+};
+
+function buildSkillDateSources(): Map<string, SkillDateSource> {
+  const sources = new Map<string, SkillDateSource>();
+
+  function track(skillId: number, dateEn?: string, dateJp?: string) {
+    const id = String(skillId);
+    const existing = sources.get(id) ?? {};
+
+    if (dateEn && (!existing.dateEn || dateEn < existing.dateEn)) {
+      existing.dateEn = dateEn;
+    }
+
+    if (dateJp && (!existing.dateJp || dateJp < existing.dateJp)) {
+      existing.dateJp = dateJp;
+    }
+
+    sources.set(id, existing);
+  }
+
+  // Character cards
+  for (const card of characterCardsJson as Array<CharacterCard>) {
+    const dateEn = card.release_en;
+    const dateJp = card.release;
+
+    for (const id of card.skills_unique ?? []) track(id, dateEn, dateJp);
+    for (const id of card.skills_awakening ?? []) track(id, dateEn, dateJp);
+    for (const id of card.skills_innate ?? []) track(id, dateEn, dateJp);
 
     for (const evo of card.skills_evo ?? []) {
-      trackEarliest(evo.new, date);
-      trackEarliest(evo.old, date);
+      track(evo.new, dateEn, dateJp);
+      track(evo.old, dateEn, dateJp);
     }
 
-    for (const id of card.skills_event ?? []) trackEarliest(id, date);
+    for (const id of card.skills_event ?? []) track(id, dateEn, dateJp);
   }
 
-  // Support cards — only use global (EN) release dates
+  // Support cards
   for (const card of supportCardsJson as Array<SupportCard>) {
-    const date = card.release_en;
-    if (!date) continue;
+    const dateEn = card.release_en;
+    const dateJp = card.release;
 
-    for (const id of card.hints?.hint_skills ?? []) trackEarliest(id, date);
-    for (const id of card.event_skills ?? []) trackEarliest(id, date);
+    for (const id of card.hints?.hint_skills ?? []) track(id, dateEn, dateJp);
+    for (const id of card.event_skills ?? []) track(id, dateEn, dateJp);
   }
 
-  return skillDates;
+  return sources;
 }
 
 /**
- * Attach release dates to skill entries by cross-referencing character card
- * and support card release dates. Uses the earliest date a skill appeared
- * across all sources.
+ * Attach release dates to skill entries.
+ *
+ * - Released skills (in master.mdb): already have `releaseDate` from extraction.
+ *   If not, fall back to the earliest `release_en` from character/support cards.
+ * - Upcoming skills (GameTora only): use JP release date + JP→Global lag offset,
+ *   so they sort after all released skills while maintaining relative JP order.
  */
 export function attachReleaseDates(skills: SkillsMap): void {
-  const dateMap = buildSkillReleaseDateMap();
+  const dateSources = buildSkillDateSources();
+  const lagDays = computeJpToGlobalLagDays();
 
   for (const [skillId, entry] of Object.entries(skills)) {
-    const date = dateMap.get(skillId);
+    // Already has a date from master.mdb extraction
+    if (entry.releaseDate) continue;
 
-    if (date) {
-      entry.releaseDate = date;
+    const source = dateSources.get(skillId);
+    if (!source) continue;
+
+    if (source.dateEn) {
+      // Global date available from character/support card
+      entry.releaseDate = source.dateEn;
+    } else if (source.dateJp) {
+      // Upcoming: pad JP date forward by the JP→Global lag
+      entry.releaseDate = addDays(source.dateJp, lagDays);
     }
   }
 }
