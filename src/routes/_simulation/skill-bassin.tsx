@@ -18,6 +18,7 @@ import { skillBassinSteps } from '@/modules/tutorial/steps/skill-bassin-steps';
 import { coursesService } from '@/modules/data/services/CourseService';
 import { TutorialId } from '@/components/tutorial/types';
 import { SimulationProgressBanner } from '@/components/simulation-progress-banner';
+import { SkillSelectorDialog } from '@/modules/simulation/components/skill-selector-dialog';
 
 export default function SkillComparePage() {
   const { selectedSkills, setSelectedSkills } = useChartData();
@@ -96,6 +97,8 @@ export default function SkillComparePage() {
         tutorial={tutorialSettings}
         dataTutorial="skill-bassin-controls"
       />
+
+      <SkillSelectorDialog />
 
       <div data-tutorial="skill-bassin-table" className="min-w-0">
         <SimulationProgressBanner useStore={useSkillBasinStore} />

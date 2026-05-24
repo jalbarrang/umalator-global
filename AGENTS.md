@@ -1,5 +1,9 @@
 # Umalator Global
 
+## Dev Server
+
+- **Never** run `bun run dev`, `vite`, or any development server commands. The user manages the dev server themselves.
+
 ## Package Management
 
 - Prefer using `bun` for package management, avoid using `npm`/`yarn`/`pnpm`.

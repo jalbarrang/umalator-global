@@ -19,6 +19,7 @@ import {
   getNullSkillComparisonRow
 } from '@/components/bassin-chart/utils';
 import { skillsService } from '@/modules/data/registry';
+import { useSkillSelectionStore } from '@/modules/simulation/stores/skill-selection.store';
 
 import { PoolManager } from '@/workers/pool/pool-manager';
 import { coursesService } from '@/modules/data/services/CourseService';
@@ -56,13 +57,18 @@ export function useSkillBasinPoolRunner() {
     const params = racedefToParams(racedef, runner.strategy);
     const baseSkillsToTest = getBaseSkillsToTest();
 
+    const { selectedSkillIds } = useSkillSelectionStore.getState();
+
     const filterer = skillsService.createFilterer({ runner, course, raceParams: params });
     const candidateSkills = baseSkillsToTest.filter(
       (skillId) =>
         !runner.skills.includes(skillId) &&
         (!skillId.startsWith('9') || !runner.skills.includes('1' + skillId.slice(1)))
     );
-    const candidates = filterer.filterCandidates(candidateSkills);
+    const candidates = filterer.filterCandidates(candidateSkills, {
+      selectedSkillIds,
+      selectionMode: selectedSkillIds.size > 0 ? 'selected-only' : 'all-matching'
+    });
     const skills = filterer.probeActivation(candidates);
 
     const uma = runner;
