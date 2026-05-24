@@ -289,6 +289,11 @@ export function loadSkills(
       defaultBaseCost: geneVersion.cost ?? 0,
       defaultType: resolvedSkill.type
     });
+
+    // Inherit parent's name when the gene version has no name of its own
+    if (!mergedSkills[geneSkillId].name && mergedSkills[skillId]?.name) {
+      mergedSkills[geneSkillId].name = mergedSkills[skillId].name;
+    }
     activationChecks[geneSkillId] = resolveActivationCheck(geneVersion.activation);
 
     skillGeneLinks.push({ skillId, geneSkillId });
