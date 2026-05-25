@@ -217,6 +217,7 @@ export class Runner {
   public targetedChangeLaneSkillsActive!: Array<ActiveTargetedSkill>;
   public healsActivatedCount!: number;
   public usedSkills!: Set<string>;
+  public usedTargetedSkills!: Array<{ skillId: string; position: number; effectType: number; effectTarget: number }>;
   public pendingSkillRemoval!: Set<string>;
   /**
    * A map of phase to the number of skills that have been activated for that phase
@@ -611,6 +612,13 @@ export class Runner {
 
     for (const skillEffect of skillEffects) {
       const scaledDuration = skillEffect.baseDuration * (course.distance / 1000);
+
+      this.usedTargetedSkills.push({
+        skillId: skill.skillId,
+        position: this.position,
+        effectType: skillEffect.type,
+        effectTarget: skillEffect.target
+      });
 
       switch (skillEffect.type) {
         case SkillType.Noop:
@@ -1686,6 +1694,7 @@ export class Runner {
     this.pendingSkills = [];
     this.pendingTargetedSkills = [];
     this.usedSkills = new Set();
+    this.usedTargetedSkills = [];
     this.pendingSkillRemoval = new Set();
 
     // Populate Pending Skills

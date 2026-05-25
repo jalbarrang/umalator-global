@@ -1,6 +1,6 @@
 # Skill Search Extension
 
-Project-local pi extension for searching `src/modules/data/skills.json`.
+Project-local pi extension for searching `src/modules/data/json/skills.json`.
 
 ## What it adds
 
@@ -29,7 +29,7 @@ Project-local pi extension for searching `src/modules/data/skills.json`.
 
 ## Notes
 
-- The extension reads only local project data from `src/modules/data/skills.json`.
+- The extension reads only local project data from `src/modules/data/json/skills.json`.
 - Fuzzy matching is English-only; this project does not try to search JP names.
 - Family lookup uses local skill relationships inferred from `groupId` and `versions` links.
 - The `search_skills` tool is intended for agent use when answering user questions about local skills.

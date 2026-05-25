@@ -100,6 +100,10 @@ export interface SimulationRun {
    */
   skillActivations: [SkillActivationMap, SkillActivationMap];
   /**
+   * Targeted (debuff) skill activations for each uma — separated from self-skill activations.
+   */
+  targetedSkillActivations: [SkillActivationMap, SkillActivationMap];
+  /**
    * Start Delay (in seconds) for each uma
    */
   startDelay: Array<number>;
@@ -172,6 +176,7 @@ const defaultSimulationRun: SimulationRun = {
   currentLane: [[], []],
   pacerGap: [[], []],
   skillActivations: [{}, {}],
+  targetedSkillActivations: [{}, {}],
   startDelay: [0, 0],
   rushed: [[], []],
   duelingRegions: [[], []],

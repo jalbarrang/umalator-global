@@ -200,6 +200,7 @@ describe('SkillCompareDataCollector fallback path', () => {
         currentLane: [],
         pacerGap: [],
         skillActivations: {},
+        targetedSkillActivations: {},
         startDelay: 0,
         rushed: [],
         duelingRegion: [],
@@ -237,7 +238,7 @@ describe('SkillCompareDataCollector fallback path', () => {
 });
 
 describe('targeted skill observation', () => {
-  it('collects targeted effects with PERSPECTIVE_OTHER', () => {
+  it('collects targeted effects into targetedSkillActivations with PERSPECTIVE_OTHER', () => {
     const collector = new VacuumCompareDataCollector();
     const race = createRaceWithCollector(collector, {
       runner: {
@@ -254,12 +255,17 @@ describe('targeted skill observation', () => {
     expect(roundData).not.toBeNull();
     if (!roundData) return;
 
-    const logs = roundData.skillActivations['201082'] ?? [];
-    expect(logs.length).toBeGreaterThan(0);
-    expect(logs.some((log) => log.perspective === SkillPerspective.Other)).toBe(true);
+    // Targeted effects should be in targetedSkillActivations
+    const targetedLogs = roundData.targetedSkillActivations['201082'] ?? [];
+    expect(targetedLogs.length).toBeGreaterThan(0);
+    expect(targetedLogs.every((log) => log.perspective === SkillPerspective.Other)).toBe(true);
+
+    // skillActivations should NOT contain PERSPECTIVE_OTHER entries
+    const selfLogs = roundData.skillActivations['201082'] ?? [];
+    expect(selfLogs.every((log) => log.perspective === SkillPerspective.Self)).toBe(true);
   });
 
-  it('records targeted effect start and end positions', () => {
+  it('records targeted effect start and end positions with duration', () => {
     const collector = new VacuumCompareDataCollector();
     const race = createRaceWithCollector(collector, {
       runner: {
@@ -276,11 +282,40 @@ describe('targeted skill observation', () => {
     expect(roundData).not.toBeNull();
     if (!roundData) return;
 
-    const logs = roundData.skillActivations['201082'] ?? [];
+    const logs = roundData.targetedSkillActivations['201082'] ?? [];
     expect(logs.length).toBeGreaterThan(0);
     for (const log of logs) {
       expect(log.start).toBeGreaterThanOrEqual(120);
       expect(log.end).toBeGreaterThanOrEqual(log.start);
+    }
+
+    // Duration-based debuff (CurrentSpeed/TargetSpeed) should have end > start
+    const durationLog = logs.find((log) => log.end > log.start);
+    expect(durationLog).toBeDefined();
+  });
+
+  it('does not mix targeted effects into skillActivations', () => {
+    const collector = new VacuumCompareDataCollector();
+    const race = createRaceWithCollector(collector, {
+      runner: {
+        ...({
+          injectedDebuffs: [{ skillId: '201082', position: 120 }]
+        } as any)
+      }
+    });
+
+    race.prepareRound(9092);
+    race.run();
+
+    const roundData = collector.getPrimaryRunnerRoundData();
+    expect(roundData).not.toBeNull();
+    if (!roundData) return;
+
+    // No PERSPECTIVE_OTHER entries should exist in skillActivations
+    for (const logs of Object.values(roundData.skillActivations)) {
+      for (const log of logs) {
+        expect(log.perspective).not.toBe(SkillPerspective.Other);
+      }
     }
   });
 });

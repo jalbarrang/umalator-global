@@ -67,7 +67,7 @@ type SkillDataset = {
   familyMap: Map<string, Array<string>>;
 };
 
-const SKILLS_JSON_PATH = resolve(process.cwd(), 'src/modules/data/skills.json');
+const SKILLS_JSON_PATH = resolve(process.cwd(), 'src/modules/data/json/skills.json');
 
 let cachedPath: string | undefined;
 let cachedMtimeMs: number | undefined;
@@ -383,7 +383,7 @@ function buildDatasetFromPath(path: string): SkillDataset {
 }
 
 function loadDataset(cwd: string): SkillDataset {
-  const path = resolve(cwd, 'src/modules/data/skills.json');
+  const path = resolve(cwd, 'src/modules/data/json/skills.json');
   const mtimeMs = statSync(path).mtimeMs;
 
   if (cachedDataset && cachedPath === path && cachedMtimeMs === mtimeMs) {

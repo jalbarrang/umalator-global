@@ -58,6 +58,7 @@ export type CollectedRunnerRoundData = {
   currentLane: Array<number>;
   pacerGap: Array<number>;
   skillActivations: Record<string, Array<SkillEffectLog>>;
+  targetedSkillActivations: Record<string, Array<SkillEffectLog>>;
   startDelay: number;
   rushed: Array<[number, number]>;
   duelingRegion: [number, number] | [];
@@ -76,8 +77,10 @@ export type CollectedRunnerRoundData = {
 type RunnerCollectorState = {
   data: CollectedRunnerRoundData;
   openEffectsByKey: Map<string, Array<SkillEffectLog>>;
+  openTargetedEffectsByKey: Map<string, Array<SkillEffectLog>>;
   effectSequence: number;
   seenUsedSkills: Set<string>;
+  seenTargetedSkillCount: number;
 };
 
 export type VacuumCompareDataCollectorProps = {};
@@ -101,7 +104,9 @@ export class VacuumCompareDataCollector implements RaceLifecycleObserver {
     const state = this.ensureRunnerState(runner);
     this.captureFrame(race, runner, state.data);
     this.reconcileActiveEffects(race, runner, state);
+    this.reconcileTargetedActiveEffects(race, runner, state);
     this.captureUsedSkillActivations(runner, state, race.course.distance);
+    this.captureUsedTargetedSkillActivations(runner, state, race.course.distance);
   }
 
   public onRunnerFinished(race: Race, runner: Runner): void {
@@ -161,6 +166,7 @@ export class VacuumCompareDataCollector implements RaceLifecycleObserver {
         currentLane: [],
         pacerGap: [],
         skillActivations: {},
+        targetedSkillActivations: {},
         startDelay: runner.startDelay,
         rushed: [],
         duelingRegion: [],
@@ -176,8 +182,10 @@ export class VacuumCompareDataCollector implements RaceLifecycleObserver {
         finishPosition: 0
       },
       openEffectsByKey: new Map(),
+      openTargetedEffectsByKey: new Map(),
       effectSequence: 0,
-      seenUsedSkills: new Set()
+      seenUsedSkills: new Set(),
+      seenTargetedSkillCount: 0
     };
 
     this.runnerStates.set(runner.id, state);
@@ -215,22 +223,6 @@ export class VacuumCompareDataCollector implements RaceLifecycleObserver {
     for (const bucket of selfBuckets) {
       for (const effect of bucket) {
         all.push({ ...effect, perspective: PERSPECTIVE_SELF });
-      }
-    }
-
-    const targetedBuckets: Array<
-      Array<Pick<ActiveSkill, 'skillId' | 'effectType' | 'effectTarget' | 'modifier'>>
-    > = [
-      runner.targetedTargetSpeedActive,
-      runner.targetedCurrentSpeedActive,
-      runner.targetedAccelerationActive,
-      runner.targetedLaneMovementSkillsActive,
-      runner.targetedChangeLaneSkillsActive
-    ];
-
-    for (const bucket of targetedBuckets) {
-      for (const effect of bucket) {
-        all.push({ ...effect, perspective: PERSPECTIVE_OTHER });
       }
     }
 
@@ -339,6 +331,125 @@ export class VacuumCompareDataCollector implements RaceLifecycleObserver {
     }
   }
 
+  private collectTargetedActiveEffects(runner: Runner): Array<ActiveEffectLike> {
+    const all: Array<ActiveEffectLike> = [];
+    const targetedBuckets: Array<
+      Array<Pick<ActiveSkill, 'skillId' | 'effectType' | 'effectTarget' | 'modifier'>>
+    > = [
+      runner.targetedTargetSpeedActive,
+      runner.targetedCurrentSpeedActive,
+      runner.targetedAccelerationActive,
+      runner.targetedLaneMovementSkillsActive,
+      runner.targetedChangeLaneSkillsActive
+    ];
+
+    for (const bucket of targetedBuckets) {
+      for (const effect of bucket) {
+        all.push({ ...effect, perspective: PERSPECTIVE_OTHER });
+      }
+    }
+
+    return all;
+  }
+
+  private reconcileTargetedActiveEffects(
+    race: Race,
+    runner: Runner,
+    state: RunnerCollectorState
+  ): void {
+    const currentPosition = Math.min(runner.position, race.course.distance);
+    const effects = this.collectTargetedActiveEffects(runner);
+    const counts = new Map<
+      string,
+      {
+        count: number;
+        skillId: string;
+        effectType: ISkillType;
+        effectTarget: ISkillTarget;
+      }
+    >();
+
+    for (const effect of effects) {
+      const key = `${effect.skillId}:${effect.effectType}:${effect.effectTarget}:${effect.modifier.toFixed(6)}`;
+      const existing = counts.get(key);
+      if (existing) {
+        existing.count += 1;
+      } else {
+        counts.set(key, {
+          count: 1,
+          skillId: effect.skillId,
+          effectType: effect.effectType,
+          effectTarget: effect.effectTarget
+        });
+      }
+    }
+
+    for (const [key, current] of counts.entries()) {
+      const openLogs = state.openTargetedEffectsByKey.get(key) ?? [];
+      while (openLogs.length < current.count) {
+        const skillId = current.skillId;
+        const logs = state.data.targetedSkillActivations[skillId] ?? [];
+        const log: SkillEffectLog = {
+          executionId: `${this.currentSeed}-${runner.id}-${state.effectSequence++}`,
+          skillId,
+          start: currentPosition,
+          end: currentPosition,
+          perspective: PERSPECTIVE_OTHER,
+          effectType: current.effectType,
+          effectTarget: current.effectTarget
+        };
+        logs.push(log);
+        state.data.targetedSkillActivations[skillId] = logs;
+        openLogs.push(log);
+      }
+      state.openTargetedEffectsByKey.set(key, openLogs);
+    }
+
+    for (const [key, openLogs] of state.openTargetedEffectsByKey.entries()) {
+      const expectedCount = counts.get(key)?.count ?? 0;
+      while (openLogs.length > expectedCount) {
+        const log = openLogs.pop();
+        if (log) {
+          log.end = currentPosition;
+        }
+      }
+      if (openLogs.length === 0) {
+        state.openTargetedEffectsByKey.delete(key);
+      }
+    }
+  }
+
+  private captureUsedTargetedSkillActivations(
+    runner: Runner,
+    state: RunnerCollectorState,
+    courseDistance: number
+  ): void {
+    const targeted = runner.usedTargetedSkills;
+    for (let i = state.seenTargetedSkillCount; i < targeted.length; i++) {
+      const entry = targeted[i];
+
+      // Duration-based effect types are tracked by reconcileTargetedActiveEffects.
+      // Only log instant/static targeted effects here.
+      if (ACTIVE_EFFECT_TYPES.has(entry.effectType as ISkillType)) {
+        continue;
+      }
+
+      const position = Math.min(entry.position, courseDistance);
+      const logs = state.data.targetedSkillActivations[entry.skillId] ?? [];
+      logs.push({
+        executionId: `${this.currentSeed}-${runner.id}-${state.effectSequence++}`,
+        skillId: entry.skillId,
+        start: position,
+        end: position,
+        perspective: PERSPECTIVE_OTHER,
+        effectType: entry.effectType as ISkillType,
+        effectTarget: entry.effectTarget as ISkillTarget
+      });
+      state.data.targetedSkillActivations[entry.skillId] = logs;
+    }
+    state.seenTargetedSkillCount = targeted.length;
+  }
+
   private closeOpenEffects(state: RunnerCollectorState, position: number): void {
     for (const logs of state.openEffectsByKey.values()) {
       while (logs.length > 0) {
@@ -349,6 +460,16 @@ export class VacuumCompareDataCollector implements RaceLifecycleObserver {
       }
     }
     state.openEffectsByKey.clear();
+
+    for (const logs of state.openTargetedEffectsByKey.values()) {
+      while (logs.length > 0) {
+        const log = logs.pop();
+        if (log) {
+          log.end = position;
+        }
+      }
+    }
+    state.openTargetedEffectsByKey.clear();
   }
 
   private captureFinishSnapshot(
@@ -392,6 +513,7 @@ export class VacuumCompareDataCollector implements RaceLifecycleObserver {
       currentLane: [...data.currentLane],
       pacerGap: [...data.pacerGap],
       skillActivations: cloneSkillActivationMap(data.skillActivations),
+      targetedSkillActivations: cloneSkillActivationMap(data.targetedSkillActivations),
       startDelay: data.startDelay,
       rushed: cloneRegionArray(data.rushed),
       duelingRegion:

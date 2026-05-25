@@ -17,6 +17,7 @@ export type ImmediateLayout = {
   position: number;
   debuffId?: string;
   isDragging?: boolean;
+  isEstimate?: boolean;
 };
 
 export const ImmediateMarker = React.memo<ImmediateLayout & { onDragStart: DragStartHandler }>(
@@ -32,11 +33,13 @@ export const ImmediateMarker = React.memo<ImmediateLayout & { onDragStart: DragS
     position,
     debuffId,
     isDragging = false,
+    isEstimate = false,
     onDragStart
   }) => {
     const { tooltipRef, bgRef, show, hide } = useSkillTooltip();
     const wasDraggingRef = useRef(false);
-    const label = `${text} @ ${Math.round(position)}m`;
+    const prefix = isEstimate ? '~' : '';
+    const label = `${text} @ ${prefix}${Math.round(position)}m`;
 
     useEffect(() => {
       if (isDragging) {

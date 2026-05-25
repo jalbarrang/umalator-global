@@ -117,10 +117,11 @@ export const UmaSkillSection = React.memo<UmaSkillSectionProps>((props) => {
           !!dragPreview &&
           dragPreview.markerType === markerType &&
           dragPreview.umaIndex === umaIndex &&
-          ((markerType === 'debuff' && desc.debuffId === dragPreview.debuffId) ||
-            (dragSkillId === dragPreview.skillId &&
+          (markerType === 'debuff'
+            ? desc.debuffId === dragPreview.debuffId
+            : dragSkillId === dragPreview.skillId &&
               position === dragPreview.originalStart &&
-              position === dragPreview.originalEnd));
+              position === dragPreview.originalEnd);
 
         if (matchesPreview) {
           position = dragPreview.start;
@@ -146,7 +147,8 @@ export const UmaSkillSection = React.memo<UmaSkillSectionProps>((props) => {
           umaIndex,
           position,
           debuffId: desc.debuffId,
-          isDragging: matchesPreview
+          isDragging: matchesPreview,
+          isEstimate: desc.isEstimate
         });
         continue;
       }
@@ -168,10 +170,11 @@ export const UmaSkillSection = React.memo<UmaSkillSectionProps>((props) => {
             !!dragPreview &&
             dragPreview.markerType === markerType &&
             dragPreview.umaIndex === umaIndex &&
-            ((markerType === 'debuff' && desc.debuffId === dragPreview.debuffId) ||
-              (dragSkillId === dragPreview.skillId &&
+            (markerType === 'debuff'
+              ? desc.debuffId === dragPreview.debuffId
+              : dragSkillId === dragPreview.skillId &&
                 start === dragPreview.originalStart &&
-                end === dragPreview.originalEnd));
+                end === dragPreview.originalEnd);
 
           if (matchesPreview) {
             start = dragPreview.start;
@@ -198,7 +201,8 @@ export const UmaSkillSection = React.memo<UmaSkillSectionProps>((props) => {
             end,
             isDebuff,
             debuffId: desc.debuffId,
-            isDragging: matchesPreview
+            isDragging: matchesPreview,
+            isEstimate: desc.isEstimate
           });
         }
       }

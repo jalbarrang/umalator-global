@@ -45,6 +45,7 @@ function cloneCollectedRunnerRoundData(data: CollectedRunnerRoundData): Collecte
     currentLane: [...data.currentLane],
     pacerGap: [...data.pacerGap],
     skillActivations: cloneSkillActivationMap(data.skillActivations),
+    targetedSkillActivations: cloneSkillActivationMap(data.targetedSkillActivations),
     startDelay: data.startDelay,
     rushed: cloneRegionArray(data.rushed),
     duelingRegion:

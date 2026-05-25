@@ -15,6 +15,7 @@ export type CompactSkillMarkerProps = {
   start?: number;
   end?: number;
   isDragging?: boolean;
+  isEstimate?: boolean;
   onDragStart?: (e: React.PointerEvent) => void;
 };
 
@@ -31,6 +32,7 @@ export const CompactSkillMarker = memo<CompactSkillMarkerProps>(
     start,
     end,
     isDragging = false,
+    isEstimate = false,
     onDragStart
   }) => {
     const isDraggable = useMemo(() => !!skillId && !!onDragStart, [skillId, onDragStart]);
@@ -45,10 +47,11 @@ export const CompactSkillMarker = memo<CompactSkillMarkerProps>(
     const tooltipLabel = useMemo(() => {
       if (start == null) return text;
       const duration = end != null ? end - start : 0;
+      const prefix = isEstimate ? '~' : '';
       return duration > 0
-        ? `${text} @ ${Math.round(start)}m (${Math.round(duration)}m)`
+        ? `${text} @ ${Math.round(start)}m (${prefix}${Math.round(duration)}m)`
         : `${text} @ ${Math.round(start)}m`;
-    }, [text, start, end]);
+    }, [text, start, end, isEstimate]);
 
     useEffect(() => {
       if (isDragging) {

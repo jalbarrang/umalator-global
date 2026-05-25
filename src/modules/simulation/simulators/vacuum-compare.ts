@@ -147,6 +147,7 @@ export function runComparison(params: CompareParams): CompareResult {
       currentLane: [roundA.currentLane, roundB.currentLane],
       pacerGap: [roundA.pacerGap, roundB.pacerGap],
       skillActivations: [roundA.skillActivations, roundB.skillActivations],
+      targetedSkillActivations: [roundA.targetedSkillActivations, roundB.targetedSkillActivations],
       startDelay: [roundA.startDelay, roundB.startDelay],
       rushed: [roundA.rushed, roundB.rushed],
       duelingRegions: [roundA.duelingRegion, roundB.duelingRegion],
