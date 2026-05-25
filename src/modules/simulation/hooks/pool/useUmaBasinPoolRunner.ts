@@ -20,7 +20,7 @@ import { racedefToParams } from '@/utils/races';
 import { PoolManager } from '@/workers/pool/pool-manager';
 import { coursesService } from '@/modules/data/services/CourseService';
 import { skillsService } from '@/modules/data/registry';
-
+import { useUmaSkillSelectionStore } from '@/modules/simulation/stores/uma-skill-selection.store';
 
 const uniqueSkillIds = skillsService.getUniqueSkillIds();
 
@@ -62,7 +62,12 @@ export function useUmaBasinPoolRunner() {
     const params = racedefToParams(racedef, runner.strategy);
 
     const filterer = skillsService.createFilterer({ runner, course, raceParams: params });
-    const candidates = filterer.filterCandidates(uniqueSkillIds);
+    const { selectedSkillIds } = useUmaSkillSelectionStore.getState();
+
+    const candidates = filterer.filterCandidates(uniqueSkillIds, {
+      selectedSkillIds,
+      selectionMode: selectedSkillIds.size > 0 ? 'selected-only' : 'all-matching'
+    });
     const skills = filterer.probeActivation(candidates);
 
     const umaWithoutUniques = removeUniqueSkillsFromRunner(runner);

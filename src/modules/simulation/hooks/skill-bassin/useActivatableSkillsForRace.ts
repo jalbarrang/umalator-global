@@ -5,7 +5,10 @@ import { skillsService } from '@/modules/data/registry';
 import { useRunner } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
 import { racedefToParams } from '@/utils/races';
-import { getActivatableSkillsForRace } from '@/modules/simulation/utils/skill-bassin-skills';
+import {
+  type ActivatableSkillPool,
+  getActivatableSkillsForRace
+} from '@/modules/simulation/utils/skill-bassin-skills';
 
 export function useRaceSettingsKey() {
   const { courseId, racedef } = useSettingsStore(
@@ -22,7 +25,7 @@ export function useRaceSettingsKey() {
   );
 }
 
-export function useActivatableSkillsForRace() {
+export function useActivatableSkillsForRace(pool: ActivatableSkillPool = 'base') {
   const { runner } = useRunner();
   const { courseId, racedef } = useSettingsStore(
     useShallow((state) => ({
@@ -33,9 +36,9 @@ export function useActivatableSkillsForRace() {
 
   const raceSettingsKey = useRaceSettingsKey();
 
-  const skillBassinContextKey = useMemo(
-    () => `${raceSettingsKey}-${runner.strategy}-${runner.skills.join(',')}`,
-    [raceSettingsKey, runner.strategy, runner.skills]
+  const contextKey = useMemo(
+    () => `${pool}-${raceSettingsKey}-${runner.strategy}-${runner.skills.join(',')}`,
+    [pool, raceSettingsKey, runner.strategy, runner.skills]
   );
 
   const course = useMemo(() => coursesService.getSimCourse(courseId), [courseId]);
@@ -46,8 +49,8 @@ export function useActivatableSkillsForRace() {
   );
 
   const allSkills = useMemo(
-    () => getActivatableSkillsForRace(runner, course, raceParams),
-    [runner, course, raceParams]
+    () => getActivatableSkillsForRace(runner, course, raceParams, pool),
+    [runner, course, raceParams, pool]
   );
 
   const releasedIds = useMemo(
@@ -71,7 +74,7 @@ export function useActivatableSkillsForRace() {
   );
 
   return {
-    raceSettingsKey: skillBassinContextKey,
+    raceSettingsKey: contextKey,
     allSkills,
     releasedIds,
     releasedSkills,

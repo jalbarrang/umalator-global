@@ -19,6 +19,7 @@ import { useUmaSingleRunner } from '@/modules/simulation/hooks/uma-bassin/useUma
 import { umaBassinSteps } from '@/modules/tutorial/steps/uma-bassin-steps';
 import { TutorialId } from '@/components/tutorial/types';
 import { SimulationProgressBanner } from '@/components/simulation-progress-banner';
+import { UmaSkillSelectorDialog } from '@/modules/simulation/components/skill-selector-dialog';
 
 export default function UmaComparePage() {
   const { selectedSkills, setSelectedSkills } = useChartData();
@@ -103,6 +104,10 @@ export default function UmaComparePage() {
         tutorial={tutorialSettings}
         dataTutorial="uma-bassin-controls"
       />
+
+      <div>
+        <UmaSkillSelectorDialog />
+      </div>
 
       <div data-tutorial="uma-bassin-chart" className="flex flex-col gap-4 h-full min-w-0">
         <SimulationProgressBanner useStore={useUniqueSkillBasinStore} />
