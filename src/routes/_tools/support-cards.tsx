@@ -83,6 +83,8 @@ const supportSkillLabelById = new Map(
   supportSkillOptions.map((skill) => [skill.value, skill.label] as const)
 );
 
+const SUPPORT_CARD_FALLBACK_IMAGE = `${config.basePath}img/support-cards/support_thumb_00000.png`;
+
 export function getSupportCardImageUrl(cardId: number) {
   return `${config.basePath}img/support-cards/support_card_s_${cardId}.png`;
 }
@@ -510,6 +512,9 @@ function SupportCardItem(props: SupportCardItemProps) {
             alt=""
             className="aspect-square size-20 object-cover"
             loading="lazy"
+            onError={(e) => {
+              e.currentTarget.src = SUPPORT_CARD_FALLBACK_IMAGE;
+            }}
           />
         </div>
 
@@ -579,11 +584,7 @@ function SupportCardsUpcomingToggle(props: { checked: boolean; onToggle: () => v
 
   return (
     <div className="flex h-9 items-center gap-2 rounded-md border px-3">
-      <Checkbox
-        id={checkboxId}
-        checked={checked}
-        onCheckedChange={() => onToggle()}
-      />
+      <Checkbox id={checkboxId} checked={checked} onCheckedChange={() => onToggle()} />
       <Label htmlFor={checkboxId} className="text-sm font-normal">
         Show upcoming
       </Label>
@@ -681,7 +682,6 @@ export function SupportCardsPage() {
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-semibold leading-tight">Support Cards</h1>
-            <Badge variant="destructive">Development only</Badge>
           </div>
           <div className="text-sm text-muted-foreground">
             {filteredCards.length} of {supportCards.length} support cards
@@ -702,7 +702,10 @@ export function SupportCardsPage() {
           </InputGroup>
 
           <div className="flex w-full flex-col gap-2 md:w-auto md:flex-row md:items-center">
-            <SupportCardsUpcomingToggle checked={showUpcoming} onToggle={() => setShowUpcoming((v) => !v)} />
+            <SupportCardsUpcomingToggle
+              checked={showUpcoming}
+              onToggle={() => setShowUpcoming((v) => !v)}
+            />
 
             <div className="w-full md:w-auto">
               <SupportCardFiltersDialog
