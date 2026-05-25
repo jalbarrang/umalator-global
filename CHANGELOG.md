@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.9.0](https://github.com/jalbarrang/umalator-global/compare/v0.8.0...v0.9.0) (2026-05-25)
+
+
+### Features
+
+* GameTora data pipeline, simulatability layer, and upcoming content toggle ([#46](https://github.com/jalbarrang/umalator-global/issues/46)) ([ae15a72](https://github.com/jalbarrang/umalator-global/commit/ae15a729beb98f5c8a9c173e94c70e74f8f2ac4d))
+
 ## [0.8.0](https://github.com/jalbarrang/umalator-global/compare/v0.7.1...v0.8.0) (2026-05-18)
 
 
