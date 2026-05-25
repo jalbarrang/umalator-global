@@ -108,9 +108,7 @@ export function hasPositiveSkillEffects(skillId: string): boolean {
  */
 export function isSelfDebuffSkill(skill: SkillEntry): boolean {
   return skill.alternatives.some((alternative) =>
-    alternative.effects.some(
-      (effect) => effect.target === SkillTarget.Self && effect.modifier < 0
-    )
+    alternative.effects.some((effect) => effect.target === SkillTarget.Self && effect.modifier < 0)
   );
 }
 

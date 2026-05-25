@@ -8,13 +8,13 @@ Address the warnings below only when editing the related feature — avoid drive
 
 **Rules:** `no-giant-component` (~468 lines), `prefer-useReducer` (12 `useState`).
 
-| Extract (suggested) | State / UI owned |
-| --- | --- |
-| `RosterFiltersBar` | `search`, `strategyFilter`, `distanceFilter`, `surfaceFilter` |
-| `RosterSelectionToolbar` | `selected`, `isSelecting`, bulk delete flow |
-| `RosterDeleteDialog` | `deleteDialogOpen`, `runnerToDelete` |
-| `RosterLoadDialog` | `loadDialogOpen`, `runnerToLoad` |
-| `RosterImportDialogs` | `rosterImportOpen`, `ocrImportOpen` |
+| Extract (suggested)      | State / UI owned                                              |
+| ------------------------ | ------------------------------------------------------------- |
+| `RosterFiltersBar`       | `search`, `strategyFilter`, `distanceFilter`, `surfaceFilter` |
+| `RosterSelectionToolbar` | `selected`, `isSelecting`, bulk delete flow                   |
+| `RosterDeleteDialog`     | `deleteDialogOpen`, `runnerToDelete`                          |
+| `RosterLoadDialog`       | `loadDialogOpen`, `runnerToLoad`                              |
+| `RosterImportDialogs`    | `rosterImportOpen`, `ocrImportOpen`                           |
 
 Prefer colocating dialog state in extracted components over a page-level `useReducer` unless transitions stay tangled after extraction.
 
@@ -22,11 +22,11 @@ Prefer colocating dialog state in extracted components over a page-level `useRed
 
 **Rule:** `no-giant-component` (~425 lines).
 
-| Extract (suggested) | Notes |
-| --- | --- |
-| `RunnerCardHeader` | Uma selector, action menu, share/import triggers |
-| `RunnerCardSkillsSection` | Skill list; dialogs (`importDialogOpen`, `codeImportDialogOpen`) can move with this block |
-| Existing `StatsTable` / `AptitudesTable` | Already split — keep as boundaries |
+| Extract (suggested)                      | Notes                                                                                     |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `RunnerCardHeader`                       | Uma selector, action menu, share/import triggers                                          |
+| `RunnerCardSkillsSection`                | Skill list; dialogs (`importDialogOpen`, `codeImportDialogOpen`) can move with this block |
+| Existing `StatsTable` / `AptitudesTable` | Already split — keep as boundaries                                                        |
 
 ## `src/components/presets-panel.tsx` — `PresetsPanel`
 
@@ -34,11 +34,11 @@ Prefer colocating dialog state in extracted components over a page-level `useRed
 
 Mirrors roster home: filters (`filterSurface`, `filterDistance`, `filterRaceType`), selection (`selectionMode`, `checkedIds`), dialogs (`deleteDialogOpen`, `presetToDelete`, `bulkDeleteDialogOpen`, `resetDialogOpen`).
 
-| Extract (suggested) | State owned |
-| --- | --- |
-| `PresetFilters` | Filter trio |
-| `PresetList` / sortable list | List + DnD; selection when in selection mode |
-| `PresetDeleteDialog`, `PresetBulkDeleteDialog`, `PresetResetDialog` | Per-dialog open + payload |
+| Extract (suggested)                                                 | State owned                                  |
+| ------------------------------------------------------------------- | -------------------------------------------- |
+| `PresetFilters`                                                     | Filter trio                                  |
+| `PresetList` / sortable list                                        | List + DnD; selection when in selection mode |
+| `PresetDeleteDialog`, `PresetBulkDeleteDialog`, `PresetResetDialog` | Per-dialog open + payload                    |
 
 ## `src/components/save-preset-modal.tsx` — `SavePresetModal`
 

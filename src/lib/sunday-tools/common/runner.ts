@@ -217,7 +217,12 @@ export class Runner {
   public targetedChangeLaneSkillsActive!: Array<ActiveTargetedSkill>;
   public healsActivatedCount!: number;
   public usedSkills!: Set<string>;
-  public usedTargetedSkills!: Array<{ skillId: string; position: number; effectType: number; effectTarget: number }>;
+  public usedTargetedSkills!: Array<{
+    skillId: string;
+    position: number;
+    effectType: number;
+    effectTarget: number;
+  }>;
   public pendingSkillRemoval!: Set<string>;
   /**
    * A map of phase to the number of skills that have been activated for that phase

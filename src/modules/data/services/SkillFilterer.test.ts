@@ -51,13 +51,10 @@ describe('SkillFilterer', () => {
       const raceParams = racedefToParams(createRaceConditions());
 
       const filterer = skillsService.createFilterer({ runner, course, raceParams });
-      const result = filterer.filterCandidates(
-        [NON_SIMULATABLE_SKILL_ID, SIMULATABLE_SKILL_ID],
-        {
-          selectedSkillIds: new Set([SIMULATABLE_SKILL_ID]),
-          selectionMode: 'selected-only'
-        }
-      );
+      const result = filterer.filterCandidates([NON_SIMULATABLE_SKILL_ID, SIMULATABLE_SKILL_ID], {
+        selectedSkillIds: new Set([SIMULATABLE_SKILL_ID]),
+        selectionMode: 'selected-only'
+      });
 
       expect(result).toContain(SIMULATABLE_SKILL_ID);
       expect(result).not.toContain(NON_SIMULATABLE_SKILL_ID);

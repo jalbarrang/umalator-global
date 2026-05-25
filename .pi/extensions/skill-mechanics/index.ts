@@ -14,7 +14,7 @@ export default function skillMechanicsExtension(pi: ExtensionAPI) {
     name: 'inspect_skill',
     label: 'Inspect Skill',
     description:
-      'Inspect a skill\'s raw mechanical data: effects (type, modifier, target), baseDuration, conditions, and debuff classification. Use when you need to understand how a skill works at the engine level.',
+      "Inspect a skill's raw mechanical data: effects (type, modifier, target), baseDuration, conditions, and debuff classification. Use when you need to understand how a skill works at the engine level.",
     promptSnippet:
       'Inspect raw skill mechanics: effects, modifiers, baseDuration, debuff classification.',
     promptGuidelines: [
@@ -42,7 +42,7 @@ export default function skillMechanicsExtension(pi: ExtensionAPI) {
     name: 'estimate_skill_duration',
     label: 'Estimate Skill Duration',
     description:
-      'Estimate a skill\'s effect duration in meters for a given course distance. Uses baseDuration scaling formula and approximate race speed.',
+      "Estimate a skill's effect duration in meters for a given course distance. Uses baseDuration scaling formula and approximate race speed.",
     promptSnippet: 'Estimate skill effect duration in meters for a course distance.',
     promptGuidelines: [
       'Use estimate_skill_duration when you need to know how far a skill effect spans on the racetrack for a specific course distance.'
@@ -86,7 +86,7 @@ export default function skillMechanicsExtension(pi: ExtensionAPI) {
     name: 'classify_skill_effects',
     label: 'Classify Skill Effects',
     description:
-      'Classify a skill\'s effects: which are instant vs duration-based, which are self vs targeted (debuff), and whether it qualifies as an injectable external debuff.',
+      "Classify a skill's effects: which are instant vs duration-based, which are self vs targeted (debuff), and whether it qualifies as an injectable external debuff.",
     promptSnippet: 'Classify skill effects as instant/duration, self/targeted, debuff/buff.',
     promptGuidelines: [
       'Use classify_skill_effects when determining if a skill is a debuff, whether its effects are instant or have duration, or how effects are targeted.'

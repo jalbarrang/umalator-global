@@ -13,10 +13,7 @@
 
   // ── Additional entry points ───────────────────────────────────────────
   // Scripts run directly via `bun run` but not referenced from src/
-  "entry": [
-    "scripts/**/*.ts",
-    "oxlint-rules/**/*.js"
-  ],
+  "entry": ["scripts/**/*.ts", "oxlint-rules/**/*.js"],
 
   // ── Ignore patterns ───────────────────────────────────────────────────
   // Tooling, generated data, and non-source directories
@@ -29,12 +26,18 @@
     ".vscode/**",
     ".reports/**",
     "docs/**",
-    "public/**"
+    "public/**",
+    "src/components/ui/**"
   ],
 
   // ── Dependencies that are used at runtime but not statically visible ──
   "ignoreDependencies": [
-    "date-fns"
+    "date-fns",
+    "vaul",
+    "class-variance-authority",
+    "cmdk",
+    "react-day-picker",
+    "next-themes"
   ],
 
   // ── Rules ─────────────────────────────────────────────────────────────
@@ -58,11 +61,7 @@
     "mode": "mild",
     "minTokens": 60,
     "minLines": 6,
-    "ignore": [
-      "**/*.test.ts",
-      "**/*.test.tsx",
-      "src/modules/data/json/**"
-    ]
+    "ignore": ["**/*.test.ts", "**/*.test.tsx", "src/modules/data/json/**"]
   },
 
   // ── Health / complexity ───────────────────────────────────────────────
@@ -71,9 +70,6 @@
   "health": {
     "maxCyclomatic": 20,
     "maxCognitive": 15,
-    "ignore": [
-      "scripts/**",
-      "src/modules/data/json/**"
-    ]
+    "ignore": ["scripts/**", "src/modules/data/json/**"]
   }
 }

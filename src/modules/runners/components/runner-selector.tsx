@@ -270,11 +270,7 @@ function RunnerSelectorUpcomingToggle(props: { checked: boolean; onToggle: () =>
 
   return (
     <div className="flex items-center gap-2">
-      <Checkbox
-        id={checkboxId}
-        checked={checked}
-        onCheckedChange={() => onToggle()}
-      />
+      <Checkbox id={checkboxId} checked={checked} onCheckedChange={() => onToggle()} />
       <Label htmlFor={checkboxId} className="text-xs font-normal">
         Show upcoming
       </Label>
@@ -285,7 +281,15 @@ function RunnerSelectorUpcomingToggle(props: { checked: boolean; onToggle: () =>
 export const UmaSelector = (props: UmaSelectorProps) => {
   const { value, randomMobId, select } = props;
   const [state, dispatch] = useReducer(umaSelectorReducer, value, createInitialUmaSelectorState);
-  const { open, selectedOutfitId, filtersOpen, search, showUpcoming, aptitudeFilters, scrollElement } = state;
+  const {
+    open,
+    selectedOutfitId,
+    filtersOpen,
+    search,
+    showUpcoming,
+    aptitudeFilters,
+    scrollElement
+  } = state;
   const deferredSearch = useDeferredValue(search);
   const searchRef = useRef<HTMLInputElement>(null);
   const isMobile = useIsMobile();

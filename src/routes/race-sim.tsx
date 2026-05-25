@@ -25,10 +25,7 @@ import { SkillPickerModal } from '@/modules/skills/components/skill-picker/modal
 
 function RaceSimSkillPicker() {
   const { open, umaId, currentSkills, onSelect } = useSkillModalStore();
-  const options = useMemo(
-    () => (umaId ? getSelectableSkillsForUma(umaId, true) : []),
-    [umaId]
-  );
+  const options = useMemo(() => (umaId ? getSelectableSkillsForUma(umaId, true) : []), [umaId]);
 
   const handleOpenChange = useCallback((value: boolean) => {
     useSkillModalStore.setState({ open: value });

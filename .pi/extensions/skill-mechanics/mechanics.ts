@@ -252,10 +252,7 @@ export function estimateSkillDuration(
   };
 }
 
-export function classifySkillEffects(
-  cwd: string,
-  skillId: string
-): EffectClassification | null {
+export function classifySkillEffects(cwd: string, skillId: string): EffectClassification | null {
   const skills = loadSkills(cwd);
   const skill = skills.get(skillId);
   if (!skill) return null;
@@ -269,8 +266,12 @@ export function classifySkillEffects(
 
       const category = (
         duration
-          ? debuff ? 'duration-debuff' : 'duration-self'
-          : debuff ? 'instant-debuff' : 'instant-self'
+          ? debuff
+            ? 'duration-debuff'
+            : 'duration-self'
+          : debuff
+            ? 'instant-debuff'
+            : 'instant-self'
       ) as 'instant-self' | 'instant-debuff' | 'duration-self' | 'duration-debuff';
 
       return {

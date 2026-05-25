@@ -60,10 +60,9 @@ function createNewFormFields(): Pick<SavePresetFormState, 'mode' | 'name' | 'dat
   };
 }
 
-function fieldsFromPreset(preset: RacePreset): Pick<
-  SavePresetFormState,
-  'mode' | 'name' | 'date' | 'eventType'
-> {
+function fieldsFromPreset(
+  preset: RacePreset
+): Pick<SavePresetFormState, 'mode' | 'name' | 'date' | 'eventType'> {
   return {
     mode: 'edit',
     name: preset.name,
@@ -116,7 +115,11 @@ function savePresetFormReducer(
 }
 
 export const SavePresetModal = () => {
-  const [form, dispatch] = useReducer(savePresetFormReducer, undefined, createInitialSavePresetState);
+  const [form, dispatch] = useReducer(
+    savePresetFormReducer,
+    undefined,
+    createInitialSavePresetState
+  );
 
   const { courseId, racedef } = useSettingsStore();
   const { selectedPresetId } = useSettingsStore();

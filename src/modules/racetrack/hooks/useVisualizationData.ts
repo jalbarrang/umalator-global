@@ -93,9 +93,7 @@ const buildSelfSkillRegions = (
 
   const result: Array<RegionData> = [];
   for (const groupedEffects of grouped.values()) {
-    const durationEffect = groupedEffects.find(
-      (e) => e.end - e.start > INSTANT_DURATION_THRESHOLD
-    );
+    const durationEffect = groupedEffects.find((e) => e.end - e.start > INSTANT_DURATION_THRESHOLD);
     const repr = durationEffect ?? groupedEffects[0];
     const isRecovery = repr.effectType === SkillType.Recovery;
     const color = isRecovery ? recoveryColors[umaIndex] : colors[umaIndex];
@@ -156,9 +154,7 @@ const buildDebuffRegions = (
 
   const result: Array<RegionData> = [];
   for (const groupedEffects of grouped.values()) {
-    const durationEffect = groupedEffects.find(
-      (e) => e.end - e.start > INSTANT_DURATION_THRESHOLD
-    );
+    const durationEffect = groupedEffects.find((e) => e.end - e.start > INSTANT_DURATION_THRESHOLD);
     const repr = durationEffect ?? groupedEffects[0];
 
     result.push({
@@ -214,14 +210,10 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
 
     // Targeted (debuff) skill activations — sourced from dedicated channel
     if (chartData?.targetedSkillActivations) {
-      for (const [skillId, activations] of Object.entries(
-        chartData.targetedSkillActivations[0]
-      )) {
+      for (const [skillId, activations] of Object.entries(chartData.targetedSkillActivations[0])) {
         skills.push(...buildDebuffRegions(skillId, activations, 0, debuffs.uma1));
       }
-      for (const [skillId, activations] of Object.entries(
-        chartData.targetedSkillActivations[1]
-      )) {
+      for (const [skillId, activations] of Object.entries(chartData.targetedSkillActivations[1])) {
         skills.push(...buildDebuffRegions(skillId, activations, 1, debuffs.uma2));
       }
     }
@@ -268,9 +260,7 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
         // baseDuration is in raw units (÷10000 → seconds), scaled by courseDistance/1000.
         // Convert to estimated meters using approximate race speed (~20 m/s).
         const durationSeconds = (meta.baseDuration / 10000) * (course.distance / 1000);
-        const estimatedEnd = hasDuration
-          ? debuff.position + durationSeconds * 20
-          : debuff.position;
+        const estimatedEnd = hasDuration ? debuff.position + durationSeconds * 20 : debuff.position;
 
         results.push({
           type: hasDuration ? RegionDisplayType.Textbox : RegionDisplayType.Immediate,

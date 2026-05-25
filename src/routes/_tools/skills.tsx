@@ -22,7 +22,10 @@ import type { SkillEntry, SkillUmaSourceEntry } from '@/modules/data/services/Sk
 import { getUmaImageUrl } from '@/modules/runners/utils';
 import { SkillPickerFilterRow } from '@/modules/skills/components/skill-picker/filter-row';
 import { SkillPickerProvider } from '@/modules/skills/components/skill-picker/provider';
-import { useFilteredSkills, useSkillPickerStore } from '@/modules/skills/components/skill-picker/store';
+import {
+  useFilteredSkills,
+  useSkillPickerStore
+} from '@/modules/skills/components/skill-picker/store';
 import { SkillIcon } from '@/modules/skills/components/skill-list/skill-item/SkillIcon';
 import { SkillDetails } from '@/modules/skills/components/skill-details';
 import { formatEffect } from '@/modules/skills/components/formatters';

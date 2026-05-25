@@ -261,9 +261,7 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
       const skill = skillMetadataById.get(row.id);
       if (!skill) return true;
 
-      return activeIconTypeFilters.some((iconType) =>
-        skillMatchesIconTypeFilter(skill, iconType)
-      );
+      return activeIconTypeFilters.some((iconType) => skillMatchesIconTypeFilter(skill, iconType));
     });
   }, [activeIconTypeFilters, props.data, skillMetadataById]);
 

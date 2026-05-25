@@ -92,8 +92,14 @@ function getOutfitIdForUniqueSkill(skill: SkillEntry): string | undefined {
 }
 
 const SkillRow = memo((props: SkillRowProps) => {
-  const { skill, selected, showUpcomingBadge, released, showUmaOutfitImage = false, onToggle } =
-    props;
+  const {
+    skill,
+    selected,
+    showUpcomingBadge,
+    released,
+    showUmaOutfitImage = false,
+    onToggle
+  } = props;
 
   const outfitImageUrl = useMemo(() => {
     if (!showUmaOutfitImage) return undefined;

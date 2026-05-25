@@ -250,7 +250,10 @@ function createInitialPresetsPanelState(): PresetsPanelState {
   };
 }
 
-function presetsPanelReducer(state: PresetsPanelState, action: PresetsPanelAction): PresetsPanelState {
+function presetsPanelReducer(
+  state: PresetsPanelState,
+  action: PresetsPanelAction
+): PresetsPanelState {
   switch (action.type) {
     case 'delete:open':
       return { ...state, presetToDelete: action.presetId, deleteDialogOpen: true };

@@ -29,11 +29,11 @@ Each issue type has a different fix approach. See [FIX-STRATEGIES.md](./FIX-STRA
 
 **Quick reference — what's safe to auto-fix vs. what needs judgment:**
 
-| Safe to auto-fix | Needs judgment |
-| --- | --- |
-| Unused files (delete + typecheck) | Circular dependencies |
-| Unused exports (`codeql:fallow:fix`) | Code duplication / large clones |
-| Unused dependencies (`bun remove`) | React-doctor warnings |
+| Safe to auto-fix                       | Needs judgment                          |
+| -------------------------------------- | --------------------------------------- |
+| Unused files (delete + typecheck)      | Circular dependencies                   |
+| Unused exports (`codeql:fallow:fix`)   | Code duplication / large clones         |
+| Unused dependencies (`bun remove`)     | React-doctor warnings                   |
 | Unused types (remove export or delete) | Unused class members on service classes |
 
 ### 4. Verify
@@ -58,9 +58,9 @@ When the user says "just fix what you can" — work through mechanical fixes wit
 
 ## Commands
 
-| Command | Purpose |
-| --- | --- |
-| `bun run codeql:report` | Regenerate report to verify fixes |
-| `bun run codeql:fallow:fix` | Auto-fix safe fallow issues |
-| `bun run typecheck` | Verify no type errors after changes |
-| `bun run test` | Verify no test failures after changes |
+| Command                     | Purpose                               |
+| --------------------------- | ------------------------------------- |
+| `bun run codeql:report`     | Regenerate report to verify fixes     |
+| `bun run codeql:fallow:fix` | Auto-fix safe fallow issues           |
+| `bun run typecheck`         | Verify no type errors after changes   |
+| `bun run test`              | Verify no test failures after changes |

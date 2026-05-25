@@ -68,10 +68,7 @@ export function useActivatableSkillsForRace(pool: ActivatableSkillPool = 'base')
     [allSkills, releasedIds]
   );
 
-  const releasedActivatableIds = useMemo(
-    () => releasedSkills.map((s) => s.id),
-    [releasedSkills]
-  );
+  const releasedActivatableIds = useMemo(() => releasedSkills.map((s) => s.id), [releasedSkills]);
 
   return {
     raceSettingsKey: contextKey,

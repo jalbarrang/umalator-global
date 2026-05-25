@@ -1,8 +1,5 @@
 {
-  "lenses": [
-    ".code-review/lenses/code-quality.md",
-    ".code-review/lenses/maintainability.md"
-  ],
+  "lenses": [".code-review/lenses/code-quality.md", ".code-review/lenses/maintainability.md"],
   "base": "HEAD",
   "tools": {
     "typecheck": "bun run typecheck",

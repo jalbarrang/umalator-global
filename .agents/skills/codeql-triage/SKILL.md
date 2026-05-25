@@ -25,16 +25,16 @@ The report ends with a prioritized checklist (P0–P3). Read it and compare agai
 
 Create beads issues using these grouping rules:
 
-| Report finding | Decomposition | Title pattern |
-| --- | --- | --- |
-| Circular dependencies | 1 per cycle | `Break circular dep: <shortest-path>` |
-| Unused files | 1 per directory cluster | `Remove unused files in <dir>` |
-| Unused dependencies | 1 for all | `Remove unused dependencies` |
-| Large clones (>50 lines) | 1 per clone pair | `Deduplicate <fileA> ↔ <fileB>` |
-| React-doctor warnings | Group by component | `Fix react-doctor warnings in <Component>` |
-| Unused exports | Group by module | `Clean unused exports in <module>/` |
-| Unused class members | Group by class | `Prune unused members in <ClassName>` |
-| Unused types | Batch all | `Remove unused type exports` |
+| Report finding           | Decomposition           | Title pattern                              |
+| ------------------------ | ----------------------- | ------------------------------------------ |
+| Circular dependencies    | 1 per cycle             | `Break circular dep: <shortest-path>`      |
+| Unused files             | 1 per directory cluster | `Remove unused files in <dir>`             |
+| Unused dependencies      | 1 for all               | `Remove unused dependencies`               |
+| Large clones (>50 lines) | 1 per clone pair        | `Deduplicate <fileA> ↔ <fileB>`            |
+| React-doctor warnings    | Group by component      | `Fix react-doctor warnings in <Component>` |
+| Unused exports           | Group by module         | `Clean unused exports in <module>/`        |
+| Unused class members     | Group by class          | `Prune unused members in <ClassName>`      |
+| Unused types             | Batch all               | `Remove unused type exports`               |
 
 Skip creating issues for trivial items fixable in under 30 seconds — note those for inline resolution instead.
 
@@ -50,8 +50,8 @@ If a previous report exists in `.reports/`, compare the scoreboard totals. Flag 
 
 ## Commands
 
-| Command | Purpose |
-| --- | --- |
-| `bun run codeql:report` | Generate combined report |
-| `bun run codeql:fallow` | Run fallow standalone |
+| Command                       | Purpose                     |
+| ----------------------------- | --------------------------- |
+| `bun run codeql:report`       | Generate combined report    |
+| `bun run codeql:fallow`       | Run fallow standalone       |
 | `bun run codeql:react-doctor` | Run react-doctor standalone |

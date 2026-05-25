@@ -4,7 +4,7 @@
 
 **Needs judgment.** Do not auto-fix.
 
-1. Scout both ends of the cycle to understand *why* the dependency exists.
+1. Scout both ends of the cycle to understand _why_ the dependency exists.
 2. Identify the thinnest edge to break — usually a type import that can be extracted to a shared definitions file.
 3. Common patterns:
    - Extract shared types to a `types.ts` or `definitions.ts` in a parent directory
@@ -45,16 +45,16 @@
 
 **Needs judgment.** Work per-component.
 
-| Rule | Fix strategy |
-| --- | --- |
-| `no-giant-component` | Split into subcomponents. Keep state in the parent, push rendering down. |
-| `prefer-useReducer` | Extract related useState calls into a reducer when state transitions are coupled. |
-| `prefer-dynamic-import` | Wrap heavy library imports in `React.lazy()`. |
-| `no-cascading-set-state` | Derive state or combine into a reducer. |
-| `async-await-in-loop` | Collect promises and `Promise.all()`. |
-| `client-passive-event-listeners` | Add `{ passive: true }` if the handler doesn't call `preventDefault()`. |
-| `no-tiny-text` | Increase font size to at least 12px. |
-| `no-inline-exhaustive-style` | Extract to a CSS class or Tailwind utilities. |
+| Rule                             | Fix strategy                                                                      |
+| -------------------------------- | --------------------------------------------------------------------------------- |
+| `no-giant-component`             | Split into subcomponents. Keep state in the parent, push rendering down.          |
+| `prefer-useReducer`              | Extract related useState calls into a reducer when state transitions are coupled. |
+| `prefer-dynamic-import`          | Wrap heavy library imports in `React.lazy()`.                                     |
+| `no-cascading-set-state`         | Derive state or combine into a reducer.                                           |
+| `async-await-in-loop`            | Collect promises and `Promise.all()`.                                             |
+| `client-passive-event-listeners` | Add `{ passive: true }` if the handler doesn't call `preventDefault()`.           |
+| `no-tiny-text`                   | Increase font size to at least 12px.                                              |
+| `no-inline-exhaustive-style`     | Extract to a CSS class or Tailwind utilities.                                     |
 
 ## 🟡 P3 — Unused exports / class members / types
 

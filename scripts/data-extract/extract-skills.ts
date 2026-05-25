@@ -467,9 +467,7 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
       const alternatives = buildAlternatives(row);
       const name = namesById[row.id.toString()] ?? '';
       const releaseDate =
-        row.start_date > 0
-          ? new Date(row.start_date * 1000).toISOString().slice(0, 10)
-          : undefined;
+        row.start_date > 0 ? new Date(row.start_date * 1000).toISOString().slice(0, 10) : undefined;
 
       const baseEntry: Omit<SkillEntry, 'alternatives'> = {
         id: row.id.toString(),

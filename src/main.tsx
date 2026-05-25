@@ -1,4 +1,4 @@
-if (import.meta.env.DEV) {
+if (import.meta.env.VITE_ENABLE_GRAB) {
   import('react-grab');
 }
 

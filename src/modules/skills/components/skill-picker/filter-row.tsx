@@ -7,7 +7,11 @@ import { Separator } from '@/components/ui/separator';
 import i18n from '@/i18n';
 import { ChevronDownIcon, FilterIcon, XIcon } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
-import { getSkillIconFilterDisplayId, groups_filters, SELF_DEBUFF_ICON_FILTER_KEY } from '../../filters';
+import {
+  getSkillIconFilterDisplayId,
+  groups_filters,
+  SELF_DEBUFF_ICON_FILTER_KEY
+} from '../../filters';
 import { SkillIcon } from '../skill-list/skill-item/SkillIcon';
 import {
   hasActiveSkillPickerFilters,
@@ -249,9 +253,7 @@ export const SkillPickerFilterRow = (props: SkillPickerFilterRowProps) => {
           </div>
         ) : null}
 
-        {!isGroupHidden('distance') ||
-        !isGroupHidden('surface') ||
-        !isGroupHidden('location') ? (
+        {!isGroupHidden('distance') || !isGroupHidden('surface') || !isGroupHidden('location') ? (
           <div className="flex flex-col gap-2 md:flex-row">
             {!isGroupHidden('distance') ? (
               <FilterSection title="Distance">

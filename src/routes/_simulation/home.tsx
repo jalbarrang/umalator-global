@@ -8,11 +8,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { CompareLoadingOverlay } from '@/components/compare-loading-overlay';
 import { useSimulationRunner } from '@/modules/simulation/hooks/compare/useSimulationRunner';
-import { SimulationResultTabs } from '@/modules/simulation/tabs/simulation-result-tabs';
-import { ResultButtonGroups } from '@/modules/simulation/tabs/summary-tab';
 import { useSettingsStore } from '@/store/settings.store';
 import { RaceSettingsPanel } from '@/modules/skill-planner/components/RaceSettingsPanel';
-import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { parseSeed } from '@/utils/crypto';
@@ -33,6 +30,7 @@ import {
   ImportSnapshotDialog
 } from '@/modules/simulation/share';
 import { Camera, ChevronDown, Download, Share2, Upload } from 'lucide-react';
+import { OverviewTab } from '@/modules/simulation/tabs/overview-tab';
 
 export default function CompareHomePage() {
   const { chartData, results, isSimulationRunning, simulationProgress, seed } = useRaceStore();
@@ -194,12 +192,8 @@ export default function CompareHomePage() {
             <RaceTrack courseId={courseId} chartData={chartData} />
           </div>
 
-          {results.length > 0 && <ResultButtonGroups />}
-
-          <Separator />
-
           <div data-tutorial="results-tabs">
-            <SimulationResultTabs />
+            <OverviewTab />
           </div>
         </Activity>
 
