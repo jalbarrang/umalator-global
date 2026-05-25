@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.9.1](https://github.com/jalbarrang/umalator-global/compare/v0.9.0...v0.9.1) (2026-05-25)
+
+
+### Bug Fixes
+
+* debuff markers not showing properly on run ([6216276](https://github.com/jalbarrang/umalator-global/commit/6216276e8fed0d8fbef1967c749eee387ff65568))
+
 ## [0.9.0](https://github.com/jalbarrang/umalator-global/compare/v0.8.0...v0.9.0) (2026-05-25)
 
 
