@@ -2,7 +2,7 @@ import { useCallback, type ChangeEvent } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import i18n from '@/i18n';
-import { skillsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
 import {
   SkillItemAccessory,
   SkillItemBody,

@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { skillsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
 import type { SkillComparisonRoundResult } from '@/modules/simulation/types';
 import React from 'react';
 import { ActivationDetails } from './activation-details';

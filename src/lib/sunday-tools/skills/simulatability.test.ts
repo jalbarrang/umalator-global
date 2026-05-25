@@ -5,7 +5,7 @@ import {
   findUnknownConditionTokens,
   isConditionSimulatable
 } from './simulatability';
-import { skillsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
 
 describe('extractConditionTokens', () => {
   it('extracts identifier tokens from a condition string', () => {

@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import { PlusIcon, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { skillsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
 import { AptitudesTable } from '@/modules/runners/components/runner-card/aptitudes-table';
 import { StatsTable, type StatsKey } from '@/modules/runners/components/runner-card/stats-table';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';

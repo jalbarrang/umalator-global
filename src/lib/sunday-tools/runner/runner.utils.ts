@@ -5,7 +5,7 @@ import type { RaceParameters } from '../common/race';
 import type { CourseData } from '../course/definitions';
 import type { DefaultParser, SkillEvalRunner } from '../skills/parser/definitions';
 import type { SkillAlternative, SkillEffect, SkillTrigger } from '../skills/skill.types';
-import { skillsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
 
 export type BuildSkillDataParams = {
   runner: SkillEvalRunner;

@@ -7,7 +7,7 @@ import {
   PanelHeader,
   PanelTitle
 } from '@/components/ui/panel';
-import { skillsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
 import { DebuffGroup } from './DebuffGroup';
 import { isInjectableExternalDebuffSkill } from '@/lib/sunday-tools/skills/external-debuffs';
 import { SkillPickerModal } from '@/modules/skills/components/skill-picker/modal';

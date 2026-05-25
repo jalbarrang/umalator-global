@@ -3,7 +3,7 @@ import { toBlob } from 'html-to-image';
 import { encodeSingleUma } from './encoding';
 import { runnerStateToSingleExport } from './converters';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
-import { skillsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
 
 export function getSkillsForShareCard(skillIds: string[]) {
   return skillIds.map((id) => {

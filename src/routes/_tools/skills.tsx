@@ -15,7 +15,9 @@ import {
 } from '@/components/ui/popover';
 import i18n from '@/i18n';
 import { describeRecoveryEffect } from '@/lib/sunday-tools/skills/recovery-effect-utils';
-import { skillsService, supportCardsService, umasService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
+import { umasService } from '@/modules/data/services/UmaService';
+import { supportCardsService } from '@/modules/data/services/SupportCardService';
 import type { SkillEntry, SkillUmaSourceEntry } from '@/modules/data/services/SkillService';
 import { getUmaImageUrl } from '@/modules/runners/utils';
 import { SkillPickerFilterRow } from '@/modules/skills/components/skill-picker/filter-row';

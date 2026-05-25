@@ -7,6 +7,7 @@ import type {
   SkillsMap
 } from '@/modules/data/services/SkillService';
 import type { SkillAlternative } from '@/lib/sunday-tools/skills/skill.types';
+import { attachReleaseDates } from './attach-release-dates';
 
 type GameToraEffect = {
   type: number;
@@ -247,7 +248,7 @@ function compareParentReferences(a: SkillReferenceEntry, b: SkillReferenceEntry)
   return b.rarity - a.rarity || String(a.id).localeCompare(String(b.id));
 }
 
-export function loadSkills(
+function loadSkills(
   masterSkills: SkillsMap = masterSkillsJson as SkillsMap,
   gameToraSkills: Array<SkillSnapshot> = fetchedSkillsJson as Array<SkillSnapshot>
 ): LoadSkillsResult {
@@ -353,3 +354,6 @@ export function loadSkills(
     activationChecks
   };
 }
+
+export const loadedSkills = loadSkills();
+attachReleaseDates(loadedSkills.skills);

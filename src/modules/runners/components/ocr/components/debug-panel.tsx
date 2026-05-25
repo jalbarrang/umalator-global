@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { skillsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
 import { ExtractedUmaData } from '@/modules/runners/ocr/types';
 import { useState } from 'react';
 import { toast } from 'sonner';

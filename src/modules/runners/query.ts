@@ -1,4 +1,4 @@
-import { umasService } from '@/modules/data/registry';
+import { umasService } from '@/modules/data/services/UmaService';
 import type { UmaAptitudes } from '@/modules/data/services/UmaService';
 import { aptitudeToEncoding } from '@/modules/runners/share/converters';
 import type { UmaSearchEntry } from '@/modules/runners/utils';

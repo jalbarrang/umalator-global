@@ -46,7 +46,7 @@
  * - 4 = Gold (in Pattern 1)
  */
 
-import { skillsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
 import { SkillTarget } from '@/lib/sunday-tools/skills/definitions';
 import type { SkillEntry } from '@/modules/data/services/SkillService';
 

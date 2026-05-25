@@ -2,7 +2,7 @@
  * Search and lookup utilities for uma data
  */
 
-import { umasService } from '@/modules/data/registry';
+import { umasService } from '@/modules/data/services/UmaService';
 import type { UmaLookupEntry, UmaMatch } from './types';
 
 // =============================================================================

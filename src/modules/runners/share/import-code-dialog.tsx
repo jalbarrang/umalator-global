@@ -13,7 +13,7 @@ import { singleExportToRunnerState } from './converters';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import { getUmaDisplayInfo, getUmaImageUrl } from '@/modules/runners/utils';
 import { StatImage } from '@/modules/runners/components/StatInput';
-import { skillsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
 
 type ImportCodeDialogProps = {
   open: boolean;

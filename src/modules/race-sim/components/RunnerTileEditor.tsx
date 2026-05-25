@@ -10,7 +10,7 @@ import {
   DrawerHeader,
   DrawerTitle
 } from '@/components/ui/drawer';
-import { skillsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
 import { AptitudesTable } from '@/modules/runners/components/runner-card/aptitudes-table';
 import { StatsTable, type StatsKey } from '@/modules/runners/components/runner-card/stats-table';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';

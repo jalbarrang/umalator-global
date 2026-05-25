@@ -11,7 +11,7 @@ import {
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
 import { useGridKeyboardNavigation } from '@/hooks/use-grid-keyboard-navigation';
 import { cn } from '@/lib/utils';
-import { skillsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
 import type { SkillEntry } from '@/modules/data/services/SkillService';
 import { getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import {

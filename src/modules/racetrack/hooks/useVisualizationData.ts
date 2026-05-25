@@ -10,7 +10,7 @@ import { SkillType } from '@/lib/sunday-tools/skills/definitions';
 import { isExternalDebuffEffect } from '@/lib/sunday-tools/skills/external-debuffs';
 import { coursesService } from '@/modules/data/services/CourseService';
 import { useDebuffs } from '@/modules/simulation/stores/compare.store';
-import { skillsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
 
 export type RegionData = {
   type: IRegionDisplayType;

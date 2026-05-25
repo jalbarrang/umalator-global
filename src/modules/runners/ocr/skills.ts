@@ -2,7 +2,7 @@
  * Extract skills from OCR text
  */
 
-import { skillsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
 import type { SkillLookupEntry } from '@/modules/data/services/SkillService';
 import type { ExtractedSkill } from './types';
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { calculateDisplayCost, calculateSkillCost, getNetCost } from './cost-calculator';
 import type { CandidateSkill } from './types';
-import { skillsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
 import { runawaySkillId } from '@/modules/runners/components/runner-card/types';
 import { getWhiteVersion } from '@/modules/skills/skill-relationships';
 

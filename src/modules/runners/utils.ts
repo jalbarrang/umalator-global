@@ -1,7 +1,7 @@
 import { getIconUrl } from '@/assets/icons';
 import { useMemo } from 'react';
 import { getIconById } from '@/modules/data/icons';
-import { umasService } from '@/modules/data/registry';
+import { umasService } from '@/modules/data/services/UmaService';
 import type { UmaAptitudes } from '@/modules/data/services/UmaService';
 
 export type UmaSearchEntry = {

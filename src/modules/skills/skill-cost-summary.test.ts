@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { skillsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
 import { calculateSkillCost } from '@/modules/skill-planner/cost-calculator';
 import { getRepresentativePrerequisiteIds } from '@/modules/skill-planner/skill-family';
 import { buildDedupedSkillListNetTotal, buildSkillCostSummary } from './skill-cost-summary';

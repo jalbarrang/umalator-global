@@ -18,7 +18,7 @@ import {
   defaultSimulationOptions,
   getNullSkillComparisonRow
 } from '@/components/bassin-chart/utils';
-import { skillsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
 import { useSkillSelectionStore } from '@/modules/simulation/stores/skill-selection.store';
 
 import { PoolManager } from '@/workers/pool/pool-manager';

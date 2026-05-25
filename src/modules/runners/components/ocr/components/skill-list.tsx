@@ -2,7 +2,7 @@ import { ExtractedUmaData } from '@/modules/runners/ocr/types';
 import { getSelectableSkillsForUma, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import { useMemo, useState } from 'react';
 import { createManualOcrSkillEntry, getOcrSkillOptionMeta, OcrSkillPickerOption } from '../helpers';
-import { skillsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
 import { toast } from 'sonner';
 import { OcrSkillPickerPopover } from './skill-picker';
 import { Button } from '@/components/ui/button';

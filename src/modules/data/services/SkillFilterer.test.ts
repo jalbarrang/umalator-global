@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createRunnerState } from '@/modules/runners/components/runner-card/types';
 import { coursesService } from '@/modules/data/services/CourseService';
-import { skillsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
 import { createRaceConditions, racedefToParams } from '@/utils/races';
 import * as runnerUtils from '@/lib/sunday-tools/runner/runner.utils';
 

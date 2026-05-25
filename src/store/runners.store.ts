@@ -7,7 +7,7 @@ import { cloneDeep } from 'es-toolkit';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import { createRunnerState, runawaySkillId } from '@/modules/runners/components/runner-card/types';
 import { getGeneVersionSkillId, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
-import { skillsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
 
 type RunnerType = 'uma1' | 'uma2';
 

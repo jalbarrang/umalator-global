@@ -4,12 +4,12 @@ import {
   attachSupportCardEventSources,
   attachSupportCardHintSources
 } from '@/modules/data/loaders/attach-support-sources';
-import { loadSkills } from '@/modules/data/loaders/skill-loader';
+import { loadedSkills } from '@/modules/data/loaders/skill-loader';
 import { loadSupportCards } from '@/modules/data/loaders/support-card-loader';
 
 describe('support card skill sources consistency', () => {
   it('matches hint and event skills on cards to skill supportSources', () => {
-    const { skills } = loadSkills();
+    const { skills } = loadedSkills;
     const supportCards = loadSupportCards(skills);
 
     attachSupportCardHintSources(skills, supportCards);

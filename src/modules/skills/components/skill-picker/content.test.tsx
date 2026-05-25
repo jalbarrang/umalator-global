@@ -4,7 +4,7 @@ import '@testing-library/jest-dom/vitest';
 import { act, cleanup, createEvent, fireEvent, render, screen } from '@testing-library/react';
 import { createRef } from 'react';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
-import { skillsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
 import { SkillPickerContent } from './content';
 import { SkillPickerProvider } from './provider';
 

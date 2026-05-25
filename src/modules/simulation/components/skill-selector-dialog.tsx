@@ -24,7 +24,7 @@ import {
   useSkillPickerStore
 } from '@/modules/skills/components/skill-picker/store';
 import { SkillPickerVirtualGrid } from '@/modules/skills/components/skill-picker/virtual-grid';
-import { umasService } from '@/modules/data/registry';
+import { umasService } from '@/modules/data/services/UmaService';
 import { getUmaImageUrl } from '@/modules/runners/utils';
 import { SkillIcon } from '@/modules/skills/components/skill-list/skill-item/SkillIcon';
 import { getUmaForUniqueSkill } from '@/modules/skills/utils';

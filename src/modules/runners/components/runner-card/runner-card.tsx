@@ -41,7 +41,7 @@ import {
 } from '@/modules/skills/components/skill-list/skill-item/actions';
 import { SkillItem } from '@/modules/skills/components/skill-list/skill-item/item';
 import type { SkillMeta } from '@/modules/skills/components/skill-list/skill-item/context';
-import { skillsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
 
 import { getSelectableSkillsForUma, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import { OcrImportDialog } from '@/modules/runners/components/ocr-import-dialog';

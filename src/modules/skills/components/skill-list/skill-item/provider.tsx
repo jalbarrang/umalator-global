@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { skillsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
 import { normalizeSkillIdForCostSummary } from '@/modules/skills/skill-cost-summary';
 import { isUniqueSkill } from '@/store/runners.store';
 import {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { skillsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
 
 const findBestSkillMatch = skillsService.findBestSkillMatch;
 const normalizeSkillName = skillsService.normalizeSkillName;

@@ -1,8 +1,6 @@
 import type { UmaAltId } from '@/modules/runners/utils';
 import { SkillRarity } from '@/lib/sunday-tools/skills/definitions';
-import { skillsService } from '@/modules/data/registry';
-
-// Types
+import { skillsService } from '@/modules/data/services/SkillService';
 
 // Methods
 
@@ -88,7 +86,11 @@ export const getSelectableSkillsForUma = (umaId: UmaAltId, includeUpcoming = fal
 
     const character = skill.character;
 
-    if (character.length === 1 && character.includes(parseInt(umaId))) {
+    const onlyAvailableInOneUma = character.length === 1 && character.includes(parseInt(umaId));
+    const isUnique = skill.rarity === SkillRarity.Unique;
+
+    // Filter
+    if (onlyAvailableInOneUma && isUnique) {
       continue;
     }
 

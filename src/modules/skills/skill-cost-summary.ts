@@ -1,4 +1,4 @@
-import { skillsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
 import { calculateRawSkillCost } from '@/modules/skill-planner/cost-calculator';
 import {
   getRelatedSkillIds,

@@ -4,7 +4,7 @@ import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { DebuffsPanel } from './DebuffsPanel';
-import { skillsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
 import { useRaceStore } from '@/modules/simulation/stores/compare.store';
 import { runawaySkillId } from '@/modules/runners/components/runner-card/types';
 import { isInjectableExternalDebuffSkill } from '@/lib/sunday-tools/skills/external-debuffs';

@@ -9,7 +9,8 @@ import { CircleHelp } from 'lucide-react';
 import { useMemo } from 'react';
 import type { SkillEntry } from '@/modules/data/services/SkillService';
 import React from 'react';
-import { skillsService, umasService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
+import { umasService } from '@/modules/data/services/UmaService';
 
 /** `data-event` value on the skill details help control; must match delegated handler in BasinnChart. */
 export const BASSIN_DATA_EVENT_TOGGLE_SKILL_DETAILS = 'toggle-skill-details';

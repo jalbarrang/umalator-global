@@ -2,6 +2,8 @@
 // Types
 // =======
 
+import { loadedSupportCards } from '../loaders/support-card-loader';
+
 export type SupportCardSkillEntry = {
   id: number;
   name: string;
@@ -61,3 +63,5 @@ export class SupportCardService {
     return this.getAll().filter((card) => !card.released);
   };
 }
+
+export const supportCardsService = new SupportCardService(loadedSupportCards);

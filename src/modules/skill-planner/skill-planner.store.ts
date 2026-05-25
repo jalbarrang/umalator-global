@@ -19,7 +19,7 @@ import {
   isStackableSkill
 } from '@/modules/skills/skill-relationships';
 import { getSelectableSkillsForUma, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
-import { skillsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
 import { getRelatedSkillIds, isSkillCoveredByOwnedFamily } from './skill-family';
 import { resolveActiveSkills } from './optimizer';
 

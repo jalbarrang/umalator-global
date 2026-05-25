@@ -1,4 +1,4 @@
-import { skillsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
 import { ExtractedUmaData } from '../../ocr/types';
 import { SkillEntry } from '@/modules/data/services/SkillService';
 

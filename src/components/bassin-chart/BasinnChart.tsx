@@ -24,7 +24,7 @@ import type {
 } from '@tanstack/react-table';
 import type { SkillComparisonRoundResult } from '@/modules/simulation/types';
 
-import { skillsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
 import type { SkillEntry } from '@/modules/data/services/SkillService';
 import {
   getSkillIconFilterImageUrl,

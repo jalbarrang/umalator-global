@@ -1,5 +1,5 @@
 import type { IStrategyName } from '@/lib/sunday-tools/runner/definitions';
-import { skillsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
 import { findBestUmaMatch } from '@/modules/runners/data/search';
 import type { OcrEngine, OcrEngineResult } from '@/modules/runners/ocr/engine';
 import type { ExtractedSkill, ExtractedUmaData } from '@/modules/runners/ocr/types';

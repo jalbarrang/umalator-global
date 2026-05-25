@@ -75,3 +75,5 @@ export function loadUmas(
     releasedOutfits
   };
 }
+
+export const loadedUmas = loadUmas();

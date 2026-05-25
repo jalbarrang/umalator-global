@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { skillsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
 import {
   getRepresentativePrerequisiteIds,
   getUnsatisfiedRepresentativePrerequisiteIds,

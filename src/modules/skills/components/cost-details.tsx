@@ -20,7 +20,7 @@ import {
   getRepresentativePrerequisiteIds,
   isSkillCoveredByOwnedFamily
 } from '@/modules/skill-planner/skill-family';
-import { skillsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
 import { buildSkillCostSummary } from '@/modules/skills/skill-cost-summary';
 
 const HINT_LEVEL_OPTIONS: Array<{ value: HintLevel; label: string }> = [

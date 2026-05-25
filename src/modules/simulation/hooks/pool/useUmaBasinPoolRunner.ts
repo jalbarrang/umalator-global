@@ -19,7 +19,7 @@ import { useSettingsStore } from '@/store/settings.store';
 import { racedefToParams } from '@/utils/races';
 import { PoolManager } from '@/workers/pool/pool-manager';
 import { coursesService } from '@/modules/data/services/CourseService';
-import { skillsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
 import { useUmaSkillSelectionStore } from '@/modules/simulation/stores/uma-skill-selection.store';
 
 const uniqueSkillIds = skillsService.getUniqueSkillIds();

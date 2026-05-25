@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { skillsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
 import { getBaseSkillsToTest } from '@/modules/skills/utils';
 
 type SkillSelectionState = {

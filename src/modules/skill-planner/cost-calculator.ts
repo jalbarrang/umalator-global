@@ -1,5 +1,5 @@
 import type { CandidateSkill, CostBreakdown, HintLevel } from './types';
-import { skillsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
 import { getBaseTier, getUpgradeTier } from '@/modules/skills/skill-relationships';
 import { isSkillCoveredByOwnedFamily } from './skill-family';
 

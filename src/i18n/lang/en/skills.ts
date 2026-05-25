@@ -1,4 +1,4 @@
-import { skillsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
 
 const skillNames: Record<string, string> = {};
 for (const skill of skillsService.getAll()) {

@@ -6,6 +6,7 @@ import {
 } from '@/lib/sunday-tools/skills/simulatability';
 import type { SkillMatch } from '@/modules/runners/data/types';
 import { SkillFilterer, type SkillFiltererConfig } from './SkillFilterer';
+import { loadedSkills } from '@/modules/data/loaders/skill-loader';
 
 // =======
 // Types
@@ -72,8 +73,8 @@ export type SkillLookupEntry = {
 };
 
 export type SkillServiceOptions = {
-  releasedSkillIds?: Iterable<string>;
-  activationChecks?: Record<string, SkillActivationCheck>;
+  releasedSkillIds: Iterable<string>;
+  activationChecks: Record<string, SkillActivationCheck>;
 };
 
 export class SkillService {
@@ -85,7 +86,7 @@ export class SkillService {
   private skillLookupCandidates: Map<string, Array<SkillLookupEntry>> | null = null;
   private simulatabilityCache: Map<string, boolean> | null = null;
 
-  constructor(skillsData: SkillsMap, options: SkillServiceOptions = {}) {
+  constructor(skillsData: SkillsMap, options: SkillServiceOptions) {
     const { releasedSkillIds, activationChecks } = options;
 
     this.skillCollection = skillsData;
@@ -183,14 +184,16 @@ export class SkillService {
   // Query Methods
   // =====
 
-  getAll = (): Array<SkillEntry> => Object.values(this.skillCollection);
+  getAll(): Array<SkillEntry> {
+    return Object.values(this.skillCollection);
+  }
 
-  getById = (id: string): SkillEntry | undefined => {
+  getById(id: string): SkillEntry | undefined {
     const skill = this.skillCollection[id];
     return skill;
-  };
+  }
 
-  getMany = (ids: Array<string>): Array<SkillEntry> => {
+  getMany(ids: Array<string>): Array<SkillEntry> {
     const result: Array<SkillEntry> = [];
     for (let i = 0; i < ids.length; i++) {
       const skill = this.skillCollection[ids[i]];
@@ -201,9 +204,9 @@ export class SkillService {
     }
 
     return result;
-  };
+  }
 
-  getAlternativesById = (id: string): Array<SkillAlternative> => {
+  getAlternativesById(id: string): Array<SkillAlternative> {
     const skill = this.skillCollection[id];
 
     if (skill === undefined) {
@@ -211,9 +214,9 @@ export class SkillService {
     }
 
     return skill.alternatives;
-  };
+  }
 
-  getByIconType = (iconType: string): Array<SkillEntry> => {
+  getByIconType(iconType: string): Array<SkillEntry> {
     const result: Array<SkillEntry> = [];
     const skillsArray = this.getAll();
 
@@ -225,9 +228,9 @@ export class SkillService {
     }
 
     return result;
-  };
+  }
 
-  getByGroupId = (groupId: number): Array<SkillEntry> => {
+  getByGroupId(groupId: number): Array<SkillEntry> {
     const result: Array<SkillEntry> = [];
     const skillsArray = this.getAll();
 
@@ -239,9 +242,9 @@ export class SkillService {
     }
 
     return result;
-  };
+  }
 
-  getByRarity = (rarity: number): Array<SkillEntry> => {
+  getByRarity(rarity: number): Array<SkillEntry> {
     const result: Array<SkillEntry> = [];
     const skillsArray = this.getAll();
 
@@ -253,9 +256,9 @@ export class SkillService {
     }
 
     return result;
-  };
+  }
 
-  getByEffectType = (effectType: ISkillType): Array<SkillEntry> => {
+  getByEffectType(effectType: ISkillType): Array<SkillEntry> {
     const result: Array<SkillEntry> = [];
     const skillsArray = this.getAll();
 
@@ -272,13 +275,13 @@ export class SkillService {
     }
 
     return result;
-  };
+  }
 
   // ============
   // Helper Methods
   // ============
 
-  getUniqueSkillIds = (): Array<string> => {
+  getUniqueSkillIds(): Array<string> {
     const uniqueSkillRarities = [4, 5];
     const result: Array<string> = [];
     const skillsArray = this.getAll();
@@ -291,9 +294,9 @@ export class SkillService {
     }
 
     return result;
-  };
+  }
 
-  getNonUniqueSkillIds = (): Array<string> => {
+  getNonUniqueSkillIds(): Array<string> {
     const result: Array<string> = [];
     const skillsArray = this.getAll();
 
@@ -305,21 +308,21 @@ export class SkillService {
     }
 
     return result;
-  };
+  }
 
-  getNameById = (id: string): string => {
+  getNameById(id: string): string {
     return this.skillCollection[id].name;
-  };
+  }
 
-  normalizeSkillId = (skillId: string): string => {
+  normalizeSkillId(skillId: string): string {
     return skillId.split('-')[0] ?? skillId;
-  };
+  }
 
-  getNames = (): Array<string> => {
+  getNames(): Array<string> {
     return Object.values(this.skillCollection).map((skill) => skill.name);
-  };
+  }
 
-  findVersionOfSkill = (id: string, existingIds: Array<string>): string | undefined => {
+  findVersionOfSkill(id: string, existingIds: Array<string>): string | undefined {
     const skill = this.skillCollection[id];
 
     if (skill === undefined) {
@@ -329,7 +332,7 @@ export class SkillService {
     return skill.versions
       .map(String)
       .find((versionId) => versionId !== id && existingIds.includes(versionId));
-  };
+  }
 
   // ============
   // OCR Matching
@@ -339,7 +342,7 @@ export class SkillService {
    * Normalizes skill names for OCR matching while preserving skill-grade symbols.
    * Implements the same symbol handling used in uma-tools OCR matching.
    */
-  normalizeSkillName = (value: string): string => {
+  normalizeSkillName(value: string): string {
     if (!value) {
       return '';
     }
@@ -362,9 +365,9 @@ export class SkillService {
       .toLowerCase()
       .replace(/[[\]\s\-_・!！?？,、.。:：;；'"""''「」『』【】()（）☆★]/gu, '')
       .trim();
-  };
+  }
 
-  private levenshteinDistance = (a: string, b: string): number => {
+  private levenshteinDistance(a: string, b: string): number {
     const matrix: Array<Array<number>> = [];
 
     for (let i = 0; i <= b.length; i++) {
@@ -390,9 +393,9 @@ export class SkillService {
     }
 
     return matrix[b.length][a.length];
-  };
+  }
 
-  private similarity = (a: string, b: string): number => {
+  private similarity(a: string, b: string): number {
     if (a === b) {
       return 1;
     }
@@ -405,9 +408,9 @@ export class SkillService {
     const maxLength = Math.max(a.length, b.length);
 
     return 1 - distance / maxLength;
-  };
+  }
 
-  private skillIdPrefixRank = (skillId: string): number => {
+  private skillIdPrefixRank(skillId: string): number {
     const normalizedId = this.normalizeSkillId(skillId);
     const prefix = normalizedId.charAt(0);
 
@@ -421,9 +424,9 @@ export class SkillService {
       default:
         return 3;
     }
-  };
+  }
 
-  private sortSkillLookupEntries = (entries: Array<SkillLookupEntry>): Array<SkillLookupEntry> => {
+  private sortSkillLookupEntries(entries: Array<SkillLookupEntry>): Array<SkillLookupEntry> {
     return [...entries].sort((a, b) => {
       const releaseRank = Number(b.released) - Number(a.released);
       if (releaseRank !== 0) {
@@ -442,21 +445,19 @@ export class SkillService {
 
       return a.id.localeCompare(b.id);
     });
-  };
+  }
 
-  private selectCanonicalSkillLookupEntry = (
-    entries: Array<SkillLookupEntry>
-  ): SkillLookupEntry => {
+  private selectCanonicalSkillLookupEntry(entries: Array<SkillLookupEntry>): SkillLookupEntry {
     return this.sortSkillLookupEntries(entries)[0];
-  };
+  }
 
-  private hasSkillLevelIndicator = (value: string): boolean =>
-    /\b(?:lvl|level)\s*\d+\b/iu.test(value);
-
-  private selectMatchedSkillLookupEntry = (
+  private hasSkillLevelIndicator(value: string): boolean {
+    return /\b(?:lvl|level)\s*\d+\b/iu.test(value);
+  }
+  private selectMatchedSkillLookupEntry(
     entries: Array<SkillLookupEntry>,
     originalText: string
-  ): SkillLookupEntry => {
+  ): SkillLookupEntry {
     const hasLevel = this.hasSkillLevelIndicator(originalText);
     const sortedEntries = this.sortSkillLookupEntries(entries);
 
@@ -471,9 +472,9 @@ export class SkillService {
       sortedEntries.find((entry) => this.normalizeSkillId(entry.id).startsWith('9')) ??
       sortedEntries[0]
     );
-  };
+  }
 
-  private buildSkillLookup = () => {
+  private buildSkillLookup(): void {
     if (this.skillLookup && this.skillLookupCandidates) {
       return;
     }
@@ -510,20 +511,20 @@ export class SkillService {
     for (const [key, entries] of this.skillLookupCandidates) {
       this.skillLookup.set(key, this.selectCanonicalSkillLookupEntry(entries));
     }
-  };
+  }
 
-  getSkillLookup = (): Map<string, SkillLookupEntry> => {
+  getSkillLookup(): Map<string, SkillLookupEntry> {
     this.buildSkillLookup();
     return this.skillLookup!;
-  };
+  }
 
-  getSkillLookupCandidates = (): Map<string, Array<SkillLookupEntry>> => {
+  getSkillLookupCandidates(): Map<string, Array<SkillLookupEntry>> {
     this.buildSkillLookup();
     return this.skillLookupCandidates!;
-  };
+  }
 
   /** Find best skill match for OCR text */
-  findBestSkillMatch = (ocrText: string): SkillMatch | null => {
+  findBestSkillMatch(ocrText: string): SkillMatch | null {
     const lookupCandidates = this.getSkillLookupCandidates();
     const normalizedOcr = this.normalizeSkillName(ocrText);
 
@@ -574,9 +575,9 @@ export class SkillService {
     }
 
     return bestMatch;
-  };
+  }
 
-  resolveSkillId = (skillId: string, hasLevel: boolean): string => {
+  resolveSkillId(skillId: string, hasLevel: boolean): string {
     if (hasLevel) {
       return skillId;
     }
@@ -587,5 +588,10 @@ export class SkillService {
     }
 
     return `${skill.gene_version.id}`;
-  };
+  }
 }
+
+export const skillsService = new SkillService(loadedSkills.skills, {
+  releasedSkillIds: loadedSkills.releasedSkillIds,
+  activationChecks: loadedSkills.activationChecks
+});

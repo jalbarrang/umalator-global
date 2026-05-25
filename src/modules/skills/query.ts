@@ -1,4 +1,4 @@
-import { skillsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
 import type { SkillEntry } from '@/modules/data/services/SkillService';
 import { skillFilterLookUp } from '@/modules/skills/skill-filter-lookup';
 

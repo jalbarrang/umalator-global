@@ -27,7 +27,8 @@ import {
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { config } from '@/config';
-import { skillsService, supportCardsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
+import { supportCardsService } from '@/modules/data/services/SupportCardService';
 import type { SupportCardEntry } from '@/modules/data/services/SupportCardService';
 import { SkillDetails } from '@/modules/skills/components/skill-details';
 import { SkillIcon } from '@/modules/skills/components/skill-list/skill-item/SkillIcon';

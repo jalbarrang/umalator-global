@@ -2,6 +2,8 @@
 // Types
 // =======
 
+import { loadedUmas } from '../loaders/uma-loader';
+
 export type UmaAptitudes = {
   turf: string;
   dirt: string;
@@ -100,3 +102,7 @@ export class UmaService {
     return null;
   }
 }
+
+export const umasService = new UmaService(loadedUmas.umas, {
+  releasedOutfits: loadedUmas.releasedOutfits
+});

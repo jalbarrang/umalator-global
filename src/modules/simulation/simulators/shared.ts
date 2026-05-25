@@ -13,7 +13,7 @@ import { Race } from '@/lib/sunday-tools/common/race';
 import { subscribeObserver } from '@/lib/sunday-tools/common/race-events';
 import { parseAptitudeName, parseStrategyName } from '@/lib/sunday-tools/runner/runner.types';
 import { SkillTarget, SkillType } from '@/lib/sunday-tools/skills/definitions';
-import { skillsService } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/services/SkillService';
 
 export type EffectMeta = {
   effectType: ISkillType;
