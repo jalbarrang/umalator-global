@@ -31,6 +31,7 @@ import {
 } from '@/modules/simulation/share';
 import { Camera, ChevronDown, Download, Share2, Upload } from 'lucide-react';
 import { OverviewTab } from '@/modules/simulation/tabs/overview-tab';
+import { SkillsTab } from '@/modules/simulation/tabs/skills-tab';
 
 export default function CompareHomePage() {
   const { chartData, results, isSimulationRunning, simulationProgress, seed } = useRaceStore();
@@ -192,8 +193,10 @@ export default function CompareHomePage() {
             <RaceTrack courseId={courseId} chartData={chartData} />
           </div>
 
-          <div data-tutorial="results-tabs">
+          <div data-tutorial="results-tabs" className="space-y-4">
             <OverviewTab />
+
+            <SkillsTab />
           </div>
         </Activity>
 

@@ -79,7 +79,7 @@ export const OverviewTab = () => {
   const resolveColor = (value: number): string => {
     if (value < 0) return 'text-[#2a77c5]';
     if (value > 0) return 'text-[#c52a2a]';
-    return 'text-emerald-500';
+    return 'text-muted-foreground';
   };
 
   const stats = [
@@ -216,10 +216,12 @@ export const OverviewTab = () => {
                     <h4 className="text-xs font-bold text-muted-foreground tracking-wider uppercase">
                       Race Mechanics
                     </h4>
+
                     <div className="flex justify-between">
                       <span className="text-muted-foreground flex items-center gap-1.5">
                         <span className="text-base leading-none">〜</span> Rushed
                       </span>
+
                       <span className="font-mono font-medium">
                         {rushed && rushed.frequency > 0
                           ? `${rushed.frequency.toFixed(1)}% (${rushed.mean.toFixed(0)}m)`

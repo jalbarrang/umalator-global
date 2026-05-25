@@ -150,75 +150,48 @@ export const SkillsTab = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Uma 1 Skills */}
         <RunnerSkillsTable
-          title="Umamusume 1 Skills"
           skills={skillPositionsUma1}
           hasSkills={hasUma1Skills}
           runnerColor="#2a77c5"
+          totalDistance={totalSkillDistanceUma1}
         />
 
         {/* Uma 2 Skills */}
         <RunnerSkillsTable
-          title="Umamusume 2 Skills"
           skills={skillPositionsUma2}
           hasSkills={hasUma2Skills}
           runnerColor="#c52a2a"
+          totalDistance={totalSkillDistanceUma2}
         />
-      </div>
-
-      {/* Skills Summary */}
-      <div className="bg-background border-2 rounded-lg p-4">
-        <h4 className="text-sm font-semibold text-foreground mb-3">Skills Summary</h4>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-          <div className="flex flex-col items-center p-3  rounded-lg border">
-            <span className="text-[#2a77c5] font-bold text-2xl">{skillPositionsUma1.length}</span>
-            <span className="text-foreground text-xs">Uma 1 Activations</span>
-          </div>
-          <div className="flex flex-col items-center p-3  rounded-lg border">
-            <span className="text-[#c52a2a] font-bold text-2xl">{skillPositionsUma2.length}</span>
-            <span className="text-foreground text-xs">Uma 2 Activations</span>
-          </div>
-          <div className="flex flex-col items-center p-3  rounded-lg border">
-            <span className="text-[#2a77c5] font-bold text-lg font-mono">
-              {totalSkillDistanceUma1.toFixed(1)}m
-            </span>
-            <span className="text-foreground text-xs">Uma 1 Total Skill Distance</span>
-          </div>
-          <div className="flex flex-col items-center p-3  rounded-lg border">
-            <span className="text-[#c52a2a] font-bold text-lg font-mono">
-              {totalSkillDistanceUma2.toFixed(1)}m
-            </span>
-            <span className="text-foreground text-xs">Uma 2 Total Skill Distance</span>
-          </div>
-        </div>
       </div>
     </div>
   );
 };
 
 type RunnerSkillsTableProps = {
-  title: string;
   skills: Array<SkillPosition>;
   hasSkills: boolean;
   runnerColor: string;
+  totalDistance: number;
 };
 
 const RunnerSkillsTable = (props: RunnerSkillsTableProps) => {
-  const { title, skills, hasSkills, runnerColor } = props;
+  const { skills, hasSkills, runnerColor, totalDistance } = props;
 
   return (
-    <div className="border rounded-lg overflow-hidden">
-      <div className={`bg-[${runnerColor}] text-white text-center py-2 font-bold`}>
-        {title}
-        {hasSkills && (
-          <span className="ml-2 text-sm font-normal opacity-80">({skills.length} activations)</span>
-        )}
+    <div className="border rounded-lg overflow-hidden bg-card">
+      <div className={`bg-[${runnerColor}] text-white p-2 py-2 font-bold`}>Skills</div>
+
+      <div className="flex justify-between p-2 border-b border-border">
+        <span className="text-muted-foreground text-sm">Total Skill Distance</span>
+        <span className="font-mono font-medium text-sm">{totalDistance.toFixed(1)}m</span>
       </div>
+
       {hasSkills ? (
         <div className="grid grid-cols-1">
           <div className="grid grid-cols-2 border-b last:border-b-0 p-2">
-            <div>Skill</div>
-            <div className="text-right">Trigger At</div>
+            <div className="text-sm">Skill</div>
+            <div className="text-right text-sm">Trigger At</div>
           </div>
 
           <div className="grid grid-cols-1">
