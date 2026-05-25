@@ -71,7 +71,10 @@ export function DebuffsPanel() {
           <div className="flex items-start justify-between gap-2">
             <div>
               <PanelTitle>Debuffs</PanelTitle>
-              <PanelDescription>Inject debuff skills at fixed race positions.</PanelDescription>
+              <PanelDescription>
+                Inject debuff skills at a fixed race distance. For each skill, enter the distance
+                (m) where the debuff should proc.
+              </PanelDescription>
             </div>
             <Button variant="outline" size="sm" onClick={clearAllDebuffs} disabled={!hasDebuffs}>
               Clear all

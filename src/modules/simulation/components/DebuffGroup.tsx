@@ -75,6 +75,8 @@ function DebuffRow({
                 type="number"
                 min={0}
                 step={10}
+                placeholder="Distance (m)"
+                title="Race distance (m) where this debuff procs"
                 value={debuff.position}
                 aria-label={`${i18n.t(`skillnames.${skillsService.normalizeSkillId(debuff.skillId)}`)} position`}
                 onChange={handlePositionChange}
