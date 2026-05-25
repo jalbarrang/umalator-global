@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.9.2](https://github.com/jalbarrang/umalator-global/compare/v0.9.1...v0.9.2) (2026-05-25)
+
+
+### Bug Fixes
+
+* de-slopped ah skill service part 1 ([45dea88](https://github.com/jalbarrang/umalator-global/commit/45dea881c7e15fa16ea0f8eec23a931f3bf16bde))
+
 ## [0.9.1](https://github.com/jalbarrang/umalator-global/compare/v0.9.0...v0.9.1) (2026-05-25)
 
 
