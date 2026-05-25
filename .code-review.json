@@ -1,0 +1,13 @@
+{
+  "lenses": [
+    ".code-review/lenses/code-quality.md",
+    ".code-review/lenses/maintainability.md"
+  ],
+  "base": "HEAD",
+  "tools": {
+    "typecheck": "bun run typecheck",
+    "lint": "bun run lint",
+    "format": "bun run format",
+    "test": "bun run test"
+  }
+}
