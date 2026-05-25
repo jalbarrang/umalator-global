@@ -500,7 +500,6 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
 
       {/* Search Bar */}
       <TableSearchBar
-        isOpen={search.isSearchOpen}
         searchQuery={search.searchQuery}
         onSearchChange={search.setSearchQuery}
         onClose={search.closeSearch}

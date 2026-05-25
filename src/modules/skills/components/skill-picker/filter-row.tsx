@@ -19,17 +19,19 @@ type FilterButtonProps = {
 };
 
 const FilterButton = ({ id, checked, onChecked }: FilterButtonProps) => {
+  const inputId = `${useId()}-${id}`;
+
   return (
     <div className="flex items-center">
       <input
         type="checkbox"
-        id={id}
+        id={inputId}
         checked={checked}
         onChange={onChecked}
         className="peer sr-only"
       />
       <Label
-        htmlFor={id}
+        htmlFor={inputId}
         className={cn(
           'cursor-pointer rounded-md border px-2 py-1 text-xs leading-5 transition-colors',
           'border-border bg-background text-muted-foreground hover:border-muted-foreground/30 hover:text-foreground',
@@ -110,7 +112,12 @@ const FilterSection = ({ title, children }: FilterSectionProps) => {
   );
 };
 
-export const SkillPickerFilterRow = () => {
+type SkillPickerFilterRowProps = {
+  showUpcomingToggle?: boolean;
+};
+
+export const SkillPickerFilterRow = (props: SkillPickerFilterRowProps) => {
+  const { showUpcomingToggle = true } = props;
   const { filters: filterState } = useSkillPickerState();
   const { toggleIconType, setExclusiveFilter } = useSkillPickerActions();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -247,9 +254,11 @@ export const SkillPickerFilterRow = () => {
           </div>
         </FilterSection>
 
-        <div className="flex items-center justify-end">
-          <SkillPickerUpcomingToggle />
-        </div>
+        {showUpcomingToggle ? (
+          <div className="flex items-center justify-end">
+            <SkillPickerUpcomingToggle />
+          </div>
+        ) : null}
       </div>
     </div>
   );

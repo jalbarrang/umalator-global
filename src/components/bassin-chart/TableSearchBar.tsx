@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
 type TableSearchBarProps = {
-  isOpen: boolean;
   searchQuery: string;
   onSearchChange: (value: string) => void;
   onClose: () => void;
@@ -17,19 +16,18 @@ type TableSearchBarProps = {
   searchInputRef: RefObject<HTMLInputElement | null>;
 };
 
-export function TableSearchBar({
-  isOpen,
-  searchQuery,
-  onSearchChange,
-  onClose,
-  onNext,
-  onPrevious,
-  currentMatchIndex,
-  totalMatches,
-  hasMatches,
-  searchInputRef
-}: TableSearchBarProps) {
-  if (!isOpen) return null;
+export function TableSearchBar(props: TableSearchBarProps) {
+  const {
+    searchQuery,
+    onSearchChange,
+    onClose,
+    onNext,
+    onPrevious,
+    currentMatchIndex,
+    totalMatches,
+    hasMatches,
+    searchInputRef
+  } = props;
 
   return (
     <div className="flex items-center gap-2 p-2 border-b bg-muted/30">
@@ -43,6 +41,7 @@ export function TableSearchBar({
           onChange={(e) => onSearchChange(e.target.value)}
           className="h-8 text-sm flex-1 max-w-md"
         />
+
         {searchQuery && (
           <div
             className={cn(

@@ -98,7 +98,9 @@ export default function SkillComparePage() {
         dataTutorial="skill-bassin-controls"
       />
 
-      <SkillSelectorDialog />
+      <div>
+        <SkillSelectorDialog />
+      </div>
 
       <div data-tutorial="skill-bassin-table" className="min-w-0">
         <SimulationProgressBanner useStore={useSkillBasinStore} />
