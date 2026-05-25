@@ -1,4 +1,4 @@
-import { memo, useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useDeferredValue, useEffect, useState } from 'react';
 import { SearchIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger
@@ -13,19 +14,31 @@ import {
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { skillsService } from '@/modules/data/registry';
 import type { SkillEntry } from '@/modules/data/services/SkillService';
 import { SkillPickerFilterRow } from '@/modules/skills/components/skill-picker/filter-row';
 import { SkillPickerProvider } from '@/modules/skills/components/skill-picker/provider';
-import { useFilteredSkills } from '@/modules/skills/components/skill-picker/store';
+import {
+  hasActiveSkillPickerFilters,
+  type SkillPickerFilterGroup,
+  useFilteredSkills,
+  useSkillPickerStore
+} from '@/modules/skills/components/skill-picker/store';
 import { SkillPickerVirtualGrid } from '@/modules/skills/components/skill-picker/virtual-grid';
 import { SkillIcon } from '@/modules/skills/components/skill-list/skill-item/SkillIcon';
-import { getBaseSkillsToTest } from '@/modules/skills/utils';
+import { useActivatableSkillsForRace } from '@/modules/simulation/hooks/skill-bassin/useActivatableSkillsForRace';
 import {
-  initializeSkillSelection,
+  deselectAllSkills,
+  resetSkillSelectionForRace,
+  selectAllSkills,
   toggleSkillSelected,
   useSkillSelectionStore
 } from '../stores/skill-selection.store';
+
+const SKILL_BASSIN_HIDDEN_FILTER_GROUPS = new Set<SkillPickerFilterGroup>([
+  'strategy',
+  'distance',
+  'surface'
+]);
 
 type SkillRowProps = {
   skill: SkillEntry;
@@ -56,7 +69,7 @@ const SkillRow = memo((props: SkillRowProps) => {
   );
 });
 
-type SkillSelectorPanelProps = {
+type SkillSelectorPanelContentProps = {
   skills: Array<SkillEntry>;
   releasedIds: Set<string>;
   selectedSkillIds: Set<string>;
@@ -66,33 +79,21 @@ type SkillSelectorPanelProps = {
   showUpcomingBadge?: boolean;
 };
 
+type SkillSelectorPanelProps = SkillSelectorPanelContentProps & {
+  panelKey: string;
+};
+
 function SkillSelectorPanel(props: SkillSelectorPanelProps) {
-  const {
-    skills,
-    releasedIds,
-    selectedSkillIds,
-    onToggle,
-    listEnabled,
-    columnCount,
-    showUpcomingBadge
-  } = props;
+  const { panelKey, ...contentProps } = props;
 
   return (
-    <SkillPickerProvider>
-      <SkillSelectorPanelContent
-        skills={skills}
-        releasedIds={releasedIds}
-        selectedSkillIds={selectedSkillIds}
-        onToggle={onToggle}
-        listEnabled={listEnabled}
-        columnCount={columnCount}
-        showUpcomingBadge={showUpcomingBadge}
-      />
+    <SkillPickerProvider key={panelKey}>
+      <SkillSelectorPanelContent {...contentProps} />
     </SkillPickerProvider>
   );
 }
 
-function SkillSelectorPanelContent(props: SkillSelectorPanelProps) {
+function SkillSelectorPanelContent(props: SkillSelectorPanelContentProps) {
   const {
     skills,
     releasedIds,
@@ -106,7 +107,26 @@ function SkillSelectorPanelContent(props: SkillSelectorPanelProps) {
   const [search, setSearch] = useState('');
   const deferredSearch = useDeferredValue(search);
 
+  const filters = useSkillPickerStore((state) => state.filters);
   const filteredSkills = useFilteredSkills(deferredSearch, skills, { showUpcoming: true });
+
+  const filteredCount = filteredSkills.length;
+  const hasNarrowedList =
+    search.trim().length > 0 ||
+    hasActiveSkillPickerFilters(filters, SKILL_BASSIN_HIDDEN_FILTER_GROUPS);
+  const countSuffix = hasNarrowedList ? ` (${filteredCount})` : '';
+
+  const handleSelectAll = useCallback(() => {
+    selectAllSkills(filteredSkills.map((s) => s.id));
+  }, [filteredSkills]);
+
+  const handleDeselectAll = useCallback(() => {
+    deselectAllSkills(filteredSkills.map((s) => s.id));
+  }, [filteredSkills]);
+
+  const handleClearSearch = useCallback(() => {
+    setSearch('');
+  }, []);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-2">
@@ -122,7 +142,33 @@ function SkillSelectorPanelContent(props: SkillSelectorPanelProps) {
         />
       </InputGroup>
 
-      <SkillPickerFilterRow showUpcomingToggle={false} />
+      <SkillPickerFilterRow
+        showUpcomingToggle={false}
+        hiddenFilterGroups={SKILL_BASSIN_HIDDEN_FILTER_GROUPS}
+        onAfterClear={handleClearSearch}
+        hasAdditionalFilters={search.trim().length > 0}
+      />
+
+      <div className="flex gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={filteredCount === 0}
+          onClick={handleSelectAll}
+        >
+          Select All{countSuffix}
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={filteredCount === 0}
+          onClick={handleDeselectAll}
+        >
+          Deselect all{countSuffix}
+        </Button>
+      </div>
 
       <SkillPickerVirtualGrid
         filteredSkills={filteredSkills}
@@ -150,42 +196,18 @@ export function SkillSelectorDialog() {
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'released' | 'upcoming'>('released');
 
+  const {
+    raceSettingsKey,
+    allSkills,
+    releasedIds,
+    releasedSkills,
+    upcomingSkills,
+    releasedActivatableIds
+  } = useActivatableSkillsForRace();
+
   useEffect(() => {
-    initializeSkillSelection();
-  }, []);
-
-  const allSkills = useMemo(() => {
-    const baseSkillIds = getBaseSkillsToTest();
-    const simulatable = skillsService.filterSimulatable(baseSkillIds);
-
-    return simulatable
-      .map((id) => skillsService.getById(id))
-      .filter((s): s is SkillEntry => s !== undefined)
-      .sort((a, b) => {
-        if (!a.releaseDate || !b.releaseDate) return 0;
-
-        const dateCmp = a.releaseDate.localeCompare(b.releaseDate);
-
-        if (dateCmp !== 0) return dateCmp;
-
-        return a.name.localeCompare(b.name);
-      });
-  }, []);
-
-  const releasedIds = useMemo(
-    () => new Set(allSkills.filter((s) => skillsService.isReleased(s.id)).map((s) => s.id)),
-    [allSkills]
-  );
-
-  const releasedSkills = useMemo(
-    () => allSkills.filter((s) => releasedIds.has(s.id)),
-    [allSkills, releasedIds]
-  );
-
-  const upcomingSkills = useMemo(
-    () => allSkills.filter((s) => !releasedIds.has(s.id)),
-    [allSkills, releasedIds]
-  );
+    resetSkillSelectionForRace(releasedActivatableIds);
+  }, [raceSettingsKey, releasedActivatableIds]);
 
   const selectedCount = selectedSkillIds.size;
   const totalCount = allSkills.length;
@@ -213,6 +235,10 @@ export function SkillSelectorDialog() {
               {selectedCount} / {totalCount}
             </span>
           </DialogTitle>
+          <DialogDescription>
+            Listed skills match your current race settings above. Changing those settings refreshes
+            the list and re-selects all matching released skills.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="flex min-h-0 flex-1 flex-col">
@@ -235,7 +261,7 @@ export function SkillSelectorDialog() {
               className="mt-0 flex min-h-0 flex-1 flex-col data-hidden:hidden"
             >
               <SkillSelectorPanel
-                key="released"
+                panelKey={`released-${raceSettingsKey}`}
                 skills={releasedSkills}
                 releasedIds={releasedIds}
                 selectedSkillIds={selectedSkillIds}
@@ -251,7 +277,7 @@ export function SkillSelectorDialog() {
               className="mt-0 flex min-h-0 flex-1 flex-col data-hidden:hidden"
             >
               <SkillSelectorPanel
-                key="upcoming"
+                panelKey={`upcoming-${raceSettingsKey}`}
                 skills={upcomingSkills}
                 releasedIds={releasedIds}
                 selectedSkillIds={selectedSkillIds}

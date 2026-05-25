@@ -47,6 +47,7 @@
  */
 
 import { skillsService } from '@/modules/data/registry';
+import { SkillTarget } from '@/lib/sunday-tools/skills/definitions';
 import type { SkillEntry } from '@/modules/data/services/SkillService';
 
 // ============================================================================
@@ -100,6 +101,23 @@ export function hasPositiveSkillEffects(skillId: string): boolean {
   }
 
   return hasPositiveEffects(skill);
+}
+
+/**
+ * Skill has at least one effect on self with a negative modifier (true self-debuff).
+ */
+export function isSelfDebuffSkill(skill: SkillEntry): boolean {
+  return skill.alternatives.some((alternative) =>
+    alternative.effects.some(
+      (effect) => effect.target === SkillTarget.Self && effect.modifier < 0
+    )
+  );
+}
+
+export function isSelfDebuffSkillById(skillId: string): boolean {
+  const skill = skillsService.getById(skillId);
+  if (!skill) return false;
+  return isSelfDebuffSkill(skill);
 }
 
 /**

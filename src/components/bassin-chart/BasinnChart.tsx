@@ -26,10 +26,13 @@ import type { SkillComparisonRoundResult } from '@/modules/simulation/types';
 
 import { skillsService } from '@/modules/data/registry';
 import type { SkillEntry } from '@/modules/data/services/SkillService';
-import { groups_filters } from '@/modules/skills/filters';
+import {
+  getSkillIconFilterImageUrl,
+  groups_filters,
+  skillMatchesIconTypeFilter
+} from '@/modules/skills/filters';
 import { iconIdPrefixes } from '@/modules/skills/icons';
 import i18n from '@/i18n';
-import { getIconUrl } from '@/assets/icons';
 import { cn } from '@/lib/utils';
 import { BassinTableBody, BASSIN_DATA_EVENT_OPEN_SKILL_ACTIONS } from './bassin-table-body';
 import { Menu as MenuPrimitive } from '@base-ui/react/menu';
@@ -51,7 +54,7 @@ export const formatBasinn = React.memo(
   }
 );
 
-type IconTypeFilterKey = keyof typeof iconIdPrefixes;
+type IconTypeFilterKey = keyof typeof iconIdPrefixes | 'selfdebuff';
 
 type IconTypeFilterBarProps = {
   iconTypeFilters: Record<IconTypeFilterKey, boolean>;
@@ -78,7 +81,7 @@ const IconTypeFilterButton = React.memo((props: IconTypeFilterButtonProps) => {
   }, [iconTypeFilters, iconType]);
 
   const imgSrc = useMemo(() => {
-    return getIconUrl(`${iconType}1.png`);
+    return getSkillIconFilterImageUrl(iconType);
   }, [iconType]);
 
   return (
@@ -259,9 +262,7 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
       if (!skill) return true;
 
       return activeIconTypeFilters.some((iconType) =>
-        iconIdPrefixes[iconType as IconTypeFilterKey]?.some((prefix) =>
-          skill.iconId.startsWith(prefix)
-        )
+        skillMatchesIconTypeFilter(skill, iconType)
       );
     });
   }, [activeIconTypeFilters, props.data, skillMetadataById]);

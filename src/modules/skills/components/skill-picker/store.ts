@@ -1,11 +1,10 @@
 import { createContext, useContext, useMemo } from 'react';
 import { createStore, useStore } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
-import { groups_filters } from '../../filters';
+import { groups_filters, skillMatchesIconTypeFilter } from '../../filters';
 import { FilterGroup, FilterState } from './types';
 import { SkillQuery } from '../../query';
 import { matchRarity } from '../../utils';
-import { iconIdPrefixes } from '../../icons';
 import type { SkillEntry } from '@/modules/data/services/SkillService';
 
 type ISkillPickerState = {
@@ -42,6 +41,32 @@ function createInitialFilterState(): FilterState {
 
 export const getActiveFilters = (filterState: FilterState, group: string): Array<string> => {
   return groups_filters[group as FilterGroup].filter((f) => filterState[group][f]);
+};
+
+export type SkillPickerFilterGroup =
+  | 'rarity'
+  | 'strategy'
+  | 'distance'
+  | 'surface'
+  | 'location'
+  | 'icontype';
+
+export const hasActiveSkillPickerFilters = (
+  filterState: FilterState,
+  hiddenGroups?: ReadonlySet<SkillPickerFilterGroup>
+): boolean => {
+  for (const [groupName, groupValues] of Object.entries(filterState)) {
+    if (hiddenGroups?.has(groupName as SkillPickerFilterGroup)) continue;
+
+    if (groupName === 'icontype') {
+      const allActive = groups_filters.icontype.every((f) => groupValues[f]);
+      if (!allActive) return true;
+    } else if (Object.values(groupValues).some(Boolean)) {
+      return true;
+    }
+  }
+
+  return false;
 };
 
 export const createSkillPickerStore = () => {
@@ -137,8 +162,6 @@ export const useSkillPickerActions = () => {
   return useSkillPickerStore(useShallow((state) => state.actions));
 };
 
-type IconIdPrefix = keyof typeof iconIdPrefixes;
-
 export const useFilteredSkills = (
   deferredSearchText: string,
   skills: Array<SkillEntry>,
@@ -152,19 +175,25 @@ export const useFilteredSkills = (
   return useMemo(() => {
     const activeRarities = getActiveFilters(filters, 'rarity');
     const activeIconTypes = getActiveFilters(filters, 'icontype');
+    const allIconTypesActive = groups_filters.icontype.every((f) => filters.icontype[f]);
     const activeStrategies = getActiveFilters(filters, 'strategy');
     const activeDistances = getActiveFilters(filters, 'distance');
     const activeSurfaces = getActiveFilters(filters, 'surface');
     const activeLocations = getActiveFilters(filters, 'location');
 
-    return SkillQuery.from(skills)
+    let query = SkillQuery.from(skills)
       .whereValid()
       .whereIsUpcoming(showUpcoming)
       .whereText(deferredSearchText)
-      .whereAny(activeRarities, (skill, r) => matchRarity(skill.id, r))
-      .whereAny(activeIconTypes, (skill, iconKey) =>
-        iconIdPrefixes[iconKey as IconIdPrefix]?.some((p) => skill.iconId.startsWith(p))
-      )
+      .whereAny(activeRarities, (skill, r) => matchRarity(skill.id, r));
+
+    if (!allIconTypesActive) {
+      query = query.where((skill) =>
+        activeIconTypes.some((iconKey) => skillMatchesIconTypeFilter(skill, iconKey))
+      );
+    }
+
+    return query
       .whereConditionMatch(activeStrategies)
       .whereConditionMatch(activeDistances)
       .whereConditionMatch(activeSurfaces)

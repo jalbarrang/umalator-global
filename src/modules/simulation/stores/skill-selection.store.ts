@@ -29,6 +29,16 @@ export const initializeSkillSelection = () => {
   });
 };
 
+/**
+ * Reset selection to released skills activatable for the current race settings.
+ */
+export const resetSkillSelectionForRace = (releasedActivatableIds: Array<string>) => {
+  useSkillSelectionStore.setState({
+    selectedSkillIds: new Set(releasedActivatableIds),
+    initialized: true
+  });
+};
+
 export const setSelectedSkillIds = (ids: Set<string>) => {
   useSkillSelectionStore.setState({ selectedSkillIds: ids });
 };

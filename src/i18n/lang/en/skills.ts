@@ -35,7 +35,8 @@ export default {
     phase2: 'Late-race',
     phase3: 'Last spurt',
     finalcorner: 'Final corner',
-    finalstraight: 'Final straight'
+    finalstraight: 'Final straight',
+    selfdebuff: 'Self-debuff skills'
   },
   skilleffecttypes: {
     // Stats
