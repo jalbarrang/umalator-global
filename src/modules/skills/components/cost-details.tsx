@@ -20,7 +20,7 @@ import {
   getRepresentativePrerequisiteIds,
   isSkillCoveredByOwnedFamily
 } from '@/modules/skill-planner/skill-family';
-import { dataRegistry } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/registry';
 import { buildSkillCostSummary } from '@/modules/skills/skill-cost-summary';
 
 const HINT_LEVEL_OPTIONS: Array<{ value: HintLevel; label: string }> = [
@@ -46,7 +46,7 @@ const PrereqItem = memo((props: PrereqItemProps) => {
     useSkillItem();
 
   const prereqSkill = useMemo(() => {
-    const skill = dataRegistry.skills.getById(prereqId);
+    const skill = skillsService.getById(prereqId);
     if (!skill) throw new Error(`Prereq skill not found: ${prereqId}`);
     return skill;
   }, [prereqId]);

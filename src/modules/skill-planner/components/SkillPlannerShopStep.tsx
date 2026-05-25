@@ -11,7 +11,6 @@ import { SkillPickerModal } from '@/modules/skills/components/skill-picker/modal
 export function SkillPlannerShopStep() {
   const { runner, candidates } = useSkillPlannerStore();
   const [skillPickerOpen, setSkillPickerOpen] = useState(false);
-
   const candidateIds = useMemo(() => Object.keys(candidates), [candidates]);
 
   const availableSkills = useMemo(() => {
@@ -19,7 +18,7 @@ export function SkillPlannerShopStep() {
       return [];
     }
 
-    return getSelectableSkillsForUma(runner.outfitId);
+    return getSelectableSkillsForUma(runner.outfitId, true);
   }, [runner.outfitId]);
 
   const handleSelectSkills = (skills: Array<string>) => {

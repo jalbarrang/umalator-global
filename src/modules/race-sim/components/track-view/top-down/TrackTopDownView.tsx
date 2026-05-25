@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import {
@@ -35,6 +35,24 @@ type TrackState =
   | { status: 'ready'; track: BuiltTrackPath }
   | { status: 'error' };
 
+type TrackAction =
+  | { type: 'track:load-start' }
+  | { type: 'track:load-success'; track: BuiltTrackPath }
+  | { type: 'track:load-error' };
+
+function trackReducer(_state: TrackState, action: TrackAction): TrackState {
+  switch (action.type) {
+    case 'track:load-start':
+      return { status: 'loading' };
+    case 'track:load-success':
+      return { status: 'ready', track: action.track };
+    case 'track:load-error':
+      return { status: 'error' };
+    default:
+      return { status: 'loading' };
+  }
+}
+
 const EMPTY_TRACK: BuiltTrackPath = {
   points: [],
   turnSign: 0,
@@ -59,7 +77,7 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
   const clampedViewStart = clamp(viewStart ?? 0, 0, courseDistance);
   const clampedViewEnd = clamp(viewEnd ?? courseDistance, clampedViewStart, courseDistance);
 
-  const [trackState, setTrackState] = useState<TrackState>({ status: 'loading' });
+  const [trackState, dispatchTrack] = useReducer(trackReducer, { status: 'loading' });
   const markers = useMemo(() => buildTrackMarkers(courseData), [courseData]);
   const activeBuiltTrack = trackState.status === 'ready' ? trackState.track : EMPTY_TRACK;
   const { points, turnSign } = activeBuiltTrack;
@@ -105,18 +123,18 @@ export const TrackTopDownView = memo<TrackTopDownViewProps>(function TrackTopDow
 
   useEffect(() => {
     let cancelled = false;
-    setTrackState({ status: 'loading' });
+    dispatchTrack({ type: 'track:load-start' });
 
     void buildCourseTrackPath(courseData)
       .then((nextBuiltTrack) => {
         if (!cancelled) {
-          setTrackState({ status: 'ready', track: nextBuiltTrack });
+          dispatchTrack({ type: 'track:load-success', track: nextBuiltTrack });
         }
       })
       .catch((error: unknown) => {
         console.error('Failed to build course track path', error);
         if (!cancelled) {
-          setTrackState({ status: 'error' });
+          dispatchTrack({ type: 'track:load-error' });
         }
       });
 

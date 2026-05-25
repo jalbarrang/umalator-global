@@ -31,9 +31,8 @@ export const RunnerEditorLayout = (props: RunnerEditorLayoutProps) => {
   } = props;
 
   const [skillPickerOpen, setSkillPickerOpen] = useState(false);
-
   const selectableSkills = useMemo(
-    () => getSelectableSkillsForUma(runnerState.outfitId),
+    () => getSelectableSkillsForUma(runnerState.outfitId, true),
     [runnerState.outfitId]
   );
 

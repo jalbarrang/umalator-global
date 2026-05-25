@@ -14,7 +14,7 @@ import {
   Speed,
   StrategyModule
 } from '../shared/definitions';
-import { CourseHelpers } from '../course/CourseData';
+import { CourseService } from '@/modules/data/services/CourseService';
 import { buildSkillData } from '../runner/runner.utils';
 import { getExternalDebuffEffects } from '../skills/external-debuffs';
 import { createFixedPositionPolicy } from '../skills/policies/ActivationSamplePolicy';
@@ -1607,7 +1607,7 @@ export class Runner {
    */
   private initializePhaseTracking(): void {
     this.phase = 0;
-    this.nextPhaseTransition = CourseHelpers.phaseStart(this.race.course.distance, 1);
+    this.nextPhaseTransition = CourseService.phaseStart(this.race.course.distance, 1);
     this.sectionLength = this.race.course.distance / 24.0;
 
     // Race Tracking
@@ -1852,7 +1852,7 @@ export class Runner {
   }
 
   private initializeHills() {
-    if (!CourseHelpers.isSortedByStart(this.race.course.slopes)) {
+    if (!CourseService.isSortedByStart(this.race.course.slopes)) {
       throw new Error('slopes must be sorted by start location');
     }
 
@@ -1902,7 +1902,7 @@ export class Runner {
       ++this.phase;
 
       const nextPhase = this.phase + 1;
-      this.nextPhaseTransition = CourseHelpers.phaseStart(
+      this.nextPhaseTransition = CourseService.phaseStart(
         this.race.course.distance,
         nextPhase as IPhase
       );

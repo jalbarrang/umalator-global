@@ -1,6 +1,11 @@
 import { ISkillType } from '@/lib/sunday-tools/skills/definitions';
 import type { SkillAlternative } from '@/lib/sunday-tools/skills/skill.types';
+import {
+  areAlternativesSimulatable,
+  findUnknownConditionTokens
+} from '@/lib/sunday-tools/skills/simulatability';
 import type { SkillMatch } from '@/modules/runners/data/types';
+import { SkillFilterer, type SkillFiltererConfig } from './SkillFilterer';
 
 // =======
 // Types
@@ -31,6 +36,8 @@ export type SkillSupportCardSourceEntry = {
   sourceType?: 'hint' | 'event';
 };
 
+export type SkillActivationCheck = 'guaranteed' | 'wit-check';
+
 export type SkillEntry = {
   id: string;
   rarity: number;
@@ -42,38 +49,111 @@ export type SkillEntry = {
   baseCost: number;
   order: number;
   name: string;
-  /**
-   * Uma outfit ids that can provide this skill.
-   * Support-card source extraction is not included yet.
-   */
+  /** Uma outfit ids that can provide this skill. */
   character: Array<number>;
   sources?: Array<SkillUmaSourceEntry>;
+  /** Support cards that grant this skill (hints from master extract, events from GameTora). */
   supportSources?: Array<SkillSupportCardSourceEntry>;
   gene_version?: SkillGeneVersionEntry;
   unique_version?: SkillGeneVersionEntry;
+  type?: string | Array<string>;
+  /** Earliest known release date (YYYY-MM-DD) from character/support card data. */
+  releaseDate?: string;
 };
 
 export type SkillsMap = Record<string, SkillEntry>;
 
-export interface SkillLookupEntry {
+export type SkillLookupEntry = {
   id: string;
   geneId?: string;
   name: string;
   rarity: number;
-}
+  released: boolean;
+};
 
-// =======
-// Service
-// =======
+export type SkillServiceOptions = {
+  releasedSkillIds?: Iterable<string>;
+  activationChecks?: Record<string, SkillActivationCheck>;
+};
 
 export class SkillService {
   private readonly skillCollection: SkillsMap;
+  private readonly releasedSkillIds: Set<string>;
+  private readonly activationChecks: Map<string, SkillActivationCheck>;
+
   private skillLookup: Map<string, SkillLookupEntry> | null = null;
   private skillLookupCandidates: Map<string, Array<SkillLookupEntry>> | null = null;
+  private simulatabilityCache: Map<string, boolean> | null = null;
 
-  constructor(skillsData: SkillsMap) {
+  constructor(skillsData: SkillsMap, options: SkillServiceOptions = {}) {
+    const { releasedSkillIds, activationChecks } = options;
+
     this.skillCollection = skillsData;
+
+    this.releasedSkillIds = new Set(releasedSkillIds ?? Object.keys(skillsData));
+    this.activationChecks = new Map(Object.entries(activationChecks ?? {}));
   }
+
+  // ============
+  // Simulatability
+  // ============
+
+  /**
+   * Whether a skill's conditions can be fully parsed by the simulation engine.
+   * Skills with unknown condition tokens return false — they can be displayed
+   * but must not enter the simulator.
+   */
+  isSimulatable = (skillId: string): boolean => {
+    if (!this.simulatabilityCache) {
+      this.simulatabilityCache = new Map();
+    }
+
+    const cached = this.simulatabilityCache.get(skillId);
+    if (cached !== undefined) return cached;
+
+    const skill = this.skillCollection[skillId];
+    if (!skill) {
+      this.simulatabilityCache.set(skillId, false);
+      return false;
+    }
+
+    const result = areAlternativesSimulatable(skill.alternatives);
+    this.simulatabilityCache.set(skillId, result);
+    return result;
+  };
+
+  /**
+   * Returns unknown condition tokens for a skill, or an empty array if fully supported.
+   * Useful for debug/UI display of why a skill can't be simulated.
+   */
+  getUnsupportedTokens = (skillId: string): Array<string> => {
+    const skill = this.skillCollection[skillId];
+    if (!skill) return [];
+    return findUnknownConditionTokens(skill.alternatives);
+  };
+
+  /**
+   * Filter a list of skill IDs to only those that are simulatable.
+   */
+  filterSimulatable = (skillIds: Array<string>): Array<string> => {
+    return skillIds.filter(this.isSimulatable);
+  };
+
+  isReleased = (skillId: string): boolean => {
+    return this.releasedSkillIds.has(skillId);
+  };
+
+  getActivationCheck = (skillId: string): SkillActivationCheck | undefined => {
+    return this.activationChecks.get(skillId);
+  };
+
+  // ============
+  // Filterer Factory
+  // ============
+
+  createFilterer = (config: SkillFiltererConfig): SkillFilterer => {
+    return new SkillFilterer(this, config);
+  };
 
   // ============
   // Utils
@@ -345,6 +425,11 @@ export class SkillService {
 
   private sortSkillLookupEntries = (entries: Array<SkillLookupEntry>): Array<SkillLookupEntry> => {
     return [...entries].sort((a, b) => {
+      const releaseRank = Number(b.released) - Number(a.released);
+      if (releaseRank !== 0) {
+        return releaseRank;
+      }
+
       const prefixRank = this.skillIdPrefixRank(a.id) - this.skillIdPrefixRank(b.id);
       if (prefixRank !== 0) {
         return prefixRank;
@@ -407,7 +492,8 @@ export class SkillService {
         id: `${skill.id}`,
         geneId: skill.gene_version?.id ? `${skill.gene_version.id}` : undefined,
         name: skill.name,
-        rarity: skill.rarity
+        rarity: skill.rarity,
+        released: this.isReleased(skill.id)
       };
 
       const entries = this.skillLookupCandidates.get(key);

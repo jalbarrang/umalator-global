@@ -30,7 +30,7 @@ import type {
   SkillPlanningMeta
 } from '../types';
 import { buildOptimizationInputFingerprint } from '../input-fingerprint';
-import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { coursesService } from '@/modules/data/services/CourseService';
 import { racedefToParams } from '@/utils/races';
 import { useSettingsStore } from '@/store/settings.store';
 import { defaultSimulationOptions } from '@/components/bassin-chart/utils';
@@ -102,7 +102,7 @@ export function useSkillPlannerOptimizer() {
   const runFingerprintRef = useRef<string | null>(null);
 
   // Transform course and race parameters
-  const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
+  const course = useMemo(() => coursesService.getSimCourse(courseId), [courseId]);
   const raceParams = useMemo(() => racedefToParams(racedef), [racedef]);
 
   // Worker message handler

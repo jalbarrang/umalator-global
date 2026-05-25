@@ -3,7 +3,7 @@ import { XIcon } from 'lucide-react';
 import { Link, Outlet, useLocation } from 'react-router';
 import { useShallow } from 'zustand/shallow';
 import { cn } from '@/lib/utils';
-import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { coursesService } from '@/modules/data/services/CourseService';
 import { racedefToParams } from '@/utils/races';
 import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -19,11 +19,16 @@ import { createSkillSorterByGroup, toCreateRunner } from '@/modules/simulation/s
 import { useSettingsStore } from '@/store/settings.store';
 import { setDismissal, useUIStore } from '@/store/ui.store';
 import { useSkillModalStore } from '@/modules/skills/store';
+import { getSelectableSkillsForUma } from '@/modules/skills/utils';
 import type { RaceSimWorkerParams } from '@/workers/race-sim.worker';
 import { SkillPickerModal } from '@/modules/skills/components/skill-picker/modal';
 
 function RaceSimSkillPicker() {
-  const { open, umaId, options, currentSkills, onSelect } = useSkillModalStore();
+  const { open, umaId, currentSkills, onSelect } = useSkillModalStore();
+  const options = useMemo(
+    () => (umaId ? getSelectableSkillsForUma(umaId, true) : []),
+    [umaId]
+  );
 
   const handleOpenChange = useCallback((value: boolean) => {
     useSkillModalStore.setState({ open: value });
@@ -87,7 +92,7 @@ export function RaceSimRoot() {
         toCreateRunner(runner, runner.skills.toSorted(sorter))
       );
       const params: RaceSimWorkerParams = {
-        course: CourseHelpers.getCourse(courseId),
+        course: coursesService.getSimCourse(courseId),
         parameters: racedefToParams(racedef),
         runners: raceRunners,
         nsamples,

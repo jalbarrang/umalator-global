@@ -1,5 +1,9 @@
 # Umalator Global
 
+## Dev Server
+
+- **Never** run `bun run dev`, `vite`, or any development server commands. The user manages the dev server themselves.
+
 ## Package Management
 
 - Prefer using `bun` for package management, avoid using `npm`/`yarn`/`pnpm`.
@@ -21,9 +25,3 @@
 - Don't use deprecated `forwardRef` for component refs, pass the `ref` as a prop.
 - This project should follow the React 19+ composition patterns.
 - This project doesn't use React Server Components.
-
-## Agent Skills
-
-### Issue Tracker
-
-For tracking issues and work items we use `Beads` see `docs/issue-tracker.md`

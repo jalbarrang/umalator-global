@@ -9,7 +9,7 @@ import { Command } from 'commander';
 
 import { DebugConfigSchema } from './runner-config.schema';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
-import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { coursesService } from '@/modules/data/services/CourseService';
 import { runSkillComparison } from '@/modules/simulation/simulators/skill-compare';
 import { racedefToParams } from '@/utils/races';
 
@@ -72,7 +72,7 @@ program
     console.log(`   Runner: ${runner.outfitId} (${runner.strategy})`);
     console.log(`   Base skills: ${runner.skills.join(', ') || 'none'}\n`);
 
-    const course = CourseHelpers.getCourse(courseId);
+    const course = coursesService.getSimCourse(courseId);
     const raceParams = racedefToParams(raceConditions, runner.strategy);
 
     const simOptions = {

@@ -7,10 +7,10 @@ import { getSkillNameById } from '@/modules/skills/utils';
 import { useSettingsStore } from '@/store/settings.store';
 import { colors, debuffColors, posKeepColors, recoveryColors, rushedColors } from '@/utils/colors';
 import { SkillPerspective, SkillTarget, SkillType } from '@/lib/sunday-tools/skills/definitions';
-import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { coursesService } from '@/modules/data/services/CourseService';
 import { isExternalDebuffEffect } from '@/lib/sunday-tools/skills/external-debuffs';
 import { useDebuffs } from '@/modules/simulation/stores/compare.store';
-import { dataRegistry } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/registry';
 
 export type RegionData = {
   type: IRegionDisplayType;
@@ -42,7 +42,7 @@ type InjectedDebuffRegionRef = {
 
 const getDebuffIndicatorEffectType = (skillId: string): number => {
   try {
-    const skillData = dataRegistry.skills.getById(skillId);
+    const skillData = skillsService.getById(skillId);
     if (!skillData) {
       return SkillType.Noop;
     }
@@ -177,7 +177,7 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
     }))
   );
 
-  const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
+  const course = useMemo(() => coursesService.getSimCourse(courseId), [courseId]);
 
   const skillActivations: Array<RegionData> = useMemo(() => {
     if (!chartData?.skillActivations) return [];

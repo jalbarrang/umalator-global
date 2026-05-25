@@ -1,4 +1,4 @@
-import { dataRegistry } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/registry';
 import {
   getBaseTier,
   getGoldVersion,
@@ -7,7 +7,7 @@ import {
 } from '@/modules/skills/skill-relationships';
 
 function queueIfValid(skillIds: Set<string>, queue: Array<string>, skillId?: string) {
-  if (!skillId || skillIds.has(skillId) || !dataRegistry.skills.getById(skillId)) {
+  if (!skillId || skillIds.has(skillId) || !skillsService.getById(skillId)) {
     return;
   }
 
@@ -19,7 +19,7 @@ function toSkillIdSet(skillIds: Iterable<string>): Set<string> {
 }
 
 export function getRepresentativePrerequisiteIds(skillId: string): Array<string> {
-  const skill = dataRegistry.skills.getById(skillId);
+  const skill = skillsService.getById(skillId);
   if (!skill) return [];
 
   if (skill.rarity === 2) {
@@ -62,7 +62,7 @@ export function isSkillCoveredByOwnedFamily(
     return true;
   }
 
-  const skill = dataRegistry.skills.getById(skillId);
+  const skill = skillsService.getById(skillId);
   if (!skill) {
     return false;
   }
@@ -104,7 +104,7 @@ export function getRelatedSkillIds(skillId: string): Array<string> {
       continue;
     }
 
-    const currentSkill = dataRegistry.skills.getById(currentId);
+    const currentSkill = skillsService.getById(currentId);
     if (!currentSkill) {
       continue;
     }

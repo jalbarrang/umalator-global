@@ -14,7 +14,7 @@ import { createRunnerState } from '@/modules/runners/components/runner-card/type
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import { toast } from 'sonner';
 
-import { lazy, Suspense, useCallback } from 'react';
+import { Suspense, useCallback } from 'react';
 import type { ReactNode } from 'react';
 
 // Layouts
@@ -41,11 +41,7 @@ import RaceSimResults from './race-sim/results';
 import { SkillsPage } from './_tools/skills';
 import { SparkOddsPage } from './_tools/spark-odds';
 
-const DevSupportCardsPage = import.meta.env.DEV
-  ? lazy(() =>
-      import('./_tools/support-cards').then((module) => ({ default: module.SupportCardsPage }))
-    )
-  : null;
+import { SupportCardsPage } from './_tools/support-cards';
 
 type RoutePageProps = {
   title: string;
@@ -184,18 +180,16 @@ export function RootComponent() {
 
             <Route path="/spark-odds" element={<SparkOddsPage />} />
 
-            {DevSupportCardsPage ? (
-              <Route
-                path="/support-cards"
-                element={
-                  <RoutePage title="Support Cards" description="Browse support card data" noindex>
-                    <Suspense fallback={null}>
-                      <DevSupportCardsPage />
-                    </Suspense>
-                  </RoutePage>
-                }
-              />
-            ) : null}
+            <Route
+              path="/support-cards"
+              element={
+                <RoutePage title="Support Cards" description="Browse support card data" noindex>
+                  <Suspense fallback={null}>
+                    <SupportCardsPage />
+                  </Suspense>
+                </RoutePage>
+              }
+            />
 
             {/* Catch all route */}
             <Route path="*" element={<NotFoundComponent />} />

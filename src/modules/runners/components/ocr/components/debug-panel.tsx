@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { dataRegistry } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/registry';
 import { ExtractedUmaData } from '@/modules/runners/ocr/types';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -19,9 +19,7 @@ function formatOcrSkillDebugReport(results: Partial<ExtractedUmaData>): string {
 
   for (const [index, skill] of (results.skills ?? []).entries()) {
     lines.push(`- [${index + 1}] Raw: ${skill.originalText || '—'}`);
-    lines.push(
-      `  Normalized: ${dataRegistry.skills.normalizeSkillName(skill.originalText) || '—'}`
-    );
+    lines.push(`  Normalized: ${skillsService.normalizeSkillName(skill.originalText) || '—'}`);
     lines.push(`  Matched: ${skill.name}`);
     lines.push(`  Skill ID: ${skill.id}`);
     lines.push(`  Confidence: ${skill.confidence.toFixed(2)}`);
@@ -69,7 +67,7 @@ export function OcrSkillDebugPanel({ results }: Readonly<OcrSkillDebugPanelProps
           </div>
 
           {results.skills.map((skill) => {
-            const normalized = dataRegistry.skills.normalizeSkillName(skill.originalText);
+            const normalized = skillsService.normalizeSkillName(skill.originalText);
 
             return (
               <div key={skill.id} className="rounded border bg-muted/30 p-2 text-xs">

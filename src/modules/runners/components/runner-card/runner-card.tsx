@@ -41,7 +41,7 @@ import {
 } from '@/modules/skills/components/skill-list/skill-item/actions';
 import { SkillItem } from '@/modules/skills/components/skill-list/skill-item/item';
 import type { SkillMeta } from '@/modules/skills/components/skill-list/skill-item/context';
-import { dataRegistry } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/registry';
 
 import { getSelectableSkillsForUma, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import { OcrImportDialog } from '@/modules/runners/components/ocr-import-dialog';
@@ -228,7 +228,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
       const newSkills: Array<string> = [];
 
       for (const skillId of state.skills) {
-        const skillData = dataRegistry.skills.getById(skillId);
+        const skillData = skillsService.getById(skillId);
 
         if (skillData?.rarity && skillData.rarity < 3) {
           newSkills.push(skillId);
@@ -316,7 +316,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
       return [];
     }
 
-    return getSelectableSkillsForUma(umaId);
+    return getSelectableSkillsForUma(umaId, true);
   }, [umaId, onOpenSkillPicker]);
 
   const handleOpenSkillPicker = useCallback(() => {

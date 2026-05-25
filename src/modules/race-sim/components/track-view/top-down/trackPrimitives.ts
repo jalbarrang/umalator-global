@@ -1,4 +1,4 @@
-import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { CourseService } from '@/modules/data/services/CourseService';
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import { PHASE_STYLES } from '@/modules/race-sim/constants';
 import {
@@ -28,9 +28,9 @@ function representativeRaceDistanceForLoop(
 }
 
 function phaseIndexAtRaceDistance(raceDist: number, courseDistance: number): 0 | 1 | 2 | 3 {
-  const p1 = CourseHelpers.phaseStart(courseDistance, 1);
-  const p2 = CourseHelpers.phaseStart(courseDistance, 2);
-  const p3 = CourseHelpers.phaseStart(courseDistance, 3);
+  const p1 = CourseService.phaseStart(courseDistance, 1);
+  const p2 = CourseService.phaseStart(courseDistance, 2);
+  const p3 = CourseService.phaseStart(courseDistance, 3);
   if (raceDist < p1) return 0;
   if (raceDist < p2) return 1;
   if (raceDist < p3) return 2;
@@ -186,7 +186,7 @@ type PhaseDividersSfParams = {
 export function paintPhaseDividersStartFinish(p: PhaseDividersSfParams): void {
   const { ctx, builtTrack, courseWidth, turnSign, courseDistance, transform, colorMuted } = p;
   const phaseBoundaries = [0, 1, 2, 3].map((ph) =>
-    CourseHelpers.phaseStart(courseDistance, ph as 0 | 1 | 2 | 3)
+    CourseService.phaseStart(courseDistance, ph as 0 | 1 | 2 | 3)
   );
   for (const db of phaseBoundaries) {
     if (db <= 0 || db >= courseDistance) continue;

@@ -52,13 +52,12 @@ export function SkillPlannerRunnerStep() {
   const { runner, obtainedSkillIds, hasFastLearner } = useSkillPlannerStore();
   const [skillPickerOpen, setSkillPickerOpen] = useState(false);
   const [ocrImportOpen, setOcrImportOpen] = useState(false);
-
   const availableSkills = useMemo(() => {
     if (!runner.outfitId) {
       return [];
     }
 
-    return getSelectableSkillsForUma(runner.outfitId);
+    return getSelectableSkillsForUma(runner.outfitId, true);
   }, [runner.outfitId]);
 
   const uniqueSkillId = useMemo(() => {

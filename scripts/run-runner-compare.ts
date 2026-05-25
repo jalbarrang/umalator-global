@@ -19,7 +19,7 @@ import type {
 } from '@/lib/sunday-tools/common/race';
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import { Race } from '@/lib/sunday-tools/common/race';
-import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { coursesService } from '@/modules/data/services/CourseService';
 import { parseAptitudeName, parseStrategyName } from '@/lib/sunday-tools/runner/runner.types';
 
 type RunnerConfigInput = {
@@ -201,7 +201,7 @@ async function runRunnerCompare(options: {
     throw new Error(`Race conditions mismatch between ${CONFIG_RUNNER_1} and ${CONFIG_RUNNER_2}`);
   }
 
-  const course = CourseHelpers.getCourse(configRunner1.courseId);
+  const course = coursesService.getSimCourse(configRunner1.courseId);
   const runnerAConfig = toCreateRunner(configRunner1.runner);
   const runnerBConfig = toCreateRunner(configRunner2.runner);
   const raceParameters = toRaceParameters(configRunner1.raceConditions);

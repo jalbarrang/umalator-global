@@ -12,17 +12,17 @@ import {
 } from '@/modules/simulation/stores/uma-basin.store';
 import {
   defaultSimulationOptions,
-  getActivateableSkills,
   getNullSkillComparisonRow
 } from '@/components/bassin-chart/utils';
 import { useRunner } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
 import { racedefToParams } from '@/utils/races';
 import { PoolManager } from '@/workers/pool/pool-manager';
-import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
-import { dataRegistry } from '@/modules/data/registry';
+import { coursesService } from '@/modules/data/services/CourseService';
+import { skillsService } from '@/modules/data/registry';
+import { useUmaSkillSelectionStore } from '@/modules/simulation/stores/uma-skill-selection.store';
 
-const uniqueSkillIds = dataRegistry.skills.getUniqueSkillIds();
+const uniqueSkillIds = skillsService.getUniqueSkillIds();
 
 const createUmaBasinPoolWorker = (options: { name: string }) => new UmaBasinPoolWorker(options);
 
@@ -38,7 +38,7 @@ export function useUmaBasinPoolRunner() {
 
   const poolManagerRef = useRef<PoolManager | null>(null);
 
-  const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
+  const course = useMemo(() => coursesService.getSimCourse(courseId), [courseId]);
 
   // Initialize pool manager on mount
   useEffect(() => {
@@ -61,7 +61,14 @@ export function useUmaBasinPoolRunner() {
 
     const params = racedefToParams(racedef, runner.strategy);
 
-    const skills = getActivateableSkills(uniqueSkillIds, runner, course, params);
+    const filterer = skillsService.createFilterer({ runner, course, raceParams: params });
+    const { selectedSkillIds } = useUmaSkillSelectionStore.getState();
+
+    const candidates = filterer.filterCandidates(uniqueSkillIds, {
+      selectedSkillIds,
+      selectionMode: selectedSkillIds.size > 0 ? 'selected-only' : 'all-matching'
+    });
+    const skills = filterer.probeActivation(candidates);
 
     const umaWithoutUniques = removeUniqueSkillsFromRunner(runner);
     const uma = umaWithoutUniques;

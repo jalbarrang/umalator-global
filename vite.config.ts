@@ -31,7 +31,9 @@ export default defineConfig({
         '/runners',
         '/race-sim',
         '/skill-planner',
-        '/spark-odds'
+        '/spark-odds',
+        '/skills',
+        '/support-cards'
       ]
     })
   ],

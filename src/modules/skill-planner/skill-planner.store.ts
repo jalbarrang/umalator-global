@@ -19,7 +19,7 @@ import {
   isStackableSkill
 } from '@/modules/skills/skill-relationships';
 import { getSelectableSkillsForUma, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
-import { dataRegistry } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/registry';
 import { getRelatedSkillIds, isSkillCoveredByOwnedFamily } from './skill-family';
 import { resolveActiveSkills } from './optimizer';
 
@@ -144,7 +144,7 @@ type CreateCandidateParams = {
 
 export const createCandidate = (params: CreateCandidateParams): CandidateSkill => {
   const { skillId, hintLevel = 0 } = params;
-  const skill = dataRegistry.skills.getById(skillId);
+  const skill = skillsService.getById(skillId);
   if (!skill) {
     throw new Error(`Skill not found: ${skillId}`);
   }
@@ -194,7 +194,7 @@ const isSelectableForRunner = (skillId: string, outfitId: string) => {
     return false;
   }
 
-  return getSelectableSkillsForUma(outfitId).includes(skillId);
+  return getSelectableSkillsForUma(outfitId, true).includes(skillId);
 };
 
 const getUniqueSkillId = (outfitId: string) => {
@@ -215,9 +215,7 @@ const resolveObtainedSkillIds = (
   outfitId: string,
   previousOutfitId?: string
 ): Array<string> => {
-  const nextSkillIds = Array.from(skillIds).filter(
-    (skillId) => !!dataRegistry.skills.getById(skillId)
-  );
+  const nextSkillIds = Array.from(skillIds).filter((skillId) => !!skillsService.getById(skillId));
   const nextUniqueSkillId = getUniqueSkillId(outfitId);
   const previousUniqueSkillId = getUniqueSkillId(previousOutfitId ?? '');
 
@@ -478,10 +476,7 @@ export const addCandidate = (skillId: string, hintLevel?: number) => {
     const nextCandidates = { ...state.candidates };
     let nextSkillMetaById = state.skillMetaById;
 
-    const otherVersion = dataRegistry.skills.findVersionOfSkill(
-      skillId,
-      Object.keys(nextCandidates)
-    );
+    const otherVersion = skillsService.findVersionOfSkill(skillId, Object.keys(nextCandidates));
     if (otherVersion) {
       const relatedSkillIds = getRelatedSkillIds(otherVersion);
       for (const relatedSkillId of relatedSkillIds) {

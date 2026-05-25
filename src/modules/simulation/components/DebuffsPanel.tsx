@@ -7,7 +7,7 @@ import {
   PanelHeader,
   PanelTitle
 } from '@/components/ui/panel';
-import { dataRegistry } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/registry';
 import { DebuffGroup } from './DebuffGroup';
 import { isInjectableExternalDebuffSkill } from '@/lib/sunday-tools/skills/external-debuffs';
 import { SkillPickerModal } from '@/modules/skills/components/skill-picker/modal';
@@ -24,7 +24,7 @@ export function DebuffsPanel() {
 
   const debuffSkillOptions = useMemo(() => {
     const result: string[] = [];
-    const skills = dataRegistry.skills.getAll();
+    const skills = skillsService.getAll();
 
     for (const skill of skills) {
       if (isInjectableExternalDebuffSkill(skill)) {
@@ -48,7 +48,7 @@ export function DebuffsPanel() {
         return;
       }
 
-      addDebuff(pickerRunnerId, dataRegistry.skills.normalizeSkillId(selectedSkill), 0);
+      addDebuff(pickerRunnerId, skillsService.normalizeSkillId(selectedSkill), 0);
       setPickerSelection([]);
       setPickerRunnerId(null);
     },

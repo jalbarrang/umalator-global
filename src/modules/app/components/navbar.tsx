@@ -37,9 +37,7 @@ export function Navbar() {
       { value: 'simulation', label: 'Compare', to: '/' },
       { value: 'skill-planner', label: 'Skill Planner', to: '/skill-planner' },
       { value: 'skills', label: 'Skills', to: '/skills' },
-      ...(import.meta.env.DEV
-        ? [{ value: 'support-cards', label: 'Support Cards', to: '/support-cards' }]
-        : []),
+      { value: 'support-cards', label: 'Support Cards', to: '/support-cards' },
       { value: 'race-sim', label: 'Race Sim', to: '/race-sim' },
       { value: 'runners', label: 'Veterans', to: '/runners' }
     ],

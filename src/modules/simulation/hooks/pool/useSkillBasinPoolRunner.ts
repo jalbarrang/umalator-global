@@ -16,11 +16,13 @@ import { useSkillPlannerStore } from '@/modules/skill-planner/skill-planner.stor
 import { racedefToParams } from '@/utils/races';
 import {
   defaultSimulationOptions,
-  getActivateableSkills,
   getNullSkillComparisonRow
 } from '@/components/bassin-chart/utils';
+import { skillsService } from '@/modules/data/registry';
+import { useSkillSelectionStore } from '@/modules/simulation/stores/skill-selection.store';
+
 import { PoolManager } from '@/workers/pool/pool-manager';
-import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { coursesService } from '@/modules/data/services/CourseService';
 
 const createSkillBasinPoolWorker = (options: { name: string }) => new SkillBasinPoolWorker(options);
 
@@ -31,7 +33,7 @@ export function useSkillBasinPoolRunner() {
 
   const poolManagerRef = useRef<PoolManager | null>(null);
 
-  const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
+  const course = useMemo(() => coursesService.getSimCourse(courseId), [courseId]);
 
   // Initialize pool manager on mount
   useEffect(() => {
@@ -55,16 +57,19 @@ export function useSkillBasinPoolRunner() {
     const params = racedefToParams(racedef, runner.strategy);
     const baseSkillsToTest = getBaseSkillsToTest();
 
-    const skills = getActivateableSkills(
-      baseSkillsToTest.filter(
-        (skillId) =>
-          !runner.skills.includes(skillId) &&
-          (!skillId.startsWith('9') || !runner.skills.includes('1' + skillId.slice(1)))
-      ),
-      runner,
-      course,
-      params
+    const { selectedSkillIds } = useSkillSelectionStore.getState();
+
+    const filterer = skillsService.createFilterer({ runner, course, raceParams: params });
+    const candidateSkills = baseSkillsToTest.filter(
+      (skillId) =>
+        !runner.skills.includes(skillId) &&
+        (!skillId.startsWith('9') || !runner.skills.includes('1' + skillId.slice(1)))
     );
+    const candidates = filterer.filterCandidates(candidateSkills, {
+      selectedSkillIds,
+      selectionMode: selectedSkillIds.size > 0 ? 'selected-only' : 'all-matching'
+    });
+    const skills = filterer.probeActivation(candidates);
 
     const uma = runner;
 

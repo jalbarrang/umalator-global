@@ -61,6 +61,7 @@ interface SkillRow {
   icon_id: number;
   need_skill_point: number;
   disp_order: number;
+  start_date: number;
 }
 
 interface SkillNameRow {
@@ -436,7 +437,7 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
               s.ability_value_usage_2_2, s.ability_value_level_usage_2_2,
               s.ability_type_2_3, s.float_ability_value_2_3, s.target_type_2_3,
               s.ability_value_usage_2_3, s.ability_value_level_usage_2_3,
-              s.group_id, s.icon_id, COALESCE(sp.need_skill_point, 0) as need_skill_point, s.disp_order
+              s.group_id, s.icon_id, COALESCE(sp.need_skill_point, 0) as need_skill_point, s.disp_order, s.start_date
        FROM skill_data s
        LEFT JOIN single_mode_skill_need_point sp ON s.id = sp.id`
     );
@@ -465,6 +466,11 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
 
       const alternatives = buildAlternatives(row);
       const name = namesById[row.id.toString()] ?? '';
+      const releaseDate =
+        row.start_date > 0
+          ? new Date(row.start_date * 1000).toISOString().slice(0, 10)
+          : undefined;
+
       const baseEntry: Omit<SkillEntry, 'alternatives'> = {
         id: row.id.toString(),
         rarity: row.rarity,
@@ -475,7 +481,8 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
         baseCost: row.need_skill_point,
         order: row.disp_order,
         name,
-        character: []
+        character: [],
+        releaseDate
       };
 
       if (SPLIT_ALTERNATIVES.has(row.id)) {

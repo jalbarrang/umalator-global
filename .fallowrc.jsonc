@@ -1,26 +1,79 @@
 {
   "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
+
+  // ─────────────────────────────────────────────────────────────────────
+  // Tool boundary note:
+  //   • fallow  → dead code, unused exports/deps, circular deps,
+  //               duplication, complexity/health metrics
+  //   • react-doctor → React-specific lint rules (giant components,
+  //               prefer-useReducer, dynamic imports, a11y, etc.)
+  //   • react-doctor's internal knip is fully disabled via its config
+  //     so ALL dead-code / unused analysis is owned by fallow alone.
+  // ─────────────────────────────────────────────────────────────────────
+
+  // ── Additional entry points ───────────────────────────────────────────
+  // Scripts run directly via `bun run` but not referenced from src/
+  "entry": [
+    "scripts/**/*.ts",
+    "oxlint-rules/**/*.js"
+  ],
+
+  // ── Ignore patterns ───────────────────────────────────────────────────
+  // Tooling, generated data, and non-source directories
   "ignorePatterns": [
-    "src/components/ui/**",
-    "oxlint-rules/**",
-    "src/modules/data/services/**",
-    "**/*.generated.ts",
-    "**/*.d.ts"
+    ".agents/**",
+    ".pi/**",
+    ".fallow/**",
+    ".github/**",
+    ".husky/**",
+    ".vscode/**",
+    ".reports/**",
+    "docs/**",
+    "public/**"
   ],
+
+  // ── Dependencies that are used at runtime but not statically visible ──
   "ignoreDependencies": [
-    "class-variance-authority",
-    "cmdk",
-    "date-fns",
-    "next-themes",
-    "react-day-picker",
-    "vaul",
-    "babel-plugin-react-compiler",
-    "globals",
-    "ink",
-    "ink-select-input",
-    "ink-spinner",
-    "ink-text-input",
-    "web-vitals"
+    "date-fns"
   ],
-  "production": false
+
+  // ── Rules ─────────────────────────────────────────────────────────────
+  "rules": {
+    // Downgrade noisy categories while cleaning up
+    "unused-exports": "warn",
+    "unused-types": "warn",
+    "unused-class-members": "warn",
+    "unused-files": "error",
+    "unused-dependencies": "error",
+    "circular-dependencies": "error",
+    "unresolved-imports": "error",
+    "unlisted-dependencies": "error",
+    "duplicate-exports": "error",
+    "type-only-dependencies": "warn",
+    "test-only-dependencies": "warn"
+  },
+
+  // ── Duplicates ────────────────────────────────────────────────────────
+  "duplicates": {
+    "mode": "mild",
+    "minTokens": 60,
+    "minLines": 6,
+    "ignore": [
+      "**/*.test.ts",
+      "**/*.test.tsx",
+      "src/modules/data/json/**"
+    ]
+  },
+
+  // ── Health / complexity ───────────────────────────────────────────────
+  // react-doctor handles React-specific complexity (giant components,
+  // cascading setState, etc.). fallow covers general cyclomatic/cognitive.
+  "health": {
+    "maxCyclomatic": 20,
+    "maxCognitive": 15,
+    "ignore": [
+      "scripts/**",
+      "src/modules/data/json/**"
+    ]
+  }
 }

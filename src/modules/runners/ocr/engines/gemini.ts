@@ -1,5 +1,5 @@
 import type { IStrategyName } from '@/lib/sunday-tools/runner/definitions';
-import { dataRegistry } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/registry';
 import { findBestUmaMatch } from '@/modules/runners/data/search';
 import type { OcrEngine, OcrEngineResult } from '@/modules/runners/ocr/engine';
 import type { ExtractedSkill, ExtractedUmaData } from '@/modules/runners/ocr/types';
@@ -270,16 +270,16 @@ function mapGeminiSkills(skills: Array<string>): Array<ExtractedSkill> {
 
   for (const rawSkill of skills) {
     const skillName = rawSkill.trim();
-    if (!dataRegistry.skills.normalizeSkillName(skillName)) {
+    if (!skillsService.normalizeSkillName(skillName)) {
       continue;
     }
 
-    const match = dataRegistry.skills.findBestSkillMatch(skillName);
+    const match = skillsService.findBestSkillMatch(skillName);
     if (!match) {
       continue;
     }
 
-    const resolvedId = dataRegistry.skills.resolveSkillId(match.id, /lvl\s*\d+/i.test(skillName));
+    const resolvedId = skillsService.resolveSkillId(match.id, /lvl\s*\d+/i.test(skillName));
     if (resolvedSkillIds.has(resolvedId)) {
       continue;
     }

@@ -20,7 +20,7 @@ interface OcrUmaSelectorProps {
 
 export function OcrUmaSelector(props: Readonly<OcrUmaSelectorProps>) {
   const { results, isProcessing, onUpdateResults } = props;
-  const umasForSearch = useUmasForSearch();
+  const umasForSearch = useUmasForSearch(true);
   const [umaSelectOpen, setUmaSelectOpen] = useState(false);
 
   const handleSelectUma = (outfitId: string) => {

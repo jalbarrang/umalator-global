@@ -12,7 +12,7 @@ import { useSettingsStore, useWitVariance } from '@/store/settings.store';
 import { useRunnersStore } from '@/store/runners.store';
 import { useDebuffs } from '@/modules/simulation/stores/compare.store';
 import { useForcedPositions } from '@/modules/simulation/stores/forced-positions.store';
-import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { coursesService } from '@/modules/data/services/CourseService';
 
 const createCompareWorker = () => new CompareWorker();
 
@@ -99,7 +99,7 @@ export function useSimulationRunner() {
     };
   }, []);
 
-  const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
+  const course = useMemo(() => coursesService.getSimCourse(courseId), [courseId]);
 
   const handleRunCompare = (seed?: number) => {
     setIsCompareSimRunning(true);

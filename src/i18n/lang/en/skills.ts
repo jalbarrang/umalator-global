@@ -1,7 +1,7 @@
-import { dataRegistry } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/registry';
 
 const skillNames: Record<string, string> = {};
-for (const skill of dataRegistry.skills.getAll()) {
+for (const skill of skillsService.getAll()) {
   skillNames[skill.id] = skill.name;
 }
 
@@ -35,7 +35,8 @@ export default {
     phase2: 'Late-race',
     phase3: 'Last spurt',
     finalcorner: 'Final corner',
-    finalstraight: 'Final straight'
+    finalstraight: 'Final straight',
+    selfdebuff: 'Self-debuff skills'
   },
   skilleffecttypes: {
     // Stats

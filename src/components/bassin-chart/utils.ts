@@ -1,14 +1,5 @@
 import type { RoundResult, SkillComparisonRoundResult } from '@/modules/simulation/types';
-import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
-import type { CourseData } from '@/lib/sunday-tools/course/definitions';
-import type { RaceParameters } from '@/lib/sunday-tools/common/race';
-import { buildSkillData } from '@/lib/sunday-tools/runner/runner.utils';
-import { parseStrategyName } from '@/lib/sunday-tools/runner/runner.types';
-import { Region, RegionList } from '@/lib/sunday-tools/shared/region';
-import { createParser } from '@/lib/sunday-tools/skills/parser/ConditionParser';
-import type { SkillEvalRunner } from '@/lib/sunday-tools/skills/parser/definitions';
-import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
-import { buildBaseStats } from '@/lib/sunday-tools/common/runner';
+import { CourseService } from '@/modules/data/services/CourseService';
 
 // ===== Shared Chart Utilities =====
 
@@ -25,9 +16,9 @@ export const DEFAULT_BIN_SIZE = 10;
 
 // Helper function to determine which phase a position belongs to
 export function getPhaseForPosition(position: number, courseDistance: number): number {
-  const phase1Start = CourseHelpers.phaseStart(courseDistance, 1);
-  const phase2Start = CourseHelpers.phaseStart(courseDistance, 2);
-  const phase3Start = CourseHelpers.phaseStart(courseDistance, 3);
+  const phase1Start = CourseService.phaseStart(courseDistance, 1);
+  const phase2Start = CourseService.phaseStart(courseDistance, 2);
+  const phase3Start = CourseService.phaseStart(courseDistance, 3);
 
   if (position < phase1Start) return 0;
   if (position < phase2Start) return 1;
@@ -38,9 +29,9 @@ export function getPhaseForPosition(position: number, courseDistance: number): n
 // Helper to get phase reference lines for charts
 export function getPhaseReferenceLines(courseDistance: number) {
   return [
-    { position: CourseHelpers.phaseStart(courseDistance, 1), label: 'Mid' },
-    { position: CourseHelpers.phaseStart(courseDistance, 2), label: 'Final' },
-    { position: CourseHelpers.phaseStart(courseDistance, 3), label: 'Last' }
+    { position: CourseService.phaseStart(courseDistance, 1), label: 'Mid' },
+    { position: CourseService.phaseStart(courseDistance, 2), label: 'Final' },
+    { position: CourseService.phaseStart(courseDistance, 3), label: 'Last' }
   ];
 }
 
@@ -61,69 +52,6 @@ export function createDistanceBins<T extends { start: number; end: number }>(
 }
 
 // ===== End Shared Chart Utilities =====
-
-/**
- * Gets the skills that are activateable for a given horse, course, and race definition.
- *
- * This is useful for filtering out early the skills that don't trigger during the race.
- *
- * @param skills - The skills to check.
- * @param runner - The runner to use.
- * @param course - The course to use.
- * @param raceParams - The race parameters to use.
- *
- * @returns The skills that are activateable.
- */
-export function getActivateableSkills(
-  skills: Array<string>,
-  runner: IRunnerState,
-  course: CourseData,
-  raceParams: RaceParameters
-) {
-  const parser = createParser();
-  const baseStats = buildBaseStats(
-    {
-      speed: runner.speed,
-      stamina: runner.stamina,
-      power: runner.power,
-      guts: runner.guts,
-      wit: runner.wisdom
-    },
-    runner.mood
-  );
-  const skillEvalRunner: SkillEvalRunner = {
-    baseStats,
-    strategy: parseStrategyName(runner.strategy),
-    mood: runner.mood
-  };
-
-  const wholeCourse = new RegionList();
-  wholeCourse.push(new Region(0, course.distance));
-
-  const activableSkills = [];
-
-  for (const skillId of skills) {
-    const skillTriggers = buildSkillData({
-      runner: skillEvalRunner,
-      raceParams,
-      course,
-      wholeCourse,
-      parser,
-      skillId,
-      ignoreNullEffects: false
-    });
-
-    const isActivable = skillTriggers.some(
-      (trigger) => trigger.regions.length > 0 && trigger.regions[0].start < 9999
-    );
-
-    if (isActivable) {
-      activableSkills.push(skillId);
-    }
-  }
-
-  return activableSkills;
-}
 
 export function getNullRow(skillid: string): RoundResult {
   return {

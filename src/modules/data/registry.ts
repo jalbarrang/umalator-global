@@ -1,39 +1,29 @@
-import skillsJson from '@/modules/data/json/skills.json';
-import coursesJson from '@/modules/data/json/course_data.json';
-import umasJson from '@/modules/data/json/umas.json';
-
-import { SkillService } from './services/SkillService';
-import { CourseService } from './services/CourseService';
+import { attachReleaseDates } from './loaders/attach-release-dates';
+import {
+  attachSupportCardEventSources,
+  attachSupportCardHintSources
+} from './loaders/attach-support-sources';
+import { loadSkills } from './loaders/skill-loader';
+import { loadSupportCards } from './loaders/support-card-loader';
+import { loadUmas } from './loaders/uma-loader';
+import { coursesService } from './services/CourseService';
+import { GameToraSkillService } from './services/GameToraSkillService';
+import { SupportCardService } from './services/SupportCardService';
 import { UmaService } from './services/UmaService';
 
-export type DataServices = {
-  skills: SkillService;
-  courses: CourseService;
-  umas: UmaService;
-};
+const loadedSkills = loadSkills();
+const loadedUmas = loadUmas();
+const loadedSupportCards = loadSupportCards(loadedSkills.skills);
+attachSupportCardHintSources(loadedSkills.skills, loadedSupportCards);
+attachSupportCardEventSources(loadedSkills.skills, loadedSupportCards);
+attachReleaseDates(loadedSkills.skills);
 
-export class DataRegistry {
-  private services: DataServices;
-
-  constructor(services: DataServices) {
-    this.services = services;
-  }
-
-  get skills(): SkillService {
-    return this.services.skills;
-  }
-
-  get courses(): CourseService {
-    return this.services.courses;
-  }
-
-  get umas(): UmaService {
-    return this.services.umas;
-  }
-}
-
-export const dataRegistry = new DataRegistry({
-  skills: new SkillService(skillsJson as any),
-  courses: new CourseService(coursesJson as any),
-  umas: new UmaService(umasJson as any)
+export const skillsService = new GameToraSkillService(loadedSkills.skills, {
+  releasedSkillIds: loadedSkills.releasedSkillIds,
+  activationChecks: loadedSkills.activationChecks
 });
+export const umasService = new UmaService(loadedUmas.umas, {
+  releasedOutfits: loadedUmas.releasedOutfits
+});
+export const supportCardsService = new SupportCardService(loadedSupportCards);
+export { coursesService };

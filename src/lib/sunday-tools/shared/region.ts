@@ -65,4 +65,45 @@ export class RegionList extends Array<Region> {
 
     return regionList;
   }
+
+  subtract(other: RegionList) {
+    const regionList = new RegionList();
+    const excludedRegions = new RegionList(...other).union(new RegionList());
+
+    for (const region of this) {
+      let segments = [region];
+
+      for (const excluded of excludedRegions) {
+        const nextSegments: Array<Region> = [];
+
+        for (const segment of segments) {
+          const overlapStart = Math.max(segment.start, excluded.start);
+          const overlapEnd = Math.min(segment.end, excluded.end);
+
+          if (overlapEnd <= overlapStart) {
+            nextSegments.push(segment);
+            continue;
+          }
+
+          if (segment.start < overlapStart) {
+            nextSegments.push(new Region(segment.start, overlapStart));
+          }
+
+          if (overlapEnd < segment.end) {
+            nextSegments.push(new Region(overlapEnd, segment.end));
+          }
+        }
+
+        segments = nextSegments;
+
+        if (segments.length === 0) {
+          break;
+        }
+      }
+
+      regionList.push(...segments);
+    }
+
+    return regionList;
+  }
 }

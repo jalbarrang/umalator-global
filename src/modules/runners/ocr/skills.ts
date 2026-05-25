@@ -2,7 +2,7 @@
  * Extract skills from OCR text
  */
 
-import { dataRegistry } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/registry';
 import type { SkillLookupEntry } from '@/modules/data/services/SkillService';
 import type { ExtractedSkill } from './types';
 
@@ -134,7 +134,7 @@ const assignLevelMarkers = (
 
 /** Extract skills from OCR text */
 export function extractSkills(text: string, imageIndex: number): Array<ExtractedSkill> {
-  const skillLookup = dataRegistry.skills.getSkillLookup();
+  const skillLookup = skillsService.getSkillLookup();
   const lines = text
     .split('\n')
     .map((line) => line.trim())
@@ -163,7 +163,7 @@ export function extractSkills(text: string, imageIndex: number): Array<Extracted
     }
 
     // normalizeSkillName strips level indicators — used for skill name matching
-    const normalizedLine = dataRegistry.skills.normalizeSkillName(cleanedLine);
+    const normalizedLine = skillsService.normalizeSkillName(cleanedLine);
     if (!normalizedLine || normalizedLine.length < 4) {
       continue;
     }
@@ -175,10 +175,10 @@ export function extractSkills(text: string, imageIndex: number): Array<Extracted
 
     // Fallback to fuzzy full-line matching when no substring match exists
     if (candidates.length === 0) {
-      const wholeMatch = dataRegistry.skills.findBestSkillMatch(cleanedLine);
+      const wholeMatch = skillsService.findBestSkillMatch(cleanedLine);
 
       if (wholeMatch) {
-        const normalizedMatchName = dataRegistry.skills.normalizeSkillName(wholeMatch.name);
+        const normalizedMatchName = skillsService.normalizeSkillName(wholeMatch.name);
         const start = normalizedLine.indexOf(normalizedMatchName);
 
         candidates = [
@@ -187,7 +187,8 @@ export function extractSkills(text: string, imageIndex: number): Array<Extracted
               id: wholeMatch.id,
               geneId: wholeMatch.geneId,
               name: wholeMatch.name,
-              rarity: 0
+              rarity: 0,
+              released: skillsService.isReleased(wholeMatch.id)
             },
             confidence: wholeMatch.confidence,
             start: start >= 0 ? start : 0,
@@ -205,7 +206,7 @@ export function extractSkills(text: string, imageIndex: number): Array<Extracted
 
     for (const candidate of candidates) {
       const hasLevel = hasLevelBySkillId.get(candidate.entry.id) ?? false;
-      const resolvedId = dataRegistry.skills.resolveSkillId(candidate.entry.id, hasLevel);
+      const resolvedId = skillsService.resolveSkillId(candidate.entry.id, hasLevel);
 
       if (seenIds.has(resolvedId)) {
         continue;

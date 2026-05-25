@@ -1,13 +1,21 @@
+import { useId } from 'react';
 import { cn } from '@/lib/utils';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import i18n from '@/i18n';
-import { ChevronDownIcon, FilterIcon } from 'lucide-react';
+import { ChevronDownIcon, FilterIcon, XIcon } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
+import { getSkillIconFilterDisplayId, groups_filters, SELF_DEBUFF_ICON_FILTER_KEY } from '../../filters';
 import { SkillIcon } from '../skill-list/skill-item/SkillIcon';
-import { groups_filters } from '../../filters';
-import { useSkillPickerActions, useSkillPickerState } from './store';
+import {
+  hasActiveSkillPickerFilters,
+  type SkillPickerFilterGroup,
+  useSkillPickerActions,
+  useSkillPickerState,
+  useSkillPickerStore
+} from './store';
 import { FilterState } from './types';
 
 type FilterButtonProps = {
@@ -17,17 +25,19 @@ type FilterButtonProps = {
 };
 
 const FilterButton = ({ id, checked, onChecked }: FilterButtonProps) => {
+  const inputId = `${useId()}-${id}`;
+
   return (
     <div className="flex items-center">
       <input
         type="checkbox"
-        id={id}
+        id={inputId}
         checked={checked}
         onChange={onChecked}
         className="peer sr-only"
       />
       <Label
-        htmlFor={id}
+        htmlFor={inputId}
         className={cn(
           'cursor-pointer rounded-md border px-2 py-1 text-xs leading-5 transition-colors',
           'border-border bg-background text-muted-foreground hover:border-muted-foreground/30 hover:text-foreground',
@@ -48,7 +58,8 @@ type IconFilterButtonProps = {
   onChecked: () => void;
 };
 
-const IconFilterButton = ({ type, group, filterState, onChecked }: IconFilterButtonProps) => {
+const IconFilterButton = (props: IconFilterButtonProps) => {
+  const { type, group, filterState, onChecked } = props;
   const isActive = filterState[group][type];
 
   return (
@@ -57,6 +68,7 @@ const IconFilterButton = ({ type, group, filterState, onChecked }: IconFilterBut
       data-filter={type}
       variant="ghost"
       size="icon"
+      title={type === SELF_DEBUFF_ICON_FILTER_KEY ? i18n.t('skillfilters.selfdebuff') : undefined}
       className={cn(
         'size-8 rounded-md border border-border bg-background p-0 [&_img]:h-7 [&_img]:w-7',
         isActive
@@ -65,7 +77,7 @@ const IconFilterButton = ({ type, group, filterState, onChecked }: IconFilterBut
       )}
       onClick={onChecked}
     >
-      <SkillIcon iconId={`${type}1`} />
+      <SkillIcon iconId={getSkillIconFilterDisplayId(type)} />
     </Button>
   );
 };
@@ -84,6 +96,7 @@ function groupIconTypesByCategory() {
   const grouped: Record<string, Array<string>> = {};
 
   for (const iconType of groups_filters.icontype) {
+    if (iconType === SELF_DEBUFF_ICON_FILTER_KEY) continue;
     const category = iconType[0];
     if (!grouped[category]) grouped[category] = [];
     grouped[category].push(iconType);
@@ -108,9 +121,22 @@ const FilterSection = ({ title, children }: FilterSectionProps) => {
   );
 };
 
-export const SkillPickerFilterRow = () => {
+type SkillPickerFilterRowProps = {
+  showUpcomingToggle?: boolean;
+  onAfterClear?: () => void;
+  hasAdditionalFilters?: boolean;
+  hiddenFilterGroups?: ReadonlySet<SkillPickerFilterGroup>;
+};
+
+export const SkillPickerFilterRow = (props: SkillPickerFilterRowProps) => {
+  const {
+    showUpcomingToggle = true,
+    onAfterClear,
+    hasAdditionalFilters = false,
+    hiddenFilterGroups
+  } = props;
   const { filters: filterState } = useSkillPickerState();
-  const { toggleIconType, setExclusiveFilter } = useSkillPickerActions();
+  const { toggleIconType, setExclusiveFilter, clearFilters } = useSkillPickerActions();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleExclusiveChecked = useCallback(
@@ -127,19 +153,53 @@ export const SkillPickerFilterRow = () => {
     [toggleIconType]
   );
 
+  const isGroupHidden = useCallback(
+    (group: SkillPickerFilterGroup) => hiddenFilterGroups?.has(group) ?? false,
+    [hiddenFilterGroups]
+  );
+
   const activeFilterCount = useMemo(() => {
     let count = 0;
 
     for (const [groupName, groupValues] of Object.entries(filterState)) {
-      if (groupName === 'icontype') continue;
+      if (groupName === 'icontype' || isGroupHidden(groupName as SkillPickerFilterGroup)) {
+        continue;
+      }
       count += Object.values(groupValues).filter(Boolean).length;
     }
 
     return count;
-  }, [filterState]);
+  }, [filterState, isGroupHidden]);
+
+  const pickerFiltersActive = useMemo(
+    () => hasActiveSkillPickerFilters(filterState, hiddenFilterGroups),
+    [filterState, hiddenFilterGroups]
+  );
+
+  const showClear = pickerFiltersActive || hasAdditionalFilters;
+
+  const handleClearFilters = useCallback(() => {
+    clearFilters();
+    onAfterClear?.();
+  }, [clearFilters, onAfterClear]);
 
   return (
     <div className="flex flex-col gap-2">
+      {showClear ? (
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-7 gap-1 px-2 text-xs text-muted-foreground"
+            onClick={handleClearFilters}
+          >
+            <XIcon className="size-3" />
+            Clear
+          </Button>
+        </div>
+      ) : null}
+
       <div className="md:hidden">
         <Button
           type="button"
@@ -159,68 +219,89 @@ export const SkillPickerFilterRow = () => {
       </div>
 
       <div className={cn('flex-col gap-2', mobileOpen ? 'flex' : 'hidden', 'md:flex')}>
-        <div className="flex flex-col gap-2 md:flex-row">
-          <FilterSection title="Rarity">
-            {filterGroups.rarity.map((filter) => (
-              <FilterButton
-                key={filter}
-                id={filter}
-                checked={filterState.rarity[filter]}
-                onChecked={() => handleExclusiveChecked('rarity', filter)}
-              />
-            ))}
-          </FilterSection>
+        {!isGroupHidden('rarity') || !isGroupHidden('strategy') ? (
+          <div className="flex flex-col gap-2 md:flex-row">
+            {!isGroupHidden('rarity') ? (
+              <FilterSection title="Rarity">
+                {filterGroups.rarity.map((filter) => (
+                  <FilterButton
+                    key={filter}
+                    id={filter}
+                    checked={filterState.rarity[filter]}
+                    onChecked={() => handleExclusiveChecked('rarity', filter)}
+                  />
+                ))}
+              </FilterSection>
+            ) : null}
 
-          <FilterSection title="Strategy">
-            {filterGroups.strategy.map((filter) => (
-              <FilterButton
-                key={filter}
-                id={filter}
-                checked={filterState.strategy[filter]}
-                onChecked={() => handleExclusiveChecked('strategy', filter)}
-              />
-            ))}
-          </FilterSection>
-        </div>
+            {!isGroupHidden('strategy') ? (
+              <FilterSection title="Strategy">
+                {filterGroups.strategy.map((filter) => (
+                  <FilterButton
+                    key={filter}
+                    id={filter}
+                    checked={filterState.strategy[filter]}
+                    onChecked={() => handleExclusiveChecked('strategy', filter)}
+                  />
+                ))}
+              </FilterSection>
+            ) : null}
+          </div>
+        ) : null}
 
-        <div className="flex flex-col gap-2 md:flex-row">
-          <FilterSection title="Distance">
-            {filterGroups.distance.map((filter) => (
-              <FilterButton
-                key={filter}
-                id={filter}
-                checked={filterState.distance[filter]}
-                onChecked={() => handleExclusiveChecked('distance', filter)}
-              />
-            ))}
-          </FilterSection>
+        {!isGroupHidden('distance') ||
+        !isGroupHidden('surface') ||
+        !isGroupHidden('location') ? (
+          <div className="flex flex-col gap-2 md:flex-row">
+            {!isGroupHidden('distance') ? (
+              <FilterSection title="Distance">
+                {filterGroups.distance.map((filter) => (
+                  <FilterButton
+                    key={filter}
+                    id={filter}
+                    checked={filterState.distance[filter]}
+                    onChecked={() => handleExclusiveChecked('distance', filter)}
+                  />
+                ))}
+              </FilterSection>
+            ) : null}
 
-          <Separator orientation="vertical" className="hidden md:block" />
+            {!isGroupHidden('distance') && !isGroupHidden('surface') ? (
+              <Separator orientation="vertical" className="hidden md:block" />
+            ) : null}
 
-          <FilterSection title="Surface">
-            {filterGroups.surface.map((filter) => (
-              <FilterButton
-                key={filter}
-                id={filter}
-                checked={filterState.surface[filter]}
-                onChecked={() => handleExclusiveChecked('surface', filter)}
-              />
-            ))}
-          </FilterSection>
+            {!isGroupHidden('surface') ? (
+              <FilterSection title="Surface">
+                {filterGroups.surface.map((filter) => (
+                  <FilterButton
+                    key={filter}
+                    id={filter}
+                    checked={filterState.surface[filter]}
+                    onChecked={() => handleExclusiveChecked('surface', filter)}
+                  />
+                ))}
+              </FilterSection>
+            ) : null}
 
-          <Separator orientation="vertical" className="hidden md:block" />
+            {(!isGroupHidden('distance') || !isGroupHidden('surface')) &&
+            !isGroupHidden('location') ? (
+              <Separator orientation="vertical" className="hidden md:block" />
+            ) : null}
 
-          <FilterSection title="Location">
-            {filterGroups.location.map((filter) => (
-              <FilterButton
-                key={filter}
-                id={filter}
-                checked={filterState.location[filter]}
-                onChecked={() => handleExclusiveChecked('location', filter)}
-              />
-            ))}
-          </FilterSection>
-        </div>
+            {!isGroupHidden('location') ? (
+              <FilterSection title="Location">
+                {filterGroups.location.map((filter) => (
+                  <FilterButton
+                    key={filter}
+                    id={filter}
+                    checked={filterState.location[filter]}
+                    onChecked={() => handleExclusiveChecked('location', filter)}
+                  />
+                ))}
+              </FilterSection>
+            ) : null}
+          </div>
+        ) : null}
 
         <FilterSection title="Effect type">
           <div className="flex flex-wrap gap-1">
@@ -239,12 +320,45 @@ export const SkillPickerFilterRow = () => {
                       onChecked={() => handleIconTypeChecked(type)}
                     />
                   ))}
+                  {category === '2' ? (
+                    <IconFilterButton
+                      type={SELF_DEBUFF_ICON_FILTER_KEY}
+                      group="icontype"
+                      filterState={filterState}
+                      onChecked={() => handleIconTypeChecked(SELF_DEBUFF_ICON_FILTER_KEY)}
+                    />
+                  ) : null}
                 </div>
               );
             })}
           </div>
         </FilterSection>
+
+        {showUpcomingToggle ? (
+          <div className="flex items-center justify-end">
+            <SkillPickerUpcomingToggle />
+          </div>
+        ) : null}
       </div>
     </div>
   );
 };
+
+function SkillPickerUpcomingToggle() {
+  const checkboxId = useId();
+  const showUpcoming = useSkillPickerStore((state) => state.showUpcoming);
+  const { setShowUpcoming } = useSkillPickerActions();
+
+  return (
+    <div className="flex items-center gap-2">
+      <Checkbox
+        id={checkboxId}
+        checked={showUpcoming}
+        onCheckedChange={(checked) => setShowUpcoming(checked === true)}
+      />
+      <Label htmlFor={checkboxId} className="text-xs font-normal">
+        Show upcoming
+      </Label>
+    </div>
+  );
+}

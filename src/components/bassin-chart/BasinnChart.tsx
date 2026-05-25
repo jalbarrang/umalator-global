@@ -24,12 +24,15 @@ import type {
 } from '@tanstack/react-table';
 import type { SkillComparisonRoundResult } from '@/modules/simulation/types';
 
-import { dataRegistry } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/registry';
 import type { SkillEntry } from '@/modules/data/services/SkillService';
-import { groups_filters } from '@/modules/skills/filters';
+import {
+  getSkillIconFilterImageUrl,
+  groups_filters,
+  skillMatchesIconTypeFilter
+} from '@/modules/skills/filters';
 import { iconIdPrefixes } from '@/modules/skills/icons';
 import i18n from '@/i18n';
-import { getIconUrl } from '@/assets/icons';
 import { cn } from '@/lib/utils';
 import { BassinTableBody, BASSIN_DATA_EVENT_OPEN_SKILL_ACTIONS } from './bassin-table-body';
 import { Menu as MenuPrimitive } from '@base-ui/react/menu';
@@ -51,7 +54,7 @@ export const formatBasinn = React.memo(
   }
 );
 
-type IconTypeFilterKey = keyof typeof iconIdPrefixes;
+type IconTypeFilterKey = keyof typeof iconIdPrefixes | 'selfdebuff';
 
 type IconTypeFilterBarProps = {
   iconTypeFilters: Record<IconTypeFilterKey, boolean>;
@@ -78,7 +81,7 @@ const IconTypeFilterButton = React.memo((props: IconTypeFilterButtonProps) => {
   }, [iconTypeFilters, iconType]);
 
   const imgSrc = useMemo(() => {
-    return getIconUrl(`${iconType}1.png`);
+    return getSkillIconFilterImageUrl(iconType);
   }, [iconType]);
 
   return (
@@ -238,7 +241,7 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
     const entries: Array<[string, SkillEntry]> = [];
 
     for (const row of props.data) {
-      const skill = dataRegistry.skills.getById(row.id);
+      const skill = skillsService.getById(row.id);
       if (skill) {
         entries.push([row.id, skill]);
       }
@@ -259,9 +262,7 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
       if (!skill) return true;
 
       return activeIconTypeFilters.some((iconType) =>
-        iconIdPrefixes[iconType as IconTypeFilterKey]?.some((prefix) =>
-          skill.iconId.startsWith(prefix)
-        )
+        skillMatchesIconTypeFilter(skill, iconType)
       );
     });
   }, [activeIconTypeFilters, props.data, skillMetadataById]);
@@ -379,8 +380,8 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
           const skillIdA = a.getValue('id');
           const skillIdB = b.getValue('id');
 
-          const skillNameA = dataRegistry.skills.getNameById(`${skillIdA}`);
-          const skillNameB = dataRegistry.skills.getNameById(`${skillIdB}`);
+          const skillNameA = skillsService.getNameById(`${skillIdA}`);
+          const skillNameB = skillsService.getNameById(`${skillIdB}`);
 
           return skillNameA < skillNameB ? -1 : 1;
         }
@@ -500,7 +501,6 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
 
       {/* Search Bar */}
       <TableSearchBar
-        isOpen={search.isSearchOpen}
         searchQuery={search.searchQuery}
         onSearchChange={search.setSearchQuery}
         onClose={search.closeSearch}
@@ -571,7 +571,7 @@ export const BasinnChart = React.memo((props: BasinnChartProps) => {
         >
           {skillDetailsAnchor &&
             (() => {
-              const skill = dataRegistry.skills.getById(skillDetailsAnchor.skillId);
+              const skill = skillsService.getById(skillDetailsAnchor.skillId);
               if (!skill) {
                 return (
                   <div className="p-3 text-sm text-muted-foreground">

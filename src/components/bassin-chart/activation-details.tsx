@@ -1,15 +1,15 @@
-import { useMemo } from 'react';
+import { Suspense, useMemo } from 'react';
 import { Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { ActivationEffectChart } from './ActivationEffectChart';
-import { LengthDifferenceChart } from './LengthDifferenceChart';
+import { ChartLoadingFallback } from '@/components/charts/chart-loading-fallback';
+import { LazyActivationEffectChart, LazyLengthDifferenceChart } from './lazy-bassin-charts';
 import type {
   SkillSimulationData,
   SkillTrackedMetaCollection
 } from '@/modules/simulation/compare.types';
-import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { CourseService } from '@/modules/data/services/CourseService';
 import React from 'react';
 
 type ActivationDetailsProps = {
@@ -62,9 +62,9 @@ export const ActivationDetails = React.memo((props: ActivationDetailsProps) => {
       averagePosition = activationPositions.reduce((sum, pos) => sum + pos, 0) / totalActivations;
 
       // Determine primary activation phase using CourseHelpers
-      const phase1Start = CourseHelpers.phaseStart(courseDistance, 1);
-      const phase2Start = CourseHelpers.phaseStart(courseDistance, 2);
-      const phase3Start = CourseHelpers.phaseStart(courseDistance, 3);
+      const phase1Start = CourseService.phaseStart(courseDistance, 1);
+      const phase2Start = CourseService.phaseStart(courseDistance, 2);
+      const phase3Start = CourseService.phaseStart(courseDistance, 3);
 
       if (averagePosition < phase1Start) {
         primaryPhase = 'Early Race';
@@ -174,18 +174,27 @@ export const ActivationDetails = React.memo((props: ActivationDetailsProps) => {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          <ActivationEffectChart
-            skillId={skillId}
-            skillActivations={activationPositions}
-            courseDistance={courseDistance}
-          />
-          <LengthDifferenceChart
-            skillId={skillId}
-            skillActivations={skillActivations}
-            courseDistance={courseDistance}
-          />
-        </div>
+        <Suspense
+          fallback={
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <ChartLoadingFallback height={240} />
+              <ChartLoadingFallback height={240} />
+            </div>
+          }
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <LazyActivationEffectChart
+              skillId={skillId}
+              skillActivations={activationPositions}
+              courseDistance={courseDistance}
+            />
+            <LazyLengthDifferenceChart
+              skillId={skillId}
+              skillActivations={skillActivations}
+              courseDistance={courseDistance}
+            />
+          </div>
+        </Suspense>
 
         <div className="border-t flex flex-col gap-2 pt-2">
           <div className="flex items-center gap-3 text-xs">

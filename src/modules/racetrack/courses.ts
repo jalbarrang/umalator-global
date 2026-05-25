@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { dataRegistry } from '@/modules/data/registry';
+import { coursesService } from '@/modules/data/services/CourseService';
 import type { CourseEntry } from '@/modules/data/services/CourseService';
 
 export type CourseByTrack = Record<number, Array<number>>;
@@ -7,7 +7,7 @@ export type CourseByTrack = Record<number, Array<number>>;
 function buildCoursesByTrack(): CourseByTrack {
   const byTrack: CourseByTrack = {};
 
-  for (const [cid, course] of dataRegistry.courses.getAllEntries()) {
+  for (const [cid, course] of coursesService.getAllEntries()) {
     const tid = course.raceTrackId;
     if (tid in byTrack) {
       byTrack[tid].push(+cid);
@@ -40,7 +40,7 @@ export const getCourseIdByTrackIdAndIndex = (trackId: number, index: number) => 
 };
 
 export const getCourseById = (courseId: number): CourseEntry => {
-  const course = dataRegistry.courses.getById(courseId.toString());
+  const course = coursesService.getById(courseId.toString());
 
   if (!course) {
     throw new Error(`Course with id ${courseId} not found`);

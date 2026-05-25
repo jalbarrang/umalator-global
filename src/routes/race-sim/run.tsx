@@ -5,7 +5,7 @@ import { useShallow } from 'zustand/shallow';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button-group';
-import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { coursesService } from '@/modules/data/services/CourseService';
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import { DetailStrip } from '@/modules/race-sim/components/DetailStrip';
 import { EventLogPanel } from '@/modules/race-sim/components/EventLogPanel';
@@ -112,7 +112,7 @@ export default function RaceSimRun() {
   );
 
   const { courseId } = useSettingsStore(useShallow((state) => ({ courseId: state.courseId })));
-  const courseData = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
+  const courseData = useMemo(() => coursesService.getSimCourse(courseId), [courseId]);
 
   const [zoomMode, setZoomMode] = useState<ZoomMode>('full');
 

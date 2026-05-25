@@ -1,7 +1,11 @@
-import { useMemo } from 'react';
+import { lazy, Suspense, useMemo } from 'react';
 import { BarChart3 } from 'lucide-react';
 import { useRaceStore } from '@/modules/simulation/stores/compare.store';
-import { Histogram } from '@/components/Histogram';
+import { ChartLoadingFallback } from '@/components/charts/chart-loading-fallback';
+
+const LazyHistogram = lazy(() =>
+  import('@/components/Histogram').then((module) => ({ default: module.Histogram }))
+);
 import {
   Empty,
   EmptyDescription,
@@ -190,7 +194,9 @@ export const DistributionTab = () => {
         <div className="w-full">
           <h3 className="text-lg font-semibold text-foreground mb-3">Result Distribution</h3>
           <div className="flex justify-center h-[300px]">
-            <Histogram data={results} className="w-full" />
+            <Suspense fallback={<ChartLoadingFallback className="w-full max-w-[600px]" />}>
+              <LazyHistogram data={results} className="w-full" />
+            </Suspense>
           </div>
         </div>
       </div>

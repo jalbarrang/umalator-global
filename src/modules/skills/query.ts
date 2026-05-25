@@ -1,6 +1,6 @@
+import { skillsService } from '@/modules/data/registry';
 import type { SkillEntry } from '@/modules/data/services/SkillService';
-import { SkillRarity } from '@/lib/sunday-tools/skills/definitions';
-import { skillFilterLookUp } from '@/modules/skills/utils';
+import { skillFilterLookUp } from '@/modules/skills/skill-filter-lookup';
 
 // A predicate that takes a skill and returns whether it passes
 type SkillPredicate = (skill: SkillEntry) => boolean;
@@ -62,6 +62,18 @@ export class SkillQuery {
    */
   whereValid(): this {
     this.predicates.push((skill) => skill.name.length > 0 && skill.iconId.length > 0);
+    return this;
+  }
+
+  /**
+   * WHERE skill is released (filters out upcoming/datamined skills)
+   * No-op when isUpcoming is true.
+   */
+  whereIsUpcoming(isUpcoming: boolean): this {
+    if (isUpcoming) return this;
+
+    this.predicates.push((skill) => skillsService.isReleased(skill.id));
+
     return this;
   }
 
@@ -130,34 +142,3 @@ export class SkillQuery {
     return this.skills.filter((skill) => this.predicates.every((predicate) => predicate(skill)));
   }
 }
-
-// Helper matchers that work with Skill objects directly
-export const SkillMatchers = {
-  rarity:
-    (rarityKey: string) =>
-    (skill: SkillEntry): boolean => {
-      const rarity = skill.rarity;
-
-      switch (rarityKey) {
-        case 'white':
-          return rarity === SkillRarity.White && !skill.id.startsWith('9');
-        case 'gold':
-          return rarity === SkillRarity.Gold;
-        case 'pink':
-          return rarity === SkillRarity.Evolution;
-        case 'unique':
-          return rarity > SkillRarity.Gold && rarity < SkillRarity.Evolution;
-        case 'inherit':
-          return skill.id.startsWith('9');
-        default:
-          return true;
-      }
-    },
-
-  iconType:
-    (iconPrefixes: Record<string, Array<string>>) =>
-    (iconKey: string) =>
-    (skill: SkillEntry): boolean => {
-      return iconPrefixes[iconKey]?.some((p) => skill.iconId.startsWith(p)) ?? false;
-    }
-};

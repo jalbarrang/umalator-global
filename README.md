@@ -40,15 +40,17 @@ bun run dev
 
 Open the local URL printed by Vite to use the simulator UI.
 
-### Fetch `master.mdb` (Optional but recommended)
-
-If you want to run local extraction scripts with fresh game data, fetch the latest master database into `./db`:
+### Sync Game Data
 
 ```bash
-bun run db:fetch
+bun run db:fetch        # 1. Download latest master.mdb to ./db
+bun run extract:all     # 2. Extract course geometry from master.mdb
+bun run sync:data       # 3. Sync entity catalog (skills, umas, cards) from GameTora
 ```
 
-This script downloads `master.mdb` to `db/master.mdb`, which extraction scripts use automatically.
+Start with `master.mdb` to establish what's live on Global, then sync GameTora to overlay the full catalog (including upcoming content). `sync:data` only re-fetches data that changed since the last sync.
+
+See [docs/data-extraction/data-pipeline.md](docs/data-extraction/data-pipeline.md) for details.
 
 ## Deployment
 
@@ -82,8 +84,9 @@ Both workflows can also be triggered manually via `workflow_dispatch`.
 - `bun run typecheck`: run TypeScript checks
 - `bun run lint`: run ESLint
 - `bun run test`: run test suite
+- `bun run sync:data`: sync entity catalog from GameTora
 - `bun run db:fetch`: download latest `master.mdb` to `./db`
-- `bun run skill:compare`: run skill comparison debug script
+- `bun run extract:all`: extract course geometry from `master.mdb`
 
 ## Acknowledgements
 
@@ -92,7 +95,7 @@ Special thanks to:
 
 - **alpha123** for the original simulator and UI foundations.
 - **Transparent Dino**, **jechtoff2dudes** and **Kachi** for extensive fixes, systems rework, and simulator enhancements made in VFalator.
-- **Gametora** for all the data used in this project.
+- **[GameTora](https://gametora.com/)** for game data, including the entity catalog (skills, umas, support cards), event rewards, and skill hint mappings that power this tool.
 
 ## Copyright and Fair Use Notice
 

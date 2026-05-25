@@ -1,6 +1,6 @@
-import { useDeferredValue, useMemo, useState } from 'react';
+import { useId, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { SlidersHorizontalIcon, SearchIcon, XIcon } from 'lucide-react';
-
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -27,30 +27,20 @@ import {
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { config } from '@/config';
-import { dataRegistry } from '@/modules/data/registry';
+import { skillsService, supportCardsService } from '@/modules/data/registry';
+import type { SupportCardEntry } from '@/modules/data/services/SupportCardService';
 import { SkillDetails } from '@/modules/skills/components/skill-details';
 import { SkillIcon } from '@/modules/skills/components/skill-list/skill-item/SkillIcon';
-import supportCardsJson from '@/modules/data/json/support-cards.json';
 import { cn } from '@/lib/utils';
+import { Label } from '@/components/ui/label';
 
-type SupportSkill = {
-  id: number;
-  name: string;
-  rarity: number;
-};
+const CARD_ROW_ESTIMATED_HEIGHT = 280;
+const CARD_ROW_GAP = 12;
+const CARD_ROW_OVERSCAN = 3;
 
-type SupportCardEntry = {
-  id: number;
-  name: string;
-  charaId: number;
-  charaName: string;
-  rarity: number;
-  supportCardType: number;
-  hintSkills: SupportSkill[];
-  eventSkills: SupportSkill[];
-};
+type SupportSkill = SupportCardEntry['hintSkills'][number];
 
-const supportCards = Object.values(supportCardsJson) as SupportCardEntry[];
+const supportCards = supportCardsService.getAll();
 
 const supportSkillStatsById = new Map<
   string,
@@ -93,7 +83,9 @@ const supportSkillLabelById = new Map(
   supportSkillOptions.map((skill) => [skill.value, skill.label] as const)
 );
 
-function getSupportCardImageUrl(cardId: number) {
+const SUPPORT_CARD_FALLBACK_IMAGE = `${config.basePath}img/support-cards/support_thumb_00000.png`;
+
+export function getSupportCardImageUrl(cardId: number) {
   return `${config.basePath}img/support-cards/support_card_s_${cardId}.png`;
 }
 
@@ -443,7 +435,7 @@ type SupportSkillItemProps = {
 function SupportSkillItem(props: SupportSkillItemProps) {
   const { skill } = props;
   const [detailsOpen, setDetailsOpen] = useState(false);
-  const skillEntry = dataRegistry.skills.getById(`${skill.id}`);
+  const skillEntry = skillsService.getById(`${skill.id}`);
 
   const skillItem = (
     <button className={cn('flex flex-row items-center gap-2 border bg-background py-1 px-2')}>
@@ -520,6 +512,9 @@ function SupportCardItem(props: SupportCardItemProps) {
             alt=""
             className="aspect-square size-20 object-cover"
             loading="lazy"
+            onError={(e) => {
+              e.currentTarget.src = SUPPORT_CARD_FALLBACK_IMAGE;
+            }}
           />
         </div>
 
@@ -545,12 +540,67 @@ function SupportCardItem(props: SupportCardItemProps) {
   );
 }
 
+function getGridColumns() {
+  if (typeof window === 'undefined') return 1;
+  if (window.innerWidth >= 1280) return 4;
+  if (window.innerWidth >= 768) return 2;
+  return 1;
+}
+
+function useGridColumns() {
+  const [columns, setColumns] = useState(getGridColumns);
+
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') {
+      setColumns(getGridColumns());
+      return;
+    }
+
+    const xlMql = window.matchMedia('(min-width: 1280px)');
+    const mdMql = window.matchMedia('(min-width: 768px)');
+
+    const update = () => {
+      if (xlMql.matches) setColumns(4);
+      else if (mdMql.matches) setColumns(2);
+      else setColumns(1);
+    };
+
+    xlMql.addEventListener('change', update);
+    mdMql.addEventListener('change', update);
+    update();
+
+    return () => {
+      xlMql.removeEventListener('change', update);
+      mdMql.removeEventListener('change', update);
+    };
+  }, []);
+
+  return columns;
+}
+
+function SupportCardsUpcomingToggle(props: { checked: boolean; onToggle: () => void }) {
+  const { checked, onToggle } = props;
+  const checkboxId = useId();
+
+  return (
+    <div className="flex h-9 items-center gap-2 rounded-md border px-3">
+      <Checkbox id={checkboxId} checked={checked} onCheckedChange={() => onToggle()} />
+      <Label htmlFor={checkboxId} className="text-sm font-normal">
+        Show upcoming
+      </Label>
+    </div>
+  );
+}
+
 export function SupportCardsPage() {
   const [searchText, setSearchText] = useState('');
   const [selectedSkillSourceIds, setSelectedSkillSourceIds] = useState<string[]>([]);
   const [cardTypeFilters, setCardTypeFilters] = useState<string[]>([]);
   const [cardRarityFilters, setCardRarityFilters] = useState<string[]>([]);
+  const [showUpcoming, setShowUpcoming] = useState(false);
   const deferredSearchText = useDeferredValue(searchText);
+  const columns = useGridColumns();
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const activeFilterCount =
     cardTypeFilters.length + cardRarityFilters.length + selectedSkillSourceIds.length;
 
@@ -558,6 +608,10 @@ export function SupportCardsPage() {
     const normalizedSearch = deferredSearchText.trim().toLowerCase();
 
     return supportCards.filter((card) => {
+      if (!showUpcoming && !card.released) {
+        return false;
+      }
+
       if (cardTypeFilters.length > 0 && !cardTypeFilters.includes(`${card.supportCardType}`)) {
         return false;
       }
@@ -600,7 +654,27 @@ export function SupportCardsPage() {
 
       return true;
     });
-  }, [cardRarityFilters, cardTypeFilters, deferredSearchText, selectedSkillSourceIds]);
+  }, [
+    cardRarityFilters,
+    cardTypeFilters,
+    deferredSearchText,
+    selectedSkillSourceIds,
+    showUpcoming
+  ]);
+
+  const rowCount = Math.ceil(filteredCards.length / columns);
+
+  const rowVirtualizer = useVirtualizer({
+    count: rowCount,
+    getScrollElement: () => scrollContainerRef.current,
+    estimateSize: () => CARD_ROW_ESTIMATED_HEIGHT,
+    gap: CARD_ROW_GAP,
+    overscan: CARD_ROW_OVERSCAN,
+    getItemKey: (index) => {
+      const startIdx = index * columns;
+      return filteredCards[startIdx]?.id ?? `row-${index}`;
+    }
+  });
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col gap-3 p-3 md:p-4">
@@ -608,7 +682,6 @@ export function SupportCardsPage() {
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-semibold leading-tight">Support Cards</h1>
-            <Badge variant="destructive">Development only</Badge>
           </div>
           <div className="text-sm text-muted-foreground">
             {filteredCards.length} of {supportCards.length} support cards
@@ -628,16 +701,23 @@ export function SupportCardsPage() {
             />
           </InputGroup>
 
-          <div className="w-full md:w-auto">
-            <SupportCardFiltersDialog
-              cardTypeFilters={cardTypeFilters}
-              cardRarityFilters={cardRarityFilters}
-              selectedSkillSourceIds={selectedSkillSourceIds}
-              activeFilterCount={activeFilterCount}
-              onCardTypeFiltersChange={setCardTypeFilters}
-              onCardRarityFiltersChange={setCardRarityFilters}
-              onSelectedSkillSourceIdsChange={setSelectedSkillSourceIds}
+          <div className="flex w-full flex-col gap-2 md:w-auto md:flex-row md:items-center">
+            <SupportCardsUpcomingToggle
+              checked={showUpcoming}
+              onToggle={() => setShowUpcoming((v) => !v)}
             />
+
+            <div className="w-full md:w-auto">
+              <SupportCardFiltersDialog
+                cardTypeFilters={cardTypeFilters}
+                cardRarityFilters={cardRarityFilters}
+                selectedSkillSourceIds={selectedSkillSourceIds}
+                activeFilterCount={activeFilterCount}
+                onCardTypeFiltersChange={setCardTypeFilters}
+                onCardRarityFiltersChange={setCardRarityFilters}
+                onSelectedSkillSourceIdsChange={setSelectedSkillSourceIds}
+              />
+            </div>
           </div>
         </div>
 
@@ -665,12 +745,35 @@ export function SupportCardsPage() {
         />
       </header>
 
-      <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+      <div ref={scrollContainerRef} className="min-h-0 flex-1 overflow-y-auto pr-1">
         {filteredCards.length > 0 ? (
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-            {filteredCards.map((card) => (
-              <SupportCardItem key={card.id} card={card} />
-            ))}
+          <div className="relative w-full" style={{ height: rowVirtualizer.getTotalSize() }}>
+            {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+              const rowStartIndex = virtualRow.index * columns;
+              const rowCards = filteredCards.slice(
+                rowStartIndex,
+                Math.min(rowStartIndex + columns, filteredCards.length)
+              );
+
+              return (
+                <div
+                  key={virtualRow.key}
+                  ref={rowVirtualizer.measureElement}
+                  className="absolute left-0 top-0 w-full"
+                  style={{ transform: `translateY(${virtualRow.start}px)` }}
+                  data-index={virtualRow.index}
+                >
+                  <div
+                    className="grid gap-3"
+                    style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}
+                  >
+                    {rowCards.map((card) => (
+                      <SupportCardItem key={card.id} card={card} />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         ) : (
           <div className="flex h-full items-center justify-center rounded-lg border">

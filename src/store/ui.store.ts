@@ -15,6 +15,7 @@ export type IUIStore = {
   // UI counter state
   runOnceCounter: number;
 
+
   // Dropdown/modal state (ephemeral)
   isPacemakerDropdownOpen: boolean;
   showVirtualPacemakerOnGraph: boolean;
@@ -47,7 +48,7 @@ export const useUIStore = create<IUIStore>()(
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         leftSide: state.leftSide,
-        dismissals: state.dismissals
+        dismissals: state.dismissals,
       })
     }
   )
@@ -62,6 +63,9 @@ export const incrementRunOnceCounter = () => {
     runOnceCounter: state.runOnceCounter + 1
   }));
 };
+
+
+
 
 export const setIsPacemakerDropdownOpen = (isPacemakerDropdownOpen: boolean) => {
   useUIStore.setState({ isPacemakerDropdownOpen });

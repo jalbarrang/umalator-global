@@ -15,7 +15,7 @@ import { useRunner } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
 import { racedefToParams } from '@/utils/races';
 import { defaultSimulationOptions } from '@/components/bassin-chart/utils';
-import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { coursesService } from '@/modules/data/services/CourseService';
 
 /**
  * Hook for running additional samples for a single skill in Uma Basin
@@ -30,7 +30,7 @@ export function useUmaSingleRunner() {
 
   const workerRef = useRef<Worker | null>(null);
 
-  const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
+  const course = useMemo(() => coursesService.getSimCourse(courseId), [courseId]);
 
   /**
    * Run additional samples for a specific skill

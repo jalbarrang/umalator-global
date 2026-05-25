@@ -1,12 +1,14 @@
 import { getIconUrl } from '@/assets/icons';
 import { useMemo } from 'react';
 import { getIconById } from '@/modules/data/icons';
-import { dataRegistry } from '@/modules/data/registry';
+import { umasService } from '@/modules/data/registry';
+import type { UmaAptitudes } from '@/modules/data/services/UmaService';
 
 export type UmaSearchEntry = {
   id: string;
   name: string;
   outfit: string;
+  aptitudes: UmaAptitudes;
 };
 
 export type Uma = {
@@ -14,22 +16,34 @@ export type Uma = {
   outfits: Record<string, string>;
 };
 
-function buildUmaSearchData(): {
+type UmaSearchData = {
   altIds: Array<string>;
   namesForSearch: Record<string, string>;
   umasForSearch: Array<UmaSearchEntry>;
-} {
-  const altIds = dataRegistry.umas.getAllEntries().flatMap(([_id, uma]) => {
+};
+
+const umaSearchDataCache = new Map<boolean, UmaSearchData>();
+
+function buildUmaSearchData(includeUpcoming = false): UmaSearchData {
+  const cached = umaSearchDataCache.get(includeUpcoming);
+  if (cached) {
+    return cached;
+  }
+
+  const altIds = umasService.getAllEntries().flatMap(([_id, uma]) => {
     if (!uma) {
       return [];
     }
-    return Object.keys(uma.outfits);
+
+    return Object.keys(uma.outfits).filter(
+      (outfitId) => includeUpcoming || umasService.isReleased(outfitId)
+    );
   });
 
   const namesForSearch = Object.fromEntries(
     altIds.map((id) => {
       const baseId = getUmaBaseId(id);
-      const uma = dataRegistry.umas.getById(baseId);
+      const uma = umasService.getById(baseId);
       if (!uma) {
         return [id, ''];
       }
@@ -41,7 +55,7 @@ function buildUmaSearchData(): {
   const umasForSearch = altIds
     .map((id) => {
       const baseId = getUmaBaseId(id);
-      const uma = dataRegistry.umas.getById(baseId);
+      const uma = umasService.getById(baseId);
       if (!uma) {
         return null;
       }
@@ -49,16 +63,21 @@ function buildUmaSearchData(): {
       return {
         id,
         name: uma.name[1],
-        outfit: uma.outfits[id]
+        outfit: uma.outfits[id],
+        aptitudes: uma.aptitudes[id]
       };
     })
     .filter((entry): entry is UmaSearchEntry => entry !== null);
 
-  return {
+  const result = {
     altIds,
     namesForSearch,
     umasForSearch
   };
+
+  umaSearchDataCache.set(includeUpcoming, result);
+
+  return result;
 }
 
 // Base Functions
@@ -74,7 +93,7 @@ export const getUmaBaseId = (id: string) => {
 export const getUmaById = (id: string) => {
   const baseId = getUmaBaseId(id);
 
-  const uma = dataRegistry.umas.getById(baseId);
+  const uma = umasService.getById(baseId);
 
   if (!uma) {
     throw new Error(`Uma with id ${id} not found`);
@@ -84,15 +103,17 @@ export const getUmaById = (id: string) => {
 };
 
 export type UmaAltId = string;
-export const getUmaAltIds = () => buildUmaSearchData().altIds;
+export const getUmaAltIds = (includeUpcoming = false) => buildUmaSearchData(includeUpcoming).altIds;
 
 // Lookup Functions
 
-export const getUmaNamesForSearch = () => buildUmaSearchData().namesForSearch;
-export const getUmasForSearch = () => buildUmaSearchData().umasForSearch;
+export const getUmaNamesForSearch = (includeUpcoming = false) =>
+  buildUmaSearchData(includeUpcoming).namesForSearch;
+export const getUmasForSearch = (includeUpcoming = false) =>
+  buildUmaSearchData(includeUpcoming).umasForSearch;
 
-export function useUmasForSearch(): Array<UmaSearchEntry> {
-  return useMemo(() => buildUmaSearchData().umasForSearch, []);
+export function useUmasForSearch(includeUpcoming = false): Array<UmaSearchEntry> {
+  return useMemo(() => buildUmaSearchData(includeUpcoming).umasForSearch, [includeUpcoming]);
 }
 
 export function rankForStat(x: number) {
@@ -111,10 +132,10 @@ export function rankForStat(x: number) {
     return Math.floor(x / 50);
   }
 }
-export function searchNames(query: string) {
+export function searchNames(query: string, includeUpcoming = false) {
   const q = query.toUpperCase().replace(/\./g, '');
-  const namesForSearch = getUmaNamesForSearch();
-  return getUmaAltIds().filter((oid) => namesForSearch[oid]?.indexOf(q) > -1);
+  const namesForSearch = getUmaNamesForSearch(includeUpcoming);
+  return getUmaAltIds(includeUpcoming).filter((oid) => namesForSearch[oid]?.indexOf(q) > -1);
 }
 
 // Image URL Utilities

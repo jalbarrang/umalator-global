@@ -1,7 +1,7 @@
 import React from 'react';
 import { SectionText } from '../primitives/section-text';
 import { DistanceMarker } from '../primitives/distance-marker';
-import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { CourseService } from '@/modules/data/services/CourseService';
 import { CourseData } from '@/lib/sunday-tools/course/definitions';
 import { RaceTrackDimensions } from '../types';
 
@@ -52,9 +52,9 @@ export const PhaseBar = React.memo<PhaseBarProps>((props) => {
   const { course } = props;
 
   // Calculate phase start distances
-  const phase1Start = Math.round(CourseHelpers.phaseStart(course.distance, 1));
-  const phase2Start = Math.round(CourseHelpers.phaseStart(course.distance, 2));
-  const phase3Start = Math.round(CourseHelpers.phaseStart(course.distance, 3));
+  const phase1Start = Math.round(CourseService.phaseStart(course.distance, 1));
+  const phase2Start = Math.round(CourseService.phaseStart(course.distance, 2));
+  const phase3Start = Math.round(CourseService.phaseStart(course.distance, 3));
 
   return (
     <svg

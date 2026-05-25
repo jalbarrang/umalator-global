@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dataRegistry } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/registry';
 import {
   getExternalDebuffEffects,
   isExternalDebuffEffect,
@@ -26,14 +26,14 @@ describe('external debuff predicates', () => {
   });
 
   it('includes non-icon debuff skills when they have external harmful effects', () => {
-    const keenEye = dataRegistry.skills.getById('200691');
+    const keenEye = skillsService.getById('200691');
     expect(keenEye).toBeDefined();
     expect(isInjectableExternalDebuffSkill(keenEye!)).toBe(true);
   });
 
   it('excludes self-curse skills and unsupported effect types', () => {
-    const selfCurse = dataRegistry.skills.getById('200013');
-    const unsupported = dataRegistry.skills.getById('201231');
+    const selfCurse = skillsService.getById('200013');
+    const unsupported = skillsService.getById('201231');
 
     expect(selfCurse).toBeDefined();
     expect(unsupported).toBeDefined();
@@ -42,7 +42,7 @@ describe('external debuff predicates', () => {
   });
 
   it('filters mixed effects down to only external harmful ones', () => {
-    const speedEater = dataRegistry.skills.getById('201082');
+    const speedEater = skillsService.getById('201082');
     if (!speedEater) throw new Error('speedEater not found');
     const effects = speedEater.alternatives.flatMap((alternative) => alternative.effects);
     const filtered = getExternalDebuffEffects(effects);

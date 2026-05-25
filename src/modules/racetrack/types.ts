@@ -1,5 +1,3 @@
-// fallow-ignore-file unused-export
-
 export const RegionDisplayType = {
   Immediate: 0,
   Regions: 1,

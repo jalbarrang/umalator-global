@@ -5,7 +5,7 @@ import type { RaceParameters } from '../common/race';
 import type { CourseData } from '../course/definitions';
 import type { DefaultParser, SkillEvalRunner } from '../skills/parser/definitions';
 import type { SkillAlternative, SkillEffect, SkillTrigger } from '../skills/skill.types';
-import { dataRegistry } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/registry';
 
 export type BuildSkillDataParams = {
   runner: SkillEvalRunner;
@@ -55,10 +55,23 @@ export function buildSkillData(params: BuildSkillDataParams): Array<SkillTrigger
     throw new Error('bad skill ID ' + skillId);
   }
 
-  const skill = dataRegistry.skills.getById(baseSkillId);
+  const skill = skillsService.getById(baseSkillId);
 
   if (!skill) {
     throw new Error('bad skill ID ' + skillId);
+  }
+
+  // Guard: skip skills with unparseable conditions rather than crashing the
+  // entire simulation. This can happen with upcoming/datamined skills that
+  // use condition tokens not yet implemented in the engine.
+  if (!skillsService.isSimulatable(baseSkillId)) {
+    if (import.meta.env?.DEV) {
+      console.warn(
+        `[buildSkillData] Skipping non-simulatable skill ${skillId}:`,
+        skillsService.getUnsupportedTokens(baseSkillId)
+      );
+    }
+    return [];
   }
 
   const extra = Object.assign({ skillId }, raceParams);

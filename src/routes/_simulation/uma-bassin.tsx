@@ -8,7 +8,7 @@ import {
   useUniqueSkillBasinStore
 } from '@/modules/simulation/stores/uma-basin.store';
 import { BasinnChart } from '@/components/bassin-chart/BasinnChart';
-import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { coursesService } from '@/modules/data/services/CourseService';
 import { replaceRunnerOutfit, useRunner } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
 import { useUmaBasinPoolRunner } from '@/modules/simulation/hooks/pool/useUmaBasinPoolRunner';
@@ -19,6 +19,7 @@ import { useUmaSingleRunner } from '@/modules/simulation/hooks/uma-bassin/useUma
 import { umaBassinSteps } from '@/modules/tutorial/steps/uma-bassin-steps';
 import { TutorialId } from '@/components/tutorial/types';
 import { SimulationProgressBanner } from '@/components/simulation-progress-banner';
+import { UmaSkillSelectorDialog } from '@/modules/simulation/components/skill-selector-dialog';
 
 export default function UmaComparePage() {
   const { selectedSkills, setSelectedSkills } = useChartData();
@@ -41,7 +42,7 @@ export default function UmaComparePage() {
 
   const { runner, updateRunner, addSkill } = useRunner();
 
-  const course = useMemo(() => CourseHelpers.getCourse(courseId), [courseId]);
+  const course = useMemo(() => coursesService.getSimCourse(courseId), [courseId]);
 
   const arrayResults = useMemo(() => {
     return Object.values(umaBasinResults);
@@ -103,6 +104,10 @@ export default function UmaComparePage() {
         tutorial={tutorialSettings}
         dataTutorial="uma-bassin-controls"
       />
+
+      <div>
+        <UmaSkillSelectorDialog />
+      </div>
 
       <div data-tutorial="uma-bassin-chart" className="flex flex-col gap-4 h-full min-w-0">
         <SimulationProgressBanner useStore={useUniqueSkillBasinStore} />

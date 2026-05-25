@@ -43,9 +43,47 @@ import type { DynamicCondition } from '@/lib/sunday-tools/skills/skill.types';
 import type { IPhase } from '@/lib/sunday-tools/course/definitions';
 import type { ConditionFilterParams, ConditionsMap, ICondition } from '../definitions';
 import { StrategyHelpers } from '@/lib/sunday-tools/runner/runner.types';
-import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { CourseService } from '@/modules/data/services/CourseService';
 import { Region, RegionList } from '@/lib/sunday-tools/shared/region';
 import { Strategy } from '@/lib/sunday-tools/runner/definitions';
+
+function getCornerRegionsForArg(params: ConditionFilterParams): RegionList {
+  const { arg: cornerNum, course } = params;
+
+  if (!CourseService.isSortedByStart(course.corners)) {
+    throw new Error('course corners must be sorted by start');
+  }
+
+  if (cornerNum === 0) {
+    // Can't simply use straights here as there may be parts of a course which are neither corners nor straights.
+    const nonCorners = new RegionList();
+    let lastEnd = 0;
+
+    for (const corner of course.corners) {
+      nonCorners.push(new Region(lastEnd, corner.start));
+      lastEnd = corner.start + corner.length;
+    }
+
+    if (lastEnd !== course.distance) {
+      nonCorners.push(new Region(lastEnd, course.distance));
+    }
+
+    return nonCorners;
+  }
+
+  if (course.corners.length + cornerNum >= 5) {
+    const corners = new RegionList();
+
+    for (let cornerIdx = course.corners.length + cornerNum - 5; cornerIdx >= 0; cornerIdx -= 4) {
+      const corner = course.corners[cornerIdx];
+      corners.push(new Region(corner.start, corner.start + corner.length));
+    }
+
+    return new RegionList(...corners.reverse());
+  }
+
+  return new RegionList();
+}
 
 function valueFilterOrNoop(
   getValue: (params: ConditionFilterParams) => number | undefined
@@ -191,7 +229,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
   change_order_up_end_after: dynamicOrStatic(
     erlangRandom(3, 2.0, {
       filterGte({ regions, course }: ConditionFilterParams) {
-        const bounds = new Region(CourseHelpers.phaseStart(course.distance, 2), course.distance);
+        const bounds = new Region(CourseService.phaseStart(course.distance, 2), course.distance);
         return regions.rmap((r) => r.intersect(bounds));
       }
     }),
@@ -200,7 +238,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
   change_order_up_finalcorner_after: dynamicOrStatic(
     erlangRandom(3, 2.0, {
       filterGte({ regions, course }: ConditionFilterParams) {
-        if (!CourseHelpers.isSortedByStart(course.corners)) {
+        if (!CourseService.isSortedByStart(course.corners)) {
           throw new Error('course corners must be sorted by start');
         }
 
@@ -218,8 +256,8 @@ export const defaultConditions: ConditionsMap<ICondition> = {
     erlangRandom(3, 2.0, {
       filterGte({ regions, course }: ConditionFilterParams) {
         const bounds = new Region(
-          CourseHelpers.phaseStart(course.distance, 1),
-          CourseHelpers.phaseEnd(course.distance, 1)
+          CourseService.phaseStart(course.distance, 1),
+          CourseService.phaseEnd(course.distance, 1)
         );
         return regions.rmap((r) => r.intersect(bounds));
       }
@@ -229,7 +267,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
   compete_fight_count: dynamicOrStatic(
     uniformRandom({
       filterGt({ regions, course }: ConditionFilterParams) {
-        if (!CourseHelpers.isSortedByStart(course.straights)) {
+        if (!CourseService.isSortedByStart(course.straights)) {
           throw new Error('course straights must be sorted by start');
         }
 
@@ -240,48 +278,13 @@ export const defaultConditions: ConditionsMap<ICondition> = {
     'compete_fight_count'
   ),
   corner: immediate({
-    filterEq({ regions, arg: cornerNum, course }: ConditionFilterParams) {
-      if (!CourseHelpers.isSortedByStart(course.corners)) {
-        throw new Error('course corners must be sorted by start');
-      }
-
-      if (cornerNum == 0) {
-        // can't simply use straights here as there may be parts of a course which are neither corners nor straights
-        let lastEnd = 0;
-        const nonCorners = course.corners.map((c) => {
-          const r = new Region(lastEnd, c.start);
-          lastEnd = c.start + c.length;
-          return r;
-        });
-        if (lastEnd != course.distance) {
-          nonCorners.push(new Region(lastEnd, course.distance));
-        }
-        return regions.rmap((r) => nonCorners.map((s) => r.intersect(s)));
-      } else if (course.corners.length + cornerNum >= 5) {
-        const corners: Array<Region> = [];
-
-        for (
-          let cornerIdx = course.corners.length + cornerNum - 5;
-          cornerIdx >= 0;
-          cornerIdx -= 4
-        ) {
-          const corner = course.corners[cornerIdx];
-          corners.push(new Region(corner.start, corner.start + corner.length));
-        }
-
-        corners.reverse();
-
-        return regions.rmap((r) => corners.map((c) => r.intersect(c)));
-      } else {
-        return new RegionList();
-      }
+    filterEq(params: ConditionFilterParams) {
+      const cornerRegions = getCornerRegionsForArg(params);
+      return params.regions.rmap((r) => cornerRegions.map((c) => r.intersect(c)));
     },
-    filterNeq({ regions, arg: cornerNum, course }: ConditionFilterParams) {
-      if (cornerNum !== 0) {
-        throw new Error('only supports corner!=0');
-      }
-      const corners = course.corners.map((c) => new Region(c.start, c.start + c.length));
-      return regions.rmap((r) => corners.map((c) => r.intersect(c)));
+    filterNeq(params: ConditionFilterParams) {
+      const cornerRegions = getCornerRegionsForArg(params);
+      return params.regions.subtract(cornerRegions);
     }
   }),
   corner_count: valueFilter(({ course }) => course.corners.length),
@@ -290,7 +293,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
     // branch priority for patterns like corner_random==1@corner_random==2.
     samplePolicy: CornerRandomPolicy,
     filterEq({ regions, arg: cornerNum, course }: ConditionFilterParams) {
-      if (!CourseHelpers.isSortedByStart(course.corners)) {
+      if (!CourseService.isSortedByStart(course.corners)) {
         throw new Error('course corners must be sorted by start');
       }
 
@@ -325,7 +328,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
   }),
   distance_type: immediate({
     filterEq({ regions, arg: distanceType, course }: ConditionFilterParams) {
-      CourseHelpers.assertIsDistanceType(distanceType);
+      CourseService.assertIsDistanceType(distanceType);
 
       if (course.distanceType == distanceType) {
         return regions;
@@ -334,7 +337,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
       return new RegionList();
     },
     filterNeq({ regions, arg: distanceType, course }: ConditionFilterParams) {
-      CourseHelpers.assertIsDistanceType(distanceType);
+      CourseService.assertIsDistanceType(distanceType);
 
       if (course.distanceType != distanceType) {
         return regions;
@@ -437,7 +440,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
         throw new Error('must be is_finalcorner==0 or is_finalcorner==1');
       }
 
-      if (!CourseHelpers.isSortedByStart(course.corners)) {
+      if (!CourseService.isSortedByStart(course.corners)) {
         throw new Error('course corners must be sorted by start');
       }
 
@@ -457,7 +460,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
         throw new Error('must be is_finalcorner_laterhalf==1');
       }
 
-      if (!CourseHelpers.isSortedByStart(course.corners)) {
+      if (!CourseService.isSortedByStart(course.corners)) {
         throw new Error('course corners must be sorted by start');
       }
 
@@ -476,7 +479,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
         throw new Error('must be is_finalcorner_random==1');
       }
 
-      if (!CourseHelpers.isSortedByStart(course.corners)) {
+      if (!CourseService.isSortedByStart(course.corners)) {
         throw new Error('course corners must be sorted by start');
       }
 
@@ -506,7 +509,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
         throw new Error('must be is_lastspurt==1');
       }
 
-      const bounds = new Region(CourseHelpers.phaseStart(course.distance, 2), course.distance);
+      const bounds = new Region(CourseService.phaseStart(course.distance, 2), course.distance);
       return [regions.rmap((r) => r.intersect(bounds)), (runner: Runner) => runner.isLastSpurt] as [
         RegionList,
         DynamicCondition
@@ -518,7 +521,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
       if (one !== 1) {
         throw new Error('must be is_last_straight_onetime==1');
       }
-      if (!CourseHelpers.isSortedByStart(course.straights)) {
+      if (!CourseService.isSortedByStart(course.straights)) {
         throw new Error('course straights must be sorted by start');
       }
       const lastStraight = course.straights[course.straights.length - 1];
@@ -531,7 +534,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
         throw new Error('must be is_last_straight_onetime==1');
       }
 
-      if (!CourseHelpers.isSortedByStart(course.straights)) {
+      if (!CourseService.isSortedByStart(course.straights)) {
         throw new Error('course straights must be sorted by start');
       }
 
@@ -552,7 +555,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
         throw new Error('must be last_straight_random==1');
       }
 
-      if (!CourseHelpers.isSortedByStart(course.straights)) {
+      if (!CourseService.isSortedByStart(course.straights)) {
         throw new Error('course straights must be sorted by start');
       }
 
@@ -589,7 +592,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
         default:
           throw new Error('lastspurt case must be 1-3');
       }
-      const bounds = new Region(CourseHelpers.phaseStart(course.distance, 2), course.distance);
+      const bounds = new Region(CourseService.phaseStart(course.distance, 2), course.distance);
       return [regions.rmap((r) => r.intersect(bounds)), f] as [RegionList, DynamicCondition];
     }
   }),
@@ -621,7 +624,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
     filterEq(params: ConditionFilterParams) {
       const { regions, arg: phase, course, extra } = params;
 
-      CourseHelpers.assertIsPhase(phase);
+      CourseService.assertIsPhase(phase);
       // add a little bit to the end to account for the fact that phase check happens later than skill activations
       // this is mainly relevant for skills with phase condition + a corner condition (e.g. kanata) because corner check
       // occurs before skill activations so when the start of a corner exactly coincides with the end of a phase (e.g.,
@@ -644,47 +647,47 @@ export const defaultConditions: ConditionsMap<ICondition> = {
           ? 10
           : 0;
       const bounds = new Region(
-        CourseHelpers.phaseStart(course.distance, phase),
-        CourseHelpers.phaseEnd(course.distance, phase) + fudge
+        CourseService.phaseStart(course.distance, phase),
+        CourseService.phaseEnd(course.distance, phase) + fudge
       );
       return regions.rmap((r) => r.intersect(bounds));
     },
     filterNeq: notSupported,
     filterLt({ regions, arg: phase, course }: ConditionFilterParams) {
-      CourseHelpers.assertIsPhase(phase);
+      CourseService.assertIsPhase(phase);
       if (phase <= 0) {
         throw new Error('phase == 0');
       }
-      const bounds = new Region(0, CourseHelpers.phaseStart(course.distance, phase));
+      const bounds = new Region(0, CourseService.phaseStart(course.distance, phase));
       return regions.rmap((r) => r.intersect(bounds));
     },
     filterLte({ regions, arg: phase, course }: ConditionFilterParams) {
-      CourseHelpers.assertIsPhase(phase);
-      const bounds = new Region(0, CourseHelpers.phaseEnd(course.distance, phase));
+      CourseService.assertIsPhase(phase);
+      const bounds = new Region(0, CourseService.phaseEnd(course.distance, phase));
       return regions.rmap((r) => r.intersect(bounds));
     },
     filterGt({ regions, arg: phase, course }: ConditionFilterParams) {
-      CourseHelpers.assertIsPhase(phase);
+      CourseService.assertIsPhase(phase);
       if (phase >= 3) {
         throw new Error('phase > 2');
       }
       const bounds = new Region(
-        CourseHelpers.phaseStart(course.distance, (phase + 1) as IPhase),
+        CourseService.phaseStart(course.distance, (phase + 1) as IPhase),
         course.distance
       );
       return regions.rmap((r) => r.intersect(bounds));
     },
     filterGte({ regions, arg: phase, course }: ConditionFilterParams) {
-      CourseHelpers.assertIsPhase(phase);
-      const bounds = new Region(CourseHelpers.phaseStart(course.distance, phase), course.distance);
+      CourseService.assertIsPhase(phase);
+      const bounds = new Region(CourseService.phaseStart(course.distance, phase), course.distance);
       return regions.rmap((r) => r.intersect(bounds));
     }
   },
   phase_corner_random: random({
     filterEq({ regions, arg: phase, course }: ConditionFilterParams) {
-      CourseHelpers.assertIsPhase(phase);
-      const phaseStart = CourseHelpers.phaseStart(course.distance, phase);
-      const phaseEnd = CourseHelpers.phaseEnd(course.distance, phase);
+      CourseService.assertIsPhase(phase);
+      const phaseStart = CourseService.phaseStart(course.distance, phase);
+      const phaseEnd = CourseService.phaseEnd(course.distance, phase);
       const corners = course.corners
         .filter(
           (c) =>
@@ -699,55 +702,55 @@ export const defaultConditions: ConditionsMap<ICondition> = {
   }),
   phase_firsthalf: immediate({
     filterEq({ regions, arg: phase, course }: ConditionFilterParams) {
-      CourseHelpers.assertIsPhase(phase);
-      const start = CourseHelpers.phaseStart(course.distance, phase);
-      const end = CourseHelpers.phaseEnd(course.distance, phase);
+      CourseService.assertIsPhase(phase);
+      const start = CourseService.phaseStart(course.distance, phase);
+      const end = CourseService.phaseEnd(course.distance, phase);
       const bounds = new Region(start, start + (end - start) / 2);
       return regions.rmap((r) => r.intersect(bounds));
     }
   }),
   phase_firsthalf_random: random({
     filterEq({ regions, arg: phase, course }: ConditionFilterParams) {
-      CourseHelpers.assertIsPhase(phase);
-      const start = CourseHelpers.phaseStart(course.distance, phase);
-      const end = CourseHelpers.phaseEnd(course.distance, phase);
+      CourseService.assertIsPhase(phase);
+      const start = CourseService.phaseStart(course.distance, phase);
+      const end = CourseService.phaseEnd(course.distance, phase);
       const bounds = new Region(start, start + (end - start) / 2);
       return regions.rmap((r) => r.intersect(bounds));
     }
   }),
   phase_firstquarter: immediate({
     filterEq({ regions, arg: phase, course }: ConditionFilterParams) {
-      CourseHelpers.assertIsPhase(phase);
-      const start = CourseHelpers.phaseStart(course.distance, phase);
-      const end = CourseHelpers.phaseEnd(course.distance, phase);
+      CourseService.assertIsPhase(phase);
+      const start = CourseService.phaseStart(course.distance, phase);
+      const end = CourseService.phaseEnd(course.distance, phase);
       const bounds = new Region(start, start + (end - start) / 4);
       return regions.rmap((r) => r.intersect(bounds));
     }
   }),
   phase_firstquarter_random: random({
     filterEq({ regions, arg: phase, course }: ConditionFilterParams) {
-      CourseHelpers.assertIsPhase(phase);
-      const start = CourseHelpers.phaseStart(course.distance, phase);
-      const end = CourseHelpers.phaseEnd(course.distance, phase);
+      CourseService.assertIsPhase(phase);
+      const start = CourseService.phaseStart(course.distance, phase);
+      const end = CourseService.phaseEnd(course.distance, phase);
       const bounds = new Region(start, start + (end - start) / 4);
       return regions.rmap((r) => r.intersect(bounds));
     }
   }),
   phase_laterhalf_random: random({
     filterEq({ regions, arg: phase, course }: ConditionFilterParams) {
-      CourseHelpers.assertIsPhase(phase);
-      const start = CourseHelpers.phaseStart(course.distance, phase);
-      const end = CourseHelpers.phaseEnd(course.distance, phase);
+      CourseService.assertIsPhase(phase);
+      const start = CourseService.phaseStart(course.distance, phase);
+      const end = CourseService.phaseEnd(course.distance, phase);
       const bounds = new Region((start + end) / 2, end);
       return regions.rmap((r) => r.intersect(bounds));
     }
   }),
   phase_random: random({
     filterEq({ regions, arg: phase, course }: ConditionFilterParams) {
-      CourseHelpers.assertIsPhase(phase);
+      CourseService.assertIsPhase(phase);
       const bounds = new Region(
-        CourseHelpers.phaseStart(course.distance, phase),
-        CourseHelpers.phaseEnd(course.distance, phase)
+        CourseService.phaseStart(course.distance, phase),
+        CourseService.phaseEnd(course.distance, phase)
       );
       return regions.rmap((r) => r.intersect(bounds));
     }
@@ -755,11 +758,11 @@ export const defaultConditions: ConditionsMap<ICondition> = {
   phase_straight_random: {
     samplePolicy: StraightRandomPolicy,
     filterEq({ regions, arg: phase, course }: ConditionFilterParams) {
-      CourseHelpers.assertIsPhase(phase);
+      CourseService.assertIsPhase(phase);
 
       const phaseBounds = new Region(
-        CourseHelpers.phaseStart(course.distance, phase),
-        CourseHelpers.phaseEnd(course.distance, phase)
+        CourseService.phaseStart(course.distance, phase),
+        CourseService.phaseEnd(course.distance, phase)
       );
 
       return regions
@@ -909,7 +912,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
 
       // Requires course.slopes is sorted by slope start— this is not always the case, since in course_data.json they are
       // (sometimes?) sorted first by uphill/downhill and then by start. They should be sorted when the course is loaded.
-      if (!CourseHelpers.isSortedByStart(course.slopes)) {
+      if (!CourseService.isSortedByStart(course.slopes)) {
         throw new Error('course slopes must be sorted by slope start');
       }
 
@@ -977,3 +980,9 @@ export const defaultConditions: ConditionsMap<ICondition> = {
   is_exist_chara_id: noopImmediate,
   remain_distance_viewer_id: noopImmediate
 };
+
+/**
+ * Set of all condition token names recognized by the simulation engine.
+ * Used to validate whether a skill's conditions can be parsed without crashing.
+ */
+export const knownConditionTokens: ReadonlySet<string> = new Set(Object.keys(defaultConditions));

@@ -10,7 +10,7 @@ import {
   RandomPolicy,
   UniformRandomPolicy
 } from '@/lib/sunday-tools/skills/policies/ActivationSamplePolicy';
-import { CourseHelpers } from '@/lib/sunday-tools/course/CourseData';
+import { CourseService } from '@/modules/data/services/CourseService';
 import { calculateEarlyRaceAverageSpeed } from '@/lib/sunday-tools/common/spurt-calculator';
 import { Region, RegionList } from '@/lib/sunday-tools/shared/region';
 
@@ -289,7 +289,7 @@ export function orderFilter(getPos: (arg: number, n: number) => number) {
         // ignore forward order conditions in the last leg (important for e.g. NY Opera unique)
         // however, add some room after the start of last leg so that forward order skills that proc at the
         // beginning of last leg won't proc on backlines
-        const end = new Region(CourseHelpers.phaseStart(course.distance, 2) + 100, course.distance);
+        const end = new Region(CourseService.phaseStart(course.distance, 2) + 100, course.distance);
 
         const pos = getPos(arg, extra.numUmas);
 
@@ -305,7 +305,7 @@ export function orderFilter(getPos: (arg: number, n: number) => number) {
           throw new Error('Invalid order range');
         }
 
-        const end = new Region(CourseHelpers.phaseStart(course.distance, 2) + 100, course.distance);
+        const end = new Region(CourseService.phaseStart(course.distance, 2) + 100, course.distance);
         const pos = getPos(arg, extra.numUmas);
         return extra.orderRange[0] <= pos ? regions : regions.rmap((r) => r.intersect(end));
       }

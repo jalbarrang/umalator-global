@@ -10,7 +10,7 @@ import {
   DrawerHeader,
   DrawerTitle
 } from '@/components/ui/drawer';
-import { dataRegistry } from '@/modules/data/registry';
+import { skillsService } from '@/modules/data/registry';
 import { AptitudesTable } from '@/modules/runners/components/runner-card/aptitudes-table';
 import { StatsTable, type StatsKey } from '@/modules/runners/components/runner-card/stats-table';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
@@ -123,7 +123,7 @@ export function RunnerTileEditor(props: RunnerTileEditorProps) {
 
       const keptSkills = runner.skills.filter((skillId) => {
         const baseSkillId = skillId.split('-')[0] ?? skillId;
-        const skillData = dataRegistry.skills.getById(baseSkillId);
+        const skillData = skillsService.getById(baseSkillId);
         return Boolean(skillData?.rarity && skillData.rarity < 3);
       });
 
@@ -154,7 +154,7 @@ export function RunnerTileEditor(props: RunnerTileEditorProps) {
     openSkillPicker({
       runnerId: `race-sim-runner-${runnerIndex}`,
       umaId: runner.outfitId,
-      options: getSelectableSkillsForUma(runner.outfitId),
+      options: getSelectableSkillsForUma(runner.outfitId, true),
       currentSkills: runner.skills,
       onSelect: handleSetSkills
     });
