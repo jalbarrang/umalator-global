@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.11.0](https://github.com/jalbarrang/umalator-global/compare/v0.10.0...v0.11.0) (2026-05-26)
+
+
+### Features
+
+* **skill-planner:** add binary encoding format and import from code ([4daeed1](https://github.com/jalbarrang/umalator-global/commit/4daeed1ad34966e3f6df89e91f3538f857316638))
+
 ## [0.10.0](https://github.com/jalbarrang/umalator-global/compare/v0.9.2...v0.10.0) (2026-05-26)
 
 
