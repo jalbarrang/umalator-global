@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.10.0](https://github.com/jalbarrang/umalator-global/compare/v0.9.2...v0.10.0) (2026-05-26)
+
+
+### Features
+
+* **debuffs:** add clone button and fix racetrack chip bugs ([07f91f8](https://github.com/jalbarrang/umalator-global/commit/07f91f8af302d9ea4c54edee58526a4787a5d717))
+* separate support card event skills into chain and random sources ([4c01036](https://github.com/jalbarrang/umalator-global/commit/4c010369f467a5b29e4f100e6f678921eeabdfbf))
+
 ## [0.9.2](https://github.com/jalbarrang/umalator-global/compare/v0.9.1...v0.9.2) (2026-05-25)
 
 
