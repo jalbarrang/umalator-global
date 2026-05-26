@@ -121,7 +121,8 @@ const buildDebuffRegions = (
   skillId: string,
   activations: Array<SkillEffectLog>,
   umaIndex: number,
-  injectedDebuffsForUma: Array<InjectedDebuffRegionRef>
+  injectedDebuffsForUma: Array<InjectedDebuffRegionRef>,
+  courseDistance: number
 ): Array<RegionData> => {
   if (activations.length === 0) return [];
 
@@ -132,6 +133,13 @@ const buildDebuffRegions = (
     if (group) group.push(effect);
     else grouped.set(effect.executionId, [effect]);
   }
+
+  // Use formula-based duration so all instances of the same debuff render
+  // at equal width, regardless of the runner's actual speed at each position.
+  const meta = getDebuffIndicatorMeta(skillId);
+  const hasDuration = meta.baseDuration > 0;
+  const durationSeconds = (meta.baseDuration / 10000) * (courseDistance / 1000);
+  const estimatedDuration = hasDuration ? durationSeconds * 20 : 0;
 
   // Build a mutable list for nearest-position matching
   const availableDebuffs = injectedDebuffsForUma.filter((d) => d.skillId === skillId);
@@ -156,6 +164,7 @@ const buildDebuffRegions = (
   for (const groupedEffects of grouped.values()) {
     const durationEffect = groupedEffects.find((e) => e.end - e.start > INSTANT_DURATION_THRESHOLD);
     const repr = durationEffect ?? groupedEffects[0];
+    const end = hasDuration ? repr.start + estimatedDuration : repr.end;
 
     result.push({
       type: durationEffect ? RegionDisplayType.Textbox : RegionDisplayType.Immediate,
@@ -164,7 +173,7 @@ const buildDebuffRegions = (
       skillId,
       umaIndex,
       effectType: repr.effectType,
-      regions: [{ start: repr.start, end: repr.end }],
+      regions: [{ start: repr.start, end }],
       debuffId: resolveDebuffId(repr.start),
       isDebuff: true
     });
@@ -211,11 +220,36 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
     // Targeted (debuff) skill activations — sourced from dedicated channel
     if (chartData?.targetedSkillActivations) {
       for (const [skillId, activations] of Object.entries(chartData.targetedSkillActivations[0])) {
-        skills.push(...buildDebuffRegions(skillId, activations, 0, debuffs.uma1));
+        skills.push(...buildDebuffRegions(skillId, activations, 0, debuffs.uma1, course.distance));
       }
       for (const [skillId, activations] of Object.entries(chartData.targetedSkillActivations[1])) {
-        skills.push(...buildDebuffRegions(skillId, activations, 1, debuffs.uma2));
+        skills.push(...buildDebuffRegions(skillId, activations, 1, debuffs.uma2, course.distance));
       }
+    }
+
+    // Reconcile debuff regions with current store positions.
+    // After dragging a debuff chip, the store position may differ from the
+    // simulation-produced start. Shift the region to match the store so the
+    // visual stays in sync with the user's drag.
+    const debuffStoreMap = new Map<string, number>();
+    for (const d of debuffs.uma1) debuffStoreMap.set(d.id, d.position);
+    for (const d of debuffs.uma2) debuffStoreMap.set(d.id, d.position);
+
+    for (let i = 0; i < skills.length; i++) {
+      const region = skills[i];
+      if (!region.isDebuff || !region.debuffId) continue;
+
+      const storePosition = debuffStoreMap.get(region.debuffId);
+      if (storePosition == null) continue;
+
+      const r = region.regions[0];
+      if (!r || r.start === storePosition) continue;
+
+      const duration = r.end - r.start;
+      skills[i] = {
+        ...region,
+        regions: [{ start: storePosition, end: storePosition + duration }]
+      };
     }
 
     return skills;

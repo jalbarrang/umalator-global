@@ -1,5 +1,5 @@
 import { useCallback, type ChangeEvent } from 'react';
-import { PlusIcon } from 'lucide-react';
+import { CopyIcon, PlusIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,7 +16,11 @@ import {
 } from '@/modules/skills/components/skill-list/skill-item/primitives';
 import { SkillItemDetailsActions } from '@/modules/skills/components/skill-list/skill-item/actions';
 import { SkillItem } from '@/modules/skills/components/skill-list/skill-item/item';
-import { removeDebuff, updateDebuffPosition } from '@/modules/simulation/stores/compare.store';
+import {
+  addDebuff,
+  removeDebuff,
+  updateDebuffPosition
+} from '@/modules/simulation/stores/compare.store';
 import { CompareRunnerId } from '../compare.types';
 
 type DebuffEntry = {
@@ -59,6 +63,10 @@ function DebuffRow({
     [runnerId, debuff.id]
   );
 
+  const handleClone = useCallback(() => {
+    addDebuff(runnerId, debuff.skillId, debuff.position);
+  }, [runnerId, debuff.skillId, debuff.position]);
+
   const handleDismiss = useCallback(() => {
     removeDebuff(runnerId, debuff.id);
   }, [runnerId, debuff.id]);
@@ -83,6 +91,17 @@ function DebuffRow({
               />
             </SkillItemAccessory>
             <SkillItemActions>
+              <Button
+                variant="ghost"
+                size="icon-lg"
+                title="Clone debuff"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  handleClone();
+                }}
+              >
+                <CopyIcon className="size-4" />
+              </Button>
               <SkillItemDetailsActions dismissable onDismiss={handleDismiss} />
             </SkillItemActions>
           </SkillItemMain>
