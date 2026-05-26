@@ -24,7 +24,7 @@ import { getRelatedSkillIds, isSkillCoveredByOwnedFamily } from './skill-family'
 import { resolveActiveSkills } from './optimizer';
 
 const DEFAULT_BUDGET = 1000;
-export const skillPlannerSteps: Array<WizardStep> = ['runner', 'shop', 'review'];
+export const skillPlannerSteps: Array<WizardStep> = ['home', 'runner', 'shop', 'review'];
 
 interface SkillPlannerState {
   hasActiveSession: boolean;
@@ -64,7 +64,7 @@ type PlannerPersistedState = Pick<
 
 const createInitialState = (): SkillPlannerState => ({
   hasActiveSession: false,
-  currentStep: 'runner',
+  currentStep: 'home',
   completedSteps: [],
   runner: createRunnerState(),
   obtainedSkillIds: [],
@@ -334,7 +334,8 @@ export const startFreshSession = () => {
   useSkillPlannerStore.setState({
     ...createInitialState(),
     hasActiveSession: true,
-    currentStep: 'runner'
+    currentStep: 'runner',
+    completedSteps: ['home']
   });
 };
 
@@ -345,8 +346,12 @@ export const startOver = () => {
 export const isStepUnlocked = (step: WizardStep) => {
   const { currentStep, completedSteps } = useSkillPlannerStore.getState();
 
-  if (step === 'runner') {
+  if (step === 'home') {
     return true;
+  }
+
+  if (step === 'runner') {
+    return completedSteps.includes('home') || currentStep === 'runner' || currentStep === 'shop' || currentStep === 'review';
   }
 
   if (step === 'shop') {
@@ -596,13 +601,46 @@ export const importVeteranRunner = (runnerSnapshot: IRunnerState, resetSession =
 
     return {
       ...baseState,
-      ...applyBaselineRunner(baseState, runnerSnapshot, nextObtainedSkillIds)
+      ...applyBaselineRunner(baseState, runnerSnapshot, nextObtainedSkillIds),
+      completedSteps: resetSession ? ['home'] : baseState.completedSteps
     };
   });
 };
 
 export const importRunnerBaseline = (runnerSnapshot: IRunnerState, resetSession = false) => {
   importVeteranRunner(runnerSnapshot, resetSession);
+};
+
+export const importFromCode = (params: {
+  runner: Partial<IRunnerState>;
+  obtainedSkillIds: Array<string>;
+  candidates: Array<{ skillId: string; hintLevel: HintLevel }>;
+  budget: number;
+  hasFastLearner: boolean;
+}) => {
+  const { runner: runnerPartial, obtainedSkillIds, candidates, budget, hasFastLearner } = params;
+
+  // 1. Reset and set runner + obtained skills
+  const runnerSnapshot = createRunnerState({
+    ...runnerPartial,
+    skills: obtainedSkillIds
+  });
+  importVeteranRunner(runnerSnapshot, true);
+
+  // 2. Add each candidate with hint level
+  for (const { skillId, hintLevel } of candidates) {
+    addCandidate(skillId, hintLevel);
+  }
+
+  // 3. Set planner metadata
+  setBudget(budget);
+  setHasFastLearner(hasFastLearner);
+
+  // 4. Mark runner+shop steps complete and land on review
+  useSkillPlannerStore.setState({
+    completedSteps: ['home', 'runner', 'shop'],
+    currentStep: 'review'
+  });
 };
 
 export const resetRunner = () => {

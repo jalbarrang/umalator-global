@@ -30,6 +30,7 @@ const nextStepByStep: Partial<Record<WizardStep, WizardStep>> = {
 };
 
 const previousStepByStep: Partial<Record<WizardStep, WizardStep>> = {
+  runner: 'home',
   shop: 'runner',
   review: 'shop'
 };
@@ -67,7 +68,7 @@ export function SkillPlannerLayout() {
     setCurrentStep(nextStep);
   };
 
-  if (!hasActiveSession) {
+  if (!hasActiveSession || currentStep === 'home') {
     return <SkillPlannerLanding />;
   }
 

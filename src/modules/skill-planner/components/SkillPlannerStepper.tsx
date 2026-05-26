@@ -4,6 +4,7 @@ import { isStepUnlocked, skillPlannerSteps, useSkillPlannerStore } from '../skil
 import { cn } from '@/lib/utils';
 
 const stepLabels: Record<WizardStep, string> = {
+  home: 'Home',
   runner: 'Runner',
   shop: 'Shop',
   review: 'Review and Optimize'
@@ -14,14 +15,17 @@ type SkillPlannerStepperProps = {
   onStepSelect: (step: WizardStep) => void;
 };
 
+// Steps visible in the stepper UI (home is not shown as a dot)
+const visibleSteps: Array<WizardStep> = skillPlannerSteps.filter((s) => s !== 'home');
+
 export function SkillPlannerStepper(props: Readonly<SkillPlannerStepperProps>) {
   const { currentStep, onStepSelect } = props;
   const completedSteps = useSkillPlannerStore((state) => state.completedSteps);
-  const currentStepIndex = skillPlannerSteps.indexOf(currentStep);
+  const currentStepIndex = visibleSteps.indexOf(currentStep);
 
   return (
     <div className="flex flex-1 items-center justify-center gap-1">
-      {skillPlannerSteps.map((step, index) => {
+      {visibleSteps.map((step, index) => {
         const unlocked = isStepUnlocked(step);
         const completed = completedSteps.includes(step);
         const active = currentStep === step;

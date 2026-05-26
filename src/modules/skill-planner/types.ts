@@ -1,6 +1,6 @@
 export type HintLevel = 0 | 1 | 2 | 3 | 4 | 5;
 
-export type WizardStep = 'runner' | 'shop' | 'review';
+export type WizardStep = 'home' | 'runner' | 'shop' | 'review';
 
 export interface SkillPlanningMeta {
   hintLevel: HintLevel;
