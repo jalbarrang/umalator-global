@@ -20,6 +20,8 @@ export type SupportCardEntry = {
   released: boolean;
   hintSkills: Array<SupportCardSkillEntry>;
   eventSkills: Array<SupportCardSkillEntry>;
+  chainEventSkills: Array<SupportCardSkillEntry>;
+  randomEventSkills: Array<SupportCardSkillEntry>;
 };
 
 export type SupportCardsMap = Record<string, SupportCardEntry>;

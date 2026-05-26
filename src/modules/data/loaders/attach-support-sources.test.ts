@@ -36,7 +36,7 @@ describe('attachSupportCardHintSources', () => {
         supportCardType: 1,
         released: true,
         hintSkills: [{ id: 200012, name: 'Right-Handed ○', rarity: 2 }],
-        eventSkills: []
+        eventSkills: [], chainEventSkills: [], randomEventSkills: []
       }
     };
 
@@ -68,7 +68,9 @@ describe('attachSupportCardEventSources', () => {
         supportCardType: 1,
         released: true,
         hintSkills: [],
-        eventSkills: [{ id: 200331, name: 'Professor of Curvature', rarity: 2 }]
+        eventSkills: [{ id: 200331, name: 'Professor of Curvature', rarity: 2 }],
+        chainEventSkills: [],
+        randomEventSkills: []
       }
     };
 
@@ -112,7 +114,9 @@ describe('attachSupportCardEventSources', () => {
         supportCardType: 1,
         released: true,
         hintSkills: [{ id: 200012, name: 'Right-Handed ○', rarity: 2 }],
-        eventSkills: [{ id: 200012, name: 'Right-Handed ○', rarity: 2 }]
+        eventSkills: [{ id: 200012, name: 'Right-Handed ○', rarity: 2 }],
+        chainEventSkills: [],
+        randomEventSkills: []
       }
     };
 
@@ -137,7 +141,9 @@ describe('attachSupportCardEventSources', () => {
         supportCardType: 1,
         released: true,
         hintSkills: [],
-        eventSkills: [{ id: 200331, name: 'Professor of Curvature', rarity: 2 }]
+        eventSkills: [{ id: 200331, name: 'Professor of Curvature', rarity: 2 }],
+        chainEventSkills: [],
+        randomEventSkills: []
       }
     };
 

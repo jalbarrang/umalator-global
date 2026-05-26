@@ -10,6 +10,7 @@ import {
   attachSupportCardEventSources,
   attachSupportCardHintSources
 } from './attach-support-sources';
+import { loadChainEventSkillIds, loadRandomEventSkillIds } from './chain-event-skills-loader';
 
 type SupportCardSnapshot = {
   support_id: number;
@@ -56,12 +57,25 @@ function toSupportCardSkillEntry(skillId: number, skills: SkillsMap): SupportCar
 export function loadSupportCards(
   skills: SkillsMap,
   supportCards: Array<SupportCardSnapshot> = gameToraSupportCardsJson as Array<SupportCardSnapshot>,
-  releasedCardIds: Set<string> = collectReleasedSupportCardIds()
+  releasedCardIds: Set<string> = collectReleasedSupportCardIds(),
+  chainEventSkillIds: Map<number, Set<number>> = loadChainEventSkillIds(),
+  randomEventSkillIds: Map<number, Set<number>> = loadRandomEventSkillIds()
 ): SupportCardsMap {
   const supportCardMap: SupportCardsMap = {};
 
   for (const supportCard of supportCards) {
     const cardId = String(supportCard.support_id);
+
+    const chainSkillIds = chainEventSkillIds.get(supportCard.support_id);
+    const randomSkillIds = randomEventSkillIds.get(supportCard.support_id);
+
+    const chainEventSkills = chainSkillIds
+      ? Array.from(chainSkillIds).map((skillId) => toSupportCardSkillEntry(skillId, skills))
+      : [];
+
+    const randomEventSkills = randomSkillIds
+      ? Array.from(randomSkillIds).map((skillId) => toSupportCardSkillEntry(skillId, skills))
+      : [];
 
     supportCardMap[cardId] = {
       id: supportCard.support_id,
@@ -74,9 +88,9 @@ export function loadSupportCards(
       hintSkills: (supportCard.hints?.hint_skills ?? []).map((skillId) =>
         toSupportCardSkillEntry(skillId, skills)
       ),
-      eventSkills: (supportCard.event_skills ?? []).map((skillId) =>
-        toSupportCardSkillEntry(skillId, skills)
-      )
+      eventSkills: [...chainEventSkills, ...randomEventSkills],
+      chainEventSkills,
+      randomEventSkills
     };
   }
 

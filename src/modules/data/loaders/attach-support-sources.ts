@@ -37,7 +37,7 @@ function upsertSupportSource(skill: SkillEntry, source: SkillSupportCardSourceEn
 function attachSupportCardSourcesByType(
   skills: SkillsMap,
   supportCards: SupportCardsMap,
-  sourceType: 'hint' | 'event',
+  sourceType: 'hint' | 'event' | 'chain-event' | 'random-event',
   getSkillIds: (card: SupportCardsMap[string]) => Array<{ id: number }>
 ): void {
   for (const card of Object.values(supportCards)) {
@@ -77,6 +77,8 @@ export function attachSupportCardEventSources(
   supportCards: SupportCardsMap
 ): void {
   attachSupportCardSourcesByType(skills, supportCards, 'event', (card) => card.eventSkills);
+  attachSupportCardSourcesByType(skills, supportCards, 'chain-event', (card) => card.chainEventSkills);
+  attachSupportCardSourcesByType(skills, supportCards, 'random-event', (card) => card.randomEventSkills);
 }
 
 /**

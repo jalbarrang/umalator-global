@@ -34,7 +34,7 @@ export type SkillSupportCardSourceEntry = {
   rarity: number;
   supportCardType: number;
   name: string;
-  sourceType?: 'hint' | 'event';
+  sourceType?: 'hint' | 'event' | 'chain-event' | 'random-event';
 };
 
 export type SkillActivationCheck = 'guaranteed' | 'wit-check';

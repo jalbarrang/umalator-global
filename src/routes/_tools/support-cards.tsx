@@ -26,6 +26,13 @@ import {
 } from '@/components/ui/dialog';
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
 import { config } from '@/config';
 import { skillsService } from '@/modules/data/services/SkillService';
 import { supportCardsService } from '@/modules/data/services/SupportCardService';
@@ -45,7 +52,13 @@ const supportCards = supportCardsService.getAll();
 
 const supportSkillStatsById = new Map<
   string,
-  { value: string; label: string; hintCount: number; eventCount: number }
+  {
+    value: string;
+    label: string;
+    hintCount: number;
+    chainEventCount: number;
+    randomEventCount: number;
+  }
 >();
 
 for (const card of supportCards) {
@@ -55,23 +68,39 @@ for (const card of supportCards) {
       value: skillId,
       label: skill.name,
       hintCount: 0,
-      eventCount: 0
+      chainEventCount: 0,
+      randomEventCount: 0
     };
 
     stats.hintCount += 1;
     supportSkillStatsById.set(skillId, stats);
   }
 
-  for (const skill of card.eventSkills) {
+  for (const skill of card.chainEventSkills) {
     const skillId = `${skill.id}`;
     const stats = supportSkillStatsById.get(skillId) ?? {
       value: skillId,
       label: skill.name,
       hintCount: 0,
-      eventCount: 0
+      chainEventCount: 0,
+      randomEventCount: 0
     };
 
-    stats.eventCount += 1;
+    stats.chainEventCount += 1;
+    supportSkillStatsById.set(skillId, stats);
+  }
+
+  for (const skill of card.randomEventSkills) {
+    const skillId = `${skill.id}`;
+    const stats = supportSkillStatsById.get(skillId) ?? {
+      value: skillId,
+      label: skill.name,
+      hintCount: 0,
+      chainEventCount: 0,
+      randomEventCount: 0
+    };
+
+    stats.randomEventCount += 1;
     supportSkillStatsById.set(skillId, stats);
   }
 }
@@ -126,6 +155,28 @@ const cardRarityOptions = [
   { value: '3', label: 'SSR' }
 ];
 
+type SkillSource = 'any' | 'hint' | 'chain' | 'random';
+
+type SkillFilterEntry = {
+  skillId: string;
+  source: SkillSource;
+};
+
+const skillSourceOptions: Array<{ value: SkillSource; label: string }> = [
+  { value: 'any', label: 'Any' },
+  { value: 'hint', label: 'Hints' },
+  { value: 'chain', label: 'Chain Events' },
+  { value: 'random', label: 'Random Events' }
+];
+
+function getSkillSourceLabel(value: SkillSource) {
+  if (value === 'any') return 'Any';
+  if (value === 'hint') return 'Hints';
+  if (value === 'chain') return 'Chain Events';
+  if (value === 'random') return 'Random Events';
+  return value;
+}
+
 type SkillSourceSelectProps = {
   values: string[];
   onValuesChange: (values: string[]) => void;
@@ -167,7 +218,7 @@ type ActiveFilterChipsProps = {
   searchText: string;
   cardTypeFilters: string[];
   cardRarityFilters: string[];
-  selectedSkillSourceIds: string[];
+  skillFilters: SkillFilterEntry[];
   onClearSearch: () => void;
   onClearCardType: (value: string) => void;
   onClearCardRarity: (value: string) => void;
@@ -180,7 +231,7 @@ function ActiveFilterChips(props: ActiveFilterChipsProps) {
     searchText,
     cardTypeFilters,
     cardRarityFilters,
-    selectedSkillSourceIds,
+    skillFilters,
     onClearSearch,
     onClearCardType,
     onClearCardRarity,
@@ -202,11 +253,15 @@ function ActiveFilterChips(props: ActiveFilterChipsProps) {
       label: `Rarity: ${getSupportCardRarityLabel(Number(value))}`,
       onClear: () => onClearCardRarity(value)
     })),
-    ...selectedSkillSourceIds.map((value) => ({
-      key: `skill-${value}`,
-      label: `Has Skill: ${supportSkillLabelById.get(value) ?? value}`,
-      onClear: () => onClearSkill(value)
-    }))
+    ...skillFilters.map((entry) => {
+      const sourceLabel = entry.source !== 'any' ? ` (${getSkillSourceLabel(entry.source)})` : '';
+
+      return {
+        key: `skill-${entry.skillId}`,
+        label: `Has Skill: ${supportSkillLabelById.get(entry.skillId) ?? entry.skillId}${sourceLabel}`,
+        onClear: () => onClearSkill(entry.skillId)
+      };
+    })
   ].filter((filter) => filter !== null);
 
   if (activeFilters.length === 0) {
@@ -241,34 +296,38 @@ function ActiveFilterChips(props: ActiveFilterChipsProps) {
 type SupportCardFiltersDialogProps = {
   cardTypeFilters: string[];
   cardRarityFilters: string[];
-  selectedSkillSourceIds: string[];
+  skillFilters: SkillFilterEntry[];
   activeFilterCount: number;
   onCardTypeFiltersChange: (values: string[]) => void;
   onCardRarityFiltersChange: (values: string[]) => void;
-  onSelectedSkillSourceIdsChange: (values: string[]) => void;
+  onSkillFiltersChange: (values: SkillFilterEntry[]) => void;
 };
 
 function SupportCardFiltersDialog(props: SupportCardFiltersDialogProps) {
   const {
     cardTypeFilters,
     cardRarityFilters,
-    selectedSkillSourceIds,
+    skillFilters,
     activeFilterCount,
     onCardTypeFiltersChange,
     onCardRarityFiltersChange,
-    onSelectedSkillSourceIdsChange
+    onSkillFiltersChange
   } = props;
   const [open, setOpen] = useState(false);
   const [draftCardTypeFilters, setDraftCardTypeFilters] = useState(cardTypeFilters);
   const [draftCardRarityFilters, setDraftCardRarityFilters] = useState(cardRarityFilters);
-  const [draftSelectedSkillSourceIds, setDraftSelectedSkillSourceIds] =
-    useState(selectedSkillSourceIds);
+  const [draftSkillFilters, setDraftSkillFilters] = useState(skillFilters);
+
+  const draftSelectedSkillIds = useMemo(
+    () => draftSkillFilters.map((entry) => entry.skillId),
+    [draftSkillFilters]
+  );
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (nextOpen) {
       setDraftCardTypeFilters(cardTypeFilters);
       setDraftCardRarityFilters(cardRarityFilters);
-      setDraftSelectedSkillSourceIds(selectedSkillSourceIds);
+      setDraftSkillFilters(skillFilters);
     }
 
     setOpen(nextOpen);
@@ -277,13 +336,27 @@ function SupportCardFiltersDialog(props: SupportCardFiltersDialogProps) {
   const handleApplyFilters = () => {
     onCardTypeFiltersChange(draftCardTypeFilters);
     onCardRarityFiltersChange(draftCardRarityFilters);
-    onSelectedSkillSourceIdsChange(draftSelectedSkillSourceIds);
+    onSkillFiltersChange(draftSkillFilters);
   };
 
   const handleResetDraftFilters = () => {
     setDraftCardTypeFilters([]);
     setDraftCardRarityFilters([]);
-    setDraftSelectedSkillSourceIds([]);
+    setDraftSkillFilters([]);
+  };
+
+  const handleSkillIdsChange = (skillIds: string[]) => {
+    setDraftSkillFilters((prev) => {
+      const existingBySkillId = new Map(prev.map((e) => [e.skillId, e]));
+
+      return skillIds.map((skillId) => existingBySkillId.get(skillId) ?? { skillId, source: 'any' as const });
+    });
+  };
+
+  const handleSkillSourceChange = (skillId: string, source: SkillSource) => {
+    setDraftSkillFilters((prev) =>
+      prev.map((entry) => (entry.skillId === skillId ? { ...entry, source } : entry))
+    );
   };
 
   return (
@@ -325,25 +398,48 @@ function SupportCardFiltersDialog(props: SupportCardFiltersDialogProps) {
               Has Skill
             </div>
             <SkillSourceSelect
-              values={draftSelectedSkillSourceIds}
-              onValuesChange={setDraftSelectedSkillSourceIds}
+              values={draftSelectedSkillIds}
+              onValuesChange={handleSkillIdsChange}
             />
-            {draftSelectedSkillSourceIds.length > 0 ? (
-              <div className="flex flex-wrap gap-1.5">
-                {draftSelectedSkillSourceIds.map((skillId) => (
-                  <button
-                    key={skillId}
-                    type="button"
-                    className="inline-flex min-h-6 items-center gap-1 rounded-full border border-border bg-background px-2 py-0.5 text-xs font-medium hover:bg-accent hover:text-accent-foreground"
-                    onClick={() =>
-                      setDraftSelectedSkillSourceIds((skillIds) =>
-                        skillIds.filter((selectedSkillId) => selectedSkillId !== skillId)
-                      )
-                    }
+            {draftSkillFilters.length > 0 ? (
+              <div className="grid gap-1.5">
+                {draftSkillFilters.map((entry) => (
+                  <div
+                    key={entry.skillId}
+                    className="flex items-center gap-2 rounded-md border bg-background px-2 py-1.5"
                   >
-                    <span>{supportSkillLabelById.get(skillId) ?? skillId}</span>
-                    <XIcon className="size-3" />
-                  </button>
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium">
+                      {supportSkillLabelById.get(entry.skillId) ?? entry.skillId}
+                    </span>
+                    <Select
+                      value={entry.source}
+                      onValueChange={(source) =>
+                        handleSkillSourceChange(entry.skillId, source as SkillSource)
+                      }
+                    >
+                      <SelectTrigger size="sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {skillSourceOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <button
+                      type="button"
+                      className="text-muted-foreground hover:text-foreground"
+                      onClick={() =>
+                        handleSkillIdsChange(
+                          draftSelectedSkillIds.filter((id) => id !== entry.skillId)
+                        )
+                      }
+                    >
+                      <XIcon className="size-3.5" />
+                    </button>
+                  </div>
                 ))}
               </div>
             ) : null}
@@ -411,7 +507,8 @@ function SkillSourceSelect(props: SkillSourceSelectProps) {
               <div className="grid min-w-0 flex-1 gap-0.5">
                 <span>{skill.label}</span>
                 <span className="text-xs text-muted-foreground">
-                  ID {skill.value} · Hint: {skill.hintCount} · Event: {skill.eventCount}
+                  ID {skill.value} · Hint: {skill.hintCount} · Chain: {skill.chainEventCount} ·
+                  Random: {skill.randomEventCount}
                 </span>
               </div>
               <ComboboxItemIndicator />
@@ -535,7 +632,8 @@ function SupportCardItem(props: SupportCardItemProps) {
 
       <div className="grid gap-4 p-3">
         <SupportSkillList title="Hint skills" skills={card.hintSkills} columns={2} />
-        <SupportSkillList title="Event skills" skills={card.eventSkills} />
+        <SupportSkillList title="Chain event skills" skills={card.chainEventSkills} />
+        <SupportSkillList title="Random event skills" skills={card.randomEventSkills} />
       </div>
     </div>
   );
@@ -595,7 +693,7 @@ function SupportCardsUpcomingToggle(props: { checked: boolean; onToggle: () => v
 
 export function SupportCardsPage() {
   const [searchText, setSearchText] = useState('');
-  const [selectedSkillSourceIds, setSelectedSkillSourceIds] = useState<string[]>([]);
+  const [skillFilters, setSkillFilters] = useState<SkillFilterEntry[]>([]);
   const [cardTypeFilters, setCardTypeFilters] = useState<string[]>([]);
   const [cardRarityFilters, setCardRarityFilters] = useState<string[]>([]);
   const [showUpcoming, setShowUpcoming] = useState(false);
@@ -603,7 +701,7 @@ export function SupportCardsPage() {
   const columns = useGridColumns();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const activeFilterCount =
-    cardTypeFilters.length + cardRarityFilters.length + selectedSkillSourceIds.length;
+    cardTypeFilters.length + cardRarityFilters.length + skillFilters.length;
 
   const filteredCards = useMemo(() => {
     const normalizedSearch = deferredSearchText.trim().toLowerCase();
@@ -630,7 +728,8 @@ export function SupportCardsPage() {
           getSupportCardRarityLabel(card.rarity),
           getSupportCardTypeLabel(card.supportCardType),
           ...card.hintSkills.map((skill) => skill.name),
-          ...card.eventSkills.map((skill) => skill.name)
+          ...card.chainEventSkills.map((skill) => skill.name),
+          ...card.randomEventSkills.map((skill) => skill.name)
         ]
           .join(' ')
           .toLowerCase();
@@ -640,28 +739,26 @@ export function SupportCardsPage() {
         }
       }
 
-      if (selectedSkillSourceIds.length > 0) {
-        const cardSkillIds = new Set(
-          [...card.hintSkills, ...card.eventSkills].map((skill) => `${skill.id}`)
-        );
-        const hasAllSelectedSkills = selectedSkillSourceIds.every((skillId) =>
-          cardSkillIds.has(skillId)
-        );
+      if (skillFilters.length > 0) {
+        const hintSkillIds = new Set(card.hintSkills.map((s) => `${s.id}`));
+        const chainSkillIds = new Set(card.chainEventSkills.map((s) => `${s.id}`));
+        const randomSkillIds = new Set(card.randomEventSkills.map((s) => `${s.id}`));
 
-        if (!hasAllSelectedSkills) {
+        const hasAllSkills = skillFilters.every((entry) => {
+          if (entry.source === 'hint') return hintSkillIds.has(entry.skillId);
+          if (entry.source === 'chain') return chainSkillIds.has(entry.skillId);
+          if (entry.source === 'random') return randomSkillIds.has(entry.skillId);
+          return hintSkillIds.has(entry.skillId) || chainSkillIds.has(entry.skillId) || randomSkillIds.has(entry.skillId);
+        });
+
+        if (!hasAllSkills) {
           return false;
         }
       }
 
       return true;
     });
-  }, [
-    cardRarityFilters,
-    cardTypeFilters,
-    deferredSearchText,
-    selectedSkillSourceIds,
-    showUpcoming
-  ]);
+  }, [cardRarityFilters, cardTypeFilters, deferredSearchText, skillFilters, showUpcoming]);
 
   const rowCount = Math.ceil(filteredCards.length / columns);
 
@@ -712,11 +809,11 @@ export function SupportCardsPage() {
               <SupportCardFiltersDialog
                 cardTypeFilters={cardTypeFilters}
                 cardRarityFilters={cardRarityFilters}
-                selectedSkillSourceIds={selectedSkillSourceIds}
+                skillFilters={skillFilters}
                 activeFilterCount={activeFilterCount}
                 onCardTypeFiltersChange={setCardTypeFilters}
                 onCardRarityFiltersChange={setCardRarityFilters}
-                onSelectedSkillSourceIdsChange={setSelectedSkillSourceIds}
+                onSkillFiltersChange={setSkillFilters}
               />
             </div>
           </div>
@@ -726,7 +823,7 @@ export function SupportCardsPage() {
           searchText={searchText}
           cardTypeFilters={cardTypeFilters}
           cardRarityFilters={cardRarityFilters}
-          selectedSkillSourceIds={selectedSkillSourceIds}
+          skillFilters={skillFilters}
           onClearSearch={() => setSearchText('')}
           onClearCardType={(value) =>
             setCardTypeFilters((filters) => filters.filter((filter) => filter !== value))
@@ -734,14 +831,14 @@ export function SupportCardsPage() {
           onClearCardRarity={(value) =>
             setCardRarityFilters((filters) => filters.filter((filter) => filter !== value))
           }
-          onClearSkill={(value) =>
-            setSelectedSkillSourceIds((skillIds) => skillIds.filter((skillId) => skillId !== value))
+          onClearSkill={(skillId) =>
+            setSkillFilters((filters) => filters.filter((f) => f.skillId !== skillId))
           }
           onClearAll={() => {
             setSearchText('');
             setCardTypeFilters([]);
             setCardRarityFilters([]);
-            setSelectedSkillSourceIds([]);
+            setSkillFilters([]);
           }}
         />
       </header>
