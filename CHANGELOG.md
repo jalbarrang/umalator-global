@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.12.0](https://github.com/jalbarrang/umalator-global/compare/v0.11.0...v0.12.0) (2026-05-27)
+
+
+### Features
+
+* added scenarios override panel ([8261142](https://github.com/jalbarrang/umalator-global/commit/82611423573c70aa03fcd146d4efa6bf40a48ee6))
+
 ## [0.11.0](https://github.com/jalbarrang/umalator-global/compare/v0.10.0...v0.11.0) (2026-05-26)
 
 
