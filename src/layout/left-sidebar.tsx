@@ -4,6 +4,7 @@ import {
   CrosshairIcon,
   SidebarClose,
   SlidersHorizontalIcon,
+  Swords,
   UsersIcon
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo } from 'react';
@@ -16,8 +17,13 @@ import { AdvancedSettingsPanel } from '@/components/advanced-settings-panel';
 import { PresetsPanel } from '@/components/presets-panel';
 import { DebuffsPanel } from '@/modules/simulation/components/DebuffsPanel';
 import { ForcedPositionsPanel } from '@/modules/simulation/components/ForcedPositionsPanel';
+import { ScenarioOverridesPanel } from '@/modules/simulation/components/ScenarioOverridesPanel';
 import { useDebuffs } from '@/modules/simulation/stores/compare.store';
 import { useForcedPositions } from '@/modules/simulation/stores/forced-positions.store';
+import {
+  useScenarioOverrides,
+  hasAnyScenarioOverrides
+} from '@/modules/simulation/stores/scenario-overrides.store';
 import { setLeftSidebar, useLeftSidebar } from '@/store/ui.store';
 
 type Panel = {
@@ -32,9 +38,13 @@ export const LeftSidebar = () => {
   const { activePanel, hidden } = useLeftSidebar();
   const { uma1, uma2 } = useForcedPositions();
   const { uma1: uma1Debuffs, uma2: uma2Debuffs } = useDebuffs();
+  const scenarioOverrides = useScenarioOverrides();
   const location = useLocation();
   const hasForcedPositions = Object.keys(uma1).length > 0 || Object.keys(uma2).length > 0;
   const hasDebuffs = uma1Debuffs.length > 0 || uma2Debuffs.length > 0;
+  const hasScenarioOverrides =
+    hasAnyScenarioOverrides(scenarioOverrides.uma1) ||
+    hasAnyScenarioOverrides(scenarioOverrides.uma2);
 
   const isCompareRunnersView = location.pathname === '/';
 
@@ -77,6 +87,13 @@ export const LeftSidebar = () => {
         icon: CircleAlert,
         content: <DebuffsPanel />,
         hasBadge: hasDebuffs
+      });
+      basePanels.push({
+        id: 'scenario-overrides',
+        label: 'Scenario Overrides',
+        icon: Swords,
+        content: <ScenarioOverridesPanel />,
+        hasBadge: hasScenarioOverrides
       });
     }
 

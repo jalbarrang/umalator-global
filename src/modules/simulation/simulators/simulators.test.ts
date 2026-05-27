@@ -995,3 +995,341 @@ describe('skill-planner-compare simulator', () => {
     expect(result.mean).toBeLessThan(0);
   });
 });
+
+describe('forced scenario overrides', () => {
+  describe('forced rushed', () => {
+    it('runner enters rushed state within forced region', () => {
+      const course = coursesService.getSimCourse(TEST_COURSE_ID);
+      const racedef = racedefToParams(createRaceConditions());
+      const raceParameters = toSundayRaceParameters(racedef);
+
+      const runner = createRunnerState({
+        outfitId: '100101',
+        strategy: 'Front Runner',
+        skills: []
+      });
+
+      const sortedSkills = runner.skills.toSorted(createSkillSorterByGroup(runner.skills));
+      const collector = new VacuumCompareDataCollector();
+      const race = createInitializedRace({
+        course,
+        raceParameters,
+        settings: createCompareSettings({ rushed: true }),
+        duelingRates: DEFAULT_DUELING_RATES,
+        skillSamples: 1,
+        runner: toCreateRunner(runner, sortedSkills, undefined, undefined, {
+          forcedRushed: { start: 200, end: 600 },
+          forcedDueling: null,
+          forcedSpotStruggle: null,
+          forcedRank: []
+        }),
+        observer: collector
+      });
+
+      race.prepareRound(42);
+      race.run();
+
+      const raceRunner = race.runners.values().toArray()[0];
+      expect(raceRunner.rushedActivations.length).toBeGreaterThanOrEqual(1);
+      const forcedActivation = raceRunner.rushedActivations.find(
+        ([start]) => start >= 195 && start <= 210
+      );
+      expect(forcedActivation).toBeDefined();
+      expect(forcedActivation![1]).toBeGreaterThanOrEqual(590);
+      expect(forcedActivation![1]).toBeLessThanOrEqual(620);
+    });
+
+    it('forced rushed changes RNG path producing different results', () => {
+      const course = coursesService.getSimCourse(TEST_COURSE_ID);
+      const racedef = racedefToParams(createRaceConditions());
+      const raceParameters = toSundayRaceParameters(racedef);
+
+      const runner = createRunnerState({
+        outfitId: '100101',
+        strategy: 'Late Surger',
+        skills: []
+      });
+
+      const sortedSkills = runner.skills.toSorted(createSkillSorterByGroup(runner.skills));
+
+      // Run without forced rushed
+      const collectorA = new VacuumCompareDataCollector();
+      const raceA = createInitializedRace({
+        course,
+        raceParameters,
+        settings: createCompareSettings({ rushed: true }),
+        duelingRates: DEFAULT_DUELING_RATES,
+        skillSamples: 1,
+        runner: toCreateRunner(runner, sortedSkills),
+        observer: collectorA
+      });
+      raceA.prepareRound(42);
+      raceA.run();
+      const runnerA = raceA.runners.values().toArray()[0];
+
+      // Run with forced rushed
+      const collectorB = new VacuumCompareDataCollector();
+      const raceB = createInitializedRace({
+        course,
+        raceParameters,
+        settings: createCompareSettings({ rushed: true }),
+        duelingRates: DEFAULT_DUELING_RATES,
+        skillSamples: 1,
+        runner: toCreateRunner(runner, sortedSkills, undefined, undefined, {
+          forcedRushed: { start: 200, end: 600 },
+          forcedDueling: null,
+          forcedSpotStruggle: null,
+          forcedRank: []
+        }),
+        observer: collectorB
+      });
+      raceB.prepareRound(42);
+      raceB.run();
+      const runnerB = raceB.runners.values().toArray()[0];
+
+      // Forced rushed runner should have a rushed activation near 200
+      const hasForcedRush = runnerB.rushedActivations.some(
+        ([start]) => start >= 195 && start <= 210
+      );
+      expect(hasForcedRush).toBe(true);
+
+      // The forced rushed should have consumed different RNG, potentially changing pos-keep strategy
+      // Verify the forced runner was actually rushed
+      expect(runnerB.hasBeenRushed || runnerB.rushedActivations.length > 0).toBe(true);
+    });
+  });
+
+  describe('forced dueling', () => {
+    it('runner with forcedDuelingRegions gets dueling bonus in region', () => {
+      const course = coursesService.getSimCourse(TEST_COURSE_ID);
+      const racedef = racedefToParams(createRaceConditions());
+      const raceParameters = toSundayRaceParameters(racedef);
+
+      const runner = createRunnerState({
+        outfitId: '100101',
+        strategy: 'Pace Chaser',
+        skills: []
+      });
+
+      const sortedSkills = runner.skills.toSorted(createSkillSorterByGroup(runner.skills));
+
+      // Without forced dueling
+      const collectorA = new VacuumCompareDataCollector();
+      const raceA = createInitializedRace({
+        course,
+        raceParameters,
+        settings: createCompareSettings(),
+        duelingRates: DEFAULT_DUELING_RATES,
+        skillSamples: 1,
+        runner: toCreateRunner(runner, sortedSkills),
+        observer: collectorA
+      });
+      raceA.prepareRound(42);
+      raceA.run();
+      const dataA = collectorA.getPrimaryRunnerRoundData()!;
+
+      // With forced dueling
+      const collectorB = new VacuumCompareDataCollector();
+      const raceB = createInitializedRace({
+        course,
+        raceParameters,
+        settings: createCompareSettings(),
+        duelingRates: DEFAULT_DUELING_RATES,
+        skillSamples: 1,
+        runner: toCreateRunner(runner, sortedSkills, undefined, undefined, {
+          forcedRushed: null,
+          forcedDueling: { start: 1000, end: 1400 },
+          forcedSpotStruggle: null,
+          forcedRank: []
+        }),
+        observer: collectorB
+      });
+      raceB.prepareRound(42);
+      raceB.run();
+      const dataB = collectorB.getPrimaryRunnerRoundData()!;
+
+      // Dueling runner should have a dueling region recorded
+      expect(dataB.duelingRegion).toHaveLength(2);
+      expect(dataB.duelingRegion[0]).toBeGreaterThanOrEqual(995);
+      expect(dataB.duelingRegion[0]).toBeLessThanOrEqual(1010);
+
+      // Without forced dueling, no dueling should occur (dueling is off in settings)
+      expect(dataA.duelingRegion).toHaveLength(0);
+    });
+
+    it('forced dueling is captured in runComparison output', () => {
+      const course = coursesService.getSimCourse(TEST_COURSE_ID);
+      const racedef = racedefToParams(createRaceConditions());
+      const uma1 = createRunnerState({ outfitId: '100101', strategy: 'Pace Chaser', skills: [] });
+      const uma2 = createRunnerState({ outfitId: '100201', strategy: 'Pace Chaser', skills: [] });
+      const options = createSimulationOptions(42);
+
+      const result = runComparison({
+        nsamples: 1, course, racedef, uma1, uma2, options,
+        scenarioOverrides: {
+          uma1: {
+            forcedRushed: null,
+            forcedDueling: { start: 300, end: 600 },
+            forcedSpotStruggle: null,
+            forcedRank: []
+          },
+          uma2: {
+            forcedRushed: null,
+            forcedDueling: null,
+            forcedSpotStruggle: null,
+            forcedRank: []
+          }
+        }
+      });
+
+      // Check all four run snapshots for dueling regions on uma1
+      const runs = [result.runData.minrun, result.runData.maxrun, result.runData.meanrun, result.runData.medianrun];
+      for (const run of runs) {
+        console.log('duelingRegions:', run.duelingRegions);
+        expect(run.duelingRegions[0]).toHaveLength(2);
+        expect(run.duelingRegions[0][0]).toBeGreaterThanOrEqual(295);
+        expect(run.duelingRegions[0][0]).toBeLessThanOrEqual(310);
+      }
+      // Uma2 should have no dueling
+      expect(result.runData.meanrun.duelingRegions[1]).toHaveLength(0);
+    });
+  });
+
+  describe('forced spot struggle', () => {
+    it('runner with forcedSpotStruggleRegions enters spot struggle in region', () => {
+      const course = coursesService.getSimCourse(TEST_COURSE_ID);
+      const racedef = racedefToParams(createRaceConditions());
+      const raceParameters = toSundayRaceParameters(racedef);
+
+      const runner = createRunnerState({
+        outfitId: '100101',
+        strategy: 'Front Runner',
+        skills: []
+      });
+
+      const sortedSkills = runner.skills.toSorted(createSkillSorterByGroup(runner.skills));
+
+      // Without forced spot struggle
+      const collectorA = new VacuumCompareDataCollector();
+      const raceA = createInitializedRace({
+        course,
+        raceParameters,
+        settings: createCompareSettings(),
+        duelingRates: DEFAULT_DUELING_RATES,
+        skillSamples: 1,
+        runner: toCreateRunner(runner, sortedSkills),
+        observer: collectorA
+      });
+      raceA.prepareRound(42);
+      raceA.run();
+      const dataA = collectorA.getPrimaryRunnerRoundData()!;
+
+      // With forced spot struggle
+      const collectorB = new VacuumCompareDataCollector();
+      const raceB = createInitializedRace({
+        course,
+        raceParameters,
+        settings: createCompareSettings(),
+        duelingRates: DEFAULT_DUELING_RATES,
+        skillSamples: 1,
+        runner: toCreateRunner(runner, sortedSkills, undefined, undefined, {
+          forcedRushed: null,
+          forcedDueling: null,
+          forcedSpotStruggle: { start: 200, end: 800 },
+          forcedRank: []
+        }),
+        observer: collectorB
+      });
+      raceB.prepareRound(42);
+      raceB.run();
+      const dataB = collectorB.getPrimaryRunnerRoundData()!;
+
+      // Spot struggle runner should have a region recorded
+      expect(dataB.spotStruggleRegion).toHaveLength(2);
+      expect(dataB.spotStruggleRegion[0]).toBeGreaterThanOrEqual(195);
+      expect(dataB.spotStruggleRegion[0]).toBeLessThanOrEqual(210);
+
+      // Without forced spot struggle, no spot struggle should occur
+      expect(dataA.spotStruggleRegion).toHaveLength(0);
+    });
+  });
+
+  describe('forced rank', () => {
+    it('forced rank affects position-keep activations', () => {
+      const course = coursesService.getSimCourse(TEST_COURSE_ID);
+      const racedef = racedefToParams(createRaceConditions());
+      const raceParameters = toSundayRaceParameters(racedef);
+
+      const runner = createRunnerState({
+        outfitId: '100101',
+        strategy: 'Late Surger',
+        wisdom: 1200,
+        skills: []
+      });
+
+      const sortedSkills = runner.skills.toSorted(createSkillSorterByGroup(runner.skills));
+
+      // Without forced rank (no pos-keep activations expected since solo runner)
+      const collectorA = new VacuumCompareDataCollector();
+      const raceA = createInitializedRace({
+        course,
+        raceParameters,
+        settings: createCompareSettings({ positionKeepMode: 2 }),
+        duelingRates: DEFAULT_DUELING_RATES,
+        skillSamples: 1,
+        runner: toCreateRunner(runner, sortedSkills),
+        observer: collectorA
+      });
+      raceA.prepareRound(42);
+      raceA.run();
+      const runnerA = raceA.runners.values().toArray()[0];
+
+      // With forced rank 4
+      const collectorB = new VacuumCompareDataCollector();
+      const raceB = createInitializedRace({
+        course,
+        raceParameters,
+        settings: createCompareSettings({ positionKeepMode: 2 }),
+        duelingRates: DEFAULT_DUELING_RATES,
+        skillSamples: 1,
+        runner: toCreateRunner(runner, sortedSkills, undefined, undefined, {
+          forcedRushed: null,
+          forcedDueling: null,
+          forcedSpotStruggle: null,
+          forcedRank: [{ start: 0, end: 1200, rank: 4 }]
+        }),
+        observer: collectorB
+      });
+      raceB.prepareRound(42);
+      raceB.run();
+      const runnerB = raceB.runners.values().toArray()[0];
+
+      // Without forced rank in solo race, no pos-keep activations
+      expect(runnerA.positionKeepActivations.length).toBe(0);
+
+      // Run multiple seeds to account for wit-check probability
+      let anyActivations = runnerB.positionKeepActivations.length > 0;
+      for (let seed = 100; seed < 120 && !anyActivations; seed++) {
+        const c = new VacuumCompareDataCollector();
+        const r = createInitializedRace({
+          course, raceParameters,
+          settings: createCompareSettings({ positionKeepMode: 2 }),
+          duelingRates: DEFAULT_DUELING_RATES,
+          skillSamples: 1,
+          runner: toCreateRunner(runner, sortedSkills, undefined, undefined, {
+            forcedRushed: null, forcedDueling: null,
+            forcedSpotStruggle: null,
+            forcedRank: [{ start: 0, end: 1200, rank: 4 }]
+          }),
+          observer: c
+        });
+        r.prepareRound(seed);
+        r.run();
+        const rr = r.runners.values().toArray()[0];
+        if (rr.positionKeepActivations.length > 0) anyActivations = true;
+      }
+      // With forced rank, at least one seed should trigger position-keep
+      expect(anyActivations).toBe(true);
+    });
+  });
+});

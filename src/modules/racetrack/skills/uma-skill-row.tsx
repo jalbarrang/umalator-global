@@ -103,7 +103,7 @@ export const UmaSkillSection = React.memo<UmaSkillSectionProps>((props) => {
       const positionsMap = umaIndex === 0 ? positionsMapUma1 : positionsMapUma2;
       const dragPreview = umaIndex === 0 ? dragPreviewUma1 : dragPreviewUma2;
       const isDebuff = desc.isDebuff ?? !!desc.debuffId;
-      const markerType = desc.debuffId ? 'debuff' : 'skill';
+      const markerType = desc.markerType ?? (desc.debuffId ? 'debuff' : 'skill');
       const dragSkillId = isDebuff && !desc.debuffId ? undefined : desc.skillId;
 
       if (desc.type === RegionDisplayType.Immediate && desc.regions.length > 0) {
@@ -202,7 +202,8 @@ export const UmaSkillSection = React.memo<UmaSkillSectionProps>((props) => {
             isDebuff,
             debuffId: desc.debuffId,
             isDragging: matchesPreview,
-            isEstimate: desc.isEstimate
+            isEstimate: desc.isEstimate,
+            markerType: desc.markerType
           });
         }
       }

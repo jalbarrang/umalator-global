@@ -376,6 +376,18 @@ export class Race {
       for (let i = 0; i < sortedRunners.length; i += 1) {
         this.runnerOrder.set(sortedRunners[i].id, i + 1);
       }
+
+      // Apply forced rank overrides
+      for (const runner of sortedRunners) {
+        if (runner.forcedRank && runner.forcedRank.length > 0) {
+          for (const region of runner.forcedRank) {
+            if (runner.position >= region.start && runner.position < region.end) {
+              this.runnerOrder.set(runner.id, region.rank);
+              break;
+            }
+          }
+        }
+      }
     }
 
     this.runnerSnapshots.clear();

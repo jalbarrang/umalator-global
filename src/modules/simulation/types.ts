@@ -87,6 +87,21 @@ export type InjectedDebuffsMap = {
   uma2: Array<InjectedDebuff>;
 };
 
+export type ForcedRegion = { start: number; end: number };
+export type ForcedRankRegion = ForcedRegion & { rank: number };
+
+export type ScenarioOverrides = {
+  forcedRushed: ForcedRegion | null;
+  forcedDueling: ForcedRegion | null;
+  forcedSpotStruggle: ForcedRegion | null;
+  forcedRank: Array<ForcedRankRegion>;
+};
+
+export type ScenarioOverridesMap = {
+  uma1: ScenarioOverrides;
+  uma2: ScenarioOverrides;
+};
+
 export type CompareParams = {
   nsamples: number;
   course: CourseData;
@@ -96,6 +111,7 @@ export type CompareParams = {
   options: SimulationOptions;
   forcedPositions?: ForcedPositionsMap;
   injectedDebuffs?: InjectedDebuffsMap;
+  scenarioOverrides?: ScenarioOverridesMap;
 };
 
 export type Run1RoundParams = {

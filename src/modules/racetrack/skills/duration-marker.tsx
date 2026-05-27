@@ -19,6 +19,7 @@ export type DurationLayout = {
   debuffId?: string;
   isDragging?: boolean;
   isEstimate?: boolean;
+  markerType?: 'skill' | 'debuff' | 'scenario';
 };
 
 export const DurationMarker = React.memo<DurationLayout & { onDragStart: DragStartHandler }>(
@@ -37,14 +38,16 @@ export const DurationMarker = React.memo<DurationLayout & { onDragStart: DragSta
     debuffId,
     isDragging = false,
     isEstimate = false,
+    markerType,
     onDragStart
   }) => {
+    const resolvedMarkerType = markerType ?? (isDebuff ? 'debuff' : 'skill');
     const handlePointerDown = useCallback(
       (e: React.PointerEvent) => {
         if (!skillId || umaIndex === undefined) return;
-        onDragStart(e, skillId, umaIndex, start, end, isDebuff ? 'debuff' : 'skill', debuffId);
+        onDragStart(e, skillId, umaIndex, start, end, resolvedMarkerType, debuffId);
       },
-      [skillId, umaIndex, start, end, isDebuff, debuffId, onDragStart]
+      [skillId, umaIndex, start, end, resolvedMarkerType, debuffId, onDragStart]
     );
 
     return (

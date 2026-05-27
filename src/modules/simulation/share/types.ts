@@ -1,7 +1,7 @@
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import type { WitVarianceSettings, StaminaDrainOverrides } from '@/store/settings.store';
 import type { RaceConditions } from '@/utils/races';
-import type { InjectedDebuffsMap } from '@/modules/simulation/types';
+import type { InjectedDebuffsMap, ScenarioOverridesMap } from '@/modules/simulation/types';
 
 export const SIMULATION_SNAPSHOT_VERSION = 1 as const;
 
@@ -21,4 +21,5 @@ export type SimulationSnapshot = {
     uma2: Record<string, number>;
   };
   injectedDebuffs: InjectedDebuffsMap;
+  scenarioOverrides?: ScenarioOverridesMap;
 };

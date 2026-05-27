@@ -4,6 +4,7 @@ import { useRunnersStore } from '@/store/runners.store';
 import { useSettingsStore } from '@/store/settings.store';
 import { useRaceStore, resetResults } from '@/modules/simulation/stores/compare.store';
 import { useForcedPositionsStore } from '@/modules/simulation/stores/forced-positions.store';
+import { useScenarioOverridesStore } from '@/modules/simulation/stores/scenario-overrides.store';
 import { createRunnerState } from '@/modules/runners/components/runner-card/types';
 import type { SimulationSnapshot } from './types';
 import { SIMULATION_SNAPSHOT_VERSION } from './types';
@@ -13,6 +14,7 @@ export function buildSnapshot(): SimulationSnapshot {
   const settings = useSettingsStore.getState();
   const race = useRaceStore.getState();
   const forced = useForcedPositionsStore.getState();
+  const scenarioOverrides = useScenarioOverridesStore.getState();
 
   return {
     version: SIMULATION_SNAPSHOT_VERSION,
@@ -29,7 +31,11 @@ export function buildSnapshot(): SimulationSnapshot {
       uma1: cloneDeep(forced.uma1),
       uma2: cloneDeep(forced.uma2)
     },
-    injectedDebuffs: cloneDeep(race.injectedDebuffs)
+    injectedDebuffs: cloneDeep(race.injectedDebuffs),
+    scenarioOverrides: cloneDeep({
+      uma1: scenarioOverrides.uma1,
+      uma2: scenarioOverrides.uma2
+    })
   };
 }
 
@@ -144,7 +150,8 @@ export function parseSnapshotJson(raw: string): SimulationSnapshot | null {
       uma1: fp.uma1 as Record<string, number>,
       uma2: fp.uma2 as Record<string, number>
     },
-    injectedDebuffs: parsed.injectedDebuffs
+    injectedDebuffs: parsed.injectedDebuffs,
+    scenarioOverrides: parsed.scenarioOverrides as SimulationSnapshot['scenarioOverrides']
   };
 }
 
@@ -169,6 +176,13 @@ export function importSnapshot(data: SimulationSnapshot): void {
     uma1: cloneDeep(data.forcedPositions.uma1),
     uma2: cloneDeep(data.forcedPositions.uma2)
   });
+
+  if (data.scenarioOverrides) {
+    useScenarioOverridesStore.setState({
+      uma1: cloneDeep(data.scenarioOverrides.uma1),
+      uma2: cloneDeep(data.scenarioOverrides.uma2)
+    });
+  }
 
   useRaceStore.setState({
     seed: data.seed,

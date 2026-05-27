@@ -28,3 +28,8 @@ export const posKeepColors: Array<{ stroke: string; fill: string }> = [
   { stroke: 'rgb(42, 119, 197)', fill: 'rgba(42, 119, 197, 0.6)' },
   { stroke: 'rgb(197, 42, 42)', fill: 'rgba(197, 42, 42, 0.6)' }
 ];
+
+export const rankColors: Array<{ stroke: string; fill: string }> = [
+  { stroke: 'rgb(42, 119, 197)', fill: 'rgba(42, 119, 197, 0.25)' },
+  { stroke: 'rgb(197, 42, 42)', fill: 'rgba(197, 42, 42, 0.25)' }
+];

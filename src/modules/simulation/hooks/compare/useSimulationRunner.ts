@@ -12,6 +12,10 @@ import { useSettingsStore, useWitVariance } from '@/store/settings.store';
 import { useRunnersStore } from '@/store/runners.store';
 import { useDebuffs } from '@/modules/simulation/stores/compare.store';
 import { useForcedPositions } from '@/modules/simulation/stores/forced-positions.store';
+import {
+  useScenarioOverrides,
+  hasAnyScenarioOverrides
+} from '@/modules/simulation/stores/scenario-overrides.store';
 import { coursesService } from '@/modules/data/services/CourseService';
 
 const createCompareWorker = () => new CompareWorker();
@@ -53,6 +57,7 @@ export function useSimulationRunner() {
 
   const { uma1: forcedUma1, uma2: forcedUma2 } = useForcedPositions();
   const { uma1: debuffsUma1, uma2: debuffsUma2 } = useDebuffs();
+  const scenarioOverrides = useScenarioOverrides();
 
   const webWorkerRef = useRef<Worker | null>(null);
 
@@ -111,6 +116,9 @@ export function useSimulationRunner() {
     const hasForcedPositions =
       Object.keys(forcedUma1).length > 0 || Object.keys(forcedUma2).length > 0;
     const hasDebuffs = debuffsUma1.length > 0 || debuffsUma2.length > 0;
+    const hasOverrides =
+      hasAnyScenarioOverrides(scenarioOverrides.uma1) ||
+      hasAnyScenarioOverrides(scenarioOverrides.uma2);
 
     const params: CompareParams = {
       nsamples,
@@ -133,7 +141,8 @@ export function useSimulationRunner() {
         staminaDrainOverrides
       },
       forcedPositions: hasForcedPositions ? { uma1: forcedUma1, uma2: forcedUma2 } : undefined,
-      injectedDebuffs: hasDebuffs ? { uma1: debuffsUma1, uma2: debuffsUma2 } : undefined
+      injectedDebuffs: hasDebuffs ? { uma1: debuffsUma1, uma2: debuffsUma2 } : undefined,
+      scenarioOverrides: hasOverrides ? scenarioOverrides : undefined
     };
 
     const worker = webWorkerRef.current;
@@ -158,6 +167,9 @@ export function useSimulationRunner() {
     const hasForcedPositions =
       Object.keys(forcedUma1).length > 0 || Object.keys(forcedUma2).length > 0;
     const hasDebuffs = debuffsUma1.length > 0 || debuffsUma2.length > 0;
+    const hasOverrides =
+      hasAnyScenarioOverrides(scenarioOverrides.uma1) ||
+      hasAnyScenarioOverrides(scenarioOverrides.uma2);
 
     const params: CompareParams = {
       nsamples: 1,
@@ -180,7 +192,8 @@ export function useSimulationRunner() {
         staminaDrainOverrides
       },
       forcedPositions: hasForcedPositions ? { uma1: forcedUma1, uma2: forcedUma2 } : undefined,
-      injectedDebuffs: hasDebuffs ? { uma1: debuffsUma1, uma2: debuffsUma2 } : undefined
+      injectedDebuffs: hasDebuffs ? { uma1: debuffsUma1, uma2: debuffsUma2 } : undefined,
+      scenarioOverrides: hasOverrides ? scenarioOverrides : undefined
     };
 
     const worker = webWorkerRef.current;

@@ -73,6 +73,10 @@ export type CreateRunner = {
   skills: Array<string>;
   forcedPositions?: Record<string, number>;
   injectedDebuffs?: Array<{ skillId: string; position: number }>;
+  forcedRushedRegions?: Array<{ start: number; end: number }>;
+  forcedDuelingRegions?: Array<{ start: number; end: number }>;
+  forcedSpotStruggleRegions?: Array<{ start: number; end: number }>;
+  forcedRank?: Array<{ start: number; end: number; rank: number }>;
 };
 
 export type SpeedModifiers = {
@@ -102,6 +106,10 @@ export type RunnerProps = {
   skillIds: Array<string>;
   forcedPositions?: Record<string, number>;
   injectedDebuffs?: Array<{ skillId: string; position: number }>;
+  forcedRushedRegions?: Array<{ start: number; end: number }>;
+  forcedDuelingRegions?: Array<{ start: number; end: number }>;
+  forcedSpotStruggleRegions?: Array<{ start: number; end: number }>;
+  forcedRank?: Array<{ start: number; end: number; rank: number }>;
 };
 
 export class Runner {
@@ -125,6 +133,10 @@ export class Runner {
   public readonly skillIds: ReadonlyArray<string>;
   public readonly forcedPositions: Readonly<Record<string, number>>;
   public readonly injectedDebuffs: ReadonlyArray<{ skillId: string; position: number }>;
+  public readonly forcedRushedRegions: ReadonlyArray<{ start: number; end: number }>;
+  public readonly forcedDuelingRegions: ReadonlyArray<{ start: number; end: number }>;
+  public readonly forcedSpotStruggleRegions: ReadonlyArray<{ start: number; end: number }>;
+  public readonly forcedRank: ReadonlyArray<{ start: number; end: number; rank: number }>;
 
   // ===================
   // Resetable Values
@@ -277,6 +289,14 @@ export class Runner {
   public duelingStartPosition!: number;
   public duelingEndPosition!: number;
 
+  // Forced Scenario Tracking
+  public forcedRushedIndex!: number;
+  public isInForcedRushed!: boolean;
+  public forcedDuelingIndex!: number;
+  public isInForcedDueling!: boolean;
+  public forcedSpotStruggleIndex!: number;
+  public isInForcedSpotStruggle!: boolean;
+
   // Position Keep
   public positionKeepState!: IPositionKeepState;
   public posKeepSpeedCoef!: number;
@@ -322,6 +342,10 @@ export class Runner {
     this.skillIds = props.skillIds;
     this.forcedPositions = props.forcedPositions ?? {};
     this.injectedDebuffs = props.injectedDebuffs ?? [];
+    this.forcedRushedRegions = props.forcedRushedRegions ?? [];
+    this.forcedDuelingRegions = props.forcedDuelingRegions ?? [];
+    this.forcedSpotStruggleRegions = props.forcedSpotStruggleRegions ?? [];
+    this.forcedRank = props.forcedRank ?? [];
   }
 
   /**
@@ -971,6 +995,27 @@ export class Runner {
   }
 
   updateDueling() {
+    // --- Forced dueling region handling ---
+    if (this.forcedDuelingRegions.length > 0 && this.forcedDuelingIndex < this.forcedDuelingRegions.length) {
+      const forcedRegion = this.forcedDuelingRegions[this.forcedDuelingIndex];
+
+      if (!this.isInForcedDueling && !this.isDueling && this.position >= forcedRegion.start && this.position < forcedRegion.end) {
+        this.isDueling = true;
+        this.isInForcedDueling = true;
+        this.duelingStartPosition = this.position;
+      }
+
+      if (this.isInForcedDueling) {
+        if (this.position >= forcedRegion.end || this.healthPolicy.healthRatioRemaining() <= 0.05) {
+          this.isDueling = false;
+          this.isInForcedDueling = false;
+          this.duelingEndPosition = this.position;
+          this.forcedDuelingIndex++;
+        }
+        return;
+      }
+    }
+
     if (!this.race.settings.dueling) {
       return;
     }
@@ -1110,6 +1155,30 @@ export class Runner {
   }
 
   updateSpotStruggle() {
+    // --- Forced spot struggle region handling ---
+    if (this.forcedSpotStruggleRegions.length > 0 && this.forcedSpotStruggleIndex < this.forcedSpotStruggleRegions.length) {
+      const forcedRegion = this.forcedSpotStruggleRegions[this.forcedSpotStruggleIndex];
+
+      if (!this.isInForcedSpotStruggle && !this.inSpotStruggle && this.position >= forcedRegion.start && this.position < forcedRegion.end) {
+        this.inSpotStruggle = true;
+        this.isInForcedSpotStruggle = true;
+        this.spotStruggleStartPosition = this.position;
+        this.spotStruggleEndPosition = forcedRegion.end;
+        this.spotStruggleTimer.t = 0;
+      }
+
+      if (this.isInForcedSpotStruggle) {
+        const gutsDuration = Math.pow(700 * this.adjustedStats.guts, 0.5) * 0.012;
+        if (this.position >= forcedRegion.end || this.spotStruggleTimer.t >= gutsDuration) {
+          this.inSpotStruggle = false;
+          this.isInForcedSpotStruggle = false;
+          this.spotStruggleEndPosition = this.position;
+          this.forcedSpotStruggleIndex++;
+        }
+        return;
+      }
+    }
+
     if (!this.race.settings.spotStruggle) {
       return;
     }
@@ -1416,7 +1485,11 @@ export class Runner {
       stats: props.stats,
       skillIds: props.skills,
       forcedPositions: props.forcedPositions,
-      injectedDebuffs: props.injectedDebuffs
+      injectedDebuffs: props.injectedDebuffs,
+      forcedRushedRegions: props.forcedRushedRegions,
+      forcedDuelingRegions: props.forcedDuelingRegions,
+      forcedSpotStruggleRegions: props.forcedSpotStruggleRegions,
+      forcedRank: props.forcedRank
     });
 
     return runner;
@@ -1639,6 +1712,8 @@ export class Runner {
     this.rushedTimer = this.createTimer();
     this.rushedMaxDuration = 12.0;
     this.rushedActivations = [];
+    this.forcedRushedIndex = 0;
+    this.isInForcedRushed = false;
 
     if (this.rushedRng.random() < this.rushedChance) {
       // Determine which section (2-9) the rushed state activates in
@@ -1855,6 +1930,8 @@ export class Runner {
     this.duelingTimer = this.createTimer();
     this.duelingStartPosition = -1;
     this.duelingEndPosition = -1;
+    this.forcedDuelingIndex = 0;
+    this.isInForcedDueling = false;
   }
 
   private initializeSpotStruggle() {
@@ -1863,6 +1940,8 @@ export class Runner {
     this.spotStruggleTimer = this.createTimer();
     this.spotStruggleStartPosition = null;
     this.spotStruggleEndPosition = -1;
+    this.forcedSpotStruggleIndex = 0;
+    this.isInForcedSpotStruggle = false;
   }
 
   private initializeHills() {
@@ -1924,6 +2003,55 @@ export class Runner {
   }
 
   private updateRushed() {
+    // --- Forced rushed region handling ---
+    if (this.forcedRushedRegions.length > 0 && this.forcedRushedIndex < this.forcedRushedRegions.length) {
+      const forcedRegion = this.forcedRushedRegions[this.forcedRushedIndex];
+
+      if (!this.isInForcedRushed && this.position >= forcedRegion.start && this.position < forcedRegion.end) {
+        this.isRushed = true;
+        this.isInForcedRushed = true;
+        this.preRushedPosKeepStrategy = this.positionKeepStrategy;
+        this.rushedTimer.t = 0;
+        this.rushedActivations.push([this.position, -1]);
+
+        const strategyRoll = this.rushedRng.random();
+        switch (this.strategy) {
+          case Strategy.Runaway:
+          case Strategy.FrontRunner:
+          case Strategy.PaceChaser:
+            this.positionKeepStrategy = Strategy.FrontRunner;
+            break;
+          case Strategy.LateSurger:
+            this.positionKeepStrategy = strategyRoll < 0.75 ? Strategy.FrontRunner : Strategy.PaceChaser;
+            break;
+          case Strategy.EndCloser:
+            if (strategyRoll < 0.7) this.positionKeepStrategy = Strategy.FrontRunner;
+            else if (strategyRoll < 0.9) this.positionKeepStrategy = Strategy.PaceChaser;
+            else this.positionKeepStrategy = Strategy.LateSurger;
+            break;
+        }
+      }
+
+      if (this.isInForcedRushed && this.position >= forcedRegion.end) {
+        this.isRushed = false;
+        this.isInForcedRushed = false;
+        this.positionKeepStrategy = this.preRushedPosKeepStrategy;
+        this.forcedRushedIndex++;
+
+        if (this.rushedActivations.length > 0) {
+          const lastIdx = this.rushedActivations.length - 1;
+          if (this.rushedActivations[lastIdx][1] === -1) {
+            this.rushedActivations[lastIdx][1] = this.position;
+          }
+        }
+        return;
+      }
+
+      if (this.isInForcedRushed) {
+        return;
+      }
+    }
+
     // Check if we should enter rushed state (can only happen once per race)
     if (
       this.rushedSection >= 0 &&

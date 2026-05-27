@@ -32,8 +32,10 @@ function* progressiveSampleSizes(targetSamples: number) {
 }
 
 const runRunnersComparison = (params: CompareParams) => {
-  const { nsamples, course, racedef, uma1, uma2, options, forcedPositions, injectedDebuffs } =
-    params;
+  const {
+    nsamples, course, racedef, uma1, uma2, options,
+    forcedPositions, injectedDebuffs, scenarioOverrides
+  } = params;
 
   const uma1_ = cloneDeep(uma1);
   const uma2_ = cloneDeep(uma2);
@@ -49,7 +51,8 @@ const runRunnersComparison = (params: CompareParams) => {
       uma2: uma2_,
       options: compareOptions,
       forcedPositions,
-      injectedDebuffs
+      injectedDebuffs,
+      scenarioOverrides
     });
 
     sendMessage({
@@ -67,7 +70,8 @@ const runRunnersComparison = (params: CompareParams) => {
     uma2: uma2_,
     options: compareOptions,
     forcedPositions,
-    injectedDebuffs
+    injectedDebuffs,
+    scenarioOverrides
   });
 
   // Always post final results

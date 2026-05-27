@@ -18,6 +18,8 @@ export const regionDisplayTypeLabels = Object.values(RegionDisplayTypeLabel);
 export namespace RaceTrackDimensions {
   // Viewbox dimensions
   export const ViewWidth = 960;
+  export const RankBarHeight = 24;
+  export const RankBarY = 2;
   export const ViewHeight = 280;
 
   export const marginTop = 16;
@@ -67,6 +69,6 @@ export type DragStartHandler = (
   umaIndex: number,
   start: number,
   end: number,
-  markerType?: 'skill' | 'debuff',
+  markerType?: 'skill' | 'debuff' | 'scenario',
   debuffId?: string
 ) => void;

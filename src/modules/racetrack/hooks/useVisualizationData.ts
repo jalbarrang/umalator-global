@@ -10,6 +10,10 @@ import { SkillType } from '@/lib/sunday-tools/skills/definitions';
 import { isExternalDebuffEffect } from '@/lib/sunday-tools/skills/external-debuffs';
 import { coursesService } from '@/modules/data/services/CourseService';
 import { useDebuffs } from '@/modules/simulation/stores/compare.store';
+import {
+  useScenarioOverrides,
+  hasAnyScenarioOverrides
+} from '@/modules/simulation/stores/scenario-overrides.store';
 import { skillsService } from '@/modules/data/services/SkillService';
 
 export type RegionData = {
@@ -32,6 +36,7 @@ export type RegionData = {
   debuffId?: string;
   isDebuff?: boolean;
   isEstimate?: boolean;
+  markerType?: 'skill' | 'debuff' | 'scenario';
 };
 
 const INSTANT_DURATION_THRESHOLD = 1;
@@ -189,6 +194,7 @@ type UseVisualizationDataProps = {
 export const useVisualizationData = (props: UseVisualizationDataProps) => {
   const { chartData } = props;
   const debuffs = useDebuffs();
+  const scenarioOverrides = useScenarioOverrides();
   const hasSimulationData = useMemo(() => {
     return (
       chartData.position.some((runnerPositions) => runnerPositions.length > 0) ||
@@ -256,25 +262,71 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
   }, [chartData, debuffs]);
 
   const rushedIndicators: Array<RegionData> = useMemo(() => {
-    if (!chartData) return [];
-    if (!chartData.rushed) return [];
-
     const results: Array<RegionData> = [];
 
-    for (const [umaIndex, rushArray] of chartData.rushed.entries()) {
-      for (const rush of rushArray) {
-        results.push({
-          type: RegionDisplayType.Textbox,
-          color: rushedColors[umaIndex],
-          text: 'Rushed',
-          umaIndex,
-          regions: [{ start: rush[0], end: rush[1] }]
-        });
+    // Show actual rushed regions from simulation data
+    if (chartData?.rushed) {
+      for (const [umaIndex, rushArray] of chartData.rushed.entries()) {
+        for (const rush of rushArray) {
+          results.push({
+            type: RegionDisplayType.Textbox,
+            color: rushedColors[umaIndex],
+            text: 'Rushed',
+            umaIndex,
+            regions: [{ start: rush[0], end: rush[1] }]
+          });
+        }
+      }
+    }
+
+    // Show forced rushed region previews when no sim data
+    if (!hasSimulationData) {
+      const entries: Array<[number, typeof scenarioOverrides.uma1]> = [
+        [0, scenarioOverrides.uma1],
+        [1, scenarioOverrides.uma2]
+      ];
+      for (const [umaIndex, overrides] of entries) {
+        if (overrides.forcedRushed) {
+          results.push({
+            type: RegionDisplayType.Textbox,
+            color: rushedColors[umaIndex],
+            text: 'Rushed (forced)',
+            skillId: '__forced_rushed',
+            markerType: 'scenario',
+            umaIndex,
+            isEstimate: true,
+            regions: [{ start: overrides.forcedRushed.start, end: overrides.forcedRushed.end }]
+          });
+        }
+        if (overrides.forcedDueling) {
+          results.push({
+            type: RegionDisplayType.Textbox,
+            color: posKeepColors[umaIndex],
+            text: 'Duel (forced)',
+            skillId: '__forced_dueling',
+            markerType: 'scenario',
+            umaIndex,
+            isEstimate: true,
+            regions: [{ start: overrides.forcedDueling.start, end: overrides.forcedDueling.end }]
+          });
+        }
+        if (overrides.forcedSpotStruggle) {
+          results.push({
+            type: RegionDisplayType.Textbox,
+            color: posKeepColors[umaIndex],
+            text: 'SS (forced)',
+            skillId: '__forced_spot_struggle',
+            markerType: 'scenario',
+            umaIndex,
+            isEstimate: true,
+            regions: [{ start: overrides.forcedSpotStruggle.start, end: overrides.forcedSpotStruggle.end }]
+          });
+        }
       }
     }
 
     return results;
-  }, [chartData]);
+  }, [chartData, hasSimulationData, scenarioOverrides]);
 
   const debuffIndicators: Array<RegionData> = useMemo(() => {
     if (hasSimulationData) {
@@ -319,56 +371,41 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
   }, []);
 
   const competeFightData = useMemo(() => {
-    if (!chartData) return [];
-    if (!chartData.duelingRegions) return [];
+    const results: Array<PosKeepLabel> = [];
 
-    const results = [];
-
-    for (const [umaIndex, competeFightArray] of chartData.duelingRegions.entries()) {
-      if (competeFightArray.length === 0) continue;
-
-      const start = competeFightArray[0];
-      const end = competeFightArray[1];
-
-      results.push({
-        umaIndex: umaIndex,
-        text: 'Duel',
-        color: posKeepColors[umaIndex],
-        start: start,
-        end: end,
-        duration: end - start
-      });
+    if (chartData?.duelingRegions) {
+      for (const [umaIndex, competeFightArray] of chartData.duelingRegions.entries()) {
+        if (competeFightArray.length === 0) continue;
+        const start = competeFightArray[0];
+        const end = competeFightArray[1];
+        results.push({
+          umaIndex, text: 'Duel', color: posKeepColors[umaIndex],
+          start, end, duration: end - start
+        });
+      }
     }
 
     return results;
-  }, [chartData]);
+  }, [chartData, hasSimulationData, scenarioOverrides]);
 
   const leadCompetitionData = useMemo(() => {
-    if (!chartData) return [];
-    if (!chartData.spotStruggleRegions) return [];
+    const results: Array<PosKeepLabel> = [];
 
-    const results = [];
+    if (chartData?.spotStruggleRegions) {
+      for (const [umaIndex, leadCompetitionArray] of chartData.spotStruggleRegions.entries()) {
+        if (!leadCompetitionArray || leadCompetitionArray.length === 0) continue;
+        const start = leadCompetitionArray[0];
+        const end = leadCompetitionArray[1];
 
-    for (const [umaIndex, leadCompetitionArray] of chartData.spotStruggleRegions.entries()) {
-      if (!leadCompetitionArray || leadCompetitionArray.length === 0) {
-        continue;
+        results.push({
+          umaIndex, text: 'SS', color: posKeepColors[umaIndex],
+          start, end, duration: end - start
+        });
       }
-
-      const start = leadCompetitionArray[0];
-      const end = leadCompetitionArray[1];
-
-      results.push({
-        umaIndex: umaIndex,
-        text: 'SS',
-        color: posKeepColors[umaIndex],
-        start: start,
-        end: end,
-        duration: end - start
-      });
     }
 
     return results;
-  }, [chartData]);
+  }, [chartData, hasSimulationData, scenarioOverrides]);
 
   const labels = useMemo(() => {
     return [...posKeepData, ...competeFightData, ...leadCompetitionData];

@@ -6,6 +6,13 @@ import { useSettingsStore } from '@/store/settings.store';
 import { useVisualizationData } from './hooks/useVisualizationData';
 import { updateDebuffPosition } from '../simulation/stores/compare.store';
 import { setForcedPosition } from '../simulation/stores/forced-positions.store';
+import {
+  setForcedRushed,
+  setForcedDueling,
+  setForcedSpotStruggle,
+  updateForcedRank,
+  useScenarioOverridesStore
+} from '../simulation/stores/scenario-overrides.store';
 
 import { VelocityPaths } from './overlays/velocity-paths';
 import { ThresholdMarkers } from './overlays/threshold-markers';
@@ -13,6 +20,7 @@ import { PosKeepLabels } from './overlays/poskeep-labels';
 import { RaceTrackTooltip } from './overlays/racetrack-tooltip';
 import type { RaceTrackTooltipHandle } from './overlays/racetrack-tooltip';
 import { MouseLine } from './overlays/mouse-line';
+// import { ForcedRankBar } from './layers/forced-rank-bar';
 import { TrackLegend } from './chrome/track-legend';
 import { TrackControls } from './chrome/track-controls';
 import { YAxis } from './axes/y-axis';
@@ -56,12 +64,35 @@ export const RaceTrack = (props: RaceTrackProps) => {
       skillId: string,
       umaIndex: number,
       newStart: number,
-      _newEnd: number,
-      markerType: 'skill' | 'debuff' = 'skill',
+      newEnd: number,
+      markerType: 'skill' | 'debuff' | 'scenario' = 'skill',
       debuffId?: string
     ) => {
       if (markerType === 'debuff' && debuffId) {
         updateDebuffPosition(umaIndex === 0 ? 'uma1' : 'uma2', debuffId, newStart);
+        return;
+      }
+
+      if (markerType === 'scenario') {
+        const runnerId = umaIndex === 0 ? 'uma1' : ('uma2' as const);
+
+        if (skillId.startsWith('__forced_rank_') && debuffId) {
+          const regionIndex = parseInt(debuffId.split('-')[2], 10);
+          const existing = useScenarioOverridesStore.getState()[runnerId].forcedRank[regionIndex];
+          if (existing) {
+            updateForcedRank(runnerId, regionIndex, {
+              start: Math.round(newStart),
+              end: Math.round(newEnd),
+              rank: existing.rank
+            });
+          }
+          return;
+        }
+
+        const region = { start: Math.round(newStart), end: Math.round(newEnd) };
+        if (skillId === '__forced_rushed') setForcedRushed(runnerId, region);
+        else if (skillId === '__forced_dueling') setForcedDueling(runnerId, region);
+        else if (skillId === '__forced_spot_struggle') setForcedSpotStruggle(runnerId, region);
         return;
       }
 
@@ -162,6 +193,17 @@ export const RaceTrack = (props: RaceTrackProps) => {
             onPointerLeave={doPointerLeave}
             onPointerUp={handleDragEnd}
           >
+            {/* Forced Rank Bar */}
+            {/* <svg
+              x={RaceTrackDimensions.xOffset}
+              y={RaceTrackDimensions.RankBarY}
+              width={RaceTrackDimensions.RenderWidth}
+              height={RaceTrackDimensions.RankBarHeight}
+              overflow="visible"
+            >
+              <ForcedRankBar courseDistance={course.distance} onDragStart={handleDragStart} />
+            </svg> */}
+
             {/* Background for Slope */}
             <SlopeVisualization course={course} />
 

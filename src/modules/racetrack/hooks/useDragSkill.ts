@@ -23,7 +23,7 @@ export interface DraggedSkill {
   umaIndex: number;
   originalStart: number;
   originalEnd: number;
-  markerType: 'skill' | 'debuff';
+  markerType: 'skill' | 'debuff' | 'scenario';
   debuffId?: string;
 }
 
@@ -116,7 +116,7 @@ interface UseDragSkillParams {
     umaIndex: number,
     start: number,
     end: number,
-    markerType: 'skill' | 'debuff',
+    markerType: 'skill' | 'debuff' | 'scenario',
     debuffId?: string
   ) => void;
 }
@@ -139,7 +139,7 @@ export function useDragSkill({
       umaIndex: number,
       start: number,
       end: number,
-      markerType: 'skill' | 'debuff' = 'skill',
+      markerType: 'skill' | 'debuff' | 'scenario' = 'skill',
       debuffId?: string
     ) => {
       e.preventDefault();

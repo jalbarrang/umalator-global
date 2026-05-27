@@ -465,7 +465,7 @@ export const PresetsPanel = () => {
                       disabled={panel.checkedIds.size === 0}
                       onClick={handleBulkDelete}
                     >
-                      <Trash2 className="size-8 mr-1" />
+                      <Trash2 className="mr-1" />
                       Delete ({panel.checkedIds.size})
                     </Button>
                     <Button

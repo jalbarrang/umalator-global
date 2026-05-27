@@ -41,6 +41,7 @@ export type RunnerLike = {
   posKeepMaxThreshold: number;
   posKeepEnd: number;
   positionKeepActivations: Array<PositionKeepActivation>;
+  forcedRank: ReadonlyArray<{ start: number; end: number; rank: number }>;
 };
 
 export function speedUpOvertakeWitCheck(runner: RunnerLike): boolean {
@@ -132,12 +133,27 @@ export function applyVirtualPositionKeep(runner: RunnerLike): void {
     return;
   }
 
-  if (!runner.race.pacer || runner.race.runners.size < 2) {
+  // Check for active forced rank
+  let hasForcedRank = false;
+  let forcedBehind = 0;
+  if (runner.forcedRank && runner.forcedRank.length > 0) {
+    for (const region of runner.forcedRank) {
+      if (runner.position >= region.start && runner.position < region.end) {
+        const numUmas = 9;
+        const maxGap = runner.posKeepMaxThreshold + runner.sectionLength;
+        forcedBehind = ((region.rank - 1) / (numUmas - 1)) * maxGap;
+        hasForcedRank = true;
+        break;
+      }
+    }
+  }
+
+  if (!hasForcedRank && (!runner.race.pacer || runner.race.runners.size < 2)) {
     return;
   }
 
   const pacer = runner.race.pacer;
-  const behind = pacer.position - runner.position;
+  const behind = hasForcedRank ? forcedBehind : (pacer ? pacer.position - runner.position : 0);
   const myStrategy = runner.positionKeepStrategy;
 
   switch (runner.positionKeepState) {
