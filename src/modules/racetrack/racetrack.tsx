@@ -178,8 +178,8 @@ export const RaceTrack = (props: RaceTrackProps) => {
   return (
     <div className="flex flex-col gap-2 bg-card rounded-md border px-1 py-2 max-w-[1600px] mx-auto w-full">
       <TrackLegend />
-      <div className="overflow-x-auto border-t border-b">
-        <div className="min-w-[1200px]">
+      <div className="overflow-x-auto md:overflow-x-hidden border-t border-b">
+        <div className="min-w-[1200px] md:min-w-0">
           <svg
             version="1.1"
             xmlns="http://www.w3.org/2000/svg"
