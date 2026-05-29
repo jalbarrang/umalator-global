@@ -14,6 +14,8 @@ import type { IRunnerState } from '@/modules/runners/components/runner-card/type
 import { getUmaDisplayInfo, getUmaImageUrl } from '@/modules/runners/utils';
 import { StatImage } from '@/modules/runners/components/StatInput';
 import { skillsService } from '@/modules/data/services/SkillService';
+import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
 
 type ImportCodeDialogProps = {
   open: boolean;
@@ -69,7 +71,7 @@ export function ImportCodeDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="md:max-w-xl!">
         <DialogHeader>
           <DialogTitle>Import from Code</DialogTitle>
           <DialogDescription>Paste a RosterView export code to import a runner.</DialogDescription>
@@ -77,7 +79,7 @@ export function ImportCodeDialog({
 
         <div className="flex flex-col gap-4">
           <textarea
-            className="w-full h-24 p-3 rounded-md border bg-background font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full p-3 rounded-md border bg-background font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary"
             placeholder="Paste RosterView code here..."
             value={code}
             onChange={(e) => setCode(e.target.value)}
@@ -107,7 +109,7 @@ export function ImportCodeDialog({
                 </div>
               </div>
 
-              <div className="grid grid-cols-5 gap-1 text-center">
+              <div className="grid grid-cols-5 text-center">
                 {['Speed', 'Stamina', 'Power', 'Guts', 'Wit'].map((label, i) => (
                   <div
                     key={label}
@@ -118,21 +120,22 @@ export function ImportCodeDialog({
                     {label}
                   </div>
                 ))}
+
                 {[
                   { label: 'Speed', value: decoded.speed },
                   { label: 'Stamina', value: decoded.stamina },
                   { label: 'Power', value: decoded.power },
                   { label: 'Guts', value: decoded.guts },
                   { label: 'Wit', value: decoded.wisdom }
-                ].map((stat, i) => (
-                  <div
-                    key={stat.label}
-                    className={`border p-1 font-mono flex items-center justify-center gap-1 ${
-                      i === 0 ? 'rounded-bl' : i === 4 ? 'rounded-br' : ''
-                    }`}
-                  >
-                    <StatImage value={stat.value ?? 0} className="size-3" />
-                    <span>{stat.value ?? '-'}</span>
+                ].map((stat) => (
+                  <div key={stat.label} className={cn('border p-1 flex items-center gap-1')}>
+                    <div>
+                      <StatImage value={stat.value ?? 0} className="size-6" />
+                    </div>
+
+                    <div className="flex flex-1 items-center justify-center text-sm font-mono">
+                      {stat.value ?? '-'}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -146,11 +149,16 @@ export function ImportCodeDialog({
                 <span className="font-medium">{decoded.strategyAptitude}</span>
               </div>
 
-              <div className="text-sm">
-                <span className="text-muted-foreground">Skills:</span>{' '}
-                <span className="font-medium">{skillNames.length} detected</span>
+              <div className="space-y-2">
+                <div>
+                  <span className="text-muted-foreground">Skills:</span>{' '}
+                  <span className="font-medium">{skillNames.length}</span>
+                </div>
+
+                <Separator />
+
                 {skillNames.length > 0 && (
-                  <div className="mt-1 text-xs text-muted-foreground">{skillNames.join(', ')}</div>
+                  <div className="text-muted-foreground">{skillNames.join(', ')}</div>
                 )}
               </div>
             </div>

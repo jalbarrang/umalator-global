@@ -46,7 +46,7 @@ function SkillCostDetailsPopover(props: Readonly<SkillCostDetailsPopoverProps>) 
         render={
           <Button
             variant="outline"
-            size="sm"
+            size="xs"
             className={triggerClassName}
             title="Show skill cost details"
             onClick={(event) => event.stopPropagation()}
@@ -161,7 +161,7 @@ export function SkillItemCostAction(props: Readonly<SkillItemCostActionProps>) {
     <SkillCostDetailsPopover
       triggerClassName={cn(
         'whitespace-nowrap',
-        isObtained ? 'text-green-600 dark:text-green-400' : '',
+        { 'text-green-600 dark:text-green-400': isObtained },
         className
       )}
     >

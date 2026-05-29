@@ -107,7 +107,7 @@ function RunnerCardSkillRow(props: Readonly<RunnerCardSkillRowProps>) {
       <SkillItemRail />
       <SkillItemBody className="p-1 px-1">
         <SkillItemMain>
-          <SkillItemIdentity />
+          <SkillItemIdentity labelProps={{ className: 'text-xs' }} />
           <SkillItemActions>
             <SkillItemCostAction layout="inline" />
             <SkillItemDetailsActions dismissable={dismissable} />
@@ -122,7 +122,7 @@ function RunnerCardSkillRow(props: Readonly<RunnerCardSkillRowProps>) {
       <SkillItemRail />
       <SkillItemBody className="flex-col">
         <SkillItemMain className="p-1 px-1">
-          <SkillItemIdentity />
+          <SkillItemIdentity labelProps={{ className: 'text-xs' }} />
         </SkillItemMain>
 
         <SkillItemActions className="justify-end bg-card">

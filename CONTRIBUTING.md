@@ -542,7 +542,7 @@ The project deploys to **GitHub Pages** via `.github/workflows/deploy-pages.yml`
    bun run test         # Tests pass
    ```
 
-2. **Update the changelog** in `src/data/changelog.ts` if the change is user-facing.
+2. **User-facing changes** use [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, etc.) so they appear in the in-app changelog after release. Do not edit `CHANGELOG.md` — deploy CI regenerates it; locally run `bun run changelog:generate` after fetching tags.
 
 3. **Test thoroughly:**
    - Run simulations with your changes

@@ -45,7 +45,7 @@ export const AptitudesTable = (props: AptitudesTableProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
       <div className="flex items-center gap-2 border rounded-xl">
-        <Label className="pl-2 w-24">Surface aptitude:</Label>
+        <Label className="pl-2 w-24 text-xs">Surface aptitude:</Label>
 
         <AptitudeSelect
           value={value.surfaceAptitude}
@@ -54,7 +54,7 @@ export const AptitudesTable = (props: AptitudesTableProps) => {
       </div>
 
       <div className="flex items-center gap-2 border rounded-xl">
-        <Label className="pl-2 w-24">Distance aptitude:</Label>
+        <Label className="pl-2 w-24 text-xs">Distance aptitude:</Label>
         <AptitudeSelect
           value={value.distanceAptitude}
           onChange={handleUpdateAptitude('distanceAptitude')}
@@ -62,7 +62,7 @@ export const AptitudesTable = (props: AptitudesTableProps) => {
       </div>
 
       <div className="flex items-center gap-2 border rounded-xl">
-        <Label className="pl-2 w-24">Style:</Label>
+        <Label className="pl-2 w-24 text-xs">Style:</Label>
         <StrategySelect
           value={value.strategy}
           onChange={handleUpdateStrategy('strategy')}
@@ -71,7 +71,7 @@ export const AptitudesTable = (props: AptitudesTableProps) => {
       </div>
 
       <div className="flex items-center gap-2 border rounded-xl">
-        <Label className="pl-2 w-24">Style aptitude:</Label>
+        <Label className="pl-2 w-24 text-xs">Style aptitude:</Label>
         <AptitudeSelect
           value={value.strategyAptitude}
           onChange={handleUpdateAptitude('strategyAptitude')}
@@ -79,7 +79,7 @@ export const AptitudesTable = (props: AptitudesTableProps) => {
       </div>
 
       <div className="flex items-center gap-2 border rounded-xl">
-        <Label className="pl-2 w-24">Mood:</Label>
+        <Label className="pl-2 w-24 text-xs">Mood:</Label>
         <MoodSelect value={value.mood} onChange={handleUpdateMood('mood')} />
       </div>
     </div>

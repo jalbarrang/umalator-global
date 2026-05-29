@@ -8,7 +8,7 @@ export type ChangelogEntry = {
 
 export function parseChangelog(markdown: string): Array<ChangelogEntry> {
   const entries: Array<ChangelogEntry> = [];
-  const lines = markdown.split('\n');
+  const lines = markdown.replace(/\r\n/g, '\n').split('\n');
 
   let currentEntry: ChangelogEntry | null = null;
 

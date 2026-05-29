@@ -54,7 +54,7 @@ See [docs/data-extraction/data-pipeline.md](docs/data-extraction/data-pipeline.m
 
 ## Deployment
 
-Production deploys are triggered automatically when a new **GitHub Release** is published (via [release-please](https://github.com/googleapis/release-please)).
+Production deploys run automatically on every push to `main` (rolling releases). GitHub Releases from [semantic-release](https://github.com/semantic-release/semantic-release) are for changelog/tags only and do not trigger deploys.
 
 Two deploy targets run in parallel:
 
@@ -65,11 +65,29 @@ Two deploy targets run in parallel:
 
 Both workflows can also be triggered manually via `workflow_dispatch`.
 
+### Versioning
+
+Releases are driven by [Conventional Commits](https://www.conventionalcommits.org/) on `main` (enforced locally via commitlint). [semantic-release](https://github.com/semantic-release/semantic-release) tags the **deployed commit** and opens a GitHub Release — there is no `chore(release)` commit on `main`.
+
+- **`__APP__VERSION__`**: latest `v*` tag semver + current short commit hash (e.g. `0.13.0+6f1340a`)
+- **In-app changelog**: `CHANGELOG.md` is regenerated during deploy builds (`bun run changelog:generate`); locally run that after `git fetch --tags` to refresh the modal in dev
+- **GitHub Releases**: release notes for Discord / announcements
+
+```bash
+# Preview the next version and release notes
+GITHUB_TOKEN=<pat> bun run release:dry-run
+
+# Tag current commit and create GitHub Release
+GITHUB_TOKEN=<pat> bun run release
+```
+
+Use `DATA_UPDATE_PAT` as `GITHUB_TOKEN` for local releases.
+
 ### Required Secrets & Variables
 
-| Name                       | Type     | Used by                                                                                                   |
-| -------------------------- | -------- | --------------------------------------------------------------------------------------------------------- |
-| `DATA_UPDATE_PAT`          | Secret   | `versioning.yml` — PAT used by release-please so the `release: published` event triggers deploy workflows |
+| Name                       | Type     | Used by                                                          |
+| -------------------------- | -------- | ---------------------------------------------------------------- |
+| `DATA_UPDATE_PAT`          | Secret   | `versioning.yml` — PAT for semantic-release (push tags, releases) |
 | `NETLIFY_AUTH_TOKEN`       | Secret   | Netlify deploy                                                                                            |
 | `NETLIFY_SITE_ID`          | Secret   | Netlify deploy                                                                                            |
 | `VITE_PUBLIC_POSTHOG_KEY`  | Secret   | Build-time analytics key                                                                                  |
