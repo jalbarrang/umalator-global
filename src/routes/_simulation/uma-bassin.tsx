@@ -85,7 +85,7 @@ export default function UmaComparePage() {
     return {
       id: 'uma-bassin' as TutorialId,
       steps: umaBassinSteps,
-      tooltip: 'How to use Uma Chart'
+      tooltip: 'How to use Compare Uniques'
     };
   }, []);
 

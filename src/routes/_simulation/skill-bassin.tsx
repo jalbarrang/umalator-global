@@ -78,7 +78,7 @@ export default function SkillComparePage() {
     return {
       id: 'skill-bassin' as TutorialId,
       steps: skillBassinSteps,
-      tooltip: 'How to use Skill Chart'
+      tooltip: 'How to use Compare Skills'
     };
   }, []);
 

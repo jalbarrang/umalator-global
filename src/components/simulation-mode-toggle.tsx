@@ -3,8 +3,8 @@ import { cn } from '@/lib/utils';
 
 const items = [
   { path: '/', label: 'Compare Runners' },
-  { path: '/skill-bassin', label: 'Skill Chart' },
-  { path: '/uma-bassin', label: 'Uma Chart' }
+  { path: '/skill-bassin', label: 'Compare Skills' },
+  { path: '/uma-bassin', label: 'Compare Uniques' }
 ];
 
 export const SimulationModeToggle = () => {

@@ -6,11 +6,11 @@ const HighlightedText = ({ children }: { children: React.ReactNode }) => {
 
 export const skillBassinSteps: Array<TutorialStep> = [
   {
-    title: 'Welcome to Skill Chart! 📊',
+    title: 'Welcome to Compare Skills! 📊',
     description: (
       <div className="flex flex-col gap-2 text-muted-foreground">
         <div>
-          The Skill Chart helps you analyze and compare the effectiveness of individual skills in
+          Compare Skills helps you analyze and compare the effectiveness of individual skills in
           your runner's build.
         </div>
         <div>Let's explore how to use this powerful analysis tool!</div>
@@ -84,7 +84,7 @@ export const skillBassinSteps: Array<TutorialStep> = [
     description: (
       <div className="flex flex-col gap-2 text-muted-foreground">
         <div>
-          The Skill Chart runs multiple simulations comparing your runner <strong>with</strong> and{' '}
+          Compare Skills runs multiple simulations comparing your runner <strong>with</strong> and{' '}
           <strong>without</strong> each skill to measure its impact.
         </div>
 
