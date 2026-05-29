@@ -1,9 +1,12 @@
 name: Deploy to Netlify
 
 on:
-  push:
-    branches:
-      - main
+  # Run after Versioning so semantic-release has created the release tag before
+  # changelog:generate reads git history for the in-app changelog.
+  workflow_run:
+    workflows: [Versioning]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
