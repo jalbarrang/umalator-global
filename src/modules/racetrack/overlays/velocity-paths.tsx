@@ -1,6 +1,6 @@
 import { CourseData } from '@/lib/sunday-tools/course/definitions';
 import { SimulationRun } from '@/modules/simulation/compare.types';
-import { useSettingsStore } from '@/store/settings.store';
+import { useRaceTrackDisplay } from '@/store/settings.store';
 // @ts-expect-error d3 types are not typed
 import * as d3 from 'd3';
 import { memo, useMemo } from 'react';
@@ -50,12 +50,18 @@ type VelocityPathsProps = {
 
 const height = RaceTrackDimensions.yAxisHeight;
 const runnerIds = ['uma1', 'uma2'] as const;
-// const xOffset = RaceTrackDimensions.xOffset;
 
 export const VelocityPaths = memo<VelocityPathsProps>(function VelocityPaths(props) {
   const { chartData, course } = props;
 
-  const { showHp, showLanes, showUma1, showUma2 } = useSettingsStore();
+  const {
+    showVelocityUma1,
+    showVelocityUma2,
+    showHpUma1,
+    showHpUma2,
+    showLanesUma1,
+    showLanesUma2
+  } = useRaceTrackDisplay();
 
   const xScale = useMemo(
     () => d3.scaleLinear().domain([0, course.distance]).range([0, RaceTrackDimensions.RenderWidth]),
@@ -103,8 +109,8 @@ export const VelocityPaths = memo<VelocityPathsProps>(function VelocityPaths(pro
       width={RaceTrackDimensions.RenderWidth}
     >
       {chartData.velocity.map((v, i) => {
-        if (i === 0 && !showUma1) return null;
-        if (i === 1 && !showUma2) return null;
+        const showVelocity = i === 0 ? showVelocityUma1 : showVelocityUma2;
+        if (!showVelocity) return null;
 
         return (
           <DataPath
@@ -118,11 +124,10 @@ export const VelocityPaths = memo<VelocityPathsProps>(function VelocityPaths(pro
         );
       })}
 
-      {showHp &&
-        hpYScale &&
+      {hpYScale &&
         chartData.hp.map((hp, i) => {
-          if (i === 0 && !showUma1) return null;
-          if (i === 1 && !showUma2) return null;
+          const showHp = i === 0 ? showHpUma1 : showHpUma2;
+          if (!showHp) return null;
 
           return (
             <DataPath
@@ -136,11 +141,10 @@ export const VelocityPaths = memo<VelocityPathsProps>(function VelocityPaths(pro
           );
         })}
 
-      {showLanes &&
-        laneYScale &&
+      {laneYScale &&
         chartData.currentLane?.map((lanes, i) => {
-          if (i === 0 && !showUma1) return null;
-          if (i === 1 && !showUma2) return null;
+          const showLanes = i === 0 ? showLanesUma1 : showLanesUma2;
+          if (!showLanes) return null;
 
           return (
             <DataPath

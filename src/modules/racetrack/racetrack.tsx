@@ -2,7 +2,6 @@ import { useCallback, useMemo, useRef } from 'react';
 import { initializeSimulationRun, SimulationRun } from '../simulation/compare.types';
 import { getActiveDragPreview, useDragSkill } from './hooks/useDragSkill';
 import { coursesService } from '@/modules/data/services/CourseService';
-import { useSettingsStore } from '@/store/settings.store';
 import { useVisualizationData } from './hooks/useVisualizationData';
 import { updateDebuffPosition } from '../simulation/stores/compare.store';
 import { setForcedPosition } from '../simulation/stores/forced-positions.store';
@@ -48,7 +47,6 @@ export const RaceTrack = (props: RaceTrackProps) => {
   }, [incomingChartData]);
 
   const course = useMemo(() => coursesService.getSimCourse(courseId), [courseId]);
-  const { showUma1, showUma2 } = useSettingsStore();
 
   const mouseLineRef = useRef<SVGLineElement>(null);
   const mouseTextRef = useRef<SVGTextElement>(null);
@@ -231,8 +229,6 @@ export const RaceTrack = (props: RaceTrackProps) => {
             >
               <UmaSkillSection
                 course={course}
-                showUma1={showUma1}
-                showUma2={showUma2}
                 skillActivations={skillActivations}
                 rushedIndicators={rushedIndicators}
                 debuffIndicators={debuffIndicators}

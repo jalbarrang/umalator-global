@@ -1,4 +1,4 @@
-import { useSettingsStore } from '@/store/settings.store';
+import { useRaceTrackDisplay } from '@/store/settings.store';
 import React, { Activity } from 'react';
 import { RaceTrackDimensions } from '../types';
 
@@ -59,11 +59,11 @@ const height = RaceTrackDimensions.ViewHeight;
 export const ThresholdMarkers = React.memo((props: ThresholdMarkersProps) => {
   const { courseDistance } = props;
 
-  const { showThresholds } = useSettingsStore();
+  const { showThresholdHalfway, showThreshold777, showThreshold200 } = useRaceTrackDisplay();
 
   return (
-    <Activity mode={showThresholds ? 'visible' : 'hidden'}>
-      <g id="race-threshold-markers">
+    <g id="race-threshold-markers">
+      <Activity mode={showThresholdHalfway ? 'visible' : 'hidden'}>
         <ThresholdMarker
           threshold={courseDistance / 2}
           courseDistance={courseDistance}
@@ -72,7 +72,9 @@ export const ThresholdMarkers = React.memo((props: ThresholdMarkersProps) => {
           text={`Halfway (${courseDistance / 2}m)`}
           strokeColor="var(--color-green-400)"
         />
+      </Activity>
 
+      <Activity mode={showThreshold777 ? 'visible' : 'hidden'}>
         <ThresholdMarker
           threshold={777}
           strokeColor="var(--color-amber-400)"
@@ -80,7 +82,9 @@ export const ThresholdMarkers = React.memo((props: ThresholdMarkersProps) => {
           width={width}
           height={height}
         />
+      </Activity>
 
+      <Activity mode={showThreshold200 ? 'visible' : 'hidden'}>
         <ThresholdMarker
           threshold={200}
           strokeColor="var(--color-amber-400)"
@@ -88,7 +92,7 @@ export const ThresholdMarkers = React.memo((props: ThresholdMarkersProps) => {
           width={width}
           height={height}
         />
-      </g>
-    </Activity>
+      </Activity>
+    </g>
   );
 });

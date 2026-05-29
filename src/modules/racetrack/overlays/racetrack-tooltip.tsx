@@ -2,12 +2,13 @@ import { useCallback, useImperativeHandle, useRef, useState } from 'react';
 import type { Ref } from 'react';
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';
 import type { SimulationRun } from '@/modules/simulation/compare.types';
+import { useRaceTrackDisplay } from '@/store/settings.store';
 import { binSearch } from '@/utils/algorithims';
 import { RaceTrackDimensions } from '../types';
 
 export type TooltipData = {
-  v1Text: string;
-  v2Text: string;
+  v1Text: string | null;
+  v2Text: string | null;
 };
 
 type RaceTrackTooltipProps = {
@@ -23,6 +24,7 @@ export type RaceTrackTooltipHandle = {
 
 export function RaceTrackTooltip(props: RaceTrackTooltipProps) {
   const { chartData, course, ref } = props;
+  const { showVelocityUma1, showVelocityUma2 } = useRaceTrackDisplay();
   const [tooltipData, setTooltipData] = useState<TooltipData | null>(null);
   const lastIndicesRef = useRef<{ i0: number; i1: number } | null>(null);
 
@@ -50,17 +52,21 @@ export function RaceTrackTooltip(props: RaceTrackTooltipProps) {
       const hp1 = chartData.hp[0][safeI0];
       const v2 = chartData.velocity[1][safeI1];
       const hp2 = chartData.hp[1][safeI1];
-      const v1Text = `${v1.toFixed(2)}m/s t=${t1.toFixed(2)}s (${hp1.toFixed(0)} HP remaining)`;
-      const v2Text = `${v2.toFixed(2)}m/s t=${t2.toFixed(2)}s (${hp2.toFixed(0)} HP remaining)`;
+      const v1Text = showVelocityUma1
+        ? `${v1.toFixed(2)}m/s t=${t1.toFixed(2)}s (${hp1.toFixed(0)} HP remaining)`
+        : null;
+      const v2Text = showVelocityUma2
+        ? `${v2.toFixed(2)}m/s t=${t2.toFixed(2)}s (${hp2.toFixed(0)} HP remaining)`
+        : null;
 
       setTooltipData((prev) => {
-        if (prev?.v1Text === v1Text && prev.v2Text === v2Text) {
+        if (prev?.v1Text === v1Text && prev?.v2Text === v2Text) {
           return prev;
         }
         return { v1Text, v2Text };
       });
     },
-    [chartData, course.distance]
+    [chartData, course.distance, showVelocityUma1, showVelocityUma2]
   );
 
   const hide = useCallback(() => {
@@ -81,6 +87,13 @@ export function RaceTrackTooltip(props: RaceTrackTooltipProps) {
     return null;
   }
 
+  const lines = [tooltipData.v1Text, tooltipData.v2Text].filter(Boolean);
+  if (lines.length === 0) {
+    return null;
+  }
+
+  const rectHeight = 8 + lines.length * 11;
+
   return (
     <svg
       id="racetrack-tooltip"
@@ -94,17 +107,21 @@ export function RaceTrackTooltip(props: RaceTrackTooltipProps) {
         x={0}
         y={0}
         width={160}
-        height={30}
+        height={rectHeight}
         fill="var(--background)"
         stroke="var(--border)"
         strokeWidth="1"
       />
-      <text x={5} y={12} fill="#2a77c5" fontSize="8px">
-        {tooltipData.v1Text}
-      </text>
-      <text x={5} y={23} fill="#c52a2a" fontSize="8px">
-        {tooltipData.v2Text}
-      </text>
+      {tooltipData.v1Text && (
+        <text x={5} y={12} fill="#2a77c5" fontSize="8px">
+          {tooltipData.v1Text}
+        </text>
+      )}
+      {tooltipData.v2Text && (
+        <text x={5} y={tooltipData.v1Text ? 23 : 12} fill="#c52a2a" fontSize="8px">
+          {tooltipData.v2Text}
+        </text>
+      )}
     </svg>
   );
 }

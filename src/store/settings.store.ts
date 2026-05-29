@@ -7,6 +7,11 @@ import { createRunnerState } from '@/modules/runners/components/runner-card/type
 import { DEFAULT_SAMPLES } from '@/utils/constants';
 import { getDefaultCourseId } from '@/store/race/defaults';
 import { createRaceConditions } from '@/utils/races';
+import {
+  defaultRaceTrackDisplaySettings,
+  migrateRaceTrackDisplaySettings,
+  type RaceTrackDisplaySettings
+} from '@/modules/racetrack/display-settings';
 
 export type WitVarianceSettings = {
   allowRushedUma1: boolean;
@@ -31,14 +36,7 @@ type ISettingsStore = {
   witVarianceSettings: WitVarianceSettings;
   staminaDrainOverrides: StaminaDrainOverrides;
   selectedPresetId: string | null;
-
-  // Race Track UI settings
-  showLanes: boolean;
-  showHp: boolean;
-  showUma1: boolean;
-  showUma2: boolean;
-  showThresholds: boolean;
-};
+} & RaceTrackDisplaySettings;
 
 export const useSettingsStore = create<ISettingsStore>()(
   persist(
@@ -62,16 +60,23 @@ export const useSettingsStore = create<ISettingsStore>()(
       staminaDrainOverrides: {},
       selectedPresetId: null,
 
-      // Race Track UI settings
-      showLanes: false,
-      showHp: false,
-      showUma1: true,
-      showUma2: true,
-      showThresholds: true
+      ...defaultRaceTrackDisplaySettings()
     }),
     {
       name: 'umalator-settings',
-      storage: createJSONStorage(() => localStorage)
+      storage: createJSONStorage(() => localStorage),
+      version: 2,
+      migrate: (persistedState, version) => {
+        if (version < 2) {
+          return {
+            ...(persistedState as object),
+            ...migrateRaceTrackDisplaySettings(
+              persistedState as Parameters<typeof migrateRaceTrackDisplaySettings>[0]
+            )
+          };
+        }
+        return persistedState as ISettingsStore;
+      }
     }
   )
 );
@@ -124,37 +129,33 @@ export const setSelectedPresetId = (presetId: string | null) => {
   useSettingsStore.setState({ selectedPresetId: presetId });
 };
 
-// Race Track UI settings
-
-export const useRaceTrackUI = () =>
+export const useRaceTrackDisplay = () =>
   useSettingsStore(
     useShallow((state) => ({
-      showUma1: state.showUma1,
-      showUma2: state.showUma2,
-      showLanes: state.showLanes,
-      showHp: state.showHp,
-      showThresholds: state.showThresholds
+      showVelocityUma1: state.showVelocityUma1,
+      showVelocityUma2: state.showVelocityUma2,
+      showHpUma1: state.showHpUma1,
+      showHpUma2: state.showHpUma2,
+      showLanesUma1: state.showLanesUma1,
+      showLanesUma2: state.showLanesUma2,
+      showThresholdHalfway: state.showThresholdHalfway,
+      showThreshold777: state.showThreshold777,
+      showThreshold200: state.showThreshold200,
+      showSkillMarkers: state.showSkillMarkers,
+      showDebuffMarkers: state.showDebuffMarkers,
+      showRushedMarkers: state.showRushedMarkers,
+      showScenarioMarkers: state.showScenarioMarkers,
+      showPosKeepLabels: state.showPosKeepLabels
     }))
   );
 
-export const toggleShowUma1 = () => {
-  useSettingsStore.setState((state) => ({ showUma1: !state.showUma1 }));
+export const setRaceTrackDisplay = (partial: Partial<RaceTrackDisplaySettings>) => {
+  useSettingsStore.setState(partial);
 };
 
-export const toggleShowUma2 = () => {
-  useSettingsStore.setState((state) => ({ showUma2: !state.showUma2 }));
+export const toggleRaceTrackDisplay = (key: keyof RaceTrackDisplaySettings) => {
+  useSettingsStore.setState((state) => ({ [key]: !state[key] }));
 };
 
-export const toggleShowLanes = () => {
-  useSettingsStore.setState((state) => ({ showLanes: !state.showLanes }));
-};
-
-export const toggleShowHp = () => {
-  useSettingsStore.setState((state) => ({ showHp: !state.showHp }));
-};
-
-export const toggleShowThresholds = () => {
-  useSettingsStore.setState((state) => ({
-    showThresholds: !state.showThresholds
-  }));
-};
+/** @deprecated Use useRaceTrackDisplay instead */
+export const useRaceTrackUI = useRaceTrackDisplay;

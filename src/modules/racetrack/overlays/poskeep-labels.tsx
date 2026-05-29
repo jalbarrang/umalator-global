@@ -1,4 +1,4 @@
-import { useSettingsStore } from '@/store/settings.store';
+import { useRaceTrackDisplay } from '@/store/settings.store';
 import { PosKeepLabel } from '@/utils/races';
 
 type PosKeepLabelsProps = {
@@ -8,15 +8,15 @@ type PosKeepLabelsProps = {
 export const PosKeepLabels = (props: PosKeepLabelsProps) => {
   const { posKeepLabels } = props;
 
-  const { showUma1, showUma2 } = useSettingsStore();
+  const { showPosKeepLabels, showVelocityUma1, showVelocityUma2 } = useRaceTrackDisplay();
 
-  if (!posKeepLabels) return null;
+  if (!posKeepLabels || !showPosKeepLabels) return null;
 
   return (
     <g id="racetrack-poskeep-labels">
       {posKeepLabels.map((label) => {
-        if (label.umaIndex === 0 && !showUma1) return null;
-        if (label.umaIndex === 1 && !showUma2) return null;
+        if (label.umaIndex === 0 && !showVelocityUma1) return null;
+        if (label.umaIndex === 1 && !showVelocityUma2) return null;
         if (label.x == null || label.width == null || label.yOffset == null) return null;
 
         return (

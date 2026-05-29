@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { useForcedPositionMap } from '@/modules/simulation/stores/forced-positions.store';
+import { useRaceTrackDisplay } from '@/store/settings.store';
 import { DragStartHandler, RegionDisplayType } from '../types';
 import { RaceTrackDimensions } from '../types';
 import type { CourseData } from '@/lib/sunday-tools/course/definitions';
@@ -38,13 +39,38 @@ const normalizeUmaIndex = (value?: number): 0 | 1 | null => {
   return null;
 };
 
+const isRushedRegion = (region: RegionData) => region.text.startsWith('Rushed');
+
+const isScenarioRegion = (region: RegionData) =>
+  region.markerType === 'scenario' && !isRushedRegion(region);
+
+const isDebuffRegion = (region: RegionData) =>
+  region.isDebuff || region.markerType === 'debuff';
+
+const isSkillRegion = (region: RegionData) =>
+  !isDebuffRegion(region) && !isRushedRegion(region) && !isScenarioRegion(region);
+
+const isMarkerTypeVisible = (
+  region: RegionData,
+  flags: {
+    showSkillMarkers: boolean;
+    showDebuffMarkers: boolean;
+    showRushedMarkers: boolean;
+    showScenarioMarkers: boolean;
+  }
+) => {
+  if (isRushedRegion(region)) return flags.showRushedMarkers;
+  if (isScenarioRegion(region)) return flags.showScenarioMarkers;
+  if (isDebuffRegion(region)) return flags.showDebuffMarkers;
+  if (isSkillRegion(region)) return flags.showSkillMarkers;
+  return true;
+};
+
 export type UmaSkillSectionProps = {
   course: CourseData;
   skillActivations: Array<RegionData>;
   rushedIndicators: Array<RegionData>;
   debuffIndicators: Array<RegionData>;
-  showUma1: boolean;
-  showUma2: boolean;
   onDragStart: DragStartHandler;
 };
 
@@ -54,10 +80,15 @@ export const UmaSkillSection = React.memo<UmaSkillSectionProps>((props) => {
     skillActivations,
     rushedIndicators,
     debuffIndicators,
-    showUma1,
-    showUma2,
     onDragStart
   } = props;
+
+  const {
+    showSkillMarkers,
+    showDebuffMarkers,
+    showRushedMarkers,
+    showScenarioMarkers
+  } = useRaceTrackDisplay();
 
   const positionsMapUma1 = useForcedPositionMap('uma1');
   const positionsMapUma2 = useForcedPositionMap('uma2');
@@ -72,7 +103,13 @@ export const UmaSkillSection = React.memo<UmaSkillSectionProps>((props) => {
         .filter((region) => {
           const regionUmaIndex = normalizeUmaIndex(region.umaIndex);
           if (regionUmaIndex === null) return false;
-          return regionUmaIndex === 0 ? showUma1 : showUma2;
+
+          return isMarkerTypeVisible(region, {
+            showSkillMarkers,
+            showDebuffMarkers,
+            showRushedMarkers,
+            showScenarioMarkers
+          });
         })
         .sort((a, b) => {
           const umaA = a.umaIndex ?? 0;
@@ -82,7 +119,7 @@ export const UmaSkillSection = React.memo<UmaSkillSectionProps>((props) => {
 
           return (b.regions[0]?.start ?? 0) - (a.regions[0]?.start ?? 0);
         }),
-    [skillActivations, rushedIndicators, debuffIndicators, showUma1, showUma2]
+    [skillActivations, rushedIndicators, debuffIndicators, showSkillMarkers, showDebuffMarkers, showRushedMarkers, showScenarioMarkers]
   );
 
   const { immediates, durations } = useMemo(() => {
