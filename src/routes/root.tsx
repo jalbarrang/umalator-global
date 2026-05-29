@@ -13,8 +13,9 @@ import { setRunner } from '@/store/runners.store';
 import { createRunnerState } from '@/modules/runners/components/runner-card/types';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import { toast } from 'sonner';
+import { scan } from 'react-scan';
 
-import { Suspense, useCallback } from 'react';
+import { Suspense, useCallback, useEffect } from 'react';
 import type { ReactNode } from 'react';
 
 // Layouts
@@ -42,6 +43,7 @@ import { SkillsPage } from './_tools/skills';
 import { SparkOddsPage } from './_tools/spark-odds';
 
 import { SupportCardsPage } from './_tools/support-cards';
+import { config } from '@/config';
 
 type RoutePageProps = {
   title: string;
@@ -71,6 +73,12 @@ export function RootComponent() {
     },
     [setDialogOpen]
   );
+
+  // useScan() has a bug where it ignores `enabled` and always calls start(),
+  // so we use scan() directly which properly respects the enabled flag
+  useEffect(() => {
+    scan({ enabled: config.reactScan });
+  }, []);
 
   return (
     <TutorialProvider>

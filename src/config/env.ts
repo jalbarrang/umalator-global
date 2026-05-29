@@ -4,6 +4,7 @@ export const appEnv: Record<string, string | undefined> = {
   VITE_BASE_PATH: env.VITE_BASE_PATH,
 
   VITE_REACT_SCAN: env.VITE_REACT_SCAN ?? 'false',
+  VITE_ENABLE_GRAB: env.VITE_ENABLE_GRAB ?? 'false',
   VITE_PUBLIC_POSTHOG_KEY: env.VITE_PUBLIC_POSTHOG_KEY,
   VITE_PUBLIC_POSTHOG_HOST: env.VITE_PUBLIC_POSTHOG_HOST
 };
@@ -24,15 +25,19 @@ export function envString(name: string, defaultValue = ''): string {
 
 export function envBoolean(name: string, defaultValue: boolean = false): boolean {
   const val = envString(name, '');
-  if (val === 'true') return true;
-  if (val === 'false') return false;
+
+  if (['true', '1'].includes(val)) return true;
+  if (['false', '0'].includes(val)) return false;
+
   return defaultValue;
 }
 
 export function envNumber(name: string, defaultValue: number = 0): number {
   const val = envString(name, '');
+
   if (val == '') return defaultValue;
   const n = Number(val);
+
   return !isNaN(n) ? n : defaultValue;
 }
 

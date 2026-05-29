@@ -19,6 +19,7 @@ import { coursesService } from '@/modules/data/services/CourseService';
 import { TutorialId } from '@/components/tutorial/types';
 import { SimulationProgressBanner } from '@/components/simulation-progress-banner';
 import { SkillSelectorDialog } from '@/modules/simulation/components/skill-selector-dialog';
+import { getSkillPlanningMeta, useSkillPlannerStore } from '@/modules/skill-planner/skill-planner.store';
 
 export default function SkillComparePage() {
   const { selectedSkills, setSelectedSkills } = useChartData();
@@ -39,6 +40,7 @@ export default function SkillComparePage() {
   );
 
   const courseId = useSettingsStore(useShallow((state) => state.courseId));
+  const hasFastLearner = useSkillPlannerStore((state) => state.hasFastLearner);
   const { runnerId, runner } = useRunner();
 
   const course = useMemo(() => coursesService.getSimCourse(courseId), [courseId]);
@@ -116,6 +118,8 @@ export default function SkillComparePage() {
           currentSeed={seed}
           skillLoadingStates={skillLoadingStates}
           onRunAdditionalSamples={runAdditionalSamples}
+          hasFastLearner={hasFastLearner}
+          getSkillMeta={getSkillPlanningMeta}
           className="min-w-0"
         />
       </div>

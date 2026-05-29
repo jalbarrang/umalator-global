@@ -54,23 +54,23 @@ export const StatsTable = (props: StatsTableProps) => {
     <div className={cn('grid grid-cols-5 rounded-sm border-2', className)} {...rest}>
       <div className="flex items-center justify-center gap-2 bg-primary rounded-tl-sm">
         <img src={getIconUrl('status_00.png')} alt="" className="size-4" />
-        <span className="text-white">Speed</span>
+        <span className="text-white text-xs">Speed</span>
       </div>
       <div className="flex items-center justify-center gap-2 bg-primary">
         <img src={getIconUrl('status_01.png')} alt="" className="size-4" />
-        <span className="text-white">Stamina</span>
+        <span className="text-white text-xs">Stamina</span>
       </div>
       <div className="flex items-center justify-center gap-2 bg-primary">
         <img src={getIconUrl('status_02.png')} alt="" className="size-4" />
-        <span className="text-white">Power</span>
+        <span className="text-white text-xs">Power</span>
       </div>
       <div className="flex items-center justify-center gap-2 bg-primary">
         <img src={getIconUrl('status_03.png')} alt="" className="size-4" />
-        <span className="text-white">Guts</span>
+        <span className="text-white text-xs">Guts</span>
       </div>
       <div className="flex items-center justify-center gap-2 bg-primary rounded-tr-sm">
         <img src={getIconUrl('status_04.png')} alt="" className="size-4" />
-        <span className="text-white">Wit</span>
+        <span className="text-white text-xs">Wit</span>
       </div>
 
       <StatInput value={value.speed} onChange={onChange('speed')} />

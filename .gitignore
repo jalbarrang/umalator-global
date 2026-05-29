@@ -42,3 +42,4 @@ docs/prd/
 .beads-credential-key
 .fallow/cache.bin
 .fallow/churn.bin
+.pi/context-folders.json

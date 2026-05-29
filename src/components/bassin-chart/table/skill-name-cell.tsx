@@ -4,7 +4,7 @@ import { CellContext } from '@tanstack/react-table';
 
 import { getIconUrl } from '@/assets/icons';
 import { getIconById } from '@/modules/data/icons';
-import { Button } from '../ui/button';
+import { Button } from '../../ui/button';
 import { CircleHelp } from 'lucide-react';
 import { useMemo } from 'react';
 import type { SkillEntry } from '@/modules/data/services/SkillService';

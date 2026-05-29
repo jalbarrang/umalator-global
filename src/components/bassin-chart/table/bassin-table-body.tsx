@@ -3,9 +3,9 @@ import { flexRender, type Row } from '@tanstack/react-table';
 import { ArrowLeft, ChartBar } from 'lucide-react';
 import { SkillComparisonRoundResult } from '@/modules/simulation/types';
 import { cn } from '@/lib/utils';
-import { gridClass } from './styles';
-import { BASSIN_DATA_EVENT_TOGGLE_ACTIVATION_DETAILS } from './skill-activation-details-dialog';
-import { Button } from '../ui/button';
+import { gridClass } from '../styles';
+import { BASSIN_DATA_EVENT_TOGGLE_ACTIVATION_DETAILS } from '../activation-details/activation-details-dialog';
+import { Button } from '../../ui/button';
 import React, { useMemo } from 'react';
 
 /** `data-event` value on the skill actions control; must match delegated handler in BasinnChart. */

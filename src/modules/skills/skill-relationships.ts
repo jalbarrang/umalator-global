@@ -352,7 +352,6 @@ export function getUpgradeTier(skillId: string): string | undefined {
 
   if (currentIndex === -1) {
     // Skill not found or already at highest tier
-    console.log('Skill not found or already at highest tier');
     return undefined;
   }
 

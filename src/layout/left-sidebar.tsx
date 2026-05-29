@@ -81,6 +81,7 @@ export const LeftSidebar = () => {
         content: <ForcedPositionsPanel />,
         hasBadge: hasForcedPositions
       });
+
       basePanels.push({
         id: 'debuffs',
         label: 'Debuffs',
@@ -88,6 +89,7 @@ export const LeftSidebar = () => {
         content: <DebuffsPanel />,
         hasBadge: hasDebuffs
       });
+
       basePanels.push({
         id: 'scenario-overrides',
         label: 'Scenario Overrides',
@@ -98,7 +100,7 @@ export const LeftSidebar = () => {
     }
 
     return basePanels;
-  }, [hasDebuffs, hasForcedPositions, isCompareRunnersView]);
+  }, [hasDebuffs, hasForcedPositions, isCompareRunnersView, hasScenarioOverrides]);
 
   const handleCloseSidebar = useCallback(() => {
     setLeftSidebar({ hidden: true });
@@ -118,7 +120,7 @@ export const LeftSidebar = () => {
   return (
     <div
       className={cn('flex flex-col border-r shrink-0 overflow-hidden', {
-        'w-dvw md:w-[550px]': !hidden,
+        'w-dvw md:w-[490px]': !hidden,
         'w-0': hidden
       })}
     >

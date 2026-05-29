@@ -1,10 +1,10 @@
 import { Suspense, useMemo } from 'react';
 import { Loader2 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
+import { Button } from '../../ui/button';
+import { Badge } from '../../ui/badge';
 import { ChartLoadingFallback } from '@/components/charts/chart-loading-fallback';
-import { LazyActivationEffectChart, LazyLengthDifferenceChart } from './lazy-bassin-charts';
+import { LazyActivationEffectChart, LazyLengthDifferenceChart } from '../charts/lazy-charts';
 import type {
   SkillSimulationData,
   SkillTrackedMetaCollection

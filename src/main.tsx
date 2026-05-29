@@ -1,4 +1,6 @@
-if (import.meta.env.VITE_ENABLE_GRAB) {
+import { config } from './config';
+
+if (config.enableGrab) {
   import('react-grab');
 }
 
@@ -21,8 +23,6 @@ import { RootComponent } from './routes/root';
 
 import posthog from 'posthog-js';
 import { PostHogErrorBoundary, PostHogProvider } from '@posthog/react';
-
-import { config } from './config';
 
 if (config.posthog.key) {
   posthog.init(config.posthog.key, {
