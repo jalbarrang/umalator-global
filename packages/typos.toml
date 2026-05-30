@@ -1,0 +1,47 @@
+# =============================================================================
+# typos Configuration — uma-sim (Rust workspace)
+# Catches typos in code, comments, strings, and identifiers.
+#
+# Run:  typos        (from packages/)
+# Docs: https://github.com/crate-ci/typos
+# =============================================================================
+
+[default]
+check-filename = true
+check-file = true
+
+[default.extend-words]
+# Domain terms (Uma Musume: Pretty Derby racing simulator) that are NOT typos.
+uma = "uma"
+umas = "umas"
+umamusume = "umamusume"
+musume = "musume"
+bashin = "bashin"          # race-length unit (~2.5m)
+poskeep = "poskeep"        # position keep
+oikomi = "oikomi"          # end closer (running style)
+senko = "senko"            # pace chaser (running style)
+sashi = "sashi"            # late surger (running style)
+nige = "nige"              # front runner (running style)
+kakari = "kakari"          # skill targeting term
+erlang = "erlang"          # distribution used by activation policies
+xoshiro = "xoshiro"        # PRNG algorithm
+
+# Crate / tooling names
+serde = "serde"
+wasm = "wasm"
+bindgen = "bindgen"
+clippy = "clippy"
+
+[files]
+extend-exclude = [
+    "target/",
+    "Cargo.lock",
+    "*.wasm",
+]
+
+[type.toml]
+# TOML — only check values, not keys (dependency names look like typos).
+check-file = false
+
+[type.md]
+check-file = true
