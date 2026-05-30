@@ -4,6 +4,8 @@ dist/
 .cache/
 results/
 .env
+.dev.vars
+.wrangler/
 /db
 
 # macOS

@@ -1,0 +1,30 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "torena-sim-suggestion-bot",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-05-01",
+  "observability": {
+    "enabled": true
+  },
+
+  // Keep the public *.workers.dev URL (used as VITE_SUGGESTION_WORKER_URL).
+  "workers_dev": true,
+  // Per-version preview URLs aren't needed; disabling reduces exposed surface.
+  "preview_urls": false,
+
+  // Public, non-secret config. Comma-separated list of app origins allowed via CORS.
+  "vars": {
+    "ALLOWED_ORIGIN": "https://jalbarrang.github.io,https://sundays-shadow.netlify.app"
+  }
+
+  // ── Secrets (set via `wrangler secret put <NAME>`, never commit) ──
+  //   DISCORD_WEBHOOK_URL   - Discord channel webhook the suggestions are posted to
+  //   TURNSTILE_SECRET_KEY  - Cloudflare Turnstile secret key (pairs with the public site key)
+
+  // ── Optional per-IP rate limiting ──
+  // Create a KV namespace (`wrangler kv namespace create RATE_LIMIT_KV`) and uncomment.
+  // The Worker degrades gracefully (no rate limiting) when this binding is absent.
+  // "kv_namespaces": [
+  //   { "binding": "RATE_LIMIT_KV", "id": "<your-kv-namespace-id>" }
+  // ]
+}

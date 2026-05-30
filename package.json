@@ -127,6 +127,7 @@
   "version": "0.13.0",
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "workers/*"
   ]
 }

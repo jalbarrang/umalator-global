@@ -6,8 +6,12 @@ import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Drawer, DrawerContent, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 import { cn } from '@/lib/utils';
-import { setShowChangelogModal, setShowCreditsModal } from '@/store/ui.store';
-import { MenuIcon, ScrollTextIcon, UsersIcon } from 'lucide-react';
+import {
+  setShowChangelogModal,
+  setShowCreditsModal,
+  setShowSuggestionModal
+} from '@/store/ui.store';
+import { MenuIcon, MessageSquarePlusIcon, ScrollTextIcon, UsersIcon } from 'lucide-react';
 
 import { config } from '@/config';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -80,33 +84,23 @@ export function Navbar() {
           />
           <TooltipContent>GitHub</TooltipContent>
         </Tooltip>
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                variant="outline"
-                className="flex size-9 items-center justify-center"
-                aria-label="Join Discord server"
-                nativeButton={false}
-                render={
-                  <a
-                    href="https://discord.gg/MKsUqDkwtT"
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label="Join Discord server"
-                  >
-                    <img
-                      src={`${config.basePath}svg/discord.svg`}
-                      alt=""
-                      className="size-4 dark:invert"
-                    />
-                  </a>
-                }
-              />
-            }
-          />
-          <TooltipContent>Discord</TooltipContent>
-        </Tooltip>
+        {config.suggestions.workerUrl && config.suggestions.turnstileSiteKey ? (
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="outline"
+                  className="flex size-9 items-center justify-center"
+                  onClick={() => setShowSuggestionModal(true)}
+                  aria-label="Open suggestions"
+                />
+              }
+            >
+              <MessageSquarePlusIcon className="size-4" />
+            </TooltipTrigger>
+            <TooltipContent>Suggestions</TooltipContent>
+          </Tooltip>
+        ) : null}
         <Tooltip>
           <TooltipTrigger
             render={

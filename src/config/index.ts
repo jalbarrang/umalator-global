@@ -8,6 +8,10 @@ export type AppConfig = {
     key?: string;
     host?: string;
   };
+  suggestions: {
+    workerUrl?: string;
+    turnstileSiteKey?: string;
+  };
 };
 
 export const config: AppConfig = {
@@ -17,5 +21,9 @@ export const config: AppConfig = {
   posthog: {
     key: envString('VITE_PUBLIC_POSTHOG_KEY'),
     host: envString('VITE_PUBLIC_POSTHOG_HOST')
+  },
+  suggestions: {
+    workerUrl: envString('VITE_SUGGESTION_WORKER_URL'),
+    turnstileSiteKey: envString('VITE_TURNSTILE_SITE_KEY')
   }
 };

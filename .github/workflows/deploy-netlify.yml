@@ -21,6 +21,8 @@ jobs:
       VITE_PUBLIC_POSTHOG_KEY: ${{ secrets.VITE_PUBLIC_POSTHOG_KEY }}
       VITE_PUBLIC_POSTHOG_HOST: ${{ vars.VITE_PUBLIC_POSTHOG_HOST }}
       VITE_SITE_URL: https://sundays-shadow.netlify.app
+      VITE_SUGGESTION_WORKER_URL: ${{ vars.VITE_SUGGESTION_WORKER_URL }}
+      VITE_TURNSTILE_SITE_KEY: ${{ vars.VITE_TURNSTILE_SITE_KEY }}
 
     steps:
       - name: Checkout code

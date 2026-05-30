@@ -20,6 +20,7 @@ export type IUIStore = {
   showVirtualPacemakerOnGraph: boolean;
   showCreditsModal: boolean;
   showChangelogModal: boolean;
+  showSuggestionModal: boolean;
   dismissals: IUIDismissals;
 
   leftSide: ISidebar;
@@ -33,6 +34,7 @@ export const useUIStore = create<IUIStore>()(
       showVirtualPacemakerOnGraph: false,
       showCreditsModal: false,
       showChangelogModal: false,
+      showSuggestionModal: false,
       dismissals: {
         'compare-notice': false,
         'race-sim-notice': false
@@ -79,6 +81,10 @@ export const setShowCreditsModal = (showCreditsModal: boolean) => {
 
 export const setShowChangelogModal = (showChangelogModal: boolean) => {
   useUIStore.setState({ showChangelogModal });
+};
+
+export const setShowSuggestionModal = (showSuggestionModal: boolean) => {
+  useUIStore.setState({ showSuggestionModal });
 };
 
 export const setDismissal = (key: UIDismissalKey, dismissed: boolean) => {

@@ -5,6 +5,7 @@ import { PageMetadata } from '@/components/seo/page-metadata';
 import { Button } from '@/components/ui/button';
 import { ChangelogModal } from '@/components/changelog-modal';
 import { CreditsModal } from '@/components/credits-modal';
+import { SuggestionModal } from '@/components/suggestion-modal';
 import { TutorialProvider, TutorialRoot } from '@/components/tutorial';
 import { Navbar } from '@/modules/app/components/navbar';
 import { ImportCodeDialog } from '@/modules/runners/share/import-code-dialog';
@@ -206,6 +207,7 @@ export function RootComponent() {
 
         <CreditsModal />
         <ChangelogModal />
+        <SuggestionModal />
 
         <ImportCodeDialog
           open={dialogOpen}
