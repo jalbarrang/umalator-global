@@ -14,12 +14,29 @@ import type {
 import type { RaceEvent, RaceEventKind } from '@/lib/sunday-tools/race-sim/race-event-log';
 import type { IStrategy } from '@/lib/sunday-tools/runner/definitions';
 import type {
+  DuelingRates,
+  RaceParameters as SundayRaceParameters,
+  SimulationSettings,
+} from '@/lib/sunday-tools/common/race';
+import type { CollectedRunnerRoundData } from '@/lib/sunday-tools/common/race-observer';
+import type {
+  ISkillPerspective,
+  ISkillTarget,
+  ISkillType,
+} from '@/lib/sunday-tools/skills/definitions';
+import type { SkillEffectLog } from '@/modules/simulation/compare.types';
+import type {
+  WasmCompareParams,
+  WasmCompareRoundData,
   WasmCourseData,
   WasmCreateRunner,
+  WasmDuelingRates,
   WasmFinishEntry,
   WasmRaceParameters,
   WasmRaceSimParams,
   WasmRaceSimResult,
+  WasmSettings,
+  WasmSkillEffectLog,
   WasmSkillInput,
 } from './types';
 
@@ -128,7 +145,7 @@ function raceParametersToWasm(parameters: RaceSimParams['parameters']): WasmRace
 }
 
 /** Convert a sunday-tools `CreateRunner` (skill ids) to the WASM DTO. */
-function sundayRunnerToWasm(runner: CreateRunner, name: string): WasmCreateRunner {
+export function sundayRunnerToWasm(runner: CreateRunner, name: string): WasmCreateRunner {
   const skills: WasmSkillInput[] = [];
   for (const skillId of runner.skills) {
     const resolved = resolveSkillInput(skillId);
@@ -157,6 +174,113 @@ function sundayRunnerToWasm(runner: CreateRunner, name: string): WasmCreateRunne
     forcedDuelingRegions: runner.forcedDuelingRegions ?? [],
     forcedSpotStruggleRegions: runner.forcedSpotStruggleRegions ?? [],
     forcedRank: runner.forcedRank ?? [],
+  };
+}
+
+/** Map a sunday-tools `SimulationSettings` to the compare WASM settings DTO. */
+export function compareSettingsToWasm(settings: SimulationSettings): WasmSettings {
+  return {
+    mode: settings.mode,
+    healthSystem: settings.healthSystem,
+    sectionModifier: settings.sectionModifier,
+    rushed: settings.rushed,
+    downhill: settings.downhill,
+    spotStruggle: settings.spotStruggle,
+    dueling: settings.dueling,
+    witChecks: settings.witChecks,
+    positionKeepMode: settings.positionKeepMode,
+    staminaDrainOverrides: settings.staminaDrainOverrides ?? {},
+  };
+}
+
+/** Map sunday-tools `DuelingRates` to the WASM DTO (field-compatible). */
+export function duelingRatesToWasm(rates: DuelingRates): WasmDuelingRates {
+  return {
+    runaway: rates.runaway,
+    frontRunner: rates.frontRunner,
+    paceChaser: rates.paceChaser,
+    lateSurger: rates.lateSurger,
+    endCloser: rates.endCloser,
+  };
+}
+
+/** Inputs to {@link compareParamsToWasm} — one vacuum runner over N rounds. */
+export type CompareParamsToWasmArgs = {
+  course: CourseData;
+  parameters: SundayRaceParameters;
+  settings: SimulationSettings;
+  duelingRates: DuelingRates;
+  runner: CreateRunner;
+  name: string;
+  nsamples: number;
+  masterSeed: number;
+};
+
+/** Build the WASM compare params for a single vacuum runner. */
+export function compareParamsToWasm(args: CompareParamsToWasmArgs): WasmCompareParams {
+  return {
+    course: courseDataToWasm(args.course),
+    parameters: raceParametersToWasm(args.parameters),
+    settings: compareSettingsToWasm(args.settings),
+    duelingRates: duelingRatesToWasm(args.duelingRates),
+    runners: [sundayRunnerToWasm(args.runner, args.name)],
+    nsamples: args.nsamples,
+    masterSeed: args.masterSeed,
+  };
+}
+
+/** Map a WASM skill-activation map to the TS `SkillEffectLog` map. */
+function skillActivationMapFromWasm(
+  map: Record<string, WasmSkillEffectLog[]>,
+): Record<string, SkillEffectLog[]> {
+  const out: Record<string, SkillEffectLog[]> = {};
+  for (const [skillId, logs] of Object.entries(map)) {
+    out[skillId] = logs.map((log) => ({
+      executionId: log.executionId,
+      skillId: log.skillId,
+      start: log.start,
+      end: log.end,
+      perspective: log.perspective as ISkillPerspective,
+      effectType: log.effectType as ISkillType,
+      effectTarget: log.effectTarget as ISkillTarget,
+    }));
+  }
+  return out;
+}
+
+/**
+ * Reshape one WASM `CompareRoundData` into the sunday-tools
+ * `CollectedRunnerRoundData` the compare orchestration consumes. Optional WASM
+ * regions/values map to the `[]`/`null` sentinels the TS shape expects.
+ */
+export function wasmCompareRoundDataToCollected(
+  data: WasmCompareRoundData,
+): CollectedRunnerRoundData {
+  return {
+    runnerId: data.runnerId,
+    time: data.time,
+    position: data.position,
+    velocity: data.velocity,
+    hp: data.hp,
+    currentLane: data.currentLane,
+    pacerGap: data.pacerGap,
+    skillActivations: skillActivationMapFromWasm(data.skillActivations),
+    targetedSkillActivations: skillActivationMapFromWasm(data.targetedSkillActivations),
+    startDelay: data.startDelay,
+    rushed: data.rushed.map(([start, end]) => [start, end] as [number, number]),
+    duelingRegion: data.duelingRegion ? [data.duelingRegion[0], data.duelingRegion[1]] : [],
+    spotStruggleRegion: data.spotStruggleRegion
+      ? [data.spotStruggleRegion[0], data.spotStruggleRegion[1]]
+      : [],
+    hasAchievedFullSpurt: data.hasAchievedFullSpurt,
+    outOfHp: data.outOfHp,
+    outOfHpPosition: data.outOfHpPosition ?? null,
+    nonFullSpurtVelocityDiff: data.nonFullSpurtVelocityDiff ?? null,
+    nonFullSpurtDelayDistance: data.nonFullSpurtDelayDistance ?? null,
+    firstPositionInLateRace: data.firstPositionInLateRace,
+    usedSkills: data.usedSkills,
+    finished: data.finished,
+    finishPosition: data.finishPosition,
   };
 }
 

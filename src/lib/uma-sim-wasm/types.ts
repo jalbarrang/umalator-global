@@ -99,6 +99,27 @@ export type WasmSettings = {
   dueling?: boolean;
   witChecks?: boolean;
   skillSamples?: number;
+  sectionModifier?: boolean;
+  positionKeepMode?: number;
+  staminaDrainOverrides?: Record<string, number>;
+};
+
+export type WasmDuelingRates = {
+  runaway: number;
+  frontRunner: number;
+  paceChaser: number;
+  lateSurger: number;
+  endCloser: number;
+};
+
+export type WasmCompareParams = {
+  course: WasmCourseData;
+  parameters: WasmRaceParameters;
+  settings?: WasmSettings;
+  duelingRates?: WasmDuelingRates;
+  runners: WasmCreateRunner[];
+  nsamples: number;
+  masterSeed: number;
 };
 
 export type WasmRaceSimParams = {
@@ -150,6 +171,52 @@ export type WasmRaceSimResult = {
   finishOrders: WasmFinishEntry[][];
   collected: WasmRoundData[];
   eventLogs: WasmRaceEvent[][];
+};
+
+// `perspective` is numeric (1 = self, 2 = other), matching TS `SkillPerspective`.
+export type WasmSkillEffectLog = {
+  executionId: string;
+  skillId: string;
+  start: number;
+  end: number;
+  perspective: number;
+  effectType: number;
+  effectTarget: number;
+};
+
+export type WasmCompareRoundData = {
+  runnerId: number;
+  time: number[];
+  position: number[];
+  velocity: number[];
+  hp: number[];
+  currentLane: number[];
+  pacerGap: number[];
+  skillActivations: Record<string, WasmSkillEffectLog[]>;
+  targetedSkillActivations: Record<string, WasmSkillEffectLog[]>;
+  startDelay: number;
+  rushed: [number, number][];
+  duelingRegion?: [number, number];
+  spotStruggleRegion?: [number, number];
+  hasAchievedFullSpurt: boolean;
+  outOfHp: boolean;
+  outOfHpPosition?: number;
+  nonFullSpurtVelocityDiff?: number;
+  nonFullSpurtDelayDistance?: number;
+  firstPositionInLateRace: boolean;
+  usedSkills: string[];
+  finished: boolean;
+  finishPosition: number;
+};
+
+export type WasmCompareRound = {
+  seed: number;
+  primaryRunnerId?: number;
+  runners: WasmCompareRoundData[];
+};
+
+export type WasmCompareData = {
+  rounds: WasmCompareRound[];
 };
 
 // Per-tick snapshot passed to the streaming `setOnAfterRunnerTick` callback.
