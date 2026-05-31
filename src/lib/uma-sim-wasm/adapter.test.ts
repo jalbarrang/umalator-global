@@ -1,0 +1,106 @@
+import { describe, expect, it } from 'vitest';
+import { wasmCompareRoundDataToCollected } from './adapter';
+import type { WasmCompareRoundData } from './types';
+
+function baseRound(overrides: Partial<WasmCompareRoundData> = {}): WasmCompareRoundData {
+  return {
+    runnerId: 0,
+    time: [0, 0.066],
+    position: [10, 20],
+    velocity: [18, 18.5],
+    hp: [900, 880],
+    currentLane: [0, 0],
+    pacerGap: [0, 0],
+    skillActivations: {},
+    targetedSkillActivations: {},
+    startDelay: 0.1,
+    rushed: [],
+    hasAchievedFullSpurt: false,
+    outOfHp: false,
+    firstPositionInLateRace: false,
+    usedSkills: [],
+    finished: true,
+    finishPosition: 2400,
+    ...overrides
+  };
+}
+
+describe('wasmCompareRoundDataToCollected', () => {
+  it('maps optional regions/values to the TS []/null sentinels', () => {
+    const collected = wasmCompareRoundDataToCollected(baseRound());
+
+    // Absent optional regions become empty-array sentinels.
+    expect(collected.duelingRegion).toEqual([]);
+    expect(collected.spotStruggleRegion).toEqual([]);
+    // Absent optional numbers become null.
+    expect(collected.outOfHpPosition).toBeNull();
+    expect(collected.nonFullSpurtVelocityDiff).toBeNull();
+    expect(collected.nonFullSpurtDelayDistance).toBeNull();
+  });
+
+  it('preserves present regions and numeric fields', () => {
+    const collected = wasmCompareRoundDataToCollected(
+      baseRound({
+        rushed: [[300, 360]],
+        duelingRegion: [1000, 1200],
+        spotStruggleRegion: [1500, 1600],
+        outOfHp: true,
+        outOfHpPosition: 2100,
+        nonFullSpurtVelocityDiff: 0.5,
+        nonFullSpurtDelayDistance: 12
+      })
+    );
+
+    expect(collected.rushed).toEqual([[300, 360]]);
+    expect(collected.duelingRegion).toEqual([1000, 1200]);
+    expect(collected.spotStruggleRegion).toEqual([1500, 1600]);
+    expect(collected.outOfHp).toBe(true);
+    expect(collected.outOfHpPosition).toBe(2100);
+    expect(collected.nonFullSpurtVelocityDiff).toBe(0.5);
+    expect(collected.nonFullSpurtDelayDistance).toBe(12);
+  });
+
+  it('maps numeric perspective/type/target into skill-activation logs', () => {
+    const collected = wasmCompareRoundDataToCollected(
+      baseRound({
+        skillActivations: {
+          '100001': [
+            {
+              executionId: '7-0-0',
+              skillId: '100001',
+              start: 100,
+              end: 120,
+              perspective: 1,
+              effectType: 27,
+              effectTarget: 0
+            }
+          ]
+        },
+        targetedSkillActivations: {
+          '200001': [
+            {
+              executionId: '7-0-1',
+              skillId: '200001',
+              start: 500,
+              end: 500,
+              perspective: 2,
+              effectType: 9,
+              effectTarget: 4
+            }
+          ]
+        }
+      })
+    );
+
+    const selfLog = collected.skillActivations['100001'][0];
+    expect(selfLog.perspective).toBe(1);
+    expect(selfLog.effectType).toBe(27);
+    expect(selfLog.start).toBe(100);
+    expect(selfLog.end).toBe(120);
+
+    const targetedLog = collected.targetedSkillActivations['200001'][0];
+    expect(targetedLog.perspective).toBe(2);
+    expect(targetedLog.effectType).toBe(9);
+    expect(targetedLog.effectTarget).toBe(4);
+  });
+});
