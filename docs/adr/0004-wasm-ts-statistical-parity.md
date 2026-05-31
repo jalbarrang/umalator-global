@@ -76,6 +76,61 @@ Win-rate shapes match qualitatively in both engines (gates 6/7/8 dominate; gates
 the compare/planner path (sub-1% on mean/median) and acceptable on Race Sim
 finish rank (sub-1 place per gate, near-identical at the extremes).
 
+## Amendment (Option B) — t-008 blind spot and the per-skill parity gate
+
+**The original t-008 sign-off above was incomplete.** Both metrics aggregate over
+*whole-field* outcomes: a **stat-difference** bashin-delta distribution (two
+runners differing only by raw stats, **no skills**) and **finish-rank**
+distributions (skill-less runners). Neither metric ever fed a real **skill** into
+the engine, so the sign-off **never validated per-skill activation or
+effect-application parity**. Three correctness bugs slipped through and only
+surfaced during later UI testing:
+
+1. **Compare collector dropped skill-activation logs.** `serde_wasm_bindgen`
+   serialized the read-model's `HashMap` activation maps as ES `Map`s, so the TS
+   side (typed `Record`) read `skillActivations` as empty `{}` even when a skill
+   activated and shifted the result. Fixed by `serialize_maps_as_objects(true)`.
+2. **Empty-string preconditions never activated.** Skills whose data carries
+   `precondition: ""` (e.g. `all_corner_random`, `straight_random`, `rotation`
+   greens) failed to parse the empty precondition and produced no triggers, so
+   they never fired (`200332`/`200012`/`200362` → WASM 0.000 vs non-zero TS).
+   Fixed by treating an empty precondition as "none" (matches TS `if
+   (precondition)`).
+3. **Green stat skills accumulated across rounds.** Green skills permanently
+   mutate base/adjusted stats, but stats were not reset per round, so a batch run
+   stacked the bonus every round (speed 1140→1180→1220…), exploding late-round
+   velocity (`200012` read ~11.9 bashin vs TS ~0.15). Fixed by storing pristine
+   stats and restoring them each `on_prepare` (mirrors TS `_baseStats`/
+   `_adjustedStats`).
+
+### Corrected / expanded parity bar
+
+A **per-skill activation/effect parity gate** is now part of
+`parity.test.ts` (`skill-activation/effect parity` describe block). For a
+representative skill from each family it asserts BOTH:
+
+| Check | Bar |
+|---|---|
+| Per-skill bashin-delta mean (TS vs WASM, base runner vs base+skill, N = 2000) | within an absolute per-case tolerance (0.10–0.15 bashin) |
+| `skillActivations` capture for an activating skill | **non-empty** (Bug #1 regression) |
+
+Representative skills (compare/planner path, seed 0): `110101` (unique
+near-finish current/target speed), `200332` (`all_corner_random` random-corner
+target speed), `200012` (`rotation` conditional-passive green SpeedUp), `200362`
+(`straight_random` plain-duration target speed). All four pass after the Option B
+fixes.
+
+Engine-internal invariants are additionally gated by Rust integration tests
+(`packages/uma-sim-core/tests/integration.rs`): the compare collector captures
+activating duration skills (incl. a 110101-shaped near-finish unique),
+empty-precondition skills still activate, green stat skills do not accumulate
+across rounds, and seed-offset round chunks are bit-identical to a single full
+batch (round independence, relied on by the progressive compare worker).
+
+**Lesson:** whole-field distribution parity is necessary but **not sufficient**;
+any future engine swap must also gate **per-skill activation + effect-log**
+parity, not just aggregate stat/rank distributions.
+
 ## Notes / findings
 
 - One **small systematic** mid-pack difference persists across sample sizes: a
