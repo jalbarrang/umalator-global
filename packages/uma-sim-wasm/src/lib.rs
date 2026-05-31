@@ -26,8 +26,17 @@ fn from_js<T: serde::de::DeserializeOwned>(value: JsValue) -> Result<T, JsError>
 }
 
 /// Serialize a value back to JS.
+///
+/// Maps are serialized as plain JS objects (not ES `Map`s) so the TypeScript
+/// side can read `HashMap` outputs (e.g. compare `skillActivations`) as the
+/// `Record<string, …>` shape its types declare. The default
+/// `serde_wasm_bindgen::to_value` emits ES `Map`s, which made
+/// `Object.values(skillActivations)` silently empty (Bug #1).
 fn to_js<T: serde::Serialize>(value: &T) -> Result<JsValue, JsError> {
-    serde_wasm_bindgen::to_value(value).map_err(|e| JsError::new(&e.to_string()))
+    let serializer = serde_wasm_bindgen::Serializer::new().serialize_maps_as_objects(true);
+    value
+        .serialize(&serializer)
+        .map_err(|e| JsError::new(&e.to_string()))
 }
 
 /// Run a batch race simulation and return the serialized result.
