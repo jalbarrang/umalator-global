@@ -233,6 +233,7 @@ function buildMergedSkillEntry(params: BuildMergedSkillEntryParams): SkillEntry 
     baseCost:
       existingEntry?.baseCost ??
       ('cost' in resolvedSkill ? (resolvedSkill.cost ?? defaultBaseCost) : defaultBaseCost),
+    gradeValue: existingEntry?.gradeValue ?? 0,
     order: existingEntry?.order ?? defaultOrder,
     name: resolveSkillName(resolvedSkill, existingEntry?.name),
     character: character.length > 0 ? [...character] : [...(existingEntry?.character ?? [])],

@@ -48,6 +48,8 @@ export type SkillEntry = {
   family: Array<SkillReferenceEntry>;
   iconId: string;
   baseCost: number;
+  /** Per-skill evaluation-point contribution (master.mdb skill_data.grade_value). */
+  gradeValue: number;
   order: number;
   name: string;
   /** Uma outfit ids that can provide this skill. */

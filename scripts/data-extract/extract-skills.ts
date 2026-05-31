@@ -19,6 +19,7 @@ import type { ISkillTarget } from '@/lib/sunday-tools/skills/definitions';
 interface SkillRow {
   id: number;
   rarity: number;
+  grade_value: number;
   precondition_1: string;
   condition_1: string;
   float_ability_time_1: number;
@@ -416,7 +417,7 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
   try {
     const rows = queryAll<SkillRow>(
       db,
-      `SELECT s.id, s.rarity,
+      `SELECT s.id, s.rarity, s.grade_value,
               s.precondition_1,
               s.condition_1,
               s.float_ability_time_1,
@@ -477,6 +478,7 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
         iconId: row.icon_id.toString(),
         family: [],
         baseCost: row.need_skill_point,
+        gradeValue: row.grade_value,
         order: row.disp_order,
         name,
         character: [],

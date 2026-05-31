@@ -17,6 +17,7 @@ function createSkill(id: string): SkillEntry {
     family: [],
     iconId: '0',
     baseCost: 0,
+    gradeValue: 0,
     order: 0,
     name: `Skill ${id}`,
     character: []
