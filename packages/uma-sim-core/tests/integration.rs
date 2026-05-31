@@ -583,3 +583,54 @@ fn compare_rounds_are_independent_chunkable() {
         );
     }
 }
+
+// ---------------------------------------------------------------------------
+// t-010 — the race-sim focus-runner collector must capture skill-effect
+// DURATION logs (`end > start`), not just point markers, so the Focus Runner
+// Detail overlay can render duration bars.
+// ---------------------------------------------------------------------------
+
+#[test]
+fn focus_runner_captures_skill_effect_durations() {
+    use uma_sim_core::shared_kernel::ids::RunnerId;
+
+    // Build a full field, replacing gate 0 with a runner carrying a late-race
+    // target-speed (type 27, duration) skill that always fires (phase>=1).
+    let mut runners = generate_mob_field();
+    runners[0] = compare_runner(vec![target_speed_skill("999001")]);
+
+    let result = run_race_sim(RaceSimParams {
+        course: course(),
+        ground: GroundCondition::Firm,
+        parameters: params(),
+        settings: SimulationSettings::default(),
+        runners,
+        nsamples: 5,
+        master_seed: 7,
+        focus_runner_ids: vec![RunnerId(0)],
+    })
+    .expect("race sim run");
+
+    // The skill activates every round, so its duration effect MUST produce a
+    // non-empty activation log with a real span (`end > start`) on the focus
+    // runner's trace.
+    let mut saw_duration_span = false;
+    for round in &result.collected.rounds {
+        let trace = round
+            .focus
+            .iter()
+            .find(|t| t.runner_id == RunnerId(0))
+            .expect("focus trace for gate 0");
+        if let Some(logs) = trace.skill_activations.get("999001") {
+            assert!(!logs.is_empty(), "expected non-empty activation logs");
+            if logs.iter().any(|log| log.end > log.start) {
+                saw_duration_span = true;
+            }
+        }
+    }
+
+    assert!(
+        saw_duration_span,
+        "expected at least one focus-runner skill-effect log with end > start"
+    );
+}

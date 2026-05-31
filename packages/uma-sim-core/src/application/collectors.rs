@@ -46,6 +46,11 @@ pub struct FocusTrace {
     pub runner_id: RunnerId,
     /// Per-tick samples in chronological order.
     pub samples: Vec<TickSample>,
+    /// Self-cast skill-effect activation logs (`[start, end]` position ranges),
+    /// keyed by skill id. Duration effects carry `end > start`; instant effects
+    /// are point markers (`start == end`). Mirrors
+    /// [`CompareRoundData::skill_activations`].
+    pub skill_activations: HashMap<String, Vec<SkillEffectLog>>,
 }
 
 /// One round's collected focus traces.
@@ -64,10 +69,20 @@ pub struct CollectedData {
     pub rounds: Vec<RoundData>,
 }
 
+/// Transient per-round, per-focus-runner effect-log reconciliation state.
+#[derive(Default)]
+struct FocusEffectState {
+    open_effects: HashMap<String, Vec<OpenLogRef>>,
+    effect_sequence: u64,
+    seen_used_skills: HashSet<String>,
+}
+
 #[derive(Default)]
 struct CollectorInner {
     focus_ids: Vec<RunnerId>,
     data: CollectedData,
+    /// Open effect-log state for the current round, keyed by runner id.
+    effect_state: HashMap<u32, FocusEffectState>,
 }
 
 /// Collects per-tick traces for a set of focus runners across rounds.
@@ -85,6 +100,7 @@ impl RaceSimDataCollector {
             inner: Rc::new(RefCell::new(CollectorInner {
                 focus_ids,
                 data: CollectedData::default(),
+                effect_state: HashMap::new(),
             })),
         }
     }
@@ -116,15 +132,17 @@ impl RaceObserver for CollectorObserver {
             .map(|&runner_id| FocusTrace {
                 runner_id,
                 samples: Vec::new(),
+                skill_activations: HashMap::new(),
             })
             .collect();
         let _ = race;
+        inner.effect_state.clear();
         inner.data.rounds.push(RoundData { seed, focus });
     }
 
     fn on_after_runner_tick(
         &mut self,
-        _race: &dyn RaceObservation,
+        race: &dyn RaceObservation,
         runner: &dyn RunnerObservation,
         _dt: f64,
     ) {
@@ -132,6 +150,10 @@ impl RaceObserver for CollectorObserver {
         if !inner.focus_ids.contains(&runner.id()) {
             return;
         }
+        let id = runner.id().0;
+        let distance = race.course_distance();
+        let position = runner.position().min(distance);
+        let seed = inner.data.rounds.last().map_or(0, |r| r.seed);
         let sample = TickSample {
             time: runner.accumulate_time(),
             position: runner.position(),
@@ -139,9 +161,113 @@ impl RaceObserver for CollectorObserver {
             lane: runner.current_lane(),
             health: runner.current_health(),
         };
-        if let Some(round) = inner.data.rounds.last_mut() {
-            if let Some(trace) = round.focus.iter_mut().find(|t| t.runner_id == runner.id()) {
-                trace.samples.push(sample);
+
+        let active = runner.active_effects();
+        let used = runner.used_skills();
+        let static_effects = runner.skill_static_effects();
+
+        let CollectorInner {
+            data, effect_state, ..
+        } = &mut *inner;
+        let Some(round) = data.rounds.last_mut() else {
+            return;
+        };
+        let Some(trace) = round.focus.iter_mut().find(|t| t.runner_id.0 == id) else {
+            return;
+        };
+        trace.samples.push(sample);
+
+        let state = effect_state.entry(id).or_default();
+
+        // --- duration-effect reconcile (self-cast) ---
+        let self_counts = count_effects(&active);
+        reconcile_effects(
+            &self_counts,
+            &mut state.open_effects,
+            &mut trace.skill_activations,
+            EffectPerspective::SelfCast,
+            position,
+            seed,
+            id,
+            &mut state.effect_sequence,
+        );
+
+        // --- newly used skills: log their instant (static) effects as points ---
+        for used_skill_id in &used {
+            if state.seen_used_skills.contains(*used_skill_id) {
+                continue;
+            }
+            state.seen_used_skills.insert((*used_skill_id).to_owned());
+            let mut new_logs: Vec<SkillEffectLog> = Vec::new();
+            for effect in &static_effects {
+                if effect.skill_id != *used_skill_id
+                    || ACTIVE_EFFECT_TYPES.contains(&effect.effect_type)
+                {
+                    continue;
+                }
+                new_logs.push(SkillEffectLog {
+                    execution_id: format!("{seed}-{id}-{}", state.effect_sequence),
+                    skill_id: (*used_skill_id).to_owned(),
+                    start: position,
+                    end: position,
+                    perspective: EffectPerspective::SelfCast,
+                    effect_type: effect.effect_type,
+                    effect_target: effect.effect_target,
+                });
+                state.effect_sequence += 1;
+            }
+            if !new_logs.is_empty() {
+                trace
+                    .skill_activations
+                    .entry((*used_skill_id).to_owned())
+                    .or_default()
+                    .extend(new_logs);
+            }
+        }
+    }
+
+    fn on_runner_finished(&mut self, race: &dyn RaceObservation, runner: &dyn RunnerObservation) {
+        let distance = race.course_distance();
+        let position = runner.position().min(distance);
+        let id = runner.id().0;
+        let mut inner = self.inner.borrow_mut();
+        if !inner.focus_ids.contains(&runner.id()) {
+            return;
+        }
+        let CollectorInner {
+            data, effect_state, ..
+        } = &mut *inner;
+        let Some(state) = effect_state.get_mut(&id) else {
+            return;
+        };
+        if let Some(round) = data.rounds.last_mut() {
+            if let Some(trace) = round.focus.iter_mut().find(|t| t.runner_id.0 == id) {
+                close_all(
+                    &mut state.open_effects,
+                    &mut trace.skill_activations,
+                    position,
+                );
+            }
+        }
+    }
+
+    fn on_round_end(&mut self, race: &dyn RaceObservation) {
+        let distance = race.course_distance();
+        let mut inner = self.inner.borrow_mut();
+        let CollectorInner {
+            data, effect_state, ..
+        } = &mut *inner;
+        let Some(round) = data.rounds.last_mut() else {
+            return;
+        };
+        // Close any still-open effects for runners that did not finish.
+        for trace in &mut round.focus {
+            if let Some(state) = effect_state.get_mut(&trace.runner_id.0) {
+                close_all(
+                    &mut state.open_effects,
+                    &mut trace.skill_activations,
+                    distance,
+                );
             }
         }
     }

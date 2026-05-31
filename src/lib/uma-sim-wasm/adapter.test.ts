@@ -127,7 +127,29 @@ describe('wasmResultToRaceSimResult', () => {
             samples: [
               { time: 0, position: 0, speed: 18, lane: 0, health: 1000 },
               { time: 0.066, position: 5, speed: 19, lane: 0, health: 990 }
-            ]
+            ],
+            skillActivations: {
+              '100001': [
+                {
+                  executionId: '42-0-0',
+                  skillId: '100001',
+                  start: 400,
+                  end: 760,
+                  perspective: 1,
+                  effectType: 27,
+                  effectTarget: 1
+                },
+                {
+                  executionId: '42-0-1',
+                  skillId: '100001',
+                  start: 800,
+                  end: 800,
+                  perspective: 1,
+                  effectType: 9,
+                  effectTarget: 1
+                }
+              ]
+            }
           }
         ]
       }
@@ -159,17 +181,19 @@ describe('wasmResultToRaceSimResult', () => {
     expect(out.eventLogs[0][4].kind).toBe('rushed');
   });
 
-  it('derives per-focus-runner skill activations from skill-activated events', () => {
+  it('maps per-focus-runner skill activations from the trace duration logs', () => {
     const out = wasmResultToRaceSimResult(result);
     const focus = out.collectedData.rounds[0].focusRunnerData[0];
 
-    // Two activations of 100001 for runner 0; the skill-less and runner-1 events excluded.
+    // The collector projects real [start, end] effect logs (read as a Record).
     expect(Object.keys(focus.skillActivations)).toEqual(['100001']);
     const logs = focus.skillActivations['100001'];
     expect(logs).toHaveLength(2);
     expect(logs.map((l) => l.start)).toEqual([400, 800]);
-    // Point activations: start === end.
-    expect(logs.every((l) => l.start === l.end)).toBe(true);
+    // The first is a duration effect (end > start); the second a point marker.
+    expect(logs[0].end).toBe(760);
+    expect(logs[0].end).toBeGreaterThan(logs[0].start);
+    expect(logs[1].start).toBe(logs[1].end);
     expect(logs.every((l) => l.skillId === '100001')).toBe(true);
   });
 

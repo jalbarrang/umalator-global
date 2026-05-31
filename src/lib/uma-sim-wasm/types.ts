@@ -148,7 +148,12 @@ export type WasmTickSample = {
   health: number;
 };
 
-export type WasmFocusTrace = { runnerId: number; samples: WasmTickSample[] };
+export type WasmFocusTrace = {
+  runnerId: number;
+  samples: WasmTickSample[];
+  /** Self-cast skill-effect duration logs, keyed by skill id (JS object, not a Map). */
+  skillActivations: Record<string, WasmSkillEffectLog[]>;
+};
 export type WasmRoundData = { seed: number; focus: WasmFocusTrace[] };
 
 export type WasmRaceEventDetail = {

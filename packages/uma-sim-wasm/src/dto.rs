@@ -925,6 +925,10 @@ pub struct WasmFocusTrace {
     pub runner_id: u32,
     /// Per-tick samples.
     pub samples: Vec<WasmTickSample>,
+    /// Self-cast skill-effect activation logs (`[start, end]` position ranges),
+    /// keyed by skill id. Serialized as a JS object (not a Map) via
+    /// `serialize_maps_as_objects(true)` in `to_js`.
+    pub skill_activations: HashMap<String, Vec<WasmSkillEffectLog>>,
 }
 
 /// One round's collected data.
@@ -1074,6 +1078,7 @@ fn collected_to_wasm(data: &CollectedData) -> Vec<WasmRoundData> {
                             health: s.health,
                         })
                         .collect(),
+                    skill_activations: skill_activation_map_to_wasm(&trace.skill_activations),
                 })
                 .collect(),
         })
