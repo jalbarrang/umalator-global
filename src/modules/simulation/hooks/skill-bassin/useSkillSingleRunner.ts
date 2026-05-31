@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useRef } from 'react';
 import { useShallow } from 'zustand/shallow';
 import SkillSingleWorker from '@workers/skill-single.worker.ts?worker';
+import SkillSingleWasmWorker from '@workers/skill-single-wasm.worker.ts?worker';
 import type {
   SingleSkillWorkerInMessage,
   SingleSkillWorkerOutMessage
@@ -22,7 +23,16 @@ import { coursesService } from '@/modules/data/services/CourseService';
  * Hook for running additional samples for a single skill
  * Uses a dedicated worker to run simulations without blocking the UI
  */
-export function useSkillSingleRunner() {
+/** Which engine the single-skill worker runs: the legacy TS sim or the Rust/WASM port. */
+export type SkillSingleEngine = 'ts' | 'wasm';
+
+export type SkillSingleRunnerOptions = {
+  /** Engine to run the samples with. Defaults to the legacy TS engine. */
+  engine?: SkillSingleEngine;
+};
+
+export function useSkillSingleRunner(options: SkillSingleRunnerOptions = {}) {
+  const { engine = 'ts' } = options;
   const { runner } = useRunner();
   const { racedef, courseId } = useSettingsStore();
   const ignoreStaminaConsumption = useSkillPlannerStore((state) => state.ignoreStaminaConsumption);
@@ -67,7 +77,7 @@ export function useSkillSingleRunner() {
       }
 
       // Create new worker
-      const worker = new SkillSingleWorker();
+      const worker = engine === 'wasm' ? new SkillSingleWasmWorker() : new SkillSingleWorker();
       workerRef.current = worker;
 
       // Set up message handler
@@ -137,7 +147,7 @@ export function useSkillSingleRunner() {
         `Started ${additionalSamples} additional samples for skill ${skillId} with seed ${newSeed}`
       );
     },
-    [currentSeed, results, course, racedef, runner, ignoreStaminaConsumption]
+    [currentSeed, results, course, racedef, runner, ignoreStaminaConsumption, engine]
   );
 
   /**

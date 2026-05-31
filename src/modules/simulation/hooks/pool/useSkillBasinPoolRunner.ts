@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import SkillBasinPoolWorker from '@workers/pool/skill-basin/skill-basin.pool.worker.ts?worker';
+import SkillBasinPoolWasmWorker from '@workers/pool/skill-basin/skill-basin-wasm.pool.worker.ts?worker';
 import type { SkillComparisonResponse } from '../../types';
 import {
   appendResultsToTable,
@@ -24,9 +25,19 @@ import { useSkillSelectionStore } from '@/modules/simulation/stores/skill-select
 import { PoolManager } from '@/workers/pool/pool-manager';
 import { coursesService } from '@/modules/data/services/CourseService';
 
-const createSkillBasinPoolWorker = (options: { name: string }) => new SkillBasinPoolWorker(options);
+/** Which engine the pool workers run: the legacy TS sim or the Rust/WASM port. */
+export type SkillBasinPoolEngine = 'ts' | 'wasm';
 
-export function useSkillBasinPoolRunner() {
+const createSkillBasinPoolWorker = (engine: SkillBasinPoolEngine, options: { name: string }) =>
+  engine === 'wasm' ? new SkillBasinPoolWasmWorker(options) : new SkillBasinPoolWorker(options);
+
+export type SkillBasinPoolRunnerOptions = {
+  /** Engine to run the pool with. Defaults to the legacy TS engine. */
+  engine?: SkillBasinPoolEngine;
+};
+
+export function useSkillBasinPoolRunner(options: SkillBasinPoolRunnerOptions = {}) {
+  const { engine = 'ts' } = options;
   const { runner } = useRunner();
   const { racedef, courseId } = useSettingsStore();
   const ignoreStaminaConsumption = useSkillPlannerStore((state) => state.ignoreStaminaConsumption);
@@ -37,14 +48,16 @@ export function useSkillBasinPoolRunner() {
 
   // Initialize pool manager on mount
   useEffect(() => {
-    const poolManager = new PoolManager((options) => createSkillBasinPoolWorker(options));
+    const poolManager = new PoolManager((workerOptions) =>
+      createSkillBasinPoolWorker(engine, workerOptions)
+    );
 
     poolManagerRef.current = poolManager;
 
     return () => {
       poolManagerRef.current?.terminateWorkers();
     };
-  }, []);
+  }, [engine]);
 
   const doBasinnChart = (seed?: number) => {
     if (!poolManagerRef.current) {

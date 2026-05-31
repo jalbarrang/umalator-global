@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useRef } from 'react';
 import { useShallow } from 'zustand/shallow';
 import SkillSingleWorker from '@workers/skill-single.worker.ts?worker';
+import SkillSingleWasmWorker from '@workers/skill-single-wasm.worker.ts?worker';
 import type {
   SingleSkillWorkerInMessage,
   SingleSkillWorkerOutMessage
@@ -21,7 +22,16 @@ import { coursesService } from '@/modules/data/services/CourseService';
  * Hook for running additional samples for a single skill in Uma Basin
  * Uses a dedicated worker to run simulations without blocking the UI
  */
-export function useUmaSingleRunner() {
+/** Which engine the single-skill worker runs: the legacy TS sim or the Rust/WASM port. */
+export type UmaSingleEngine = 'ts' | 'wasm';
+
+export type UmaSingleRunnerOptions = {
+  /** Engine to run the samples with. Defaults to the legacy TS engine. */
+  engine?: UmaSingleEngine;
+};
+
+export function useUmaSingleRunner(options: UmaSingleRunnerOptions = {}) {
+  const { engine = 'ts' } = options;
   const { runner } = useRunner();
   const { racedef, courseId } = useSettingsStore();
   const { seed: currentSeed, results } = useUniqueSkillBasinStore(
@@ -65,7 +75,7 @@ export function useUmaSingleRunner() {
       }
 
       // Create new worker
-      const worker = new SkillSingleWorker();
+      const worker = engine === 'wasm' ? new SkillSingleWasmWorker() : new SkillSingleWorker();
       workerRef.current = worker;
 
       // Set up message handler
@@ -132,7 +142,7 @@ export function useUmaSingleRunner() {
         `Started ${additionalSamples} additional samples for skill ${skillId} with seed ${newSeed}`
       );
     },
-    [currentSeed, results, course, racedef, runner]
+    [currentSeed, results, course, racedef, runner, engine]
   );
 
   /**
