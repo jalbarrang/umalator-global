@@ -34,7 +34,7 @@
     "release": "semantic-release",
     "release:dry-run": "semantic-release --dry-run",
     "changelog:generate": "conventional-changelog -p conventionalcommits -i CHANGELOG.md -s -r 0",
-    "wasm:build": "bash scripts/build-wasm.sh"
+    "wasm:build": "bun scripts/build-wasm.ts"
   },
   "repository": {
     "type": "git",
