@@ -13,9 +13,11 @@ pub mod observer;
 use wasm_bindgen::prelude::*;
 
 use uma_sim_core::racing::race::Race;
-use uma_sim_core::run_race_sim;
+use uma_sim_core::{run_compare, run_race_sim};
 
-use crate::dto::{WasmFinishEntry, WasmRaceSimParams, WasmRaceSimResult};
+use crate::dto::{
+    WasmCompareData, WasmCompareParams, WasmFinishEntry, WasmRaceSimParams, WasmRaceSimResult,
+};
 use crate::observer::JsObserver;
 
 /// Deserialize a JS value into a typed DTO.
@@ -40,6 +42,21 @@ pub fn run_race_sim_wasm(params: JsValue) -> Result<JsValue, JsError> {
         .map_err(|e| JsError::new(&e.to_string()))?;
     let result = run_race_sim(domain).map_err(|e| JsError::new(&e.to_string()))?;
     to_js(&WasmRaceSimResult::from_domain(&result))
+}
+
+/// Run a batch compare-family simulation and return the serialized result.
+///
+/// `params` is a [`WasmCompareParams`] JS object (a small vacuum field over
+/// `nsamples` rounds). Returns a [`WasmCompareData`] (per-round, per-runner
+/// telemetry); the bashin-delta + summary stats are computed on the TS side.
+#[wasm_bindgen(js_name = runCompare)]
+pub fn run_compare_wasm(params: JsValue) -> Result<JsValue, JsError> {
+    let dto: WasmCompareParams = from_js(params)?;
+    let domain = dto
+        .into_domain()
+        .map_err(|e| JsError::new(&e.to_string()))?;
+    let result = run_compare(domain).map_err(|e| JsError::new(&e.to_string()))?;
+    to_js(&WasmCompareData::from_domain(&result))
 }
 
 /// A streaming race simulator with per-event JS callbacks.

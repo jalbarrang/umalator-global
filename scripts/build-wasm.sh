@@ -17,6 +17,11 @@ repo_root="$(cd "$(dirname "$0")/.." && pwd)"
 # Prefer the rustup stable toolchain (has wasm32 std).
 if command -v rustup >/dev/null 2>&1; then
   sysroot="$(rustup run stable rustc --print sysroot)"
+  # On Windows/git-bash the sysroot is a backslash path that bash PATH cannot
+  # use; convert it to a unix-style path so the prepend actually wins.
+  if command -v cygpath >/dev/null 2>&1; then
+    sysroot="$(cygpath -u "$sysroot")"
+  fi
   export PATH="$sysroot/bin:$PATH"
 fi
 
