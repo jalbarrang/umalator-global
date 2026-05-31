@@ -1,11 +1,10 @@
 import { useCallback, useMemo, useRef } from 'react';
 import { useShallow } from 'zustand/shallow';
-import SkillSingleWorker from '@workers/skill-single.worker.ts?worker';
 import SkillSingleWasmWorker from '@workers/skill-single-wasm.worker.ts?worker';
 import type {
-  SingleSkillWorkerInMessage,
-  SingleSkillWorkerOutMessage
-} from '@/workers/skill-single.worker';
+  SingleSkillWasmWorkerInMessage as SingleSkillWorkerInMessage,
+  SingleSkillWasmWorkerOutMessage as SingleSkillWorkerOutMessage
+} from '@/workers/skill-single-wasm.worker';
 import type { SimulationParams } from '@/workers/pool/types';
 import {
   appendResultsToTable,
@@ -22,16 +21,7 @@ import { coursesService } from '@/modules/data/services/CourseService';
  * Hook for running additional samples for a single skill in Uma Basin
  * Uses a dedicated worker to run simulations without blocking the UI
  */
-/** Which engine the single-skill worker runs: the legacy TS sim or the Rust/WASM port. */
-export type UmaSingleEngine = 'ts' | 'wasm';
-
-export type UmaSingleRunnerOptions = {
-  /** Engine to run the samples with. Defaults to the legacy TS engine. */
-  engine?: UmaSingleEngine;
-};
-
-export function useUmaSingleRunner(options: UmaSingleRunnerOptions = {}) {
-  const { engine = 'ts' } = options;
+export function useUmaSingleRunner() {
   const { runner } = useRunner();
   const { racedef, courseId } = useSettingsStore();
   const { seed: currentSeed, results } = useUniqueSkillBasinStore(
@@ -75,7 +65,7 @@ export function useUmaSingleRunner(options: UmaSingleRunnerOptions = {}) {
       }
 
       // Create new worker
-      const worker = engine === 'wasm' ? new SkillSingleWasmWorker() : new SkillSingleWorker();
+      const worker = new SkillSingleWasmWorker();
       workerRef.current = worker;
 
       // Set up message handler
@@ -142,7 +132,7 @@ export function useUmaSingleRunner(options: UmaSingleRunnerOptions = {}) {
         `Started ${additionalSamples} additional samples for skill ${skillId} with seed ${newSeed}`
       );
     },
-    [currentSeed, results, course, racedef, runner, engine]
+    [currentSeed, results, course, racedef, runner]
   );
 
   /**

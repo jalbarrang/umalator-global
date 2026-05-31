@@ -108,9 +108,11 @@ engine, not a replacement for the worker/hook/store path.
   `raceSimParamsToWasm` and reshaping the output via `wasmResultToRaceSimResult`.
   It accepts/returns the **same** `RaceSimParams` / `RaceSimResult` contract as
   the TS worker, so it is a drop-in.
-- `useRaceSimRunner({ engine: 'wasm' })` selects the WASM worker; `engine`
-  defaults to `'ts'` (legacy engine). No store/route changes are required —
-  callers opt in by passing `engine`.
+- `useRaceSimRunner` runs on the WASM worker unconditionally. The legacy TS
+  engine has been relocated to the deprecated `packages/sunday-tools` package
+  and is no longer wired into any sim path; the `engine: 'ts' | 'wasm'` opt-in
+  was removed across all runners (Race Sim, Compare, Skill/Unique Bassin,
+  Skill Planner).
 
 ### Result-shape bridge
 
@@ -120,11 +122,13 @@ reconstructs the rich `collectedData` the UI consumes:
 - It forces `focusRunnerIds` to the **full field** so every runner's per-tick
   position/lane/speed/hp is captured, then rebuilds `allRunnerPositions`,
   `allRunnerLanes`, and `focusRunnerData` from those traces.
-- `eventLogs` is **empty per round**, and `focusRunnerData` fields the WASM
-  telemetry does not capture (pacer gap, skill-activation markers, rushed /
-  dueling / spot-struggle regions) default to neutral values. Playback and the
-  track view work; skill-activation overlays do not until the rich event-log
-  projection (deferred t-018 work) is wired across the boundary.
+- `eventLogs` is projected by the Rust `RaceEventLogCollector` and mapped 1:1.
+  Per-focus-runner `skillActivations` are derived from the round's
+  `skill-activated` events (point activations). Playback, track view,
+  finish-order table, the event-log panel, and the skill-activation overlay all
+  render. Remaining neutral defaults (pacer gap, targeted activations, mechanic
+  regions) are not consumed by the Race Sim UI. Duration-bar overlays (vs point
+  markers) are tracked as a follow-up (on-disk t-010).
 
 ### Prerequisites (must run before the WASM engine can load)
 

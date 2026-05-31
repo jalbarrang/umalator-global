@@ -22,11 +22,7 @@ export function CostModifiersPanel(props: CostModifiersPanelProps) {
 
   const { budget, ignoreStaminaConsumption, candidates, isOptimizing, seed } =
     useSkillPlannerStore();
-  // Route the planner through the Rust/WASM engine (t-006): batch evaluation
-  // with a cached baseline vacuum is the biggest throughput win across the sims.
-  const { handleOptimize, handleReplay, handleCancel } = useSkillPlannerOptimizer({
-    engine: 'wasm'
-  });
+  const { handleOptimize, handleReplay, handleCancel } = useSkillPlannerOptimizer();
 
   const [seedInput, setSeedInput] = useState<string>(() => {
     if (seed === null) return '';

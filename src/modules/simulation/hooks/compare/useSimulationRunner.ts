@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef } from 'react';
-import CompareWorker from '@workers/simulator.worker.ts?worker';
 import CompareWasmWorker from '@workers/simulator-wasm.worker.ts?worker';
 import type { CompareParams } from '../../types';
 import type { CompareResult } from '@/modules/simulation/compare.types';
@@ -19,11 +18,7 @@ import {
 } from '@/modules/simulation/stores/scenario-overrides.store';
 import { coursesService } from '@/modules/data/services/CourseService';
 
-/** Which engine the compare worker runs: the legacy TS sim or the Rust/WASM port. */
-export type CompareEngine = 'ts' | 'wasm';
-
-const createCompareWorker = (engine: CompareEngine) =>
-  engine === 'wasm' ? new CompareWasmWorker() : new CompareWorker();
+const createCompareWorker = () => new CompareWasmWorker();
 
 type WorkerMessage<T> =
   | {
@@ -43,13 +38,7 @@ type WorkerMessage<T> =
       totalSamples: number;
     };
 
-export type SimulationRunnerOptions = {
-  /** Engine to run the comparison with. Defaults to the legacy TS engine. */
-  engine?: CompareEngine;
-};
-
-export function useSimulationRunner(options: SimulationRunnerOptions = {}) {
-  const { engine = 'ts' } = options;
+export function useSimulationRunner() {
   const { uma1, uma2 } = useRunnersStore();
 
   const { racedef, nsamples, courseId, staminaDrainOverrides } = useSettingsStore();
@@ -103,7 +92,7 @@ export function useSimulationRunner(options: SimulationRunnerOptions = {}) {
   };
 
   useEffect(() => {
-    const webWorker = createCompareWorker(engine);
+    const webWorker = createCompareWorker();
 
     webWorker.addEventListener('message', handleWorkerMessage);
 
@@ -113,7 +102,7 @@ export function useSimulationRunner(options: SimulationRunnerOptions = {}) {
       webWorker.terminate();
       webWorkerRef.current = null;
     };
-  }, [engine]);
+  }, []);
 
   const course = useMemo(() => coursesService.getSimCourse(courseId), [courseId]);
 

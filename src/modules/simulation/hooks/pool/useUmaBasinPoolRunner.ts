@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef } from 'react';
-import UmaBasinPoolWorker from '@workers/pool/uma-basin/uma-basin.pool.worker.ts?worker';
 import UmaBasinPoolWasmWorker from '@workers/pool/uma-basin/uma-basin-wasm.pool.worker.ts?worker';
 import type { SkillComparisonResponse } from '@/modules/simulation/types';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
@@ -25,11 +24,8 @@ import { useUmaSkillSelectionStore } from '@/modules/simulation/stores/uma-skill
 
 const uniqueSkillIds = skillsService.getUniqueSkillIds();
 
-/** Which engine the pool workers run: the legacy TS sim or the Rust/WASM port. */
-export type UmaBasinPoolEngine = 'ts' | 'wasm';
-
-const createUmaBasinPoolWorker = (engine: UmaBasinPoolEngine, options: { name: string }) =>
-  engine === 'wasm' ? new UmaBasinPoolWasmWorker(options) : new UmaBasinPoolWorker(options);
+const createUmaBasinPoolWorker = (options: { name: string }) =>
+  new UmaBasinPoolWasmWorker(options);
 
 function removeUniqueSkillsFromRunner(uma: IRunnerState): IRunnerState {
   const filteredSkills = uma.skills.filter((skillId) => !uniqueSkillIds.includes(skillId));
@@ -37,13 +33,7 @@ function removeUniqueSkillsFromRunner(uma: IRunnerState): IRunnerState {
   return { ...uma, skills: filteredSkills };
 }
 
-export type UmaBasinPoolRunnerOptions = {
-  /** Engine to run the pool with. Defaults to the legacy TS engine. */
-  engine?: UmaBasinPoolEngine;
-};
-
-export function useUmaBasinPoolRunner(runnerOptions: UmaBasinPoolRunnerOptions = {}) {
-  const { engine = 'ts' } = runnerOptions;
+export function useUmaBasinPoolRunner() {
   const { runner } = useRunner();
   const { racedef, courseId } = useSettingsStore();
 
@@ -54,7 +44,7 @@ export function useUmaBasinPoolRunner(runnerOptions: UmaBasinPoolRunnerOptions =
   // Initialize pool manager on mount
   useEffect(() => {
     const poolManager = new PoolManager((workerOptions) =>
-      createUmaBasinPoolWorker(engine, workerOptions)
+      createUmaBasinPoolWorker(workerOptions)
     );
 
     poolManagerRef.current = poolManager;
@@ -62,7 +52,7 @@ export function useUmaBasinPoolRunner(runnerOptions: UmaBasinPoolRunnerOptions =
     return () => {
       poolManagerRef.current?.terminateWorkers();
     };
-  }, [engine]);
+  }, []);
 
   const doBasinnChart = (seed?: number) => {
     if (!poolManagerRef.current) {
