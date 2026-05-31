@@ -121,10 +121,21 @@ pub struct Runner {
     pub aptitudes: RunnerAptitudes,
     /// Raw input stats (pre-adjustment).
     pub stats: StatLine,
-    /// Mood-adjusted base stats (immutable per build).
+    /// Mood-adjusted base stats. Mutable per round (green StaminaUp skills bump
+    /// it); reset from [`pristine_base_stats`](Self::pristine_base_stats) each
+    /// `on_prepare`.
     pub base_stats: RunnerStats,
-    /// Course/ground/strategy-adjusted effective stats.
+    /// Course/ground/strategy-adjusted effective stats. Mutable per round (green
+    /// stat skills bump it); reset from
+    /// [`pristine_adjusted_stats`](Self::pristine_adjusted_stats) each `on_prepare`.
     pub adjusted_stats: RunnerStats,
+    /// Pristine mood-adjusted base stats (the build-time value). `base_stats` is
+    /// reset to this at the start of every round so green stat skills do not
+    /// accumulate across rounds in a batch/compare run.
+    pub pristine_base_stats: RunnerStats,
+    /// Pristine course/ground/strategy-adjusted stats (the build-time value).
+    /// `adjusted_stats` is reset to this each round (see above).
+    pub pristine_adjusted_stats: RunnerStats,
     /// Pre-resolved skills this runner carries.
     pub skills: Vec<Skill>,
     /// Skill-base-id -> forced activation position overrides.

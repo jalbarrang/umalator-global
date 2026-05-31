@@ -197,7 +197,11 @@ pub fn build_skill_data(params: &BuildSkillDataParams<'_>) -> Vec<SkillTrigger> 
 
         let mut full = params.whole_course.clone();
 
-        if let Some(precondition) = &alt.precondition {
+        // An empty precondition string means "no precondition" (TS treats it as
+        // falsy in `if (skillAlternative.precondition)`). Skipping it is required
+        // for skills whose data carries `precondition: ""` (e.g. all_corner_random
+        // / rotation greens), which otherwise fail to parse and never activate.
+        if let Some(precondition) = alt.precondition.as_deref().filter(|p| !p.is_empty()) {
             let Ok(parsed_pre) = params.parser.parse(precondition) else {
                 return Vec::new();
             };

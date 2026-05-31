@@ -138,6 +138,8 @@ impl Runner {
             stats: props.stats,
             base_stats,
             adjusted_stats,
+            pristine_base_stats: base_stats,
+            pristine_adjusted_stats: adjusted_stats,
             skills: props.skills,
             forced_positions: props.forced_positions,
             injected_debuffs: props.injected_debuffs,
@@ -275,6 +277,12 @@ impl Runner {
         let course_distance = course.distance;
 
         // ---- hard resets (deterministic per round) ----
+        // Restore pristine stats so green stat skills (SpeedUp/StaminaUp/…),
+        // which permanently mutate base/adjusted stats, do not accumulate across
+        // rounds in a batch/compare run (mirrors TS `onPrepare` resetting
+        // `baseStats`/`adjustedStats` from `_baseStats`/`_adjustedStats`).
+        self.base_stats = self.pristine_base_stats;
+        self.adjusted_stats = self.pristine_adjusted_stats;
         self.first_position_in_late_race = false;
         self.finish_time = 0.0;
         self.accumulate_time = Timer::new(-1.0);
