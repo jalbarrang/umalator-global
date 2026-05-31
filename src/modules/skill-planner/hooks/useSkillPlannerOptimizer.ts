@@ -13,6 +13,7 @@
 
 import { useEffect, useMemo, useRef } from 'react';
 import SkillPlannerWorker from '@workers/skill-planner.worker.ts?worker';
+import SkillPlannerWasmWorker from '@workers/skill-planner-wasm.worker.ts?worker';
 import {
   createCandidate,
   createNewSeed,
@@ -36,7 +37,16 @@ import { useSettingsStore } from '@/store/settings.store';
 import { defaultSimulationOptions } from '@/components/bassin-chart/utils';
 import { getUnsatisfiedRepresentativePrerequisiteIds } from '../skill-family';
 
-const createSkillPlannerWorker = () => new SkillPlannerWorker();
+/** Which simulation engine the planner worker runs: legacy TS or the Rust/WASM port. */
+export type SkillPlannerEngine = 'ts' | 'wasm';
+
+const createSkillPlannerWorker = (engine: SkillPlannerEngine) =>
+  engine === 'wasm' ? new SkillPlannerWasmWorker() : new SkillPlannerWorker();
+
+export type SkillPlannerOptimizerOptions = {
+  /** Engine to run the optimization with. Defaults to the legacy TS engine. */
+  engine?: SkillPlannerEngine;
+};
 
 type WorkerMessage =
   | {
@@ -85,7 +95,8 @@ function getCurrentOptimizationFingerprint() {
   });
 }
 
-export function useSkillPlannerOptimizer() {
+export function useSkillPlannerOptimizer(options: SkillPlannerOptimizerOptions = {}) {
+  const { engine = 'ts' } = options;
   const {
     runner,
     obtainedSkillIds,
@@ -150,9 +161,9 @@ export function useSkillPlannerOptimizer() {
     }
   };
 
-  // Initialize worker on mount
+  // Initialize worker on mount (and when the engine changes)
   useEffect(() => {
-    const webWorker = createSkillPlannerWorker();
+    const webWorker = createSkillPlannerWorker(engine);
 
     webWorker.addEventListener('message', handleWorkerMessage);
 
@@ -163,7 +174,7 @@ export function useSkillPlannerOptimizer() {
       webWorker.terminate();
       webWorkerRef.current = null;
     };
-  }, []);
+  }, [engine]);
 
   const runWithSeed = (seedValue: number) => {
     if (!webWorkerRef.current) {
@@ -229,7 +240,7 @@ export function useSkillPlannerOptimizer() {
     // Terminate and recreate worker
     webWorkerRef.current.terminate();
 
-    const newWorker = createSkillPlannerWorker();
+    const newWorker = createSkillPlannerWorker(engine);
     newWorker.addEventListener('message', handleWorkerMessage);
     webWorkerRef.current = newWorker;
 
