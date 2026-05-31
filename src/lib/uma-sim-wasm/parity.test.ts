@@ -143,8 +143,8 @@ const SKILL_PARITY_CASES: Array<SkillParityCase> = [
   { id: '200332', label: 'random-corner (Corner Adept ○)', activates: true, meanTol: 0.15 },
   // rotation==1 conditional passive (green) speed-up.
   { id: '200012', label: 'rotation passive (Right-Handed ○)', activates: true, meanTol: 0.1 },
-  // Plain duration gold runaway target-speed (running_style==1).
-  { id: runawaySkillId, label: 'plain-duration runaway', activates: true, meanTol: 0.15 }
+  // Plain duration white straightaway target-speed (straight_random==1).
+  { id: '200362', label: 'plain-duration straightaway (Straightaway Adept)', activates: true, meanTol: 0.15 }
 ];
 
 describe.skipIf(!PKG_PATH)('skill-activation/effect parity (gate t-008 missed)', () => {
