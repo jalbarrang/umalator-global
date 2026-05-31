@@ -28,7 +28,13 @@ export type SimulationParams = {
 
 // Messages from main thread to worker
 export type WorkerInMessage =
-  | { type: 'init'; workerId: number; params: SimulationParams }
+  | {
+      type: 'init';
+      workerId: number;
+      params: SimulationParams;
+      /** Pre-compiled WASM module shared by the pool (skips per-worker compile). */
+      compiledModule?: WebAssembly.Module;
+    }
   | { type: 'work-batch'; batch: WorkBatch }
   | { type: 'terminate' };
 

@@ -32,14 +32,23 @@ type WasmRaceSimulatorHandle = {
 };
 
 const PKG_SPECIFIER = './pkg/uma_sim_wasm.js';
+// `?url` import resolves to the emitted `.wasm` asset URL at build time without
+// pulling the bytes into the JS bundle. Used to compile the module ONCE on the
+// main thread and share the compiled `WebAssembly.Module` with pool workers
+// (each worker then only instantiates, skipping a redundant fetch+compile).
+const WASM_URL_SPECIFIER = './pkg/uma_sim_wasm_bg.wasm?url';
 
 let modulePromise: Promise<UmaSimWasmModule> | null = null;
+let compiledModulePromise: Promise<WebAssembly.Module> | null = null;
 
-async function loadModule(): Promise<UmaSimWasmModule> {
+async function loadModule(precompiled?: WebAssembly.Module): Promise<UmaSimWasmModule> {
   if (!modulePromise) {
     modulePromise = (async () => {
       const mod = (await import(/* @vite-ignore */ PKG_SPECIFIER)) as UmaSimWasmModule;
-      await mod.default();
+      // Passing a `WebAssembly.Module` makes wasm-bindgen's init skip the
+      // fetch+compile and only instantiate; `undefined` falls back to the
+      // default fetch of the colocated `.wasm`.
+      await mod.default(precompiled);
       return mod;
     })();
   }
@@ -49,6 +58,36 @@ async function loadModule(): Promise<UmaSimWasmModule> {
 /** Initialize the WASM module exactly once (idempotent). */
 export async function initUmaSimWasm(): Promise<void> {
   await loadModule();
+}
+
+/**
+ * Initialize from a pre-compiled module (shared across pool workers). Falls back
+ * to a self-contained fetch+compile if instantiation from the shared module
+ * fails, so a transfer/compat issue degrades to the previous behavior rather
+ * than breaking the worker.
+ */
+export async function initUmaSimWasmFromModule(module: WebAssembly.Module): Promise<void> {
+  try {
+    await loadModule(module);
+  } catch (error) {
+    console.warn('Shared WASM module init failed; falling back to self-compile.', error);
+    modulePromise = null;
+    await loadModule();
+  }
+}
+
+/**
+ * Compile the `WebAssembly.Module` once per realm (memoized). Intended for the
+ * main thread to compile a single module and post it to pool workers.
+ */
+export async function compileUmaSimWasmModule(): Promise<WebAssembly.Module> {
+  if (!compiledModulePromise) {
+    compiledModulePromise = (async () => {
+      const wasmUrl = (await import(/* @vite-ignore */ WASM_URL_SPECIFIER)).default as string;
+      return WebAssembly.compileStreaming(fetch(wasmUrl));
+    })();
+  }
+  return compiledModulePromise;
 }
 
 /** Run a batch simulation. Ensures the module is initialized first. */

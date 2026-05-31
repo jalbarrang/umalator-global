@@ -533,3 +533,53 @@ fn green_stat_skills_do_not_accumulate_across_rounds() {
         "green stat skill accumulated across rounds: peakV round0={first:.3} roundN={last:.3}"
     );
 }
+
+#[test]
+fn compare_rounds_are_independent_chunkable() {
+    // The progressive compare worker simulates rounds in seed-offset chunks and
+    // concatenates them; this is only valid if round i depends solely on
+    // master_seed + i (no state leaking across rounds). Assert a full 10-round
+    // batch equals 4 + 6 chunked batches, round for round.
+    let mk = |nsamples: usize, master_seed: u64| {
+        run_compare(CompareSimParams {
+            course: dbg_course(),
+            ground: GroundCondition::Firm,
+            parameters: params(),
+            settings: compare_settings(),
+            dueling_rates: dueling_rates(),
+            runners: vec![compare_runner(vec![
+                green_speed_skill("200012"),
+                empty_precondition_skill("200332", "all_corner_random==1"),
+            ])],
+            nsamples,
+            master_seed,
+        })
+        .expect("compare run")
+    };
+
+    let full = mk(10, 100);
+    let chunk_a = mk(4, 100);
+    let chunk_b = mk(6, 104);
+
+    let stitched: Vec<_> = chunk_a.rounds.iter().chain(chunk_b.rounds.iter()).collect();
+    assert_eq!(full.rounds.len(), stitched.len());
+    for (f, s) in full.rounds.iter().zip(stitched) {
+        let fr = f.runners.first().expect("full round runner");
+        let sr = s.runners.first().expect("chunk round runner");
+        assert_eq!(
+            fr.position, sr.position,
+            "position mismatch (seed {})",
+            f.seed
+        );
+        assert_eq!(
+            fr.velocity, sr.velocity,
+            "velocity mismatch (seed {})",
+            f.seed
+        );
+        assert_eq!(
+            fr.skill_activations, sr.skill_activations,
+            "activation mismatch (seed {})",
+            f.seed
+        );
+    }
+}

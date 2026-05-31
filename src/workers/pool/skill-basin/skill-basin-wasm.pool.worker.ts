@@ -8,7 +8,7 @@
 import { clone, cloneDeepWith } from 'es-toolkit';
 import type { SkillComparisonResponse } from '@/modules/simulation/types';
 import type { SimulationParams, WorkBatch, WorkerInMessage, WorkerOutMessage } from '../types';
-import { initUmaSimWasm } from '@/lib/uma-sim-wasm/loader';
+import { initUmaSimWasm, initUmaSimWasmFromModule } from '@/lib/uma-sim-wasm/loader';
 import { runSamplingWasm } from '@/modules/simulation/simulators/wasm-skill-compare';
 
 let workerId = -1;
@@ -49,7 +49,7 @@ self.addEventListener('message', (event: MessageEvent<WorkerInMessage>) => {
     case 'init':
       workerId = message.workerId;
       simulationParams = message.params;
-      initUmaSimWasm()
+      (message.compiledModule ? initUmaSimWasmFromModule(message.compiledModule) : initUmaSimWasm())
         .then(() => sendMessage({ type: 'worker-ready', workerId }))
         .catch((error) =>
           sendMessage({

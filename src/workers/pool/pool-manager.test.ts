@@ -86,9 +86,10 @@ class FakePoolWorker {
 }
 
 describe('PoolManager', () => {
-  it('reports batch deltas on progress while keeping cumulative final results', () => {
+  it('reports batch deltas on progress while keeping cumulative final results', async () => {
     const progressLengths: Array<number> = [];
     let finalLength = 0;
+    let completed = false;
 
     const manager = new PoolManager(() => new FakePoolWorker() as unknown as Worker, 2);
 
@@ -98,8 +99,16 @@ describe('PoolManager', () => {
       },
       onComplete: (results) => {
         finalLength = results['speed-boost']?.results.length ?? 0;
+        completed = true;
       }
     });
+
+    // Worker init is dispatched after the shared-module compile attempt resolves
+    // (it rejects in the test env and falls back to self-compile), so flush
+    // microtasks until the run completes.
+    for (let i = 0; i < 50 && !completed; i++) {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    }
 
     expect(progressLengths).toEqual([5, 20, 50]);
     expect(finalLength).toBe(75);

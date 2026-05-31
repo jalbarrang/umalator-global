@@ -263,21 +263,29 @@ function primaryRounds(
   });
 }
 
-/** Run a WASM-backed vacuum comparison and produce the {@link CompareResult}. */
-export async function runComparisonWasm(params: CompareParams): Promise<CompareResult> {
-  const {
-    nsamples,
-    course,
-    racedef,
-    uma1,
-    uma2,
-    options,
-    forcedPositions,
-    injectedDebuffs,
-    scenarioOverrides
-  } = params;
+/** Primary-runner round telemetry for both contestants, aligned by round index. */
+export type CompareRounds = {
+  roundsA: Array<CollectedRunnerRoundData>;
+  roundsB: Array<CollectedRunnerRoundData>;
+};
 
-  const masterSeed = options.seed ?? 0;
+/**
+ * Run the two WASM vacuum batches and return the raw per-round primary telemetry
+ * (no reduction). `seedOffset` shifts the master seed so callers can simulate a
+ * contiguous chunk of rounds whose global index `seedOffset + j` still maps to
+ * master seed `masterSeed + seedOffset + j` — keeping a chunked run bit-for-bit
+ * identical to a single full run. The bashin reduction is a separate, cheap pass
+ * ([`reduceCompareRoundsPublic`]) so progressive UI never re-simulates.
+ */
+export async function runComparisonRoundsWasm(
+  params: CompareParams,
+  chunkSamples: number,
+  seedOffset: number
+): Promise<CompareRounds> {
+  const { course, racedef, uma1, uma2, options, forcedPositions, injectedDebuffs, scenarioOverrides } =
+    params;
+
+  const masterSeed = (options.seed ?? 0) + seedOffset;
   const raceParameters = toSundayRaceParameters(racedef);
 
   const allSkillIds = [...uma1.skills, ...uma2.skills];
@@ -328,7 +336,7 @@ export async function runComparisonWasm(params: CompareParams): Promise<CompareR
         duelingRates: DEFAULT_DUELING_RATES,
         runner: runnerA,
         name: resolveRunnerName(runnerA.outfitId, 0),
-        nsamples,
+        nsamples: chunkSamples,
         masterSeed
       })
     ),
@@ -340,11 +348,22 @@ export async function runComparisonWasm(params: CompareParams): Promise<CompareR
         duelingRates: DEFAULT_DUELING_RATES,
         runner: runnerB,
         name: resolveRunnerName(runnerB.outfitId, 1),
-        nsamples,
+        nsamples: chunkSamples,
         masterSeed
       })
     )
   ]);
 
-  return reduceCompareRounds(primaryRounds(dataA.rounds), primaryRounds(dataB.rounds), nsamples);
+  return { roundsA: primaryRounds(dataA.rounds), roundsB: primaryRounds(dataB.rounds) };
+}
+
+/** Reduce aligned per-round telemetry into a {@link CompareResult}. */
+export function reduceCompareRoundsPublic(rounds: CompareRounds, nsamples: number): CompareResult {
+  return reduceCompareRounds(rounds.roundsA, rounds.roundsB, nsamples);
+}
+
+/** Run a WASM-backed vacuum comparison and produce the {@link CompareResult}. */
+export async function runComparisonWasm(params: CompareParams): Promise<CompareResult> {
+  const rounds = await runComparisonRoundsWasm(params, params.nsamples, 0);
+  return reduceCompareRoundsPublic(rounds, params.nsamples);
 }

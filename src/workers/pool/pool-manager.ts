@@ -1,4 +1,5 @@
 import { STAGE_CONFIGS, WorkQueue } from './work-queue';
+import { compileUmaSimWasmModule } from '@/lib/uma-sim-wasm/loader';
 import type { PoolMetrics, SkillComparisonResponse } from '@/modules/simulation/types';
 import type {
   SimulationParams,
@@ -226,12 +227,26 @@ export class PoolManager {
     // Initialize workers
     this.initializeWorkers();
 
-    // Send initialization message to all workers
+    // Compile the WASM module ONCE on the main thread and share the compiled
+    // module with every worker, so the pool pays a single compile instead of
+    // one per worker (reduces startup delay/jank). If compilation fails we send
+    // the init without a module and each worker self-compiles as before.
+    compileUmaSimWasmModule()
+      .then((compiledModule) => this.broadcastInit(params, compiledModule))
+      .catch((error) => {
+        console.warn('Shared WASM compile failed; workers will self-compile.', error);
+        this.broadcastInit(params, undefined);
+      });
+  }
+
+  /** Send the init message (optionally with a shared compiled module) to all workers. */
+  private broadcastInit(params: SimulationParams, compiledModule?: WebAssembly.Module): void {
     this.workers.forEach((worker, id) => {
       worker.postMessage({
         type: 'init',
         workerId: id,
-        params
+        params,
+        compiledModule
       } as WorkerInMessage);
     });
   }

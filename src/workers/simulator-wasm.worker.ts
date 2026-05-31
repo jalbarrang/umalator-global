@@ -9,7 +9,11 @@ import { cloneDeep } from 'es-toolkit';
 import type { CompareParams } from '@/modules/simulation/types';
 import type { CompareResult } from '@/modules/simulation/compare.types';
 import { initUmaSimWasm } from '@/lib/uma-sim-wasm/loader';
-import { runComparisonWasm } from '@/modules/simulation/simulators/wasm-compare';
+import {
+  reduceCompareRoundsPublic,
+  runComparisonRoundsWasm,
+  type CompareRounds
+} from '@/modules/simulation/simulators/wasm-compare';
 
 type CompareWorkerInMessage = { type: 'compare'; data: CompareParams };
 type CompareWorkerOutMessage =
@@ -54,31 +58,45 @@ async function runRunnersComparison(params: CompareParams): Promise<void> {
 
   await initUmaSimWasm();
 
-  let results: CompareResult | null = null;
+  const baseParams: CompareParams = {
+    nsamples,
+    course,
+    racedef,
+    uma1: uma1_,
+    uma2: uma2_,
+    options: compareOptions,
+    forcedPositions,
+    injectedDebuffs,
+    scenarioOverrides
+  };
+
+  // Simulate incrementally: each progressive checkpoint adds only the *new*
+  // rounds (seed-offset by the count already run), so every round is simulated
+  // exactly once across the whole progression instead of re-running the full
+  // batch from scratch at every step. Progress is reported per chunk; the heavy
+  // reduced result is sent ONCE at the end (avoids re-posting the large payload).
+  const roundsA: CompareRounds['roundsA'] = [];
+  const roundsB: CompareRounds['roundsB'] = [];
+  let done = 0;
 
   for (const n of progressiveSampleSizes(nsamples)) {
-    results = await runComparisonWasm({
-      nsamples: n,
-      course,
-      racedef,
-      uma1: uma1_,
-      uma2: uma2_,
-      options: compareOptions,
-      forcedPositions,
-      injectedDebuffs,
-      scenarioOverrides
-    });
+    const delta = n - done;
+    if (delta > 0) {
+      const chunk = await runComparisonRoundsWasm(baseParams, delta, done);
+      roundsA.push(...chunk.roundsA);
+      roundsB.push(...chunk.roundsB);
+      done = n;
+    }
 
     sendMessage({
       type: 'compare-progress',
-      currentSamples: n,
+      currentSamples: done,
       totalSamples: nsamples
     });
   }
 
-  if (results) {
-    sendMessage({ type: 'compare', results });
-  }
+  const results: CompareResult = reduceCompareRoundsPublic({ roundsA, roundsB }, nsamples);
+  sendMessage({ type: 'compare', results });
   sendMessage({ type: 'compare-complete' });
 }
 
