@@ -14,7 +14,7 @@ import {
   writeJsonFile
 } from '../master-data/shared';
 import type { SkillEntry } from '../../src/modules/data/services/SkillService';
-import type { ISkillTarget } from '@/lib/sunday-tools/skills/definitions';
+import type { ISkillTarget } from 'sunday-tools/skills/definitions';
 
 interface SkillRow {
   id: number;

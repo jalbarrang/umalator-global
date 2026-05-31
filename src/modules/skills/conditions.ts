@@ -1,6 +1,6 @@
-import type { Operator } from '@/lib/sunday-tools/skills/parser/definitions';
-import { createParser } from '@/lib/sunday-tools/skills/parser/ConditionParser';
-import { mockConditions } from '@/lib/sunday-tools/skills/parser/ConditionMatcher';
+import type { Operator } from 'sunday-tools/skills/parser/definitions';
+import { createParser } from 'sunday-tools/skills/parser/ConditionParser';
+import { mockConditions } from 'sunday-tools/skills/parser/ConditionMatcher';
 import type { SkillService } from '@/modules/data/services/SkillService';
 
 var parser: ReturnType<typeof createParser> | null = null;

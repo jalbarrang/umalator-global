@@ -1,8 +1,8 @@
 import { withDefaultCond } from '../definitions';
 import { kTrue } from './utils';
-import type { RegionList } from '@/lib/sunday-tools/shared/region';
-import type { ActivationSamplePolicy } from '@/lib/sunday-tools/skills/policies/ActivationSamplePolicy';
-import { CornerRandomPolicy } from '@/lib/sunday-tools/skills/policies/ActivationSamplePolicy';
+import type { RegionList } from 'sunday-tools/shared/region';
+import type { ActivationSamplePolicy } from 'sunday-tools/skills/policies/ActivationSamplePolicy';
+import { CornerRandomPolicy } from 'sunday-tools/skills/policies/ActivationSamplePolicy';
 import type {
   ApplyParams,
   ConditionFilterParams,
@@ -10,7 +10,7 @@ import type {
   Operator,
   OperatorsConfig
 } from '../definitions';
-import type { DynamicCondition } from '@/lib/sunday-tools/skills/skill.types';
+import type { DynamicCondition } from 'sunday-tools/skills/skill.types';
 
 export class EqOperator implements Operator {
   samplePolicy: ActivationSamplePolicy;

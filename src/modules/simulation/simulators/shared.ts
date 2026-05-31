@@ -1,18 +1,18 @@
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
-import type { CreateRunner } from '@/lib/sunday-tools/common/runner';
+import type { CreateRunner } from 'sunday-tools/common/runner';
 import type {
   DuelingRates,
   RaceLifecycleObserver,
   SimulationSettings,
   RaceParameters as SundayRaceParameters
-} from '@/lib/sunday-tools/common/race';
-import type { CourseData } from '@/lib/sunday-tools/course/definitions';
-import type { ISkillTarget, ISkillType } from '@/lib/sunday-tools/skills/definitions';
+} from 'sunday-tools/common/race';
+import type { CourseData } from 'sunday-tools/course/definitions';
+import type { ISkillTarget, ISkillType } from 'sunday-tools/skills/definitions';
 import type { InjectedDebuff, RunComparisonParams, ScenarioOverrides } from '@/modules/simulation/types';
-import { Race } from '@/lib/sunday-tools/common/race';
-import { subscribeObserver } from '@/lib/sunday-tools/common/race-events';
-import { parseAptitudeName, parseStrategyName } from '@/lib/sunday-tools/runner/runner.types';
-import { SkillTarget, SkillType } from '@/lib/sunday-tools/skills/definitions';
+import { Race } from 'sunday-tools/common/race';
+import { subscribeObserver } from 'sunday-tools/common/race-events';
+import { parseAptitudeName, parseStrategyName } from 'sunday-tools/runner/runner.types';
+import { SkillTarget, SkillType } from 'sunday-tools/skills/definitions';
 import { skillsService } from '@/modules/data/services/SkillService';
 
 export type EffectMeta = {

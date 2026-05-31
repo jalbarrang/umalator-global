@@ -6,7 +6,7 @@ import type {
   SkillReferenceEntry,
   SkillsMap
 } from '@/modules/data/services/SkillService';
-import type { SkillAlternative } from '@/lib/sunday-tools/skills/skill.types';
+import type { SkillAlternative } from 'sunday-tools/skills/skill.types';
 import { attachReleaseDates } from './attach-release-dates';
 
 type GameToraEffect = {

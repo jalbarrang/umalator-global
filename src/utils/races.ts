@@ -1,4 +1,4 @@
-import type { RaceParameters } from '@/lib/sunday-tools/common/race';
+import type { RaceParameters } from 'sunday-tools/common/race';
 import type {
   IEventType,
   IGrade,
@@ -6,16 +6,16 @@ import type {
   ISeason,
   ITimeOfDay,
   IWeather
-} from '@/lib/sunday-tools/course/definitions';
-import type { IMood } from '@/lib/sunday-tools/runner/definitions';
-import { Mood } from '@/lib/sunday-tools/runner/definitions';
+} from 'sunday-tools/course/definitions';
+import type { IMood } from 'sunday-tools/runner/definitions';
+import { Mood } from 'sunday-tools/runner/definitions';
 import {
   Grade,
   GroundCondition,
   Season,
   TimeOfDay,
   Weather
-} from '@/lib/sunday-tools/course/definitions';
+} from 'sunday-tools/course/definitions';
 
 export type PosKeepLabel = {
   umaIndex: number;

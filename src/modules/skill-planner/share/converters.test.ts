@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { buildExportData, exportDataToImport } from './converters';
 import { encodeSkillPlanner, decodeSkillPlanner } from './encoding';
 import type { SkillPlannerExportData } from './types';
-import { Mood } from '@/lib/sunday-tools/runner/definitions';
+import { Mood } from 'sunday-tools/runner/definitions';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 
 const mockRunner: IRunnerState = {

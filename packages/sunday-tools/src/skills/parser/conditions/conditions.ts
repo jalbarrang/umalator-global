@@ -38,14 +38,14 @@ import {
   valueFilter
 } from './utils';
 import { dynamicOrStatic } from '../../../full-sim/dynamic-conditions';
-import type { Runner } from '@/lib/sunday-tools/common/runner';
-import type { DynamicCondition } from '@/lib/sunday-tools/skills/skill.types';
-import type { IPhase } from '@/lib/sunday-tools/course/definitions';
+import type { Runner } from 'sunday-tools/common/runner';
+import type { DynamicCondition } from 'sunday-tools/skills/skill.types';
+import type { IPhase } from 'sunday-tools/course/definitions';
 import type { ConditionFilterParams, ConditionsMap, ICondition } from '../definitions';
-import { StrategyHelpers } from '@/lib/sunday-tools/runner/runner.types';
+import { StrategyHelpers } from 'sunday-tools/runner/runner.types';
 import { CourseService } from '@/modules/data/services/CourseService';
-import { Region, RegionList } from '@/lib/sunday-tools/shared/region';
-import { Strategy } from '@/lib/sunday-tools/runner/definitions';
+import { Region, RegionList } from 'sunday-tools/shared/region';
+import { Strategy } from 'sunday-tools/runner/definitions';
 
 function getCornerRegionsForArg(params: ConditionFilterParams): RegionList {
   const { arg: cornerNum, course } = params;

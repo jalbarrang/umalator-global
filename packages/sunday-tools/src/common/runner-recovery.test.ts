@@ -6,10 +6,10 @@ import {
   Season,
   TimeOfDay,
   Weather
-} from '@/lib/sunday-tools/course/definitions';
-import { Aptitude, Mood, Strategy } from '@/lib/sunday-tools/runner/definitions';
-import { Region } from '@/lib/sunday-tools/shared/region';
-import { SkillRarity, SkillTarget, SkillType } from '@/lib/sunday-tools/skills/definitions';
+} from 'sunday-tools/course/definitions';
+import { Aptitude, Mood, Strategy } from 'sunday-tools/runner/definitions';
+import { Region } from 'sunday-tools/shared/region';
+import { SkillRarity, SkillTarget, SkillType } from 'sunday-tools/skills/definitions';
 import type { CreateRunner } from './runner';
 import type { PendingSkill } from '../skills/skill.types';
 import type { RaceParameters, SimulationSettings } from './race';

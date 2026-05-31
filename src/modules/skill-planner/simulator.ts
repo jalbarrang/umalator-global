@@ -9,9 +9,9 @@
  * The goal is to determine how much performance gain (in bashins) each skill combination provides.
  */
 
-import type { RaceParameters } from '@/lib/sunday-tools/common/race';
+import type { RaceParameters } from 'sunday-tools/common/race';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
-import type { CourseData } from '@/lib/sunday-tools/course/definitions';
+import type { CourseData } from 'sunday-tools/course/definitions';
 import type { SimulationOptions } from '@/modules/simulation/types';
 import { runPlannerComparison } from '@/modules/simulation/simulators/skill-planner-compare';
 

@@ -6,9 +6,9 @@ import {
   Season,
   TimeOfDay,
   Weather
-} from '@/lib/sunday-tools/course/definitions';
-import { Aptitude, Mood, Strategy } from '@/lib/sunday-tools/runner/definitions';
-import { SkillPerspective, SkillTarget, SkillType } from '@/lib/sunday-tools/skills/definitions';
+} from 'sunday-tools/course/definitions';
+import { Aptitude, Mood, Strategy } from 'sunday-tools/runner/definitions';
+import { SkillPerspective, SkillTarget, SkillType } from 'sunday-tools/skills/definitions';
 import type { CreateRunner } from './runner';
 import type { RaceLifecycleObserver, RaceParameters, SimulationSettings } from './race';
 import { Race } from './race';

@@ -1,4 +1,4 @@
-import type { IStrategyName } from '@/lib/sunday-tools/runner/definitions';
+import type { IStrategyName } from 'sunday-tools/runner/definitions';
 import { cn } from '@/lib/utils';
 
 export const strategyBadgeClassByName: Record<IStrategyName, string> = {

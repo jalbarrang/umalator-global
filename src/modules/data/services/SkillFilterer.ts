@@ -1,12 +1,12 @@
-import type { CourseData } from '@/lib/sunday-tools/course/definitions';
-import type { RaceParameters } from '@/lib/sunday-tools/common/race';
-import type { SkillEvalRunner } from '@/lib/sunday-tools/skills/parser/definitions';
+import type { CourseData } from 'sunday-tools/course/definitions';
+import type { RaceParameters } from 'sunday-tools/common/race';
+import type { SkillEvalRunner } from 'sunday-tools/skills/parser/definitions';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
-import { buildBaseStats } from '@/lib/sunday-tools/common/runner';
-import { buildSkillData } from '@/lib/sunday-tools/runner/runner.utils';
-import { parseStrategyName } from '@/lib/sunday-tools/runner/runner.types';
-import { createParser } from '@/lib/sunday-tools/skills/parser/ConditionParser';
-import { Region, RegionList } from '@/lib/sunday-tools/shared/region';
+import { buildBaseStats } from 'sunday-tools/common/runner';
+import { buildSkillData } from 'sunday-tools/runner/runner.utils';
+import { parseStrategyName } from 'sunday-tools/runner/runner.types';
+import { createParser } from 'sunday-tools/skills/parser/ConditionParser';
+import { Region, RegionList } from 'sunday-tools/shared/region';
 import type { SkillService } from './SkillService';
 
 // =======

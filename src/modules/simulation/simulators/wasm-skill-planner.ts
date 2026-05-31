@@ -12,8 +12,8 @@
 // `optimization-engine-wasm.ts`).
 
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
-import type { CourseData } from '@/lib/sunday-tools/course/definitions';
-import type { RaceParameters } from '@/lib/sunday-tools/common/race';
+import type { CourseData } from 'sunday-tools/course/definitions';
+import type { RaceParameters } from 'sunday-tools/common/race';
 import type { SimulationOptions } from '@/modules/simulation/types';
 import type { WasmCompareData } from '@/lib/uma-sim-wasm/types';
 import { compareParamsToWasm } from '@/lib/uma-sim-wasm/adapter';

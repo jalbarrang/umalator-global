@@ -24,14 +24,14 @@ import { getDefaultCourseId } from '@/store/race/defaults';
 import { createRaceConditions, racedefToParams } from '@/utils/races';
 import { createRunnerState, runawaySkillId } from '@/modules/runners/components/runner-card/types';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
-import type { IStrategyName } from '@/lib/sunday-tools/runner/definitions';
+import type { IStrategyName } from 'sunday-tools/runner/definitions';
 import { defaultSimulationOptions } from '@/components/bassin-chart/utils';
 import {
   createPlannerCompareSettings,
   runPlannerComparison
 } from '@/modules/simulation/simulators/skill-planner-compare';
 import { computePlannerStats } from '@/modules/simulation/simulators/wasm-skill-planner';
-import { runRaceSim } from '@/lib/sunday-tools/race-sim/run-race-sim';
+import { runRaceSim } from 'sunday-tools/race-sim/run-race-sim';
 import { compareParamsToWasm, raceSimParamsToWasm } from '@/lib/uma-sim-wasm/adapter';
 import type { WasmCompareData, WasmRaceSimResult } from '@/lib/uma-sim-wasm/types';
 import {

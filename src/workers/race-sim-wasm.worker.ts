@@ -2,8 +2,8 @@ import '../polyfills';
 import type {
   RaceSimParams,
   RaceSimResult,
-} from '@/lib/sunday-tools/race-sim/run-race-sim';
-import type { CreateRunner } from '@/lib/sunday-tools/common/runner';
+} from 'sunday-tools/race-sim/run-race-sim';
+import type { CreateRunner } from 'sunday-tools/common/runner';
 import { getUmaDisplayInfo } from '@/modules/runners/utils';
 import { initUmaSimWasm, runRaceSim } from '@/lib/uma-sim-wasm/loader';
 import {

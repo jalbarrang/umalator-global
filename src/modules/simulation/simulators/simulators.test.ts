@@ -19,7 +19,7 @@ import {
 import {
   BassinCollector,
   VacuumCompareDataCollector
-} from '@/lib/sunday-tools/common/race-observer';
+} from 'sunday-tools/common/race-observer';
 
 const TEST_COURSE_ID = 10101;
 

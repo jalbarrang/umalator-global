@@ -1,12 +1,12 @@
 import { z } from 'zod';
-import { aptitudeNames, moods, strategyNames } from '@/lib/sunday-tools/runner/definitions';
+import { aptitudeNames, moods, strategyNames } from 'sunday-tools/runner/definitions';
 import {
   grades,
   groundConditions,
   seasons,
   timeOfDays,
   weathers
-} from '@/lib/sunday-tools/course/definitions';
+} from 'sunday-tools/course/definitions';
 
 export const RunnerConfigSchema = z.object({
   outfitId: z.string(),

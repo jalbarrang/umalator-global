@@ -6,8 +6,8 @@ import { IRegionDisplayType, RegionDisplayType } from '@/modules/racetrack/types
 import { getSkillNameById } from '@/modules/skills/utils';
 import { useSettingsStore } from '@/store/settings.store';
 import { colors, debuffColors, posKeepColors, recoveryColors, rushedColors } from '@/utils/colors';
-import { SkillType } from '@/lib/sunday-tools/skills/definitions';
-import { isExternalDebuffEffect } from '@/lib/sunday-tools/skills/external-debuffs';
+import { SkillType } from 'sunday-tools/skills/definitions';
+import { isExternalDebuffEffect } from 'sunday-tools/skills/external-debuffs';
 import { coursesService } from '@/modules/data/services/CourseService';
 import { useDebuffs } from '@/modules/simulation/stores/compare.store';
 import {

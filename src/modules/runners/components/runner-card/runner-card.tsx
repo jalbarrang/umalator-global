@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 
-import { strategyNames } from '@/lib/sunday-tools/runner/definitions';
+import { strategyNames } from 'sunday-tools/runner/definitions';
 
 import {
   CopyPlus,

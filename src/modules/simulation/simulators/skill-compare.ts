@@ -23,7 +23,7 @@ import { initializeSkillSimulationRun } from '@/modules/simulation/compare.types
 import {
   BassinCollector,
   SkillCompareDataCollector
-} from '@/lib/sunday-tools/common/race-observer';
+} from 'sunday-tools/common/race-observer';
 import {
   DEFAULT_DUELING_RATES,
   computePositionDiff,

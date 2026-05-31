@@ -1,7 +1,7 @@
 import { getIconUrl } from '@/assets/icons';
 import { memo } from 'react';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
-import { Aptitude } from '@/lib/sunday-tools/runner/definitions';
+import { Aptitude } from 'sunday-tools/runner/definitions';
 
 export type IShareCardProps = {
   ref?: React.Ref<HTMLDivElement | null>;

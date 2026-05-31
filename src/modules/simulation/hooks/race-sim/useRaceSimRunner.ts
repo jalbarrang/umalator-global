@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import RaceSimWorker from '@workers/race-sim.worker.ts?worker';
 import RaceSimWasmWorker from '@workers/race-sim-wasm.worker.ts?worker';
-import type { RaceSimResult } from '@/lib/sunday-tools/race-sim/run-race-sim';
+import type { RaceSimResult } from 'sunday-tools/race-sim/run-race-sim';
 import type {
   RaceSimWorkerInMessage,
   RaceSimWorkerOutMessage,

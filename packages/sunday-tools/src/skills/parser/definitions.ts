@@ -1,11 +1,11 @@
 import { kTrue } from './conditions/utils';
-import type { RaceParameters } from '@/lib/sunday-tools/common/race';
-import type { ActivationSamplePolicy } from '@/lib/sunday-tools/skills/policies/ActivationSamplePolicy';
-import type { StatLine } from '@/lib/sunday-tools/common/runner';
-import type { CourseData } from '@/lib/sunday-tools/course/definitions';
-import type { IMood, IStrategy } from '@/lib/sunday-tools/runner/definitions';
-import type { DynamicCondition } from '@/lib/sunday-tools/skills/skill.types';
-import { RegionList } from '@/lib/sunday-tools/shared/region';
+import type { RaceParameters } from 'sunday-tools/common/race';
+import type { ActivationSamplePolicy } from 'sunday-tools/skills/policies/ActivationSamplePolicy';
+import type { StatLine } from 'sunday-tools/common/runner';
+import type { CourseData } from 'sunday-tools/course/definitions';
+import type { IMood, IStrategy } from 'sunday-tools/runner/definitions';
+import type { DynamicCondition } from 'sunday-tools/skills/skill.types';
+import { RegionList } from 'sunday-tools/shared/region';
 
 // ============================================================
 // Base Types

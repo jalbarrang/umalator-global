@@ -5,12 +5,12 @@ import {
   Season,
   TimeOfDay,
   Weather
-} from '@/lib/sunday-tools/course/definitions';
-import { Mood, Strategy } from '@/lib/sunday-tools/runner/definitions';
-import { Region, RegionList } from '@/lib/sunday-tools/shared/region';
+} from 'sunday-tools/course/definitions';
+import { Mood, Strategy } from 'sunday-tools/runner/definitions';
+import { Region, RegionList } from 'sunday-tools/shared/region';
 import { createParser } from '../ConditionParser';
 import type { ApplyParams } from '../definitions';
-import type { CourseData } from '@/lib/sunday-tools/course/definitions';
+import type { CourseData } from 'sunday-tools/course/definitions';
 
 const TEST_COURSE: CourseData = {
   courseId: 99999,

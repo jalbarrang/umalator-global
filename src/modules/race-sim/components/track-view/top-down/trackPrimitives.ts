@@ -1,5 +1,5 @@
 import { CourseService } from '@/modules/data/services/CourseService';
-import type { CourseData } from '@/lib/sunday-tools/course/definitions';
+import type { CourseData } from 'sunday-tools/course/definitions';
 import { PHASE_STYLES } from '@/modules/race-sim/constants';
 import {
   interpolateTrackPoint,

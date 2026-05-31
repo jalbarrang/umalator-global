@@ -1,4 +1,4 @@
-import { CourseData } from '@/lib/sunday-tools/course/definitions';
+import { CourseData } from 'sunday-tools/course/definitions';
 import { SimulationRun } from '@/modules/simulation/compare.types';
 import { useRaceTrackDisplay } from '@/store/settings.store';
 // @ts-expect-error d3 types are not typed

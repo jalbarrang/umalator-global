@@ -43,7 +43,7 @@ import {
 import { loadRunnerFromLibrary, showRunner } from '@/store/runners.store';
 import { RosterImportDialog } from '@/modules/runners/roster/import-dialog';
 import { getUmaDisplayInfo } from '@/modules/runners/utils';
-import { aptitudeNames, strategyNames } from '@/lib/sunday-tools/runner/definitions';
+import { aptitudeNames, strategyNames } from 'sunday-tools/runner/definitions';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
 import {

@@ -14,7 +14,7 @@ import {
   PopoverTrigger
 } from '@/components/ui/popover';
 import i18n from '@/i18n';
-import { describeRecoveryEffect } from '@/lib/sunday-tools/skills/recovery-effect-utils';
+import { describeRecoveryEffect } from 'sunday-tools/skills/recovery-effect-utils';
 import { skillsService } from '@/modules/data/services/SkillService';
 import { umasService } from '@/modules/data/services/UmaService';
 import { supportCardsService } from '@/modules/data/services/SupportCardService';

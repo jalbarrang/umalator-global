@@ -1,7 +1,7 @@
 import React, { Fragment, useMemo } from 'react';
 import { SectionText } from '../primitives/section-text';
 import { DistanceMarker } from '../primitives/distance-marker';
-import { CourseData } from '@/lib/sunday-tools/course/definitions';
+import { CourseData } from 'sunday-tools/course/definitions';
 import { RaceTrackDimensions } from '../types';
 
 interface Slope {

@@ -2,7 +2,7 @@
  * Types specific to OCR extraction
  */
 
-import type { IStrategyName } from '@/lib/sunday-tools/runner/definitions';
+import type { IStrategyName } from 'sunday-tools/runner/definitions';
 import type { SkillMatch } from '@/modules/runners/data/types';
 
 /** Extracted skill with image source tracking */

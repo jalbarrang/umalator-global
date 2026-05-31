@@ -1,4 +1,4 @@
-import { SkillType } from '@/lib/sunday-tools/skills/definitions';
+import { SkillType } from 'sunday-tools/skills/definitions';
 import { colors, debuffColors } from '@/utils/colors';
 import { EffectSymbol } from '../primitives/effect-symbol';
 import React from 'react';

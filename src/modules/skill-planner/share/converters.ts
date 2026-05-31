@@ -1,7 +1,7 @@
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import { aptitudeToEncoding, encodingToAptitude } from '@/modules/runners/share/converters';
-import { StrategyName } from '@/lib/sunday-tools/runner/definitions';
-import type { IStrategy, IStrategyName } from '@/lib/sunday-tools/runner/definitions';
+import { StrategyName } from 'sunday-tools/runner/definitions';
+import type { IStrategy, IStrategyName } from 'sunday-tools/runner/definitions';
 import type { SkillPlannerExportData } from './types';
 import type { HintLevel } from '../types';
 

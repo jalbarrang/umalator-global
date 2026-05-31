@@ -7,7 +7,7 @@ import type {
 } from '@/modules/simulation/compare.types';
 import type { CompareParams } from '@/modules/simulation/types';
 import { initializeSimulationRun } from '@/modules/simulation/compare.types';
-import { VacuumCompareDataCollector } from '@/lib/sunday-tools/common/race-observer';
+import { VacuumCompareDataCollector } from 'sunday-tools/common/race-observer';
 import {
   DEFAULT_DUELING_RATES,
   computePositionDiff,

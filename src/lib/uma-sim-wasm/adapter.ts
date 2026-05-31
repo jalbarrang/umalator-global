@@ -4,28 +4,28 @@
 // owns the condition parsing + simulation.
 
 import { skillsService } from '@/modules/data/services/SkillService';
-import type { CourseData } from '@/lib/sunday-tools/course/definitions';
-import type { CreateRunner } from '@/lib/sunday-tools/common/runner';
+import type { CourseData } from 'sunday-tools/course/definitions';
+import type { CreateRunner } from 'sunday-tools/common/runner';
 import type {
   RaceSimParams,
   RaceSimResult,
   FinishEntry,
-} from '@/lib/sunday-tools/race-sim/run-race-sim';
-import type { RaceEvent, RaceEventKind } from '@/lib/sunday-tools/race-sim/race-event-log';
-import type { IStrategy } from '@/lib/sunday-tools/runner/definitions';
+} from 'sunday-tools/race-sim/run-race-sim';
+import type { RaceEvent, RaceEventKind } from 'sunday-tools/race-sim/race-event-log';
+import type { IStrategy } from 'sunday-tools/runner/definitions';
 import type {
   DuelingRates,
   RaceParameters as SundayRaceParameters,
   SimulationSettings,
-} from '@/lib/sunday-tools/common/race';
-import type { CollectedRunnerRoundData } from '@/lib/sunday-tools/common/race-observer';
+} from 'sunday-tools/common/race';
+import type { CollectedRunnerRoundData } from 'sunday-tools/common/race-observer';
 import type {
   ISkillPerspective,
   ISkillTarget,
   ISkillType,
-} from '@/lib/sunday-tools/skills/definitions';
+} from 'sunday-tools/skills/definitions';
 import type { SkillEffectLog } from '@/modules/simulation/compare.types';
-import { SkillPerspective } from '@/lib/sunday-tools/skills/definitions';
+import { SkillPerspective } from 'sunday-tools/skills/definitions';
 import { getFallbackEffectMeta } from '@/modules/simulation/simulators/shared';
 import type {
   WasmCompareParams,

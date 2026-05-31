@@ -3,7 +3,7 @@ import type {
   ISkillPerspective,
   ISkillTarget,
   ISkillType
-} from '@/lib/sunday-tools/skills/definitions';
+} from 'sunday-tools/skills/definitions';
 
 export type CompareRunnerId = 'uma1' | 'uma2';
 

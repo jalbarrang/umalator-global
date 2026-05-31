@@ -5,7 +5,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
-import { strategyNames } from '@/lib/sunday-tools/runner/definitions';
+import { strategyNames } from 'sunday-tools/runner/definitions';
 
 type StrategySelectProps = {
   value: string;

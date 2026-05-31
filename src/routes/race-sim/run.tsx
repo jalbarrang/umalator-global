@@ -6,7 +6,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button-group';
 import { coursesService } from '@/modules/data/services/CourseService';
-import type { CourseData } from '@/lib/sunday-tools/course/definitions';
+import type { CourseData } from 'sunday-tools/course/definitions';
 import { DetailStrip } from '@/modules/race-sim/components/DetailStrip';
 import { EventLogPanel } from '@/modules/race-sim/components/EventLogPanel';
 import { PlaybackBar } from '@/modules/race-sim/components/PlaybackBar';

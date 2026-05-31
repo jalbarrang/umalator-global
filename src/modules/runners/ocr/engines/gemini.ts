@@ -1,4 +1,4 @@
-import type { IStrategyName } from '@/lib/sunday-tools/runner/definitions';
+import type { IStrategyName } from 'sunday-tools/runner/definitions';
 import { skillsService } from '@/modules/data/services/SkillService';
 import { findBestUmaMatch } from '@/modules/runners/data/search';
 import type { OcrEngine, OcrEngineResult } from '@/modules/runners/ocr/engine';

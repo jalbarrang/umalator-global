@@ -17,9 +17,9 @@ import type {
   SkillTrackedMeta,
   SkillTrackedMetaCollection
 } from '@/modules/simulation/compare.types';
-import type { CollectedRunnerRoundData } from '@/lib/sunday-tools/common/race-observer';
+import type { CollectedRunnerRoundData } from 'sunday-tools/common/race-observer';
 import { initializeSkillSimulationRun } from '@/modules/simulation/compare.types';
-import { SkillPerspective } from '@/lib/sunday-tools/skills/definitions';
+import { SkillPerspective } from 'sunday-tools/skills/definitions';
 import {
   compareParamsToWasm,
   wasmCompareRoundDataToCollected

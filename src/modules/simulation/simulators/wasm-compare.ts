@@ -12,7 +12,7 @@ import type {
   Stats
 } from '@/modules/simulation/compare.types';
 import type { CompareParams } from '@/modules/simulation/types';
-import type { CollectedRunnerRoundData } from '@/lib/sunday-tools/common/race-observer';
+import type { CollectedRunnerRoundData } from 'sunday-tools/common/race-observer';
 import { initializeSimulationRun } from '@/modules/simulation/compare.types';
 import {
   compareParamsToWasm,

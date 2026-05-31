@@ -1,5 +1,5 @@
 import { useIsMobile } from '@/hooks/use-mobile';
-import { aptitudeNames } from '@/lib/sunday-tools/runner/definitions';
+import { aptitudeNames } from 'sunday-tools/runner/definitions';
 import { ISavedRunner } from '@/store/runner-library.store';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useMemo, useRef } from 'react';

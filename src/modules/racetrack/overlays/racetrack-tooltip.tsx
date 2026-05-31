@@ -1,6 +1,6 @@
 import { useCallback, useImperativeHandle, useRef, useState } from 'react';
 import type { Ref } from 'react';
-import type { CourseData } from '@/lib/sunday-tools/course/definitions';
+import type { CourseData } from 'sunday-tools/course/definitions';
 import type { SimulationRun } from '@/modules/simulation/compare.types';
 import { useRaceTrackDisplay } from '@/store/settings.store';
 import { binSearch } from '@/utils/algorithims';

@@ -1,18 +1,18 @@
 import type { ConditionFilterParams, ICondition, SkillEvalRunner } from '../definitions';
-import type { Runner } from '@/lib/sunday-tools/common/runner';
-import type { RaceParameters } from '@/lib/sunday-tools/common/race';
-import type { DistributionRandomPolicy } from '@/lib/sunday-tools/skills/policies/ActivationSamplePolicy';
-import type { CourseData } from '@/lib/sunday-tools/course/definitions';
+import type { Runner } from 'sunday-tools/common/runner';
+import type { RaceParameters } from 'sunday-tools/common/race';
+import type { DistributionRandomPolicy } from 'sunday-tools/skills/policies/ActivationSamplePolicy';
+import type { CourseData } from 'sunday-tools/course/definitions';
 import {
   ErlangRandomPolicy,
   ImmediatePolicy,
   LogNormalRandomPolicy,
   RandomPolicy,
   UniformRandomPolicy
-} from '@/lib/sunday-tools/skills/policies/ActivationSamplePolicy';
+} from 'sunday-tools/skills/policies/ActivationSamplePolicy';
 import { CourseService } from '@/modules/data/services/CourseService';
-import { calculateEarlyRaceAverageSpeed } from '@/lib/sunday-tools/common/spurt-calculator';
-import { Region, RegionList } from '@/lib/sunday-tools/shared/region';
+import { calculateEarlyRaceAverageSpeed } from 'sunday-tools/common/spurt-calculator';
+import { Region, RegionList } from 'sunday-tools/shared/region';
 
 // K as in SKI combinators
 export function kTrue(_: Runner) {

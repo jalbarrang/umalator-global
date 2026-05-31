@@ -3,7 +3,7 @@ import {
   runRaceSim,
   type RaceSimParams,
   type RaceSimResult
-} from '@/lib/sunday-tools/race-sim/run-race-sim';
+} from 'sunday-tools/race-sim/run-race-sim';
 
 export type RaceSimWorkerParams = RaceSimParams;
 

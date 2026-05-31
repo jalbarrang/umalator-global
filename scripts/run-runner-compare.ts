@@ -11,16 +11,16 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { Command } from 'commander';
 
-import type { CreateRunner, RunnerAptitudes, StatLine } from '@/lib/sunday-tools/common/runner';
+import type { CreateRunner, RunnerAptitudes, StatLine } from 'sunday-tools/common/runner';
 import type {
   DuelingRates,
   RaceParameters,
   SimulationSettings
-} from '@/lib/sunday-tools/common/race';
-import type { CourseData } from '@/lib/sunday-tools/course/definitions';
-import { Race } from '@/lib/sunday-tools/common/race';
+} from 'sunday-tools/common/race';
+import type { CourseData } from 'sunday-tools/course/definitions';
+import { Race } from 'sunday-tools/common/race';
 import { coursesService } from '@/modules/data/services/CourseService';
-import { parseAptitudeName, parseStrategyName } from '@/lib/sunday-tools/runner/runner.types';
+import { parseAptitudeName, parseStrategyName } from 'sunday-tools/runner/runner.types';
 
 type RunnerConfigInput = {
   outfitId: string;

@@ -7,7 +7,7 @@ import { DebuffsPanel } from './DebuffsPanel';
 import { skillsService } from '@/modules/data/services/SkillService';
 import { useRaceStore } from '@/modules/simulation/stores/compare.store';
 import { runawaySkillId } from '@/modules/runners/components/runner-card/types';
-import { isInjectableExternalDebuffSkill } from '@/lib/sunday-tools/skills/external-debuffs';
+import { isInjectableExternalDebuffSkill } from 'sunday-tools/skills/external-debuffs';
 
 const pickerState = vi.hoisted(() => ({
   selectedSkills: [] as Array<string>,

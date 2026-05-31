@@ -4,8 +4,8 @@ import type {
   SkillSimulationData,
   SkillTrackedMetaCollection
 } from '@/modules/simulation/compare.types';
-import type { CourseData } from '@/lib/sunday-tools/course/definitions';
-import type { RaceParameters } from '@/lib/sunday-tools/common/race';
+import type { CourseData } from 'sunday-tools/course/definitions';
+import type { RaceParameters } from 'sunday-tools/common/race';
 
 export type FilterReason = 'negligible-effect' | 'low-variance' | null;
 
