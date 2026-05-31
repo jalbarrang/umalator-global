@@ -114,6 +114,123 @@ describe.skipIf(!PKG_PATH)('t-008 WASM-vs-TS statistical parity', () => {
   });
 
   it('race sim: 9-runner finish-rank distribution', { timeout: 300000 }, () => {
+    runNineRunnerParity();
+  });
+});
+
+/**
+ * Per-skill activation/effect parity — the gate t-008 missed.
+ *
+ * For each representative skill family we assert (a) the per-skill bashin-delta
+ * mean matches the TS engine within tolerance AND (b) WASM actually captured
+ * non-empty `skillActivations` for the activating skill (Bug #1 regression).
+ * Categories: order-conditioned, random-corner, rotation/conditional-passive,
+ * plain duration.
+ */
+type SkillParityCase = {
+  id: string;
+  label: string;
+  /** Expect the skill to activate (non-zero bashin) and produce activation logs. */
+  activates: boolean;
+  /** Bashin-delta mean tolerance (absolute, bashin). */
+  meanTol: number;
+};
+
+const SKILL_PARITY_CASES: Array<SkillParityCase> = [
+  // Self-cast unique current-speed + targeted move-forward at remain 200m.
+  { id: '110101', label: 'unique near-finish (Joyful Voyage!)', activates: true, meanTol: 0.15 },
+  // all_corner_random==1 random-corner target-speed.
+  { id: '200332', label: 'random-corner (Corner Adept ○)', activates: true, meanTol: 0.15 },
+  // rotation==1 conditional passive (green) speed-up.
+  { id: '200012', label: 'rotation passive (Right-Handed ○)', activates: true, meanTol: 0.1 },
+  // Plain duration gold runaway target-speed (running_style==1).
+  { id: runawaySkillId, label: 'plain-duration runaway', activates: true, meanTol: 0.15 }
+];
+
+describe.skipIf(!PKG_PATH)('skill-activation/effect parity (gate t-008 missed)', () => {
+  const N = 2000;
+  const options = { ...defaultSimulationOptions, seed: 0 };
+
+  const buildVacuum =
+    (wasm: NodeWasmModule, course: ReturnType<typeof coursesService.getSimCourse>, racedef: ReturnType<typeof racedefToParams>) =>
+    (runner: IRunnerState): WasmCompareData => {
+      const sorter = createSkillSorterByGroup(runner.skills);
+      const create = toCreateRunner({ ...runner }, runner.skills.toSorted(sorter));
+      return wasm.runCompare(
+        compareParamsToWasm({
+          course,
+          parameters: toSundayRaceParameters(racedef),
+          settings: createPlannerCompareSettings(false, {}),
+          duelingRates: DEFAULT_DUELING_RATES,
+          runner: create,
+          name: 'R',
+          nsamples: N,
+          masterSeed: 0
+        })
+      );
+    };
+
+  const countActivationRounds = (data: WasmCompareData, skillId: string): number =>
+    data.rounds.reduce((acc, round) => {
+      const primary = round.runners[0];
+      const self = primary?.skillActivations?.[skillId]?.length ?? 0;
+      const targeted = primary?.targetedSkillActivations?.[skillId]?.length ?? 0;
+      return acc + (self + targeted > 0 ? 1 : 0);
+    }, 0);
+
+  for (const testCase of SKILL_PARITY_CASES) {
+    it(
+      `skill ${testCase.id} — ${testCase.label}`,
+      { timeout: 240000 },
+      () => {
+        const wasm = loadWasm();
+        const course = coursesService.getSimCourse(getDefaultCourseId());
+        const racedef = racedefToParams(createRaceConditions());
+        const vacuum = buildVacuum(wasm, course, racedef);
+
+        const base = createRunnerState({ skills: [], speed: 1100, stamina: 1100, power: 900 });
+        const withSkill = createRunnerState({
+          skills: [testCase.id],
+          speed: 1100,
+          stamina: 1100,
+          power: 900
+        });
+
+        const ts = runPlannerComparison({
+          nsamples: N,
+          course,
+          racedef,
+          runnerA: base,
+          runnerB: withSkill,
+          candidateSkills: [testCase.id],
+          ignoreStaminaConsumption: false,
+          options
+        });
+
+        const wBase = vacuum(base);
+        const wCand = vacuum(withSkill);
+        const w = computePlannerStats(wBase, wCand, N);
+
+        const tsMean = ts.results.reduce((a, b) => a + b, 0) / ts.results.length;
+        const wMean = w.results.reduce((a, b) => a + b, 0) / w.results.length;
+        const activationRounds = countActivationRounds(wCand, testCase.id);
+
+        // Bashin-delta mean parity (absolute tolerance per case).
+        expect(Math.abs(tsMean - wMean)).toBeLessThan(testCase.meanTol);
+
+        if (testCase.activates) {
+          // Bug #1 regression: an activating skill MUST yield non-empty
+          // skillActivations in the compare collector.
+          expect(activationRounds).toBeGreaterThan(0);
+          // And it must actually move the result (non-trivial bashin).
+          expect(Math.abs(wMean)).toBeGreaterThan(0.01);
+        }
+      }
+    );
+  }
+});
+
+function runNineRunnerParity() {
     const wasm = loadWasm();
     const course = coursesService.getSimCourse(getDefaultCourseId());
     const racedef = racedefToParams(createRaceConditions());
@@ -167,5 +284,4 @@ describe.skipIf(!PKG_PATH)('t-008 WASM-vs-TS statistical parity', () => {
     for (let i = 0; i < 9; i++) {
       expect(Math.abs(tsRank[i] - wRank[i])).toBeLessThan(1.0);
     }
-  });
-});
+}
