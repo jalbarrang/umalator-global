@@ -14,6 +14,44 @@
 
 use crate::shared_kernel::ids::RunnerId;
 
+/// Snapshot of one active (duration-based) skill effect, exposed to the compare
+/// read-model so it can reconcile effect-activation position ranges.
+#[derive(Debug, Clone, PartialEq)]
+pub struct ActiveEffectView {
+    /// Skill id that owns the effect.
+    pub skill_id: String,
+    /// Effect type discriminant.
+    pub effect_type: i32,
+    /// Effect target discriminant.
+    pub effect_target: i32,
+    /// Effect modifier (real units).
+    pub modifier: f64,
+}
+
+/// One entry from a runner's used-targeted-skill log.
+#[derive(Debug, Clone, PartialEq)]
+pub struct UsedTargetedView {
+    /// Skill id that fired.
+    pub skill_id: String,
+    /// Position where it fired.
+    pub position: f64,
+    /// Effect type discriminant.
+    pub effect_type: i32,
+    /// Effect target discriminant.
+    pub effect_target: i32,
+}
+
+/// A carried skill's instant (non-duration) effect, for point-activation logging.
+#[derive(Debug, Clone, PartialEq)]
+pub struct StaticEffectView {
+    /// Skill id.
+    pub skill_id: String,
+    /// Effect type discriminant.
+    pub effect_type: i32,
+    /// Effect target discriminant.
+    pub effect_target: i32,
+}
+
 /// Read-only view of the `Race` aggregate exposed to observers.
 ///
 /// Methods have neutral defaults so lightweight test doubles can opt in to only
@@ -123,6 +161,66 @@ pub trait RunnerObservation {
     /// Ids of skills the runner has used so far this round.
     fn used_skills(&self) -> Vec<&str> {
         Vec::new()
+    }
+    /// Total current-speed modifier (added to `current_speed` for true velocity).
+    fn current_speed_modifier(&self) -> f64 {
+        0.0
+    }
+    /// Self-cast duration effects currently active.
+    fn active_effects(&self) -> Vec<ActiveEffectView> {
+        Vec::new()
+    }
+    /// Externally-targeted duration effects currently active on this runner.
+    fn targeted_active_effects(&self) -> Vec<ActiveEffectView> {
+        Vec::new()
+    }
+    /// The runner's used-targeted-skill log (instant + duration entries).
+    fn used_targeted_skills(&self) -> Vec<UsedTargetedView> {
+        Vec::new()
+    }
+    /// The instant (non-duration) effects of every skill the runner carries.
+    fn skill_static_effects(&self) -> Vec<StaticEffectView> {
+        Vec::new()
+    }
+    /// Closed rushed `[start, end]` regions this round.
+    fn rushed_activations(&self) -> Vec<(f64, f64)> {
+        Vec::new()
+    }
+    /// Dueling start position (`-1.0` when never dueled).
+    fn dueling_start_position(&self) -> f64 {
+        -1.0
+    }
+    /// Dueling end position (`-1.0` when still open / never dueled).
+    fn dueling_end_position(&self) -> f64 {
+        -1.0
+    }
+    /// Spot-struggle start position (`None` when never entered).
+    fn spot_struggle_start_position(&self) -> Option<f64> {
+        None
+    }
+    /// Spot-struggle end position (`-1.0` when still open / never entered).
+    fn spot_struggle_end_position(&self) -> f64 {
+        -1.0
+    }
+    /// Whether the runner achieved a full last spurt.
+    fn has_achieved_full_spurt(&self) -> bool {
+        false
+    }
+    /// Distance-remaining when HP ran out, if it did.
+    fn out_of_hp_position(&self) -> Option<f64> {
+        None
+    }
+    /// Velocity shortfall when the last spurt was not full.
+    fn non_full_spurt_velocity_diff(&self) -> Option<f64> {
+        None
+    }
+    /// Delay distance when the last spurt was not full.
+    fn non_full_spurt_delay_distance(&self) -> Option<f64> {
+        None
+    }
+    /// Whether the runner held first position entering late race.
+    fn first_position_in_late_race(&self) -> bool {
+        false
     }
 }
 
