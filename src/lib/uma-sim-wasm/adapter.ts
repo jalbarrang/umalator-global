@@ -25,6 +25,8 @@ import type {
   ISkillType,
 } from '@/lib/sunday-tools/skills/definitions';
 import type { SkillEffectLog } from '@/modules/simulation/compare.types';
+import { SkillPerspective } from '@/lib/sunday-tools/skills/definitions';
+import { getFallbackEffectMeta } from '@/modules/simulation/simulators/shared';
 import type {
   WasmCompareParams,
   WasmCompareRoundData,
@@ -318,7 +320,44 @@ export function raceSimParamsToWasm(
  *   samples, `finishOrder` from `finishOrders[i]`, `seed` from the round.
  * - `eventLogs` is projected by the Rust `RaceEventLogCollector` and mapped 1:1
  *   here (the WASM `kind` is a kebab-case string matching `RaceEventKind`).
+ * - per-focus-runner `skillActivations` are derived from the round's
+ *   `skill-activated` events (point activations: `start === end === position`),
+ *   which is what the Focus Runner Detail skill-activation overlay consumes.
  */
+
+/**
+ * Group a round's `skill-activated` events into the per-runner
+ * `skillActivations` map the focus-runner overlay reads. Each activation is a
+ * point (`start === end === position`); effect type/target come from the static
+ * skill metadata (the event log only carries the skill id).
+ */
+function deriveSkillActivations(
+  events: WasmRaceSimResult['eventLogs'][number],
+  runnerId: number,
+): Record<string, SkillEffectLog[]> {
+  const activations: Record<string, SkillEffectLog[]> = {};
+  for (const event of events) {
+    if (event.kind !== 'skill-activated' || event.runnerId !== runnerId) {
+      continue;
+    }
+    const skillId = event.detail?.skillId;
+    if (!skillId) {
+      continue;
+    }
+    const meta = getFallbackEffectMeta(skillId);
+    (activations[skillId] ??= []).push({
+      executionId: `${runnerId}-${skillId}-${event.tick}`,
+      skillId,
+      start: event.position,
+      end: event.position,
+      perspective: SkillPerspective.Self,
+      effectType: meta.effectType,
+      effectTarget: meta.effectTarget,
+    });
+  }
+  return activations;
+}
+
 export function wasmResultToRaceSimResult(result: WasmRaceSimResult): RaceSimResult {
   const finishOrders: FinishEntry[][] = result.finishOrders.map((round) =>
     round.map((entry) => ({
@@ -334,15 +373,17 @@ export function wasmResultToRaceSimResult(result: WasmRaceSimResult): RaceSimRes
     const allRunnerPositions: Record<number, number[]> = {};
     const allRunnerLanes: Record<number, number[]> = {};
     const focusRunnerData: RaceSimResult['collectedData']['rounds'][number]['focusRunnerData'] = {};
+    const roundEvents = result.eventLogs[roundIndex] ?? [];
     for (const trace of round.focus) {
       const positions = trace.samples.map((s) => s.position);
       const lanes = trace.samples.map((s) => s.lane);
       allRunnerPositions[trace.runnerId] = positions;
       allRunnerLanes[trace.runnerId] = lanes;
-      // Reconstruct the per-runner detail series the UI charts. Fields the WASM
-      // telemetry does not capture (pacer gap, skill activations, mechanic
-      // regions) default to neutral values until the rich event-log projection
-      // (t-018) is wired across the boundary.
+      // Reconstruct the per-runner detail series the UI charts. `skillActivations`
+      // are derived from the round's `skill-activated` events (t-007). Fields the
+      // WASM telemetry does not capture and the Race Sim UI does not consume
+      // (pacer gap, targeted activations, mechanic regions) keep neutral defaults;
+      // the mechanic timelines are rendered from the event log instead.
       focusRunnerData[trace.runnerId] = {
         runnerId: trace.runnerId,
         time: trace.samples.map((s) => s.time),
@@ -351,7 +392,7 @@ export function wasmResultToRaceSimResult(result: WasmRaceSimResult): RaceSimRes
         hp: trace.samples.map((s) => s.health),
         currentLane: lanes,
         pacerGap: trace.samples.map(() => 0),
-        skillActivations: {},
+        skillActivations: deriveSkillActivations(roundEvents, trace.runnerId),
         targetedSkillActivations: {},
         startDelay: 0,
         rushed: [],

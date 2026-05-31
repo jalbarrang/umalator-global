@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { wasmCompareRoundDataToCollected } from './adapter';
-import type { WasmCompareRoundData } from './types';
+import { wasmCompareRoundDataToCollected, wasmResultToRaceSimResult } from './adapter';
+import type { WasmCompareRoundData, WasmRaceSimResult } from './types';
 
 function baseRound(overrides: Partial<WasmCompareRoundData> = {}): WasmCompareRoundData {
   return {
@@ -102,5 +102,83 @@ describe('wasmCompareRoundDataToCollected', () => {
     expect(targetedLog.perspective).toBe(2);
     expect(targetedLog.effectType).toBe(9);
     expect(targetedLog.effectTarget).toBe(4);
+  });
+});
+
+describe('wasmResultToRaceSimResult', () => {
+  const result: WasmRaceSimResult = {
+    finishOrders: [
+      [
+        {
+          runnerId: 0,
+          name: 'Runner 1',
+          strategy: 1,
+          finishPosition: 2400,
+          finishTime: 120.5
+        }
+      ]
+    ],
+    collected: [
+      {
+        seed: 42,
+        focus: [
+          {
+            runnerId: 0,
+            samples: [
+              { time: 0, position: 0, speed: 18, lane: 0, health: 1000 },
+              { time: 0.066, position: 5, speed: 19, lane: 0, health: 990 }
+            ]
+          }
+        ]
+      }
+    ],
+    eventLogs: [
+      [
+        { kind: 'skill-activated', runnerId: 0, position: 400, tick: 90, detail: { skillId: '100001' } },
+        { kind: 'skill-activated', runnerId: 0, position: 800, tick: 180, detail: { skillId: '100001' } },
+        // No skillId -> skipped for the activation overlay.
+        { kind: 'skill-activated', runnerId: 0, position: 850, tick: 190 },
+        // Belongs to another runner -> not attributed to runner 0.
+        { kind: 'skill-activated', runnerId: 1, position: 500, tick: 110, detail: { skillId: '200001' } },
+        { kind: 'rushed', runnerId: 0, position: 100, tick: 20 }
+      ]
+    ]
+  };
+
+  it('maps event logs 1:1 (kind, runnerId, position, tick, detail)', () => {
+    const out = wasmResultToRaceSimResult(result);
+    expect(out.eventLogs).toHaveLength(1);
+    expect(out.eventLogs[0]).toHaveLength(5);
+    expect(out.eventLogs[0][0]).toMatchObject({
+      kind: 'skill-activated',
+      runnerId: 0,
+      position: 400,
+      tick: 90,
+      detail: { skillId: '100001' }
+    });
+    expect(out.eventLogs[0][4].kind).toBe('rushed');
+  });
+
+  it('derives per-focus-runner skill activations from skill-activated events', () => {
+    const out = wasmResultToRaceSimResult(result);
+    const focus = out.collectedData.rounds[0].focusRunnerData[0];
+
+    // Two activations of 100001 for runner 0; the skill-less and runner-1 events excluded.
+    expect(Object.keys(focus.skillActivations)).toEqual(['100001']);
+    const logs = focus.skillActivations['100001'];
+    expect(logs).toHaveLength(2);
+    expect(logs.map((l) => l.start)).toEqual([400, 800]);
+    // Point activations: start === end.
+    expect(logs.every((l) => l.start === l.end)).toBe(true);
+    expect(logs.every((l) => l.skillId === '100001')).toBe(true);
+  });
+
+  it('reconstructs focus telemetry series and round seed', () => {
+    const out = wasmResultToRaceSimResult(result);
+    const round = out.collectedData.rounds[0];
+    expect(round.seed).toBe(42);
+    expect(round.allRunnerPositions[0]).toEqual([0, 5]);
+    expect(round.focusRunnerData[0].velocity).toEqual([18, 19]);
+    expect(round.focusRunnerData[0].hp).toEqual([1000, 990]);
   });
 });

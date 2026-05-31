@@ -74,6 +74,9 @@ export function RaceSimRoot() {
   );
 
   const { runSimulation, cancelSimulation, isRunning, error } = useRaceSimRunner({
+    // Race Sim now runs on the Rust/WASM engine by default (t-007). Event logs
+    // and per-focus-runner skill activations come from the Rust read-models.
+    engine: 'wasm',
     onResult: (result) => {
       setRaceSimResults(result);
       loadResults(result);
