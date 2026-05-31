@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import RaceSimWorker from '@workers/race-sim.worker.ts?worker';
+import RaceSimWasmWorker from '@workers/race-sim-wasm.worker.ts?worker';
 import type { RaceSimResult } from '@/lib/sunday-tools/race-sim/run-race-sim';
 import type {
   RaceSimWorkerInMessage,
@@ -7,15 +8,21 @@ import type {
   RaceSimWorkerParams
 } from '@/workers/race-sim.worker';
 
-const createRaceSimWorker = () => new RaceSimWorker();
+/** Which simulation engine the worker runs: the legacy TS sim or the Rust/WASM port. */
+export type RaceSimEngine = 'ts' | 'wasm';
+
+const createRaceSimWorker = (engine: RaceSimEngine) =>
+  engine === 'wasm' ? new RaceSimWasmWorker() : new RaceSimWorker();
 
 export type RaceSimRunnerOptions = {
   onResult?: (result: RaceSimResult) => void;
   onRunningChange?: (isRunning: boolean) => void;
+  /** Engine to run the simulation with. Defaults to the legacy TS engine. */
+  engine?: RaceSimEngine;
 };
 
 export function useRaceSimRunner(options: RaceSimRunnerOptions = {}) {
-  const { onResult, onRunningChange } = options;
+  const { onResult, onRunningChange, engine = 'ts' } = options;
   const workerRef = useRef<Worker | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +41,7 @@ export function useRaceSimRunner(options: RaceSimRunnerOptions = {}) {
       workerRef.current = null;
     }
 
-    const worker = createRaceSimWorker();
+    const worker = createRaceSimWorker(engine);
     worker.onmessage = (event: MessageEvent<RaceSimWorkerOutMessage>) => {
       const message = event.data;
 
@@ -57,7 +64,7 @@ export function useRaceSimRunner(options: RaceSimRunnerOptions = {}) {
     };
 
     workerRef.current = worker;
-  }, [onResult, updateRunning]);
+  }, [onResult, updateRunning, engine]);
 
   useEffect(() => {
     resetWorker();

@@ -16,5 +16,9 @@ rand_core = "0.9"
 criterion = "0.5"
 serde_json = "1"
 
+[[bench]]
+name = "race_sim"
+harness = false
+
 [lints]
 workspace = true

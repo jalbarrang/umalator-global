@@ -45,3 +45,4 @@ docs/prd/
 .fallow/cache.bin
 .fallow/churn.bin
 .pi/context-folders.json
+src/lib/uma-sim-wasm/pkg/

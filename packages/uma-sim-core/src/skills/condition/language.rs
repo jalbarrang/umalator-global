@@ -437,6 +437,7 @@ mod tests {
             skill_id: None,
             strategy_counts: None,
             common_skills: None,
+            mode: crate::shared_kernel::params::SimulationMode::Normal,
         }
     }
 

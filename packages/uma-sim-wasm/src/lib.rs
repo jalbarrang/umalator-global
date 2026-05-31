@@ -10,4 +10,145 @@
 pub mod dto;
 pub mod observer;
 
-// Public wasm-bindgen exports populated by t-019.
+use wasm_bindgen::prelude::*;
+
+use uma_sim_core::racing::race::Race;
+use uma_sim_core::run_race_sim;
+
+use crate::dto::{WasmFinishEntry, WasmRaceSimParams, WasmRaceSimResult};
+use crate::observer::JsObserver;
+
+/// Deserialize a JS value into a typed DTO.
+fn from_js<T: serde::de::DeserializeOwned>(value: JsValue) -> Result<T, JsError> {
+    serde_wasm_bindgen::from_value(value).map_err(|e| JsError::new(&e.to_string()))
+}
+
+/// Serialize a value back to JS.
+fn to_js<T: serde::Serialize>(value: &T) -> Result<JsValue, JsError> {
+    serde_wasm_bindgen::to_value(value).map_err(|e| JsError::new(&e.to_string()))
+}
+
+/// Run a batch race simulation and return the serialized result.
+///
+/// `params` is a [`WasmRaceSimParams`] JS object. Returns a
+/// [`WasmRaceSimResult`] (per-round finish orders + focus telemetry).
+#[wasm_bindgen(js_name = runRaceSim)]
+pub fn run_race_sim_wasm(params: JsValue) -> Result<JsValue, JsError> {
+    let dto: WasmRaceSimParams = from_js(params)?;
+    let domain = dto
+        .into_domain()
+        .map_err(|e| JsError::new(&e.to_string()))?;
+    let result = run_race_sim(domain).map_err(|e| JsError::new(&e.to_string()))?;
+    to_js(&WasmRaceSimResult::from_domain(&result))
+}
+
+/// A streaming race simulator with per-event JS callbacks.
+///
+/// Construct with [`WasmRaceSimulator::new`], register callbacks, then call
+/// [`run`](WasmRaceSimulator::run) to drive the race aggregate over the
+/// configured rounds. Callbacks fire live; the serialized batch result is
+/// returned at the end.
+#[wasm_bindgen]
+pub struct WasmRaceSimulator {
+    params: WasmRaceSimParams,
+    observer: JsObserver,
+}
+
+#[wasm_bindgen]
+impl WasmRaceSimulator {
+    /// Build a simulator from a [`WasmRaceSimParams`] JS object.
+    #[wasm_bindgen(constructor)]
+    pub fn new(params: JsValue) -> Result<WasmRaceSimulator, JsError> {
+        let params: WasmRaceSimParams = from_js(params)?;
+        Ok(WasmRaceSimulator {
+            params,
+            observer: JsObserver::default(),
+        })
+    }
+
+    /// Register the `round-start(seed)` callback.
+    #[wasm_bindgen(js_name = setOnRoundStart)]
+    pub fn set_on_round_start(&mut self, cb: js_sys::Function) {
+        self.observer.on_round_start = Some(cb);
+    }
+
+    /// Register the `before-tick(dt)` callback.
+    #[wasm_bindgen(js_name = setOnBeforeTick)]
+    pub fn set_on_before_tick(&mut self, cb: js_sys::Function) {
+        self.observer.on_before_tick = Some(cb);
+    }
+
+    /// Register the `after-runner-tick(snapshot)` callback.
+    #[wasm_bindgen(js_name = setOnAfterRunnerTick)]
+    pub fn set_on_after_runner_tick(&mut self, cb: js_sys::Function) {
+        self.observer.on_after_runner_tick = Some(cb);
+    }
+
+    /// Register the `runner-finished(runnerId)` callback.
+    #[wasm_bindgen(js_name = setOnRunnerFinished)]
+    pub fn set_on_runner_finished(&mut self, cb: js_sys::Function) {
+        self.observer.on_runner_finished = Some(cb);
+    }
+
+    /// Register the `round-end()` callback.
+    #[wasm_bindgen(js_name = setOnRoundEnd)]
+    pub fn set_on_round_end(&mut self, cb: js_sys::Function) {
+        self.observer.on_round_end = Some(cb);
+    }
+
+    /// Run the configured rounds, firing callbacks live, and return the
+    /// serialized [`WasmRaceSimResult`].
+    pub fn run(self) -> Result<JsValue, JsError> {
+        let WasmRaceSimulator { params, observer } = self;
+        let focus_ids = params.focus_runner_ids.clone();
+        let domain = params
+            .into_domain()
+            .map_err(|e| JsError::new(&e.to_string()))?;
+
+        let settings = domain.settings.clone();
+        let mut race = Race::new(
+            domain.course,
+            domain.ground,
+            settings,
+            domain.parameters,
+            None,
+        );
+        for runner in domain.runners {
+            race.add_runner(runner);
+        }
+        race.subscribe(Box::new(observer));
+
+        // Drive the rounds directly so callbacks fire (mirrors run_race_sim).
+        let mut finish_orders = Vec::with_capacity(domain.nsamples);
+        for i in 0..domain.nsamples {
+            race.prepare_round(domain.master_seed + i as u64);
+            race.run();
+            finish_orders.push(collect_finish(&race));
+        }
+        let _ = focus_ids;
+
+        let result = WasmRaceSimResult {
+            finish_orders,
+            collected: Vec::new(),
+        };
+        to_js(&result)
+    }
+}
+
+fn collect_finish(race: &Race) -> Vec<WasmFinishEntry> {
+    race.finished_runners()
+        .iter()
+        .filter_map(|&id| {
+            race.runners()
+                .iter()
+                .find(|r| r.id == id)
+                .map(|runner| WasmFinishEntry {
+                    runner_id: id.0,
+                    name: runner.name.clone(),
+                    strategy: runner.strategy as i32,
+                    finish_position: runner.position,
+                    finish_time: runner.finish_time,
+                })
+        })
+        .collect()
+}

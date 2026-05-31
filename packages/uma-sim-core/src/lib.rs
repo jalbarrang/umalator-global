@@ -35,3 +35,9 @@ pub mod stamina;
 pub mod racing;
 
 pub mod application;
+
+// Primary use case re-exported at the crate root for the WASM adapter / native
+// callers.
+pub use application::simulation::{
+    run_race_sim, FinishEntry, RaceSimParams, RaceSimResult, SimError,
+};

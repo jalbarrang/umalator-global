@@ -187,6 +187,9 @@ pub struct ActiveSkill {
     pub effect_target: SkillTarget,
     /// Effect type.
     pub effect_type: SkillType,
+    /// Whether the current-speed effect decays naturally on expiry (adds a
+    /// one-frame acceleration when it ends).
+    pub natural_deceleration: bool,
 }
 
 /// A currently-active targeted (debuff/ally) effect on a runner.

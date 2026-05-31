@@ -159,12 +159,14 @@ pub mod strategy_module {
 pub mod position_keep {
     use super::Strategy;
 
-    /// Base minimum position-keep threshold indexed by `strategy as usize`
-    /// (1..=4); indices 0..=1 are 0.
-    pub const BASE_MINIMUM_THRESHOLD: [f64; 5] = [0.0, 0.0, 3.0, 6.5, 7.5];
+    /// Base minimum position-keep threshold indexed by `strategy as usize`.
+    /// `FrontRunner=1`..`EndCloser=4` carry the TS values; `Runaway=5` (TS index
+    /// 0) is `0.0`, so the array is length 6 to stay in bounds.
+    pub const BASE_MINIMUM_THRESHOLD: [f64; 6] = [0.0, 0.0, 3.0, 6.5, 7.5, 0.0];
 
-    /// Base maximum position-keep threshold indexed by `strategy as usize`.
-    pub const BASE_MAXIMUM_THRESHOLD: [f64; 5] = [0.0, 0.0, 5.0, 7.0, 8.0];
+    /// Base maximum position-keep threshold indexed by `strategy as usize`
+    /// (`Runaway=5` -> `0.0`, matching TS index 0).
+    pub const BASE_MAXIMUM_THRESHOLD: [f64; 6] = [0.0, 0.0, 5.0, 7.0, 8.0, 0.0];
 
     /// Course distance factor applied to most position-keep thresholds.
     pub fn course_factor(distance: f64) -> f64 {
