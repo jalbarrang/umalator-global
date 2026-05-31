@@ -4,7 +4,9 @@
 //! `nsamples` rounds, attaching the read-model [`RaceSimDataCollector`] as an
 //! observer, and returns the per-round finish orders plus collected telemetry.
 
-use crate::application::collectors::{CollectedData, RaceSimDataCollector};
+use crate::application::collectors::{
+    CollectedData, RaceEventLog, RaceEventLogCollector, RaceSimDataCollector,
+};
 use crate::course::model::CourseData;
 use crate::racing::race::{Race, SimulationSettings};
 use crate::racing::runner::lifecycle::CreateRunner;
@@ -57,6 +59,8 @@ pub struct RaceSimResult {
     pub finish_orders: Vec<Vec<FinishEntry>>,
     /// Collected focus-runner telemetry.
     pub collected: CollectedData,
+    /// Per-round logged race events (state-transition projection).
+    pub event_logs: RaceEventLog,
 }
 
 /// Errors raised validating / running a simulation.
@@ -110,6 +114,8 @@ pub fn run_race_sim(params: RaceSimParams) -> Result<RaceSimResult, SimError> {
 
     let collector = RaceSimDataCollector::new(params.focus_runner_ids);
     race.subscribe(collector.handle());
+    let event_log = RaceEventLogCollector::new();
+    race.subscribe(event_log.handle());
 
     let mut finish_orders: Vec<Vec<FinishEntry>> = Vec::with_capacity(params.nsamples);
     for i in 0..params.nsamples {
@@ -121,6 +127,7 @@ pub fn run_race_sim(params: RaceSimParams) -> Result<RaceSimResult, SimError> {
     Ok(RaceSimResult {
         finish_orders,
         collected: collector.result(),
+        event_logs: event_log.result(),
     })
 }
 

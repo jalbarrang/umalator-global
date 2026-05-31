@@ -130,6 +130,7 @@ impl WasmRaceSimulator {
         let result = WasmRaceSimResult {
             finish_orders,
             collected: Vec::new(),
+            event_logs: Vec::new(),
         };
         to_js(&result)
     }

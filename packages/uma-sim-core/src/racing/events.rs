@@ -31,6 +31,10 @@ pub trait RaceObservation {
     fn seed(&self) -> u64 {
         0
     }
+    /// Elapsed race time in seconds (drives event-log tick numbering).
+    fn accumulated_time(&self) -> f64 {
+        0.0
+    }
 }
 
 /// Read-only view of a `Runner` entity exposed to observers.
@@ -70,6 +74,55 @@ pub trait RunnerObservation {
     /// Whether the runner has finished the round.
     fn finished(&self) -> bool {
         false
+    }
+    /// Finish time in seconds (0 until finished).
+    fn finish_time(&self) -> f64 {
+        0.0
+    }
+    /// Whether the runner is currently rushed (temptation).
+    fn is_rushed(&self) -> bool {
+        false
+    }
+    /// Whether the runner is currently dueling.
+    fn is_dueling(&self) -> bool {
+        false
+    }
+    /// Whether the runner is currently in a spot struggle.
+    fn in_spot_struggle(&self) -> bool {
+        false
+    }
+    /// Whether the runner has entered last spurt.
+    fn is_last_spurt(&self) -> bool {
+        false
+    }
+    /// Whether the runner has run out of HP.
+    fn out_of_hp(&self) -> bool {
+        false
+    }
+    /// Cumulative count of skills activated this round.
+    fn skills_activated_count(&self) -> i64 {
+        0
+    }
+    /// Current position-keep state as its numeric discriminant
+    /// (0 None, 1 PaceUp, 2 PaceDown, 3 SpeedUp, 4 Overtake).
+    fn position_keep_state(&self) -> i64 {
+        0
+    }
+    /// Current race phase index (0 Early, 1 Mid, 2 Late, 3 Last-spurt leg).
+    fn phase(&self) -> i64 {
+        0
+    }
+    /// Whether the runner is currently overtaking (approximate condition).
+    fn is_overtaking(&self) -> bool {
+        false
+    }
+    /// Whether the runner is currently blocked on a side (approximate condition).
+    fn is_side_blocked(&self) -> bool {
+        false
+    }
+    /// Ids of skills the runner has used so far this round.
+    fn used_skills(&self) -> Vec<&str> {
+        Vec::new()
     }
 }
 

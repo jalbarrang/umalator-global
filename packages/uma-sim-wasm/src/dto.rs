@@ -10,7 +10,9 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-use uma_sim_core::application::collectors::CollectedData;
+use uma_sim_core::application::collectors::{
+    CollectedData, RaceEventLog, RaceLogEvent, RaceLogEventKind,
+};
 use uma_sim_core::application::simulation::{FinishEntry, RaceSimParams, RaceSimResult};
 use uma_sim_core::course::model::{Corner, CourseData, Slope, Straight};
 use uma_sim_core::racing::race::SimulationSettings;
@@ -828,6 +830,95 @@ pub struct WasmRoundData {
     pub focus: Vec<WasmFocusTrace>,
 }
 
+/// Optional detail payload for a logged event.
+#[derive(Debug, Clone, Default, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WasmRaceEventDetail {
+    /// Skill id (skill-activated events).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub skill_id: Option<String>,
+    /// Other runners sharing the state (dueling / spot-struggle).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub other_runner_ids: Option<Vec<u32>>,
+    /// 1-based finishing place (finished events).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub finish_place: Option<u32>,
+    /// Finish time in seconds (finished events).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub finish_time: Option<f64>,
+}
+
+/// A logged race event crossing back to JS.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WasmRaceEvent {
+    /// Event kind (kebab-case, matches the TS `RaceEventKind`).
+    pub kind: &'static str,
+    /// Runner the event is about.
+    pub runner_id: u32,
+    /// Position in meters.
+    pub position: f64,
+    /// Tick index (0-based).
+    pub tick: i64,
+    /// Optional detail payload.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub detail: Option<WasmRaceEventDetail>,
+}
+
+/// Map a domain event kind to its TS kebab-case string.
+fn log_event_kind_str(kind: RaceLogEventKind) -> &'static str {
+    match kind {
+        RaceLogEventKind::SkillActivated => "skill-activated",
+        RaceLogEventKind::Rushed => "rushed",
+        RaceLogEventKind::RushedEnd => "rushed-end",
+        RaceLogEventKind::DuelingStart => "dueling-start",
+        RaceLogEventKind::DuelingEnd => "dueling-end",
+        RaceLogEventKind::SpotStruggleStart => "spot-struggle-start",
+        RaceLogEventKind::SpotStruggleEnd => "spot-struggle-end",
+        RaceLogEventKind::LastSpurt => "last-spurt",
+        RaceLogEventKind::HpOut => "hp-out",
+        RaceLogEventKind::Finished => "finished",
+        RaceLogEventKind::PaceDownStart => "pace-down-start",
+        RaceLogEventKind::PaceDownEnd => "pace-down-end",
+        RaceLogEventKind::PaceUpStart => "pace-up-start",
+        RaceLogEventKind::PaceUpEnd => "pace-up-end",
+        RaceLogEventKind::OvertakeStart => "overtake-start",
+        RaceLogEventKind::OvertakeEnd => "overtake-end",
+        RaceLogEventKind::BlockedSideStart => "blocked-side-start",
+        RaceLogEventKind::BlockedSideEnd => "blocked-side-end",
+        RaceLogEventKind::MidRaceStart => "mid-race-start",
+        RaceLogEventKind::LateRaceStart => "late-race-start",
+    }
+}
+
+impl From<&RaceLogEvent> for WasmRaceEvent {
+    fn from(e: &RaceLogEvent) -> Self {
+        let detail = e.detail.as_ref().map(|d| WasmRaceEventDetail {
+            skill_id: d.skill_id.clone(),
+            other_runner_ids: if d.other_runner_ids.is_empty() {
+                None
+            } else {
+                Some(d.other_runner_ids.iter().map(|id| id.0).collect())
+            },
+            finish_place: d.finish_place,
+            finish_time: d.finish_time,
+        });
+        WasmRaceEvent {
+            kind: log_event_kind_str(e.kind),
+            runner_id: e.runner_id.0,
+            position: e.position,
+            tick: e.tick,
+            detail,
+        }
+    }
+}
+
+fn event_logs_to_wasm(logs: &RaceEventLog) -> Vec<Vec<WasmRaceEvent>> {
+    logs.iter()
+        .map(|round| round.iter().map(WasmRaceEvent::from).collect())
+        .collect()
+}
+
 /// The serialized simulation result.
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -836,6 +927,8 @@ pub struct WasmRaceSimResult {
     pub finish_orders: Vec<Vec<WasmFinishEntry>>,
     /// Collected focus telemetry.
     pub collected: Vec<WasmRoundData>,
+    /// Per-round logged race events.
+    pub event_logs: Vec<Vec<WasmRaceEvent>>,
 }
 
 impl WasmRaceSimResult {
@@ -848,6 +941,7 @@ impl WasmRaceSimResult {
                 .map(|order| order.iter().map(WasmFinishEntry::from).collect())
                 .collect(),
             collected: collected_to_wasm(&result.collected),
+            event_logs: event_logs_to_wasm(&result.event_logs),
         }
     }
 }

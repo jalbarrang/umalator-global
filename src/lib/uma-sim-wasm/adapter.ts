@@ -11,6 +11,7 @@ import type {
   RaceSimResult,
   FinishEntry,
 } from '@/lib/sunday-tools/race-sim/run-race-sim';
+import type { RaceEvent, RaceEventKind } from '@/lib/sunday-tools/race-sim/race-event-log';
 import type { IStrategy } from '@/lib/sunday-tools/runner/definitions';
 import type {
   WasmCourseData,
@@ -191,9 +192,8 @@ export function raceSimParamsToWasm(
  * - `collectedData.rounds[i]` is reconstructed from the all-runner focus traces:
  *   `allRunnerPositions` / `allRunnerLanes` come from each runner's per-tick
  *   samples, `finishOrder` from `finishOrders[i]`, `seed` from the round.
- * - `eventLogs` is empty per round (the Rust collector does not yet project the
- *   rich event stream — skill-activation markers are unavailable via WASM until
- *   the t-018 event-log projection lands). Playback/track-view still function.
+ * - `eventLogs` is projected by the Rust `RaceEventLogCollector` and mapped 1:1
+ *   here (the WASM `kind` is a kebab-case string matching `RaceEventKind`).
  */
 export function wasmResultToRaceSimResult(result: WasmRaceSimResult): RaceSimResult {
   const finishOrders: FinishEntry[][] = result.finishOrders.map((round) =>
@@ -253,9 +253,26 @@ export function wasmResultToRaceSimResult(result: WasmRaceSimResult): RaceSimRes
     };
   });
 
+  const eventLogs: RaceEvent[][] = result.eventLogs.map((round) =>
+    round.map((event) => ({
+      kind: event.kind as RaceEventKind,
+      runnerId: event.runnerId,
+      position: event.position,
+      tick: event.tick,
+      detail: event.detail
+        ? {
+            skillId: event.detail.skillId,
+            otherRunnerIds: event.detail.otherRunnerIds,
+            finishPlace: event.detail.finishPlace,
+            finishTime: event.detail.finishTime,
+          }
+        : undefined,
+    })),
+  );
+
   return {
     finishOrders,
     collectedData: { rounds },
-    eventLogs: result.finishOrders.map(() => []),
+    eventLogs,
   };
 }

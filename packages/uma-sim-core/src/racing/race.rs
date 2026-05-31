@@ -168,6 +168,9 @@ impl RaceObservation for Race {
     fn seed(&self) -> u64 {
         self.seed
     }
+    fn accumulated_time(&self) -> f64 {
+        self.accumulated_time
+    }
 }
 
 impl Race {
@@ -784,6 +787,42 @@ impl RunnerObservation for Runner {
     }
     fn finished(&self) -> bool {
         self.finished
+    }
+    fn finish_time(&self) -> f64 {
+        self.finish_time
+    }
+    fn is_rushed(&self) -> bool {
+        self.is_rushed
+    }
+    fn is_dueling(&self) -> bool {
+        self.is_dueling
+    }
+    fn in_spot_struggle(&self) -> bool {
+        self.in_spot_struggle
+    }
+    fn is_last_spurt(&self) -> bool {
+        self.is_last_spurt
+    }
+    fn out_of_hp(&self) -> bool {
+        self.out_of_hp
+    }
+    fn skills_activated_count(&self) -> i64 {
+        self.skills_activated_count
+    }
+    fn position_keep_state(&self) -> i64 {
+        self.position_keep_state as i64
+    }
+    fn phase(&self) -> i64 {
+        self.phase.index() as i64
+    }
+    fn is_overtaking(&self) -> bool {
+        self.is_overtaking
+    }
+    fn is_side_blocked(&self) -> bool {
+        self.is_side_blocked
+    }
+    fn used_skills(&self) -> Vec<&str> {
+        self.used_skills.iter().map(String::as_str).collect()
     }
 }
 

@@ -130,9 +130,26 @@ export type WasmTickSample = {
 export type WasmFocusTrace = { runnerId: number; samples: WasmTickSample[] };
 export type WasmRoundData = { seed: number; focus: WasmFocusTrace[] };
 
+export type WasmRaceEventDetail = {
+  skillId?: string;
+  otherRunnerIds?: number[];
+  finishPlace?: number;
+  finishTime?: number;
+};
+
+// `kind` is a kebab-case string matching the TS RaceEventKind union.
+export type WasmRaceEvent = {
+  kind: string;
+  runnerId: number;
+  position: number;
+  tick: number;
+  detail?: WasmRaceEventDetail;
+};
+
 export type WasmRaceSimResult = {
   finishOrders: WasmFinishEntry[][];
   collected: WasmRoundData[];
+  eventLogs: WasmRaceEvent[][];
 };
 
 // Per-tick snapshot passed to the streaming `setOnAfterRunnerTick` callback.
