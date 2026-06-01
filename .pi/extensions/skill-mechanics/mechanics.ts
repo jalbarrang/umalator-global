@@ -6,11 +6,11 @@ import {
   SkillEffectTargetName,
   type ISkillType,
   type ISkillTarget
-} from '../../../src/lib/sunday-tools/skills/definitions';
+} from '../../../packages/sunday-tools/src/skills/definitions';
 import {
   isExternalDebuffEffect,
   isInjectableExternalDebuffSkill
-} from '../../../src/lib/sunday-tools/skills/external-debuffs';
+} from '../../../packages/sunday-tools/src/skills/external-debuffs';
 
 // ── Types ──────────────────────────────────────────
 
