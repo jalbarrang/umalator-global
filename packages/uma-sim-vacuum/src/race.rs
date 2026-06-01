@@ -27,7 +27,7 @@ use uma_sim_primitives::runner::physics::{
 use uma_sim_primitives::runner::skills::FieldView;
 use uma_sim_primitives::runner::Runner;
 use uma_sim_primitives::shared_kernel::ids::RunnerId;
-use uma_sim_primitives::shared_kernel::language::{GroundCondition, Strategy};
+use uma_sim_primitives::shared_kernel::language::GroundCondition;
 use uma_sim_primitives::shared_kernel::params::RaceParameters;
 use uma_sim_primitives::shared_kernel::region::{Region, RegionList};
 use uma_sim_primitives::shared_kernel::rng::{Prng, Xoshiro256StarStar};
@@ -116,10 +116,6 @@ pub struct Race {
 
     /// Pacer + finishing-order state, threaded across frames.
     order_tracker: FieldOrderTracker,
-    /// Per-strategy counts.
-    strategy_counts: HashMap<Strategy, u32>,
-    /// Common (shared) skills across the field.
-    common_skills: HashMap<String, u32>,
 
     /// Lifecycle observers.
     observers: RaceObservers,
@@ -169,8 +165,6 @@ impl Race {
             seed: 0,
             rng: Box::new(Xoshiro256StarStar::from_u64_seed(0)),
             order_tracker: FieldOrderTracker::new(),
-            strategy_counts: HashMap::new(),
-            common_skills: HashMap::new(),
             observers: RaceObservers::new(),
             course,
         }
@@ -284,9 +278,6 @@ impl Race {
     /// does not fold in field composition (no live field to count), so the
     /// strategy-count / common-skill aggregates are cleared.
     fn prepare_race(&mut self) {
-        self.strategy_counts = HashMap::new();
-        self.common_skills = HashMap::new();
-
         self.race_params.num_umas = Some(self.runners.len() as u32);
         self.race_params.strategy_counts = None;
         self.race_params.common_skills = None;
@@ -419,7 +410,7 @@ mod tests {
     use std::collections::HashMap;
     use uma_sim_primitives::runner::lifecycle::RunnerAptitudes;
     use uma_sim_primitives::runner::test_support::{test_course, test_race_params};
-    use uma_sim_primitives::shared_kernel::language::{Aptitude, Mood};
+    use uma_sim_primitives::shared_kernel::language::{Aptitude, Mood, Strategy};
     use uma_sim_primitives::shared_kernel::params::StatLine;
 
     fn props(name: &str, strategy: Strategy) -> CreateRunner {
