@@ -14,10 +14,21 @@
 //!   math value objects, the ubiquitous-language enums, and race parameters.
 //! - [`course`] — track-geometry value objects, the phase domain service, and the
 //!   speed / acceleration / position-keep coefficient tables (the leaf formulas).
+//! - [`skills`] — the skill model + effects, the condition *language* (parser +
+//!   static catalog + dynamic predicate registry), activation sampling, and
+//!   debuff/recovery resolution. Reads live race state only through the
+//!   read-only view traits it defines, never by depending on an engine.
 //!
-//! The dependency direction is strictly inward: `course` may use `shared_kernel`,
-//! never the reverse, and neither references any engine context.
+//! - [`projection`] — pure read-model helpers that reconcile per-tick active
+//!   effect snapshots into `[start, end]` activation logs.
+//!
+//! The dependency direction is strictly inward: `skills` may use `course` and
+//! `shared_kernel`; `course` may use `shared_kernel`; never the reverse, and
+//! none references any engine context.
 
 pub mod shared_kernel;
 
 pub mod course;
+pub mod skills;
+
+pub mod projection;

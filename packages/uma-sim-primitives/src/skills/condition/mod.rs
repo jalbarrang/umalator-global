@@ -31,6 +31,20 @@ use crate::shared_kernel::region::RegionList;
 use crate::skills::activation::{ActivationSamplePolicy, ReconcileError};
 use crate::skills::condition::dynamic::DynamicCondition;
 
+/// How a `dynamic_or_static` condition resolves, supplied **explicitly by the
+/// engine** at skill-setup time (ADR-0005). This replaces the former
+/// `p.extra.mode` read inside the condition: field-presence (live field vs
+/// synthetic) is decided by whoever owns the field, and the condition just
+/// reacts to the resolved strategy.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ConditionResolution {
+    /// Resolve to a live dynamic predicate evaluated each tick (contested field).
+    Dynamic,
+    /// Resolve to a static approximate region narrowing at setup time
+    /// (synthetic / vacuum field).
+    Static,
+}
+
 /// Read-only view of a runner used during *static* condition evaluation
 /// (skill setup time). Decouples the parser/catalog from the full `Runner`
 /// entity — the anti-corruption seam for the skills context.
@@ -56,6 +70,8 @@ pub struct ConditionFilterParams<'a> {
     pub runner: &'a SkillEvalRunner,
     /// Race-wide parameters.
     pub extra: &'a RaceParameters,
+    /// Engine-supplied condition-resolution strategy.
+    pub resolution: ConditionResolution,
 }
 
 /// Parameters passed to an [`Operator`]'s `apply`.
@@ -68,6 +84,8 @@ pub struct ApplyParams<'a> {
     pub runner: &'a SkillEvalRunner,
     /// Race-wide parameters.
     pub extra: &'a RaceParameters,
+    /// Engine-supplied condition-resolution strategy.
+    pub resolution: ConditionResolution,
 }
 
 impl<'a> ApplyParams<'a> {
@@ -80,6 +98,7 @@ impl<'a> ApplyParams<'a> {
             course: self.course,
             runner: self.runner,
             extra: self.extra,
+            resolution: self.resolution,
         }
     }
 
@@ -90,6 +109,7 @@ impl<'a> ApplyParams<'a> {
             course: self.course,
             runner: self.runner,
             extra: self.extra,
+            resolution: self.resolution,
         }
     }
 }

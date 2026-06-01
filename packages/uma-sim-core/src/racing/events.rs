@@ -14,19 +14,11 @@
 
 use crate::shared_kernel::ids::RunnerId;
 
-/// Snapshot of one active (duration-based) skill effect, exposed to the compare
-/// read-model so it can reconcile effect-activation position ranges.
-#[derive(Debug, Clone, PartialEq)]
-pub struct ActiveEffectView {
-    /// Skill id that owns the effect.
-    pub skill_id: String,
-    /// Effect type discriminant.
-    pub effect_type: i32,
-    /// Effect target discriminant.
-    pub effect_target: i32,
-    /// Effect modifier (real units).
-    pub modifier: f64,
-}
+// `ActiveEffectView` is a pure projection value object; it was extracted into
+// `uma-sim-primitives` (ADR-0005 step 4) alongside the effect-log reconciliation
+// helpers. Re-exported here so existing `racing::events::ActiveEffectView` paths
+// keep resolving.
+pub use uma_sim_primitives::projection::ActiveEffectView;
 
 /// One entry from a runner's used-targeted-skill log.
 #[derive(Debug, Clone, PartialEq)]

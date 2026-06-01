@@ -299,8 +299,8 @@ mod tests {
     use crate::skills::activation::ActivationSamplePolicy;
     use crate::skills::condition::dynamic::{DynamicCondition, RunnerView};
     use crate::skills::condition::{
-        ApplyParams, Condition, ConditionError, ConditionFilterParams, ConditionResult,
-        SkillEvalRunner,
+        ApplyParams, Condition, ConditionError, ConditionFilterParams, ConditionResolution,
+        ConditionResult, SkillEvalRunner,
     };
 
     /// Test condition: passes all regions through; sample policy is configurable.
@@ -478,6 +478,7 @@ mod tests {
             course: &course,
             runner: &runner,
             extra: &extra,
+            resolution: ConditionResolution::Dynamic,
         };
         let (out_regions, cond) = op.apply(&apply).expect("apply");
         // First (non-empty) branch wins; no dynamic condition.
@@ -507,6 +508,7 @@ mod tests {
             course: &course,
             runner: &runner,
             extra: &extra,
+            resolution: ConditionResolution::Dynamic,
         };
         let (_, cond) = op.apply(&apply).expect("apply");
         // accumulatetime is dynamic, so a combined condition is produced.

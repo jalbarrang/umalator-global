@@ -30,9 +30,12 @@
 // crate (ADR-0005 step 3, pure move). They are re-exported here so that
 // `crate::shared_kernel::…` / `crate::course::…` paths throughout this crate
 // (and downstream `uma_sim_core::…` callers) keep resolving unchanged.
-pub use uma_sim_primitives::{course, shared_kernel};
+//
+// `skills` was also extracted into `uma-sim-primitives` (ADR-0005 step 4): it is
+// pure (no engine deps) and houses the parser/catalog + data models the engines
+// share. Re-exported so `crate::skills::…` paths keep resolving.
+pub use uma_sim_primitives::{course, shared_kernel, skills};
 
-pub mod skills;
 pub mod stamina;
 
 pub mod racing;

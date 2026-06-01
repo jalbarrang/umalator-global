@@ -16,6 +16,7 @@ use crate::racing::runner::lifecycle::PrepareContext;
 use crate::racing::runner::{Runner, UsedTargetedSkill};
 use crate::shared_kernel::ids::SkillId;
 use crate::shared_kernel::math::Timer;
+use crate::shared_kernel::params::SimulationMode;
 use crate::shared_kernel::params::{RaceParameters, StatLine};
 use crate::shared_kernel::region::{Region, RegionList};
 use crate::skills::activation::ActivationSamplePolicy;
@@ -23,7 +24,7 @@ use crate::skills::condition::dynamic::{
     eval_dynamic, ActiveRunner, DynamicCondition, RunnerSnapshot as DynRunnerSnapshot, RunnerView,
 };
 use crate::skills::condition::language::ConditionParser;
-use crate::skills::condition::{ApplyParams, SkillEvalRunner};
+use crate::skills::condition::{ApplyParams, ConditionResolution, SkillEvalRunner};
 use crate::skills::debuff::get_external_debuff_effects;
 use crate::skills::effect::{SkillRarity, SkillType};
 use crate::skills::model::{
@@ -176,6 +177,20 @@ pub struct BuildSkillDataParams<'a> {
     pub skill: &'a Skill,
     /// Whether to keep triggers whose effect list is empty.
     pub ignore_null_effects: bool,
+    /// Engine-supplied condition-resolution strategy (dynamic vs static).
+    pub resolution: ConditionResolution,
+}
+
+/// Map a simulation mode to the condition-resolution strategy the engine
+/// supplies to the condition language (ADR-0005 de-branch): the contested
+/// (`Normal`) engine resolves live dynamic predicates; the synthetic
+/// (`Compare`) engine resolves static approximate regions.
+fn condition_resolution_for(mode: SimulationMode) -> ConditionResolution {
+    if mode == SimulationMode::Normal {
+        ConditionResolution::Dynamic
+    } else {
+        ConditionResolution::Static
+    }
 }
 
 /// Build the [`SkillTrigger`]s for a pre-resolved skill.
@@ -210,6 +225,7 @@ pub fn build_skill_data(params: &BuildSkillDataParams<'_>) -> Vec<SkillTrigger> 
                 course: params.course,
                 runner: params.runner,
                 extra: &extra,
+                resolution: params.resolution,
             };
             let Ok((pre_regions, _)) = parsed_pre.apply(&pre_params) else {
                 return Vec::new();
@@ -232,6 +248,7 @@ pub fn build_skill_data(params: &BuildSkillDataParams<'_>) -> Vec<SkillTrigger> 
             course: params.course,
             runner: params.runner,
             extra: &extra,
+            resolution: params.resolution,
         };
         let Ok((regions, extra_condition)) = parsed_op.apply(&apply_params) else {
             return Vec::new();
@@ -330,6 +347,7 @@ impl Runner {
                 parser: ctx.parser,
                 skill,
                 ignore_null_effects: false,
+                resolution: condition_resolution_for(ctx.mode),
             });
             for trigger in triggers {
                 let base = trigger.skill_id.base().to_owned();
@@ -380,6 +398,7 @@ impl Runner {
                 parser: ctx.parser,
                 skill: &debuff.skill,
                 ignore_null_effects: false,
+                resolution: condition_resolution_for(ctx.mode),
             });
             for trigger in triggers {
                 let external: Vec<SkillEffect> = get_external_debuff_effects(&trigger.effects)
@@ -920,6 +939,7 @@ mod tests {
             parser: &parser,
             skill,
             ignore_null_effects: false,
+            resolution: ConditionResolution::Dynamic,
         })
     }
 

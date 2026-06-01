@@ -19,7 +19,6 @@ use crate::course::phase::{
     assert_is_distance_type, assert_is_phase, is_sorted_by_start, phase_end, phase_start,
 };
 use crate::shared_kernel::language::{strategy_matches, DistanceType, Phase, Strategy};
-use crate::shared_kernel::params::SimulationMode;
 use crate::shared_kernel::region::{Region, RegionList};
 use crate::skills::activation::ActivationSamplePolicy;
 use crate::skills::condition::dynamic::{
@@ -27,7 +26,8 @@ use crate::skills::condition::dynamic::{
 };
 use crate::skills::condition::operator::CmpKind;
 use crate::skills::condition::{
-    Condition, ConditionCatalog, ConditionError, ConditionFilterParams, ConditionResult,
+    Condition, ConditionCatalog, ConditionError, ConditionFilterParams, ConditionResolution,
+    ConditionResult,
 };
 
 type FilterResult = Result<ConditionResult, ConditionError>;
@@ -510,7 +510,7 @@ impl DynamicOrStatic {
         p: &ConditionFilterParams<'_>,
         fallback: impl Fn(&dyn Condition, &ConditionFilterParams<'_>) -> FilterResult,
     ) -> FilterResult {
-        if p.extra.mode == SimulationMode::Normal {
+        if p.resolution == ConditionResolution::Dynamic {
             if let Some(factory) = get_dynamic_condition(self.name) {
                 return Ok((p.regions.clone(), Some(factory(p.arg, kind))));
             }
@@ -1802,7 +1802,7 @@ mod tests {
     use crate::shared_kernel::language::{
         Grade, GroundCondition, Mood, Orientation, Season, Surface, TimeOfDay, Weather,
     };
-    use crate::shared_kernel::params::{RaceParameters, StatLine};
+    use crate::shared_kernel::params::{RaceParameters, SimulationMode, StatLine};
     use crate::skills::condition::dynamic::RunnerView;
     use crate::skills::condition::language::ConditionParser;
     use crate::skills::condition::{ApplyParams, SkillEvalRunner};
@@ -1922,12 +1922,18 @@ mod tests {
         let runner = runner();
         let mut extra = params();
         extra.mode = mode;
+        let resolution = if mode == SimulationMode::Normal {
+            ConditionResolution::Dynamic
+        } else {
+            ConditionResolution::Static
+        };
         let regions = whole_course(&course);
         op.apply(&ApplyParams {
             regions,
             course: &course,
             runner: &runner,
             extra: &extra,
+            resolution,
         })
         .expect("apply")
     }
