@@ -36,7 +36,12 @@
 // share. Re-exported so `crate::skills::…` paths keep resolving.
 pub use uma_sim_primitives::{course, shared_kernel, skills};
 
-pub mod stamina;
+// `stamina`, the `Runner` entity + pure step kernel, and the virtual
+// position-keep state machine were extracted into `uma-sim-primitives`
+// (ADR-0005 step 2, pure move). Re-exported so `crate::stamina::…` paths keep
+// resolving; the `runner` / `position_keep` re-exports live under `racing`
+// (see `racing/mod.rs`) to preserve `crate::racing::runner::…` paths.
+pub use uma_sim_primitives::stamina;
 
 pub mod racing;
 

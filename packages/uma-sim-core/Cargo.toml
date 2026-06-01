@@ -16,6 +16,7 @@ rand_core = "0.9"
 [dev-dependencies]
 criterion = "0.5"
 serde_json = "1"
+uma-sim-primitives = { path = "../uma-sim-primitives", features = ["test-support"] }
 
 [[bench]]
 name = "race_sim"

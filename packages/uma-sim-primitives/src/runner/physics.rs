@@ -16,10 +16,10 @@ use crate::course::coefficients::{
 };
 use crate::course::model::CourseData;
 use crate::course::phase::phase_start;
-use crate::racing::position_keep::{apply_virtual_position_keep, PositionKeepContext};
-use crate::racing::runner::mechanics::DuelingRates;
-use crate::racing::runner::skills::FieldView;
-use crate::racing::runner::Runner;
+use crate::position_keep::{apply_virtual_position_keep, PositionKeepContext};
+use crate::runner::mechanics::DuelingRates;
+use crate::runner::skills::FieldView;
+use crate::runner::Runner;
 use crate::shared_kernel::ids::RunnerId;
 use crate::shared_kernel::language::Phase;
 use crate::shared_kernel::math::CompensatedAccumulator;
@@ -90,9 +90,9 @@ pub struct RunnerSnapshot {
 /// field-presence inputs** (ADR-0005 step "producer lift").
 ///
 /// All field-presence-dependent values reach the step through a pre-resolved
-/// [`FieldInputs`] built by the aggregate's *producer* (see
-/// [`crate::racing::race`]); this context carries only course/time scalars the
-/// step reads regardless of paradigm.
+/// [`FieldInputs`] built by the aggregate's *producer* (in the engine crate);
+/// this context carries only course/time scalars the step reads regardless of
+/// paradigm.
 pub struct UpdateContext<'a> {
     /// Course base speed (`20 - (distance - 2000) / 1000`).
     pub base_speed: f64,
@@ -136,7 +136,7 @@ pub struct SkillTriggerInputs<'a> {
 ///
 /// The step never asks whether a real field exists; it only reads these
 /// resolved values. They are produced by the aggregate's *producer*
-/// ([`crate::racing::race::resolve_field_inputs`], single engine); under the
+/// (`resolve_field_inputs` in the engine crate, single engine); under the
 /// split each engine will produce them its own way (the contested engine from
 /// the live snapshot, the vacuum engine from approximate condition values /
 /// synthetic rates), with no paradigm branch in the step itself.
@@ -473,7 +473,7 @@ impl Runner {
         self.is_overtaking = overtake;
     }
 
-    pub(crate) fn is_on_final_straight(&self, course: &CourseData) -> bool {
+    pub fn is_on_final_straight(&self, course: &CourseData) -> bool {
         match course.straights.last() {
             Some(last) => self.position >= last.start && self.position <= last.end,
             None => false,
@@ -719,18 +719,18 @@ pub fn update_first_position_in_late_race(runners: &mut [Runner], course_distanc
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::racing::runner::lifecycle::PrepareContext;
-    use crate::racing::runner::skills::FieldView;
-    use crate::racing::runner::test_support::{
+    use crate::runner::lifecycle::PrepareContext;
+    use crate::runner::skills::FieldView;
+    use crate::runner::test_support::{
         test_course, test_race_params, test_runner, test_whole_course,
     };
     use crate::shared_kernel::language::Strategy;
-    use crate::shared_kernel::params::{RaceParameters, SimulationMode};
+    use crate::shared_kernel::params::RaceParameters;
     use crate::shared_kernel::region::RegionList;
     use crate::shared_kernel::rng::Xoshiro256StarStar;
     use crate::skills::condition::catalog::build_catalog;
     use crate::skills::condition::language::ConditionParser;
-    use crate::skills::condition::ConditionCatalog;
+    use crate::skills::condition::{ConditionCatalog, ConditionResolution};
 
     /// Owned prerequisites for building a `PrepareContext` in tests.
     struct Prereqs {
@@ -755,7 +755,8 @@ mod tests {
         PrepareContext {
             course: &pre.course,
             base_speed: 20.0 - (pre.course.distance - 2000.0) / 1000.0,
-            mode: SimulationMode::Normal,
+            condition_resolution: ConditionResolution::Dynamic,
+            pos_keep_end_multiplier: 3.0,
             race_params: &pre.race_params,
             whole_course: &pre.whole_course,
             parser,
@@ -818,9 +819,16 @@ mod tests {
         assert_eq!(r.section_modifiers.len(), 25);
         // Base accelerations cached.
         assert!(r.base_accelerations.iter().all(|&a| a > 0.0));
-        // Conditions registered (read via the aggregate's producer helper).
-        assert_eq!(crate::racing::race::condition_value(&r, "blocked_side"), 1);
-        assert_eq!(crate::racing::race::condition_value(&r, "overtake"), 0);
+        // Conditions registered (read directly from the runner's state).
+        let condition_value = |name: &str| -> i32 {
+            r.condition_values.get(name).copied().unwrap_or_else(|| {
+                r.conditions
+                    .get(name)
+                    .map_or(0, |condition| condition.value_on_start())
+            })
+        };
+        assert_eq!(condition_value("blocked_side"), 1);
+        assert_eq!(condition_value("overtake"), 0);
     }
 
     #[test]

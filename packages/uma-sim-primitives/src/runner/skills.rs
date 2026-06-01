@@ -12,11 +12,10 @@
 //! activation call, so the borrow checker is satisfied and resolution order is
 //! irrelevant.
 
-use crate::racing::runner::lifecycle::PrepareContext;
-use crate::racing::runner::{Runner, UsedTargetedSkill};
+use crate::runner::lifecycle::PrepareContext;
+use crate::runner::{Runner, UsedTargetedSkill};
 use crate::shared_kernel::ids::SkillId;
 use crate::shared_kernel::math::Timer;
-use crate::shared_kernel::params::SimulationMode;
 use crate::shared_kernel::params::{RaceParameters, StatLine};
 use crate::shared_kernel::region::{Region, RegionList};
 use crate::skills::activation::ActivationSamplePolicy;
@@ -181,18 +180,6 @@ pub struct BuildSkillDataParams<'a> {
     pub resolution: ConditionResolution,
 }
 
-/// Map a simulation mode to the condition-resolution strategy the engine
-/// supplies to the condition language (ADR-0005 de-branch): the contested
-/// (`Normal`) engine resolves live dynamic predicates; the synthetic
-/// (`Compare`) engine resolves static approximate regions.
-fn condition_resolution_for(mode: SimulationMode) -> ConditionResolution {
-    if mode == SimulationMode::Normal {
-        ConditionResolution::Dynamic
-    } else {
-        ConditionResolution::Static
-    }
-}
-
 /// Build the [`SkillTrigger`]s for a pre-resolved skill.
 ///
 /// Port of `buildSkillData` (minus the service lookup / simulatable guard, which
@@ -347,7 +334,7 @@ impl Runner {
                 parser: ctx.parser,
                 skill,
                 ignore_null_effects: false,
-                resolution: condition_resolution_for(ctx.mode),
+                resolution: ctx.condition_resolution,
             });
             for trigger in triggers {
                 let base = trigger.skill_id.base().to_owned();
@@ -398,7 +385,7 @@ impl Runner {
                 parser: ctx.parser,
                 skill: &debuff.skill,
                 ignore_null_effects: false,
-                resolution: condition_resolution_for(ctx.mode),
+                resolution: ctx.condition_resolution,
             });
             for trigger in triggers {
                 let external: Vec<SkillEffect> = get_external_debuff_effects(&trigger.effects)
@@ -877,11 +864,11 @@ fn drain_expired_targeted(skills: &mut Vec<ActiveTargetedSkill>) -> Vec<f64> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::racing::runner::lifecycle::{CreateRunner, RunnerAptitudes};
-    use crate::racing::runner::test_support::{test_course, test_race_params, test_whole_course};
+    use crate::runner::lifecycle::{CreateRunner, RunnerAptitudes};
+    use crate::runner::test_support::{test_course, test_race_params, test_whole_course};
     use crate::shared_kernel::ids::{RunnerId, SkillId};
     use crate::shared_kernel::language::{Aptitude, GroundCondition, Mood, Strategy};
-    use crate::shared_kernel::params::{SimulationMode, StatLine};
+    use crate::shared_kernel::params::StatLine;
     use crate::shared_kernel::rng::Xoshiro256StarStar;
     use crate::skills::condition::catalog::build_catalog;
     use crate::skills::condition::language::ConditionParser;
@@ -1010,7 +997,8 @@ mod tests {
         let ctx = PrepareContext {
             course: &course,
             base_speed: 19.6,
-            mode: SimulationMode::Normal,
+            condition_resolution: ConditionResolution::Dynamic,
+            pos_keep_end_multiplier: 3.0,
             race_params: &rp,
             whole_course: &wc,
             parser: &parser,
@@ -1057,7 +1045,7 @@ mod tests {
     #[test]
     fn injected_debuff_queues_fixed_position_targeted_skill() {
         let mut r = runner_with_skills(vec![]);
-        r.injected_debuffs = vec![crate::racing::runner::InjectedDebuff {
+        r.injected_debuffs = vec![crate::runner::InjectedDebuff {
             skill: debuff_skill("700001"),
             position: 800.0,
         }];
@@ -1079,7 +1067,7 @@ mod tests {
         skill.alternatives[0].effects[0].target = SkillTarget::SelfTarget;
         skill.alternatives[0].effects[0].modifier = 5000.0;
         let mut r = runner_with_skills(vec![]);
-        r.injected_debuffs = vec![crate::racing::runner::InjectedDebuff {
+        r.injected_debuffs = vec![crate::runner::InjectedDebuff {
             skill,
             position: 800.0,
         }];

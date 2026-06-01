@@ -17,15 +17,16 @@
 use std::collections::HashMap;
 
 use crate::course::model::CourseData;
-use crate::racing::position_keep::initialize_position_keep;
-use crate::racing::runner::{ForcedRank, ForcedRegion, InjectedDebuff, Runner};
+use crate::position_keep::initialize_position_keep;
+use crate::runner::{ForcedRank, ForcedRegion, InjectedDebuff, Runner};
 use crate::shared_kernel::ids::RunnerId;
 use crate::shared_kernel::language::{Aptitude, GroundCondition, Mood, Phase, Strategy};
 use crate::shared_kernel::math::Timer;
-use crate::shared_kernel::params::{RaceParameters, SimulationMode, StatLine};
+use crate::shared_kernel::params::{RaceParameters, StatLine};
 use crate::shared_kernel::region::RegionList;
 use crate::shared_kernel::rng::{Prng, Xoshiro256StarStar};
 use crate::skills::condition::language::ConditionParser;
+use crate::skills::condition::ConditionResolution;
 use crate::skills::effect::PositionKeepState;
 use crate::skills::model::Skill;
 use crate::stamina::policy::{StaminaPolicy, StaminaStats};
@@ -88,8 +89,13 @@ pub struct PrepareContext<'a> {
     pub course: &'a CourseData,
     /// Course base speed (`20 - (distance - 2000) / 1000`).
     pub base_speed: f64,
-    /// Simulation mode (drives the position-keep window length).
-    pub mode: SimulationMode,
+    /// Engine-supplied condition-resolution strategy (dynamic vs static).
+    /// The contested engine resolves live dynamic predicates; the synthetic
+    /// engine resolves static approximate regions.
+    pub condition_resolution: ConditionResolution,
+    /// Engine-supplied position-keep window multiplier (×3 contested, ×10
+    /// synthetic) applied to the section length to derive `pos_keep_end`.
+    pub pos_keep_end_multiplier: f64,
     /// Race-wide parameters read by static skill conditions.
     pub race_params: &'a RaceParameters,
     /// The whole course as a region list (`[0, distance)`).
@@ -314,7 +320,7 @@ impl Runner {
         self.initialize_downhill_mode();
         self.initialize_dueling();
         self.initialize_spot_struggle();
-        initialize_position_keep(self, course_distance, ctx.mode);
+        initialize_position_keep(self, course_distance, ctx.pos_keep_end_multiplier);
         self.initialize_health_policy();
         self.initialize_base_accelerations(course);
         self.register_approximate_conditions();
@@ -353,7 +359,7 @@ impl Runner {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::racing::runner::test_support::{test_race_params, test_whole_course};
+    use crate::runner::test_support::{test_race_params, test_whole_course};
     use crate::shared_kernel::language::{DistanceType, Orientation, Surface};
     use crate::skills::condition::catalog::build_catalog;
     use crate::stamina::game_policy::GameStaminaPolicy;
@@ -441,7 +447,8 @@ mod tests {
         let ctx = PrepareContext {
             course: &course,
             base_speed: 19.6,
-            mode: SimulationMode::Normal,
+            condition_resolution: ConditionResolution::Dynamic,
+            pos_keep_end_multiplier: 3.0,
             race_params: &rp,
             whole_course: &wc,
             parser: &parser,
@@ -476,7 +483,8 @@ mod tests {
         let ctx = PrepareContext {
             course: &course,
             base_speed: 19.6,
-            mode: SimulationMode::Normal,
+            condition_resolution: ConditionResolution::Dynamic,
+            pos_keep_end_multiplier: 3.0,
             race_params: &rp,
             whole_course: &wc,
             parser: &parser,

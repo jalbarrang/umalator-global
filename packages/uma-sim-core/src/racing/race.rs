@@ -37,7 +37,7 @@ use crate::skills::condition::dynamic::{
     register_all_dynamic_conditions, ActiveRunner, RunnerSnapshot as DynRunnerSnapshot,
 };
 use crate::skills::condition::language::ConditionParser;
-use crate::skills::condition::ConditionCatalog;
+use crate::skills::condition::{ConditionCatalog, ConditionResolution};
 use crate::stamina::game_policy::GameStaminaPolicy;
 use crate::stamina::policy::{NoopStaminaPolicy, StaminaPolicy};
 
@@ -302,10 +302,21 @@ impl Race {
                 .stamina_drain_overrides
                 .clone_from(&self.settings.stamina_drain_overrides);
 
+            let condition_resolution = if self.settings.mode == SimulationMode::Normal {
+                ConditionResolution::Dynamic
+            } else {
+                ConditionResolution::Static
+            };
+            let pos_keep_end_multiplier = if self.settings.mode == SimulationMode::Compare {
+                10.0
+            } else {
+                3.0
+            };
             let ctx = PrepareContext {
                 course: &self.course,
                 base_speed,
-                mode: self.settings.mode,
+                condition_resolution,
+                pos_keep_end_multiplier,
                 race_params: &self.race_params,
                 whole_course: &self.whole_course,
                 parser: &parser,

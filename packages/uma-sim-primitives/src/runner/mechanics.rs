@@ -9,8 +9,8 @@
 //! activation** are coordinated by the aggregate (t-017) since they observe /
 //! mutate the rest of the field. Each runner's self-side exit logic lives here.
 
-use crate::racing::runner::physics::{DuelingInput, FieldInputs, UpdateContext};
-use crate::racing::runner::Runner;
+use crate::runner::physics::{DuelingInput, FieldInputs, UpdateContext};
+use crate::runner::Runner;
 use crate::shared_kernel::language::{strategy_matches, Strategy};
 use crate::stamina::policy::RaceStateSlice;
 
@@ -464,7 +464,7 @@ impl Runner {
 
 #[cfg(test)]
 mod tests {
-    use crate::racing::runner::test_support::test_runner;
+    use crate::runner::test_support::test_runner;
     use crate::shared_kernel::language::Strategy;
 
     #[test]

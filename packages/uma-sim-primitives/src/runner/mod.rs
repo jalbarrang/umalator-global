@@ -437,10 +437,10 @@ pub struct Runner {
 }
 
 /// Shared constructors for unit tests across the `racing` context.
-#[cfg(test)]
+#[cfg(any(test, feature = "test-support"))]
 pub mod test_support {
     use super::Runner;
-    use crate::racing::runner::lifecycle::{CreateRunner, RunnerAptitudes};
+    use crate::runner::lifecycle::{CreateRunner, RunnerAptitudes};
     use crate::shared_kernel::ids::RunnerId;
     use crate::shared_kernel::language::{
         Aptitude, DistanceType, Grade, GroundCondition, Mood, Orientation, Season, Strategy,

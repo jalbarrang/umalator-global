@@ -12,6 +12,11 @@ serde = { version = "1", features = ["derive"] }
 rand_xoshiro = "0.7"
 rand_core = "0.9"
 
+[features]
+# Exposes the `runner::test_support` fixtures to downstream crates' tests
+# (cfg(test) does not cross the crate boundary). Off by default.
+test-support = []
+
 [dev-dependencies]
 serde_json = "1"
 

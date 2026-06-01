@@ -19,6 +19,14 @@
 //!   debuff/recovery resolution. Reads live race state only through the
 //!   read-only view traits it defines, never by depending on an engine.
 //!
+//! - [`stamina`] — HP budget policy (strategy object) + last-spurt domain
+//!   service; pure functions of resolved race-state slices.
+//! - [`runner`] — the shared `Runner` **state** + the pure per-tick **step
+//!   kernel** (`Runner::on_update`) and prepare/init lifecycle. The step
+//!   consumes a pre-resolved [`FieldInputs`](runner::physics::FieldInputs);
+//!   it never asks whether a real field exists.
+//! - [`position_keep`] — the virtual position-keep state machine: pure
+//!   functions over a `&mut Runner` plus an engine-built context.
 //! - [`projection`] — pure read-model helpers that reconcile per-tick active
 //!   effect snapshots into `[start, end]` activation logs.
 //!
@@ -30,5 +38,10 @@ pub mod shared_kernel;
 
 pub mod course;
 pub mod skills;
+
+pub mod stamina;
+
+pub mod position_keep;
+pub mod runner;
 
 pub mod projection;

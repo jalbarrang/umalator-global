@@ -8,10 +8,9 @@
 //! read of the rest of the field, sidestepping the TS `runner.race` back-pointer.
 
 use crate::course::coefficients::position_keep;
-use crate::racing::runner::{PositionKeepActivation, Runner};
+use crate::runner::{PositionKeepActivation, Runner};
 use crate::shared_kernel::language::{strategy_matches, Strategy};
 use crate::shared_kernel::math::Timer;
-use crate::shared_kernel::params::SimulationMode;
 use crate::skills::effect::PositionKeepState;
 
 /// The `positionKeepMode` value enabling virtual position keeping.
@@ -65,19 +64,17 @@ pub fn update_position_keep_coefficient(runner: &mut Runner) {
     };
 }
 
-/// The position past which position keeping stops (×10 in compare mode, ×3 in
-/// normal mode).
-pub fn calculate_pos_keep_end(section_length: f64, mode: SimulationMode) -> f64 {
-    let multiplier = if mode == SimulationMode::Compare {
-        10.0
-    } else {
-        3.0
-    };
+/// The position past which position keeping stops. The engine supplies the
+/// window `multiplier` (×3 contested, ×10 synthetic) applied to the section
+/// length — the domain service no longer knows the simulation paradigm.
+pub fn calculate_pos_keep_end(section_length: f64, multiplier: f64) -> f64 {
     section_length * multiplier
 }
 
-/// Reset the position-keep state for a fresh round.
-pub fn initialize_position_keep(runner: &mut Runner, course_distance: f64, mode: SimulationMode) {
+/// Reset the position-keep state for a fresh round. `end_multiplier` is the
+/// engine-supplied position-keep window multiplier (see
+/// [`calculate_pos_keep_end`]).
+pub fn initialize_position_keep(runner: &mut Runner, course_distance: f64, end_multiplier: f64) {
     runner.position_keep_state = PositionKeepState::None;
     runner.pos_keep_next_timer = Timer::new(0.0);
     runner.pos_keep_speed_coef = 1.0;
@@ -86,7 +83,7 @@ pub fn initialize_position_keep(runner: &mut Runner, course_distance: f64, mode:
     runner.pos_keep_min_threshold = position_keep::min_threshold(runner.strategy, course_distance);
     runner.pos_keep_max_threshold = position_keep::max_threshold(runner.strategy, course_distance);
     runner.position_keep_activations = Vec::new();
-    runner.pos_keep_end = calculate_pos_keep_end(runner.section_length, mode);
+    runner.pos_keep_end = calculate_pos_keep_end(runner.section_length, end_multiplier);
 }
 
 /// Exit the current state, back-filling the last activation's end position and
@@ -294,7 +291,7 @@ pub fn apply_virtual_position_keep(runner: &mut Runner, ctx: &PositionKeepContex
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::racing::runner::test_support::test_runner;
+    use crate::runner::test_support::test_runner;
 
     fn runner(strategy: Strategy, position: f64) -> Runner {
         let mut r = test_runner(0, strategy);
@@ -329,18 +326,15 @@ mod tests {
     }
 
     #[test]
-    fn pos_keep_end_scales_with_mode() {
-        assert_eq!(
-            calculate_pos_keep_end(100.0, SimulationMode::Compare),
-            1000.0
-        );
-        assert_eq!(calculate_pos_keep_end(100.0, SimulationMode::Normal), 300.0);
+    fn pos_keep_end_scales_with_multiplier() {
+        assert_eq!(calculate_pos_keep_end(100.0, 10.0), 1000.0);
+        assert_eq!(calculate_pos_keep_end(100.0, 3.0), 300.0);
     }
 
     #[test]
     fn initialize_sets_thresholds_and_end() {
         let mut r = runner(Strategy::PaceChaser, 0.0);
-        initialize_position_keep(&mut r, 2400.0, SimulationMode::Normal);
+        initialize_position_keep(&mut r, 2400.0, 3.0);
         assert_eq!(r.position_keep_state, PositionKeepState::None);
         assert_eq!(r.pos_keep_end, 300.0);
         assert!(r.pos_keep_max_threshold > r.pos_keep_min_threshold);
@@ -366,7 +360,7 @@ mod tests {
     fn pace_chaser_paces_up_when_too_far_behind() {
         let mut r = runner(Strategy::PaceChaser, 50.0);
         r.is_rushed = true; // force the wit check to pass deterministically
-        initialize_position_keep(&mut r, 2400.0, SimulationMode::Normal);
+        initialize_position_keep(&mut r, 2400.0, 3.0);
         // Pacer far ahead -> behind exceeds max threshold.
         let c = ctx(Some(50.0 + r.pos_keep_max_threshold + 10.0), false, None);
         apply_virtual_position_keep(&mut r, &c);
@@ -379,7 +373,7 @@ mod tests {
     fn pace_chaser_paces_down_when_too_close() {
         let mut r = runner(Strategy::PaceChaser, 50.0);
         r.is_rushed = true;
-        initialize_position_keep(&mut r, 2400.0, SimulationMode::Normal);
+        initialize_position_keep(&mut r, 2400.0, 3.0);
         // Pacer barely ahead -> behind below min threshold, no active speed skills.
         let c = ctx(Some(50.0 + r.pos_keep_min_threshold - 0.5), false, None);
         apply_virtual_position_keep(&mut r, &c);
@@ -389,7 +383,7 @@ mod tests {
     #[test]
     fn no_pacer_and_no_forced_rank_is_noop() {
         let mut r = runner(Strategy::PaceChaser, 50.0);
-        initialize_position_keep(&mut r, 2400.0, SimulationMode::Normal);
+        initialize_position_keep(&mut r, 2400.0, 3.0);
         let c = ctx(None, false, None);
         apply_virtual_position_keep(&mut r, &c);
         assert_eq!(r.position_keep_state, PositionKeepState::None);
@@ -398,7 +392,7 @@ mod tests {
     #[test]
     fn pace_up_exits_when_caught_up() {
         let mut r = runner(Strategy::PaceChaser, 50.0);
-        initialize_position_keep(&mut r, 2400.0, SimulationMode::Normal);
+        initialize_position_keep(&mut r, 2400.0, 3.0);
         r.position_keep_state = PositionKeepState::PaceUp;
         r.pos_keep_exit_position = 1000.0;
         r.pos_keep_exit_distance = 5.0;
@@ -419,7 +413,7 @@ mod tests {
     fn front_runner_pacer_speeds_up_when_lead_is_small() {
         let mut r = runner(Strategy::FrontRunner, 200.0);
         r.is_rushed = true;
-        initialize_position_keep(&mut r, 2400.0, SimulationMode::Normal);
+        initialize_position_keep(&mut r, 2400.0, 3.0);
         // Self is pacer; second place only 3m behind (< 4.5 threshold).
         let c = ctx(Some(200.0), true, Some(197.0));
         apply_virtual_position_keep(&mut r, &c);
