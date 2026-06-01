@@ -6,7 +6,7 @@
 
 use std::collections::HashMap;
 
-use crate::racing::runner::lifecycle::{CreateRunner, RunnerAptitudes};
+use crate::runner::lifecycle::{CreateRunner, RunnerAptitudes};
 use crate::shared_kernel::language::{Aptitude, Mood, Strategy};
 use crate::shared_kernel::params::StatLine;
 

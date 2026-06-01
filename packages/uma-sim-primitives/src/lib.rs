@@ -44,4 +44,10 @@ pub mod stamina;
 pub mod position_keep;
 pub mod runner;
 
+// Field-agnostic race-orchestration support shared by both engines (ADR-0005):
+// the observer port + read-model views, pacer selection, and mob field gen.
+pub mod events;
+pub mod mob;
+pub mod pacing;
+
 pub mod projection;

@@ -18,7 +18,7 @@ use crate::shared_kernel::ids::RunnerId;
 // `uma-sim-primitives` (ADR-0005 step 4) alongside the effect-log reconciliation
 // helpers. Re-exported here so existing `racing::events::ActiveEffectView` paths
 // keep resolving.
-pub use uma_sim_primitives::projection::ActiveEffectView;
+pub use crate::projection::ActiveEffectView;
 
 /// One entry from a runner's used-targeted-skill log.
 #[derive(Debug, Clone, PartialEq)]

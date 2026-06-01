@@ -6,7 +6,7 @@
 //! runner's `position_keep_strategy` promoted to Front Runner, which the caller
 //! applies via [`PacerSelection::promote_to_front_runner`].
 
-use crate::racing::runner::Runner;
+use crate::runner::Runner;
 use crate::shared_kernel::ids::RunnerId;
 use crate::shared_kernel::language::{strategy_matches, Strategy};
 
@@ -98,7 +98,7 @@ pub fn select_pacer(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::racing::runner::test_support::test_runner;
+    use crate::runner::test_support::test_runner;
 
     fn runner(id: u32, strategy: Strategy, position: f64) -> Runner {
         let mut r = test_runner(id, strategy);

@@ -16,6 +16,7 @@
 
 pub mod lifecycle;
 pub mod mechanics;
+pub mod observation;
 pub mod physics;
 pub mod skills;
 pub mod stats;

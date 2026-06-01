@@ -5,5 +5,9 @@
 //! rules of its own.
 
 pub mod collectors;
-pub mod mob;
 pub mod simulation;
+
+// Mob (NPC) field generation moved to `uma-sim-primitives` (ADR-0005,
+// field-agnostic shared support). Re-exported so `crate::application::mob::…`
+// paths keep resolving.
+pub use uma_sim_primitives::mob;
