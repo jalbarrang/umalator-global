@@ -110,42 +110,89 @@ pub struct UpdateContext<'a> {
     pub dueling_rates: Option<DuelingRates>,
 }
 
+/// Resolved dueling input (ADR-0005 data seam).
+///
+/// The step never asks which paradigm produced this; it only reacts to the
+/// resolved variant. In a contested field dueling is decided by the aggregate
+/// proximity coordinator (the step does nothing); in a synthetic field the step
+/// runs artificial dueling with the per-strategy rates (which may be absent).
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum DuelingInput {
+    /// Contested field: the aggregate coordinator drives proximity dueling.
+    Coordinated,
+    /// Synthetic field: run artificial dueling with these per-strategy rates.
+    Artificial(Option<DuelingRates>),
+}
+
+/// Resolved skill-trigger inputs (ADR-0005 data seam).
+///
+/// Its own structured type rather than a flat scalar, kept cheap by borrowing
+/// the field view so the per-tick step allocates nothing. In a contested field
+/// this is the live snapshot-derived view; in a synthetic field it is the
+/// trivial at-gate view (dynamic conditions were pre-resolved to static regions
+/// at prepare time).
+#[derive(Debug, Clone, Copy)]
+pub struct SkillTriggerInputs<'a> {
+    /// The field view dynamic skill conditions are evaluated against.
+    pub field: &'a FieldView,
+}
+
 /// Field-presence-dependent inputs the pure step consumes, **already resolved**
 /// by whoever owns the field (ADR-0005 data seam).
 ///
 /// The step never asks whether a real field exists; it only reads these
-/// resolved values. Today both are produced inside [`Runner::resolve_field_inputs`]
+/// resolved values. Today they are produced inside [`Runner::resolve_field_inputs`]
 /// (single engine); under the split each engine will produce them its own way
 /// (the contested engine from the live snapshot, the vacuum engine from
-/// approximate condition values), with no paradigm branch in the step itself.
+/// approximate condition values / synthetic rates), with no paradigm branch in
+/// the step itself.
 ///
-/// Scalars are kept flat per ADR-0005; the (future) resolved skill-trigger set
-/// will be its own structured type rather than another scalar here.
-#[derive(Debug, Clone, Copy, Default, PartialEq)]
-pub struct FieldInputs {
+/// Touch-point scalars are kept flat per ADR-0005; the resolved dueling and
+/// skill-trigger sets are their own structured types.
+#[derive(Debug, Clone, Copy)]
+pub struct FieldInputs<'a> {
     /// Whether a runner blocks this one to the side (caps inward lane drift).
     pub side_blocked: bool,
     /// Whether this runner is overtaking (pushes the target lane outward).
     pub overtaking: bool,
+    /// Resolved dueling input (coordinated vs synthetic).
+    pub dueling: DuelingInput,
+    /// Resolved pacer / position-keep inputs the virtual pos-keep step consumes.
+    pub position_keep: PositionKeepContext,
+    /// Resolved skill-trigger inputs the skill-activation step consumes.
+    pub skill_triggers: SkillTriggerInputs<'a>,
 }
 
 impl Runner {
     /// Resolve the [`FieldInputs`] for this tick.
     ///
     /// This is the *input-production* seam: in `Normal` the values come from the
-    /// live field snapshot; in `Compare` from approximate condition values. The
-    /// `mode` branch lives **here**, not in the step that consumes the result.
-    fn resolve_field_inputs(&self, ctx: &UpdateContext<'_>) -> FieldInputs {
-        if ctx.mode == SimulationMode::Normal {
-            FieldInputs {
-                side_blocked: self.has_side_blocking_runner(ctx),
-                overtaking: self.is_overtaking_runner(ctx),
-            }
+    /// live field snapshot; in `Compare` from approximate condition values /
+    /// synthetic rates. The `mode` branch lives **here**, not in the step that
+    /// consumes the result.
+    fn resolve_field_inputs<'a>(&self, ctx: &UpdateContext<'a>) -> FieldInputs<'a> {
+        let (side_blocked, overtaking) = if ctx.mode == SimulationMode::Normal {
+            (
+                self.has_side_blocking_runner(ctx),
+                self.is_overtaking_runner(ctx),
+            )
         } else {
-            FieldInputs {
-                side_blocked: self.get_condition_value("blocked_side") == 1,
-                overtaking: self.get_condition_value("overtake") == 1,
-            }
+            (
+                self.get_condition_value("blocked_side") == 1,
+                self.get_condition_value("overtake") == 1,
+            )
+        };
+        let dueling = if ctx.mode == SimulationMode::Normal {
+            DuelingInput::Coordinated
+        } else {
+            DuelingInput::Artificial(ctx.dueling_rates)
+        };
+        FieldInputs {
+            side_blocked,
+            overtaking,
+            dueling,
+            position_keep: ctx.position_keep,
+            skill_triggers: SkillTriggerInputs { field: ctx.field },
         }
     }
     /// Advance the runner one `dt`-second step.
@@ -169,17 +216,24 @@ impl Runner {
         // Logic chunks (TS order).
         self.update_hills();
         self.update_phase(ctx.course.distance);
+        // Resolve all field-presence-dependent inputs up front (ADR-0005 data
+        // seam). The rest of the step consumes this pure data and never asks
+        // whether a real field exists. Resolving here is behavior-identical:
+        // every value read by the producer (condition values, snapshot-derived
+        // proximity, pacer/field context, dueling rates) is stable across the
+        // remainder of the tick.
+        let field_inputs = self.resolve_field_inputs(ctx);
+
         self.update_rushed(); // t-016
         self.update_downhill_mode(ctx.downhill_enabled); // t-016
-        self.process_skill_activations(ctx.field, ctx.course.distance); // t-015
+        self.process_skill_activations(field_inputs.skill_triggers.field, ctx.course.distance); // t-015
         self.process_targeted_skill_activations(ctx.course.distance); // t-015
-        apply_virtual_position_keep(self, &ctx.position_keep);
-        self.update_dueling(ctx); // t-016
+        apply_virtual_position_keep(self, &field_inputs.position_keep);
+        self.update_dueling(&field_inputs, ctx); // t-016
         self.update_spot_struggle(ctx); // t-016
         self.update_last_spurt_state(); // t-016
         self.update_target_speed();
         self.apply_forces();
-        let field_inputs = self.resolve_field_inputs(ctx);
         self.apply_lane_movement(&field_inputs, ctx);
 
         // ---- integrate speed ----
@@ -398,7 +452,7 @@ impl Runner {
     }
 
     /// Update lateral lane position (and side-block / overtake telemetry).
-    fn apply_lane_movement(&mut self, field_inputs: &FieldInputs, ctx: &UpdateContext<'_>) {
+    fn apply_lane_movement(&mut self, field_inputs: &FieldInputs<'_>, ctx: &UpdateContext<'_>) {
         let course = ctx.course;
         let current_lane = self.current_lane;
 

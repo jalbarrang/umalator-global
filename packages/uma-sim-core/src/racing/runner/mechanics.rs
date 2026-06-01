@@ -9,7 +9,7 @@
 //! activation** are coordinated by the aggregate (t-017) since they observe /
 //! mutate the rest of the field. Each runner's self-side exit logic lives here.
 
-use crate::racing::runner::physics::UpdateContext;
+use crate::racing::runner::physics::{DuelingInput, FieldInputs, UpdateContext};
 use crate::racing::runner::Runner;
 use crate::shared_kernel::language::{strategy_matches, Strategy};
 use crate::stamina::policy::RaceStateSlice;
@@ -258,7 +258,11 @@ impl Runner {
     /// `updateDueling`. Resolves forced regions, self-exit, gating, and the
     /// compare-mode artificial path. Normal-mode proximity dueling is coordinated
     /// by the aggregate (t-017).
-    pub(crate) fn update_dueling(&mut self, ctx: &UpdateContext<'_>) {
+    pub(crate) fn update_dueling(
+        &mut self,
+        field_inputs: &FieldInputs<'_>,
+        ctx: &UpdateContext<'_>,
+    ) {
         if self.update_forced_dueling() {
             return;
         }
@@ -281,10 +285,11 @@ impl Runner {
             return;
         }
 
-        if ctx.mode == crate::shared_kernel::params::SimulationMode::Compare {
-            self.artificial_dueling(ctx.dueling_rates);
+        match field_inputs.dueling {
+            DuelingInput::Artificial(rates) => self.artificial_dueling(rates),
+            // Contested-field proximity dueling is handled by the aggregate coordinator.
+            DuelingInput::Coordinated => {}
         }
-        // Normal-mode proximity dueling is handled by the aggregate coordinator.
     }
 
     fn update_forced_dueling(&mut self) -> bool {
