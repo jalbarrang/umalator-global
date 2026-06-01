@@ -5,19 +5,15 @@ edition.workspace = true
 license.workspace = true
 repository.workspace = true
 publish.workspace = true
-description = "WebAssembly adapter for the uma-sim-core race simulation engine."
-
-# The bindings are still scaffolding (implemented in plan task t-019). Until
-# then these deps are declared but not yet referenced; cargo-machete would flag
-# them as unused. Remove this block when t-019 wires up the wasm-bindgen API.
-[package.metadata.cargo-machete]
-ignored = ["uma-sim-core", "wasm-bindgen", "serde", "serde-wasm-bindgen", "js-sys"]
+description = "WebAssembly adapter for the uma-sim race simulation engines (contested + vacuum)."
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-uma-sim-core = { path = "../uma-sim-core" }
+uma-sim-primitives = { path = "../uma-sim-primitives" }
+uma-sim-race = { path = "../uma-sim-race" }
+uma-sim-vacuum = { path = "../uma-sim-vacuum" }
 wasm-bindgen = "0.2"
 serde = { version = "1", features = ["derive"] }
 serde-wasm-bindgen = "0.6"
