@@ -6,8 +6,8 @@
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
-/// Identity of a [`Runner`](crate::racing::runner) within a race. Assigned by
-/// the `Race` aggregate in insertion order.
+/// Identity of a `Runner` within a race. Assigned by the `Race` aggregate in
+/// insertion order.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct RunnerId(pub u32);
 

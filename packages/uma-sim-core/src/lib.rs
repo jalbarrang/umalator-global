@@ -26,9 +26,12 @@
 //! conditions) it does so through read-only view traits defined inside the condition
 //! sub-domain, which `racing` implements — never by depending on the `racing` module.
 
-pub mod shared_kernel;
+// `shared_kernel` and `course` were extracted into the `uma-sim-primitives`
+// crate (ADR-0005 step 3, pure move). They are re-exported here so that
+// `crate::shared_kernel::…` / `crate::course::…` paths throughout this crate
+// (and downstream `uma_sim_core::…` callers) keep resolving unchanged.
+pub use uma_sim_primitives::{course, shared_kernel};
 
-pub mod course;
 pub mod skills;
 pub mod stamina;
 

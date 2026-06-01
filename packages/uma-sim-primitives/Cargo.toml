@@ -1,25 +1,19 @@
 [package]
-name = "uma-sim-core"
+name = "uma-sim-primitives"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
 publish.workspace = true
-description = "Deterministic Uma Musume race simulation domain (DDD core library)."
+description = "Pure shared primitives for the Uma Musume race simulation: cross-context value objects (RNG, IDs, regions, math, ubiquitous-language enums) and course leaf formulas (coefficients, phase, geometry)."
 
 [dependencies]
-uma-sim-primitives = { path = "../uma-sim-primitives" }
 serde = { version = "1", features = ["derive"] }
 rand_xoshiro = "0.7"
 rand_core = "0.9"
 
 [dev-dependencies]
-criterion = "0.5"
 serde_json = "1"
-
-[[bench]]
-name = "race_sim"
-harness = false
 
 [lints]
 workspace = true
