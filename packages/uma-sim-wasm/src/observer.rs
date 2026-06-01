@@ -6,7 +6,7 @@ use js_sys::Function;
 use serde::Serialize;
 use wasm_bindgen::JsValue;
 
-use uma_sim_core::racing::events::{RaceObservation, RaceObserver, RunnerObservation};
+use uma_sim_primitives::events::{RaceObservation, RaceObserver, RunnerObservation};
 
 /// The per-tick snapshot handed to the `after_runner_tick` JS callback.
 #[derive(Debug, Clone, Serialize)]

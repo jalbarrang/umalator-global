@@ -10,26 +10,25 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-use uma_sim_core::application::collectors::{
-    CollectedData, CompareData, CompareRoundData, EffectPerspective, RaceEventLog, RaceLogEvent,
-    RaceLogEventKind, SkillEffectLog,
-};
-use uma_sim_core::application::simulation::{
-    CompareSimParams, FinishEntry, RaceSimParams, RaceSimResult,
-};
-use uma_sim_core::course::model::{Corner, CourseData, Slope, Straight};
-use uma_sim_core::racing::race::SimulationSettings;
-use uma_sim_core::racing::runner::lifecycle::{CreateRunner, RunnerAptitudes};
-use uma_sim_core::racing::runner::mechanics::DuelingRates;
-use uma_sim_core::racing::runner::{ForcedRank, ForcedRegion, InjectedDebuff};
-use uma_sim_core::shared_kernel::ids::{RunnerId, SkillId};
-use uma_sim_core::shared_kernel::language::{
+use uma_sim_primitives::course::model::{Corner, CourseData, Slope, Straight};
+use uma_sim_primitives::projection::{EffectPerspective, SkillEffectLog};
+use uma_sim_primitives::runner::lifecycle::{CreateRunner, RunnerAptitudes};
+use uma_sim_primitives::runner::mechanics::DuelingRates;
+use uma_sim_primitives::runner::{ForcedRank, ForcedRegion, InjectedDebuff};
+use uma_sim_primitives::shared_kernel::ids::{RunnerId, SkillId};
+use uma_sim_primitives::shared_kernel::language::{
     Aptitude, DistanceType, Grade, GroundCondition, Mood, Orientation, Season, Strategy, Surface,
     ThresholdStat, TimeOfDay, Weather,
 };
-use uma_sim_core::shared_kernel::params::{RaceParameters, SimulationMode, StatLine};
-use uma_sim_core::skills::effect::{SkillRarity, SkillTarget};
-use uma_sim_core::skills::model::{RawSkillEffect, Skill, SkillAlternative};
+use uma_sim_primitives::shared_kernel::params::{RaceParameters, StatLine};
+use uma_sim_primitives::skills::effect::{SkillRarity, SkillTarget};
+use uma_sim_primitives::skills::model::{RawSkillEffect, Skill, SkillAlternative};
+use uma_sim_race::collectors::{CollectedData, RaceEventLog, RaceLogEvent, RaceLogEventKind};
+use uma_sim_race::simulation::{FinishEntry, RaceSimParams, RaceSimResult};
+use uma_sim_race::SimulationSettings as RaceSettings;
+use uma_sim_vacuum::collectors::{CompareData, CompareRoundData};
+use uma_sim_vacuum::simulation::CompareSimParams;
+use uma_sim_vacuum::SimulationSettings as VacuumSettings;
 
 /// An invalid value crossing the JS boundary.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -177,14 +176,6 @@ fn to_grade(v: i32) -> Result<Grade, DtoError> {
         900 => Ok(Grade::Debut),
         999 => Ok(Grade::Daily),
         _ => Err(invalid("grade", v)),
-    }
-}
-
-fn to_sim_mode(v: &str) -> SimulationMode {
-    if v.eq_ignore_ascii_case("compare") {
-        SimulationMode::Compare
-    } else {
-        SimulationMode::Normal
     }
 }
 
@@ -643,7 +634,7 @@ pub struct WasmRaceParameters {
 }
 
 impl WasmRaceParameters {
-    fn to_domain(&self, mode: SimulationMode) -> Result<RaceParameters, DtoError> {
+    fn to_domain(&self) -> Result<RaceParameters, DtoError> {
         Ok(RaceParameters {
             ground: to_ground(self.ground)?,
             weather: to_weather(self.weather)?,
@@ -655,7 +646,6 @@ impl WasmRaceParameters {
             skill_id: None,
             strategy_counts: None,
             common_skills: None,
-            mode,
         })
     }
 }
@@ -699,43 +689,67 @@ pub struct WasmSettings {
     pub stamina_drain_overrides: Option<HashMap<String, f64>>,
 }
 
+/// Resolved engine-agnostic toggle values (the `mode` string is ignored: the
+/// engine is selected by which entry point is called, not a runtime flag).
+struct ResolvedSettings {
+    health_system: bool,
+    section_modifier: bool,
+    rushed: bool,
+    downhill: bool,
+    spot_struggle: bool,
+    dueling: bool,
+    wit_checks: bool,
+    position_keep_mode: i32,
+    skill_samples: usize,
+    stamina_drain_overrides: HashMap<String, f64>,
+}
+
 impl WasmSettings {
-    fn into_domain(self) -> SimulationSettings {
-        let mut s = SimulationSettings::default();
-        if let Some(mode) = &self.mode {
-            s.mode = to_sim_mode(mode);
+    fn resolve(self) -> ResolvedSettings {
+        ResolvedSettings {
+            health_system: self.health_system.unwrap_or(true),
+            section_modifier: self.section_modifier.unwrap_or(true),
+            rushed: self.rushed.unwrap_or(true),
+            downhill: self.downhill.unwrap_or(true),
+            spot_struggle: self.spot_struggle.unwrap_or(true),
+            dueling: self.dueling.unwrap_or(true),
+            wit_checks: self.wit_checks.unwrap_or(true),
+            position_keep_mode: self.position_keep_mode.unwrap_or(2),
+            skill_samples: self.skill_samples.map_or(1, |v| v.max(1)),
+            stamina_drain_overrides: self.stamina_drain_overrides.unwrap_or_default(),
         }
-        if let Some(v) = self.health_system {
-            s.health_system = v;
+    }
+
+    fn into_race_settings(self) -> RaceSettings {
+        let r = self.resolve();
+        RaceSettings {
+            health_system: r.health_system,
+            section_modifier: r.section_modifier,
+            rushed: r.rushed,
+            downhill: r.downhill,
+            spot_struggle: r.spot_struggle,
+            dueling: r.dueling,
+            wit_checks: r.wit_checks,
+            position_keep_mode: r.position_keep_mode,
+            skill_samples: r.skill_samples,
+            stamina_drain_overrides: r.stamina_drain_overrides,
         }
-        if let Some(v) = self.rushed {
-            s.rushed = v;
+    }
+
+    fn into_vacuum_settings(self) -> VacuumSettings {
+        let r = self.resolve();
+        VacuumSettings {
+            health_system: r.health_system,
+            section_modifier: r.section_modifier,
+            rushed: r.rushed,
+            downhill: r.downhill,
+            spot_struggle: r.spot_struggle,
+            dueling: r.dueling,
+            wit_checks: r.wit_checks,
+            position_keep_mode: r.position_keep_mode,
+            skill_samples: r.skill_samples,
+            stamina_drain_overrides: r.stamina_drain_overrides,
         }
-        if let Some(v) = self.downhill {
-            s.downhill = v;
-        }
-        if let Some(v) = self.spot_struggle {
-            s.spot_struggle = v;
-        }
-        if let Some(v) = self.dueling {
-            s.dueling = v;
-        }
-        if let Some(v) = self.wit_checks {
-            s.wit_checks = v;
-        }
-        if let Some(v) = self.skill_samples {
-            s.skill_samples = v.max(1);
-        }
-        if let Some(v) = self.section_modifier {
-            s.section_modifier = v;
-        }
-        if let Some(v) = self.position_keep_mode {
-            s.position_keep_mode = v;
-        }
-        if let Some(v) = self.stamina_drain_overrides {
-            s.stamina_drain_overrides = v;
-        }
-        s
     }
 }
 
@@ -792,8 +806,8 @@ pub struct WasmCompareParams {
 impl WasmCompareParams {
     /// Convert to the domain [`CompareSimParams`].
     pub fn into_domain(self) -> Result<CompareSimParams, DtoError> {
-        let settings = self.settings.into_domain();
-        let parameters = self.parameters.to_domain(settings.mode)?;
+        let settings = self.settings.into_vacuum_settings();
+        let parameters = self.parameters.to_domain()?;
         let ground = to_ground(self.parameters.ground)?;
         let course = self.course.into_domain()?;
         let runners = self
@@ -849,8 +863,8 @@ pub struct WasmRaceSimParams {
 impl WasmRaceSimParams {
     /// Convert to the domain [`RaceSimParams`].
     pub fn into_domain(self) -> Result<RaceSimParams, DtoError> {
-        let settings = self.settings.into_domain();
-        let parameters = self.parameters.to_domain(settings.mode)?;
+        let settings = self.settings.into_race_settings();
+        let parameters = self.parameters.to_domain()?;
         let ground = to_ground(self.parameters.ground)?;
         let course = self.course.into_domain()?;
         let runners = self

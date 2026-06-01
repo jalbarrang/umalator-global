@@ -275,7 +275,7 @@ static REGISTER_ALL: Once = Once::new();
 /// Populate the dynamic-condition registry with every full-sim factory.
 ///
 /// Idempotent (guarded by [`Once`]); the catalog/application calls this once
-/// before resolving conditions in [`SimulationMode::Normal`]. Mirrors the
+/// before resolving conditions under `Dynamic` resolution. Mirrors the
 /// TypeScript `registerAllDynamicConditions`.
 pub fn register_all_dynamic_conditions() {
     REGISTER_ALL.call_once(|| {

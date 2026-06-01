@@ -447,7 +447,7 @@ pub mod test_support {
         Aptitude, DistanceType, Grade, GroundCondition, Mood, Orientation, Season, Strategy,
         Surface, TimeOfDay, Weather,
     };
-    use crate::shared_kernel::params::{RaceParameters, SimulationMode, StatLine};
+    use crate::shared_kernel::params::{RaceParameters, StatLine};
     use crate::shared_kernel::region::{Region, RegionList};
     use crate::shared_kernel::rng::Xoshiro256StarStar;
     use crate::skills::condition::catalog::build_catalog;
@@ -473,7 +473,6 @@ pub mod test_support {
             skill_id: None,
             strategy_counts: None,
             common_skills: None,
-            mode: SimulationMode::Normal,
         }
     }
 

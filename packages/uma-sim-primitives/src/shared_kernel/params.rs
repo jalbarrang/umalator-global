@@ -14,18 +14,6 @@ use crate::shared_kernel::language::{
     Grade, GroundCondition, Season, Strategy, TimeOfDay, Weather,
 };
 
-/// Simulation mode. In `Normal` mode dynamic conditions are evaluated live; in
-/// `Compare` mode the approximate (static) fallbacks are used instead.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
-#[serde(rename_all = "lowercase")]
-pub enum SimulationMode {
-    /// Full live simulation; dynamic conditions evaluated each tick.
-    #[default]
-    Normal,
-    /// Comparison mode; dynamic conditions use static approximations.
-    Compare,
-}
-
 /// A runner's five core stats.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct StatLine {
@@ -72,9 +60,6 @@ pub struct RaceParameters {
     /// Count of common (shared) skills across the field, keyed by skill id.
     #[serde(default)]
     pub common_skills: Option<HashMap<String, u32>>,
-    /// Simulation mode (selects live vs approximate dynamic conditions).
-    #[serde(default)]
-    pub mode: SimulationMode,
 }
 
 #[cfg(test)]
@@ -110,7 +95,6 @@ mod tests {
             skill_id: None,
             strategy_counts: None,
             common_skills: None,
-            mode: SimulationMode::Normal,
         };
         let json = serde_json::to_string(&params).expect("serialize");
         assert!(json.contains("\"timeOfDay\":"), "json was: {json}");

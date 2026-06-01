@@ -601,7 +601,7 @@ fn intersect_each(regions: &RegionList, bounds: &[Region]) -> RegionList {
 /// Build the full static condition catalog.
 pub fn build_catalog() -> ConditionCatalog {
     // Populate the dynamic-condition registry so `dynamic_or_static` conditions
-    // resolve to live full-sim predicates in `SimulationMode::Normal`. Idempotent.
+    // resolve to live full-sim predicates under `Dynamic` resolution. Idempotent.
     register_all_dynamic_conditions();
 
     let mut m: ConditionCatalog = ConditionCatalog::new();
@@ -1802,7 +1802,7 @@ mod tests {
     use crate::shared_kernel::language::{
         Grade, GroundCondition, Mood, Orientation, Season, Surface, TimeOfDay, Weather,
     };
-    use crate::shared_kernel::params::{RaceParameters, SimulationMode, StatLine};
+    use crate::shared_kernel::params::{RaceParameters, StatLine};
     use crate::skills::condition::dynamic::RunnerView;
     use crate::skills::condition::language::ConditionParser;
     use crate::skills::condition::{ApplyParams, SkillEvalRunner};
@@ -1902,7 +1902,6 @@ mod tests {
             skill_id: None,
             strategy_counts: None,
             common_skills: None,
-            mode: SimulationMode::Normal,
         }
     }
 
@@ -1911,22 +1910,16 @@ mod tests {
     }
 
     fn apply(condition: &str) -> ConditionResult {
-        apply_mode(condition, SimulationMode::Normal)
+        apply_with(condition, ConditionResolution::Dynamic)
     }
 
-    fn apply_mode(condition: &str, mode: SimulationMode) -> ConditionResult {
+    fn apply_with(condition: &str, resolution: ConditionResolution) -> ConditionResult {
         let catalog = build_catalog();
         let parser = ConditionParser::new(&catalog);
         let op = parser.parse(condition).expect("parse");
         let course = course();
         let runner = runner();
-        let mut extra = params();
-        extra.mode = mode;
-        let resolution = if mode == SimulationMode::Normal {
-            ConditionResolution::Dynamic
-        } else {
-            ConditionResolution::Static
-        };
+        let extra = params();
         let regions = whole_course(&course);
         op.apply(&ApplyParams {
             regions,
@@ -2005,7 +1998,7 @@ mod tests {
         // In compare mode the static `order_filter` is used: order_range (1,9),
         // num_umas 9; order_rate<=50 -> pos=round(9*0.5)=5, within [1,9] for the
         // <= leg, so the whole course passes and no dynamic gate is attached.
-        let (regions, cond) = apply_mode("order_rate<=50", SimulationMode::Compare);
+        let (regions, cond) = apply_with("order_rate<=50", ConditionResolution::Static);
         assert!(cond.is_none());
         assert_eq!(regions.0, whole_course(&course()).0);
     }
@@ -2014,7 +2007,7 @@ mod tests {
     fn order_rate_resolves_to_dynamic_in_normal_mode() {
         // In normal mode the registered full-sim predicate is attached: the
         // regions pass through unchanged and a dynamic condition is produced.
-        let (regions, cond) = apply_mode("order_rate<=50", SimulationMode::Normal);
+        let (regions, cond) = apply_with("order_rate<=50", ConditionResolution::Dynamic);
         assert_eq!(regions.0, whole_course(&course()).0);
         let cond = cond.expect("dynamic condition in normal mode");
         // DummyRunner has no order -> predicate is false.

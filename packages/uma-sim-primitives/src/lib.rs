@@ -49,5 +49,6 @@ pub mod runner;
 pub mod events;
 pub mod mob;
 pub mod pacing;
+pub mod race_support;
 
 pub mod projection;

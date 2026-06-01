@@ -1,9 +1,11 @@
 //! # uma-sim-wasm
 //!
-//! WebAssembly adapter for [`uma_sim_core`]. Acts as an **anti-corruption
+//! WebAssembly adapter for the two race engines (`uma_sim_race`,
+//! `uma_sim_vacuum`) over `uma_sim_primitives`. Acts as an **anti-corruption
 //! layer**: [`dto`] translates between JS-facing serde shapes and the domain
 //! value objects, and [`observer`] bridges the domain's `RaceObserver` port to
-//! JS callbacks.
+//! JS callbacks. `runRaceSim` / `WasmRaceSimulator` drive the contested engine;
+//! `runCompare` drives the vacuum engine.
 //!
 //! Build with: `wasm-pack build packages/uma-sim-wasm --target web`.
 
@@ -12,8 +14,9 @@ pub mod observer;
 
 use wasm_bindgen::prelude::*;
 
-use uma_sim_core::racing::race::Race;
-use uma_sim_core::{run_compare, run_race_sim};
+use uma_sim_race::race::Race;
+use uma_sim_race::run_race_sim;
+use uma_sim_vacuum::run_compare;
 
 use crate::dto::{
     WasmCompareData, WasmCompareParams, WasmFinishEntry, WasmRaceSimParams, WasmRaceSimResult,
@@ -132,13 +135,7 @@ impl WasmRaceSimulator {
             .map_err(|e| JsError::new(&e.to_string()))?;
 
         let settings = domain.settings.clone();
-        let mut race = Race::new(
-            domain.course,
-            domain.ground,
-            settings,
-            domain.parameters,
-            None,
-        );
+        let mut race = Race::new(domain.course, domain.ground, settings, domain.parameters);
         for runner in domain.runners {
             race.add_runner(runner);
         }
