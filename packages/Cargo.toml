@@ -1,5 +1,5 @@
 [workspace]
-members = ["uma-sim-primitives", "uma-sim-core", "uma-sim-race", "uma-sim-wasm"]
+members = ["uma-sim-primitives", "uma-sim-core", "uma-sim-race", "uma-sim-vacuum", "uma-sim-wasm"]
 resolver = "2"
 
 # Shared package metadata, inherited by each crate via `field.workspace = true`.
