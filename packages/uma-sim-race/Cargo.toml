@@ -1,0 +1,21 @@
+[package]
+name = "uma-sim-race"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+description = "Contested Uma Musume race engine (ADR-0005): produces FieldInputs from the live field, runs contention/dueling/spot-struggle, and drives the 9-field + distribution orchestration over uma-sim-primitives."
+
+[dependencies]
+uma-sim-primitives = { path = "../uma-sim-primitives" }
+serde = { version = "1", features = ["derive"] }
+rand_xoshiro = "0.7"
+rand_core = "0.9"
+
+[dev-dependencies]
+serde_json = "1"
+uma-sim-primitives = { path = "../uma-sim-primitives", features = ["test-support"] }
+
+[lints]
+workspace = true
