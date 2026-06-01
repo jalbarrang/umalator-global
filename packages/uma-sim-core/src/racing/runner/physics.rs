@@ -23,7 +23,6 @@ use crate::racing::runner::Runner;
 use crate::shared_kernel::ids::RunnerId;
 use crate::shared_kernel::language::Phase;
 use crate::shared_kernel::math::CompensatedAccumulator;
-use crate::shared_kernel::params::SimulationMode;
 use crate::skills::condition::approximate::{
     create_blocked_side_condition, create_overtake_condition, ApproximateCondition,
     ApproximateConditionState,
@@ -87,8 +86,13 @@ pub struct RunnerSnapshot {
     pub current_speed: f64,
 }
 
-/// Race-derived, read-only inputs `on_update` needs about the course and the
-/// rest of the field. Built by the aggregate each tick.
+/// Pure, race-derived course context the step needs each tick — **no
+/// field-presence inputs** (ADR-0005 step "producer lift").
+///
+/// All field-presence-dependent values reach the step through a pre-resolved
+/// [`FieldInputs`] built by the aggregate's *producer* (see
+/// [`crate::racing::race`]); this context carries only course/time scalars the
+/// step reads regardless of paradigm.
 pub struct UpdateContext<'a> {
     /// Course base speed (`20 - (distance - 2000) / 1000`).
     pub base_speed: f64,
@@ -96,18 +100,8 @@ pub struct UpdateContext<'a> {
     pub accumulated_time: f64,
     /// The course configuration.
     pub course: &'a CourseData,
-    /// Simulation mode (normal = live proximity, compare = approximate).
-    pub mode: SimulationMode,
     /// Whether downhill mode is enabled for this race.
     pub downhill_enabled: bool,
-    /// Position-keep inputs for the embedded `apply_virtual_position_keep` call.
-    pub position_keep: PositionKeepContext,
-    /// Snapshots of the rest of the field (normal-mode proximity checks).
-    pub snapshots: &'a [RunnerSnapshot],
-    /// Snapshot-derived field view for dynamic skill conditions.
-    pub field: &'a FieldView,
-    /// Per-strategy dueling rates (compare-mode artificial dueling).
-    pub dueling_rates: Option<DuelingRates>,
 }
 
 /// Resolved dueling input (ADR-0005 data seam).
@@ -141,11 +135,11 @@ pub struct SkillTriggerInputs<'a> {
 /// by whoever owns the field (ADR-0005 data seam).
 ///
 /// The step never asks whether a real field exists; it only reads these
-/// resolved values. Today they are produced inside [`Runner::resolve_field_inputs`]
-/// (single engine); under the split each engine will produce them its own way
-/// (the contested engine from the live snapshot, the vacuum engine from
-/// approximate condition values / synthetic rates), with no paradigm branch in
-/// the step itself.
+/// resolved values. They are produced by the aggregate's *producer*
+/// ([`crate::racing::race::resolve_field_inputs`], single engine); under the
+/// split each engine will produce them its own way (the contested engine from
+/// the live snapshot, the vacuum engine from approximate condition values /
+/// synthetic rates), with no paradigm branch in the step itself.
 ///
 /// Touch-point scalars are kept flat per ADR-0005; the resolved dueling and
 /// skill-trigger sets are their own structured types.
@@ -164,42 +158,12 @@ pub struct FieldInputs<'a> {
 }
 
 impl Runner {
-    /// Resolve the [`FieldInputs`] for this tick.
-    ///
-    /// This is the *input-production* seam: in `Normal` the values come from the
-    /// live field snapshot; in `Compare` from approximate condition values /
-    /// synthetic rates. The `mode` branch lives **here**, not in the step that
-    /// consumes the result.
-    fn resolve_field_inputs<'a>(&self, ctx: &UpdateContext<'a>) -> FieldInputs<'a> {
-        let (side_blocked, overtaking) = if ctx.mode == SimulationMode::Normal {
-            (
-                self.has_side_blocking_runner(ctx),
-                self.is_overtaking_runner(ctx),
-            )
-        } else {
-            (
-                self.get_condition_value("blocked_side") == 1,
-                self.get_condition_value("overtake") == 1,
-            )
-        };
-        let dueling = if ctx.mode == SimulationMode::Normal {
-            DuelingInput::Coordinated
-        } else {
-            DuelingInput::Artificial(ctx.dueling_rates)
-        };
-        FieldInputs {
-            side_blocked,
-            overtaking,
-            dueling,
-            position_keep: ctx.position_keep,
-            skill_triggers: SkillTriggerInputs { field: ctx.field },
-        }
-    }
     /// Advance the runner one `dt`-second step.
     ///
-    /// Ports `onUpdate` in exact TS order. The skill (t-015) and mechanics
-    /// (t-016) sub-steps are currently no-op stubs.
-    pub fn on_update(&mut self, dt: f64, ctx: &UpdateContext<'_>) {
+    /// Ports `onUpdate` in exact TS order. Consumes a pre-resolved
+    /// [`FieldInputs`] (built by the aggregate's producer) plus the pure course
+    /// [`UpdateContext`]; the step itself never reads field-presence (ADR-0005).
+    pub fn on_update(&mut self, dt: f64, field_inputs: &FieldInputs<'_>, ctx: &UpdateContext<'_>) {
         let mut dt_after_delay = dt;
 
         self.update_timers(dt);
@@ -213,28 +177,23 @@ impl Runner {
             return;
         }
 
-        // Logic chunks (TS order).
+        // Logic chunks (TS order). `field_inputs` is the pre-resolved field-
+        // presence data the aggregate's producer built for this tick; the step
+        // only reads it and never asks whether a real field exists.
         self.update_hills();
         self.update_phase(ctx.course.distance);
-        // Resolve all field-presence-dependent inputs up front (ADR-0005 data
-        // seam). The rest of the step consumes this pure data and never asks
-        // whether a real field exists. Resolving here is behavior-identical:
-        // every value read by the producer (condition values, snapshot-derived
-        // proximity, pacer/field context, dueling rates) is stable across the
-        // remainder of the tick.
-        let field_inputs = self.resolve_field_inputs(ctx);
 
         self.update_rushed(); // t-016
         self.update_downhill_mode(ctx.downhill_enabled); // t-016
         self.process_skill_activations(field_inputs.skill_triggers.field, ctx.course.distance); // t-015
         self.process_targeted_skill_activations(ctx.course.distance); // t-015
         apply_virtual_position_keep(self, &field_inputs.position_keep);
-        self.update_dueling(&field_inputs, ctx); // t-016
+        self.update_dueling(field_inputs, ctx); // t-016
         self.update_spot_struggle(ctx); // t-016
         self.update_last_spurt_state(); // t-016
         self.update_target_speed();
         self.apply_forces();
-        self.apply_lane_movement(&field_inputs, ctx);
+        self.apply_lane_movement(field_inputs, ctx);
 
         // ---- integrate speed ----
         let mut new_speed = if self.current_speed <= self.target_speed {
@@ -514,49 +473,6 @@ impl Runner {
         self.is_overtaking = overtake;
     }
 
-    fn has_side_blocking_runner(&self, ctx: &UpdateContext<'_>) -> bool {
-        let lane_threshold = ctx.course.horse_lane;
-        for snapshot in ctx.snapshots {
-            if snapshot.id == self.id {
-                continue;
-            }
-            let lane_delta = (snapshot.current_lane - self.current_lane).abs();
-            let distance_ahead = snapshot.position - self.position;
-            let is_ahead = snapshot.position > self.position;
-            if lane_delta <= lane_threshold && is_ahead && distance_ahead <= 5.0 {
-                return true;
-            }
-        }
-        false
-    }
-
-    fn is_overtaking_runner(&self, ctx: &UpdateContext<'_>) -> bool {
-        let lane_threshold = ctx.course.horse_lane * 2.0;
-        for snapshot in ctx.snapshots {
-            if snapshot.id == self.id {
-                continue;
-            }
-            let is_faster = self.current_speed > snapshot.current_speed;
-            let distance_gap = (snapshot.position - self.position).abs();
-            let lane_delta = (snapshot.current_lane - self.current_lane).abs();
-            if is_faster && distance_gap <= 5.0 && lane_delta <= lane_threshold {
-                return true;
-            }
-        }
-        false
-    }
-
-    /// Read an approximate-condition value (compare mode), falling back to its
-    /// start value when not yet ticked.
-    fn get_condition_value(&self, name: &str) -> i32 {
-        if let Some(value) = self.condition_values.get(name) {
-            return *value;
-        }
-        self.conditions
-            .get(name)
-            .map_or(0, |condition| condition.value_on_start())
-    }
-
     pub(crate) fn is_on_final_straight(&self, course: &CourseData) -> bool {
         match course.straights.last() {
             Some(last) => self.position >= last.start && self.position <= last.end,
@@ -809,7 +725,7 @@ mod tests {
         test_course, test_race_params, test_runner, test_whole_course,
     };
     use crate::shared_kernel::language::Strategy;
-    use crate::shared_kernel::params::RaceParameters;
+    use crate::shared_kernel::params::{RaceParameters, SimulationMode};
     use crate::shared_kernel::region::RegionList;
     use crate::shared_kernel::rng::Xoshiro256StarStar;
     use crate::skills::condition::catalog::build_catalog;
@@ -857,17 +773,23 @@ mod tests {
         (r, pre.course.clone())
     }
 
-    fn update_ctx<'a>(
-        course: &'a CourseData,
-        snapshots: &'a [RunnerSnapshot],
-        field: &'a FieldView,
-    ) -> UpdateContext<'a> {
+    fn update_ctx(course: &CourseData) -> UpdateContext<'_> {
         UpdateContext {
             base_speed: 20.0 - (course.distance - 2000.0) / 1000.0,
             accumulated_time: 0.0,
             course,
-            mode: SimulationMode::Normal,
             downhill_enabled: false,
+        }
+    }
+
+    /// Benign field inputs mirroring the previous single-runner resolution
+    /// (Normal mode, empty field): not blocked, not overtaking, coordinated
+    /// dueling, no pacer, at-gate skill view.
+    fn test_field_inputs(field: &FieldView) -> FieldInputs<'_> {
+        FieldInputs {
+            side_blocked: false,
+            overtaking: false,
+            dueling: DuelingInput::Coordinated,
             position_keep: PositionKeepContext {
                 position_keep_mode: 0,
                 num_runners: 1,
@@ -875,9 +797,7 @@ mod tests {
                 pacer_is_self: false,
                 second_place_position: None,
             },
-            snapshots,
-            field,
-            dueling_rates: None,
+            skill_triggers: SkillTriggerInputs { field },
         }
     }
 
@@ -898,20 +818,20 @@ mod tests {
         assert_eq!(r.section_modifiers.len(), 25);
         // Base accelerations cached.
         assert!(r.base_accelerations.iter().all(|&a| a > 0.0));
-        // Conditions registered.
-        assert_eq!(r.get_condition_value("blocked_side"), 1);
-        assert_eq!(r.get_condition_value("overtake"), 0);
+        // Conditions registered (read via the aggregate's producer helper).
+        assert_eq!(crate::racing::race::condition_value(&r, "blocked_side"), 1);
+        assert_eq!(crate::racing::race::condition_value(&r, "overtake"), 0);
     }
 
     #[test]
     fn runner_advances_forward_each_tick() {
         let (mut r, course) = prepared(Strategy::PaceChaser);
-        let snaps: Vec<RunnerSnapshot> = vec![];
         let field = FieldView::at_gate();
-        let ctx = update_ctx(&course, &snaps, &field);
+        let ctx = update_ctx(&course);
+        let fi = test_field_inputs(&field);
         let start = r.position;
         for _ in 0..200 {
-            r.on_update(1.0 / 15.0, &ctx);
+            r.on_update(1.0 / 15.0, &fi, &ctx);
         }
         assert!(r.position > start);
         assert!(r.current_speed > 3.0);
@@ -920,13 +840,13 @@ mod tests {
     #[test]
     fn start_dash_caps_speed_then_releases() {
         let (mut r, course) = prepared(Strategy::FrontRunner);
-        let snaps: Vec<RunnerSnapshot> = vec![];
         let field = FieldView::at_gate();
-        let ctx = update_ctx(&course, &snaps, &field);
+        let ctx = update_ctx(&course);
+        let fi = test_field_inputs(&field);
         // Run until start dash ends.
         let mut released = false;
         for _ in 0..500 {
-            r.on_update(1.0 / 15.0, &ctx);
+            r.on_update(1.0 / 15.0, &fi, &ctx);
             if !r.start_dash {
                 released = true;
                 break;

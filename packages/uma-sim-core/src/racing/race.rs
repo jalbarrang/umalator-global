@@ -22,7 +22,8 @@ use crate::racing::position_keep::{update_position_keep_coefficient, PositionKee
 use crate::racing::runner::lifecycle::{CreateRunner, PrepareContext};
 use crate::racing::runner::mechanics::DuelingRates;
 use crate::racing::runner::physics::{
-    update_first_position_in_late_race, RunnerSnapshot, UpdateContext,
+    update_first_position_in_late_race, DuelingInput, FieldInputs, RunnerSnapshot,
+    SkillTriggerInputs, UpdateContext,
 };
 use crate::racing::runner::skills::FieldView;
 use crate::racing::runner::Runner;
@@ -383,18 +384,25 @@ impl Race {
                 pacer_is_self: snapshot.pacer == Some(runner.id),
                 second_place_position: snapshot.second_place_position,
             };
+            // The aggregate is the *producer*: it resolves all field-presence
+            // inputs (the `mode` branch lives here, ADR-0005) and hands the step
+            // a pure `FieldInputs` plus a field-free course context.
+            let field_inputs = resolve_field_inputs(
+                runner,
+                self.settings.mode,
+                &proximity,
+                &field,
+                self.dueling_rates,
+                position_keep,
+                self.course.horse_lane,
+            );
             let ctx = UpdateContext {
                 base_speed,
                 accumulated_time: self.accumulated_time,
                 course: &self.course,
-                mode: self.settings.mode,
                 downhill_enabled: self.settings.downhill,
-                position_keep,
-                snapshots: &proximity,
-                field: &field,
-                dueling_rates: self.dueling_rates,
             };
-            runner.on_update(dt, &ctx);
+            runner.on_update(dt, &field_inputs, &ctx);
         }
         self.runners = runners;
 
@@ -763,6 +771,95 @@ fn build_field_view(self_id: RunnerId, snapshot: &FieldSnapshot) -> FieldView {
         other_snapshots,
         active_runners,
     }
+}
+
+// =============================================================================
+// Field-inputs producer (ADR-0005)
+//
+// The single seam where field-presence is decided. The aggregate resolves every
+// field-dependent input the step consumes and hands the step a pure
+// `FieldInputs`. In `Normal` the values come from the live snapshot; in
+// `Compare` from the runner's approximate condition values / synthetic rates.
+// The step (`Runner::on_update`) never sees this branch.
+// =============================================================================
+
+/// Resolve the [`FieldInputs`] for one runner this tick.
+#[allow(clippy::too_many_arguments)]
+fn resolve_field_inputs<'a>(
+    runner: &Runner,
+    mode: SimulationMode,
+    snapshots: &[RunnerSnapshot],
+    field: &'a FieldView,
+    dueling_rates: Option<DuelingRates>,
+    position_keep: PositionKeepContext,
+    horse_lane: f64,
+) -> FieldInputs<'a> {
+    let (side_blocked, overtaking) = if mode == SimulationMode::Normal {
+        (
+            has_side_blocking_runner(runner, snapshots, horse_lane),
+            is_overtaking_runner(runner, snapshots, horse_lane),
+        )
+    } else {
+        (
+            condition_value(runner, "blocked_side") == 1,
+            condition_value(runner, "overtake") == 1,
+        )
+    };
+    let dueling = if mode == SimulationMode::Normal {
+        DuelingInput::Coordinated
+    } else {
+        DuelingInput::Artificial(dueling_rates)
+    };
+    FieldInputs {
+        side_blocked,
+        overtaking,
+        dueling,
+        position_keep,
+        skill_triggers: SkillTriggerInputs { field },
+    }
+}
+
+/// Whether another runner blocks `runner` to the side (caps inward lane drift).
+fn has_side_blocking_runner(
+    runner: &Runner,
+    snapshots: &[RunnerSnapshot],
+    horse_lane: f64,
+) -> bool {
+    snapshots.iter().any(|snapshot| {
+        if snapshot.id == runner.id {
+            return false;
+        }
+        let lane_delta = (snapshot.current_lane - runner.current_lane).abs();
+        let distance_ahead = snapshot.position - runner.position;
+        let is_ahead = snapshot.position > runner.position;
+        lane_delta <= horse_lane && is_ahead && distance_ahead <= 5.0
+    })
+}
+
+/// Whether `runner` is overtaking another runner (pushes the target lane out).
+fn is_overtaking_runner(runner: &Runner, snapshots: &[RunnerSnapshot], horse_lane: f64) -> bool {
+    let lane_threshold = horse_lane * 2.0;
+    snapshots.iter().any(|snapshot| {
+        if snapshot.id == runner.id {
+            return false;
+        }
+        let is_faster = runner.current_speed > snapshot.current_speed;
+        let distance_gap = (snapshot.position - runner.position).abs();
+        let lane_delta = (snapshot.current_lane - runner.current_lane).abs();
+        is_faster && distance_gap <= 5.0 && lane_delta <= lane_threshold
+    })
+}
+
+/// Read an approximate-condition value (compare mode), falling back to its start
+/// value when not yet ticked.
+pub(crate) fn condition_value(runner: &Runner, name: &str) -> i32 {
+    if let Some(value) = runner.condition_values.get(name) {
+        return *value;
+    }
+    runner
+        .conditions
+        .get(name)
+        .map_or(0, |condition| condition.value_on_start())
 }
 
 /// Read-only observation view of a [`Runner`] (the `RunnerObservation` port).
