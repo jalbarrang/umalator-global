@@ -110,7 +110,44 @@ pub struct UpdateContext<'a> {
     pub dueling_rates: Option<DuelingRates>,
 }
 
+/// Field-presence-dependent inputs the pure step consumes, **already resolved**
+/// by whoever owns the field (ADR-0005 data seam).
+///
+/// The step never asks whether a real field exists; it only reads these
+/// resolved values. Today both are produced inside [`Runner::resolve_field_inputs`]
+/// (single engine); under the split each engine will produce them its own way
+/// (the contested engine from the live snapshot, the vacuum engine from
+/// approximate condition values), with no paradigm branch in the step itself.
+///
+/// Scalars are kept flat per ADR-0005; the (future) resolved skill-trigger set
+/// will be its own structured type rather than another scalar here.
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
+pub struct FieldInputs {
+    /// Whether a runner blocks this one to the side (caps inward lane drift).
+    pub side_blocked: bool,
+    /// Whether this runner is overtaking (pushes the target lane outward).
+    pub overtaking: bool,
+}
+
 impl Runner {
+    /// Resolve the [`FieldInputs`] for this tick.
+    ///
+    /// This is the *input-production* seam: in `Normal` the values come from the
+    /// live field snapshot; in `Compare` from approximate condition values. The
+    /// `mode` branch lives **here**, not in the step that consumes the result.
+    fn resolve_field_inputs(&self, ctx: &UpdateContext<'_>) -> FieldInputs {
+        if ctx.mode == SimulationMode::Normal {
+            FieldInputs {
+                side_blocked: self.has_side_blocking_runner(ctx),
+                overtaking: self.is_overtaking_runner(ctx),
+            }
+        } else {
+            FieldInputs {
+                side_blocked: self.get_condition_value("blocked_side") == 1,
+                overtaking: self.get_condition_value("overtake") == 1,
+            }
+        }
+    }
     /// Advance the runner one `dt`-second step.
     ///
     /// Ports `onUpdate` in exact TS order. The skill (t-015) and mechanics
@@ -142,7 +179,8 @@ impl Runner {
         self.update_last_spurt_state(); // t-016
         self.update_target_speed();
         self.apply_forces();
-        self.apply_lane_movement(ctx);
+        let field_inputs = self.resolve_field_inputs(ctx);
+        self.apply_lane_movement(&field_inputs, ctx);
 
         // ---- integrate speed ----
         let mut new_speed = if self.current_speed <= self.target_speed {
@@ -360,21 +398,12 @@ impl Runner {
     }
 
     /// Update lateral lane position (and side-block / overtake telemetry).
-    fn apply_lane_movement(&mut self, ctx: &UpdateContext<'_>) {
+    fn apply_lane_movement(&mut self, field_inputs: &FieldInputs, ctx: &UpdateContext<'_>) {
         let course = ctx.course;
         let current_lane = self.current_lane;
 
-        let (side_blocked, overtake) = if ctx.mode == SimulationMode::Normal {
-            (
-                self.has_side_blocking_runner(ctx),
-                self.is_overtaking_runner(ctx),
-            )
-        } else {
-            (
-                self.get_condition_value("blocked_side") == 1,
-                self.get_condition_value("overtake") == 1,
-            )
-        };
+        let side_blocked = field_inputs.side_blocked;
+        let overtake = field_inputs.overtaking;
 
         if self.extra_move_lane < 0.0 && self.is_after_final_corner_or_in_final_straight(course) {
             self.extra_move_lane = (current_lane / 0.1).min(course.max_lane_distance) * 0.5
