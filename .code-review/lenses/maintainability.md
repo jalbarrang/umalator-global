@@ -6,10 +6,10 @@ Evaluate changes for long-term readability, modularity, and alignment with the p
 
 | Command                       | Purpose                                                                                   |
 | ----------------------------- | ----------------------------------------------------------------------------------------- |
-| `bun run codeql:report`       | Combined fallow + react-doctor report (dead code, duplication, circular deps, React lint) |
-| `bun run codeql:fallow`       | Fallow standalone (dead exports, unused files, circular deps, code clones)                |
-| `bun run codeql:react-doctor` | React-doctor standalone (React-specific diagnostics, scored)                              |
-| `bun run codeql:fallow:fix`   | Auto-fix safe fallow issues (unused exports, deps)                                        |
+| `bun run codeql:fallow`       | Fallow standalone, read-only (dead exports, unused files, circular deps, code clones)     |
+| `bun run codeql:react-doctor` | React-doctor standalone, read-only (React-specific diagnostics, scored)                   |
+
+> `bun run codeql:fallow:fix` and `bun run codeql:report` are intentionally **not** review tools: `fix` mutates files, and `report` re-runs the heavier combined pipeline. Run those manually.
 
 ## Criteria
 
