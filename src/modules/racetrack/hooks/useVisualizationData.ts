@@ -10,10 +10,7 @@ import { SkillType } from 'sunday-tools/skills/definitions';
 import { isExternalDebuffEffect } from 'sunday-tools/skills/external-debuffs';
 import { coursesService } from '@/modules/data/services/CourseService';
 import { useDebuffs } from '@/modules/simulation/stores/compare.store';
-import {
-  useScenarioOverrides,
-  hasAnyScenarioOverrides
-} from '@/modules/simulation/stores/scenario-overrides.store';
+import { useScenarioOverrides } from '@/modules/simulation/stores/scenario-overrides.store';
 import { skillsService } from '@/modules/data/services/SkillService';
 
 export type RegionData = {
@@ -259,7 +256,7 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
     }
 
     return skills;
-  }, [chartData, debuffs]);
+  }, [chartData, debuffs, course.distance]);
 
   const rushedIndicators: Array<RegionData> = useMemo(() => {
     const results: Array<RegionData> = [];
@@ -386,7 +383,7 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
     }
 
     return results;
-  }, [chartData, hasSimulationData, scenarioOverrides]);
+  }, [chartData]);
 
   const leadCompetitionData = useMemo(() => {
     const results: Array<PosKeepLabel> = [];
@@ -405,7 +402,7 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
     }
 
     return results;
-  }, [chartData, hasSimulationData, scenarioOverrides]);
+  }, [chartData]);
 
   const labels = useMemo(() => {
     return [...posKeepData, ...competeFightData, ...leadCompetitionData];

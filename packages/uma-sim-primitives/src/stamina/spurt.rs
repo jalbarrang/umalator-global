@@ -90,7 +90,11 @@ pub fn calculate_required_hp(
 
 /// Maximum distance the runner can spurt at `target_speed` before dropping to
 /// `base_speed` to reach the finish.
-#[allow(clippy::too_many_arguments)]
+#[allow(
+    clippy::too_many_arguments,
+    reason = "mirrors the TS spurt formula's parameter list 1:1; bundling into a \
+               struct would obscure the parity mapping to the reference engine"
+)]
 pub fn calculate_spurt_distance(
     current_hp: f64,
     current_position: f64,
@@ -146,7 +150,11 @@ pub fn calculate_spurt_distance(
 
 /// Find candidate spurt plans, sorted by completion time (fastest first). The
 /// game picks from this list via wisdom-based random selection.
-#[allow(clippy::too_many_arguments)]
+#[allow(
+    clippy::too_many_arguments,
+    reason = "mirrors the TS spurt formula's parameter list 1:1; bundling into a \
+               struct would obscure the parity mapping to the reference engine"
+)]
 pub fn find_optimal_spurt(
     current_hp: f64,
     current_position: f64,
@@ -242,7 +250,11 @@ pub fn find_optimal_spurt(
 }
 
 /// HP required for the remainder of the race split across phase 2 and phase 3.
-#[allow(clippy::too_many_arguments)]
+#[allow(
+    clippy::too_many_arguments,
+    reason = "mirrors the TS spurt formula's parameter list 1:1; bundling into a \
+               struct would obscure the parity mapping to the reference engine"
+)]
 pub fn calculate_required_hp_in_phase2(
     current_position: f64,
     course_distance: f64,

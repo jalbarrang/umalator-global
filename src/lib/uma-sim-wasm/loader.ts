@@ -11,7 +11,7 @@ import type {
   WasmCompareData,
   WasmCompareParams,
   WasmRaceSimParams,
-  WasmRaceSimResult,
+  WasmRaceSimResult
 } from './types';
 
 /** The shape of the wasm-pack-generated module we depend on. */
@@ -91,17 +91,13 @@ export async function compileUmaSimWasmModule(): Promise<WebAssembly.Module> {
 }
 
 /** Run a batch simulation. Ensures the module is initialized first. */
-export async function runRaceSim(
-  params: WasmRaceSimParams
-): Promise<WasmRaceSimResult> {
+export async function runRaceSim(params: WasmRaceSimParams): Promise<WasmRaceSimResult> {
   const mod = await loadModule();
   return mod.runRaceSim(params);
 }
 
 /** Run a batch compare-family simulation. Ensures the module is initialized first. */
-export async function runCompare(
-  params: WasmCompareParams
-): Promise<WasmCompareData> {
+export async function runCompare(params: WasmCompareParams): Promise<WasmCompareData> {
   const mod = await loadModule();
   return mod.runCompare(params);
 }

@@ -14,10 +14,7 @@ import type {
 import type { CompareParams } from '@/modules/simulation/types';
 import type { CollectedRunnerRoundData } from 'sunday-tools/common/race-observer';
 import { initializeSimulationRun } from '@/modules/simulation/compare.types';
-import {
-  compareParamsToWasm,
-  wasmCompareRoundDataToCollected
-} from '@/lib/uma-sim-wasm/adapter';
+import { compareParamsToWasm, wasmCompareRoundDataToCollected } from '@/lib/uma-sim-wasm/adapter';
 import { runCompare } from '@/lib/uma-sim-wasm/loader';
 import { getUmaDisplayInfo } from '@/modules/runners/utils';
 import {
@@ -282,8 +279,16 @@ export async function runComparisonRoundsWasm(
   chunkSamples: number,
   seedOffset: number
 ): Promise<CompareRounds> {
-  const { course, racedef, uma1, uma2, options, forcedPositions, injectedDebuffs, scenarioOverrides } =
-    params;
+  const {
+    course,
+    racedef,
+    uma1,
+    uma2,
+    options,
+    forcedPositions,
+    injectedDebuffs,
+    scenarioOverrides
+  } = params;
 
   const masterSeed = (options.seed ?? 0) + seedOffset;
   const raceParameters = toSundayRaceParameters(racedef);

@@ -6,24 +6,16 @@
 import { skillsService } from '@/modules/data/services/SkillService';
 import type { CourseData } from 'sunday-tools/course/definitions';
 import type { CreateRunner } from 'sunday-tools/common/runner';
-import type {
-  RaceSimParams,
-  RaceSimResult,
-  FinishEntry,
-} from 'sunday-tools/race-sim/run-race-sim';
+import type { RaceSimParams, RaceSimResult, FinishEntry } from 'sunday-tools/race-sim/run-race-sim';
 import type { RaceEvent, RaceEventKind } from 'sunday-tools/race-sim/race-event-log';
 import type { IStrategy } from 'sunday-tools/runner/definitions';
 import type {
   DuelingRates,
   RaceParameters as SundayRaceParameters,
-  SimulationSettings,
+  SimulationSettings
 } from 'sunday-tools/common/race';
 import type { CollectedRunnerRoundData } from 'sunday-tools/common/race-observer';
-import type {
-  ISkillPerspective,
-  ISkillTarget,
-  ISkillType,
-} from 'sunday-tools/skills/definitions';
+import type { ISkillPerspective, ISkillTarget, ISkillType } from 'sunday-tools/skills/definitions';
 import type { SkillEffectLog } from '@/modules/simulation/compare.types';
 import type {
   WasmCompareParams,
@@ -31,17 +23,16 @@ import type {
   WasmCourseData,
   WasmCreateRunner,
   WasmDuelingRates,
-  WasmFinishEntry,
   WasmRaceParameters,
   WasmRaceSimParams,
   WasmRaceSimResult,
   WasmSettings,
   WasmSkillEffectLog,
-  WasmSkillInput,
+  WasmSkillInput
 } from './types';
 
 /** Convert an app `CourseData` to the WASM DTO (field-compatible). */
-export function courseDataToWasm(course: CourseData): WasmCourseData {
+function courseDataToWasm(course: CourseData): WasmCourseData {
   return {
     courseId: course.courseId,
     raceTrackId: course.raceTrackId,
@@ -54,12 +45,12 @@ export function courseDataToWasm(course: CourseData): WasmCourseData {
     straights: course.straights.map((s) => ({
       start: s.start,
       end: s.end,
-      frontType: (s as { frontType?: number }).frontType ?? 0,
+      frontType: (s as { frontType?: number }).frontType ?? 0
     })),
     slopes: course.slopes.map((s) => ({
       start: s.start,
       length: s.length,
-      slope: s.slope,
+      slope: s.slope
     })),
     laneMax: course.laneMax,
     courseWidth: course.courseWidth,
@@ -67,12 +58,12 @@ export function courseDataToWasm(course: CourseData): WasmCourseData {
     laneChangeAcceleration: course.laneChangeAcceleration,
     laneChangeAccelerationPerFrame: course.laneChangeAccelerationPerFrame,
     maxLaneDistance: course.maxLaneDistance,
-    moveLanePoint: course.moveLanePoint,
+    moveLanePoint: course.moveLanePoint
   };
 }
 
 /** Resolve a skill id (possibly with a `-suffix`) to its WASM input DTO. */
-export function resolveSkillInput(skillId: string): WasmSkillInput | null {
+function resolveSkillInput(skillId: string): WasmSkillInput | null {
   const baseId = skillId.split('-')[0] ?? skillId;
   const entry = skillsService.getById(baseId);
   if (!entry) {
@@ -91,47 +82,11 @@ export function resolveSkillInput(skillId: string): WasmSkillInput | null {
         target: e.target,
         type: e.type,
         valueUsage: e.valueUsage,
-        valueLevelUsage: e.valueLevelUsage,
-      })),
-    })),
+        valueLevelUsage: e.valueLevelUsage
+      }))
+    }))
   };
 }
-
-/** The minimal app-runner shape this adapter needs. */
-export type AppRunnerInput = {
-  outfitId: string;
-  name: string;
-  mood: number;
-  strategy: number;
-  aptitudes: { distance: number; strategy: number; surface: number };
-  stats: { speed: number; stamina: number; power: number; guts: number; wit: number };
-  skills: string[];
-  forcedPositions?: Record<string, number>;
-};
-
-/** Convert an app runner (with skill ids) to the WASM DTO (skills resolved). */
-export function createRunnerToWasm(runner: AppRunnerInput): WasmCreateRunner {
-  const skills: WasmSkillInput[] = [];
-  for (const skillId of runner.skills) {
-    const resolved = resolveSkillInput(skillId);
-    if (resolved) {
-      skills.push(resolved);
-    }
-  }
-  return {
-    outfitId: runner.outfitId,
-    name: runner.name,
-    mood: runner.mood,
-    strategy: runner.strategy,
-    aptitudes: runner.aptitudes,
-    stats: runner.stats,
-    skills,
-    forcedPositions: runner.forcedPositions ?? {},
-  };
-}
-
-/** App-facing finish entry (passthrough of the WASM DTO). */
-export type AppFinishEntry = WasmFinishEntry;
 
 /** Map a sunday-tools `RaceParameters` to the WASM DTO (numeric 1:1). */
 function raceParametersToWasm(parameters: RaceSimParams['parameters']): WasmRaceParameters {
@@ -140,12 +95,12 @@ function raceParametersToWasm(parameters: RaceSimParams['parameters']): WasmRace
     weather: parameters.weather,
     season: parameters.season,
     timeOfDay: parameters.timeOfDay,
-    grade: parameters.grade,
+    grade: parameters.grade
   };
 }
 
 /** Convert a sunday-tools `CreateRunner` (skill ids) to the WASM DTO. */
-export function sundayRunnerToWasm(runner: CreateRunner, name: string): WasmCreateRunner {
+function sundayRunnerToWasm(runner: CreateRunner, name: string): WasmCreateRunner {
   const skills: WasmSkillInput[] = [];
   for (const skillId of runner.skills) {
     const resolved = resolveSkillInput(skillId);
@@ -173,12 +128,12 @@ export function sundayRunnerToWasm(runner: CreateRunner, name: string): WasmCrea
     forcedRushedRegions: runner.forcedRushedRegions ?? [],
     forcedDuelingRegions: runner.forcedDuelingRegions ?? [],
     forcedSpotStruggleRegions: runner.forcedSpotStruggleRegions ?? [],
-    forcedRank: runner.forcedRank ?? [],
+    forcedRank: runner.forcedRank ?? []
   };
 }
 
 /** Map a sunday-tools `SimulationSettings` to the compare WASM settings DTO. */
-export function compareSettingsToWasm(settings: SimulationSettings): WasmSettings {
+function compareSettingsToWasm(settings: SimulationSettings): WasmSettings {
   return {
     mode: settings.mode,
     healthSystem: settings.healthSystem,
@@ -189,18 +144,18 @@ export function compareSettingsToWasm(settings: SimulationSettings): WasmSetting
     dueling: settings.dueling,
     witChecks: settings.witChecks,
     positionKeepMode: settings.positionKeepMode,
-    staminaDrainOverrides: settings.staminaDrainOverrides ?? {},
+    staminaDrainOverrides: settings.staminaDrainOverrides ?? {}
   };
 }
 
 /** Map sunday-tools `DuelingRates` to the WASM DTO (field-compatible). */
-export function duelingRatesToWasm(rates: DuelingRates): WasmDuelingRates {
+function duelingRatesToWasm(rates: DuelingRates): WasmDuelingRates {
   return {
     runaway: rates.runaway,
     frontRunner: rates.frontRunner,
     paceChaser: rates.paceChaser,
     lateSurger: rates.lateSurger,
-    endCloser: rates.endCloser,
+    endCloser: rates.endCloser
   };
 }
 
@@ -225,13 +180,13 @@ export function compareParamsToWasm(args: CompareParamsToWasmArgs): WasmCompareP
     duelingRates: duelingRatesToWasm(args.duelingRates),
     runners: [sundayRunnerToWasm(args.runner, args.name)],
     nsamples: args.nsamples,
-    masterSeed: args.masterSeed,
+    masterSeed: args.masterSeed
   };
 }
 
 /** Map a WASM skill-activation map to the TS `SkillEffectLog` map. */
 function skillActivationMapFromWasm(
-  map: Record<string, WasmSkillEffectLog[]>,
+  map: Record<string, WasmSkillEffectLog[]>
 ): Record<string, SkillEffectLog[]> {
   const out: Record<string, SkillEffectLog[]> = {};
   for (const [skillId, logs] of Object.entries(map)) {
@@ -242,7 +197,7 @@ function skillActivationMapFromWasm(
       end: log.end,
       perspective: log.perspective as ISkillPerspective,
       effectType: log.effectType as ISkillType,
-      effectTarget: log.effectTarget as ISkillTarget,
+      effectTarget: log.effectTarget as ISkillTarget
     }));
   }
   return out;
@@ -254,7 +209,7 @@ function skillActivationMapFromWasm(
  * regions/values map to the `[]`/`null` sentinels the TS shape expects.
  */
 export function wasmCompareRoundDataToCollected(
-  data: WasmCompareRoundData,
+  data: WasmCompareRoundData
 ): CollectedRunnerRoundData {
   return {
     runnerId: data.runnerId,
@@ -280,7 +235,7 @@ export function wasmCompareRoundDataToCollected(
     firstPositionInLateRace: data.firstPositionInLateRace,
     usedSkills: data.usedSkills,
     finished: data.finished,
-    finishPosition: data.finishPosition,
+    finishPosition: data.finishPosition
   };
 }
 
@@ -294,17 +249,17 @@ export function wasmCompareRoundDataToCollected(
  */
 export function raceSimParamsToWasm(
   params: RaceSimParams,
-  resolveName: (runner: CreateRunner, index: number) => string,
+  resolveName: (runner: CreateRunner, index: number) => string
 ): WasmRaceSimParams {
   return {
     course: courseDataToWasm(params.course),
     parameters: raceParametersToWasm(params.parameters),
     runners: params.runners.map((runner, index) =>
-      sundayRunnerToWasm(runner, resolveName(runner, index)),
+      sundayRunnerToWasm(runner, resolveName(runner, index))
     ),
     nsamples: params.nsamples,
     masterSeed: params.masterSeed,
-    focusRunnerIds: params.runners.map((_, index) => index),
+    focusRunnerIds: params.runners.map((_, index) => index)
   };
 }
 
@@ -331,8 +286,8 @@ export function wasmResultToRaceSimResult(result: WasmRaceSimResult): RaceSimRes
       name: entry.name,
       strategy: entry.strategy as IStrategy,
       finishPosition: entry.finishPosition,
-      finishTime: entry.finishTime,
-    })),
+      finishTime: entry.finishTime
+    }))
   );
 
   const rounds = result.collected.map((round, roundIndex) => {
@@ -372,7 +327,7 @@ export function wasmResultToRaceSimResult(result: WasmRaceSimResult): RaceSimRes
         firstPositionInLateRace: false,
         usedSkills: [],
         finished: true,
-        finishPosition: positions.length > 0 ? positions[positions.length - 1] : 0,
+        finishPosition: positions.length > 0 ? positions[positions.length - 1] : 0
       };
     }
     return {
@@ -380,7 +335,7 @@ export function wasmResultToRaceSimResult(result: WasmRaceSimResult): RaceSimRes
       finishOrder: finishOrders[roundIndex] ?? [],
       focusRunnerData,
       allRunnerPositions,
-      allRunnerLanes,
+      allRunnerLanes
     };
   });
 
@@ -395,15 +350,15 @@ export function wasmResultToRaceSimResult(result: WasmRaceSimResult): RaceSimRes
             skillId: event.detail.skillId,
             otherRunnerIds: event.detail.otherRunnerIds,
             finishPlace: event.detail.finishPlace,
-            finishTime: event.detail.finishTime,
+            finishTime: event.detail.finishTime
           }
-        : undefined,
-    })),
+        : undefined
+    }))
   );
 
   return {
     finishOrders,
     collectedData: { rounds },
-    eventLogs,
+    eventLogs
   };
 }

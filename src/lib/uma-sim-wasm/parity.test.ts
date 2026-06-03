@@ -144,7 +144,12 @@ const SKILL_PARITY_CASES: Array<SkillParityCase> = [
   // rotation==1 conditional passive (green) speed-up.
   { id: '200012', label: 'rotation passive (Right-Handed ○)', activates: true, meanTol: 0.1 },
   // Plain duration white straightaway target-speed (straight_random==1).
-  { id: '200362', label: 'plain-duration straightaway (Straightaway Adept)', activates: true, meanTol: 0.15 }
+  {
+    id: '200362',
+    label: 'plain-duration straightaway (Straightaway Adept)',
+    activates: true,
+    meanTol: 0.15
+  }
 ];
 
 describe.skipIf(!PKG_PATH)('skill-activation/effect parity (gate t-008 missed)', () => {
@@ -152,7 +157,11 @@ describe.skipIf(!PKG_PATH)('skill-activation/effect parity (gate t-008 missed)',
   const options = { ...defaultSimulationOptions, seed: 0 };
 
   const buildVacuum =
-    (wasm: NodeWasmModule, course: ReturnType<typeof coursesService.getSimCourse>, racedef: ReturnType<typeof racedefToParams>) =>
+    (
+      wasm: NodeWasmModule,
+      course: ReturnType<typeof coursesService.getSimCourse>,
+      racedef: ReturnType<typeof racedefToParams>
+    ) =>
     (runner: IRunnerState): WasmCompareData => {
       const sorter = createSkillSorterByGroup(runner.skills);
       const create = toCreateRunner({ ...runner }, runner.skills.toSorted(sorter));
@@ -179,109 +188,111 @@ describe.skipIf(!PKG_PATH)('skill-activation/effect parity (gate t-008 missed)',
     }, 0);
 
   for (const testCase of SKILL_PARITY_CASES) {
-    it(
-      `skill ${testCase.id} — ${testCase.label}`,
-      { timeout: 240000 },
-      () => {
-        const wasm = loadWasm();
-        const course = coursesService.getSimCourse(getDefaultCourseId());
-        const racedef = racedefToParams(createRaceConditions());
-        const vacuum = buildVacuum(wasm, course, racedef);
+    it(`skill ${testCase.id} — ${testCase.label}`, { timeout: 240000 }, () => {
+      const wasm = loadWasm();
+      const course = coursesService.getSimCourse(getDefaultCourseId());
+      const racedef = racedefToParams(createRaceConditions());
+      const vacuum = buildVacuum(wasm, course, racedef);
 
-        const base = createRunnerState({ skills: [], speed: 1100, stamina: 1100, power: 900 });
-        const withSkill = createRunnerState({
-          skills: [testCase.id],
-          speed: 1100,
-          stamina: 1100,
-          power: 900
-        });
+      const base = createRunnerState({ skills: [], speed: 1100, stamina: 1100, power: 900 });
+      const withSkill = createRunnerState({
+        skills: [testCase.id],
+        speed: 1100,
+        stamina: 1100,
+        power: 900
+      });
 
-        const ts = runPlannerComparison({
-          nsamples: N,
-          course,
-          racedef,
-          runnerA: base,
-          runnerB: withSkill,
-          candidateSkills: [testCase.id],
-          ignoreStaminaConsumption: false,
-          options
-        });
+      const ts = runPlannerComparison({
+        nsamples: N,
+        course,
+        racedef,
+        runnerA: base,
+        runnerB: withSkill,
+        candidateSkills: [testCase.id],
+        ignoreStaminaConsumption: false,
+        options
+      });
 
-        const wBase = vacuum(base);
-        const wCand = vacuum(withSkill);
-        const w = computePlannerStats(wBase, wCand, N);
+      const wBase = vacuum(base);
+      const wCand = vacuum(withSkill);
+      const w = computePlannerStats(wBase, wCand, N);
 
-        const tsMean = ts.results.reduce((a, b) => a + b, 0) / ts.results.length;
-        const wMean = w.results.reduce((a, b) => a + b, 0) / w.results.length;
-        const activationRounds = countActivationRounds(wCand, testCase.id);
+      const tsMean = ts.results.reduce((a, b) => a + b, 0) / ts.results.length;
+      const wMean = w.results.reduce((a, b) => a + b, 0) / w.results.length;
+      const activationRounds = countActivationRounds(wCand, testCase.id);
 
-        // Bashin-delta mean parity (absolute tolerance per case).
-        expect(Math.abs(tsMean - wMean)).toBeLessThan(testCase.meanTol);
+      // Bashin-delta mean parity (absolute tolerance per case).
+      expect(Math.abs(tsMean - wMean)).toBeLessThan(testCase.meanTol);
 
-        if (testCase.activates) {
-          // Bug #1 regression: an activating skill MUST yield non-empty
-          // skillActivations in the compare collector.
-          expect(activationRounds).toBeGreaterThan(0);
-          // And it must actually move the result (non-trivial bashin).
-          expect(Math.abs(wMean)).toBeGreaterThan(0.01);
-        }
+      if (testCase.activates) {
+        // Bug #1 regression: an activating skill MUST yield non-empty
+        // skillActivations in the compare collector.
+        expect(activationRounds).toBeGreaterThan(0);
+        // And it must actually move the result (non-trivial bashin).
+        expect(Math.abs(wMean)).toBeGreaterThan(0.01);
       }
-    );
+    });
   }
 });
 
 function runNineRunnerParity() {
-    const wasm = loadWasm();
-    const course = coursesService.getSimCourse(getDefaultCourseId());
-    const racedef = racedefToParams(createRaceConditions());
-    const RN = 500;
+  const wasm = loadWasm();
+  const course = coursesService.getSimCourse(getDefaultCourseId());
+  const racedef = racedefToParams(createRaceConditions());
+  const RN = 500;
 
-    const strategies: Array<IStrategyName> = [
-      'Front Runner',
-      'Pace Chaser',
-      'Late Surger',
-      'End Closer',
-      'Front Runner',
-      'Pace Chaser',
-      'Late Surger',
-      'End Closer',
-      'Pace Chaser'
-    ];
-    const states = strategies.map((strategy, i) =>
-      createRunnerState({ strategy, speed: 880 + i * 50, stamina: 900 + i * 40, power: 650 + i * 25, skills: [] })
-    );
-    const sorter = createSkillSorterByGroup([]);
-    const runners = states.map((s) => toCreateRunner({ ...s }, s.skills.toSorted(sorter)));
+  const strategies: Array<IStrategyName> = [
+    'Front Runner',
+    'Pace Chaser',
+    'Late Surger',
+    'End Closer',
+    'Front Runner',
+    'Pace Chaser',
+    'Late Surger',
+    'End Closer',
+    'Pace Chaser'
+  ];
+  const states = strategies.map((strategy, i) =>
+    createRunnerState({
+      strategy,
+      speed: 880 + i * 50,
+      stamina: 900 + i * 40,
+      power: 650 + i * 25,
+      skills: []
+    })
+  );
+  const sorter = createSkillSorterByGroup([]);
+  const runners = states.map((s) => toCreateRunner({ ...s }, s.skills.toSorted(sorter)));
 
-    const params = {
-      course,
-      parameters: toSundayRaceParameters(racedef),
-      runners,
-      nsamples: RN,
-      masterSeed: 0,
-      focusRunnerIds: []
-    };
+  const params = {
+    course,
+    parameters: toSundayRaceParameters(racedef),
+    runners,
+    nsamples: RN,
+    masterSeed: 0,
+    focusRunnerIds: []
+  };
 
-    const tsResult = runRaceSim(params);
-    const wasmResult = wasm.runRaceSim(raceSimParamsToWasm(params, (_r, i) => `R${i}`));
+  const tsResult = runRaceSim(params);
+  const wasmResult = wasm.runRaceSim(raceSimParamsToWasm(params, (_r, i) => `R${i}`));
 
-    const meanRank = (orders: Array<Array<{ runnerId: number }>>) => {
-      const sum = new Array(9).fill(0);
-      const cnt = new Array(9).fill(0);
-      for (const round of orders) {
-        round.forEach((e, rank) => {
-          sum[e.runnerId] += rank;
-          cnt[e.runnerId] += 1;
-        });
-      }
-      return sum.map((s, i) => (cnt[i] > 0 ? s / cnt[i] : 0));
-    };
-
-    const tsRank = meanRank(tsResult.finishOrders);
-    const wRank = meanRank(wasmResult.finishOrders);
-
-    // Fork B bar: mean finish rank per gate within 1.0 place.
-    for (let i = 0; i < 9; i++) {
-      expect(Math.abs(tsRank[i] - wRank[i])).toBeLessThan(1.0);
+  const meanRank = (orders: Array<Array<{ runnerId: number }>>) => {
+    const sum = new Array(9).fill(0);
+    const cnt = new Array(9).fill(0);
+    for (const round of orders) {
+      round.forEach((e, rank) => {
+        sum[e.runnerId] += rank;
+        cnt[e.runnerId] += 1;
+      });
     }
+    return sum.map((s, i) => (cnt[i] > 0 ? s / cnt[i] : 0));
+  };
+
+  const tsRank = meanRank(tsResult.finishOrders);
+  const wRank = meanRank(wasmResult.finishOrders);
+
+  // Fork B bar: mean finish rank per gate within 1.0 place.
+  for (let i = 0; i < 9; i++) {
+    expect(Math.abs(tsRank[i] - wRank[i])).toBeLessThan(1.0);
+  }
 }

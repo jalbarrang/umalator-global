@@ -52,7 +52,12 @@ pub struct ActiveRunner {
 /// Faithful port of the TypeScript `compare(value, arg, cmp)` helper; uses exact
 /// floating comparison by design (the engine compares integral orders/counts and
 /// derived ratios the same way).
-#[allow(clippy::float_cmp)]
+#[allow(
+    clippy::float_cmp,
+    reason = "exact comparison is intentional: ports the TS `compare` oracle which \
+               compares integral orders/counts and identically-derived ratios; \
+               approximate comparison would diverge from the parity reference"
+)]
 pub fn compare(value: f64, arg: f64, cmp: CmpKind) -> bool {
     match cmp {
         CmpKind::Eq => value == arg,

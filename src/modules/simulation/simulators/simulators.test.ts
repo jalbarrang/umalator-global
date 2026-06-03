@@ -1065,7 +1065,6 @@ describe('forced scenario overrides', () => {
       });
       raceA.prepareRound(42);
       raceA.run();
-      const runnerA = raceA.runners.values().toArray()[0];
 
       // Run with forced rushed
       const collectorB = new VacuumCompareDataCollector();

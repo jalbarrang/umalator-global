@@ -312,7 +312,10 @@ mod tests {
     }
 
     impl TestCond {
-        #[allow(clippy::unnecessary_wraps)]
+        #[allow(
+            clippy::unnecessary_wraps,
+            reason = "test helper mirrors the fallible production signature it stands in for"
+        )]
         fn result(
             &self,
             params: &ConditionFilterParams<'_>,

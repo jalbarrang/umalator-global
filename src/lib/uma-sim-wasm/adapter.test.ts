@@ -156,12 +156,30 @@ describe('wasmResultToRaceSimResult', () => {
     ],
     eventLogs: [
       [
-        { kind: 'skill-activated', runnerId: 0, position: 400, tick: 90, detail: { skillId: '100001' } },
-        { kind: 'skill-activated', runnerId: 0, position: 800, tick: 180, detail: { skillId: '100001' } },
+        {
+          kind: 'skill-activated',
+          runnerId: 0,
+          position: 400,
+          tick: 90,
+          detail: { skillId: '100001' }
+        },
+        {
+          kind: 'skill-activated',
+          runnerId: 0,
+          position: 800,
+          tick: 180,
+          detail: { skillId: '100001' }
+        },
         // No skillId -> skipped for the activation overlay.
         { kind: 'skill-activated', runnerId: 0, position: 850, tick: 190 },
         // Belongs to another runner -> not attributed to runner 0.
-        { kind: 'skill-activated', runnerId: 1, position: 500, tick: 110, detail: { skillId: '200001' } },
+        {
+          kind: 'skill-activated',
+          runnerId: 1,
+          position: 500,
+          tick: 110,
+          detail: { skillId: '200001' }
+        },
         { kind: 'rushed', runnerId: 0, position: 100, tick: 20 }
       ]
     ]

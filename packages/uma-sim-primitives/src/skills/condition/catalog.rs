@@ -83,7 +83,11 @@ fn strategy_of(arg: i64) -> Result<Strategy, ConditionError> {
     }
 }
 
-#[allow(clippy::unnecessary_wraps)]
+#[allow(
+    clippy::unnecessary_wraps,
+    reason = "must match the fallible `FilterResult` signature shared by all filter \
+               combinators, even though this identity filter never errors"
+)]
 fn pass(regions: RegionList) -> FilterResult {
     Ok((regions, None))
 }

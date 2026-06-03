@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { computePlannerStats } from './wasm-skill-planner';
 import type { WasmCompareData, WasmCompareRoundData } from '@/lib/uma-sim-wasm/types';
 
-function roundWithPositions(seed: number, positions: Array<number>): WasmCompareData['rounds'][number] {
+function roundWithPositions(
+  seed: number,
+  positions: Array<number>
+): WasmCompareData['rounds'][number] {
   const runner = {
     runnerId: 0,
     time: [],

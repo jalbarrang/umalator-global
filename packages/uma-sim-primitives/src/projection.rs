@@ -72,7 +72,12 @@ pub fn count_effects(effects: &[ActiveEffectView]) -> HashMap<String, (usize, Ac
 }
 
 /// Open new logs for newly-active effects and close logs whose count dropped.
-#[allow(clippy::too_many_arguments)]
+#[allow(
+    clippy::too_many_arguments,
+    reason = "effect-log reconciliation threads several independent collector \
+               inputs/outputs; grouping them would add an opaque param struct \
+               without improving clarity"
+)]
 pub fn reconcile_effects(
     counts: &HashMap<String, (usize, ActiveEffectView)>,
     open: &mut HashMap<String, Vec<OpenLogRef>>,
