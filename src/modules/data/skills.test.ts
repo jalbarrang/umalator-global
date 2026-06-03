@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { skillsService } from '@/modules/data/services/SkillService';
 
-const findBestSkillMatch = skillsService.findBestSkillMatch;
-const normalizeSkillName = skillsService.normalizeSkillName;
-const resolveSkillId = skillsService.resolveSkillId;
+// Bind to the singleton: these are prototype methods that use `this`, so they
+// must stay attached to the instance when referenced standalone.
+const findBestSkillMatch = skillsService.findBestSkillMatch.bind(skillsService);
+const normalizeSkillName = skillsService.normalizeSkillName.bind(skillsService);
+const resolveSkillId = skillsService.resolveSkillId.bind(skillsService);
 
 describe('normalizeSkillName', () => {
   it('normalizes grade symbol variants while preserving grade semantics', () => {
