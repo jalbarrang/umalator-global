@@ -1,9 +1,6 @@
 import type { RunComparisonParams } from '@/modules/simulation/types';
 import type { SkillTrackedMetaCollection } from '@/modules/simulation/compare.types';
-import {
-  BassinCollector,
-  SkillCompareDataCollector
-} from 'sunday-tools/common/race-observer';
+import { BassinCollector, SkillCompareDataCollector } from 'sunday-tools/common/race-observer';
 import {
   DEFAULT_DUELING_RATES,
   computePositionDiff,

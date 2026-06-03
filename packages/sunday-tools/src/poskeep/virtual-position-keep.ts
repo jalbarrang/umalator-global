@@ -153,7 +153,7 @@ export function applyVirtualPositionKeep(runner: RunnerLike): void {
   }
 
   const pacer = runner.race.pacer;
-  const behind = hasForcedRank ? forcedBehind : (pacer ? pacer.position - runner.position : 0);
+  const behind = hasForcedRank ? forcedBehind : pacer ? pacer.position - runner.position : 0;
   const myStrategy = runner.positionKeepStrategy;
 
   switch (runner.positionKeepState) {

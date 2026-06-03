@@ -12,11 +12,7 @@ import { resolve } from 'node:path';
 import { Command } from 'commander';
 
 import type { CreateRunner, RunnerAptitudes, StatLine } from 'sunday-tools/common/runner';
-import type {
-  DuelingRates,
-  RaceParameters,
-  SimulationSettings
-} from 'sunday-tools/common/race';
+import type { DuelingRates, RaceParameters, SimulationSettings } from 'sunday-tools/common/race';
 import type { CourseData } from 'sunday-tools/course/definitions';
 import { Race } from 'sunday-tools/common/race';
 import { coursesService } from '@/modules/data/services/CourseService';

@@ -65,11 +65,7 @@ function corsHeaders(origin: string | null): Record<string, string> {
   return headers;
 }
 
-function json(
-  body: unknown,
-  status: number,
-  headers: Record<string, string>
-): Response {
+function json(body: unknown, status: number, headers: Record<string, string>): Response {
   return new Response(JSON.stringify(body), {
     status,
     headers: { 'Content-Type': 'application/json', ...headers }
@@ -80,7 +76,9 @@ function isCategory(value: unknown): value is Category {
   return typeof value === 'string' && (CATEGORIES as readonly string[]).includes(value);
 }
 
-function parsePayload(raw: unknown): { ok: true; value: SuggestionPayload } | { ok: false; error: string } {
+function parsePayload(
+  raw: unknown
+): { ok: true; value: SuggestionPayload } | { ok: false; error: string } {
   if (typeof raw !== 'object' || raw === null) {
     return { ok: false, error: 'Invalid request body.' };
   }

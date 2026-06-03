@@ -77,8 +77,18 @@ export function attachSupportCardEventSources(
   supportCards: SupportCardsMap
 ): void {
   attachSupportCardSourcesByType(skills, supportCards, 'event', (card) => card.eventSkills);
-  attachSupportCardSourcesByType(skills, supportCards, 'chain-event', (card) => card.chainEventSkills);
-  attachSupportCardSourcesByType(skills, supportCards, 'random-event', (card) => card.randomEventSkills);
+  attachSupportCardSourcesByType(
+    skills,
+    supportCards,
+    'chain-event',
+    (card) => card.chainEventSkills
+  );
+  attachSupportCardSourcesByType(
+    skills,
+    supportCards,
+    'random-event',
+    (card) => card.randomEventSkills
+  );
 }
 
 /**

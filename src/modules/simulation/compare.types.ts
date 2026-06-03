@@ -1,9 +1,5 @@
 import { cloneDeep } from 'es-toolkit';
-import type {
-  ISkillPerspective,
-  ISkillTarget,
-  ISkillType
-} from 'sunday-tools/skills/definitions';
+import type { ISkillPerspective, ISkillTarget, ISkillType } from 'sunday-tools/skills/definitions';
 
 export type CompareRunnerId = 'uma1' | 'uma2';
 

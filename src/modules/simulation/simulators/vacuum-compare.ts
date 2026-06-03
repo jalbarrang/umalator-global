@@ -38,8 +38,15 @@ function calculateStats(stats: CompareStatsAccumulator, totalSamples: number) {
 
 export function runComparison(params: CompareParams): CompareResult {
   const {
-    nsamples, course, racedef, uma1, uma2, options,
-    forcedPositions, injectedDebuffs, scenarioOverrides
+    nsamples,
+    course,
+    racedef,
+    uma1,
+    uma2,
+    options,
+    forcedPositions,
+    injectedDebuffs,
+    scenarioOverrides
   } = params;
 
   const seed = options.seed ?? 0;
@@ -67,7 +74,13 @@ export function runComparison(params: CompareParams): CompareResult {
     }),
     duelingRates: DEFAULT_DUELING_RATES,
     skillSamples: nsamples,
-    runner: toCreateRunner(uma1, runnerASortedSkills, forcedPositions?.uma1, injectedDebuffs?.uma1, scenarioOverrides?.uma1),
+    runner: toCreateRunner(
+      uma1,
+      runnerASortedSkills,
+      forcedPositions?.uma1,
+      injectedDebuffs?.uma1,
+      scenarioOverrides?.uma1
+    ),
     observer: collectorA
   });
 
@@ -85,7 +98,13 @@ export function runComparison(params: CompareParams): CompareResult {
     }),
     duelingRates: DEFAULT_DUELING_RATES,
     skillSamples: nsamples,
-    runner: toCreateRunner(uma2, runnerBSortedSkills, forcedPositions?.uma2, injectedDebuffs?.uma2, scenarioOverrides?.uma2),
+    runner: toCreateRunner(
+      uma2,
+      runnerBSortedSkills,
+      forcedPositions?.uma2,
+      injectedDebuffs?.uma2,
+      scenarioOverrides?.uma2
+    ),
     observer: collectorB
   });
 

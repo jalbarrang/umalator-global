@@ -996,10 +996,18 @@ export class Runner {
 
   updateDueling() {
     // --- Forced dueling region handling ---
-    if (this.forcedDuelingRegions.length > 0 && this.forcedDuelingIndex < this.forcedDuelingRegions.length) {
+    if (
+      this.forcedDuelingRegions.length > 0 &&
+      this.forcedDuelingIndex < this.forcedDuelingRegions.length
+    ) {
       const forcedRegion = this.forcedDuelingRegions[this.forcedDuelingIndex];
 
-      if (!this.isInForcedDueling && !this.isDueling && this.position >= forcedRegion.start && this.position < forcedRegion.end) {
+      if (
+        !this.isInForcedDueling &&
+        !this.isDueling &&
+        this.position >= forcedRegion.start &&
+        this.position < forcedRegion.end
+      ) {
         this.isDueling = true;
         this.isInForcedDueling = true;
         this.duelingStartPosition = this.position;
@@ -1156,10 +1164,18 @@ export class Runner {
 
   updateSpotStruggle() {
     // --- Forced spot struggle region handling ---
-    if (this.forcedSpotStruggleRegions.length > 0 && this.forcedSpotStruggleIndex < this.forcedSpotStruggleRegions.length) {
+    if (
+      this.forcedSpotStruggleRegions.length > 0 &&
+      this.forcedSpotStruggleIndex < this.forcedSpotStruggleRegions.length
+    ) {
       const forcedRegion = this.forcedSpotStruggleRegions[this.forcedSpotStruggleIndex];
 
-      if (!this.isInForcedSpotStruggle && !this.inSpotStruggle && this.position >= forcedRegion.start && this.position < forcedRegion.end) {
+      if (
+        !this.isInForcedSpotStruggle &&
+        !this.inSpotStruggle &&
+        this.position >= forcedRegion.start &&
+        this.position < forcedRegion.end
+      ) {
         this.inSpotStruggle = true;
         this.isInForcedSpotStruggle = true;
         this.spotStruggleStartPosition = this.position;
@@ -2004,10 +2020,17 @@ export class Runner {
 
   private updateRushed() {
     // --- Forced rushed region handling ---
-    if (this.forcedRushedRegions.length > 0 && this.forcedRushedIndex < this.forcedRushedRegions.length) {
+    if (
+      this.forcedRushedRegions.length > 0 &&
+      this.forcedRushedIndex < this.forcedRushedRegions.length
+    ) {
       const forcedRegion = this.forcedRushedRegions[this.forcedRushedIndex];
 
-      if (!this.isInForcedRushed && this.position >= forcedRegion.start && this.position < forcedRegion.end) {
+      if (
+        !this.isInForcedRushed &&
+        this.position >= forcedRegion.start &&
+        this.position < forcedRegion.end
+      ) {
         this.isRushed = true;
         this.isInForcedRushed = true;
         this.preRushedPosKeepStrategy = this.positionKeepStrategy;
@@ -2022,7 +2045,8 @@ export class Runner {
             this.positionKeepStrategy = Strategy.FrontRunner;
             break;
           case Strategy.LateSurger:
-            this.positionKeepStrategy = strategyRoll < 0.75 ? Strategy.FrontRunner : Strategy.PaceChaser;
+            this.positionKeepStrategy =
+              strategyRoll < 0.75 ? Strategy.FrontRunner : Strategy.PaceChaser;
             break;
           case Strategy.EndCloser:
             if (strategyRoll < 0.7) this.positionKeepStrategy = Strategy.FrontRunner;

@@ -17,6 +17,12 @@
     "bun.lock",
     "yarn.lock",
     "CHANGELOG.md",
-    "src/modules/data/json/*.json" // Ignore JSON files that are generated after extracting data from the game
+    "src/modules/data/json/**/*.json", // Generated game-extract data (recursive: covers gametora/ etc.)
+    // oxfmt owns code only (matches the lint-staged `*.{ts,tsx}` scope). Rust
+    // config, GitHub workflows, and docs keep their own canonical formatting.
+    "*.toml",
+    "*.yml",
+    "*.yaml",
+    "*.md"
   ]
 }

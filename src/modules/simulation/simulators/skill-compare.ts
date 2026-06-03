@@ -20,10 +20,7 @@ import type {
   SkillTrackedMetaCollection
 } from '@/modules/simulation/compare.types';
 import { initializeSkillSimulationRun } from '@/modules/simulation/compare.types';
-import {
-  BassinCollector,
-  SkillCompareDataCollector
-} from 'sunday-tools/common/race-observer';
+import { BassinCollector, SkillCompareDataCollector } from 'sunday-tools/common/race-observer';
 import {
   DEFAULT_DUELING_RATES,
   computePositionDiff,

@@ -16,10 +16,7 @@ import {
   toCreateRunner,
   toSundayRaceParameters
 } from './shared';
-import {
-  BassinCollector,
-  VacuumCompareDataCollector
-} from 'sunday-tools/common/race-observer';
+import { BassinCollector, VacuumCompareDataCollector } from 'sunday-tools/common/race-observer';
 
 const TEST_COURSE_ID = 10101;
 
@@ -1164,7 +1161,12 @@ describe('forced scenario overrides', () => {
       const options = createSimulationOptions(42);
 
       const result = runComparison({
-        nsamples: 1, course, racedef, uma1, uma2, options,
+        nsamples: 1,
+        course,
+        racedef,
+        uma1,
+        uma2,
+        options,
         scenarioOverrides: {
           uma1: {
             forcedRushed: null,
@@ -1182,7 +1184,12 @@ describe('forced scenario overrides', () => {
       });
 
       // Check all four run snapshots for dueling regions on uma1
-      const runs = [result.runData.minrun, result.runData.maxrun, result.runData.meanrun, result.runData.medianrun];
+      const runs = [
+        result.runData.minrun,
+        result.runData.maxrun,
+        result.runData.meanrun,
+        result.runData.medianrun
+      ];
       for (const run of runs) {
         console.log('duelingRegions:', run.duelingRegions);
         expect(run.duelingRegions[0]).toHaveLength(2);
@@ -1311,12 +1318,14 @@ describe('forced scenario overrides', () => {
       for (let seed = 100; seed < 120 && !anyActivations; seed++) {
         const c = new VacuumCompareDataCollector();
         const r = createInitializedRace({
-          course, raceParameters,
+          course,
+          raceParameters,
           settings: createCompareSettings({ positionKeepMode: 2 }),
           duelingRates: DEFAULT_DUELING_RATES,
           skillSamples: 1,
           runner: toCreateRunner(runner, sortedSkills, undefined, undefined, {
-            forcedRushed: null, forcedDueling: null,
+            forcedRushed: null,
+            forcedDueling: null,
             forcedSpotStruggle: null,
             forcedRank: [{ start: 0, end: 1200, rank: 4 }]
           }),

@@ -37,7 +37,9 @@ describe('attachSupportCardHintSources', () => {
         supportCardType: 1,
         released: true,
         hintSkills: [{ id: 200012, name: 'Right-Handed ○', rarity: 2 }],
-        eventSkills: [], chainEventSkills: [], randomEventSkills: []
+        eventSkills: [],
+        chainEventSkills: [],
+        randomEventSkills: []
       }
     };
 

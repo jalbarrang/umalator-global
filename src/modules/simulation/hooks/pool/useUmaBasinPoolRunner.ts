@@ -24,8 +24,7 @@ import { useUmaSkillSelectionStore } from '@/modules/simulation/stores/uma-skill
 
 const uniqueSkillIds = skillsService.getUniqueSkillIds();
 
-const createUmaBasinPoolWorker = (options: { name: string }) =>
-  new UmaBasinPoolWasmWorker(options);
+const createUmaBasinPoolWorker = (options: { name: string }) => new UmaBasinPoolWasmWorker(options);
 
 function removeUniqueSkillsFromRunner(uma: IRunnerState): IRunnerState {
   const filteredSkills = uma.skills.filter((skillId) => !uniqueSkillIds.includes(skillId));
@@ -43,9 +42,7 @@ export function useUmaBasinPoolRunner() {
 
   // Initialize pool manager on mount
   useEffect(() => {
-    const poolManager = new PoolManager((workerOptions) =>
-      createUmaBasinPoolWorker(workerOptions)
-    );
+    const poolManager = new PoolManager((workerOptions) => createUmaBasinPoolWorker(workerOptions));
 
     poolManagerRef.current = poolManager;
 

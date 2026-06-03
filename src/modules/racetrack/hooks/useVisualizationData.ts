@@ -316,7 +316,9 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
             markerType: 'scenario',
             umaIndex,
             isEstimate: true,
-            regions: [{ start: overrides.forcedSpotStruggle.start, end: overrides.forcedSpotStruggle.end }]
+            regions: [
+              { start: overrides.forcedSpotStruggle.start, end: overrides.forcedSpotStruggle.end }
+            ]
           });
         }
       }
@@ -376,8 +378,12 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
         const start = competeFightArray[0];
         const end = competeFightArray[1];
         results.push({
-          umaIndex, text: 'Duel', color: posKeepColors[umaIndex],
-          start, end, duration: end - start
+          umaIndex,
+          text: 'Duel',
+          color: posKeepColors[umaIndex],
+          start,
+          end,
+          duration: end - start
         });
       }
     }
@@ -395,8 +401,12 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
         const end = leadCompetitionArray[1];
 
         results.push({
-          umaIndex, text: 'SS', color: posKeepColors[umaIndex],
-          start, end, duration: end - start
+          umaIndex,
+          text: 'SS',
+          color: posKeepColors[umaIndex],
+          start,
+          end,
+          duration: end - start
         });
       }
     }

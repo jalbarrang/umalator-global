@@ -20,7 +20,10 @@ import { umaBassinSteps } from '@/modules/tutorial/steps/uma-bassin-steps';
 import { TutorialId } from '@/components/tutorial/types';
 import { SimulationProgressBanner } from '@/components/simulation-progress-banner';
 import { UmaSkillSelectorDialog } from '@/modules/simulation/components/skill-selector-dialog';
-import { getSkillPlanningMeta, useSkillPlannerStore } from '@/modules/skill-planner/skill-planner.store';
+import {
+  getSkillPlanningMeta,
+  useSkillPlannerStore
+} from '@/modules/skill-planner/skill-planner.store';
 
 export default function UmaComparePage() {
   const { selectedSkills, setSelectedSkills } = useChartData();

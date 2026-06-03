@@ -19,7 +19,10 @@ import { coursesService } from '@/modules/data/services/CourseService';
 import { TutorialId } from '@/components/tutorial/types';
 import { SimulationProgressBanner } from '@/components/simulation-progress-banner';
 import { SkillSelectorDialog } from '@/modules/simulation/components/skill-selector-dialog';
-import { getSkillPlanningMeta, useSkillPlannerStore } from '@/modules/skill-planner/skill-planner.store';
+import {
+  getSkillPlanningMeta,
+  useSkillPlannerStore
+} from '@/modules/skill-planner/skill-planner.store';
 
 export default function SkillComparePage() {
   const { selectedSkills, setSelectedSkills } = useChartData();

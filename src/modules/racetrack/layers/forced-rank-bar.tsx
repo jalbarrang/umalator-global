@@ -76,7 +76,11 @@ function DragPreview(props: { umaIndex: 0 | 1; courseDistance: number }) {
   const { umaIndex, courseDistance } = props;
   const preview = useDragPreviewForUma(umaIndex);
 
-  if (!preview || preview.markerType !== 'scenario' || !preview.skillId?.startsWith('__forced_rank_')) {
+  if (
+    !preview ||
+    preview.markerType !== 'scenario' ||
+    !preview.skillId?.startsWith('__forced_rank_')
+  ) {
     return null;
   }
 
@@ -113,7 +117,14 @@ export const ForcedRankBar = React.memo<ForcedRankBarProps>((props) => {
     return (
       <g>
         <rect x="0" y="0" width="100%" height="100%" fill="rgb(245,245,245)" rx="2" />
-        <text x="50%" y="50%" fill="rgb(180,180,180)" fontSize="8px" textAnchor="middle" dominantBaseline="central">
+        <text
+          x="50%"
+          y="50%"
+          fill="rgb(180,180,180)"
+          fontSize="8px"
+          textAnchor="middle"
+          dominantBaseline="central"
+        >
           Position Rank Overrides
         </text>
       </g>
@@ -131,13 +142,36 @@ export const ForcedRankBar = React.memo<ForcedRankBarProps>((props) => {
       {/* Background */}
       <rect x="0" y="0" width="100%" height="100%" fill="rgb(245,245,245)" rx="2" />
       {/* Separator */}
-      <line x1="0" y1={ROW_HEIGHT} x2="100%" y2={ROW_HEIGHT} stroke="rgb(220,220,220)" strokeWidth={0.5} />
+      <line
+        x1="0"
+        y1={ROW_HEIGHT}
+        x2="100%"
+        y2={ROW_HEIGHT}
+        stroke="rgb(220,220,220)"
+        strokeWidth={0.5}
+      />
 
       {/* Uma labels */}
-      <text x={-14} y={ROW_HEIGHT / 2} fill="rgb(140,140,140)" fontSize="7px" fontWeight="bold" textAnchor="middle" dominantBaseline="central">
+      <text
+        x={-14}
+        y={ROW_HEIGHT / 2}
+        fill="rgb(140,140,140)"
+        fontSize="7px"
+        fontWeight="bold"
+        textAnchor="middle"
+        dominantBaseline="central"
+      >
         U1
       </text>
-      <text x={-14} y={ROW_HEIGHT + ROW_HEIGHT / 2} fill="rgb(140,140,140)" fontSize="7px" fontWeight="bold" textAnchor="middle" dominantBaseline="central">
+      <text
+        x={-14}
+        y={ROW_HEIGHT + ROW_HEIGHT / 2}
+        fill="rgb(140,140,140)"
+        fontSize="7px"
+        fontWeight="bold"
+        textAnchor="middle"
+        dominantBaseline="central"
+      >
         U2
       </text>
 

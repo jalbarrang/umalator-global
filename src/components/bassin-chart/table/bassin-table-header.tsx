@@ -11,10 +11,7 @@ import type { SkillComparisonRoundResult } from '@/modules/simulation/types';
 
 const BassinTableSortingContext = createContext<SortingState>([]);
 
-function getColumnSortDirection(
-  columnId: string,
-  sorting: SortingState
-): false | 'asc' | 'desc' {
+function getColumnSortDirection(columnId: string, sorting: SortingState): false | 'asc' | 'desc' {
   const entry = sorting.find((s) => s.id === columnId);
   if (!entry) return false;
   return entry.desc ? 'desc' : 'asc';

@@ -83,8 +83,7 @@ export function exportDataToImport(data: SkillPlannerExportData): ImportedPlanne
     data.proper_running_style_oikomi
   );
 
-  const strategy: IStrategyName =
-    strategyValueToName[data.strategy as IStrategy] ?? 'Front Runner';
+  const strategy: IStrategyName = strategyValueToName[data.strategy as IStrategy] ?? 'Front Runner';
 
   return {
     runner: {

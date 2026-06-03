@@ -8,7 +8,11 @@ import type {
 } from 'sunday-tools/common/race';
 import type { CourseData } from 'sunday-tools/course/definitions';
 import type { ISkillTarget, ISkillType } from 'sunday-tools/skills/definitions';
-import type { InjectedDebuff, RunComparisonParams, ScenarioOverrides } from '@/modules/simulation/types';
+import type {
+  InjectedDebuff,
+  RunComparisonParams,
+  ScenarioOverrides
+} from '@/modules/simulation/types';
 import { Race } from 'sunday-tools/common/race';
 import { subscribeObserver } from 'sunday-tools/common/race-events';
 import { parseAptitudeName, parseStrategyName } from 'sunday-tools/runner/runner.types';
@@ -117,9 +121,15 @@ export function toCreateRunner(
     skills: sortedSkills,
     forcedPositions,
     injectedDebuffs: injectedDebuffs?.map(({ skillId, position }) => ({ skillId, position })),
-    forcedRushedRegions: scenarioOverrides?.forcedRushed ? [scenarioOverrides.forcedRushed] : undefined,
-    forcedDuelingRegions: scenarioOverrides?.forcedDueling ? [scenarioOverrides.forcedDueling] : undefined,
-    forcedSpotStruggleRegions: scenarioOverrides?.forcedSpotStruggle ? [scenarioOverrides.forcedSpotStruggle] : undefined,
+    forcedRushedRegions: scenarioOverrides?.forcedRushed
+      ? [scenarioOverrides.forcedRushed]
+      : undefined,
+    forcedDuelingRegions: scenarioOverrides?.forcedDueling
+      ? [scenarioOverrides.forcedDueling]
+      : undefined,
+    forcedSpotStruggleRegions: scenarioOverrides?.forcedSpotStruggle
+      ? [scenarioOverrides.forcedSpotStruggle]
+      : undefined,
     forcedRank: scenarioOverrides?.forcedRank
   };
 }
