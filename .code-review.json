@@ -1,6 +1,7 @@
 {
   "lensDir": ".code-review/lenses",
   "defaultLenses": ["code-quality", "maintainability"],
+  "toolTimeoutMs": 300000,
   "review": {
     "passes": 3,
     "validate": true,
