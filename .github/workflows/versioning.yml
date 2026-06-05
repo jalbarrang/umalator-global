@@ -16,15 +16,28 @@ jobs:
         uses: actions/checkout@v6.0.2
         with:
           fetch-depth: 0
-          persist-credentials: false
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+      - name: Read version from package.json
+        id: pkg
+        run: echo "version=$(jq -r .version package.json)" >> "$GITHUB_OUTPUT"
 
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
+      - name: Check if tag already exists
+        id: check
+        run: |
+          if git rev-parse "v${{ steps.pkg.outputs.version }}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
 
-      - name: Run semantic-release
+      - name: Create tag and GitHub release
+        if: steps.check.outputs.exists == 'false'
         env:
-          GITHUB_TOKEN: ${{ secrets.DATA_UPDATE_PAT }}
-        run: bun run release
+          GH_TOKEN: ${{ secrets.DATA_UPDATE_PAT }}
+        run: |
+          VERSION="v${{ steps.pkg.outputs.version }}"
+          git tag "$VERSION"
+          git push origin "$VERSION"
+          gh release create "$VERSION" \
+            --title "$VERSION" \
+            --generate-notes
