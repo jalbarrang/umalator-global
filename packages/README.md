@@ -1,12 +1,15 @@
 # uma-sim (Rust workspace)
 
 Rust port of the Uma Musume race simulator, organized with **Domain-Driven
-Design**. Two crates:
+Design**. The engine is split into two purpose-built simulators over a shared
+package of pure primitives (see [ADR-0005](../docs/adr/0005-split-sim-engines.md)):
 
 | Crate | Role |
 |-------|------|
-| [`uma-sim-core`](./uma-sim-core) | Pure-Rust simulation domain. Usable as a native library in backends / CLIs. |
-| [`uma-sim-wasm`](./uma-sim-wasm) | WebAssembly adapter (anti-corruption layer) for browser web workers. |
+| [`uma-sim-primitives`](./uma-sim-primitives) | Pure, field-agnostic primitives: formulas, the `Runner` state + step kernel, condition language, course math, RNG, data models, and field-agnostic race support. The single source of game fidelity. |
+| [`uma-sim-race`](./uma-sim-race) | Contested engine — 9 real runners with emergent contention (dueling / spot-struggle / position-keep) and live condition resolution. Drives `runRaceSim` + the streaming simulator. |
+| [`uma-sim-vacuum`](./uma-sim-vacuum) | Solo / compare engine — synthetic dueling + approximate conditions, paired-delta orchestration. Drives `runCompare`. |
+| [`uma-sim-wasm`](./uma-sim-wasm) | WebAssembly adapter (anti-corruption layer) for browser web workers. Depends on both engines. |
 
 See [`../.plans/rust-sim-engine/`](../.plans/rust-sim-engine) for the full design
 context, bounded-context layout, and task plan.

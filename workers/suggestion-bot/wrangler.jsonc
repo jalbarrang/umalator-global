@@ -14,7 +14,7 @@
 
   // Public, non-secret config. Comma-separated list of app origins allowed via CORS.
   "vars": {
-    "ALLOWED_ORIGIN": "https://jalbarrang.github.io,https://sundays-shadow.netlify.app"
+    "ALLOWED_ORIGIN": "https://jalbarrang.github.io"
   }
 
   // ── Secrets (set via `wrangler secret put <NAME>`, never commit) ──

@@ -3,7 +3,7 @@
   "version": "0.13.0",
   "private": true,
   "type": "module",
-  "//deprecated": "DEPRECATED: superseded by the Rust/WASM engine (packages/uma-sim-core). Kept as the statistical-parity reference (docs/adr/0004) and a possible fallback; not wired into any production sim path. See README.",
+  "//deprecated": "DEPRECATED: superseded by the Rust/WASM engine (packages/uma-sim-primitives + uma-sim-race + uma-sim-vacuum -> packages/uma-sim-wasm). Kept as the statistical-parity reference (docs/adr/0004) and a possible fallback; not wired into any production sim path. See README.",
   "description": "Deprecated TypeScript Umamusume race-simulation engine. Retained as the parity reference for the Rust/WASM engine.",
   "exports": {
     "./*": "./src/*.ts"

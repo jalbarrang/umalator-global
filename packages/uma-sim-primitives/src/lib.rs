@@ -5,8 +5,7 @@
 //! Every item here is a **pure function of already-resolved inputs** or a plain
 //! value object — nothing in this crate asks whether a field exists or owns any
 //! simulation orchestration. Both purpose-built engines (`uma-sim-race`,
-//! `uma-sim-vacuum`) and the legacy combined engine in `uma-sim-core` build on
-//! top of these.
+//! `uma-sim-vacuum`) build on top of these.
 //!
 //! ## Contents
 //!

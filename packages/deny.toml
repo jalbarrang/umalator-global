@@ -44,7 +44,9 @@ allow = [
 # The workspace itself is GPL-3.0-only (this is our code). Dependencies must
 # still be permissive (the allow-list above).
 exceptions = [
-    { allow = ["GPL-3.0-only"], crate = "uma-sim-core" },
+    { allow = ["GPL-3.0-only"], crate = "uma-sim-primitives" },
+    { allow = ["GPL-3.0-only"], crate = "uma-sim-race" },
+    { allow = ["GPL-3.0-only"], crate = "uma-sim-vacuum" },
     { allow = ["GPL-3.0-only"], crate = "uma-sim-wasm" },
 ]
 

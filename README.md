@@ -56,14 +56,13 @@ See [docs/data-extraction/data-pipeline.md](docs/data-extraction/data-pipeline.m
 
 Production deploys run automatically on every push to `main` (rolling releases). GitHub Releases from [semantic-release](https://github.com/semantic-release/semantic-release) are for changelog/tags only and do not trigger deploys.
 
-Two deploy targets run in parallel:
+Deployment target:
 
 | Target           | Workflow                               | URL                                |
 | ---------------- | -------------------------------------- | ---------------------------------- |
 | **GitHub Pages** | `.github/workflows/deploy-pages.yml`   | Configured in repo Pages settings  |
-| **Netlify**      | `.github/workflows/deploy-netlify.yml` | https://sundays-shadow.netlify.app |
 
-Both workflows can also be triggered manually via `workflow_dispatch`.
+The workflow can also be triggered manually via `workflow_dispatch`.
 
 ### Versioning
 
@@ -88,8 +87,6 @@ Use `DATA_UPDATE_PAT` as `GITHUB_TOKEN` for local releases.
 | Name                       | Type     | Used by                                                          |
 | -------------------------- | -------- | ---------------------------------------------------------------- |
 | `DATA_UPDATE_PAT`          | Secret   | `versioning.yml` — PAT for semantic-release (push tags, releases) |
-| `NETLIFY_AUTH_TOKEN`       | Secret   | Netlify deploy                                                                                            |
-| `NETLIFY_SITE_ID`          | Secret   | Netlify deploy                                                                                            |
 | `VITE_PUBLIC_POSTHOG_KEY`  | Secret   | Build-time analytics key                                                                                  |
 | `VITE_PUBLIC_POSTHOG_HOST` | Variable | Build-time analytics host                                                                                 |
 | `VITE_BASE_PATH`           | Variable | GitHub Pages base path                                                                                    |

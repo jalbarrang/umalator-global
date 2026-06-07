@@ -38,6 +38,19 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
 
+      - name: Setup Rust toolchain (wasm32)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Cache Rust build
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: packages
+
+      - name: Install wasm-pack
+        uses: jetli/wasm-pack-action@v0.4.0
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v6
 
