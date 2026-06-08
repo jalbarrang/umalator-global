@@ -71,6 +71,23 @@ pub fn run_compare_wasm(params: JsValue) -> Result<JsValue, JsError> {
     to_js(&WasmCompareData::from_domain(&result))
 }
 
+/// All condition tokens the Rust engine's catalog recognizes.
+///
+/// Exposed so the TS-side simulatability gate (ADR-0003, driven by the TS
+/// `knownConditionTokens` vocabulary) can be cross-checked against the engine
+/// that actually runs the sim, closing the dual-parser drift risk (ADR-0004):
+/// any token the UI treats as simulatable must be resolvable by this engine.
+/// Returned as a sorted JS string array.
+#[wasm_bindgen(js_name = knownConditionTokens)]
+pub fn known_condition_tokens_wasm() -> Vec<String> {
+    let mut tokens: Vec<String> =
+        uma_sim_primitives::skills::condition::catalog::known_condition_tokens()
+            .into_iter()
+            .collect();
+    tokens.sort();
+    tokens
+}
+
 /// A streaming race simulator with per-event JS callbacks.
 ///
 /// Construct with [`WasmRaceSimulator::new`], register callbacks, then call

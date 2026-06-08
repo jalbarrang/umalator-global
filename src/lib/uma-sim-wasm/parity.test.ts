@@ -19,6 +19,9 @@
  */
 import { createRequire } from 'node:module';
 import { describe, expect, it } from 'vitest';
+import { knownConditionTokens as tsKnownConditionTokens } from 'sunday-tools/skills/parser/conditions/conditions';
+import { extractConditionTokens } from 'sunday-tools/skills/simulatability';
+import { skillsService } from '@/modules/data/services/SkillService';
 import { coursesService } from '@/modules/data/services/CourseService';
 import { getDefaultCourseId } from '@/store/race/defaults';
 import { createRaceConditions, racedefToParams } from '@/utils/races';
@@ -26,10 +29,8 @@ import { createRunnerState, runawaySkillId } from '@/modules/runners/components/
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import type { IStrategyName } from 'sunday-tools/runner/definitions';
 import { defaultSimulationOptions } from '@/components/bassin-chart/utils';
-import {
-  createPlannerCompareSettings,
-  runPlannerComparison
-} from '@/modules/simulation/simulators/skill-planner-compare';
+import { createPlannerCompareSettings } from '@/modules/simulation/simulators/skill-planner-compare';
+import { runPlannerComparison } from '@/modules/simulation/parity-reference/planner-compare.reference';
 import { computePlannerStats } from '@/modules/simulation/simulators/wasm-skill-planner';
 import { runRaceSim } from 'sunday-tools/race-sim/run-race-sim';
 import { compareParamsToWasm, raceSimParamsToWasm } from '@/lib/uma-sim-wasm/adapter';
@@ -44,6 +45,7 @@ import {
 type NodeWasmModule = {
   runCompare: (params: unknown) => WasmCompareData;
   runRaceSim: (params: unknown) => WasmRaceSimResult;
+  knownConditionTokens: () => Array<string>;
 };
 
 const PKG_PATH = process.env.UMA_WASM_NODE_PKG;
@@ -296,3 +298,47 @@ function runNineRunnerParity() {
     expect(Math.abs(tsRank[i] - wRank[i])).toBeLessThan(1.0);
   }
 }
+
+// Dual condition-parser consistency (ADR-0003 / ADR-0004, t-009).
+//
+// The UI simulatability gate decides what may enter the simulator using the
+// *TS* parser's vocabulary (`knownConditionTokens`), but the engine that runs
+// the sim is the *Rust* parser. If the TS vocabulary ever recognized a token
+// the Rust catalog does not, the UI could feed the engine a skill it cannot
+// resolve. These tests close that drift by cross-checking the TS vocabulary —
+// and every dataset skill the UI marks simulatable — against the Rust catalog
+// surfaced through the WASM `knownConditionTokens()` probe.
+describe.skipIf(!PKG_PATH)('dual condition-parser consistency (t-009)', () => {
+  it('every TS-known condition token is resolvable by the Rust engine', () => {
+    const rust = new Set(loadWasm().knownConditionTokens());
+    const missing = [...tsKnownConditionTokens].filter((t) => !rust.has(t)).sort();
+    expect(
+      missing,
+      `tokens the UI trusts but the engine cannot resolve: ${missing.join(', ')}`
+    ).toEqual([]);
+  });
+
+  it('no dataset skill is UI-simulatable yet uses a token the engine lacks', () => {
+    const rust = new Set(loadWasm().knownConditionTokens());
+    const offenders: Array<string> = [];
+
+    for (const skill of skillsService.getAll()) {
+      if (!skillsService.isSimulatable(skill.id)) continue;
+      for (const alt of skill.alternatives) {
+        const tokens = [
+          ...extractConditionTokens(alt.condition),
+          ...extractConditionTokens(alt.precondition ?? '')
+        ];
+        const unresolved = tokens.filter((t) => !rust.has(t));
+        if (unresolved.length > 0) {
+          offenders.push(`${skill.id}: ${[...new Set(unresolved)].join(', ')}`);
+        }
+      }
+    }
+
+    expect(
+      offenders,
+      `simulatable skills with engine-unresolvable tokens:\n${offenders.join('\n')}`
+    ).toEqual([]);
+  });
+});

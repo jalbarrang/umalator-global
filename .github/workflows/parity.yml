@@ -81,3 +81,8 @@ jobs:
         env:
           UMA_WASM_NODE_PKG: ${{ github.workspace }}/.tmp-wasm-node/pkg/uma_sim_wasm.js
         run: bunx vitest run src/lib/uma-sim-wasm/parity.test.ts -t "effect parity"
+
+      - name: Parity — dual condition-parser consistency
+        env:
+          UMA_WASM_NODE_PKG: ${{ github.workspace }}/.tmp-wasm-node/pkg/uma_sim_wasm.js
+        run: bunx vitest run src/lib/uma-sim-wasm/parity.test.ts -t consistency
