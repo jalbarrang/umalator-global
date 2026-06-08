@@ -2,19 +2,15 @@ import type { IRunnerState } from '@/modules/runners/components/runner-card/type
 import type { CreateRunner } from 'sunday-tools/common/runner';
 import type {
   DuelingRates,
-  RaceLifecycleObserver,
   SimulationSettings,
   RaceParameters as SundayRaceParameters
 } from 'sunday-tools/common/race';
-import type { CourseData } from 'sunday-tools/course/definitions';
 import type { ISkillTarget, ISkillType } from 'sunday-tools/skills/definitions';
 import type {
   InjectedDebuff,
   RunComparisonParams,
   ScenarioOverrides
 } from '@/modules/simulation/types';
-import { Race } from 'sunday-tools/common/race';
-import { subscribeObserver } from 'sunday-tools/common/race-events';
 import { parseAptitudeName, parseStrategyName } from 'sunday-tools/runner/runner.types';
 import { SkillTarget, SkillType } from 'sunday-tools/skills/definitions';
 import { skillsService } from '@/modules/data/services/SkillService';
@@ -168,35 +164,6 @@ export function createCompareSettings(
     staminaDrainOverrides: {},
     ...overrides
   };
-}
-
-export function createInitializedRace(params: {
-  course: CourseData;
-  raceParameters: SundayRaceParameters;
-  settings: SimulationSettings;
-  duelingRates: DuelingRates;
-  skillSamples: number;
-  runner: CreateRunner;
-  observer?: RaceLifecycleObserver;
-}): Race {
-  const race = new Race({
-    course: params.course,
-    parameters: params.raceParameters,
-    settings: params.settings,
-    skillSamples: params.skillSamples,
-    duelingRates: params.duelingRates
-  });
-
-  if (params.observer) {
-    subscribeObserver(race.events, params.observer);
-  }
-
-  race.onInitialize();
-  race.skillSamples = params.skillSamples;
-  race.addRunner(params.runner);
-  race.prepareRace().validateRaceSetup();
-
-  return race;
 }
 
 export function computePositionDiff(positionA: Array<number>, positionB: Array<number>): number {

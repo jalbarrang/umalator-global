@@ -1,3 +1,9 @@
+/**
+ * PARITY REFERENCE — TEST-ONLY. Not in the production path.
+ *
+ * TS-engine vacuum/compare oracle (mirrors the live `simulators/wasm-compare.ts`).
+ * See this directory's README and ADR-0004. Production runs 100% on WASM.
+ */
 import type {
   CompareResult,
   FirstUMAStats,
@@ -12,11 +18,11 @@ import {
   DEFAULT_DUELING_RATES,
   computePositionDiff,
   createCompareSettings,
-  createInitializedRace,
   createSkillSorterByGroup,
   toCreateRunner,
   toSundayRaceParameters
-} from './shared';
+} from '@/modules/simulation/simulators/shared';
+import { createInitializedRace } from './ts-engine-harness';
 
 type CompareStatsAccumulator = {
   lengths: Array<number>;

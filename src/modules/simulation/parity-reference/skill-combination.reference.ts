@@ -1,19 +1,15 @@
 /**
- * # Skill Planner Simulator
+ * PARITY REFERENCE — TEST-ONLY. Not in the production path.
  *
- * ## Overview
- *
- * This module evaluates skill combinations for the skill planner by comparing
- * a baseline runner (with obtained skills) against runners with additional candidate skills.
- *
- * The goal is to determine how much performance gain (in bashins) each skill combination provides.
+ * TS-engine skill-combination evaluator used by the planner optimization oracle
+ * (`optimization-engine.reference.ts`). See this directory's README and ADR-0004.
+ * Production planner optimization runs on WASM (`skill-planner/optimization-engine-wasm.ts`).
  */
-
 import type { RaceParameters } from 'sunday-tools/common/race';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import type { CourseData } from 'sunday-tools/course/definitions';
 import type { SimulationOptions } from '@/modules/simulation/types';
-import { runPlannerComparison } from '@/modules/simulation/simulators/skill-planner-compare';
+import { runPlannerComparison } from './planner-compare.reference';
 
 interface SkillCombinationComparisonParams {
   nsamples: number;

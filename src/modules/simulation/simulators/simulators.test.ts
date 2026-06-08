@@ -4,12 +4,12 @@ import { coursesService } from '@/modules/data/services/CourseService';
 import { createRunnerState, runawaySkillId } from '@/modules/runners/components/runner-card/types';
 import { createRaceConditions, racedefToParams } from '@/utils/races';
 import type { CompareParams, SimulationOptions } from '@/modules/simulation/types';
-import { runSkillComparison } from './skill-compare';
-import { runPlannerComparison } from './skill-planner-compare';
-import { runComparison } from './vacuum-compare';
+import { runSkillComparison } from '../parity-reference/skill-compare.reference';
+import { runPlannerComparison } from '../parity-reference/planner-compare.reference';
+import { runComparison } from '../parity-reference/vacuum-compare.reference';
+import { createInitializedRace } from '../parity-reference/ts-engine-harness';
 import {
   createCompareSettings,
-  createInitializedRace,
   createSkillSorterByGroup,
   computePositionDiff,
   DEFAULT_DUELING_RATES,

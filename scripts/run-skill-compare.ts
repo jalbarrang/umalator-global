@@ -10,7 +10,7 @@ import { Command } from 'commander';
 import { DebugConfigSchema } from './runner-config.schema';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import { coursesService } from '@/modules/data/services/CourseService';
-import { runSkillComparison } from '@/modules/simulation/simulators/skill-compare';
+import { runSkillComparison } from '@/modules/simulation/parity-reference/skill-compare.reference';
 import { racedefToParams } from '@/utils/races';
 
 export const defaultSimulationOptions = {
