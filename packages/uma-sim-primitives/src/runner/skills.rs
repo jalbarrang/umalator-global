@@ -941,6 +941,30 @@ mod tests {
     }
 
     #[test]
+    fn empty_precondition_is_treated_as_none_and_still_activates() {
+        // Regression (ADR-0004 Option-B bug #2): skills whose data carries
+        // `precondition: ""` (e.g. all_corner_random / rotation greens) must treat
+        // the empty string as "no precondition" and still produce a trigger — not
+        // try to parse the empty string, fail, and silently never activate.
+        let none_pre = target_speed_skill("200012", SkillRarity::Gold, "phase>=1");
+        assert_eq!(
+            build(&none_pre).len(),
+            1,
+            "baseline: no precondition activates"
+        );
+
+        let mut empty_pre = target_speed_skill("200012", SkillRarity::Gold, "phase>=1");
+        empty_pre.alternatives[0].precondition = Some(String::new());
+        let triggers = build(&empty_pre);
+        assert_eq!(
+            triggers.len(),
+            1,
+            "empty precondition must behave like no precondition, not suppress the trigger"
+        );
+        assert!(!triggers[0].regions.0.is_empty());
+    }
+
+    #[test]
     fn build_skill_data_keeps_full_regions_for_dynamic_condition() {
         // `is_lastspurt` does not narrow regions; it yields the whole course plus
         // a runtime gate (extra_condition).

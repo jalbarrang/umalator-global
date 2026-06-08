@@ -156,4 +156,31 @@ mod tests {
         let b = run_compare(compare_params(2, 1)).expect("b");
         assert_eq!(a, b);
     }
+
+    #[test]
+    fn compare_round_chunks_are_bit_identical_to_single_batch() {
+        // Round independence (ADR-0004): round `i` depends only on its seed
+        // (`master_seed + i`), never on prior rounds in the same instance. The
+        // progressive compare worker relies on this — it runs rounds in
+        // seed-offset chunks and concatenates them, which MUST equal one full
+        // batch exactly. (This is what the per-round `on_prepare` reset buys us.)
+        let full = run_compare(compare_params(6, 1)).expect("full batch");
+
+        // Chunk 1: rounds [0, 3) at master_seed (4242).
+        let chunk1 = run_compare(compare_params(3, 1)).expect("chunk1");
+        // Chunk 2: rounds [3, 6) at master_seed + 3.
+        let mut p2 = compare_params(3, 1);
+        p2.master_seed += 3;
+        let chunk2 = run_compare(p2).expect("chunk2");
+
+        let mut stitched = chunk1.rounds;
+        stitched.extend(chunk2.rounds);
+
+        assert_eq!(full.rounds.len(), 6);
+        assert_eq!(stitched.len(), 6);
+        assert_eq!(
+            full.rounds, stitched,
+            "seed-offset round chunks must be bit-identical to a single full batch"
+        );
+    }
 }

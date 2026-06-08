@@ -474,6 +474,50 @@ mod tests {
     }
 
     #[test]
+    fn on_prepare_restores_pristine_stats_so_green_skills_do_not_accumulate() {
+        // Regression (ADR-0004 Option-B bug #3): green stat skills (SpeedUp/
+        // StaminaUp/…) permanently mutate base/adjusted stats. Across a batch /
+        // compare run, `on_prepare` must restore pristine stats each round so the
+        // bonus does not stack round-over-round (1140 -> 1180 -> 1220 …).
+        let course = course();
+        let catalog = build_catalog();
+        let parser = ConditionParser::new(&catalog);
+        let rp = test_race_params();
+        let wc = test_whole_course(&course);
+        let ctx = PrepareContext {
+            course: &course,
+            base_speed: 19.6,
+            condition_resolution: ConditionResolution::Dynamic,
+            pos_keep_end_multiplier: 3.0,
+            race_params: &rp,
+            whole_course: &wc,
+            parser: &parser,
+            skill_samples: 4,
+            round_iteration: 0,
+        };
+        let mut r = make_runner(Strategy::PaceChaser);
+        let pristine_base = r.pristine_base_stats.speed;
+        let pristine_adjusted = r.pristine_adjusted_stats.speed;
+
+        // Round 1, then a green SpeedUp permanently bumps stats mid-round.
+        r.on_prepare(Box::new(Xoshiro256StarStar::from_u64_seed(1)), &ctx);
+        r.base_stats.speed += 400.0;
+        r.adjusted_stats.speed += 400.0;
+
+        // Round 2: the per-round reset must wipe the accumulated bonus.
+        r.on_prepare(Box::new(Xoshiro256StarStar::from_u64_seed(2)), &ctx);
+        assert_eq!(r.base_stats.speed, pristine_base);
+        assert_eq!(r.adjusted_stats.speed, pristine_adjusted);
+
+        // Repeated rounds never stack: bump again, prepare again, still pristine.
+        r.base_stats.speed += 400.0;
+        r.adjusted_stats.speed += 400.0;
+        r.on_prepare(Box::new(Xoshiro256StarStar::from_u64_seed(3)), &ctx);
+        assert_eq!(r.base_stats.speed, pristine_base);
+        assert_eq!(r.adjusted_stats.speed, pristine_adjusted);
+    }
+
+    #[test]
     fn on_prepare_initializes_game_health_policy() {
         let course = course();
         let catalog = build_catalog();
