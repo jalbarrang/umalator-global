@@ -8,6 +8,11 @@ Accepted
 
 The simulation migration replaces the TypeScript `sunday-tools` engine with the
 Rust core compiled to WASM (`packages/uma-sim-core` → `packages/uma-sim-wasm`).
+(At sign-off the Rust core was the single crate `uma-sim-core`; it was later
+split into `uma-sim-primitives` + `uma-sim-race` + `uma-sim-vacuum` — see
+[ADR-0005](0005-split-sim-engines.md) — and `uma-sim-core` was deleted. The
+parity results below predate that split and were re-validated bit-identical
+afterwards, per ADR-0005.)
 The two engines use **intentionally different PRNGs** (Rust `xoshiro256**` vs TS
 `Prando`), so **exact numeric parity is impossible by construction**. ADR/Fork B
 (plan `migrate-sims-to-rust-engine`, task t-002) therefore set the acceptance bar
@@ -120,12 +125,15 @@ target speed), `200012` (`rotation` conditional-passive green SpeedUp), `200362`
 (`straight_random` plain-duration target speed). All four pass after the Option B
 fixes.
 
-Engine-internal invariants are additionally gated by Rust integration tests
-(`packages/uma-sim-core/tests/integration.rs`): the compare collector captures
-activating duration skills (incl. a 110101-shaped near-finish unique),
-empty-precondition skills still activate, green stat skills do not accumulate
-across rounds, and seed-offset round chunks are bit-identical to a single full
-batch (round independence, relied on by the progressive compare worker).
+Engine-internal invariants are additionally gated by Rust tests: the compare
+collector captures activating duration skills (incl. a 110101-shaped near-finish
+unique), empty-precondition skills still activate, green stat skills do not
+accumulate across rounds, and seed-offset round chunks are bit-identical to a
+single full batch (round independence, relied on by the progressive compare
+worker). These originally lived in `packages/uma-sim-core/tests/integration.rs`;
+when the engine split (ADR-0005) they were relocated into the inline
+`#[cfg(test)]` modules of the split crates (`uma-sim-primitives`,
+`uma-sim-race`, `uma-sim-vacuum`).
 
 **Lesson:** whole-field distribution parity is necessary but **not sufficient**;
 any future engine swap must also gate **per-skill activation + effect-log**
@@ -137,7 +145,8 @@ parity, not just aggregate stat/rank distributions.
   mid-pack Front Runner (gate 4) ranks ~0.87 place better under WASM than TS. It
   is bounded well under one position and within the agreed tolerance, but is a
   genuine engine difference (not pure sampling noise) and is a candidate for
-  future investigation if mid-pack ordering ever needs to be tightened.
+  future investigation if mid-pack ordering ever needs to be tightened. Tracked
+  as known-issue `uma-sim-e97` (non-blocking).
 - No existing test asserted specific TS-engine magic numbers; the simulator test
   suites assert qualitative invariants (determinism, ordering, 0–100 rate
   bounds) that hold for both engines. No re-baselining was required for t-008.
