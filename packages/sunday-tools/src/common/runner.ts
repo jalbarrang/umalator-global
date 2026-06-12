@@ -16,7 +16,10 @@ import {
 } from '../shared/definitions';
 import { CourseService } from '@/modules/data/services/CourseService';
 import { buildSkillData } from '../runner/runner.utils';
-import { getExternalDebuffEffects } from '../skills/external-debuffs';
+import {
+  getExternalDebuffEffects,
+  isExternalDebuffEffect
+} from '../skills/external-debuffs';
 import { createFixedPositionPolicy } from '../skills/policies/ActivationSamplePolicy';
 import { StrategyHelpers } from '../runner/runner.types';
 import { Region } from '../shared/region';
@@ -798,6 +801,13 @@ export class Runner {
     const course = this.race.course;
 
     for (const skillEffect of skillEffects) {
+      // External debuffs target other runners (e.g. Wild Wind / Speed Eater
+      // bundle a self-buff with an opponent-facing Current Speed debuff). They
+      // must never land on the caster — only the injected-debuff path routes
+      // these onto another runner.
+      if (isExternalDebuffEffect(skillEffect)) {
+        continue;
+      }
       // TODO should probably be awakened skills and not just pinks
       const scaling =
         skill.rarity === SkillRarity.Evolution ? this.modifiers.specialSkillDurationScaling : 1;

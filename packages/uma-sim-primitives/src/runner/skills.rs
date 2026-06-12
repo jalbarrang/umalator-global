@@ -24,7 +24,7 @@ use crate::skills::condition::dynamic::{
 };
 use crate::skills::condition::language::ConditionParser;
 use crate::skills::condition::{ApplyParams, ConditionResolution, SkillEvalRunner};
-use crate::skills::debuff::get_external_debuff_effects;
+use crate::skills::debuff::{get_external_debuff_effects, is_external_debuff_effect};
 use crate::skills::effect::{SkillRarity, SkillType};
 use crate::skills::model::{
     build_skill_effects, ActiveSkill, ActiveTargetedSkill, PendingSkill, PendingTargetedSkill,
@@ -539,6 +539,14 @@ impl Runner {
         effects.sort_by_key(|e| i32::from(e.effect_type as i32 == 42));
 
         for effect in &effects {
+            // External debuffs target other runners (e.g. Wild Wind / Speed
+            // Eater bundle a self-buff with an opponent-facing Current Speed
+            // debuff). They must never land on the caster — only the manual
+            // injected-debuff path (`process_targeted_skill_activations`) routes
+            // these onto another runner.
+            if is_external_debuff_effect(effect) {
+                continue;
+            }
             let scaling = if skill.rarity == SkillRarity::Evolution {
                 self.modifiers.special_skill_duration_scaling
             } else {
@@ -1119,6 +1127,61 @@ mod tests {
         assert_eq!(r.skills_activated_count, 1);
         assert!(r.used_skills.contains("100001"));
         assert!(r.pending_skills.is_empty());
+    }
+
+    /// Wild Wind / Speed Eater bundle a self-target buff with an opponent-facing
+    /// Current Speed debuff in the same skill. The caster must receive the
+    /// self-buff but never the debuff (regression: it used to self-apply the
+    /// Current Speed reduction, slowing its own runner).
+    fn wild_wind_like_skill(id: &str) -> Skill {
+        Skill {
+            skill_id: SkillId::new(id),
+            rarity: SkillRarity::Gold,
+            alternatives: vec![SkillAlternative {
+                base_duration: 18000.0,
+                cooldown_time: None,
+                condition: "phase>=2".to_owned(),
+                precondition: None,
+                effects: vec![
+                    RawSkillEffect {
+                        modifier: 3500.0,
+                        target: SkillTarget::SelfTarget,
+                        effect_type: 27, // TargetSpeed (self buff)
+                        value_usage: None,
+                        value_level_usage: None,
+                    },
+                    RawSkillEffect {
+                        modifier: -1500.0,
+                        target: SkillTarget::All,
+                        effect_type: 21, // CurrentSpeed (opponent debuff)
+                        value_usage: None,
+                        value_level_usage: None,
+                    },
+                ],
+            }],
+        }
+    }
+
+    #[test]
+    fn owned_debuff_effect_is_not_self_applied() {
+        let mut r = runner_with_skills(vec![wild_wind_like_skill("202131")]);
+        prepare(&mut r);
+        r.wit_checks_enabled = false;
+        let trigger = r.pending_skills[0].trigger;
+        r.position = trigger.start + 0.5;
+
+        let field = FieldView::at_gate();
+        r.process_skill_activations(&field, 2400.0);
+
+        // Self-target buff applied.
+        assert_eq!(r.target_speed_skills_active.len(), 1);
+        assert!(r.modifiers.target_speed.total() > 0.0);
+        // Opponent-facing Current Speed debuff must NOT land on the caster.
+        assert!(r.current_speed_skills_active.is_empty());
+        assert!((r.modifiers.current_speed.total()).abs() < 1e-9);
+        // The skill still counts as activated.
+        assert_eq!(r.skills_activated_count, 1);
+        assert!(r.used_skills.contains("202131"));
     }
 
     #[test]

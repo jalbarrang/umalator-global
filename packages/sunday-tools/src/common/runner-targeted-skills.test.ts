@@ -8,8 +8,10 @@ import {
   Weather
 } from 'sunday-tools/course/definitions';
 import { Aptitude, Mood, Strategy } from 'sunday-tools/runner/definitions';
-import { SkillTarget, SkillType } from 'sunday-tools/skills/definitions';
+import { Region } from 'sunday-tools/shared/region';
+import { SkillRarity, SkillTarget, SkillType } from 'sunday-tools/skills/definitions';
 import type { CreateRunner } from './runner';
+import type { PendingSkill } from '../skills/skill.types';
 import type { RaceParameters, SimulationSettings } from './race';
 import { Race } from './race';
 
@@ -243,6 +245,51 @@ describe('external-only effect filtering for injected skills', () => {
     expect(raceRunner.targetedTargetSpeedActive.length).toBe(0);
     expect(raceRunner.modifiers.currentSpeed.acc).toBeLessThan(0);
     expect(raceRunner.modifiers.targetSpeed.acc).toBeCloseTo(0, 6);
+  });
+});
+
+describe('owned debuff skills do not self-apply external effects', () => {
+  // Wild Wind / Speed Eater bundle a self-target buff with an opponent-facing
+  // Current Speed debuff in the same skill. The caster must receive the buff but
+  // never the debuff (regression: it used to slow its own runner).
+  it('applies the self buff but skips the opponent-facing debuff', () => {
+    const race = createRace();
+    race.prepareRound(6001);
+
+    const raceRunner = race.runners.values().toArray()[0] as any;
+
+    const wildWindLike: PendingSkill = {
+      skillId: '202131',
+      rarity: SkillRarity.Gold,
+      trigger: new Region(0, 1),
+      extraCondition: () => true,
+      effects: [
+        {
+          type: SkillType.TargetSpeed,
+          target: SkillTarget.Self,
+          baseDuration: 1.8,
+          modifier: 0.35
+        },
+        {
+          type: SkillType.CurrentSpeed,
+          target: SkillTarget.BehindSelf,
+          baseDuration: 1.8,
+          modifier: -0.15
+        }
+      ]
+    };
+
+    raceRunner.activateSkill(wildWindLike);
+
+    // Self-target buff applied.
+    expect(raceRunner.targetSpeedSkillsActive.length).toBe(1);
+    expect(raceRunner.modifiers.targetSpeed.acc).toBeGreaterThan(0);
+    // Opponent-facing Current Speed debuff must NOT land on the caster.
+    expect(raceRunner.currentSpeedSkillsActive.length).toBe(0);
+    expect(raceRunner.modifiers.currentSpeed.acc).toBeCloseTo(0, 6);
+    // The skill still counts as activated.
+    expect(raceRunner.skillsActivatedCount).toBe(1);
+    expect(raceRunner.usedSkills.has('202131')).toBe(true);
   });
 });
 
