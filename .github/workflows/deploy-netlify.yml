@@ -1,0 +1,55 @@
+name: Deploy to Netlify
+
+on:
+  # Run after Versioning so semantic-release has created the release tag before
+  # changelog:generate reads git history for the in-app changelog.
+  workflow_run:
+    workflows: [Versioning]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: netlify
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy to Netlify
+    runs-on: ubuntu-latest
+    env:
+      VITE_PUBLIC_POSTHOG_KEY: ${{ secrets.VITE_PUBLIC_POSTHOG_KEY }}
+      VITE_PUBLIC_POSTHOG_HOST: ${{ vars.VITE_PUBLIC_POSTHOG_HOST }}
+      VITE_SITE_URL: https://sundays-shadow.netlify.app
+      VITE_SUGGESTION_WORKER_URL: ${{ vars.VITE_SUGGESTION_WORKER_URL }}
+      VITE_TURNSTILE_SITE_KEY: ${{ vars.VITE_TURNSTILE_SITE_KEY }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Generate changelog for build
+        run: bun run changelog:generate
+
+      - name: Build app
+        run: bun run build
+
+      - name: Copy netlify.toml to dist
+        run: cp netlify.toml dist/
+
+      - name: Deploy to Netlify
+        uses: nwtgck/actions-netlify@v3
+        with:
+          publish-dir: ./dist
+          production-deploy: true
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}

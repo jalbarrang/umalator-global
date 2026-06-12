@@ -56,13 +56,15 @@ See [docs/data-extraction/data-pipeline.md](docs/data-extraction/data-pipeline.m
 
 Production deploys run automatically on every push to `main` (rolling releases). GitHub Releases from [semantic-release](https://github.com/semantic-release/semantic-release) are for changelog/tags only and do not trigger deploys.
 
-Deployment target:
+The canonical app is hosted on **Cloudflare Pages**. GitHub Pages and Netlify are kept only as 301 redirects to the canonical domain so legacy inbound links don't break.
 
-| Target           | Workflow                               | URL                                |
-| ---------------- | -------------------------------------- | ---------------------------------- |
-| **GitHub Pages** | `.github/workflows/deploy-pages.yml`   | Configured in repo Pages settings  |
+| Target               | Role        | Workflow                                | URL                                |
+| -------------------- | ----------- | --------------------------------------- | ---------------------------------- |
+| **Cloudflare Pages** | Canonical   | `.github/workflows/deploy-cloudflare.yml` | https://torena-sim.pages.dev       |
+| **GitHub Pages**     | 301 redirect | `.github/workflows/deploy-pages.yml`    | Configured in repo Pages settings  |
+| **Netlify**          | 301 redirect | `.github/workflows/deploy-netlify.yml`  | https://sundays-shadow.netlify.app |
 
-The workflow can also be triggered manually via `workflow_dispatch`.
+Only Cloudflare Pages runs the full build (incl. the Rust/wasm engine). The two redirect workflows publish a tiny static redirect and do not build the app. All workflows can also be triggered manually via `workflow_dispatch`.
 
 ### Versioning
 
@@ -87,6 +89,10 @@ Use `DATA_UPDATE_PAT` as `GITHUB_TOKEN` for local releases.
 | Name                       | Type     | Used by                                                          |
 | -------------------------- | -------- | ---------------------------------------------------------------- |
 | `DATA_UPDATE_PAT`          | Secret   | `versioning.yml` — PAT for semantic-release (push tags, releases) |
+| `CLOUDFLARE_API_TOKEN`     | Secret   | Cloudflare Pages deploy (scope: *Cloudflare Pages → Edit*)                                                |
+| `CLOUDFLARE_ACCOUNT_ID`    | Secret   | Cloudflare Pages deploy (also used by the suggestion-bot Worker)                                          |
+| `NETLIFY_AUTH_TOKEN`       | Secret   | Netlify redirect deploy                                                                                   |
+| `NETLIFY_SITE_ID`          | Secret   | Netlify redirect deploy                                                                                   |
 | `VITE_PUBLIC_POSTHOG_KEY`  | Secret   | Build-time analytics key                                                                                  |
 | `VITE_PUBLIC_POSTHOG_HOST` | Variable | Build-time analytics host                                                                                 |
 | `VITE_BASE_PATH`           | Variable | GitHub Pages base path                                                                                    |
