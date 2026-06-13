@@ -1,8 +1,10 @@
 /// <reference types="vitest/config" />
 
 import { execSync } from 'node:child_process';
-import { dirname } from 'node:path';
+import { copyFileSync, existsSync, mkdirSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import type { Plugin } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
 import react, { reactCompilerPreset } from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
@@ -33,6 +35,36 @@ function getCommitHash(): string {
 
 const __APP__VERSION__ = `${getSemver()}+${getCommitHash()}`;
 
+// The wasm-pack (`--target web`) bundle is imported by the loader through a
+// runtime, Vite-ignored specifier (`./pkg/uma_sim_wasm.js`), so Vite never
+// emits it. The workers/main chunk live in `assets/`, so the colocated `./pkg`
+// must resolve to `assets/pkg/`. Copy the generated artifacts there at build.
+function copyUmaSimWasmPkg(): Plugin {
+  const srcDir = resolve(root, 'src/lib/uma-sim-wasm/pkg');
+  const files = ['uma_sim_wasm.js', 'uma_sim_wasm_bg.wasm'];
+  let outDir = 'dist';
+  return {
+    name: 'copy-uma-sim-wasm-pkg',
+    apply: 'build',
+    configResolved(config) {
+      outDir = config.build.outDir;
+    },
+    closeBundle() {
+      const destDir = resolve(root, outDir, 'assets/pkg');
+      mkdirSync(destDir, { recursive: true });
+      for (const file of files) {
+        const from = join(srcDir, file);
+        if (!existsSync(from)) {
+          throw new Error(
+            `[copy-uma-sim-wasm-pkg] missing ${from}. Run \`bun run wasm:build\` before \`vite build\`.`
+          );
+        }
+        copyFileSync(from, join(destDir, file));
+      }
+    }
+  };
+}
+
 // Feature Flags:
 // Vite automatically loads environment variables from .env files
 // Feature flags should be prefixed with VITE_FEATURE_ to be accessible via import.meta.env
@@ -47,6 +79,7 @@ export default defineConfig({
     tsconfigPaths: true
   },
   plugins: [
+    copyUmaSimWasmPkg(),
     react(),
     babel({
       presets: [reactCompilerPreset()]

@@ -32,11 +32,13 @@ type WasmRaceSimulatorHandle = {
 };
 
 const PKG_SPECIFIER = './pkg/uma_sim_wasm.js';
-// `?url` import resolves to the emitted `.wasm` asset URL at build time without
-// pulling the bytes into the JS bundle. Used to compile the module ONCE on the
-// main thread and share the compiled `WebAssembly.Module` with pool workers
-// (each worker then only instantiates, skipping a redundant fetch+compile).
-const WASM_URL_SPECIFIER = './pkg/uma_sim_wasm_bg.wasm?url';
+// Resolved at runtime against the loader's chunk URL (which lives in `assets/`,
+// next to the copied `pkg/`). Used to compile the module ONCE on the main
+// thread and share the compiled `WebAssembly.Module` with pool workers (each
+// worker then only instantiates, skipping a redundant fetch+compile). A
+// non-literal first arg keeps Vite from rewriting it — `pkg/` is managed by the
+// `copy-uma-sim-wasm-pkg` build plugin, not bundled.
+const WASM_BG_SPECIFIER = './pkg/uma_sim_wasm_bg.wasm';
 
 let modulePromise: Promise<UmaSimWasmModule> | null = null;
 let compiledModulePromise: Promise<WebAssembly.Module> | null = null;
@@ -83,7 +85,7 @@ export async function initUmaSimWasmFromModule(module: WebAssembly.Module): Prom
 export async function compileUmaSimWasmModule(): Promise<WebAssembly.Module> {
   if (!compiledModulePromise) {
     compiledModulePromise = (async () => {
-      const wasmUrl = (await import(/* @vite-ignore */ WASM_URL_SPECIFIER)).default as string;
+      const wasmUrl = new URL(WASM_BG_SPECIFIER, import.meta.url).href;
       return WebAssembly.compileStreaming(fetch(wasmUrl));
     })();
   }
