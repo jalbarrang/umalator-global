@@ -71,16 +71,21 @@ export const IconTypeFilterBar = React.memo((props: IconTypeFilterBarProps) => {
   );
 });
 
-export function useIconTypeFilter<T extends { id: string }>(data: Array<T>, skillMetadataById: Map<string, SkillEntry>) {
-  const [iconTypeFilters, setIconTypeFilters] = React.useState<Record<IconTypeFilterKey, boolean>>(() => {
-    const initialState = {} as Record<IconTypeFilterKey, boolean>;
+export function useIconTypeFilter<T extends { id: string }>(
+  data: Array<T>,
+  skillMetadataById: Map<string, SkillEntry>
+) {
+  const [iconTypeFilters, setIconTypeFilters] = React.useState<Record<IconTypeFilterKey, boolean>>(
+    () => {
+      const initialState = {} as Record<IconTypeFilterKey, boolean>;
 
-    for (const iconType of groups_filters.icontype) {
-      initialState[iconType as IconTypeFilterKey] = true;
+      for (const iconType of groups_filters.icontype) {
+        initialState[iconType as IconTypeFilterKey] = true;
+      }
+
+      return initialState;
     }
-
-    return initialState;
-  });
+  );
 
   const activeIconTypeFilters = useMemo(() => {
     return groups_filters.icontype.filter(

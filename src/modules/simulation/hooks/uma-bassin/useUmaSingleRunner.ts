@@ -1,10 +1,10 @@
 import { useCallback, useMemo, useRef } from 'react';
 import { useShallow } from 'zustand/shallow';
-import SkillSingleWorker from '@workers/skill-single.worker.ts?worker';
+import SkillSingleWasmWorker from '@workers/skill-single-wasm.worker.ts?worker';
 import type {
-  SingleSkillWorkerInMessage,
-  SingleSkillWorkerOutMessage
-} from '@/workers/skill-single.worker';
+  SingleSkillWasmWorkerInMessage as SingleSkillWorkerInMessage,
+  SingleSkillWasmWorkerOutMessage as SingleSkillWorkerOutMessage
+} from '@/workers/skill-single-wasm.worker';
 import type { SimulationParams } from '@/workers/pool/types';
 import {
   appendResultsToTable,
@@ -65,7 +65,7 @@ export function useUmaSingleRunner() {
       }
 
       // Create new worker
-      const worker = new SkillSingleWorker();
+      const worker = new SkillSingleWasmWorker();
       workerRef.current = worker;
 
       // Set up message handler

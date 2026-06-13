@@ -40,18 +40,23 @@ export const useScenarioOverridesStore = create<ScenarioOverridesStoreState>()(
 
         const migrateRunner = (raw: Record<string, unknown>): RunnerScenarioOverrides => {
           const rushed = Array.isArray(raw.forcedRushedRegions)
-            ? (raw.forcedRushedRegions[0] as ForcedRegion | undefined) ?? null
-            : (raw.forcedRushed as ForcedRegion | null) ?? null;
+            ? ((raw.forcedRushedRegions[0] as ForcedRegion | undefined) ?? null)
+            : ((raw.forcedRushed as ForcedRegion | null) ?? null);
           const dueling = Array.isArray(raw.forcedDuelingRegions)
-            ? (raw.forcedDuelingRegions[0] as ForcedRegion | undefined) ?? null
-            : (raw.forcedDueling as ForcedRegion | null) ?? null;
+            ? ((raw.forcedDuelingRegions[0] as ForcedRegion | undefined) ?? null)
+            : ((raw.forcedDueling as ForcedRegion | null) ?? null);
           const spotStruggle = Array.isArray(raw.forcedSpotStruggleRegions)
-            ? (raw.forcedSpotStruggleRegions[0] as ForcedRegion | undefined) ?? null
-            : (raw.forcedSpotStruggle as ForcedRegion | null) ?? null;
+            ? ((raw.forcedSpotStruggleRegions[0] as ForcedRegion | undefined) ?? null)
+            : ((raw.forcedSpotStruggle as ForcedRegion | null) ?? null);
           const forcedRank = Array.isArray(raw.forcedRank)
             ? (raw.forcedRank as Array<ForcedRankRegion>)
             : [];
-          return { forcedRushed: rushed, forcedDueling: dueling, forcedSpotStruggle: spotStruggle, forcedRank };
+          return {
+            forcedRushed: rushed,
+            forcedDueling: dueling,
+            forcedSpotStruggle: spotStruggle,
+            forcedRank
+          };
         };
 
         return {
@@ -88,9 +93,7 @@ export const setForcedSpotStruggle = (runnerId: CompareRunnerId, region: ForcedR
 function clampNonOverlapping(regions: Array<ForcedRankRegion>): Array<ForcedRankRegion> {
   if (regions.length <= 1) return regions;
 
-  const sorted = regions
-    .map((r, i) => ({ ...r, _idx: i }))
-    .sort((a, b) => a.start - b.start);
+  const sorted = regions.map((r, i) => ({ ...r, _idx: i })).sort((a, b) => a.start - b.start);
 
   for (let i = 1; i < sorted.length; i++) {
     if (sorted[i].start < sorted[i - 1].end) {

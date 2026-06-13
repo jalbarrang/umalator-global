@@ -12,7 +12,7 @@
  */
 
 import { useEffect, useMemo, useRef } from 'react';
-import SkillPlannerWorker from '@workers/skill-planner.worker.ts?worker';
+import SkillPlannerWasmWorker from '@workers/skill-planner-wasm.worker.ts?worker';
 import {
   createCandidate,
   createNewSeed,
@@ -36,7 +36,7 @@ import { useSettingsStore } from '@/store/settings.store';
 import { defaultSimulationOptions } from '@/components/bassin-chart/utils';
 import { getUnsatisfiedRepresentativePrerequisiteIds } from '../skill-family';
 
-const createSkillPlannerWorker = () => new SkillPlannerWorker();
+const createSkillPlannerWorker = () => new SkillPlannerWasmWorker();
 
 type WorkerMessage =
   | {
@@ -150,7 +150,7 @@ export function useSkillPlannerOptimizer() {
     }
   };
 
-  // Initialize worker on mount
+  // Initialize worker on mount (and when the engine changes)
   useEffect(() => {
     const webWorker = createSkillPlannerWorker();
 

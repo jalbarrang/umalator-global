@@ -6,14 +6,11 @@ import { IRegionDisplayType, RegionDisplayType } from '@/modules/racetrack/types
 import { getSkillNameById } from '@/modules/skills/utils';
 import { useSettingsStore } from '@/store/settings.store';
 import { colors, debuffColors, posKeepColors, recoveryColors, rushedColors } from '@/utils/colors';
-import { SkillType } from '@/lib/sunday-tools/skills/definitions';
-import { isExternalDebuffEffect } from '@/lib/sunday-tools/skills/external-debuffs';
+import { SkillType } from 'sunday-tools/skills/definitions';
+import { isExternalDebuffEffect } from 'sunday-tools/skills/external-debuffs';
 import { coursesService } from '@/modules/data/services/CourseService';
 import { useDebuffs } from '@/modules/simulation/stores/compare.store';
-import {
-  useScenarioOverrides,
-  hasAnyScenarioOverrides
-} from '@/modules/simulation/stores/scenario-overrides.store';
+import { useScenarioOverrides } from '@/modules/simulation/stores/scenario-overrides.store';
 import { skillsService } from '@/modules/data/services/SkillService';
 
 export type RegionData = {
@@ -259,7 +256,7 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
     }
 
     return skills;
-  }, [chartData, debuffs]);
+  }, [chartData, debuffs, course.distance]);
 
   const rushedIndicators: Array<RegionData> = useMemo(() => {
     const results: Array<RegionData> = [];
@@ -319,7 +316,9 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
             markerType: 'scenario',
             umaIndex,
             isEstimate: true,
-            regions: [{ start: overrides.forcedSpotStruggle.start, end: overrides.forcedSpotStruggle.end }]
+            regions: [
+              { start: overrides.forcedSpotStruggle.start, end: overrides.forcedSpotStruggle.end }
+            ]
           });
         }
       }
@@ -379,14 +378,18 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
         const start = competeFightArray[0];
         const end = competeFightArray[1];
         results.push({
-          umaIndex, text: 'Duel', color: posKeepColors[umaIndex],
-          start, end, duration: end - start
+          umaIndex,
+          text: 'Duel',
+          color: posKeepColors[umaIndex],
+          start,
+          end,
+          duration: end - start
         });
       }
     }
 
     return results;
-  }, [chartData, hasSimulationData, scenarioOverrides]);
+  }, [chartData]);
 
   const leadCompetitionData = useMemo(() => {
     const results: Array<PosKeepLabel> = [];
@@ -398,14 +401,18 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
         const end = leadCompetitionArray[1];
 
         results.push({
-          umaIndex, text: 'SS', color: posKeepColors[umaIndex],
-          start, end, duration: end - start
+          umaIndex,
+          text: 'SS',
+          color: posKeepColors[umaIndex],
+          start,
+          end,
+          duration: end - start
         });
       }
     }
 
     return results;
-  }, [chartData, hasSimulationData, scenarioOverrides]);
+  }, [chartData]);
 
   const labels = useMemo(() => {
     return [...posKeepData, ...competeFightData, ...leadCompetitionData];

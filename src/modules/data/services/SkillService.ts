@@ -1,9 +1,9 @@
-import { ISkillType } from '@/lib/sunday-tools/skills/definitions';
-import type { SkillAlternative } from '@/lib/sunday-tools/skills/skill.types';
+import { ISkillType } from 'sunday-tools/skills/definitions';
+import type { SkillAlternative } from 'sunday-tools/skills/skill.types';
 import {
   areAlternativesSimulatable,
   findUnknownConditionTokens
-} from '@/lib/sunday-tools/skills/simulatability';
+} from 'sunday-tools/skills/simulatability';
 import type { SkillMatch } from '@/modules/runners/data/types';
 import { SkillFilterer, type SkillFiltererConfig } from './SkillFilterer';
 import { loadedSkills } from '@/modules/data/loaders/skill-loader';
@@ -48,6 +48,8 @@ export type SkillEntry = {
   family: Array<SkillReferenceEntry>;
   iconId: string;
   baseCost: number;
+  /** Per-skill evaluation-point contribution (master.mdb skill_data.grade_value). */
+  gradeValue: number;
   order: number;
   name: string;
   /** Uma outfit ids that can provide this skill. */

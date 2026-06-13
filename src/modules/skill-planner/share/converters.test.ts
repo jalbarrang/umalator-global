@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { buildExportData, exportDataToImport } from './converters';
 import { encodeSkillPlanner, decodeSkillPlanner } from './encoding';
 import type { SkillPlannerExportData } from './types';
-import { Mood } from '@/lib/sunday-tools/runner/definitions';
+import { Mood } from 'sunday-tools/runner/definitions';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 
 const mockRunner: IRunnerState = {
@@ -76,11 +76,25 @@ describe('exportDataToImport', () => {
   it('converts export data back to store-compatible shapes', () => {
     const exportData: SkillPlannerExportData = {
       card_id: 100601,
-      speed: 1200, stamina: 800, power: 600, guts: 400, wiz: 900,
-      proper_distance_short: 8, proper_distance_mile: 8, proper_distance_middle: 8, proper_distance_long: 8,
-      proper_ground_turf: 7, proper_ground_dirt: 7,
-      proper_running_style_nige: 6, proper_running_style_senko: 6, proper_running_style_sashi: 6, proper_running_style_oikomi: 6,
-      strategy: 1, mood: 2, budget: 1500, fast_learner: true,
+      speed: 1200,
+      stamina: 800,
+      power: 600,
+      guts: 400,
+      wiz: 900,
+      proper_distance_short: 8,
+      proper_distance_mile: 8,
+      proper_distance_middle: 8,
+      proper_distance_long: 8,
+      proper_ground_turf: 7,
+      proper_ground_dirt: 7,
+      proper_running_style_nige: 6,
+      proper_running_style_senko: 6,
+      proper_running_style_sashi: 6,
+      proper_running_style_oikomi: 6,
+      strategy: 1,
+      mood: 2,
+      budget: 1500,
+      fast_learner: true,
       obtained_skills: [{ skill_id: 200011 }],
       candidate_skills: [{ skill_id: 200014, hint_level: 3 }]
     };
@@ -104,19 +118,34 @@ describe('exportDataToImport', () => {
   it('takes max aptitude from sub-fields when they differ', () => {
     const exportData: SkillPlannerExportData = {
       card_id: 100601,
-      speed: 1200, stamina: 800, power: 600, guts: 400, wiz: 900,
-      proper_distance_short: 3, proper_distance_mile: 7, proper_distance_middle: 8, proper_distance_long: 5,
-      proper_ground_turf: 8, proper_ground_dirt: 4,
-      proper_running_style_nige: 7, proper_running_style_senko: 6, proper_running_style_sashi: 5, proper_running_style_oikomi: 3,
-      strategy: 3, mood: 0, budget: 0, fast_learner: false,
-      obtained_skills: [], candidate_skills: []
+      speed: 1200,
+      stamina: 800,
+      power: 600,
+      guts: 400,
+      wiz: 900,
+      proper_distance_short: 3,
+      proper_distance_mile: 7,
+      proper_distance_middle: 8,
+      proper_distance_long: 5,
+      proper_ground_turf: 8,
+      proper_ground_dirt: 4,
+      proper_running_style_nige: 7,
+      proper_running_style_senko: 6,
+      proper_running_style_sashi: 5,
+      proper_running_style_oikomi: 3,
+      strategy: 3,
+      mood: 0,
+      budget: 0,
+      fast_learner: false,
+      obtained_skills: [],
+      candidate_skills: []
     };
 
     const result = exportDataToImport(exportData);
 
-    expect(result.runner.distanceAptitude).toBe('S');  // max(3,7,8,5) = 8 → S
-    expect(result.runner.surfaceAptitude).toBe('S');   // max(8,4) = 8 → S
-    expect(result.runner.strategyAptitude).toBe('A');  // max(7,6,5,3) = 7 → A
+    expect(result.runner.distanceAptitude).toBe('S'); // max(3,7,8,5) = 8 → S
+    expect(result.runner.surfaceAptitude).toBe('S'); // max(8,4) = 8 → S
+    expect(result.runner.strategyAptitude).toBe('A'); // max(7,6,5,3) = 7 → A
     expect(result.runner.strategy).toBe('Late Surger');
     expect(result.runner.mood).toBe(0);
   });
@@ -132,12 +161,28 @@ describe('exportDataToImport', () => {
 
     for (const [value, name] of strategies) {
       const data: SkillPlannerExportData = {
-        card_id: 0, speed: 0, stamina: 0, power: 0, guts: 0, wiz: 0,
-        proper_distance_short: 0, proper_distance_mile: 0, proper_distance_middle: 0, proper_distance_long: 0,
-        proper_ground_turf: 0, proper_ground_dirt: 0,
-        proper_running_style_nige: 0, proper_running_style_senko: 0, proper_running_style_sashi: 0, proper_running_style_oikomi: 0,
-        strategy: value, mood: 0, budget: 0, fast_learner: false,
-        obtained_skills: [], candidate_skills: []
+        card_id: 0,
+        speed: 0,
+        stamina: 0,
+        power: 0,
+        guts: 0,
+        wiz: 0,
+        proper_distance_short: 0,
+        proper_distance_mile: 0,
+        proper_distance_middle: 0,
+        proper_distance_long: 0,
+        proper_ground_turf: 0,
+        proper_ground_dirt: 0,
+        proper_running_style_nige: 0,
+        proper_running_style_senko: 0,
+        proper_running_style_sashi: 0,
+        proper_running_style_oikomi: 0,
+        strategy: value,
+        mood: 0,
+        budget: 0,
+        fast_learner: false,
+        obtained_skills: [],
+        candidate_skills: []
       };
       const result = exportDataToImport(data);
       expect(result.runner.strategy).toBe(name);

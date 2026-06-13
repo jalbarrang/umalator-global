@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react';
-import SkillBasinPoolWorker from '@workers/pool/skill-basin/skill-basin.pool.worker.ts?worker';
+import SkillBasinPoolWasmWorker from '@workers/pool/skill-basin/skill-basin-wasm.pool.worker.ts?worker';
 import type { SkillComparisonResponse } from '../../types';
 import {
   appendResultsToTable,
@@ -24,7 +24,8 @@ import { useSkillSelectionStore } from '@/modules/simulation/stores/skill-select
 import { PoolManager } from '@/workers/pool/pool-manager';
 import { coursesService } from '@/modules/data/services/CourseService';
 
-const createSkillBasinPoolWorker = (options: { name: string }) => new SkillBasinPoolWorker(options);
+const createSkillBasinPoolWorker = (options: { name: string }) =>
+  new SkillBasinPoolWasmWorker(options);
 
 export function useSkillBasinPoolRunner() {
   const { runner } = useRunner();
@@ -37,7 +38,9 @@ export function useSkillBasinPoolRunner() {
 
   // Initialize pool manager on mount
   useEffect(() => {
-    const poolManager = new PoolManager((options) => createSkillBasinPoolWorker(options));
+    const poolManager = new PoolManager((workerOptions) =>
+      createSkillBasinPoolWorker(workerOptions)
+    );
 
     poolManagerRef.current = poolManager;
 

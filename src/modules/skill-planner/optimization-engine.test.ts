@@ -4,14 +4,14 @@ import { createRaceConditions, racedefToParams } from '@/utils/races';
 import { coursesService } from '@/modules/data/services/CourseService';
 import { createRunnerState, runawaySkillId } from '../runners/components/runner-card/types';
 import { defaultSimulationOptions } from '@/components/bassin-chart/utils';
-import { runAdaptiveOptimization } from './optimization-engine';
+import { runAdaptiveOptimization } from '@/modules/simulation/parity-reference/optimization-engine.reference';
 import type { CandidateSkill } from './types';
 
 const { runSkillCombinationComparisonMock } = vi.hoisted(() => ({
   runSkillCombinationComparisonMock: vi.fn()
 }));
 
-vi.mock('./simulator', () => ({
+vi.mock('@/modules/simulation/parity-reference/skill-combination.reference', () => ({
   runSkillCombinationComparison: runSkillCombinationComparisonMock
 }));
 

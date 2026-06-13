@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import RaceSimWorker from '@workers/race-sim.worker.ts?worker';
-import type { RaceSimResult } from '@/lib/sunday-tools/race-sim/run-race-sim';
+import RaceSimWasmWorker from '@workers/race-sim-wasm.worker.ts?worker';
+import type { RaceSimResult } from 'sunday-tools/race-sim/run-race-sim';
 import type {
-  RaceSimWorkerInMessage,
-  RaceSimWorkerOutMessage,
-  RaceSimWorkerParams
-} from '@/workers/race-sim.worker';
+  RaceSimWasmWorkerInMessage as RaceSimWorkerInMessage,
+  RaceSimWasmWorkerOutMessage as RaceSimWorkerOutMessage,
+  RaceSimWasmWorkerParams as RaceSimWorkerParams
+} from '@/workers/race-sim-wasm.worker';
 
-const createRaceSimWorker = () => new RaceSimWorker();
+const createRaceSimWorker = () => new RaceSimWasmWorker();
 
 export type RaceSimRunnerOptions = {
   onResult?: (result: RaceSimResult) => void;

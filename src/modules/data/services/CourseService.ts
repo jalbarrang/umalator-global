@@ -1,12 +1,12 @@
 import coursesJson from '@/modules/data/json/course_data.json';
-import { distances, orientations, phases, surfaces } from '@/lib/sunday-tools/course/definitions';
+import { distances, orientations, phases, surfaces } from 'sunday-tools/course/definitions';
 import type {
   CourseData,
   IDistanceType,
   IOrientation,
   IPhase,
   ISurface
-} from '@/lib/sunday-tools/course/definitions';
+} from 'sunday-tools/course/definitions';
 
 // =======
 // Types

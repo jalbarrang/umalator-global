@@ -34,7 +34,6 @@ export const CompareShareCard = (props: Readonly<CompareShareCardProps>) => {
   // This card is rendered as a fixed-size share image. Inline styles keep the
   // exported image self-contained, and 10px labels preserve the compact layout.
   return (
-    // react-doctor-disable-next-line react-doctor/no-inline-exhaustive-style
     <div
       ref={ref}
       style={{
@@ -56,7 +55,6 @@ export const CompareShareCard = (props: Readonly<CompareShareCardProps>) => {
         <ShareCard {...shareCard} />
       </div>
 
-      {/* react-doctor-disable-next-line react-doctor/no-inline-exhaustive-style */}
       <div
         style={{
           flex: 1,
@@ -70,7 +68,6 @@ export const CompareShareCard = (props: Readonly<CompareShareCardProps>) => {
         }}
       >
         <div style={{ padding: '12px 14px 10px', borderBottom: `1px solid ${COLORS.border}` }}>
-          {/* react-doctor-disable-next-line react-doctor/no-tiny-text */}
           <div
             style={{
               fontSize: 10,
@@ -98,7 +95,6 @@ export const CompareShareCard = (props: Readonly<CompareShareCardProps>) => {
           }}
         >
           <div>
-            {/* react-doctor-disable-next-line react-doctor/no-tiny-text */}
             <div
               style={{
                 fontSize: 10,
@@ -134,7 +130,6 @@ export const CompareShareCard = (props: Readonly<CompareShareCardProps>) => {
           </div>
 
           <div>
-            {/* react-doctor-disable-next-line react-doctor/no-tiny-text */}
             <div
               style={{
                 fontSize: 10,
@@ -201,7 +196,6 @@ export const CompareShareCard = (props: Readonly<CompareShareCardProps>) => {
           </div>
         </div>
 
-        {/* react-doctor-disable-next-line react-doctor/no-inline-exhaustive-style, react-doctor/no-tiny-text */}
         <div
           style={{
             padding: '4px 14px 10px',

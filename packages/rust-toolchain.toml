@@ -1,0 +1,8 @@
+# Declares the toolchain + components/targets for rustup-managed environments
+# (e.g. CI and most dev machines). `channel = "stable"` keeps this aligned with
+# the CI workflow (dtolnay/rust-toolchain@stable). The enforced MSRV lives in
+# clippy.toml (`msrv`). Standalone (non-rustup) installs ignore this file.
+[toolchain]
+channel = "stable"
+components = ["rustfmt", "clippy"]
+targets = ["wasm32-unknown-unknown"]

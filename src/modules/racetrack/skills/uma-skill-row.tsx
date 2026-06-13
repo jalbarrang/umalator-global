@@ -3,7 +3,7 @@ import { useForcedPositionMap } from '@/modules/simulation/stores/forced-positio
 import { useRaceTrackDisplay } from '@/store/settings.store';
 import { DragStartHandler, RegionDisplayType } from '../types';
 import { RaceTrackDimensions } from '../types';
-import type { CourseData } from '@/lib/sunday-tools/course/definitions';
+import type { CourseData } from 'sunday-tools/course/definitions';
 import { RegionData } from '../hooks/useVisualizationData';
 import { useDragPreviewForUma } from '../hooks/useDragSkill';
 
@@ -44,8 +44,7 @@ const isRushedRegion = (region: RegionData) => region.text.startsWith('Rushed');
 const isScenarioRegion = (region: RegionData) =>
   region.markerType === 'scenario' && !isRushedRegion(region);
 
-const isDebuffRegion = (region: RegionData) =>
-  region.isDebuff || region.markerType === 'debuff';
+const isDebuffRegion = (region: RegionData) => region.isDebuff || region.markerType === 'debuff';
 
 const isSkillRegion = (region: RegionData) =>
   !isDebuffRegion(region) && !isRushedRegion(region) && !isScenarioRegion(region);
@@ -75,20 +74,10 @@ export type UmaSkillSectionProps = {
 };
 
 export const UmaSkillSection = React.memo<UmaSkillSectionProps>((props) => {
-  const {
-    course,
-    skillActivations,
-    rushedIndicators,
-    debuffIndicators,
-    onDragStart
-  } = props;
+  const { course, skillActivations, rushedIndicators, debuffIndicators, onDragStart } = props;
 
-  const {
-    showSkillMarkers,
-    showDebuffMarkers,
-    showRushedMarkers,
-    showScenarioMarkers
-  } = useRaceTrackDisplay();
+  const { showSkillMarkers, showDebuffMarkers, showRushedMarkers, showScenarioMarkers } =
+    useRaceTrackDisplay();
 
   const positionsMapUma1 = useForcedPositionMap('uma1');
   const positionsMapUma2 = useForcedPositionMap('uma2');
@@ -119,7 +108,15 @@ export const UmaSkillSection = React.memo<UmaSkillSectionProps>((props) => {
 
           return (b.regions[0]?.start ?? 0) - (a.regions[0]?.start ?? 0);
         }),
-    [skillActivations, rushedIndicators, debuffIndicators, showSkillMarkers, showDebuffMarkers, showRushedMarkers, showScenarioMarkers]
+    [
+      skillActivations,
+      rushedIndicators,
+      debuffIndicators,
+      showSkillMarkers,
+      showDebuffMarkers,
+      showRushedMarkers,
+      showScenarioMarkers
+    ]
   );
 
   const { immediates, durations } = useMemo(() => {

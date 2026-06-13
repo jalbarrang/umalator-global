@@ -1,0 +1,127 @@
+# =============================================================================
+# Rust CI — uma-sim simulation engine (packages/)
+#
+# Design: fail fast, fail loud. Every green check means the code meets the bar.
+# No silent warnings.
+#
+# Pipeline order (fastest/cheapest first):
+#   1. Formatting (rustfmt)        — seconds, no deps
+#   2. Supply chain (cargo-deny)   — seconds, no build
+#   3. Unused deps (cargo-machete) — seconds, heuristic
+#   4. Lint (clippy, zero-warn)    — minutes, needs compile
+#   5. Tests                       — minutes
+#   6. Type check + WASM build     — minutes
+# =============================================================================
+
+name: Rust CI
+
+on:
+  push:
+    branches: [main]
+    paths: ["packages/**", ".github/workflows/rust-ci.yml"]
+  pull_request:
+    branches: [main]
+    paths: ["packages/**", ".github/workflows/rust-ci.yml"]
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+concurrency:
+  group: rust-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: packages
+
+jobs:
+  # ──────────────────────────────────────────────────────────────
+  # Stage 1: Fast checks (no compilation)
+  # ──────────────────────────────────────────────────────────────
+  fmt:
+    name: "1 · Rustfmt"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - run: cargo fmt --check
+
+  # ──────────────────────────────────────────────────────────────
+  # Stage 2: Supply chain & dependency checks (no compilation)
+  # ──────────────────────────────────────────────────────────────
+  deny:
+    name: "2 · cargo-deny"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          manifest-path: packages/Cargo.toml
+          command: check
+
+  machete:
+    name: "2 · Unused deps"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: packages
+      - run: cargo install cargo-machete --locked
+      - run: cargo machete
+
+  # ──────────────────────────────────────────────────────────────
+  # Stage 3: Clippy — ZERO WARNINGS policy (-D warnings)
+  # ──────────────────────────────────────────────────────────────
+  clippy:
+    name: "3 · Clippy (zero warnings)"
+    needs: [fmt]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: packages
+      - run: cargo clippy --workspace --all-targets -- -D warnings
+
+  # ──────────────────────────────────────────────────────────────
+  # Stage 4: Tests
+  # ──────────────────────────────────────────────────────────────
+  test:
+    name: "4 · Tests"
+    needs: [clippy]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: packages
+      - run: cargo test --workspace --lib
+
+  # ──────────────────────────────────────────────────────────────
+  # Stage 5: Type check (native) + WASM build
+  # ──────────────────────────────────────────────────────────────
+  check:
+    name: "5 · Check + WASM build"
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: packages
+      - run: cargo check --workspace --all-targets
+      - run: cargo build -p uma-sim-wasm --target wasm32-unknown-unknown

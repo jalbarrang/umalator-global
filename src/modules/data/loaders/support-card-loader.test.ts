@@ -13,6 +13,7 @@ const skills: SkillsMap = {
     family: [],
     iconId: '0',
     baseCost: 0,
+    gradeValue: 0,
     order: 0,
     name: 'Right-Handed ○',
     character: []

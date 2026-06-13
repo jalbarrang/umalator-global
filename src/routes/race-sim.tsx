@@ -20,7 +20,7 @@ import { useSettingsStore } from '@/store/settings.store';
 import { setDismissal, useUIStore } from '@/store/ui.store';
 import { useSkillModalStore } from '@/modules/skills/store';
 import { getSelectableSkillsForUma } from '@/modules/skills/utils';
-import type { RaceSimWorkerParams } from '@/workers/race-sim.worker';
+import type { RaceSimWasmWorkerParams as RaceSimWorkerParams } from '@/workers/race-sim-wasm.worker';
 import { SkillPickerModal } from '@/modules/skills/components/skill-picker/modal';
 
 function RaceSimSkillPicker() {

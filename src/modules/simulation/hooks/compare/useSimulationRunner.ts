@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react';
-import CompareWorker from '@workers/simulator.worker.ts?worker';
+import CompareWasmWorker from '@workers/simulator-wasm.worker.ts?worker';
 import type { CompareParams } from '../../types';
 import type { CompareResult } from '@/modules/simulation/compare.types';
 import {
@@ -18,7 +18,7 @@ import {
 } from '@/modules/simulation/stores/scenario-overrides.store';
 import { coursesService } from '@/modules/data/services/CourseService';
 
-const createCompareWorker = () => new CompareWorker();
+const createCompareWorker = () => new CompareWasmWorker();
 
 type WorkerMessage<T> =
   | {

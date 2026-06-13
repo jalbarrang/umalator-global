@@ -1,4 +1,4 @@
-import { SkillType } from '@/lib/sunday-tools/skills/definitions';
+import { SkillType } from 'sunday-tools/skills/definitions';
 
 export type EffectSymbolProps = {
   effectType: number;

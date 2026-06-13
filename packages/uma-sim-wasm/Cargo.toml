@@ -1,0 +1,23 @@
+[package]
+name = "uma-sim-wasm"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+description = "WebAssembly adapter for the uma-sim race simulation engines (contested + vacuum)."
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+uma-sim-primitives = { path = "../uma-sim-primitives" }
+uma-sim-race = { path = "../uma-sim-race" }
+uma-sim-vacuum = { path = "../uma-sim-vacuum" }
+wasm-bindgen = "0.2"
+serde = { version = "1", features = ["derive"] }
+serde-wasm-bindgen = "0.6"
+js-sys = "0.3"
+
+[lints]
+workspace = true

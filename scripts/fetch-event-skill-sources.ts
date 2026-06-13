@@ -7,15 +7,15 @@
  * Output: src/modules/data/json/gametora/event-skill-sources.json
  */
 
-import { resolve } from "node:path";
-import supportCardsJson from "../src/modules/data/json/gametora/support-cards.json";
+import { resolve } from 'node:path';
+import supportCardsJson from '../src/modules/data/json/gametora/support-cards.json';
 
 const OUTPUT_FILE = resolve(
   import.meta.dir,
-  "../src/modules/data/json/gametora/event-skill-sources.json"
+  '../src/modules/data/json/gametora/event-skill-sources.json'
 );
 
-const GAMETORA_BASE = "https://gametora.com";
+const GAMETORA_BASE = 'https://gametora.com';
 const CONCURRENCY = 10;
 const LOG_INTERVAL = 50;
 const MAX_RETRIES = 3;
@@ -47,7 +47,7 @@ async function fetchBuildId(): Promise<string> {
   const match = html.match(/"buildId":"([^"]+)"/);
 
   if (!match) {
-    throw new Error("Could not find GameTora buildId in page HTML");
+    throw new Error('Could not find GameTora buildId in page HTML');
   }
 
   return match[1];
@@ -59,7 +59,7 @@ function extractSkillIds(events: Array<TrainingEvent>): Array<number> {
   for (const event of events) {
     for (const choice of event.c) {
       for (const reward of choice.r) {
-        if (reward.t === "sk" && reward.d != null) {
+        if (reward.t === 'sk' && reward.d != null) {
           skills.add(reward.d);
         }
       }
@@ -103,7 +103,7 @@ async function fetchCardEventData(
 
   return {
     chain_event_skills: chainSkills,
-    random_event_skills: randomSkills,
+    random_event_skills: randomSkills
   };
 }
 
@@ -154,7 +154,7 @@ for (let i = 0; i < cards.length; i += CONCURRENCY) {
   for (let j = 0; j < settled.length; j++) {
     const outcome = settled[j];
 
-    if (outcome.status === "rejected") {
+    if (outcome.status === 'rejected') {
       const card = batch[j];
       const msg = `${card.support_id} (${card.url_name}): ${outcome.reason}`;
       errors.push(msg);
@@ -174,7 +174,7 @@ console.log(
 );
 
 if (errors.length > 0) {
-  console.log("\nErrors:");
+  console.log('\nErrors:');
 
   for (const err of errors) {
     console.log(`  ${err}`);

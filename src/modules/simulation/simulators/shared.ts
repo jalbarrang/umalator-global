@@ -1,18 +1,18 @@
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
-import type { CreateRunner } from '@/lib/sunday-tools/common/runner';
+import type { CreateRunner } from 'sunday-tools/common/runner';
 import type {
   DuelingRates,
-  RaceLifecycleObserver,
   SimulationSettings,
   RaceParameters as SundayRaceParameters
-} from '@/lib/sunday-tools/common/race';
-import type { CourseData } from '@/lib/sunday-tools/course/definitions';
-import type { ISkillTarget, ISkillType } from '@/lib/sunday-tools/skills/definitions';
-import type { InjectedDebuff, RunComparisonParams, ScenarioOverrides } from '@/modules/simulation/types';
-import { Race } from '@/lib/sunday-tools/common/race';
-import { subscribeObserver } from '@/lib/sunday-tools/common/race-events';
-import { parseAptitudeName, parseStrategyName } from '@/lib/sunday-tools/runner/runner.types';
-import { SkillTarget, SkillType } from '@/lib/sunday-tools/skills/definitions';
+} from 'sunday-tools/common/race';
+import type { ISkillTarget, ISkillType } from 'sunday-tools/skills/definitions';
+import type {
+  InjectedDebuff,
+  RunComparisonParams,
+  ScenarioOverrides
+} from '@/modules/simulation/types';
+import { parseAptitudeName, parseStrategyName } from 'sunday-tools/runner/runner.types';
+import { SkillTarget, SkillType } from 'sunday-tools/skills/definitions';
 import { skillsService } from '@/modules/data/services/SkillService';
 
 export type EffectMeta = {
@@ -117,9 +117,15 @@ export function toCreateRunner(
     skills: sortedSkills,
     forcedPositions,
     injectedDebuffs: injectedDebuffs?.map(({ skillId, position }) => ({ skillId, position })),
-    forcedRushedRegions: scenarioOverrides?.forcedRushed ? [scenarioOverrides.forcedRushed] : undefined,
-    forcedDuelingRegions: scenarioOverrides?.forcedDueling ? [scenarioOverrides.forcedDueling] : undefined,
-    forcedSpotStruggleRegions: scenarioOverrides?.forcedSpotStruggle ? [scenarioOverrides.forcedSpotStruggle] : undefined,
+    forcedRushedRegions: scenarioOverrides?.forcedRushed
+      ? [scenarioOverrides.forcedRushed]
+      : undefined,
+    forcedDuelingRegions: scenarioOverrides?.forcedDueling
+      ? [scenarioOverrides.forcedDueling]
+      : undefined,
+    forcedSpotStruggleRegions: scenarioOverrides?.forcedSpotStruggle
+      ? [scenarioOverrides.forcedSpotStruggle]
+      : undefined,
     forcedRank: scenarioOverrides?.forcedRank
   };
 }
@@ -158,35 +164,6 @@ export function createCompareSettings(
     staminaDrainOverrides: {},
     ...overrides
   };
-}
-
-export function createInitializedRace(params: {
-  course: CourseData;
-  raceParameters: SundayRaceParameters;
-  settings: SimulationSettings;
-  duelingRates: DuelingRates;
-  skillSamples: number;
-  runner: CreateRunner;
-  observer?: RaceLifecycleObserver;
-}): Race {
-  const race = new Race({
-    course: params.course,
-    parameters: params.raceParameters,
-    settings: params.settings,
-    skillSamples: params.skillSamples,
-    duelingRates: params.duelingRates
-  });
-
-  if (params.observer) {
-    subscribeObserver(race.events, params.observer);
-  }
-
-  race.onInitialize();
-  race.skillSamples = params.skillSamples;
-  race.addRunner(params.runner);
-  race.prepareRace().validateRaceSetup();
-
-  return race;
 }
 
 export function computePositionDiff(positionA: Array<number>, positionB: Array<number>): number {

@@ -1,5 +1,5 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import type { IGroundCondition } from '@/lib/sunday-tools/course/definitions';
+import type { IGroundCondition } from 'sunday-tools/course/definitions';
 import { setRaceParams, useSettingsStore } from '@/store/settings.store';
 
 const groundConditions = {

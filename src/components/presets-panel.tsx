@@ -63,7 +63,7 @@ import {
   type IGroundCondition,
   type ISeason,
   type IWeather
-} from '@/lib/sunday-tools/course/definitions';
+} from 'sunday-tools/course/definitions';
 import { getCourseById, getDistanceCategory } from '@/modules/racetrack/courses';
 import { trackDescription } from '@/modules/racetrack/labels';
 import i18n from '@/i18n';

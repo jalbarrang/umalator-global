@@ -6,11 +6,10 @@ Evaluate changes for correctness, consistency, and adherence to this project's e
 
 | Command                 | Purpose                                                      |
 | ----------------------- | ------------------------------------------------------------ |
-| `bun run typecheck`     | TypeScript type checking (tsgo)                              |
+| `bun run typecheck`     | TypeScript type checking (tsgo, read-only `--noEmit`)        |
 | `bun run lint`          | Linting via oxlint (with `.oxlintrc.json` + `oxlint-rules/`) |
-| `bun run format`        | Formatting via oxfmt                                         |
-| `bun run test`          | Unit tests via vitest                                        |
-| `bun run codeql:report` | Combined fallow + react-doctor health report                 |
+| `bunx oxfmt --check`    | Format check only — does **not** rewrite files (`bun run format` would)  |
+| `bun run test`          | Unit tests via vitest (`vitest run`, exits — not watch)      |
 
 ## Criteria
 

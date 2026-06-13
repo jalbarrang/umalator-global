@@ -1,5 +1,5 @@
-import type { CourseData } from '@/lib/sunday-tools/course/definitions';
-import type { RaceParameters } from '@/lib/sunday-tools/common/race';
+import type { CourseData } from 'sunday-tools/course/definitions';
+import type { RaceParameters } from 'sunday-tools/common/race';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import type { SimulationOptions, SkillComparisonResponse } from '@/modules/simulation/types';
 
@@ -28,7 +28,13 @@ export type SimulationParams = {
 
 // Messages from main thread to worker
 export type WorkerInMessage =
-  | { type: 'init'; workerId: number; params: SimulationParams }
+  | {
+      type: 'init';
+      workerId: number;
+      params: SimulationParams;
+      /** Pre-compiled WASM module shared by the pool (skips per-worker compile). */
+      compiledModule?: WebAssembly.Module;
+    }
   | { type: 'work-batch'; batch: WorkBatch }
   | { type: 'terminate' };
 

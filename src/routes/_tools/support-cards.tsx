@@ -349,7 +349,9 @@ function SupportCardFiltersDialog(props: SupportCardFiltersDialogProps) {
     setDraftSkillFilters((prev) => {
       const existingBySkillId = new Map(prev.map((e) => [e.skillId, e]));
 
-      return skillIds.map((skillId) => existingBySkillId.get(skillId) ?? { skillId, source: 'any' as const });
+      return skillIds.map(
+        (skillId) => existingBySkillId.get(skillId) ?? { skillId, source: 'any' as const }
+      );
     });
   };
 
@@ -700,8 +702,7 @@ export function SupportCardsPage() {
   const deferredSearchText = useDeferredValue(searchText);
   const columns = useGridColumns();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const activeFilterCount =
-    cardTypeFilters.length + cardRarityFilters.length + skillFilters.length;
+  const activeFilterCount = cardTypeFilters.length + cardRarityFilters.length + skillFilters.length;
 
   const filteredCards = useMemo(() => {
     const normalizedSearch = deferredSearchText.trim().toLowerCase();
@@ -748,7 +749,11 @@ export function SupportCardsPage() {
           if (entry.source === 'hint') return hintSkillIds.has(entry.skillId);
           if (entry.source === 'chain') return chainSkillIds.has(entry.skillId);
           if (entry.source === 'random') return randomSkillIds.has(entry.skillId);
-          return hintSkillIds.has(entry.skillId) || chainSkillIds.has(entry.skillId) || randomSkillIds.has(entry.skillId);
+          return (
+            hintSkillIds.has(entry.skillId) ||
+            chainSkillIds.has(entry.skillId) ||
+            randomSkillIds.has(entry.skillId)
+          );
         });
 
         if (!hasAllSkills) {

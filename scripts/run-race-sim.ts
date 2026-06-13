@@ -11,17 +11,17 @@
 import { Command } from 'commander';
 
 import { coursesService } from '@/modules/data/services/CourseService';
-import { generateMobField } from '@/lib/sunday-tools/race-sim/mob-factory';
-import { runRaceSim, type RaceSimResult } from '@/lib/sunday-tools/race-sim/run-race-sim';
-import { StrategyName } from '@/lib/sunday-tools/runner/definitions';
-import type { RaceParameters } from '@/lib/sunday-tools/common/race';
+import { generateMobField } from 'sunday-tools/race-sim/mob-factory';
+import { runRaceSim, type RaceSimResult } from 'sunday-tools/race-sim/run-race-sim';
+import { StrategyName } from 'sunday-tools/runner/definitions';
+import type { RaceParameters } from 'sunday-tools/common/race';
 import {
   GroundCondition,
   Season,
   TimeOfDay,
   Weather,
   Grade
-} from '@/lib/sunday-tools/course/definitions';
+} from 'sunday-tools/course/definitions';
 
 const DEFAULT_COURSE_ID = 10101;
 

@@ -1,6 +1,6 @@
 import { parseSkillCondition, tokenizedConditions } from '@/modules/skills/conditions';
 import type { SkillService, SkillsMap } from '@/modules/data/services/SkillService';
-import { treeMatch } from '@/lib/sunday-tools/skills/parser/ConditionMatcher';
+import { treeMatch } from 'sunday-tools/skills/parser/ConditionMatcher';
 
 type ConditionFilterMap = Record<string, Array<ReturnType<typeof parseSkillCondition>>>;
 

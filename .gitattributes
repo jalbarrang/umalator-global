@@ -1,1 +1,25 @@
+# Normalize line endings to LF for all text files. `text=auto` lets git detect
+# text vs binary; `eol=lf` forces LF in the working tree so formatters (oxfmt)
+# and CI stay consistent across Windows / macOS / Linux.
+* text=auto eol=lf
+
+# Explicit binary types (never normalize / diff as text).
+*.wasm binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.mp3 binary
+*.mp4 binary
+*.zip binary
+*.gz binary
+
+# Generated / lock files: keep LF, mark as such where helpful.
 CHANGELOG.md text eol=lf
+bun.lock text eol=lf

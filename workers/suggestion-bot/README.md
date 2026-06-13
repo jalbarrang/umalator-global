@@ -36,7 +36,7 @@ wrangler login
 ```
 
 Set the app origin(s) in `wrangler.jsonc` → `vars.ALLOWED_ORIGIN`. Multiple origins are
-comma-separated, e.g. `https://jalbarrang.github.io,https://sundays-shadow.netlify.app`. The
+comma-separated, e.g. `https://torena-sim.pages.dev,https://jalbarrang.github.io`. The
 Worker echoes back whichever origin matches the request (CORS requires a single concrete origin)
 and rejects browser requests from origins not on the list.
 

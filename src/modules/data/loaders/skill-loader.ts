@@ -6,7 +6,7 @@ import type {
   SkillReferenceEntry,
   SkillsMap
 } from '@/modules/data/services/SkillService';
-import type { SkillAlternative } from '@/lib/sunday-tools/skills/skill.types';
+import type { SkillAlternative } from 'sunday-tools/skills/skill.types';
 import { attachReleaseDates } from './attach-release-dates';
 
 type GameToraEffect = {
@@ -233,6 +233,7 @@ function buildMergedSkillEntry(params: BuildMergedSkillEntryParams): SkillEntry 
     baseCost:
       existingEntry?.baseCost ??
       ('cost' in resolvedSkill ? (resolvedSkill.cost ?? defaultBaseCost) : defaultBaseCost),
+    gradeValue: existingEntry?.gradeValue ?? 0,
     order: existingEntry?.order ?? defaultOrder,
     name: resolveSkillName(resolvedSkill, existingEntry?.name),
     character: character.length > 0 ? [...character] : [...(existingEntry?.character ?? [])],

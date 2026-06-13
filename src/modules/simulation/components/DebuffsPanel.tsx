@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/panel';
 import { skillsService } from '@/modules/data/services/SkillService';
 import { DebuffGroup } from './DebuffGroup';
-import { isInjectableExternalDebuffSkill } from '@/lib/sunday-tools/skills/external-debuffs';
+import { isInjectableExternalDebuffSkill } from 'sunday-tools/skills/external-debuffs';
 import { SkillPickerModal } from '@/modules/skills/components/skill-picker/modal';
 import { addDebuff, clearAllDebuffs, useDebuffs } from '@/modules/simulation/stores/compare.store';
 import { CompareRunnerId } from '../compare.types';

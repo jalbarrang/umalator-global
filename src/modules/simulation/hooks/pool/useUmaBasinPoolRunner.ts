@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react';
-import UmaBasinPoolWorker from '@workers/pool/uma-basin/uma-basin.pool.worker.ts?worker';
+import UmaBasinPoolWasmWorker from '@workers/pool/uma-basin/uma-basin-wasm.pool.worker.ts?worker';
 import type { SkillComparisonResponse } from '@/modules/simulation/types';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import {
@@ -24,7 +24,7 @@ import { useUmaSkillSelectionStore } from '@/modules/simulation/stores/uma-skill
 
 const uniqueSkillIds = skillsService.getUniqueSkillIds();
 
-const createUmaBasinPoolWorker = (options: { name: string }) => new UmaBasinPoolWorker(options);
+const createUmaBasinPoolWorker = (options: { name: string }) => new UmaBasinPoolWasmWorker(options);
 
 function removeUniqueSkillsFromRunner(uma: IRunnerState): IRunnerState {
   const filteredSkills = uma.skills.filter((skillId) => !uniqueSkillIds.includes(skillId));
@@ -42,7 +42,7 @@ export function useUmaBasinPoolRunner() {
 
   // Initialize pool manager on mount
   useEffect(() => {
-    const poolManager = new PoolManager((options) => createUmaBasinPoolWorker(options));
+    const poolManager = new PoolManager((workerOptions) => createUmaBasinPoolWorker(workerOptions));
 
     poolManagerRef.current = poolManager;
 

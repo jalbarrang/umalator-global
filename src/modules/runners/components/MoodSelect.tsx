@@ -1,6 +1,6 @@
-import type { IMood } from '@/lib/sunday-tools/runner/definitions';
+import type { IMood } from 'sunday-tools/runner/definitions';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
-import { Mood } from '@/lib/sunday-tools/runner/definitions';
+import { Mood } from 'sunday-tools/runner/definitions';
 import { getIconUrl } from '@/assets/icons';
 
 type MoodSelectProps = {

@@ -1,13 +1,15 @@
-name: Deploy to GitHub Pages
+name: Deploy GitHub Pages redirect
+
+# GitHub Pages is no longer a real deploy target — it only redirects to the
+# canonical Cloudflare Pages domain (https://torena-sim.pages.dev). This
+# publishes a tiny static redirect, so there is no app build here.
 
 on:
-  # Run after Versioning so semantic-release has created the release tag before
-  # changelog:generate reads git history for the in-app changelog.
-  workflow_run:
-    workflows: [Versioning]
-    types: [completed]
-    branches: [main]
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/deploy-pages.yml
 
 permissions:
   contents: read
@@ -20,44 +22,43 @@ concurrency:
 
 jobs:
   build:
-    name: Build site
+    name: Build redirect
     runs-on: ubuntu-latest
-    env:
-      VITE_PUBLIC_POSTHOG_KEY: ${{ secrets.VITE_PUBLIC_POSTHOG_KEY }}
-      VITE_PUBLIC_POSTHOG_HOST: ${{ vars.VITE_PUBLIC_POSTHOG_HOST }}
-      VITE_BASE_PATH: ${{ vars.VITE_BASE_PATH }}
-      VITE_SUGGESTION_WORKER_URL: ${{ vars.VITE_SUGGESTION_WORKER_URL }}
-      VITE_TURNSTILE_SITE_KEY: ${{ vars.VITE_TURNSTILE_SITE_KEY }}
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v6.0.2
-        with:
-          fetch-depth: 0
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v6
 
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-
-      - name: Generate changelog for build
-        run: bun run changelog:generate
-
-      - name: Run type check
-        run: bun run typecheck
-
-      - name: Run linter
-        run: bun run lint
-
-      - name: Build app
-        run: bun run build
-
-      - name: Create 404.html for SPA routing
-        run: cp dist/index.html dist/404.html
+      - name: Generate redirect site
+        run: |
+          mkdir -p dist
+          cat > dist/index.html <<'HTML'
+          <!doctype html>
+          <html lang="en">
+          <head>
+          <meta charset="utf-8">
+          <meta name="robots" content="noindex">
+          <title>Moved to torena-sim.pages.dev</title>
+          <link rel="canonical" href="https://torena-sim.pages.dev/">
+          <script>
+            (function () {
+              var base = "/umalator-global";
+              var path = location.pathname.indexOf(base) === 0
+                ? location.pathname.slice(base.length)
+                : location.pathname;
+              location.replace(
+                "https://torena-sim.pages.dev" + (path || "/") + location.search + location.hash
+              );
+            })();
+          </script>
+          <meta http-equiv="refresh" content="0; url=https://torena-sim.pages.dev/">
+          </head>
+          <body>
+          <p>This app has moved to <a href="https://torena-sim.pages.dev">torena-sim.pages.dev</a>. Redirecting…</p>
+          </body>
+          </html>
+          HTML
+          cp dist/index.html dist/404.html
 
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v5
@@ -65,7 +66,7 @@ jobs:
           path: ./dist
 
   deploy:
-    name: Deploy site
+    name: Deploy redirect
     needs: build
     runs-on: ubuntu-latest
     environment:

@@ -1,0 +1,1254 @@
+//! Skill activation & effect application (t-015).
+//!
+//! Ports the skill half of `common/runner.ts` (`processSkillActivations`,
+//! `activateSkill`, `activateRandomGoldSkill`, the wit check, targeted-effect
+//! application) plus `buildSkillData` from `runner/runner.utils.ts` (adapted to
+//! take a pre-resolved [`Skill`] instead of a service lookup).
+//!
+//! Dynamic `extra_condition` gates are evaluated through a
+//! [`RunnerConditionView`] that combines the runner's self-state with the
+//! per-frame [`FieldView`] (snapshot-derived field data the aggregate builds in
+//! t-017). The view is constructed immutably and released before the `&mut self`
+//! activation call, so the borrow checker is satisfied and resolution order is
+//! irrelevant.
+
+use crate::runner::lifecycle::PrepareContext;
+use crate::runner::{Runner, UsedTargetedSkill};
+use crate::shared_kernel::ids::SkillId;
+use crate::shared_kernel::math::Timer;
+use crate::shared_kernel::params::{RaceParameters, StatLine};
+use crate::shared_kernel::region::{Region, RegionList};
+use crate::skills::activation::ActivationSamplePolicy;
+use crate::skills::condition::dynamic::{
+    eval_dynamic, ActiveRunner, DynamicCondition, RunnerSnapshot as DynRunnerSnapshot, RunnerView,
+};
+use crate::skills::condition::language::ConditionParser;
+use crate::skills::condition::{ApplyParams, ConditionResolution, SkillEvalRunner};
+use crate::skills::debuff::{get_external_debuff_effects, is_external_debuff_effect};
+use crate::skills::effect::{SkillRarity, SkillType};
+use crate::skills::model::{
+    build_skill_effects, ActiveSkill, ActiveTargetedSkill, PendingSkill, PendingTargetedSkill,
+    Skill, SkillEffect, SkillTrigger, TargetedSkillOrigin,
+};
+use crate::skills::recovery::resolve_recovery_modifier;
+
+/// Snapshot-derived field data dynamic skill conditions read through the
+/// [`RunnerView`] seam. Built once per frame by the aggregate (t-017).
+#[derive(Debug, Clone, Default)]
+pub struct FieldView {
+    /// This runner's current finishing order (1-based), if assigned.
+    pub self_order: Option<i64>,
+    /// This runner's previous-tick order, if assigned.
+    pub self_previous_order: Option<i64>,
+    /// Number of active runners in the field.
+    pub num_umas: i64,
+    /// The leader's position in meters, if known.
+    pub leader_position: Option<f64>,
+    /// Snapshots of every *other* active runner.
+    pub other_snapshots: Vec<DynRunnerSnapshot>,
+    /// Live state of every active runner (including self).
+    pub active_runners: Vec<ActiveRunner>,
+}
+
+impl FieldView {
+    /// The trivial field view used at the gate (no field resolved yet).
+    pub fn at_gate() -> Self {
+        FieldView::default()
+    }
+}
+
+/// A read-only [`RunnerView`] combining a runner's self-state with the per-frame
+/// [`FieldView`]. The anti-corruption bridge between the racing `Runner` and the
+/// skills condition language.
+pub struct RunnerConditionView<'a> {
+    runner: &'a Runner,
+    field: &'a FieldView,
+}
+
+impl RunnerView for RunnerConditionView<'_> {
+    fn accumulate_time(&self) -> f64 {
+        self.runner.accumulate_time.t
+    }
+    fn skills_activated_count(&self) -> i64 {
+        self.runner.skills_activated_count
+    }
+    fn skills_activated_in_phase(&self, phase: usize) -> i64 {
+        self.runner
+            .skills_activated_phase_map
+            .get(phase)
+            .copied()
+            .unwrap_or(0)
+    }
+    fn heals_activated_count(&self) -> i64 {
+        self.runner.heals_activated_count
+    }
+    fn health_ratio_remaining(&self) -> f64 {
+        self.runner.health_policy.health_ratio_remaining()
+    }
+    fn has_remaining_health(&self) -> bool {
+        self.runner.health_policy.has_remaining_health()
+    }
+    fn has_used_skill(&self, skill_id: &str) -> bool {
+        self.runner.used_skills.contains(skill_id)
+    }
+    fn start_delay(&self) -> f64 {
+        self.runner.start_delay
+    }
+    fn is_last_spurt(&self) -> bool {
+        self.runner.is_last_spurt
+    }
+    fn last_spurt_transition(&self) -> f64 {
+        self.runner.last_spurt_transition
+    }
+    fn gate(&self) -> i64 {
+        self.runner.gate
+    }
+    fn random_lot(&self) -> i64 {
+        self.runner.random_lot
+    }
+    fn position(&self) -> f64 {
+        self.runner.position
+    }
+    fn current_lane(&self) -> f64 {
+        self.runner.current_lane
+    }
+    fn current_speed(&self) -> f64 {
+        self.runner.current_speed
+    }
+    fn lane_change_speed(&self) -> f64 {
+        self.runner.lane_change_speed
+    }
+    fn horse_lane(&self) -> f64 {
+        self.runner.horse_lane
+    }
+    fn section_length(&self) -> f64 {
+        self.runner.section_length
+    }
+    fn course_distance(&self) -> f64 {
+        self.runner.course_distance
+    }
+    fn phase(&self) -> i64 {
+        self.runner.phase.index() as i64
+    }
+    fn strategy(&self) -> Option<crate::shared_kernel::language::Strategy> {
+        Some(self.runner.strategy)
+    }
+    fn is_rushed(&self) -> bool {
+        self.runner.is_rushed
+    }
+    fn is_dueling(&self) -> bool {
+        self.runner.is_dueling
+    }
+    fn current_order(&self) -> Option<i64> {
+        self.field.self_order
+    }
+    fn previous_order(&self) -> Option<i64> {
+        self.field.self_previous_order
+    }
+    fn num_umas(&self) -> i64 {
+        self.field.num_umas
+    }
+    fn leader_position(&self) -> Option<f64> {
+        self.field.leader_position
+    }
+    fn other_snapshots(&self) -> Vec<DynRunnerSnapshot> {
+        self.field.other_snapshots.clone()
+    }
+    fn active_runners(&self) -> Vec<ActiveRunner> {
+        self.field.active_runners.clone()
+    }
+}
+
+/// Inputs to [`build_skill_data`]: a pre-resolved skill plus the static
+/// condition-evaluation context.
+pub struct BuildSkillDataParams<'a> {
+    /// Static view of the runner (base stats / strategy / mood).
+    pub runner: &'a SkillEvalRunner,
+    /// Race-wide parameters.
+    pub race_params: &'a RaceParameters,
+    /// The course being raced.
+    pub course: &'a crate::course::model::CourseData,
+    /// The whole course as a region list.
+    pub whole_course: &'a RegionList,
+    /// The condition parser (bound to the static catalog).
+    pub parser: &'a ConditionParser<'a>,
+    /// The pre-resolved skill.
+    pub skill: &'a Skill,
+    /// Whether to keep triggers whose effect list is empty.
+    pub ignore_null_effects: bool,
+    /// Engine-supplied condition-resolution strategy (dynamic vs static).
+    pub resolution: ConditionResolution,
+}
+
+/// Build the [`SkillTrigger`]s for a pre-resolved skill.
+///
+/// Port of `buildSkillData` (minus the service lookup / simulatable guard, which
+/// the data layer performs upstream). Unparseable conditions yield an empty
+/// result rather than panicking.
+pub fn build_skill_data(params: &BuildSkillDataParams<'_>) -> Vec<SkillTrigger> {
+    let skill = params.skill;
+    let mut extra = params.race_params.clone();
+    extra.skill_id = Some(skill.skill_id.clone());
+
+    let mut triggers: Vec<SkillTrigger> = Vec::new();
+
+    for alt in &skill.alternatives {
+        if alt.condition.is_empty() {
+            continue;
+        }
+
+        let mut full = params.whole_course.clone();
+
+        // An empty precondition string means "no precondition" (TS treats it as
+        // falsy in `if (skillAlternative.precondition)`). Skipping it is required
+        // for skills whose data carries `precondition: ""` (e.g. all_corner_random
+        // / rotation greens), which otherwise fail to parse and never activate.
+        if let Some(precondition) = alt.precondition.as_deref().filter(|p| !p.is_empty()) {
+            let Ok(parsed_pre) = params.parser.parse(precondition) else {
+                return Vec::new();
+            };
+            let pre_params = ApplyParams {
+                regions: params.whole_course.clone(),
+                course: params.course,
+                runner: params.runner,
+                extra: &extra,
+                resolution: params.resolution,
+            };
+            let Ok((pre_regions, _)) = parsed_pre.apply(&pre_params) else {
+                return Vec::new();
+            };
+            if pre_regions.0.is_empty() {
+                continue;
+            }
+            let Some(last) = params.whole_course.last() else {
+                continue;
+            };
+            let bounds = Region::new(pre_regions.0[0].start, last.end);
+            full = full.rmap(|r| r.intersect(&bounds));
+        }
+
+        let Ok(parsed_op) = params.parser.parse(&alt.condition) else {
+            return Vec::new();
+        };
+        let apply_params = ApplyParams {
+            regions: full,
+            course: params.course,
+            runner: params.runner,
+            extra: &extra,
+            resolution: params.resolution,
+        };
+        let Ok((regions, extra_condition)) = parsed_op.apply(&apply_params) else {
+            return Vec::new();
+        };
+        if regions.0.is_empty() {
+            continue;
+        }
+
+        if !triggers.is_empty() && !condition_allows_second_trigger(&alt.condition) {
+            continue;
+        }
+
+        let Ok(effects) = build_skill_effects(alt) else {
+            return Vec::new();
+        };
+        if !effects.is_empty() || params.ignore_null_effects {
+            triggers.push(SkillTrigger {
+                skill_id: skill.skill_id.clone(),
+                rarity: skill.rarity,
+                sample_policy: parsed_op.sample_policy(),
+                regions,
+                effects,
+                extra_condition,
+            });
+        }
+    }
+
+    if !triggers.is_empty() {
+        return triggers;
+    }
+
+    // Fallback: place the first alternative after the course end with a
+    // constantly-false dynamic condition (summer Goldship unique edge case).
+    let Some(first) = skill.alternatives.first() else {
+        return Vec::new();
+    };
+    let Ok(effects) = build_skill_effects(first) else {
+        return Vec::new();
+    };
+    if effects.is_empty() && !params.ignore_null_effects {
+        return Vec::new();
+    }
+    let mut after_end = RegionList::new();
+    after_end.push(Region::new(9999.0, 9999.0));
+    vec![SkillTrigger {
+        skill_id: skill.skill_id.clone(),
+        rarity: skill.rarity,
+        sample_policy: ActivationSamplePolicy::Immediate,
+        regions: after_end,
+        effects,
+        extra_condition: Some(DynamicCondition::new(|_| false)),
+    }]
+}
+
+/// Whether a second trigger may be placed for a skill (only when the condition
+/// explicitly references the multi-trigger tokens).
+fn condition_allows_second_trigger(condition: &str) -> bool {
+    condition.contains("is_activate_other_skill_detail") || condition.contains("is_used_skill_id")
+}
+
+impl Runner {
+    /// Reset and rebuild the skill-tracking state for a fresh round.
+    ///
+    /// Port of `initializeSkillTracking` (+ `initializeTargetedSkillTracking`).
+    pub(crate) fn initialize_skill_tracking(&mut self, ctx: &PrepareContext<'_>) {
+        self.target_speed_skills_active.clear();
+        self.current_speed_skills_active.clear();
+        self.acceleration_skills_active.clear();
+        self.lane_movement_skills_active.clear();
+        self.change_lane_skills_active.clear();
+        self.targeted_target_speed_active.clear();
+        self.targeted_current_speed_active.clear();
+        self.targeted_acceleration_active.clear();
+        self.targeted_lane_movement_skills_active.clear();
+        self.targeted_change_lane_skills_active.clear();
+
+        self.skills_activated_count = 0;
+        self.skills_activated_phase_map = [0; 4];
+        self.skills_activated_half_race_map = [0; 2];
+        self.heals_activated_count = 0;
+        self.used_skills.clear();
+        self.used_targeted_skills.clear();
+        self.pending_skill_removal.clear();
+        self.pending_skills.clear();
+        self.pending_targeted_skills.clear();
+
+        let eval_runner = self.skill_eval_runner();
+        let skills = std::mem::take(&mut self.skills);
+        let mut pending: Vec<PendingSkill> = Vec::new();
+        for skill in &skills {
+            let triggers = build_skill_data(&BuildSkillDataParams {
+                runner: &eval_runner,
+                race_params: ctx.race_params,
+                course: ctx.course,
+                whole_course: ctx.whole_course,
+                parser: ctx.parser,
+                skill,
+                ignore_null_effects: false,
+                resolution: ctx.condition_resolution,
+            });
+            for trigger in triggers {
+                let base = trigger.skill_id.base().to_owned();
+                let policy = match self.forced_positions.get(&base) {
+                    Some(&pos) => ActivationSamplePolicy::Fixed(pos),
+                    None => trigger.sample_policy,
+                };
+                let samples =
+                    policy.sample(&trigger.regions, ctx.skill_samples, &mut *self.skill_rng);
+                if samples.is_empty() {
+                    continue;
+                }
+                let trigger_region = samples[ctx.round_iteration % samples.len()];
+                pending.push(PendingSkill {
+                    skill_id: trigger.skill_id,
+                    rarity: trigger.rarity,
+                    trigger: trigger_region,
+                    effects: trigger.effects,
+                    extra_condition: trigger.extra_condition,
+                });
+            }
+        }
+        self.skills = skills;
+        self.pending_skills = pending;
+
+        self.initialize_targeted_skill_tracking(&eval_runner, ctx);
+    }
+
+    /// Port of `initializeTargetedSkillTracking`: resolve each injected debuff to
+    /// its external-debuff effects and queue a fixed-position
+    /// [`PendingTargetedSkill`]. Injected debuffs are pre-resolved [`Skill`]s
+    /// (the data layer performs the service lookup upstream).
+    fn initialize_targeted_skill_tracking(
+        &mut self,
+        eval_runner: &SkillEvalRunner,
+        ctx: &PrepareContext<'_>,
+    ) {
+        if self.injected_debuffs.is_empty() {
+            return;
+        }
+        let debuffs = std::mem::take(&mut self.injected_debuffs);
+        for debuff in &debuffs {
+            let triggers = build_skill_data(&BuildSkillDataParams {
+                runner: eval_runner,
+                race_params: ctx.race_params,
+                course: ctx.course,
+                whole_course: ctx.whole_course,
+                parser: ctx.parser,
+                skill: &debuff.skill,
+                ignore_null_effects: false,
+                resolution: ctx.condition_resolution,
+            });
+            for trigger in triggers {
+                let external: Vec<SkillEffect> = get_external_debuff_effects(&trigger.effects)
+                    .into_iter()
+                    .copied()
+                    .collect();
+                if external.is_empty() {
+                    continue;
+                }
+                let policy = ActivationSamplePolicy::Fixed(debuff.position);
+                let samples =
+                    policy.sample(&trigger.regions, ctx.skill_samples, &mut *self.skill_rng);
+                if samples.is_empty() {
+                    continue;
+                }
+                let trigger_region = samples[ctx.round_iteration % samples.len()];
+                self.pending_targeted_skills.push(PendingTargetedSkill {
+                    skill_id: trigger.skill_id,
+                    origin: TargetedSkillOrigin::Injection,
+                    source_runner_id: None,
+                    trigger: trigger_region,
+                    effects: external,
+                });
+            }
+        }
+        self.injected_debuffs = debuffs;
+    }
+
+    fn skill_eval_runner(&self) -> SkillEvalRunner {
+        SkillEvalRunner {
+            base_stats: StatLine {
+                speed: self.base_stats.speed.round() as i32,
+                stamina: self.base_stats.stamina.round() as i32,
+                power: self.base_stats.power.round() as i32,
+                guts: self.base_stats.guts.round() as i32,
+                wit: self.base_stats.wit.round() as i32,
+            },
+            strategy: self.strategy,
+            mood: self.mood,
+        }
+    }
+
+    /// Activate green (gate) skills at the start of the round.
+    pub(crate) fn activate_gate_skills(&mut self, course_distance: f64) {
+        let field = FieldView::at_gate();
+        self.process_skill_activations(&field, course_distance);
+    }
+
+    /// Process self-skill activations for this tick.
+    pub(crate) fn process_skill_activations(&mut self, field: &FieldView, course_distance: f64) {
+        self.cleanup_expired_self_skills();
+
+        let mut i = self.pending_skills.len();
+        while i > 0 {
+            i -= 1;
+            if i >= self.pending_skills.len() {
+                continue;
+            }
+            let (trigger, skill_id) = {
+                let s = &self.pending_skills[i];
+                (s.trigger, s.skill_id.0.clone())
+            };
+
+            if self.position >= trigger.end || self.pending_skill_removal.contains(&skill_id) {
+                self.pending_skills.remove(i);
+                self.pending_skill_removal.remove(&skill_id);
+                continue;
+            }
+
+            if self.position >= trigger.start && self.pending_extra_passes(i, field) {
+                let skip = self.should_skip_wit_check_at(i);
+                if skip || self.do_wit_check() {
+                    let skill = self.pending_skills[i].clone();
+                    self.activate_skill(&skill, course_distance);
+                }
+                self.pending_skills.remove(i);
+            }
+        }
+    }
+
+    fn cleanup_expired_self_skills(&mut self) {
+        for modifier in drain_expired(&mut self.target_speed_skills_active) {
+            self.modifiers.target_speed.add(-modifier);
+        }
+        let mut one_frame = 0.0;
+        let mut removed: Vec<(f64, bool)> = Vec::new();
+        self.current_speed_skills_active.retain(|s| {
+            if s.duration_timer.t >= 0.0 {
+                removed.push((s.modifier, s.natural_deceleration));
+                false
+            } else {
+                true
+            }
+        });
+        for (modifier, natural) in removed {
+            self.modifiers.current_speed.add(-modifier);
+            if natural {
+                one_frame += modifier;
+            }
+        }
+        self.modifiers.one_frame_accel += one_frame;
+        for modifier in drain_expired(&mut self.acceleration_skills_active) {
+            self.modifiers.accel.add(-modifier);
+        }
+        self.lane_movement_skills_active
+            .retain(|s| s.duration_timer.t < 0.0);
+        self.change_lane_skills_active
+            .retain(|s| s.duration_timer.t < 0.0);
+    }
+
+    fn pending_extra_passes(&self, idx: usize, field: &FieldView) -> bool {
+        let skill = &self.pending_skills[idx];
+        let view = RunnerConditionView {
+            runner: self,
+            field,
+        };
+        eval_dynamic(&skill.extra_condition, &view)
+    }
+
+    fn should_skip_wit_check_at(&self, idx: usize) -> bool {
+        self.should_skip_wit_check(&self.pending_skills[idx])
+    }
+
+    fn should_skip_wit_check(&self, skill: &PendingSkill) -> bool {
+        if !self.wit_checks_enabled {
+            return true;
+        }
+        if let Some(first) = skill.effects.first() {
+            let type_id = first.effect_type as i32;
+            if (1..=5).contains(&type_id) {
+                return true;
+            }
+        }
+        skill.rarity == SkillRarity::Unique
+    }
+
+    fn do_wit_check(&mut self) -> bool {
+        let wit = self.base_stats.wit;
+        let roll = self.wit_rng.random();
+        let threshold = (100.0 - 9000.0 / wit).max(20.0) * 0.01;
+        roll <= threshold
+    }
+
+    fn get_recovery_modifier_for_skill(&mut self, skill_id: &SkillId, effect: &SkillEffect) -> f64 {
+        let override_value = self.stamina_drain_overrides.get(skill_id.base()).copied();
+        resolve_recovery_modifier(effect, Some(&mut *self.skill_rng), override_value).unwrap_or(0.0)
+    }
+
+    fn activate_skill(&mut self, skill: &PendingSkill, course_distance: f64) {
+        let mut effects = skill.effects.clone();
+        effects.sort_by_key(|e| i32::from(e.effect_type as i32 == 42));
+
+        for effect in &effects {
+            // External debuffs target other runners (e.g. Wild Wind / Speed
+            // Eater bundle a self-buff with an opponent-facing Current Speed
+            // debuff). They must never land on the caster — only the manual
+            // injected-debuff path (`process_targeted_skill_activations`) routes
+            // these onto another runner.
+            if is_external_debuff_effect(effect) {
+                continue;
+            }
+            let scaling = if skill.rarity == SkillRarity::Evolution {
+                self.modifiers.special_skill_duration_scaling
+            } else {
+                1.0
+            };
+            let scaled_duration = effect.base_duration * (course_distance / 1000.0) * scaling;
+            self.apply_self_effect(skill, effect, scaled_duration);
+        }
+
+        let half_race = usize::from(self.position >= course_distance / 2.0);
+        self.skills_activated_half_race_map[half_race] += 1;
+        self.skills_activated_phase_map[self.phase.index()] += 1;
+        self.skills_activated_count += 1;
+        self.used_skills.insert(skill.skill_id.0.clone());
+    }
+
+    fn apply_self_effect(&mut self, skill: &PendingSkill, effect: &SkillEffect, duration: f64) {
+        match effect.effect_type {
+            SkillType::Noop => {}
+            SkillType::SpeedUp => {
+                self.adjusted_stats.speed = (self.adjusted_stats.speed + effect.modifier).max(1.0);
+            }
+            SkillType::StaminaUp => {
+                self.adjusted_stats.stamina =
+                    (self.adjusted_stats.stamina + effect.modifier).max(1.0);
+                self.base_stats.stamina = (self.base_stats.stamina + effect.modifier).max(1.0);
+            }
+            SkillType::PowerUp => {
+                self.adjusted_stats.power = (self.adjusted_stats.power + effect.modifier).max(1.0);
+            }
+            SkillType::GutsUp => {
+                self.adjusted_stats.guts = (self.adjusted_stats.guts + effect.modifier).max(1.0);
+            }
+            SkillType::WisdomUp => {
+                self.adjusted_stats.wit = (self.adjusted_stats.wit + effect.modifier).max(1.0);
+            }
+            SkillType::MultiplyStartDelay => self.start_delay *= effect.modifier,
+            SkillType::SetStartDelay => self.start_delay = effect.modifier,
+            SkillType::TargetSpeed => {
+                self.modifiers.target_speed.add(effect.modifier);
+                self.target_speed_skills_active
+                    .push(active_skill(skill, effect, duration, false));
+            }
+            SkillType::Accel => {
+                self.modifiers.accel.add(effect.modifier);
+                self.acceleration_skills_active
+                    .push(active_skill(skill, effect, duration, false));
+            }
+            SkillType::LaneMovementSpeed => {
+                self.lane_movement_skills_active
+                    .push(active_skill(skill, effect, duration, false));
+            }
+            SkillType::CurrentSpeed | SkillType::CurrentSpeedWithNaturalDeceleration => {
+                self.modifiers.current_speed.add(effect.modifier);
+                let natural = effect.effect_type == SkillType::CurrentSpeedWithNaturalDeceleration;
+                self.current_speed_skills_active
+                    .push(active_skill(skill, effect, duration, natural));
+            }
+            SkillType::Recovery => {
+                let resolved = self.get_recovery_modifier_for_skill(&skill.skill_id, effect);
+                if resolved > 0.0 {
+                    self.heals_activated_count += 1;
+                }
+                self.health_policy.recover(resolved);
+                if self.phase.index() >= 2 && !self.is_last_spurt {
+                    self.force_last_spurt_check();
+                }
+            }
+            SkillType::ActivateRandomGold => {
+                self.activate_random_gold_skill(effect.modifier as usize, duration);
+            }
+            SkillType::ExtendEvolvedDuration => {
+                self.modifiers.special_skill_duration_scaling = effect.modifier;
+            }
+            SkillType::ChangeLane => {
+                self.change_lane_skills_active
+                    .push(active_skill(skill, effect, duration, false));
+            }
+        }
+    }
+
+    fn activate_random_gold_skill(&mut self, count: usize, course_distance: f64) {
+        let mut gold_indices: Vec<usize> = self
+            .pending_skills
+            .iter()
+            .enumerate()
+            .filter(|(_, skill)| {
+                let gold = matches!(skill.rarity, SkillRarity::Gold | SkillRarity::Evolution);
+                gold && skill.effects.iter().all(|e| (e.effect_type as i32) > 5)
+            })
+            .map(|(idx, _)| idx)
+            .collect();
+
+        let mut i = gold_indices.len();
+        while i > 0 {
+            i -= 1;
+            let j = self.force_skill_activator_rng.uniform(i as u32 + 1) as usize;
+            gold_indices.swap(i, j);
+        }
+
+        for &idx in gold_indices.iter().take(count) {
+            let skill = self.pending_skills[idx].clone();
+            self.activate_skill(&skill, course_distance);
+            self.pending_skill_removal.insert(skill.skill_id.0.clone());
+        }
+    }
+
+    /// Process targeted (injected / cross-runner) skill activations this tick.
+    pub(crate) fn process_targeted_skill_activations(&mut self, course_distance: f64) {
+        self.cleanup_expired_targeted_skills();
+
+        let mut i = self.pending_targeted_skills.len();
+        while i > 0 {
+            i -= 1;
+            if i >= self.pending_targeted_skills.len() {
+                continue;
+            }
+            let trigger = self.pending_targeted_skills[i].trigger;
+            if self.position >= trigger.end {
+                self.pending_targeted_skills.remove(i);
+                continue;
+            }
+            if self.position >= trigger.start {
+                let skill = self.pending_targeted_skills[i].clone();
+                self.apply_targeted_effect(&skill, course_distance);
+                self.pending_targeted_skills.remove(i);
+            }
+        }
+    }
+
+    fn cleanup_expired_targeted_skills(&mut self) {
+        for modifier in drain_expired_targeted(&mut self.targeted_target_speed_active) {
+            self.modifiers.target_speed.add(-modifier);
+        }
+        let mut one_frame = 0.0;
+        let mut removed: Vec<(f64, bool)> = Vec::new();
+        self.targeted_current_speed_active.retain(|s| {
+            if s.skill.duration_timer.t >= 0.0 {
+                removed.push((s.skill.modifier, s.skill.natural_deceleration));
+                false
+            } else {
+                true
+            }
+        });
+        for (modifier, natural) in removed {
+            self.modifiers.current_speed.add(-modifier);
+            if natural {
+                one_frame += modifier;
+            }
+        }
+        self.modifiers.one_frame_accel += one_frame;
+        for modifier in drain_expired_targeted(&mut self.targeted_acceleration_active) {
+            self.modifiers.accel.add(-modifier);
+        }
+        self.targeted_lane_movement_skills_active
+            .retain(|s| s.skill.duration_timer.t < 0.0);
+        self.targeted_change_lane_skills_active
+            .retain(|s| s.skill.duration_timer.t < 0.0);
+    }
+
+    fn apply_targeted_effect(&mut self, skill: &PendingTargetedSkill, course_distance: f64) {
+        let mut effects = skill.effects.clone();
+        effects.sort_by_key(|e| i32::from(e.effect_type as i32 == 42));
+
+        for effect in &effects {
+            let scaled_duration = effect.base_duration * (course_distance / 1000.0);
+            self.used_targeted_skills.push(UsedTargetedSkill {
+                skill_id: skill.skill_id.clone(),
+                position: self.position,
+                effect_type: effect.effect_type,
+                effect_target: effect.target,
+            });
+            self.apply_targeted_effect_kind(skill, effect, scaled_duration);
+        }
+    }
+
+    fn apply_targeted_effect_kind(
+        &mut self,
+        skill: &PendingTargetedSkill,
+        effect: &SkillEffect,
+        duration: f64,
+    ) {
+        match effect.effect_type {
+            SkillType::Noop => {}
+            SkillType::SpeedUp => {
+                self.adjusted_stats.speed = (self.adjusted_stats.speed + effect.modifier).max(1.0);
+            }
+            SkillType::StaminaUp => {
+                self.adjusted_stats.stamina =
+                    (self.adjusted_stats.stamina + effect.modifier).max(1.0);
+                self.base_stats.stamina = (self.base_stats.stamina + effect.modifier).max(1.0);
+            }
+            SkillType::PowerUp => {
+                self.adjusted_stats.power = (self.adjusted_stats.power + effect.modifier).max(1.0);
+            }
+            SkillType::GutsUp => {
+                self.adjusted_stats.guts = (self.adjusted_stats.guts + effect.modifier).max(1.0);
+            }
+            SkillType::WisdomUp => {
+                self.adjusted_stats.wit = (self.adjusted_stats.wit + effect.modifier).max(1.0);
+            }
+            SkillType::MultiplyStartDelay => self.start_delay *= effect.modifier,
+            SkillType::SetStartDelay => self.start_delay = effect.modifier,
+            SkillType::TargetSpeed => {
+                self.modifiers.target_speed.add(effect.modifier);
+                self.targeted_target_speed_active
+                    .push(active_targeted(skill, effect, duration, false));
+            }
+            SkillType::Accel => {
+                self.modifiers.accel.add(effect.modifier);
+                self.targeted_acceleration_active
+                    .push(active_targeted(skill, effect, duration, false));
+            }
+            SkillType::LaneMovementSpeed => {
+                self.targeted_lane_movement_skills_active
+                    .push(active_targeted(skill, effect, duration, false));
+            }
+            SkillType::CurrentSpeed | SkillType::CurrentSpeedWithNaturalDeceleration => {
+                self.modifiers.current_speed.add(effect.modifier);
+                let natural = effect.effect_type == SkillType::CurrentSpeedWithNaturalDeceleration;
+                self.targeted_current_speed_active
+                    .push(active_targeted(skill, effect, duration, natural));
+            }
+            SkillType::Recovery => {
+                let resolved = self.get_recovery_modifier_for_skill(&skill.skill_id, effect);
+                self.health_policy.recover(resolved);
+                if self.phase.index() >= 2 && !self.is_last_spurt {
+                    self.force_last_spurt_check();
+                }
+            }
+            SkillType::ActivateRandomGold | SkillType::ExtendEvolvedDuration => {}
+            SkillType::ChangeLane => {
+                self.targeted_change_lane_skills_active
+                    .push(active_targeted(skill, effect, duration, false));
+            }
+        }
+    }
+
+    /// Entry point for a cross-runner targeted effect (routed by the aggregate).
+    pub fn receive_targeted_effect(
+        &mut self,
+        skill_id: SkillId,
+        effects: Vec<SkillEffect>,
+        source_runner_id: crate::shared_kernel::ids::RunnerId,
+        course_distance: f64,
+    ) {
+        let skill = PendingTargetedSkill {
+            skill_id,
+            origin: TargetedSkillOrigin::Runner,
+            source_runner_id: Some(source_runner_id),
+            trigger: Region::new(self.position, self.position + 1.0),
+            effects,
+        };
+        self.apply_targeted_effect(&skill, course_distance);
+    }
+}
+
+fn active_skill(
+    skill: &PendingSkill,
+    effect: &SkillEffect,
+    duration: f64,
+    natural_deceleration: bool,
+) -> ActiveSkill {
+    ActiveSkill {
+        skill_id: skill.skill_id.clone(),
+        duration_timer: Timer::new(-duration),
+        modifier: effect.modifier,
+        effect_target: effect.target,
+        effect_type: effect.effect_type,
+        natural_deceleration,
+    }
+}
+
+fn active_targeted(
+    skill: &PendingTargetedSkill,
+    effect: &SkillEffect,
+    duration: f64,
+    natural_deceleration: bool,
+) -> ActiveTargetedSkill {
+    ActiveTargetedSkill {
+        skill: ActiveSkill {
+            skill_id: skill.skill_id.clone(),
+            duration_timer: Timer::new(-duration),
+            modifier: effect.modifier,
+            effect_target: effect.target,
+            effect_type: effect.effect_type,
+            natural_deceleration,
+        },
+        origin: skill.origin,
+        source_runner_id: skill.source_runner_id,
+    }
+}
+
+/// Drain expired (timer ≥ 0) self active skills, returning their modifiers so the
+/// caller can reverse each on the runner's Kahan accumulator.
+fn drain_expired(skills: &mut Vec<ActiveSkill>) -> Vec<f64> {
+    let mut removed = Vec::new();
+    skills.retain(|s| {
+        if s.duration_timer.t >= 0.0 {
+            removed.push(s.modifier);
+            false
+        } else {
+            true
+        }
+    });
+    removed
+}
+
+/// Drain expired targeted active skills, returning their modifiers.
+fn drain_expired_targeted(skills: &mut Vec<ActiveTargetedSkill>) -> Vec<f64> {
+    let mut removed = Vec::new();
+    skills.retain(|s| {
+        if s.skill.duration_timer.t >= 0.0 {
+            removed.push(s.skill.modifier);
+            false
+        } else {
+            true
+        }
+    });
+    removed
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::runner::lifecycle::{CreateRunner, RunnerAptitudes};
+    use crate::runner::test_support::{test_course, test_race_params, test_whole_course};
+    use crate::shared_kernel::ids::{RunnerId, SkillId};
+    use crate::shared_kernel::language::{Aptitude, GroundCondition, Mood, Strategy};
+    use crate::shared_kernel::params::StatLine;
+    use crate::shared_kernel::rng::Xoshiro256StarStar;
+    use crate::skills::condition::catalog::build_catalog;
+    use crate::skills::condition::language::ConditionParser;
+    use crate::skills::effect::{SkillRarity, SkillTarget, SkillType};
+    use crate::skills::model::{RawSkillEffect, Skill, SkillAlternative};
+    use crate::stamina::policy::NoopStaminaPolicy;
+    use std::collections::HashMap;
+
+    fn eval_runner() -> SkillEvalRunner {
+        SkillEvalRunner {
+            base_stats: StatLine {
+                speed: 1000,
+                stamina: 1000,
+                power: 1000,
+                guts: 1000,
+                wit: 800,
+            },
+            strategy: Strategy::PaceChaser,
+            mood: Mood::Normal,
+        }
+    }
+
+    fn target_speed_skill(id: &str, rarity: SkillRarity, condition: &str) -> Skill {
+        Skill {
+            skill_id: SkillId::new(id),
+            rarity,
+            alternatives: vec![SkillAlternative {
+                base_duration: 30000.0,
+                cooldown_time: None,
+                condition: condition.to_owned(),
+                precondition: None,
+                effects: vec![RawSkillEffect {
+                    modifier: 4500.0,
+                    target: SkillTarget::SelfTarget,
+                    effect_type: 27, // TargetSpeed
+                    value_usage: None,
+                    value_level_usage: None,
+                }],
+            }],
+        }
+    }
+
+    fn build(skill: &Skill) -> Vec<SkillTrigger> {
+        let course = test_course();
+        let catalog = build_catalog();
+        let parser = ConditionParser::new(&catalog);
+        let rp = test_race_params();
+        let wc = test_whole_course(&course);
+        let eval = eval_runner();
+        build_skill_data(&BuildSkillDataParams {
+            runner: &eval,
+            race_params: &rp,
+            course: &course,
+            whole_course: &wc,
+            parser: &parser,
+            skill,
+            ignore_null_effects: false,
+            resolution: ConditionResolution::Dynamic,
+        })
+    }
+
+    #[test]
+    fn build_skill_data_produces_trigger_for_phase_condition() {
+        let skill = target_speed_skill("100001", SkillRarity::Gold, "phase>=2");
+        let triggers = build(&skill);
+        assert_eq!(triggers.len(), 1);
+        assert!(!triggers[0].regions.0.is_empty());
+        assert_eq!(triggers[0].effects[0].effect_type, SkillType::TargetSpeed);
+        assert!(triggers[0].regions.0[0].start >= 1200.0);
+    }
+
+    #[test]
+    fn empty_precondition_is_treated_as_none_and_still_activates() {
+        // Regression (ADR-0004 Option-B bug #2): skills whose data carries
+        // `precondition: ""` (e.g. all_corner_random / rotation greens) must treat
+        // the empty string as "no precondition" and still produce a trigger — not
+        // try to parse the empty string, fail, and silently never activate.
+        let none_pre = target_speed_skill("200012", SkillRarity::Gold, "phase>=1");
+        assert_eq!(
+            build(&none_pre).len(),
+            1,
+            "baseline: no precondition activates"
+        );
+
+        let mut empty_pre = target_speed_skill("200012", SkillRarity::Gold, "phase>=1");
+        empty_pre.alternatives[0].precondition = Some(String::new());
+        let triggers = build(&empty_pre);
+        assert_eq!(
+            triggers.len(),
+            1,
+            "empty precondition must behave like no precondition, not suppress the trigger"
+        );
+        assert!(!triggers[0].regions.0.is_empty());
+    }
+
+    #[test]
+    fn build_skill_data_keeps_full_regions_for_dynamic_condition() {
+        // `is_lastspurt` does not narrow regions; it yields the whole course plus
+        // a runtime gate (extra_condition).
+        let skill = target_speed_skill("100002", SkillRarity::Gold, "is_lastspurt==1");
+        let triggers = build(&skill);
+        assert_eq!(triggers.len(), 1);
+        assert!(!triggers[0].regions.0.is_empty());
+        // Last-spurt portion of the course (>= half distance).
+        assert!(triggers[0].regions.0[0].start >= 1200.0);
+    }
+
+    fn runner_with_skills(skills: Vec<Skill>) -> Runner {
+        let props = CreateRunner {
+            outfit_id: "100302".to_owned(),
+            name: "Test".to_owned(),
+            mood: Mood::Normal,
+            strategy: Strategy::PaceChaser,
+            aptitudes: RunnerAptitudes {
+                distance: Aptitude::A,
+                strategy: Aptitude::A,
+                surface: Aptitude::A,
+            },
+            stats: StatLine {
+                speed: 1000,
+                stamina: 1000,
+                power: 1000,
+                guts: 1000,
+                wit: 800,
+            },
+            skills,
+            forced_positions: HashMap::new(),
+            injected_debuffs: vec![],
+            forced_rushed_regions: vec![],
+            forced_dueling_regions: vec![],
+            forced_spot_struggle_regions: vec![],
+            forced_rank: vec![],
+        };
+        Runner::create(
+            RunnerId(0),
+            &test_course(),
+            GroundCondition::Firm,
+            props,
+            Box::new(NoopStaminaPolicy),
+            Box::new(Xoshiro256StarStar::from_u32_seed(1)),
+        )
+    }
+
+    fn prepare(r: &mut Runner) {
+        let course = test_course();
+        let catalog = build_catalog();
+        let parser = ConditionParser::new(&catalog);
+        let rp = test_race_params();
+        let wc = test_whole_course(&course);
+        let ctx = PrepareContext {
+            course: &course,
+            base_speed: 19.6,
+            condition_resolution: ConditionResolution::Dynamic,
+            pos_keep_end_multiplier: 3.0,
+            race_params: &rp,
+            whole_course: &wc,
+            parser: &parser,
+            skill_samples: 4,
+            round_iteration: 0,
+        };
+        r.on_prepare(Box::new(Xoshiro256StarStar::from_u64_seed(7)), &ctx);
+    }
+
+    #[test]
+    fn pending_skills_built_on_prepare() {
+        let mut r = runner_with_skills(vec![target_speed_skill(
+            "100001",
+            SkillRarity::Gold,
+            "phase>=2",
+        )]);
+        prepare(&mut r);
+        assert_eq!(r.pending_skills.len(), 1);
+        assert_eq!(r.pending_skills[0].skill_id.as_str(), "100001");
+    }
+
+    fn debuff_skill(id: &str) -> Skill {
+        // Negative current-speed targeting all (other) runners: an injectable
+        // external debuff.
+        Skill {
+            skill_id: SkillId::new(id),
+            rarity: SkillRarity::White,
+            alternatives: vec![SkillAlternative {
+                base_duration: 30000.0,
+                cooldown_time: None,
+                condition: "phase>=0".to_owned(),
+                precondition: None,
+                effects: vec![RawSkillEffect {
+                    modifier: -5000.0,
+                    target: SkillTarget::All,
+                    effect_type: 31, // CurrentSpeed
+                    value_usage: None,
+                    value_level_usage: None,
+                }],
+            }],
+        }
+    }
+
+    #[test]
+    fn injected_debuff_queues_fixed_position_targeted_skill() {
+        let mut r = runner_with_skills(vec![]);
+        r.injected_debuffs = vec![crate::runner::InjectedDebuff {
+            skill: debuff_skill("700001"),
+            position: 800.0,
+        }];
+        prepare(&mut r);
+        assert_eq!(r.pending_targeted_skills.len(), 1);
+        let pending = &r.pending_targeted_skills[0];
+        assert_eq!(pending.skill_id.as_str(), "700001");
+        assert!(matches!(pending.origin, TargetedSkillOrigin::Injection));
+        // Fixed-position policy clips the trigger window around position 800.
+        assert!(pending.trigger.start <= 800.0 && pending.trigger.end >= 800.0);
+        assert_eq!(pending.effects.len(), 1);
+        assert!(pending.effects[0].modifier < 0.0);
+    }
+
+    #[test]
+    fn injected_non_debuff_effect_is_ignored() {
+        // A self-targeted positive effect is not an external debuff.
+        let mut skill = debuff_skill("700002");
+        skill.alternatives[0].effects[0].target = SkillTarget::SelfTarget;
+        skill.alternatives[0].effects[0].modifier = 5000.0;
+        let mut r = runner_with_skills(vec![]);
+        r.injected_debuffs = vec![crate::runner::InjectedDebuff {
+            skill,
+            position: 800.0,
+        }];
+        prepare(&mut r);
+        assert!(r.pending_targeted_skills.is_empty());
+    }
+
+    #[test]
+    fn target_speed_skill_activates_and_applies_modifier() {
+        let mut r = runner_with_skills(vec![target_speed_skill(
+            "100001",
+            SkillRarity::Gold,
+            "phase>=2",
+        )]);
+        prepare(&mut r);
+        r.wit_checks_enabled = false;
+        let trigger = r.pending_skills[0].trigger;
+        r.position = trigger.start + 0.5;
+
+        let field = FieldView::at_gate();
+        r.process_skill_activations(&field, 2400.0);
+
+        assert_eq!(r.target_speed_skills_active.len(), 1);
+        assert!(r.modifiers.target_speed.total() > 0.0);
+        assert_eq!(r.skills_activated_count, 1);
+        assert!(r.used_skills.contains("100001"));
+        assert!(r.pending_skills.is_empty());
+    }
+
+    /// Wild Wind / Speed Eater bundle a self-target buff with an opponent-facing
+    /// Current Speed debuff in the same skill. The caster must receive the
+    /// self-buff but never the debuff (regression: it used to self-apply the
+    /// Current Speed reduction, slowing its own runner).
+    fn wild_wind_like_skill(id: &str) -> Skill {
+        Skill {
+            skill_id: SkillId::new(id),
+            rarity: SkillRarity::Gold,
+            alternatives: vec![SkillAlternative {
+                base_duration: 18000.0,
+                cooldown_time: None,
+                condition: "phase>=2".to_owned(),
+                precondition: None,
+                effects: vec![
+                    RawSkillEffect {
+                        modifier: 3500.0,
+                        target: SkillTarget::SelfTarget,
+                        effect_type: 27, // TargetSpeed (self buff)
+                        value_usage: None,
+                        value_level_usage: None,
+                    },
+                    RawSkillEffect {
+                        modifier: -1500.0,
+                        target: SkillTarget::All,
+                        effect_type: 21, // CurrentSpeed (opponent debuff)
+                        value_usage: None,
+                        value_level_usage: None,
+                    },
+                ],
+            }],
+        }
+    }
+
+    #[test]
+    fn owned_debuff_effect_is_not_self_applied() {
+        let mut r = runner_with_skills(vec![wild_wind_like_skill("202131")]);
+        prepare(&mut r);
+        r.wit_checks_enabled = false;
+        let trigger = r.pending_skills[0].trigger;
+        r.position = trigger.start + 0.5;
+
+        let field = FieldView::at_gate();
+        r.process_skill_activations(&field, 2400.0);
+
+        // Self-target buff applied.
+        assert_eq!(r.target_speed_skills_active.len(), 1);
+        assert!(r.modifiers.target_speed.total() > 0.0);
+        // Opponent-facing Current Speed debuff must NOT land on the caster.
+        assert!(r.current_speed_skills_active.is_empty());
+        assert!((r.modifiers.current_speed.total()).abs() < 1e-9);
+        // The skill still counts as activated.
+        assert_eq!(r.skills_activated_count, 1);
+        assert!(r.used_skills.contains("202131"));
+    }
+
+    #[test]
+    fn recovery_increments_heal_count() {
+        let skill = Skill {
+            skill_id: SkillId::new("300001"),
+            rarity: SkillRarity::White,
+            alternatives: vec![SkillAlternative {
+                base_duration: 0.0,
+                cooldown_time: None,
+                condition: "phase>=2".to_owned(),
+                precondition: None,
+                effects: vec![RawSkillEffect {
+                    modifier: 5000.0,
+                    target: SkillTarget::SelfTarget,
+                    effect_type: 9,
+                    value_usage: None,
+                    value_level_usage: None,
+                }],
+            }],
+        };
+        let mut r = runner_with_skills(vec![skill]);
+        prepare(&mut r);
+        r.wit_checks_enabled = false;
+        let trigger = r.pending_skills[0].trigger;
+        r.position = trigger.start + 0.5;
+        let field = FieldView::at_gate();
+        r.process_skill_activations(&field, 2400.0);
+        assert_eq!(r.heals_activated_count, 1);
+    }
+
+    #[test]
+    fn receive_targeted_effect_applies_current_speed() {
+        let mut r = runner_with_skills(vec![]);
+        prepare(&mut r);
+        let effects = vec![SkillEffect {
+            target: SkillTarget::All,
+            effect_type: SkillType::CurrentSpeed,
+            base_duration: 3.0,
+            modifier: -0.5,
+            value_usage: None,
+            value_level_usage: None,
+        }];
+        r.receive_targeted_effect(SkillId::new("999"), effects, RunnerId(5), 2400.0);
+        assert_eq!(r.targeted_current_speed_active.len(), 1);
+        assert!(r.modifiers.current_speed.total() < 0.0);
+        assert_eq!(r.used_targeted_skills.len(), 1);
+    }
+
+    #[test]
+    fn active_skill_expires_and_reverses_modifier() {
+        let mut r = runner_with_skills(vec![target_speed_skill(
+            "100001",
+            SkillRarity::Gold,
+            "phase>=2",
+        )]);
+        prepare(&mut r);
+        r.wit_checks_enabled = false;
+        let trigger = r.pending_skills[0].trigger;
+        r.position = trigger.start + 0.5;
+        let field = FieldView::at_gate();
+        r.process_skill_activations(&field, 2400.0);
+        let applied = r.modifiers.target_speed.total();
+        assert!(applied > 0.0);
+        r.target_speed_skills_active[0].duration_timer.t = 0.0;
+        r.process_skill_activations(&field, 2400.0);
+        assert!(r.target_speed_skills_active.is_empty());
+        assert!(r.modifiers.target_speed.total().abs() < 1e-9);
+    }
+}

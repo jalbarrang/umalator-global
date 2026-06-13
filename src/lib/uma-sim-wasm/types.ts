@@ -1,0 +1,236 @@
+// TypeScript mirrors of the WASM boundary DTOs (see
+// `packages/uma-sim-wasm/src/dto.rs`). Enums cross the boundary as the same
+// numeric codes the app already uses; keys are camelCase.
+
+export type WasmCorner = { start: number; length: number };
+export type WasmStraight = { start: number; end: number; frontType?: number };
+export type WasmSlope = { start: number; length: number; slope: number };
+
+export type WasmCourseData = {
+  courseId: number;
+  raceTrackId: number;
+  distance: number;
+  distanceType: number; // 1 short, 2 mile, 3 mid, 4 long
+  surface: number; // 1 turf, 2 dirt
+  turn: number; // 1 cw, 2 ccw, 3 unused, 4 none
+  courseSetStatus?: number[]; // 1..5 (speed..wit)
+  corners?: WasmCorner[];
+  straights?: WasmStraight[];
+  slopes?: WasmSlope[];
+  laneMax: number;
+  courseWidth: number;
+  horseLane: number;
+  laneChangeAcceleration: number;
+  laneChangeAccelerationPerFrame: number;
+  maxLaneDistance: number;
+  moveLanePoint: number;
+};
+
+export type WasmStatLine = {
+  speed: number;
+  stamina: number;
+  power: number;
+  guts: number;
+  wit: number;
+};
+
+export type WasmAptitudes = {
+  distance: number; // 0 S, 1 A, .. 7 G
+  strategy: number;
+  surface: number;
+};
+
+export type WasmRawEffect = {
+  modifier: number; // raw x10000 units
+  target: number; // numeric SkillTarget
+  type: number; // numeric SkillType
+  valueUsage?: number;
+  valueLevelUsage?: number;
+};
+
+export type WasmSkillAlternative = {
+  baseDuration: number; // raw x10000 units
+  cooldownTime?: number;
+  condition: string;
+  precondition?: string;
+  effects: WasmRawEffect[];
+};
+
+export type WasmSkillInput = {
+  skillId: string;
+  rarity: number; // 1 white, 2 gold, 3/4/5 unique, 6 evolution
+  alternatives: WasmSkillAlternative[];
+};
+
+export type WasmForcedRegion = { start: number; end: number };
+export type WasmForcedRank = { start: number; end: number; rank: number };
+export type WasmInjectedDebuff = { skill: WasmSkillInput; position: number };
+
+export type WasmCreateRunner = {
+  outfitId: string;
+  name: string;
+  mood: number; // -2..2
+  strategy: number; // 1 front, 2 pace, 3 late, 4 end, 5 runaway
+  aptitudes: WasmAptitudes;
+  stats: WasmStatLine;
+  skills?: WasmSkillInput[];
+  forcedPositions?: Record<string, number>;
+  injectedDebuffs?: WasmInjectedDebuff[];
+  forcedRushedRegions?: WasmForcedRegion[];
+  forcedDuelingRegions?: WasmForcedRegion[];
+  forcedSpotStruggleRegions?: WasmForcedRegion[];
+  forcedRank?: WasmForcedRank[];
+};
+
+export type WasmRaceParameters = {
+  ground: number; // 1 firm .. 4 heavy
+  weather: number;
+  season: number;
+  timeOfDay: number;
+  grade: number; // 100 G1 .. 999 daily
+};
+
+export type WasmSettings = {
+  mode?: 'normal' | 'compare';
+  healthSystem?: boolean;
+  rushed?: boolean;
+  downhill?: boolean;
+  spotStruggle?: boolean;
+  dueling?: boolean;
+  witChecks?: boolean;
+  skillSamples?: number;
+  sectionModifier?: boolean;
+  positionKeepMode?: number;
+  staminaDrainOverrides?: Record<string, number>;
+};
+
+export type WasmDuelingRates = {
+  runaway: number;
+  frontRunner: number;
+  paceChaser: number;
+  lateSurger: number;
+  endCloser: number;
+};
+
+export type WasmCompareParams = {
+  course: WasmCourseData;
+  parameters: WasmRaceParameters;
+  settings?: WasmSettings;
+  duelingRates?: WasmDuelingRates;
+  runners: WasmCreateRunner[];
+  nsamples: number;
+  masterSeed: number;
+};
+
+export type WasmRaceSimParams = {
+  course: WasmCourseData;
+  parameters: WasmRaceParameters;
+  settings?: WasmSettings;
+  runners: WasmCreateRunner[];
+  nsamples: number;
+  masterSeed: number;
+  focusRunnerIds?: number[];
+};
+
+export type WasmFinishEntry = {
+  runnerId: number;
+  name: string;
+  strategy: number;
+  finishPosition: number;
+  finishTime: number;
+};
+
+export type WasmTickSample = {
+  time: number;
+  position: number;
+  speed: number;
+  lane: number;
+  health: number;
+};
+
+export type WasmFocusTrace = {
+  runnerId: number;
+  samples: WasmTickSample[];
+  /** Self-cast skill-effect duration logs, keyed by skill id (JS object, not a Map). */
+  skillActivations: Record<string, WasmSkillEffectLog[]>;
+};
+export type WasmRoundData = { seed: number; focus: WasmFocusTrace[] };
+
+export type WasmRaceEventDetail = {
+  skillId?: string;
+  otherRunnerIds?: number[];
+  finishPlace?: number;
+  finishTime?: number;
+};
+
+// `kind` is a kebab-case string matching the TS RaceEventKind union.
+export type WasmRaceEvent = {
+  kind: string;
+  runnerId: number;
+  position: number;
+  tick: number;
+  detail?: WasmRaceEventDetail;
+};
+
+export type WasmRaceSimResult = {
+  finishOrders: WasmFinishEntry[][];
+  collected: WasmRoundData[];
+  eventLogs: WasmRaceEvent[][];
+};
+
+// `perspective` is numeric (1 = self, 2 = other), matching TS `SkillPerspective`.
+export type WasmSkillEffectLog = {
+  executionId: string;
+  skillId: string;
+  start: number;
+  end: number;
+  perspective: number;
+  effectType: number;
+  effectTarget: number;
+};
+
+export type WasmCompareRoundData = {
+  runnerId: number;
+  time: number[];
+  position: number[];
+  velocity: number[];
+  hp: number[];
+  currentLane: number[];
+  pacerGap: number[];
+  skillActivations: Record<string, WasmSkillEffectLog[]>;
+  targetedSkillActivations: Record<string, WasmSkillEffectLog[]>;
+  startDelay: number;
+  rushed: [number, number][];
+  duelingRegion?: [number, number];
+  spotStruggleRegion?: [number, number];
+  hasAchievedFullSpurt: boolean;
+  outOfHp: boolean;
+  outOfHpPosition?: number;
+  nonFullSpurtVelocityDiff?: number;
+  nonFullSpurtDelayDistance?: number;
+  firstPositionInLateRace: boolean;
+  usedSkills: string[];
+  finished: boolean;
+  finishPosition: number;
+};
+
+export type WasmCompareRound = {
+  seed: number;
+  primaryRunnerId?: number;
+  runners: WasmCompareRoundData[];
+};
+
+export type WasmCompareData = {
+  rounds: WasmCompareRound[];
+};
+
+// Per-tick snapshot passed to the streaming `setOnAfterRunnerTick` callback.
+export type RunnerTickSnapshot = {
+  runnerId: number;
+  time: number;
+  position: number;
+  speed: number;
+  lane: number;
+  health: number;
+  finished: boolean;
+};

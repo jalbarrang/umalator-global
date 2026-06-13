@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { strategyNames } from '@/lib/sunday-tools/runner/definitions';
+import { strategyNames } from 'sunday-tools/runner/definitions';
 import { getIconUrl } from '@/assets/icons';
 import {
   copyRosterViewCode,

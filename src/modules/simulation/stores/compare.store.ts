@@ -12,7 +12,7 @@ import type {
 } from '@/modules/simulation/compare.types';
 import type { InjectedDebuffsMap } from '@/modules/simulation/types';
 import { generateSeed } from '@/utils/crypto';
-import { SpurtCandidate } from '@/lib/sunday-tools/common/spurt-calculator';
+import { SpurtCandidate } from 'sunday-tools/common/spurt-calculator';
 
 const COMPARE_DEBUFFS_STORE_NAME = 'umalator-compare-debuffs';
 

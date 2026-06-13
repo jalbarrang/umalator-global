@@ -9,7 +9,7 @@ import {
   useWitVariance
 } from '@/store/settings.store';
 import { useRunnersStore } from '@/store/runners.store';
-import { SkillType } from '@/lib/sunday-tools/skills/definitions';
+import { SkillType } from 'sunday-tools/skills/definitions';
 
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -17,7 +17,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Panel, PanelContent, PanelHeader, PanelTitle } from '@/components/ui/panel';
 import { Separator } from '@/components/ui/separator';
 import { skillsService } from '@/modules/data/services/SkillService';
-import { isSupportedMultiplyRandomRecoveryDrain } from '@/lib/sunday-tools/skills/recovery-effect-utils';
+import { isSupportedMultiplyRandomRecoveryDrain } from 'sunday-tools/skills/recovery-effect-utils';
 import {
   setIgnoreStaminaConsumption,
   useSkillPlannerStore

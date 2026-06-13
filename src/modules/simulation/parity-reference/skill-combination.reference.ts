@@ -1,0 +1,126 @@
+/**
+ * PARITY REFERENCE — TEST-ONLY. Not in the production path.
+ *
+ * TS-engine skill-combination evaluator used by the planner optimization oracle
+ * (`optimization-engine.reference.ts`). See this directory's README and ADR-0004.
+ * Production planner optimization runs on WASM (`skill-planner/optimization-engine-wasm.ts`).
+ */
+import type { RaceParameters } from 'sunday-tools/common/race';
+import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
+import type { CourseData } from 'sunday-tools/course/definitions';
+import type { SimulationOptions } from '@/modules/simulation/types';
+import { runPlannerComparison } from './planner-compare.reference';
+
+interface SkillCombinationComparisonParams {
+  nsamples: number;
+  course: CourseData;
+  racedef: RaceParameters;
+  baseRunner: IRunnerState;
+  candidateSkills: Array<string>;
+  ignoreStaminaConsumption: boolean;
+  options: SimulationOptions;
+}
+
+interface SkillCombinationComparisonResult {
+  results: Array<number>;
+  min: number;
+  max: number;
+  mean: number;
+  median: number;
+}
+
+/**
+ * Compare a baseline runner against a runner with additional candidate skills
+ */
+export function runSkillCombinationComparison(
+  params: SkillCombinationComparisonParams
+): SkillCombinationComparisonResult {
+  const {
+    nsamples,
+    course,
+    racedef,
+    baseRunner,
+    candidateSkills,
+    ignoreStaminaConsumption,
+    options
+  } = params;
+
+  const result = runPlannerComparison({
+    nsamples,
+    course,
+    racedef,
+    runnerA: baseRunner,
+    runnerB: {
+      ...baseRunner,
+      skills: [...baseRunner.skills, ...candidateSkills]
+    },
+    candidateSkills,
+    ignoreStaminaConsumption,
+    options
+  });
+
+  return {
+    results: result.results,
+    min: result.min,
+    max: result.max,
+    mean: result.mean,
+    median: result.median
+  };
+}
+
+type SkillPlannerSimulationParams = {
+  nsamples: number;
+  course: CourseData;
+  racedef: RaceParameters;
+  baseRunner: IRunnerState;
+  ignoreStaminaConsumption?: boolean;
+  options: SimulationOptions;
+  skillCombinations: Array<Array<string>>;
+};
+
+type CombinationSimulationResult = {
+  skills: Array<string>;
+  bashin: number;
+  min: number;
+  max: number;
+  median: number;
+};
+
+type BatchSimulationResult = {
+  totalSimulations: number;
+  results: Array<CombinationSimulationResult>;
+};
+
+/**
+ * Evaluate multiple skill combinations in batch
+ */
+export function runBatchSkillEvaluation(
+  params: SkillPlannerSimulationParams
+): BatchSimulationResult {
+  const results: Array<CombinationSimulationResult> = [];
+
+  for (const combination of params.skillCombinations) {
+    const result = runSkillCombinationComparison({
+      nsamples: params.nsamples,
+      course: params.course,
+      racedef: params.racedef,
+      baseRunner: params.baseRunner,
+      candidateSkills: combination,
+      ignoreStaminaConsumption: params.ignoreStaminaConsumption ?? false,
+      options: params.options
+    });
+
+    results.push({
+      skills: combination,
+      bashin: result.mean,
+      min: result.min,
+      max: result.max,
+      median: result.median
+    });
+  }
+
+  return {
+    results,
+    totalSimulations: params.skillCombinations.length * params.nsamples
+  };
+}

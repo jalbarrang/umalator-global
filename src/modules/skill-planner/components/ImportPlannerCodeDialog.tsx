@@ -96,8 +96,8 @@ export function ImportPlannerCodeDialog(props: Readonly<ImportPlannerCodeDialogP
               <p>
                 A compact Base64 string that encodes a full Skill Planner session: runner stats,
                 aptitudes, obtained skills, shop candidates with hint levels, budget, and Fast
-                Learner. External career trackers can produce this code so you can skip manual
-                entry and jump straight to optimization.
+                Learner. External career trackers can produce this code so you can skip manual entry
+                and jump straight to optimization.
               </p>
               <a
                 href="https://github.com/jalbarrang/umalator-global/blob/main/src/modules/skill-planner/share/ENCODING.md"

@@ -351,7 +351,12 @@ export const isStepUnlocked = (step: WizardStep) => {
   }
 
   if (step === 'runner') {
-    return completedSteps.includes('home') || currentStep === 'runner' || currentStep === 'shop' || currentStep === 'review';
+    return (
+      completedSteps.includes('home') ||
+      currentStep === 'runner' ||
+      currentStep === 'shop' ||
+      currentStep === 'review'
+    );
   }
 
   if (step === 'shop') {

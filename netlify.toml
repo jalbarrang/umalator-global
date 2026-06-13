@@ -1,4 +1,7 @@
+# Netlify is a redirect-only stub. The canonical app lives on Cloudflare Pages
+# (https://torena-sim.pages.dev). This 301s any legacy *.netlify.app traffic.
 [[redirects]]
-from = "/*"
-to = "/index.html"
-status = 200
+  from = "/*"
+  to = "https://torena-sim.pages.dev/:splat"
+  status = 301
+  force = true

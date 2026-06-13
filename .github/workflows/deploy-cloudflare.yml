@@ -1,0 +1,77 @@
+name: Deploy to Cloudflare Pages
+
+on:
+  # Run after Versioning so semantic-release has created the release tag before
+  # changelog:generate reads git history for the in-app changelog.
+  workflow_run:
+    workflows: [Versioning]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cloudflare-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy to Cloudflare Pages
+    runs-on: ubuntu-latest
+    env:
+      VITE_PUBLIC_POSTHOG_KEY: ${{ secrets.VITE_PUBLIC_POSTHOG_KEY }}
+      VITE_PUBLIC_POSTHOG_HOST: ${{ vars.VITE_PUBLIC_POSTHOG_HOST }}
+      # Cloudflare Pages serves at the domain root, so no base path.
+      VITE_BASE_PATH: /
+      VITE_SITE_URL: https://torena-sim.pages.dev
+      VITE_SUGGESTION_WORKER_URL: ${{ vars.VITE_SUGGESTION_WORKER_URL }}
+      VITE_TURNSTILE_SITE_KEY: ${{ vars.VITE_TURNSTILE_SITE_KEY }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Setup Rust toolchain (wasm32)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Cache Rust build
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: packages
+
+      - name: Install wasm-pack
+        uses: jetli/wasm-pack-action@v0.4.0
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Generate changelog for build
+        run: bun run changelog:generate
+
+      - name: Run type check
+        run: bun run typecheck
+
+      - name: Run linter
+        run: bun run lint
+
+      - name: Build app
+        run: bun run build
+
+      - name: Add SPA fallback for client-side routing
+        run: printf '/*    /index.html    200\n' > dist/_redirects
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=torena-sim --branch=main

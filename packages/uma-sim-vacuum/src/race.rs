@@ -1,0 +1,507 @@
+//! The `Race` **aggregate root** (port of `common/race.ts`).
+//!
+//! Owns the field of [`Runner`]s and is the only thing that mutates them. The
+//! tick loop is **snapshot-based** (see `.plans/.../context.md`): each frame
+//! builds one immutable [`FieldSnapshot`] from the *current* state, then steps
+//! every runner against that same frozen snapshot, so resolution order is
+//! irrelevant and there is no intra-frame state drift.
+//!
+//! Runners are stored in a `Vec<Runner>` indexed by their `RunnerId` (assigned
+//! in insertion order) — deterministic iteration without the overhead of a map,
+//! and contiguous for the slice-based pacing / coordinator services.
+
+use std::collections::HashMap;
+
+use uma_sim_primitives::course::model::CourseData;
+use uma_sim_primitives::events::{RaceObservation, RaceObserver, RaceObservers};
+use uma_sim_primitives::position_keep::{update_position_keep_coefficient, PositionKeepContext};
+use uma_sim_primitives::race_support::{
+    build_field_snapshot, build_field_view, condition_value, FieldOrderTracker,
+};
+use uma_sim_primitives::runner::lifecycle::{CreateRunner, PrepareContext};
+use uma_sim_primitives::runner::mechanics::DuelingRates;
+use uma_sim_primitives::runner::physics::{
+    update_first_position_in_late_race, DuelingInput, FieldInputs, SkillTriggerInputs,
+    UpdateContext,
+};
+use uma_sim_primitives::runner::skills::FieldView;
+use uma_sim_primitives::runner::Runner;
+use uma_sim_primitives::shared_kernel::ids::RunnerId;
+use uma_sim_primitives::shared_kernel::language::GroundCondition;
+use uma_sim_primitives::shared_kernel::params::RaceParameters;
+use uma_sim_primitives::shared_kernel::region::{Region, RegionList};
+use uma_sim_primitives::shared_kernel::rng::{Prng, Xoshiro256StarStar};
+use uma_sim_primitives::skills::condition::catalog::build_catalog;
+use uma_sim_primitives::skills::condition::dynamic::register_all_dynamic_conditions;
+use uma_sim_primitives::skills::condition::language::ConditionParser;
+use uma_sim_primitives::skills::condition::{ConditionCatalog, ConditionResolution};
+use uma_sim_primitives::stamina::game_policy::GameStaminaPolicy;
+use uma_sim_primitives::stamina::policy::{NoopStaminaPolicy, StaminaPolicy};
+
+/// Frame duration (15 FPS).
+const FRAME_DT: f64 = 1.0 / 15.0;
+
+/// Toggles and tuning that configure a simulation run.
+#[derive(Debug, Clone)]
+pub struct SimulationSettings {
+    /// Whether the game stamina policy (HP) is active.
+    pub health_system: bool,
+    /// Whether per-section wisdom variance is applied (currently always on).
+    pub section_modifier: bool,
+    /// Whether the rushed (temptation) mechanic is enabled.
+    pub rushed: bool,
+    /// Whether downhill mode is enabled.
+    pub downhill: bool,
+    /// Whether spot-struggle is enabled.
+    pub spot_struggle: bool,
+    /// Whether dueling is enabled.
+    pub dueling: bool,
+    /// Whether wit checks gate skill activation.
+    pub wit_checks: bool,
+    /// Position-keep mode (`2` enables virtual position keeping).
+    pub position_keep_mode: i32,
+    /// Number of activation samples drawn per skill trigger.
+    pub skill_samples: usize,
+    /// Per-base-skill recovery (stamina-drain) override modifiers.
+    pub stamina_drain_overrides: HashMap<String, f64>,
+}
+
+impl Default for SimulationSettings {
+    fn default() -> Self {
+        SimulationSettings {
+            health_system: true,
+            section_modifier: true,
+            rushed: true,
+            downhill: true,
+            spot_struggle: true,
+            dueling: true,
+            wit_checks: true,
+            position_keep_mode: 2,
+            skill_samples: 1,
+            stamina_drain_overrides: HashMap::new(),
+        }
+    }
+}
+
+/// The race aggregate root.
+pub struct Race {
+    /// The course being raced.
+    pub course: CourseData,
+    /// Ground condition.
+    pub ground: GroundCondition,
+    /// Simulation settings.
+    pub settings: SimulationSettings,
+    /// Race-wide parameters (augmented with field composition at prepare time).
+    pub race_params: RaceParameters,
+    /// Per-strategy dueling rates (compare-mode artificial dueling).
+    pub dueling_rates: Option<DuelingRates>,
+
+    /// The field, indexed by `RunnerId`.
+    runners: Vec<Runner>,
+    /// Ids of finished runners, in finish order (append-only).
+    finished_runners: Vec<RunnerId>,
+
+    /// The static condition catalog (owns the parser's backing data).
+    catalog: ConditionCatalog,
+    /// The whole course as a region list.
+    whole_course: RegionList,
+    /// Round index (selects which sampled trigger fires).
+    round_iteration: usize,
+    /// Elapsed race time in seconds.
+    accumulated_time: f64,
+    /// Master seed of the current round.
+    seed: u64,
+    /// The race RNG (drives gate assignment + per-runner sub-streams).
+    rng: Box<dyn Prng>,
+
+    /// Pacer + finishing-order state, threaded across frames.
+    order_tracker: FieldOrderTracker,
+
+    /// Lifecycle observers.
+    observers: RaceObservers,
+}
+
+impl RaceObservation for Race {
+    fn course_distance(&self) -> f64 {
+        self.course.distance
+    }
+    fn pacer_position(&self) -> Option<f64> {
+        self.order_tracker.pacer_position
+    }
+    fn seed(&self) -> u64 {
+        self.seed
+    }
+    fn accumulated_time(&self) -> f64 {
+        self.accumulated_time
+    }
+}
+
+impl Race {
+    /// Build a race for a course/ground with the given settings + parameters.
+    ///
+    /// Registers the dynamic condition catalog once and builds the static
+    /// catalog + whole-course regions.
+    pub fn new(
+        course: CourseData,
+        ground: GroundCondition,
+        settings: SimulationSettings,
+        race_params: RaceParameters,
+        dueling_rates: Option<DuelingRates>,
+    ) -> Self {
+        register_all_dynamic_conditions();
+        let mut whole_course = RegionList::new();
+        whole_course.push(Region::new(0.0, course.distance));
+        Race {
+            ground,
+            settings,
+            race_params,
+            dueling_rates,
+            runners: Vec::new(),
+            finished_runners: Vec::new(),
+            catalog: build_catalog(),
+            whole_course,
+            round_iteration: 0,
+            accumulated_time: 0.0,
+            seed: 0,
+            rng: Box::new(Xoshiro256StarStar::from_u64_seed(0)),
+            order_tracker: FieldOrderTracker::new(),
+            observers: RaceObservers::new(),
+            course,
+        }
+    }
+
+    /// Course base speed: `20 - (distance - 2000) / 1000`.
+    pub fn base_speed(&self) -> f64 {
+        20.0 - (self.course.distance - 2000.0) / 1000.0
+    }
+
+    /// Number of runners in the field.
+    pub fn runner_count(&self) -> usize {
+        self.runners.len()
+    }
+
+    /// Read-only access to the field.
+    pub fn runners(&self) -> &[Runner] {
+        &self.runners
+    }
+
+    /// Finish order (runner ids).
+    pub fn finished_runners(&self) -> &[RunnerId] {
+        &self.finished_runners
+    }
+
+    /// Register a lifecycle observer.
+    pub fn subscribe(&mut self, observer: Box<dyn RaceObserver>) {
+        self.observers.subscribe(observer);
+    }
+
+    /// Add a runner to the field (assigns the next `RunnerId`).
+    pub fn add_runner(&mut self, props: CreateRunner) -> RunnerId {
+        let id = RunnerId(self.runners.len() as u32);
+        let runner = Runner::create(
+            id,
+            &self.course,
+            self.ground,
+            props,
+            Box::new(NoopStaminaPolicy),
+            Box::new(Xoshiro256StarStar::from_u32_seed(id.0)),
+        );
+        self.runners.push(runner);
+        id
+    }
+
+    /// Prepare the field for a round: count field composition, assign gates,
+    /// spawn per-runner RNGs + stamina policies, and reset every runner.
+    pub fn prepare_round(&mut self, master_seed: u64) {
+        self.accumulated_time = 0.0;
+        self.finished_runners.clear();
+        self.order_tracker.reset();
+
+        self.prepare_race();
+
+        self.seed = master_seed;
+        self.rng = Box::new(Xoshiro256StarStar::from_u64_seed(master_seed));
+
+        let base_speed = self.base_speed();
+        let parser = ConditionParser::new(&self.catalog);
+
+        // Fisher-Yates gate shuffle (9 gates) seeded from the race RNG.
+        let mut gates: Vec<i64> = (0..9).collect();
+        for i in (1..gates.len()).rev() {
+            let j = self.rng.uniform(i as u32 + 1) as usize;
+            gates.swap(i, j);
+        }
+
+        let mut runners = std::mem::take(&mut self.runners);
+        for (idx, runner) in runners.iter_mut().enumerate() {
+            runner.gate = gates[idx];
+            let runner_rng: Box<dyn Prng> =
+                Box::new(Xoshiro256StarStar::from_u32_seed(self.rng.int32()));
+            let policy: Box<dyn StaminaPolicy> = if self.settings.health_system {
+                let hp_rng: Box<dyn Prng> =
+                    Box::new(Xoshiro256StarStar::from_u32_seed(self.rng.int32()));
+                Box::new(GameStaminaPolicy::new(&self.course, self.ground, hp_rng))
+            } else {
+                Box::new(NoopStaminaPolicy)
+            };
+            runner.health_policy = policy;
+            runner.wit_checks_enabled = self.settings.wit_checks;
+            runner.dueling_enabled = self.settings.dueling;
+            runner.spot_struggle_enabled = self.settings.spot_struggle;
+            runner.downhill_enabled = self.settings.downhill;
+            runner
+                .stamina_drain_overrides
+                .clone_from(&self.settings.stamina_drain_overrides);
+
+            let ctx = PrepareContext {
+                course: &self.course,
+                base_speed,
+                // Synthetic engine: static approximate regions + the ×10
+                // position-keep window (ADR-0005, no paradigm branch).
+                condition_resolution: ConditionResolution::Static,
+                pos_keep_end_multiplier: 10.0,
+                race_params: &self.race_params,
+                whole_course: &self.whole_course,
+                parser: &parser,
+                skill_samples: self.settings.skill_samples,
+                round_iteration: self.round_iteration,
+            };
+            runner.on_prepare(runner_rng, &ctx);
+        }
+        self.runners = runners;
+
+        self.round_iteration += 1;
+        self.emit_round_start(master_seed);
+    }
+
+    /// Reset per-round race params for the vacuum field: the synthetic engine
+    /// does not fold in field composition (no live field to count), so the
+    /// strategy-count / common-skill aggregates are cleared.
+    fn prepare_race(&mut self) {
+        self.race_params.num_umas = Some(self.runners.len() as u32);
+        self.race_params.strategy_counts = None;
+        self.race_params.common_skills = None;
+    }
+
+    /// Run the race to completion (every runner finished).
+    pub fn run(&mut self) {
+        while self.finished_runners.len() < self.runners.len() {
+            self.on_update(FRAME_DT);
+        }
+        self.emit_round_end();
+    }
+
+    /// Advance the whole field one `dt`-second step (snapshot-based).
+    pub fn on_update(&mut self, dt: f64) {
+        self.emit_before_tick(dt);
+        self.accumulated_time += dt;
+
+        let snapshot = build_field_snapshot(
+            &mut self.runners,
+            &self.finished_runners,
+            &mut self.order_tracker,
+        );
+
+        let base_speed = self.base_speed();
+        let mut runners = std::mem::take(&mut self.runners);
+        for runner in &mut runners {
+            if self.finished_runners.contains(&runner.id) {
+                continue;
+            }
+            update_position_keep_coefficient(runner);
+            let field = build_field_view(runner.id, &snapshot);
+            let position_keep = PositionKeepContext {
+                position_keep_mode: self.settings.position_keep_mode,
+                num_runners: snapshot.num_active as usize,
+                pacer_position: snapshot.pacer_position,
+                pacer_is_self: snapshot.pacer == Some(runner.id),
+                second_place_position: snapshot.second_place_position,
+            };
+            // The aggregate is the *producer*: it resolves every field-presence
+            // input from **approximate condition values + synthetic dueling
+            // rates** (ADR-0005 synthetic producer) and hands the step a pure
+            // `FieldInputs` plus a field-free course context. There is no
+            // paradigm branch and no live field to read.
+            let field_inputs =
+                resolve_field_inputs(runner, &field, self.dueling_rates, position_keep);
+            let ctx = UpdateContext {
+                base_speed,
+                accumulated_time: self.accumulated_time,
+                course: &self.course,
+                downhill_enabled: self.settings.downhill,
+            };
+            runner.on_update(dt, &field_inputs, &ctx);
+        }
+        self.runners = runners;
+
+        // No cross-runner contention coordinator in the vacuum engine: there is
+        // no live field, so proximity dueling / spot-struggle never emerge.
+
+        update_first_position_in_late_race(&mut self.runners, self.course.distance);
+
+        self.emit_runner_ticks_and_finishes(dt);
+    }
+
+    fn emit_runner_ticks_and_finishes(&mut self, dt: f64) {
+        let mut observers = std::mem::take(&mut self.observers);
+        let mut newly_finished: Vec<RunnerId> = Vec::new();
+        for runner in &self.runners {
+            if self.finished_runners.contains(&runner.id) {
+                continue;
+            }
+            observers.emit_after_runner_tick(self, runner, dt);
+            if runner.finished {
+                newly_finished.push(runner.id);
+            }
+        }
+        for id in newly_finished {
+            self.finished_runners.push(id);
+            if let Some(runner) = self.runners.iter().find(|r| r.id == id) {
+                observers.emit_runner_finished(self, runner);
+            }
+        }
+        self.observers = observers;
+    }
+
+    fn emit_round_start(&mut self, seed: u64) {
+        let mut observers = std::mem::take(&mut self.observers);
+        observers.emit_round_start(self, seed);
+        self.observers = observers;
+    }
+
+    fn emit_before_tick(&mut self, dt: f64) {
+        let mut observers = std::mem::take(&mut self.observers);
+        observers.emit_before_tick(self, dt);
+        self.observers = observers;
+    }
+
+    fn emit_round_end(&mut self) {
+        let mut observers = std::mem::take(&mut self.observers);
+        observers.emit_round_end(self);
+        self.observers = observers;
+    }
+}
+
+/// Resolve the [`FieldInputs`] for one runner this tick, from **approximate
+/// condition values + synthetic dueling rates** (ADR-0005 synthetic producer).
+///
+/// There is no live field: side-block / overtake are read from the runner's
+/// pre-resolved approximate conditions, and dueling is the artificial roll
+/// driven by the per-strategy [`DuelingRates`] (which may be absent). The step
+/// never sees how these were produced.
+fn resolve_field_inputs<'a>(
+    runner: &Runner,
+    field: &'a FieldView,
+    dueling_rates: Option<DuelingRates>,
+    position_keep: PositionKeepContext,
+) -> FieldInputs<'a> {
+    FieldInputs {
+        side_blocked: condition_value(runner, "blocked_side") == 1,
+        overtaking: condition_value(runner, "overtake") == 1,
+        dueling: DuelingInput::Artificial(dueling_rates),
+        position_keep,
+        skill_triggers: SkillTriggerInputs { field },
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::HashMap;
+    use uma_sim_primitives::runner::lifecycle::RunnerAptitudes;
+    use uma_sim_primitives::runner::test_support::{test_course, test_race_params};
+    use uma_sim_primitives::shared_kernel::language::{Aptitude, Mood, Strategy};
+    use uma_sim_primitives::shared_kernel::params::StatLine;
+
+    fn props(name: &str, strategy: Strategy) -> CreateRunner {
+        CreateRunner {
+            outfit_id: "100302".to_owned(),
+            name: name.to_owned(),
+            mood: Mood::Normal,
+            strategy,
+            aptitudes: RunnerAptitudes {
+                distance: Aptitude::A,
+                strategy: Aptitude::A,
+                surface: Aptitude::A,
+            },
+            stats: StatLine {
+                speed: 1000,
+                stamina: 1000,
+                power: 1000,
+                guts: 1000,
+                wit: 800,
+            },
+            skills: vec![],
+            forced_positions: HashMap::new(),
+            injected_debuffs: vec![],
+            forced_rushed_regions: vec![],
+            forced_dueling_regions: vec![],
+            forced_spot_struggle_regions: vec![],
+            forced_rank: vec![],
+        }
+    }
+
+    fn race_with(n: u32) -> Race {
+        let mut race = Race::new(
+            test_course(),
+            GroundCondition::Firm,
+            SimulationSettings::default(),
+            test_race_params(),
+            None,
+        );
+        let strategies = [
+            Strategy::Runaway,
+            Strategy::FrontRunner,
+            Strategy::PaceChaser,
+            Strategy::LateSurger,
+            Strategy::EndCloser,
+        ];
+        for i in 0..n {
+            let s = strategies[(i as usize) % strategies.len()];
+            race.add_runner(props(&format!("R{i}"), s));
+        }
+        race
+    }
+
+    #[test]
+    fn nine_runner_race_finishes_all_deterministically() {
+        let mut race = race_with(9);
+        race.prepare_round(12345);
+        race.run();
+        assert_eq!(race.finished_runners().len(), 9);
+        // Every runner crossed the line.
+        assert!(race.runners().iter().all(|r| r.finished));
+        // Finish times are positive and ordered by finish sequence.
+        let first = race.finished_runners()[0];
+        let winner = race
+            .runners()
+            .iter()
+            .find(|r| r.id == first)
+            .expect("winner present");
+        assert!(winner.finish_time > 0.0);
+    }
+
+    #[test]
+    fn same_seed_same_finish_order() {
+        let mut a = race_with(9);
+        a.prepare_round(777);
+        a.run();
+        let mut b = race_with(9);
+        b.prepare_round(777);
+        b.run();
+        assert_eq!(a.finished_runners(), b.finished_runners());
+    }
+
+    #[test]
+    fn different_seed_may_differ_but_all_finish() {
+        let mut race = race_with(9);
+        race.prepare_round(2024);
+        race.run();
+        assert_eq!(race.finished_runners().len(), 9);
+        // Gates are a unique permutation of 0..9.
+        let mut gates: Vec<i64> = race.runners().iter().map(|r| r.gate).collect();
+        gates.sort_unstable();
+        gates.dedup();
+        assert_eq!(gates.len(), 9);
+    }
+}

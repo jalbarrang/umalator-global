@@ -231,8 +231,8 @@ export const umalatorSteps: Array<TutorialStep> = [
           <div className="font-semibold">Advanced Analysis</div>
           <ul className="text-muted-foreground list-disc list-inside space-y-1">
             <li>
-              Use "Compare Skills" to analyze individual skill effectiveness to add to your runner for
-              race settings.
+              Use "Compare Skills" to analyze individual skill effectiveness to add to your runner
+              for race settings.
             </li>
             <li>
               Use "Compare Uniques" to find which Uma's Unique Skill is most effective for the race

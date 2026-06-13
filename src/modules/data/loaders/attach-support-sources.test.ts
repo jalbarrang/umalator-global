@@ -17,6 +17,7 @@ function createSkill(id: string): SkillEntry {
     family: [],
     iconId: '0',
     baseCost: 0,
+    gradeValue: 0,
     order: 0,
     name: `Skill ${id}`,
     character: []
@@ -36,7 +37,9 @@ describe('attachSupportCardHintSources', () => {
         supportCardType: 1,
         released: true,
         hintSkills: [{ id: 200012, name: 'Right-Handed ○', rarity: 2 }],
-        eventSkills: [], chainEventSkills: [], randomEventSkills: []
+        eventSkills: [],
+        chainEventSkills: [],
+        randomEventSkills: []
       }
     };
 

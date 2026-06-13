@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
-import { strategyNames } from '@/lib/sunday-tools/runner/definitions';
+import { strategyNames } from 'sunday-tools/runner/definitions';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import { getUmaDisplayInfo, getUmaImageUrl } from '@/modules/runners/utils';
 import { getIconUrl } from '@/assets/icons';
