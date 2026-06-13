@@ -6,6 +6,15 @@ import type { SkillSamplingPlan } from '@/modules/simulation/simulators/wasm-ski
 
 /** Resolves a batch's skills into a data-free sampling plan (injectable for tests). */
 export type SkillSamplingPlanBuilder = (params: Run1RoundParams) => SkillSamplingPlan;
+
+/** Opt-in pool perf logging: `localStorage.torena_perf = '1'`. */
+function perfEnabled(): boolean {
+  try {
+    return globalThis.localStorage?.getItem('torena_perf') === '1';
+  } catch {
+    return false;
+  }
+}
 import type { PoolMetrics, SkillComparisonResponse } from '@/modules/simulation/types';
 import type {
   SimulationParams,
@@ -38,6 +47,11 @@ export class PoolManager {
   private isRunning = false;
   private params: SimulationParams | null = null;
   private planBuilder: SkillSamplingPlanBuilder;
+  // Perf counters (only meaningful when perfEnabled()).
+  private perfPlanBuildMs = 0;
+  private perfWorkerBusyMs = 0;
+  private perfBatches = 0;
+  private perfDispatchAt = new Map<number, number>();
 
   constructor(
     workerGenerator: (options: { name: string }) => Worker,
@@ -91,6 +105,10 @@ export class PoolManager {
     this.totalSkills = 0;
     this.isRunning = false;
     this.params = null;
+    this.perfPlanBuildMs = 0;
+    this.perfWorkerBusyMs = 0;
+    this.perfBatches = 0;
+    this.perfDispatchAt.clear();
   }
 
   /**
@@ -103,7 +121,12 @@ export class PoolManager {
         this.assignWorkToWorker(workerId);
         break;
 
-      case 'batch-complete':
+      case 'batch-complete': {
+        const dispatchedAt = this.perfDispatchAt.get(workerId);
+        if (dispatchedAt !== undefined) {
+          this.perfWorkerBusyMs += performance.now() - dispatchedAt;
+          this.perfDispatchAt.delete(workerId);
+        }
         this.workQueue?.completeBatch(message.batchId, message.results);
         this.workerStates.set(workerId, 'idle');
 
@@ -134,6 +157,7 @@ export class PoolManager {
           this.assignWorkToWorker(workerId);
         }
         break;
+      }
 
       case 'request-work':
         this.assignWorkToWorker(workerId);
@@ -160,6 +184,7 @@ export class PoolManager {
       this.workerStates.set(workerId, 'busy');
       // Resolve this batch's skills into a data-free plan on the main thread;
       // the worker runs it without importing the dataset.
+      const planStart = performance.now();
       const plan = this.planBuilder({
         nsamples: batch.nsamples,
         skills: batch.skills,
@@ -168,6 +193,9 @@ export class PoolManager {
         uma: this.params.uma,
         options: this.params.options
       });
+      this.perfPlanBuildMs += performance.now() - planStart;
+      this.perfBatches += 1;
+      this.perfDispatchAt.set(workerId, performance.now());
       this.sendToWorker(workerId, { type: 'work-batch', batchId: batch.batchId, plan });
     }
   }
@@ -211,6 +239,19 @@ export class PoolManager {
       workerCount: this.poolSize,
       skillsProcessed: this.totalSkills
     };
+
+    if (perfEnabled()) {
+      const wall = Math.round(timeTaken);
+      const planBuild = Math.round(this.perfPlanBuildMs);
+      const workerBusy = Math.round(this.perfWorkerBusyMs);
+      console.info(
+        `[pool-perf] wall=${wall}ms | main-thread plan-build=${planBuild}ms (${
+          wall > 0 ? Math.round((planBuild / wall) * 100) : 0
+        }% of wall) | worker-busy(sum)=${workerBusy}ms across ${this.perfBatches} batches | ` +
+          `parallelism=${workerBusy > 0 ? (workerBusy / Math.max(wall, 1)).toFixed(1) : '0'}x | ` +
+          `skills=${this.totalSkills} pool=${this.poolSize}`
+      );
+    }
 
     this.callbacks.onComplete?.(results, metrics);
     this.resetRunState();
