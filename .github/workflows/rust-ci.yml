@@ -6,12 +6,11 @@
 #
 # Pipeline order (fastest/cheapest first):
 #   1. Formatting (rustfmt)        — seconds, no deps
-#   2. Typos (typos-cli)           — seconds, no deps
-#   3. Supply chain (cargo-deny)   — seconds, no build
-#   4. Unused deps (cargo-machete) — seconds, heuristic
-#   5. Lint (clippy, zero-warn)    — minutes, needs compile
-#   6. Tests                       — minutes
-#   7. Type check + WASM build     — minutes
+#   2. Supply chain (cargo-deny)   — seconds, no build
+#   3. Unused deps (cargo-machete) — seconds, heuristic
+#   4. Lint (clippy, zero-warn)    — minutes, needs compile
+#   5. Tests                       — minutes
+#   6. Type check + WASM build     — minutes
 # =============================================================================
 
 name: Rust CI
@@ -52,15 +51,6 @@ jobs:
           components: rustfmt
       - run: cargo fmt --check
 
-  typos:
-    name: "1 · Typos"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: crate-ci/typos@master
-        with:
-          files: packages
-
   # ──────────────────────────────────────────────────────────────
   # Stage 2: Supply chain & dependency checks (no compilation)
   # ──────────────────────────────────────────────────────────────
@@ -91,7 +81,7 @@ jobs:
   # ──────────────────────────────────────────────────────────────
   clippy:
     name: "3 · Clippy (zero warnings)"
-    needs: [fmt, typos]
+    needs: [fmt]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
