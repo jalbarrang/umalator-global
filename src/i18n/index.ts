@@ -58,6 +58,7 @@ export const getStrings = (lang: string) => {
 i18n.use(initReactI18next).init({
   resources: definitions,
   lng: 'en',
+  showSupportNotice: false, // suppress i18next's Locize promo console.info
   interpolation: {
     escapeValue: false // React already escapes values
   }
