@@ -219,7 +219,7 @@ export function RootComponent() {
 
         <footer className="shrink-0 border-t px-4 py-1.5 text-xs text-muted-foreground">
           <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-0.5 text-center">
-            <span>© {new Date().getFullYear()} Torena Sim</span>
+            <span>This website is not affiliated with Cygames, Inc.</span>
             <span aria-hidden="true">·</span>
             <Link to="/privacy" className="hover:text-foreground hover:underline">
               Privacy Policy
