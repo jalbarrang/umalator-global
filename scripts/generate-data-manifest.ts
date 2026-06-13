@@ -21,25 +21,30 @@ import { fileURLToPath } from 'node:url';
 import { DATASETS, DATA_DIR, MANIFEST_FILE } from '../src/modules/data/dataset-manifest';
 
 const HASHED_RE = /\.[a-f0-9]{8}\.json$/;
+// Hashed datasets live in their own subdir so a `/data/sets/*` immutable cache
+// rule can never match the (revalidating) manifest at `/data/manifest.json`.
+const SETS_SUBDIR = 'sets';
 
 /** Generate hashed dataset files + manifest under `<repoRoot>/public/<DATA_DIR>`. */
 export function generateDataManifest(repoRoot: string): void {
   const jsonDir = join(repoRoot, 'src', 'modules', 'data', 'json');
   const outDir = join(repoRoot, 'public', DATA_DIR);
+  const setsDir = join(outDir, SETS_SUBDIR);
 
-  mkdirSync(outDir, { recursive: true });
+  mkdirSync(setsDir, { recursive: true });
 
-  // Drop previously-generated hashed files (and the manifest) so stale hashes
-  // don't accumulate. Leave unrelated public/data assets (e.g. the gitignored
-  // course_geometry.json) untouched.
   const generatedPrefixes = DATASETS.map((dataset) => `${dataset.outName}.`);
+  const isStaleHashed = (file: string) =>
+    HASHED_RE.test(file) && generatedPrefixes.some((prefix) => file.startsWith(prefix));
+
+  // Drop previously-generated hashed files so stale hashes don't accumulate —
+  // both in the sets dir and (legacy) flat in the data dir. Leave unrelated
+  // public/data assets (e.g. the gitignored course_geometry.json) untouched.
+  for (const file of readdirSync(setsDir)) {
+    if (isStaleHashed(file)) rmSync(join(setsDir, file));
+  }
   for (const file of readdirSync(outDir)) {
-    const isGenerated =
-      file === MANIFEST_FILE ||
-      (HASHED_RE.test(file) && generatedPrefixes.some((prefix) => file.startsWith(prefix)));
-    if (isGenerated) {
-      rmSync(join(outDir, file));
-    }
+    if (isStaleHashed(file)) rmSync(join(outDir, file));
   }
 
   const manifest: Record<string, string> = {};
@@ -51,8 +56,9 @@ export function generateDataManifest(repoRoot: string): void {
     const bytes = readFileSync(sourcePath);
     const hash = createHash('sha256').update(bytes).digest('hex').slice(0, 8);
     const outFile = `${dataset.outName}.${hash}.json`;
-    writeFileSync(join(outDir, outFile), bytes);
-    manifest[dataset.key] = outFile;
+    writeFileSync(join(setsDir, outFile), bytes);
+    // Manifest values are relative to the data dir (consumed as `data/<value>`).
+    manifest[dataset.key] = `${SETS_SUBDIR}/${outFile}`;
   }
 
   writeFileSync(join(outDir, MANIFEST_FILE), `${JSON.stringify(manifest, null, 2)}\n`);

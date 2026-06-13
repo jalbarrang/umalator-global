@@ -1,0 +1,9 @@
+# Cloudflare Pages custom headers.
+#
+# Hashed datasets (data/sets/<name>.<hash>.json) are immutable by construction —
+# their content hash is in the filename — so cache them aggressively and skip the
+# revalidation round-trip on repeat visits. The manifest at /data/manifest.json
+# is intentionally NOT covered here: it sits outside /data/sets/ and keeps
+# Cloudflare's default revalidating cache, so a data-only deploy is picked up.
+/data/sets/*
+  Cache-Control: public, max-age=31536000, immutable
