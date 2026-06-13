@@ -1,15 +1,6 @@
 # Maintainability
 
-Evaluate changes for long-term readability, modularity, and alignment with the project's codeql health metrics.
-
-## Tools
-
-| Command                       | Purpose                                                                                   |
-| ----------------------------- | ----------------------------------------------------------------------------------------- |
-| `bun run codeql:fallow`       | Fallow standalone, read-only (dead exports, unused files, circular deps, code clones)     |
-| `bun run codeql:react-doctor` | React-doctor standalone, read-only (React-specific diagnostics, scored)                   |
-
-> `bun run codeql:fallow:fix` and `bun run codeql:report` are intentionally **not** review tools: `fix` mutates files, and `report` re-runs the heavier combined pipeline. Run those manually.
+Evaluate changes for long-term readability, modularity, and structural health.
 
 ## Criteria
 
@@ -23,9 +14,9 @@ Evaluate changes for long-term readability, modularity, and alignment with the p
 - `src/utils/` is for cross-feature helpers — keep focused and small
 - Scripts (`scripts/`) stay independent of UI code
 
-### Dead Code & Hygiene (fallow)
+### Dead Code & Hygiene
 
-- No new unused exports — fallow tracks these; verify with `bun run codeql:fallow`
+- No new unused exports
 - No new unused files — delete rather than comment out
 - No commented-out code in diffs
 - Removed features must be fully cleaned up (components, styles, routes, store slices)
@@ -33,13 +24,13 @@ Evaluate changes for long-term readability, modularity, and alignment with the p
 
 ### Circular Dependencies
 
-- No new circular dependency cycles — fallow flags these as P0
+- No new circular dependency cycles — treat these as P0
 - Watch for indirect cycles through store imports or cross-module service dependencies
 - If breaking a cycle, prefer dependency inversion or extracting shared types to a common module
 
 ### Code Duplication
 
-- Fallow detects clone groups — flag changes that copy-paste >20 lines from existing code
+- Flag changes that copy-paste >20 lines from existing code
 - Extract shared logic into `src/utils/` or a module-level helper
 - Simulation logic and data transforms are the highest-risk areas for duplication
 
@@ -68,14 +59,12 @@ Evaluate changes for long-term readability, modularity, and alignment with the p
 - Refactors should be separated from feature changes where possible
 - Store shape changes need migration consideration (persisted to localStorage)
 
-### React-Doctor Score
+### Review Priorities
 
-- The react-doctor score should not regress — check before/after with `bun run codeql:report`
-- Group react-doctor warnings by component when reporting issues
-- Priority levels follow the codeql triage checklist: P0 (circular deps, unresolved imports) → P1 (unused deps/files, RD errors) → P2 (large clones, RD warnings) → P3 (unused exports/types)
+- Priority levels: P0 (circular deps, unresolved imports) → P1 (unused deps/files) → P2 (large clones) → P3 (unused exports/types)
 
 ## Severity Guide
 
 - **error**: New circular dependencies, tight coupling between unrelated modules, duplicated domain logic >20 lines, new unused files/dependencies
-- **warning**: Overly broad modules, naming mismatches with domain glossary, missing code splitting for heavy components, react-doctor score regression
+- **warning**: Overly broad modules, naming mismatches with domain glossary, missing code splitting for heavy components
 - **info**: Opportunities to simplify, consolidate, or improve test coverage for stores
