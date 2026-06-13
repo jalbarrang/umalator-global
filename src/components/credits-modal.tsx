@@ -1,9 +1,11 @@
+import { useNavigate } from 'react-router';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { setShowCreditsModal, useUIStore } from '@/store/ui.store';
 import { Separator } from './ui/separator';
 
 export function CreditsModal() {
   const { showCreditsModal } = useUIStore();
+  const navigate = useNavigate();
 
   return (
     <Dialog open={showCreditsModal} onOpenChange={setShowCreditsModal}>
@@ -95,6 +97,21 @@ export function CreditsModal() {
             <span className="font-medium text-foreground">fair use</span> principles and equivalent
             exceptions under relevant copyright laws.
           </p>
+        </div>
+
+        <Separator />
+
+        <div className="text-xs text-muted-foreground">
+          <button
+            type="button"
+            className="text-primary hover:underline"
+            onClick={() => {
+              setShowCreditsModal(false);
+              navigate('/privacy');
+            }}
+          >
+            Privacy Policy
+          </button>
         </div>
       </DialogContent>
     </Dialog>

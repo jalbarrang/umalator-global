@@ -44,6 +44,7 @@ import { SkillsPage } from './_tools/skills';
 import { SparkOddsPage } from './_tools/spark-odds';
 
 import { SupportCardsPage } from './_tools/support-cards';
+import PrivacyPolicy from './privacy';
 import { config } from '@/config';
 
 type RoutePageProps = {
@@ -188,6 +189,15 @@ export function RootComponent() {
             />
 
             <Route path="/spark-odds" element={<SparkOddsPage />} />
+
+            <Route
+              path="/privacy"
+              element={
+                <RoutePage title="Privacy Policy" description="How Torena Sim handles your data">
+                  <PrivacyPolicy />
+                </RoutePage>
+              }
+            />
 
             <Route
               path="/support-cards"
