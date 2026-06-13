@@ -16,7 +16,10 @@ import type {
 
 /** The shape of the wasm-pack-generated module we depend on. */
 type UmaSimWasmModule = {
-  default: (input?: unknown) => Promise<unknown>;
+  // wasm-bindgen's `init`: pass a single options object. `module_or_path`
+  // accepts a precompiled `WebAssembly.Module`; omit it to fetch+compile the
+  // colocated `.wasm`.
+  default: (options?: { module_or_path?: WebAssembly.Module }) => Promise<unknown>;
   runRaceSim: (params: WasmRaceSimParams) => WasmRaceSimResult;
   runCompare: (params: WasmCompareParams) => WasmCompareData;
   WasmRaceSimulator: new (params: WasmRaceSimParams) => WasmRaceSimulatorHandle;
@@ -49,8 +52,9 @@ async function loadModule(precompiled?: WebAssembly.Module): Promise<UmaSimWasmM
       const mod = (await import(/* @vite-ignore */ PKG_SPECIFIER)) as UmaSimWasmModule;
       // Passing a `WebAssembly.Module` makes wasm-bindgen's init skip the
       // fetch+compile and only instantiate; `undefined` falls back to the
-      // default fetch of the colocated `.wasm`.
-      await mod.default(precompiled);
+      // default fetch of the colocated `.wasm`. The options-object form avoids
+      // wasm-bindgen's positional-arg deprecation warning.
+      await mod.default(precompiled ? { module_or_path: precompiled } : undefined);
       return mod;
     })();
   }
