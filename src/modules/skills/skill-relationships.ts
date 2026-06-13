@@ -119,14 +119,19 @@ export function isSelfDebuffSkillById(skillId: string): boolean {
 }
 
 /**
- * Get all white (rarity=1) skills from a family, excluding debuffs
+ * Get all white (rarity=1) skills from a family, excluding self-debuff (×) variants.
+ *
+ * Membership is gated on “not a self-debuff” rather than “has a positive modifier”:
+ * opponent/FOV debuffs (e.g. Intense/Petrifying Gaze) carry *negative* modifiers
+ * aimed at other runners but are still real, ownable family members — only the
+ * self-targeted × downgrade skills should be filtered out.
  */
 function getWhiteSkillsInFamily(familyIds: Array<string>): Array<SkillEntry> {
   const whiteSkills: Array<SkillEntry> = [];
 
   for (const id of familyIds) {
     const skill = skillsService.getById(id);
-    if (skill && skill.rarity === 1 && hasPositiveEffects(skill)) {
+    if (skill && skill.rarity === 1 && !isSelfDebuffSkill(skill)) {
       whiteSkills.push(skill);
     }
   }
@@ -195,8 +200,8 @@ export function isStackableSkill(skillId: string): boolean {
     return false;
   }
 
-  // Debuff skills themselves are not stackable
-  if (!hasPositiveEffects(skill)) {
+  // Self-debuff (×) skills themselves are not stackable
+  if (isSelfDebuffSkill(skill)) {
     return false;
   }
 

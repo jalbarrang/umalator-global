@@ -39,4 +39,18 @@ describe('skill-family prerequisite coverage', () => {
       []
     );
   });
+
+  it('links opponent/FOV debuff gold skills to their white prerequisite (Gaze family)', () => {
+    // Petrifying Gaze (gold) / Intense Gaze (white) are FOV debuffs: their
+    // effects carry negative modifiers aimed at opponents, not self. They must
+    // still resolve as a family so the gold links to its white prerequisite.
+    const petrifyingGazeId = getSkillIdByName('Petrifying Gaze');
+    const intenseGazeId = getSkillIdByName('Intense Gaze');
+
+    expect(getRepresentativePrerequisiteIds(petrifyingGazeId)).toEqual([intenseGazeId]);
+    expect(isSkillCoveredByOwnedFamily(intenseGazeId, [petrifyingGazeId])).toBe(true);
+    expect(
+      getUnsatisfiedRepresentativePrerequisiteIds(petrifyingGazeId, [petrifyingGazeId])
+    ).toEqual([]);
+  });
 });
