@@ -523,11 +523,13 @@ Both workflows use Bun with frozen lockfile.
 
 ### Deployment
 
-The project deploys to **GitHub Pages** via `.github/workflows/deploy-pages.yml`.
+The project deploys to **Cloudflare Pages** (https://torena-sim.pages.dev) via `.github/workflows/deploy-cloudflare.yml`.
 
 - Deploys automatically on pushes to `main`
-- Uses Bun
+- Uses Bun + the Rust/wasm toolchain to build the engine
 - Reads `VITE_PUBLIC_POSTHOG_KEY` and `VITE_PUBLIC_POSTHOG_HOST` from repository variables at build time
+
+> The old GitHub Pages and Netlify URLs now serve a static 301 redirect to the canonical Cloudflare domain.
 
 ## Submitting Contributions
 
