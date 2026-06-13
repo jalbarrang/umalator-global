@@ -12,14 +12,34 @@
  * combination.
  */
 
-import { calculateCombinationCost, generateCombinations } from './optimizer';
+import { calculateCombinationCost } from './combination-cost';
 import {
   computePlannerStats,
-  runPlannerVacuumWasm
+  runPlannerVacuumWasm,
+  type PlannerWasmContext
 } from '@/modules/simulation/simulators/wasm-skill-planner';
-import type { CombinationResult, OptimizationResult } from './types';
+import type {
+  CandidateSkill,
+  CombinationResult,
+  OptimizationProgress,
+  OptimizationResult
+} from './types';
 import type { WasmCompareData } from '@/lib/uma-sim-wasm/types';
-import type { OptimizationParams } from './optimization-engine';
+
+/**
+ * WASM-path optimizer inputs. Unlike the TS `OptimizationParams`, the runner /
+ * course / race data are pre-resolved into a data-free {@link PlannerWasmContext}
+ * on the main thread, and candidates already carry their `netCost`.
+ */
+export interface OptimizationWasmParams {
+  candidates: Array<CandidateSkill>;
+  /** Pre-generated on the main thread (combination generation needs skill-family data). */
+  combinations: Array<Array<string>>;
+  obtainedSkills: Array<string>;
+  budget: number;
+  context: PlannerWasmContext;
+  onProgress?: (progress: OptimizationProgress) => void;
+}
 
 interface EvaluationResult {
   skills: Array<string>;
@@ -36,23 +56,12 @@ interface EvaluationResult {
  * backed by the WASM engine.
  */
 export async function runAdaptiveOptimizationWasm(
-  params: OptimizationParams
+  params: OptimizationWasmParams
 ): Promise<OptimizationResult> {
-  const {
-    candidates,
-    obtainedSkills,
-    budget,
-    ignoreStaminaConsumption,
-    runner,
-    course,
-    racedef,
-    options,
-    onProgress
-  } = params;
+  const { candidates, combinations, obtainedSkills, context, onProgress } = params;
 
   const startTime = performance.now();
 
-  const combinations = generateCombinations(candidates, budget);
   if (combinations.length === 0) {
     throw new Error('No valid skill combinations found within budget');
   }
@@ -65,15 +74,7 @@ export async function runAdaptiveOptimizationWasm(
     if (cached) {
       return cached;
     }
-    const baseline = await runPlannerVacuumWasm({
-      runner,
-      skills: obtainedSkills,
-      course,
-      racedef,
-      nsamples: samples,
-      ignoreStaminaConsumption,
-      options
-    });
+    const baseline = await runPlannerVacuumWasm(context, obtainedSkills, samples);
     baselineCache.set(samples, baseline);
     return baseline;
   };
@@ -85,15 +86,11 @@ export async function runAdaptiveOptimizationWasm(
     samples: number
   ): Promise<EvaluationResult> => {
     const baseline = await getBaseline(samples);
-    const candidateVacuum = await runPlannerVacuumWasm({
-      runner,
-      skills: [...obtainedSkills, ...combination],
-      course,
-      racedef,
-      nsamples: samples,
-      ignoreStaminaConsumption,
-      options
-    });
+    const candidateVacuum = await runPlannerVacuumWasm(
+      context,
+      [...obtainedSkills, ...combination],
+      samples
+    );
 
     const stats = computePlannerStats(baseline, candidateVacuum, samples);
 

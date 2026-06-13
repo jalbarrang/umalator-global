@@ -4,12 +4,7 @@
 // runner with the tracked skill added. The bashin-delta + tracked-skill meta
 // reduction lives here on the TS side.
 
-import { cloneDeep } from 'es-toolkit';
-import type {
-  Run1RoundParams,
-  RunComparisonParams,
-  SkillComparisonResponse
-} from '@/modules/simulation/types';
+import type { SkillComparisonResponse } from '@/modules/simulation/types';
 import type {
   SkillEffectLog,
   SkillSimulationData,
@@ -20,28 +15,29 @@ import type {
 import type { CollectedRunnerRoundData } from 'sunday-tools/common/race-observer';
 import { initializeSkillSimulationRun } from '@/modules/simulation/compare.types';
 import { SkillPerspective } from 'sunday-tools/skills/definitions';
-import { compareParamsToWasm, wasmCompareRoundDataToCollected } from '@/lib/uma-sim-wasm/adapter';
+import { wasmCompareRoundDataToCollected } from '@/lib/uma-sim-wasm/adapter-results';
 import { runCompare } from '@/lib/uma-sim-wasm/loader';
-import type { WasmCompareData } from '@/lib/uma-sim-wasm/types';
-import { getUmaDisplayInfo } from '@/modules/runners/utils';
-import { createSkillCompareSettings } from './skill-compare';
+import type { WasmCompareData, WasmCompareParams } from '@/lib/uma-sim-wasm/types';
 import type { SkillComparisonResult } from './skill-compare';
-import {
-  DEFAULT_DUELING_RATES,
-  computePositionDiff,
-  createSkillSorterByGroup,
-  getFallbackEffectMeta,
-  isSameSkill,
-  toCreateRunner,
-  toSundayRaceParameters
-} from './shared';
+import { computePositionDiff, isSameSkill, type EffectMeta } from './shared-pure';
 
-type SkillCompareParams = RunComparisonParams & { trackedSkillId: string };
+/**
+ * One resolved skill-sampling unit: baseline + tracked-skill runners already
+ * converted to WASM params on the main thread (via `buildSkillSamplingPlan` in
+ * `wasm-skill-compare-plan.ts`), plus the precomputed fallback effect metadata.
+ * The worker runs + reduces these without touching the dataset.
+ */
+export type SkillSamplingPlanEntry = {
+  skillId: string;
+  fallback: EffectMeta;
+  nsamples: number;
+  wasmParamsBaseline: WasmCompareParams;
+  wasmParamsTracked: WasmCompareParams;
+};
 
-function resolveRunnerName(outfitId: string, fallbackIndex: number): string {
-  const info = outfitId ? getUmaDisplayInfo(outfitId) : null;
-  return info?.name ?? `Runner ${fallbackIndex + 1}`;
-}
+export type SkillSamplingPlan = {
+  entries: Array<SkillSamplingPlanEntry>;
+};
 
 /** Tracked-skill activation logs for `trackedSkillId`, normalized to that id. */
 function getTrackedLogs(
@@ -65,7 +61,7 @@ function buildFallbackLogs(
   trackedUsed: boolean,
   trackedSkillId: string,
   seed: number,
-  fallback: ReturnType<typeof getFallbackEffectMeta>
+  fallback: EffectMeta
 ): Array<SkillEffectLog> {
   if (!trackedUsed) {
     return [];
@@ -105,35 +101,6 @@ type SampleSummary = {
   trackedMeta: SkillTrackedMeta | null;
 };
 
-/** Inputs shared by the two vacuum compare races (baseline + tracked-skill). */
-type VacuumCompareContext = {
-  course: SkillCompareParams['course'];
-  parameters: ReturnType<typeof toSundayRaceParameters>;
-  settings: ReturnType<typeof createSkillCompareSettings>;
-  nsamples: number;
-  masterSeed: number;
-};
-
-/** Run one vacuum compare race for a prepared runner. */
-function runVacuumCompare(
-  create: ReturnType<typeof toCreateRunner>,
-  fallbackIndex: number,
-  ctx: VacuumCompareContext
-): Promise<WasmCompareData> {
-  return runCompare(
-    compareParamsToWasm({
-      course: ctx.course,
-      parameters: ctx.parameters,
-      settings: ctx.settings,
-      duelingRates: DEFAULT_DUELING_RATES,
-      runner: create,
-      name: resolveRunnerName(create.outfitId, fallbackIndex),
-      nsamples: ctx.nsamples,
-      masterSeed: ctx.masterSeed
-    })
-  );
-}
-
 /**
  * Reduce one paired sample (baseline vs tracked) into its bashin delta,
  * representative-run payload, and optional tracked-skill meta.
@@ -143,7 +110,7 @@ function summarizeSample(
   roundA: WasmCompareData['rounds'][number] | undefined,
   roundB: WasmCompareData['rounds'][number] | undefined,
   trackedSkillId: string,
-  fallback: ReturnType<typeof getFallbackEffectMeta>
+  fallback: EffectMeta
 ): SampleSummary {
   const baselinePrimary = roundA?.runners[0];
   const trackedPrimary = roundB?.runners[0];
@@ -245,34 +212,16 @@ class RepresentativeRunTracker {
   }
 }
 
-/** Run a WASM-backed skill comparison and produce a {@link SkillComparisonResult}. */
-export async function runSkillComparisonWasm(
-  params: SkillCompareParams
+/** Run a WASM-backed skill comparison for a prebuilt plan entry. Worker-safe. */
+export async function runSkillComparisonFromEntry(
+  entry: SkillSamplingPlanEntry
 ): Promise<SkillComparisonResult> {
-  const { nsamples, course, racedef, runnerA, runnerB, trackedSkillId, options } = params;
-
-  const skillSorter = createSkillSorterByGroup([...runnerA.skills, ...runnerB.skills]);
-  const fallback = getFallbackEffectMeta(trackedSkillId);
-
-  const compareContext: VacuumCompareContext = {
-    course,
-    parameters: toSundayRaceParameters(racedef),
-    settings: createSkillCompareSettings(options),
-    nsamples,
-    masterSeed: options.seed ?? 0
-  };
+  const { skillId: trackedSkillId, nsamples, fallback, wasmParamsBaseline, wasmParamsTracked } =
+    entry;
 
   const [dataA, dataB] = await Promise.all([
-    runVacuumCompare(
-      toCreateRunner(runnerA, runnerA.skills.toSorted(skillSorter)),
-      0,
-      compareContext
-    ),
-    runVacuumCompare(
-      toCreateRunner(runnerB, runnerB.skills.toSorted(skillSorter)),
-      1,
-      compareContext
-    )
+    runCompare(wasmParamsBaseline),
+    runCompare(wasmParamsTracked)
   ]);
 
   const diff: Array<number> = [];
@@ -313,29 +262,22 @@ export async function runSkillComparisonWasm(
   };
 }
 
-/** WASM-backed equivalent of `runSampling` (one skill per call). */
-export async function runSamplingWasm(params: Run1RoundParams): Promise<SkillComparisonResponse> {
-  const { nsamples, skills, course, racedef, uma, options } = params;
-
+/**
+ * WASM-backed equivalent of `runSampling`, driven by a prebuilt plan (one entry
+ * per skill). Worker-safe: every data lookup was resolved on the main thread by
+ * `buildSkillSamplingPlan`.
+ */
+export async function runSamplingFromPlan(
+  plan: SkillSamplingPlan
+): Promise<SkillComparisonResponse> {
   const data: SkillComparisonResponse = {};
 
-  for (const id of skills) {
-    const runnerWithTrackedSkill = cloneDeep(uma);
-    runnerWithTrackedSkill.skills.push(id);
-
+  for (const entry of plan.entries) {
     const { results, runData, min, max, mean, median, skillActivations } =
-      await runSkillComparisonWasm({
-        trackedSkillId: id,
-        nsamples,
-        course,
-        racedef,
-        runnerA: uma,
-        runnerB: runnerWithTrackedSkill,
-        options
-      });
+      await runSkillComparisonFromEntry(entry);
 
-    data[id] = {
-      id,
+    data[entry.skillId] = {
+      id: entry.skillId,
       results,
       skillActivations,
       runData,

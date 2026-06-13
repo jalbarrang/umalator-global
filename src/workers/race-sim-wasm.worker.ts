@@ -1,15 +1,16 @@
 import '../polyfills';
 import type { RaceSimParams, RaceSimResult } from 'sunday-tools/race-sim/run-race-sim';
-import type { CreateRunner } from 'sunday-tools/common/runner';
-import { getUmaDisplayInfo } from '@/modules/runners/utils';
+import type { WasmRaceSimParams } from '@/lib/uma-sim-wasm/types';
 import { initUmaSimWasm, runRaceSim } from '@/lib/uma-sim-wasm/loader';
-import { raceSimParamsToWasm, wasmResultToRaceSimResult } from '@/lib/uma-sim-wasm/adapter';
+import { wasmResultToRaceSimResult } from '@/lib/uma-sim-wasm/adapter-results';
 
+/** Public input the caller builds (main-thread converts it to WASM params). */
 export type RaceSimWasmWorkerParams = RaceSimParams;
 
 export type RaceSimWasmWorkerInMessage = {
   type: 'race-sim-run';
-  data: RaceSimWasmWorkerParams;
+  // Pre-resolved on the main thread; the worker never touches the dataset.
+  data: WasmRaceSimParams;
 };
 
 export type RaceSimWasmWorkerOutMessage =
@@ -26,11 +27,6 @@ function sendMessage(message: RaceSimWasmWorkerOutMessage): void {
   postMessage(message);
 }
 
-function resolveRunnerName(runner: CreateRunner, index: number): string {
-  const info = runner.outfitId ? getUmaDisplayInfo(runner.outfitId) : null;
-  return info?.name ?? `Runner ${index + 1}`;
-}
-
 self.addEventListener('message', async (event: MessageEvent<RaceSimWasmWorkerInMessage>) => {
   const message = event.data;
   if (message.type !== 'race-sim-run') {
@@ -39,9 +35,8 @@ self.addEventListener('message', async (event: MessageEvent<RaceSimWasmWorkerInM
 
   try {
     await initUmaSimWasm();
-    const wasmParams = raceSimParamsToWasm(message.data, resolveRunnerName);
     // The WASM result is plain JSON — no Map serialization needed.
-    const wasmResult = await runRaceSim(wasmParams);
+    const wasmResult = await runRaceSim(message.data);
     const result = wasmResultToRaceSimResult(wasmResult);
     sendMessage({ type: 'race-sim-complete', data: result });
   } catch (error) {

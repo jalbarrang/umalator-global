@@ -68,6 +68,9 @@ jobs:
       - name: Build app
         run: bun run build
 
+      - name: Verify worker bundles stay data-free
+        run: bun run check:worker-bundles
+
       - name: Add SPA fallback for client-side routing
         run: printf '/*    /index.html    200\n' > dist/_redirects
 

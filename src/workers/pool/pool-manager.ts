@@ -1,5 +1,11 @@
 import { STAGE_CONFIGS, WorkQueue } from './work-queue';
 import { compileUmaSimWasmModule } from '@/lib/uma-sim-wasm/loader';
+import { buildSkillSamplingPlan } from '@/modules/simulation/simulators/wasm-skill-compare-plan';
+import type { Run1RoundParams } from '@/modules/simulation/types';
+import type { SkillSamplingPlan } from '@/modules/simulation/simulators/wasm-skill-compare';
+
+/** Resolves a batch's skills into a data-free sampling plan (injectable for tests). */
+export type SkillSamplingPlanBuilder = (params: Run1RoundParams) => SkillSamplingPlan;
 import type { PoolMetrics, SkillComparisonResponse } from '@/modules/simulation/types';
 import type {
   SimulationParams,
@@ -30,13 +36,17 @@ export class PoolManager {
   private workerGenerator: (options: { name: string }) => Worker;
   private poolSize: number;
   private isRunning = false;
+  private params: SimulationParams | null = null;
+  private planBuilder: SkillSamplingPlanBuilder;
 
   constructor(
     workerGenerator: (options: { name: string }) => Worker,
-    poolSize = navigator.hardwareConcurrency || 4
+    poolSize = navigator.hardwareConcurrency || 4,
+    planBuilder: SkillSamplingPlanBuilder = buildSkillSamplingPlan
   ) {
     this.workerGenerator = workerGenerator;
     this.poolSize = Math.max(2, Math.min(poolSize, 16)); // Clamp between 2 and 16
+    this.planBuilder = planBuilder;
   }
 
   /**
@@ -80,6 +90,7 @@ export class PoolManager {
     this.startTime = 0;
     this.totalSkills = 0;
     this.isRunning = false;
+    this.params = null;
   }
 
   /**
@@ -145,9 +156,19 @@ export class PoolManager {
 
     const batch = this.workQueue.getNextBatch();
 
-    if (batch) {
+    if (batch && this.params) {
       this.workerStates.set(workerId, 'busy');
-      this.sendToWorker(workerId, { type: 'work-batch', batch });
+      // Resolve this batch's skills into a data-free plan on the main thread;
+      // the worker runs it without importing the dataset.
+      const plan = this.planBuilder({
+        nsamples: batch.nsamples,
+        skills: batch.skills,
+        course: this.params.course,
+        racedef: this.params.racedef,
+        uma: this.params.uma,
+        options: this.params.options
+      });
+      this.sendToWorker(workerId, { type: 'work-batch', batchId: batch.batchId, plan });
     }
   }
 
@@ -216,6 +237,7 @@ export class PoolManager {
     this.callbacks = callbacks;
     this.startTime = performance.now();
     this.totalSkills = skills.length;
+    this.params = params;
 
     // Calculate batch size based on skill count and worker count
     const approximateSkillsBatchSize = Math.ceil(skills.length / (this.poolSize * 4));
@@ -232,20 +254,19 @@ export class PoolManager {
     // one per worker (reduces startup delay/jank). If compilation fails we send
     // the init without a module and each worker self-compiles as before.
     compileUmaSimWasmModule()
-      .then((compiledModule) => this.broadcastInit(params, compiledModule))
+      .then((compiledModule) => this.broadcastInit(compiledModule))
       .catch((error) => {
         console.warn('Shared WASM compile failed; workers will self-compile.', error);
-        this.broadcastInit(params, undefined);
+        this.broadcastInit(undefined);
       });
   }
 
   /** Send the init message (optionally with a shared compiled module) to all workers. */
-  private broadcastInit(params: SimulationParams, compiledModule?: WebAssembly.Module): void {
+  private broadcastInit(compiledModule?: WebAssembly.Module): void {
     this.workers.forEach((worker, id) => {
       worker.postMessage({
         type: 'init',
         workerId: id,
-        params,
         compiledModule
       } as WorkerInMessage);
     });

@@ -11,33 +11,38 @@
 // should compute it once per sample-count and reuse it (see
 // `optimization-engine-wasm.ts`).
 
-import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
-import type { CourseData } from 'sunday-tools/course/definitions';
-import type { RaceParameters } from 'sunday-tools/common/race';
-import type { SimulationOptions } from '@/modules/simulation/types';
-import type { WasmCompareData } from '@/lib/uma-sim-wasm/types';
-import { compareParamsToWasm } from '@/lib/uma-sim-wasm/adapter';
+import type {
+  WasmCompareData,
+  WasmCompareParams,
+  WasmCourseData,
+  WasmCreateRunner,
+  WasmDuelingRates,
+  WasmRaceParameters,
+  WasmSettings,
+  WasmSkillInput
+} from '@/lib/uma-sim-wasm/types';
 import { runCompare } from '@/lib/uma-sim-wasm/loader';
-import { getUmaDisplayInfo } from '@/modules/runners/utils';
-import { createPlannerCompareSettings } from './skill-planner-compare';
-import {
-  DEFAULT_DUELING_RATES,
-  computePositionDiff,
-  createSkillSorterByGroup,
-  toCreateRunner,
-  toSundayRaceParameters
-} from './shared';
+import { computePositionDiff, createSkillSorterByGroupWith } from './shared-pure';
 
-export type PlannerVacuumArgs = {
-  /** Runner stats/outfit; the skill list is supplied separately via `skills`. */
-  runner: IRunnerState;
-  /** Explicit, already-resolved skill list for this vacuum run. */
-  skills: Array<string>;
-  course: CourseData;
-  racedef: RaceParameters;
-  nsamples: number;
-  ignoreStaminaConsumption: boolean;
-  options: SimulationOptions;
+/**
+ * Fully-resolved, data-free planner context: every constant across candidate
+ * combinations (course/params/settings/runner stats) pre-converted to WASM DTOs
+ * on the main thread (via `buildPlannerWasmContext`), plus a `skillInputs` map
+ * and `groupIds` covering all obtained + candidate skills. The worker assembles
+ * a per-combination runner from this without touching the dataset.
+ */
+export type PlannerWasmContext = {
+  course: WasmCourseData;
+  parameters: WasmRaceParameters;
+  settings: WasmSettings;
+  duelingRates: WasmDuelingRates;
+  /** Runner DTO with an empty skill list; the per-combination skills are injected. */
+  runnerBase: WasmCreateRunner;
+  /** Resolved skill input DTOs keyed by full skill id. */
+  skillInputs: Record<string, WasmSkillInput>;
+  /** Group id keyed by normalized (base) skill id, for the order-stable sorter. */
+  groupIds: Record<string, number>;
+  masterSeed: number;
 };
 
 export type PlannerComparisonStats = {
@@ -48,45 +53,42 @@ export type PlannerComparisonStats = {
   median: number;
 };
 
-function resolveRunnerName(outfitId: string): string {
-  const info = outfitId ? getUmaDisplayInfo(outfitId) : null;
-  return info?.name ?? 'Runner';
-}
-
 /**
  * Run a single vacuum runner over `nsamples` rounds via the Rust `runCompare`
- * batch call.
+ * batch call, for a prebuilt {@link PlannerWasmContext}. Worker-safe.
  *
  * Skills are sorted with a group sorter built from this runner's own skills so
  * the result is self-contained and cacheable (the compare-family builds the
  * sorter from the union of both runners; here the baseline must be stable
  * across candidates, so each runner sorts independently).
  */
-export async function runPlannerVacuumWasm(args: PlannerVacuumArgs): Promise<WasmCompareData> {
-  const { runner, skills, course, racedef, nsamples, ignoreStaminaConsumption, options } = args;
-
-  const masterSeed = options.seed ?? 0;
-  const sorter = createSkillSorterByGroup(skills);
+export async function runPlannerVacuumWasm(
+  ctx: PlannerWasmContext,
+  skills: Array<string>,
+  nsamples: number
+): Promise<WasmCompareData> {
+  const sorter = createSkillSorterByGroupWith(skills, (baseId) => ctx.groupIds[baseId]);
   const sortedSkills = skills.toSorted(sorter);
-  const raceParameters = toSundayRaceParameters(racedef);
-  const settings = createPlannerCompareSettings(
-    ignoreStaminaConsumption,
-    options.staminaDrainOverrides
-  );
-  const create = toCreateRunner({ ...runner, skills }, sortedSkills);
 
-  return runCompare(
-    compareParamsToWasm({
-      course,
-      parameters: raceParameters,
-      settings,
-      duelingRates: DEFAULT_DUELING_RATES,
-      runner: create,
-      name: resolveRunnerName(create.outfitId),
-      nsamples,
-      masterSeed
-    })
-  );
+  const resolvedSkills: Array<WasmSkillInput> = [];
+  for (const id of sortedSkills) {
+    const input = ctx.skillInputs[id];
+    if (input) {
+      resolvedSkills.push(input);
+    }
+  }
+
+  const params: WasmCompareParams = {
+    course: ctx.course,
+    parameters: ctx.parameters,
+    settings: ctx.settings,
+    duelingRates: ctx.duelingRates,
+    runners: [{ ...ctx.runnerBase, skills: resolvedSkills }],
+    nsamples,
+    masterSeed: ctx.masterSeed
+  };
+
+  return runCompare(params);
 }
 
 /**

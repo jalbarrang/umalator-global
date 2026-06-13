@@ -5,7 +5,7 @@ import type {
   SingleSkillWasmWorkerInMessage as SingleSkillWorkerInMessage,
   SingleSkillWasmWorkerOutMessage as SingleSkillWorkerOutMessage
 } from '@/workers/skill-single-wasm.worker';
-import type { SimulationParams } from '@/workers/pool/types';
+import { buildSkillSamplingPlan } from '@/modules/simulation/simulators/wasm-skill-compare-plan';
 import {
   appendResultsToTable,
   setSkillLoading,
@@ -109,22 +109,23 @@ export function useUmaSingleRunner() {
         workerRef.current = null;
       };
 
-      // Prepare simulation params
+      // Resolve skills/uma data into a data-free plan on the main thread; the
+      // worker runs + reduces it without touching the dataset.
       const params = racedefToParams(racedef, runner.strategy);
-      const simulationParams: SimulationParams = {
+      const plan = buildSkillSamplingPlan({
+        nsamples: additionalSamples,
+        skills: [skillId],
         course,
         racedef: params,
         uma: runner,
-        options: defaultSimulationOptions
-      };
+        options: { ...defaultSimulationOptions, seed: newSeed }
+      });
 
       // Send run message to worker
       const runMessage: SingleSkillWorkerInMessage = {
         type: 'run',
         skillId,
-        nsamples: additionalSamples,
-        seed: newSeed,
-        params: simulationParams
+        plan
       };
 
       worker.postMessage(runMessage);

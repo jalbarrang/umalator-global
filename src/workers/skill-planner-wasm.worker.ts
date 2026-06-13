@@ -9,26 +9,21 @@
 
 import '../polyfills';
 import type { CandidateSkill } from '@/modules/skill-planner/types';
-import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
-import type { CourseData } from 'sunday-tools/course/definitions';
-import type { RaceParameters } from 'sunday-tools/common/race';
-import type { SimulationOptions } from '@/modules/simulation/types';
 import type { OptimizationResult } from '@/modules/skill-planner/types';
+import type { PlannerWasmContext } from '@/modules/simulation/simulators/wasm-skill-planner';
 import { initUmaSimWasm } from '@/lib/uma-sim-wasm/loader';
 import { runAdaptiveOptimizationWasm } from '@/modules/skill-planner/optimization-engine-wasm';
-import { getNetCost } from '@/modules/skill-planner/cost-calculator';
 
 interface OptimizeParams {
-  candidates: Record<string, CandidateSkill>;
+  /** Candidates with `netCost` precomputed on the main thread. */
+  candidates: Array<CandidateSkill>;
+  /** Pre-generated on the main thread (needs skill-family data). */
+  combinations: Array<Array<string>>;
   obtainedSkills: Array<string>; // Skills already owned (cost=0, always in baseline)
   budget: number;
-  hasFastLearner: boolean;
-  ignoreStaminaConsumption: boolean;
-  staminaDrainOverrides: Record<string, number>;
-  runner: IRunnerState;
-  course: CourseData;
-  racedef: RaceParameters;
-  options: SimulationOptions;
+  // Runner/course/race data pre-resolved on the main thread; the worker never
+  // touches the dataset.
+  context: PlannerWasmContext;
 }
 
 type SkillPlannerWorkerInMessage = { type: 'optimize'; data: OptimizeParams };
@@ -43,40 +38,18 @@ function sendMessage(message: SkillPlannerWorkerOutMessage): void {
 }
 
 async function runOptimization(params: OptimizeParams): Promise<void> {
-  const {
-    candidates,
-    obtainedSkills,
-    budget,
-    hasFastLearner,
-    ignoreStaminaConsumption,
-    staminaDrainOverrides,
-    runner,
-    course,
-    racedef,
-    options
-  } = params;
+  const { candidates, combinations, obtainedSkills, budget, context } = params;
 
   await initUmaSimWasm();
 
-  const candidateArray = Object.values(candidates)
-    .filter((c) => !obtainedSkills.includes(c.skillId))
-    .map((candidate) => ({
-      ...candidate,
-      netCost: getNetCost(candidate, hasFastLearner)
-    }));
+  const candidateArray = candidates.filter((c) => !obtainedSkills.includes(c.skillId));
 
   const result = await runAdaptiveOptimizationWasm({
     candidates: candidateArray,
+    combinations,
     obtainedSkills,
     budget,
-    ignoreStaminaConsumption,
-    runner,
-    course,
-    racedef,
-    options: {
-      ...options,
-      staminaDrainOverrides
-    },
+    context,
     onProgress: (progress) => {
       sendMessage({ type: 'skill-planner-progress', progress });
     }

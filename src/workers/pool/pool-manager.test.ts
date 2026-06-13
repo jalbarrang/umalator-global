@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { PoolManager } from './pool-manager';
+import { PoolManager, type SkillSamplingPlanBuilder } from './pool-manager';
 import type { SimulationParams, WorkerInMessage, WorkerOutMessage } from './types';
+import type { WasmCompareParams } from '@/lib/uma-sim-wasm/types';
 import type {
   SkillComparisonResponse,
   SkillComparisonRoundResult
@@ -58,16 +59,16 @@ class FakePoolWorker {
         break;
       case 'work-batch': {
         const results: SkillComparisonResponse = Object.fromEntries(
-          message.batch.skills.map((skillId) => [
-            skillId,
-            createRoundResult(skillId, message.batch.nsamples)
+          message.plan.entries.map((entry) => [
+            entry.skillId,
+            createRoundResult(entry.skillId, entry.nsamples)
           ])
         );
 
         this.emitMessage({
           type: 'batch-complete',
           workerId: 0,
-          batchId: message.batch.batchId,
+          batchId: message.batchId,
           results
         });
         break;
@@ -91,7 +92,23 @@ describe('PoolManager', () => {
     let finalLength = 0;
     let completed = false;
 
-    const manager = new PoolManager(() => new FakePoolWorker() as unknown as Worker, 2);
+    // Stub the plan builder so the scheduling test needs no real skill data:
+    // map each batch skill 1:1 to a plan entry carrying its sample count.
+    const stubPlanBuilder: SkillSamplingPlanBuilder = (params) => ({
+      entries: params.skills.map((skillId) => ({
+        skillId,
+        nsamples: params.nsamples,
+        fallback: { effectType: 0, effectTarget: 1 } as never,
+        wasmParamsBaseline: {} as WasmCompareParams,
+        wasmParamsTracked: {} as WasmCompareParams
+      }))
+    });
+
+    const manager = new PoolManager(
+      () => new FakePoolWorker() as unknown as Worker,
+      2,
+      stubPlanBuilder
+    );
 
     manager.run(['speed-boost'], {} as SimulationParams, {
       onProgress: (results) => {

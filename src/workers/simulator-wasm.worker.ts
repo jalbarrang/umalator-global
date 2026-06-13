@@ -5,17 +5,16 @@
 
 import '../polyfills';
 
-import { cloneDeep } from 'es-toolkit';
-import type { CompareParams } from '@/modules/simulation/types';
 import type { CompareResult } from '@/modules/simulation/compare.types';
 import { initUmaSimWasm } from '@/lib/uma-sim-wasm/loader';
 import {
   reduceCompareRoundsPublic,
-  runComparisonRoundsWasm,
+  runComparisonRoundsFromPlan,
+  type ComparePlan,
   type CompareRounds
 } from '@/modules/simulation/simulators/wasm-compare';
 
-type CompareWorkerInMessage = { type: 'compare'; data: CompareParams };
+type CompareWorkerInMessage = { type: 'compare'; data: ComparePlan };
 type CompareWorkerOutMessage =
   | { type: 'compare-progress'; currentSamples: number; totalSamples: number }
   | { type: 'compare'; results: CompareResult }
@@ -39,36 +38,10 @@ function* progressiveSampleSizes(targetSamples: number) {
   yield targetSamples;
 }
 
-async function runRunnersComparison(params: CompareParams): Promise<void> {
-  const {
-    nsamples,
-    course,
-    racedef,
-    uma1,
-    uma2,
-    options,
-    forcedPositions,
-    injectedDebuffs,
-    scenarioOverrides
-  } = params;
-
-  const uma1_ = cloneDeep(uma1);
-  const uma2_ = cloneDeep(uma2);
-  const compareOptions = { ...options, mode: 'compare' };
+async function runRunnersComparison(plan: ComparePlan): Promise<void> {
+  const { nsamples } = plan;
 
   await initUmaSimWasm();
-
-  const baseParams: CompareParams = {
-    nsamples,
-    course,
-    racedef,
-    uma1: uma1_,
-    uma2: uma2_,
-    options: compareOptions,
-    forcedPositions,
-    injectedDebuffs,
-    scenarioOverrides
-  };
 
   // Simulate incrementally: each progressive checkpoint adds only the *new*
   // rounds (seed-offset by the count already run), so every round is simulated
@@ -82,7 +55,7 @@ async function runRunnersComparison(params: CompareParams): Promise<void> {
   for (const n of progressiveSampleSizes(nsamples)) {
     const delta = n - done;
     if (delta > 0) {
-      const chunk = await runComparisonRoundsWasm(baseParams, delta, done);
+      const chunk = await runComparisonRoundsFromPlan(plan, delta, done);
       roundsA.push(...chunk.roundsA);
       roundsB.push(...chunk.roundsB);
       done = n;

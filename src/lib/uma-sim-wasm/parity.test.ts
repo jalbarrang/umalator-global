@@ -33,7 +33,7 @@ import { createPlannerCompareSettings } from '@/modules/simulation/simulators/sk
 import { runPlannerComparison } from '@/modules/simulation/parity-reference/planner-compare.reference';
 import { computePlannerStats } from '@/modules/simulation/simulators/wasm-skill-planner';
 import { runRaceSim } from 'sunday-tools/race-sim/run-race-sim';
-import { compareParamsToWasm, raceSimParamsToWasm } from '@/lib/uma-sim-wasm/adapter';
+import { compareParamsToWasm, raceSimParamsToWasm } from '@/lib/uma-sim-wasm/adapter-params';
 import type { WasmCompareData, WasmRaceSimResult } from '@/lib/uma-sim-wasm/types';
 import {
   DEFAULT_DUELING_RATES,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { wasmCompareRoundDataToCollected, wasmResultToRaceSimResult } from './adapter';
+import { wasmCompareRoundDataToCollected, wasmResultToRaceSimResult } from './adapter-results';
 import type { WasmCompareRoundData, WasmRaceSimResult } from './types';
 
 function baseRound(overrides: Partial<WasmCompareRoundData> = {}): WasmCompareRoundData {

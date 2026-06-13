@@ -30,6 +30,9 @@ import type {
   SkillPlanningMeta
 } from '../types';
 import { buildOptimizationInputFingerprint } from '../input-fingerprint';
+import { getNetCost } from '../cost-calculator';
+import { generateCombinations } from '../optimizer';
+import { buildPlannerWasmContext } from '@/modules/simulation/simulators/wasm-skill-planner-context';
 import { coursesService } from '@/modules/data/services/CourseService';
 import { racedefToParams } from '@/utils/races';
 import { useSettingsStore } from '@/store/settings.store';
@@ -190,22 +193,45 @@ export function useSkillPlannerOptimizer() {
       staminaDrainOverrides
     });
 
+    // Resolve costs + runner/course/race data into a data-free plan on the main
+    // thread; the optimizer worker never touches the dataset.
+    const candidatesWithNetCost = Object.values(expandedCandidates).map((candidate) => ({
+      ...candidate,
+      netCost: getNetCost(candidate, hasFastLearner)
+    }));
+
+    // Combination generation needs skill-family data, so it runs on the main
+    // thread; the worker receives the ready-made combinations.
+    const filteredCandidates = candidatesWithNetCost.filter(
+      (candidate) => !obtainedSkills.includes(candidate.skillId)
+    );
+    const combinations = generateCombinations(filteredCandidates, budget);
+
+    const skillIds = Array.from(
+      new Set([...obtainedSkills, ...candidatesWithNetCost.map((candidate) => candidate.skillId)])
+    );
+
+    const context = buildPlannerWasmContext({
+      runner,
+      skillIds,
+      course,
+      racedef: raceParams,
+      ignoreStaminaConsumption,
+      options: {
+        ...defaultSimulationOptions,
+        staminaDrainOverrides,
+        seed: seedValue
+      }
+    });
+
     webWorkerRef.current?.postMessage({
       type: 'optimize',
       data: {
-        candidates: expandedCandidates,
+        candidates: filteredCandidates,
+        combinations,
         obtainedSkills,
         budget,
-        hasFastLearner,
-        ignoreStaminaConsumption,
-        staminaDrainOverrides,
-        runner,
-        course,
-        racedef: raceParams,
-        options: {
-          ...defaultSimulationOptions,
-          seed: seedValue
-        }
+        context
       }
     });
   };

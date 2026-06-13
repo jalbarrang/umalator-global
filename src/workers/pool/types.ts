@@ -2,6 +2,7 @@ import type { CourseData } from 'sunday-tools/course/definitions';
 import type { RaceParameters } from 'sunday-tools/common/race';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import type { SimulationOptions, SkillComparisonResponse } from '@/modules/simulation/types';
+import type { SkillSamplingPlan } from '@/modules/simulation/simulators/wasm-skill-compare';
 
 export type WorkerState = 'idle' | 'busy' | 'terminated';
 
@@ -31,11 +32,16 @@ export type WorkerInMessage =
   | {
       type: 'init';
       workerId: number;
-      params: SimulationParams;
       /** Pre-compiled WASM module shared by the pool (skips per-worker compile). */
       compiledModule?: WebAssembly.Module;
     }
-  | { type: 'work-batch'; batch: WorkBatch }
+  | {
+      type: 'work-batch';
+      batchId: number;
+      // Data-free sampling plan resolved on the main thread (pool-manager) from
+      // the batch's skill ids; the worker never touches the dataset.
+      plan: SkillSamplingPlan;
+    }
   | { type: 'terminate' };
 
 // Messages from worker to main thread

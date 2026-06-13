@@ -11,20 +11,12 @@ import type {
   StaminaStats,
   Stats
 } from '@/modules/simulation/compare.types';
-import type { CompareParams } from '@/modules/simulation/types';
 import type { CollectedRunnerRoundData } from 'sunday-tools/common/race-observer';
+import type { WasmCompareParams } from '@/lib/uma-sim-wasm/types';
 import { initializeSimulationRun } from '@/modules/simulation/compare.types';
-import { compareParamsToWasm, wasmCompareRoundDataToCollected } from '@/lib/uma-sim-wasm/adapter';
+import { wasmCompareRoundDataToCollected } from '@/lib/uma-sim-wasm/adapter-results';
 import { runCompare } from '@/lib/uma-sim-wasm/loader';
-import { getUmaDisplayInfo } from '@/modules/runners/utils';
-import {
-  DEFAULT_DUELING_RATES,
-  computePositionDiff,
-  createCompareSettings,
-  createSkillSorterByGroup,
-  toCreateRunner,
-  toSundayRaceParameters
-} from './shared';
+import { computePositionDiff } from './shared-pure';
 
 type CompareStatsAccumulator = {
   lengths: Array<number>;
@@ -42,11 +34,6 @@ function calculateStats(stats: CompareStatsAccumulator, totalSamples: number) {
   const frequency = totalSamples > 0 ? (stats.count / totalSamples) * 100 : 0;
 
   return { min, max, mean, frequency };
-}
-
-function resolveRunnerName(outfitId: string, fallbackIndex: number): string {
-  const info = outfitId ? getUmaDisplayInfo(outfitId) : null;
-  return info?.name ?? `Runner ${fallbackIndex + 1}`;
 }
 
 /**
@@ -267,96 +254,35 @@ export type CompareRounds = {
 };
 
 /**
- * Run the two WASM vacuum batches and return the raw per-round primary telemetry
- * (no reduction). `seedOffset` shifts the master seed so callers can simulate a
- * contiguous chunk of rounds whose global index `seedOffset + j` still maps to
- * master seed `masterSeed + seedOffset + j` — keeping a chunked run bit-for-bit
- * identical to a single full run. The bashin reduction is a separate, cheap pass
- * ([`reduceCompareRoundsPublic`]) so progressive UI never re-simulates.
+ * A fully-resolved, data-free compare plan: the two runners already converted to
+ * WASM boundary DTOs on the main thread (via `buildComparePlan` in
+ * `wasm-compare-plan.ts`). The worker only varies seed/sample-count per chunk,
+ * so it never touches the skill dataset. `baseSeed` is the master seed for
+ * round 0; chunk `seedOffset` maps global round `seedOffset + j` to master seed
+ * `baseSeed + seedOffset + j`, keeping chunked runs bit-for-bit identical.
  */
-export async function runComparisonRoundsWasm(
-  params: CompareParams,
+export type ComparePlan = {
+  wasmParamsA: WasmCompareParams;
+  wasmParamsB: WasmCompareParams;
+  nsamples: number;
+  baseSeed: number;
+};
+
+/**
+ * Run the two WASM vacuum batches for a prebuilt {@link ComparePlan} and return
+ * the raw per-round primary telemetry (no reduction). Worker-safe: it only
+ * overrides `masterSeed` + `nsamples` on the already-resolved params.
+ */
+export async function runComparisonRoundsFromPlan(
+  plan: ComparePlan,
   chunkSamples: number,
   seedOffset: number
 ): Promise<CompareRounds> {
-  const {
-    course,
-    racedef,
-    uma1,
-    uma2,
-    options,
-    forcedPositions,
-    injectedDebuffs,
-    scenarioOverrides
-  } = params;
-
-  const masterSeed = (options.seed ?? 0) + seedOffset;
-  const raceParameters = toSundayRaceParameters(racedef);
-
-  const allSkillIds = [...uma1.skills, ...uma2.skills];
-  const skillSorter = createSkillSorterByGroup(allSkillIds);
-  const runnerASortedSkills = uma1.skills.toSorted(skillSorter);
-  const runnerBSortedSkills = uma2.skills.toSorted(skillSorter);
-
-  const settingsA = createCompareSettings({
-    healthSystem: true,
-    spotStruggle: true,
-    sectionModifier: options.allowSectionModifierUma1,
-    rushed: options.allowRushedUma1,
-    downhill: options.allowDownhillUma1,
-    witChecks: options.skillCheckChanceUma1,
-    staminaDrainOverrides: options.staminaDrainOverrides
-  });
-  const settingsB = createCompareSettings({
-    healthSystem: true,
-    spotStruggle: true,
-    sectionModifier: options.allowSectionModifierUma2,
-    rushed: options.allowRushedUma2,
-    downhill: options.allowDownhillUma2,
-    witChecks: options.skillCheckChanceUma2,
-    staminaDrainOverrides: options.staminaDrainOverrides
-  });
-
-  const runnerA = toCreateRunner(
-    uma1,
-    runnerASortedSkills,
-    forcedPositions?.uma1,
-    injectedDebuffs?.uma1,
-    scenarioOverrides?.uma1
-  );
-  const runnerB = toCreateRunner(
-    uma2,
-    runnerBSortedSkills,
-    forcedPositions?.uma2,
-    injectedDebuffs?.uma2,
-    scenarioOverrides?.uma2
-  );
+  const masterSeed = plan.baseSeed + seedOffset;
 
   const [dataA, dataB] = await Promise.all([
-    runCompare(
-      compareParamsToWasm({
-        course,
-        parameters: raceParameters,
-        settings: settingsA,
-        duelingRates: DEFAULT_DUELING_RATES,
-        runner: runnerA,
-        name: resolveRunnerName(runnerA.outfitId, 0),
-        nsamples: chunkSamples,
-        masterSeed
-      })
-    ),
-    runCompare(
-      compareParamsToWasm({
-        course,
-        parameters: raceParameters,
-        settings: settingsB,
-        duelingRates: DEFAULT_DUELING_RATES,
-        runner: runnerB,
-        name: resolveRunnerName(runnerB.outfitId, 1),
-        nsamples: chunkSamples,
-        masterSeed
-      })
-    )
+    runCompare({ ...plan.wasmParamsA, masterSeed, nsamples: chunkSamples }),
+    runCompare({ ...plan.wasmParamsB, masterSeed, nsamples: chunkSamples })
   ]);
 
   return { roundsA: primaryRounds(dataA.rounds), roundsB: primaryRounds(dataB.rounds) };
@@ -365,10 +291,4 @@ export async function runComparisonRoundsWasm(
 /** Reduce aligned per-round telemetry into a {@link CompareResult}. */
 export function reduceCompareRoundsPublic(rounds: CompareRounds, nsamples: number): CompareResult {
   return reduceCompareRounds(rounds.roundsA, rounds.roundsB, nsamples);
-}
-
-/** Run a WASM-backed vacuum comparison and produce the {@link CompareResult}. */
-export async function runComparisonWasm(params: CompareParams): Promise<CompareResult> {
-  const rounds = await runComparisonRoundsWasm(params, params.nsamples, 0);
-  return reduceCompareRoundsPublic(rounds, params.nsamples);
 }

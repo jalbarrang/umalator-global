@@ -1,13 +1,21 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import RaceSimWasmWorker from '@workers/race-sim-wasm.worker.ts?worker';
+import type { CreateRunner } from 'sunday-tools/common/runner';
 import type { RaceSimResult } from 'sunday-tools/race-sim/run-race-sim';
 import type {
   RaceSimWasmWorkerInMessage as RaceSimWorkerInMessage,
   RaceSimWasmWorkerOutMessage as RaceSimWorkerOutMessage,
   RaceSimWasmWorkerParams as RaceSimWorkerParams
 } from '@/workers/race-sim-wasm.worker';
+import { raceSimParamsToWasm } from '@/lib/uma-sim-wasm/adapter-params';
+import { getUmaDisplayInfo } from '@/modules/runners/utils';
 
 const createRaceSimWorker = () => new RaceSimWasmWorker();
+
+function resolveRunnerName(runner: CreateRunner, index: number): string {
+  const info = runner.outfitId ? getUmaDisplayInfo(runner.outfitId) : null;
+  return info?.name ?? `Runner ${index + 1}`;
+}
 
 export type RaceSimRunnerOptions = {
   onResult?: (result: RaceSimResult) => void;
@@ -86,9 +94,11 @@ export function useRaceSimRunner(options: RaceSimRunnerOptions = {}) {
       setError(null);
       updateRunning(true);
 
+      // Resolve skills/uma data into WASM params on the main thread; the worker
+      // runs them without touching the dataset.
       const message: RaceSimWorkerInMessage = {
         type: 'race-sim-run',
-        data: params
+        data: raceSimParamsToWasm(params, resolveRunnerName)
       };
       worker.postMessage(message);
     },

@@ -5,19 +5,19 @@
  */
 
 import '../polyfills';
-import { clone, cloneDeepWith } from 'es-toolkit';
 import type { SkillComparisonResponse } from '@/modules/simulation/types';
-import type { SimulationParams } from './pool/types';
 import { initUmaSimWasm } from '@/lib/uma-sim-wasm/loader';
-import { runSamplingWasm } from '@/modules/simulation/simulators/wasm-skill-compare';
+import {
+  runSamplingFromPlan,
+  type SkillSamplingPlan
+} from '@/modules/simulation/simulators/wasm-skill-compare';
 
 export type SingleSkillWasmWorkerInMessage =
   | {
       type: 'run';
       skillId: string;
-      nsamples: number;
-      seed: number;
-      params: SimulationParams;
+      // Pre-resolved on the main thread; the worker never touches the dataset.
+      plan: SkillSamplingPlan;
     }
   | { type: 'terminate' };
 
@@ -30,23 +30,11 @@ function sendMessage(message: SingleSkillWasmWorkerOutMessage): void {
 }
 
 async function run(message: Extract<SingleSkillWasmWorkerInMessage, { type: 'run' }>) {
-  const { skillId, nsamples, seed, params } = message;
-  const { course, racedef, uma, options } = params;
-
-  const baseRunner = cloneDeepWith(uma, (value, key) => {
-    if (key === 'skills') return clone(value);
-  });
+  const { skillId, plan } = message;
 
   await initUmaSimWasm();
 
-  const results: SkillComparisonResponse = await runSamplingWasm({
-    nsamples,
-    skills: [skillId],
-    course,
-    racedef,
-    uma: baseRunner,
-    options: { ...options, seed }
-  });
+  const results: SkillComparisonResponse = await runSamplingFromPlan(plan);
 
   sendMessage({ type: 'complete', skillId, results });
 }

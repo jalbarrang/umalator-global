@@ -1,40 +1,15 @@
-import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
-import type { CreateRunner } from 'sunday-tools/common/runner';
-import type {
-  DuelingRates,
-  SimulationSettings,
-  RaceParameters as SundayRaceParameters
-} from 'sunday-tools/common/race';
-import type { ISkillTarget, ISkillType } from 'sunday-tools/skills/definitions';
-import type {
-  InjectedDebuff,
-  RunComparisonParams,
-  ScenarioOverrides
-} from '@/modules/simulation/types';
-import { parseAptitudeName, parseStrategyName } from 'sunday-tools/runner/runner.types';
+// Data-dependent simulation helpers (read `skillsService`). MAIN-THREAD ONLY —
+// importing this module pulls the skill dataset into the bundle, so it must
+// never be reached from `src/workers/**`. Worker-side code imports the data-free
+// helpers from `shared-pure.ts` directly. Pure helpers are re-exported here so
+// existing main-side callers keep their `from './shared'` imports working.
+
 import { SkillTarget, SkillType } from 'sunday-tools/skills/definitions';
+import type { ISkillTarget, ISkillType } from 'sunday-tools/skills/definitions';
 import { skillsService } from '@/modules/data/services/SkillService';
+import { normalizeSkillId, createSkillSorterByGroupWith, type EffectMeta } from './shared-pure';
 
-export type EffectMeta = {
-  effectType: ISkillType;
-  effectTarget: ISkillTarget;
-};
-
-export const DEFAULT_DUELING_RATES: DuelingRates = {
-  runaway: 10,
-  frontRunner: 10,
-  paceChaser: 10,
-  lateSurger: 10,
-  endCloser: 10
-};
-
-export function normalizeSkillId(skillId: string): string {
-  return skillId.split('-')[0] ?? skillId;
-}
-
-export function isSameSkill(skillIdA: string, skillIdB: string): boolean {
-  return skillIdA === skillIdB || normalizeSkillId(skillIdA) === normalizeSkillId(skillIdB);
-}
+export * from './shared-pure';
 
 export function getSkillEffectMetadata(skillId: string): Array<EffectMeta> {
   const baseSkillId = normalizeSkillId(skillId);
@@ -61,121 +36,11 @@ export function getFallbackEffectMeta(skillId: string): EffectMeta {
 }
 
 export function createSkillSorterByGroup(allSkills: Array<string>) {
-  const commonSkills = Array.from(new Set(allSkills.toSorted((a, b) => +a - +b)));
-
-  const getCommonGroupIndex = (id: string) => {
+  return createSkillSorterByGroupWith(allSkills, (baseId) => {
     try {
-      const baseId = normalizeSkillId(id);
-      const skill = skillsService.getById(baseId);
-      if (!skill) return commonSkills.length;
-      const groupId = skill.groupId;
-
-      const index = commonSkills.findIndex((skillId) => {
-        const commonBaseId = normalizeSkillId(skillId);
-        const commonSkill = skillsService.getById(commonBaseId);
-        return commonSkill?.groupId === groupId;
-      });
-      return index > -1 ? index : commonSkills.length;
+      return skillsService.getById(baseId)?.groupId;
     } catch {
-      return commonSkills.length;
+      return undefined;
     }
-  };
-
-  return (a: string, b: string) => {
-    const groupIndexA = getCommonGroupIndex(a);
-    const groupIndexB = getCommonGroupIndex(b);
-    if (groupIndexA !== groupIndexB) {
-      return groupIndexA - groupIndexB;
-    }
-    return +normalizeSkillId(a) - +normalizeSkillId(b);
-  };
-}
-
-export function toCreateRunner(
-  runner: IRunnerState,
-  sortedSkills: Array<string>,
-  forcedPositions?: Record<string, number>,
-  injectedDebuffs?: Array<InjectedDebuff>,
-  scenarioOverrides?: ScenarioOverrides
-): CreateRunner {
-  return {
-    outfitId: runner.outfitId,
-    mood: runner.mood,
-    strategy: parseStrategyName(runner.strategy),
-    aptitudes: {
-      distance: parseAptitudeName(runner.distanceAptitude),
-      surface: parseAptitudeName(runner.surfaceAptitude),
-      strategy: parseAptitudeName(runner.strategyAptitude)
-    },
-    stats: {
-      speed: runner.speed,
-      stamina: runner.stamina,
-      power: runner.power,
-      guts: runner.guts,
-      wit: runner.wisdom
-    },
-    skills: sortedSkills,
-    forcedPositions,
-    injectedDebuffs: injectedDebuffs?.map(({ skillId, position }) => ({ skillId, position })),
-    forcedRushedRegions: scenarioOverrides?.forcedRushed
-      ? [scenarioOverrides.forcedRushed]
-      : undefined,
-    forcedDuelingRegions: scenarioOverrides?.forcedDueling
-      ? [scenarioOverrides.forcedDueling]
-      : undefined,
-    forcedSpotStruggleRegions: scenarioOverrides?.forcedSpotStruggle
-      ? [scenarioOverrides.forcedSpotStruggle]
-      : undefined,
-    forcedRank: scenarioOverrides?.forcedRank
-  };
-}
-
-export function toSundayRaceParameters(
-  racedef: RunComparisonParams['racedef']
-): SundayRaceParameters {
-  const race = racedef as Record<string, unknown>;
-
-  const ground = (race.ground ?? race.groundCondition) as SundayRaceParameters['ground'];
-  const weather = race.weather as SundayRaceParameters['weather'];
-  const season = race.season as SundayRaceParameters['season'];
-  const timeOfDay = (race.timeOfDay ?? race.time) as SundayRaceParameters['timeOfDay'];
-  const grade = race.grade as SundayRaceParameters['grade'];
-
-  if (ground == null || weather == null || season == null || timeOfDay == null || grade == null) {
-    throw new Error('Invalid race conditions for Sunday engine migration');
-  }
-
-  return { ground, weather, season, timeOfDay, grade };
-}
-
-export function createCompareSettings(
-  overrides: Partial<Omit<SimulationSettings, 'mode'>> = {}
-): SimulationSettings {
-  return {
-    mode: 'compare',
-    healthSystem: false,
-    sectionModifier: false,
-    rushed: false,
-    downhill: false,
-    spotStruggle: false,
-    dueling: false,
-    witChecks: false,
-    positionKeepMode: 0,
-    staminaDrainOverrides: {},
-    ...overrides
-  };
-}
-
-export function computePositionDiff(positionA: Array<number>, positionB: Array<number>): number {
-  if (positionA.length === 0 || positionB.length === 0) {
-    throw new Error('Position data is empty while computing position difference');
-  }
-
-  if (positionB.length <= positionA.length) {
-    const bFrames = positionB.length;
-    return positionB[bFrames - 1] - positionA[bFrames - 1];
-  }
-
-  const aFrames = positionA.length;
-  return positionB[aFrames - 1] - positionA[aFrames - 1];
+  });
 }
