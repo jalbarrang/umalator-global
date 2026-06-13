@@ -1,6 +1,8 @@
 import { Route, Routes, useNavigate } from 'react-router';
 
 import { Link } from 'react-router';
+import { Fragment } from 'react';
+import { setShowChangelogModal, setShowSuggestionModal } from '@/store/ui.store';
 import { Toaster } from '@/components/ui/sonner';
 import { AnalyticsConsentBanner } from '@/components/analytics-consent-banner';
 import { PageMetadata } from '@/components/seo/page-metadata';
@@ -217,27 +219,9 @@ export function RootComponent() {
           </Routes>
         </main>
 
-        <footer className="shrink-0 border-t px-4 py-1.5 text-xs text-muted-foreground">
-          <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-0.5 text-center">
-            <span>This website is not affiliated with Cygames, Inc.</span>
-            <span aria-hidden="true">·</span>
-            <Link to="/privacy" className="hover:text-foreground hover:underline">
-              Privacy Policy
-            </Link>
-            <span aria-hidden="true">·</span>
-            <a
-              href="https://github.com/jalbarrang/umalator-global"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-foreground hover:underline"
-            >
-              GitHub
-            </a>
-          </div>
-        </footer>
+        <AppFooter />
 
         <AnalyticsConsentBanner />
-
         <CreditsModal />
         <ChangelogModal />
         <SuggestionModal />
@@ -253,6 +237,63 @@ export function RootComponent() {
       <Toaster />
       <TutorialRoot />
     </TutorialProvider>
+  );
+}
+
+const footerLinkClass = 'hover:text-foreground hover:underline';
+
+function AppFooter() {
+  const showSuggestions = Boolean(
+    config.suggestions.workerUrl && config.suggestions.turnstileSiteKey
+  );
+
+  const links = [
+    <Link key="privacy" to="/privacy" className={footerLinkClass}>
+      Privacy Policy
+    </Link>,
+    <button
+      key="changelog"
+      type="button"
+      className={footerLinkClass}
+      onClick={() => setShowChangelogModal(true)}
+    >
+      Changelog
+    </button>,
+    showSuggestions ? (
+      <button
+        key="suggestions"
+        type="button"
+        className={footerLinkClass}
+        onClick={() => setShowSuggestionModal(true)}
+      >
+        Suggestions
+      </button>
+    ) : null,
+    <a
+      key="github"
+      href="https://github.com/jalbarrang/umalator-global"
+      target="_blank"
+      rel="noopener noreferrer"
+      className={footerLinkClass}
+    >
+      GitHub
+    </a>
+  ].filter(Boolean);
+
+  return (
+    <footer className="shrink-0 border-t px-4 py-1.5 text-xs text-muted-foreground">
+      <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-0.5 text-center">
+        <span>This website is not affiliated with Cygames, Inc.</span>
+        <span className="flex flex-wrap items-center justify-center gap-x-3 gap-y-0.5">
+          {links.map((link, index) => (
+            <Fragment key={link!.key}>
+              {index > 0 && <span aria-hidden="true">·</span>}
+              {link}
+            </Fragment>
+          ))}
+        </span>
+      </div>
+    </footer>
   );
 }
 

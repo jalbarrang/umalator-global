@@ -6,14 +6,9 @@ import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Drawer, DrawerContent, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 import { cn } from '@/lib/utils';
-import {
-  setShowChangelogModal,
-  setShowCreditsModal,
-  setShowSuggestionModal
-} from '@/store/ui.store';
-import { MenuIcon, MessageSquarePlusIcon, ScrollTextIcon, UsersIcon } from 'lucide-react';
+import { setShowCreditsModal } from '@/store/ui.store';
+import { MenuIcon, UsersIcon } from 'lucide-react';
 
-import { config } from '@/config';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 type NavItem = {
@@ -63,50 +58,6 @@ export function Navbar() {
               <Button
                 variant="outline"
                 className="flex size-9 items-center justify-center"
-                aria-label="Open credits"
-                nativeButton={false}
-                render={
-                  <a
-                    href="https://github.com/jalbarrang/umalator-global"
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label="Open GitHub project"
-                  >
-                    <img
-                      src={`${config.basePath}svg/github.svg`}
-                      alt=""
-                      className="size-4 dark:invert"
-                    />
-                  </a>
-                }
-              />
-            }
-          />
-          <TooltipContent>GitHub</TooltipContent>
-        </Tooltip>
-        {config.suggestions.workerUrl && config.suggestions.turnstileSiteKey ? (
-          <Tooltip>
-            <TooltipTrigger
-              render={
-                <Button
-                  variant="outline"
-                  className="flex size-9 items-center justify-center"
-                  onClick={() => setShowSuggestionModal(true)}
-                  aria-label="Open suggestions"
-                />
-              }
-            >
-              <MessageSquarePlusIcon className="size-4" />
-            </TooltipTrigger>
-            <TooltipContent>Suggestions</TooltipContent>
-          </Tooltip>
-        ) : null}
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                variant="outline"
-                className="flex size-9 items-center justify-center"
                 onClick={() => setShowCreditsModal(true)}
                 aria-label="Open credits"
               />
@@ -115,21 +66,6 @@ export function Navbar() {
             <UsersIcon className="size-4" />
           </TooltipTrigger>
           <TooltipContent>Credits</TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                variant="outline"
-                className="flex size-9 items-center justify-center"
-                onClick={() => setShowChangelogModal(true)}
-                aria-label="Open changelog"
-              />
-            }
-          >
-            <ScrollTextIcon className="size-4" />
-          </TooltipTrigger>
-          <TooltipContent>Changelog</TooltipContent>
         </Tooltip>
         <ThemeToggle />
       </div>
