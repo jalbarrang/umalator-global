@@ -213,16 +213,40 @@ class RepresentativeRunTracker {
 }
 
 /** Run a WASM-backed skill comparison for a prebuilt plan entry. Worker-safe. */
+/**
+ * Identity key for a baseline vacuum: every candidate in a basin run shares the
+ * same baseline runner, so its result can be reused instead of re-simulated per
+ * skill. Within a run the only things that vary are the sample count (per stage)
+ * and — rarely — the skill ordering, so the key captures seed + samples + the
+ * baseline skill order. Reused results are read-only in the reduction.
+ */
+function baselineKey(params: WasmCompareParams): string {
+  const skillOrder = (params.runners[0]?.skills ?? [])
+    .map((skill) => skill.skillId)
+    .join(',');
+  return `${params.masterSeed}:${params.nsamples}:${skillOrder}`;
+}
+
+/** Per-run cache of baseline vacuum results, keyed by {@link baselineKey}. */
+export type BaselineCache = Map<string, Promise<WasmCompareData>>;
+
 export async function runSkillComparisonFromEntry(
-  entry: SkillSamplingPlanEntry
+  entry: SkillSamplingPlanEntry,
+  baselineCache?: BaselineCache
 ): Promise<SkillComparisonResult> {
   const { skillId: trackedSkillId, nsamples, fallback, wasmParamsBaseline, wasmParamsTracked } =
     entry;
 
-  const [dataA, dataB] = await Promise.all([
-    runCompare(wasmParamsBaseline),
-    runCompare(wasmParamsTracked)
-  ]);
+  // The baseline (runner without the tracked skill) is identical across every
+  // candidate in the run — run it once and reuse, instead of per skill.
+  const key = baselineKey(wasmParamsBaseline);
+  let baselinePromise = baselineCache?.get(key);
+  if (!baselinePromise) {
+    baselinePromise = runCompare(wasmParamsBaseline);
+    baselineCache?.set(key, baselinePromise);
+  }
+
+  const [dataA, dataB] = await Promise.all([baselinePromise, runCompare(wasmParamsTracked)]);
 
   const diff: Array<number> = [];
   const trackedMetaCollection: Array<SkillTrackedMeta> = [];
@@ -268,13 +292,14 @@ export async function runSkillComparisonFromEntry(
  * `buildSkillSamplingPlan`.
  */
 export async function runSamplingFromPlan(
-  plan: SkillSamplingPlan
+  plan: SkillSamplingPlan,
+  baselineCache?: BaselineCache
 ): Promise<SkillComparisonResponse> {
   const data: SkillComparisonResponse = {};
 
   for (const entry of plan.entries) {
     const { results, runData, min, max, mean, median, skillActivations } =
-      await runSkillComparisonFromEntry(entry);
+      await runSkillComparisonFromEntry(entry, baselineCache);
 
     data[entry.skillId] = {
       id: entry.skillId,
