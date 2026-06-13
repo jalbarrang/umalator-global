@@ -8,3 +8,4 @@ export {
 } from './snapshot';
 export { ImportRaceSimDialog } from './import-race-sim-dialog';
 export { encodeRaceSimShareCode, decodeRaceSimShareCode } from './share-code';
+export { parseHakurakuRaceJson, isHakurakuReplayData } from './hakuraku';
