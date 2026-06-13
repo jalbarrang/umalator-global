@@ -11,6 +11,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::shared_kernel::ids::{RunnerId, SkillId};
+use crate::shared_kernel::language::Strategy;
 use crate::shared_kernel::math::Timer;
 use crate::shared_kernel::region::{Region, RegionList};
 use crate::skills::activation::ActivationSamplePolicy;
@@ -140,6 +141,11 @@ pub struct SkillTrigger {
     pub effects: Vec<SkillEffect>,
     /// Extra runtime gate evaluated each tick (`None` == always-true).
     pub extra_condition: Option<DynamicCondition>,
+    /// For `EnemyStrategy`-targeted (and Kakari-strategy) external debuffs, the
+    /// running style the debuff hits — derived from the activation condition
+    /// (`running_style_count_<style>_otherself`), since the effect data does not
+    /// carry it. `None` for skills whose targeting needs no strategy.
+    pub target_strategy: Option<Strategy>,
 }
 
 /// A skill whose trigger point has been fixed, awaiting the runner reaching it.
@@ -157,6 +163,26 @@ pub struct PendingSkill {
     pub effects: Vec<SkillEffect>,
     /// Extra runtime gate evaluated each tick (`None` == always-true).
     pub extra_condition: Option<DynamicCondition>,
+    /// Derived target running style for `EnemyStrategy` external debuffs (see
+    /// [`SkillTrigger::target_strategy`]).
+    pub target_strategy: Option<Strategy>,
+}
+
+/// An opponent-facing (external) debuff a runner emitted this frame, awaiting the
+/// race aggregate to route it onto the resolved target runners. Emitted by the
+/// caster during its update; consumed by the aggregate's coordinator pass (the
+/// caster never applies it to itself).
+#[derive(Debug, Clone, PartialEq)]
+pub struct EmittedDebuff {
+    /// The skill that produced the debuff.
+    pub skill_id: SkillId,
+    /// The single external-debuff effect to apply to each target (unscaled — the
+    /// receiving runner scales duration by course distance).
+    pub effect: SkillEffect,
+    /// The effect's target selector.
+    pub target: SkillTarget,
+    /// Derived target running style for `EnemyStrategy`/`KakariStrategy`.
+    pub target_strategy: Option<Strategy>,
 }
 
 /// A targeted (debuff/ally) skill awaiting its trigger point.

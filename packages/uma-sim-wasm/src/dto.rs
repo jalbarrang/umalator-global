@@ -994,6 +994,7 @@ pub struct WasmRaceEvent {
 fn log_event_kind_str(kind: RaceLogEventKind) -> &'static str {
     match kind {
         RaceLogEventKind::SkillActivated => "skill-activated",
+        RaceLogEventKind::Debuffed => "debuffed",
         RaceLogEventKind::Rushed => "rushed",
         RaceLogEventKind::RushedEnd => "rushed-end",
         RaceLogEventKind::DuelingStart => "dueling-start",

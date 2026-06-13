@@ -7,6 +7,7 @@ const TICKS_PER_SECOND = 15;
 
 export type RaceEventKind =
   | 'skill-activated'
+  | 'debuffed'
   | 'rushed'
   | 'rushed-end'
   | 'dueling-start'

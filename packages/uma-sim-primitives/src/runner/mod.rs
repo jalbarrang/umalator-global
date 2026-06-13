@@ -391,6 +391,10 @@ pub struct Runner {
     pub used_skills: HashSet<String>,
     /// Targeted-skill activation log.
     pub used_targeted_skills: Vec<UsedTargetedSkill>,
+    /// Opponent-facing debuffs this runner emitted this frame, awaiting the race
+    /// aggregate to route them onto target runners. Drained every frame by the
+    /// `coordinate_external_debuffs` coordinator pass.
+    pub emitted_debuffs: Vec<crate::skills::model::EmittedDebuff>,
     /// Pending self-skills awaiting their trigger.
     pub pending_skills: Vec<PendingSkill>,
     /// Pending targeted skills awaiting their trigger.

@@ -16,8 +16,9 @@ use crate::runner::physics::RunnerSnapshot;
 use crate::runner::skills::FieldView;
 use crate::runner::Runner;
 use crate::shared_kernel::ids::RunnerId;
-use crate::shared_kernel::language::Strategy;
+use crate::shared_kernel::language::{strategy_matches, Strategy};
 use crate::skills::condition::dynamic::{ActiveRunner, RunnerSnapshot as DynRunnerSnapshot};
+use crate::skills::effect::SkillTarget;
 
 /// A read-only snapshot of the whole field, frozen at the start of a frame.
 pub struct FieldSnapshot {
@@ -37,6 +38,9 @@ pub struct FieldSnapshot {
     pub leader_position: Option<f64>,
     /// Number of active runners.
     pub num_active: i64,
+    /// Total field size (finished + active). Used as `num_umas` for order
+    /// conditions so thresholds do not shrink as runners cross the line.
+    pub num_total: i64,
 }
 
 /// One active runner's frozen per-frame state.
@@ -139,8 +143,17 @@ pub fn build_field_snapshot(
 
     let previous_order = std::mem::take(&mut tracker.runner_order);
     let mut order: HashMap<RunnerId, i64> = HashMap::new();
+    // Finished runners hold the top places (in finish order); runners still on
+    // course are ranked behind them. Without this, the order map only ranks
+    // active runners, so a trailing runner becomes "order 1" the moment the real
+    // leaders cross the line — wrongly satisfying in-the-lead skill gates (e.g.
+    // an `order==1` unique) at the very end of the race.
+    let finished_count = finished_runners.len() as i64;
+    for (place, id) in finished_runners.iter().enumerate() {
+        order.insert(*id, place as i64 + 1);
+    }
     for (i, entry) in sorted.iter().enumerate() {
-        order.insert(entry.id, i as i64 + 1);
+        order.insert(entry.id, finished_count + i as i64 + 1);
     }
     // Forced-rank overrides.
     for runner in runners.iter() {
@@ -157,8 +170,10 @@ pub fn build_field_snapshot(
     let leader_position = sorted.first().map(|e| e.position);
     let second_place_position = sorted.get(1).map(|e| e.position);
 
+    let num_active = entries.len() as i64;
     FieldSnapshot {
-        num_active: entries.len() as i64,
+        num_active,
+        num_total: finished_count + num_active,
         entries,
         order,
         previous_order,
@@ -211,11 +226,48 @@ pub fn build_field_view(self_id: RunnerId, snapshot: &FieldSnapshot) -> FieldVie
     FieldView {
         self_order: snapshot.order.get(&self_id).copied(),
         self_previous_order: snapshot.previous_order.get(&self_id).copied(),
-        num_umas: snapshot.num_active,
+        num_umas: snapshot.num_total,
         leader_position: snapshot.leader_position,
         other_snapshots,
         active_runners,
     }
+}
+
+/// Resolve the target runner ids for an external debuff emitted by `source_id`,
+/// reading the frozen field snapshot. The caster is never a target, and finished
+/// runners (absent from `entries`) are never hit.
+///
+/// Only the targets reachable by the self-activation routing path are modeled:
+/// `EnemyStrategy` (the Hesitant family), `All`, and the position-relative
+/// `AheadOfSelf`/`BehindSelf`. Other selectors (`InFov`, `UmaId`,
+/// `UsedRecovery`, `AheadOfPosition`, `Kakari*`, ally targets) are not yet routed
+/// from a live cast — manual debuff injection remains their path.
+pub fn resolve_debuff_targets(
+    snapshot: &FieldSnapshot,
+    source_id: RunnerId,
+    target: SkillTarget,
+    target_strategy: Option<Strategy>,
+) -> Vec<RunnerId> {
+    let source_pos = snapshot
+        .entries
+        .iter()
+        .find(|e| e.id == source_id)
+        .map(|e| e.position);
+    snapshot
+        .entries
+        .iter()
+        .filter(|e| e.id != source_id)
+        .filter(|e| match target {
+            SkillTarget::EnemyStrategy => {
+                target_strategy.is_some_and(|s| strategy_matches(e.strategy, s))
+            }
+            SkillTarget::All => true,
+            SkillTarget::AheadOfSelf => source_pos.is_some_and(|p| e.position > p),
+            SkillTarget::BehindSelf => source_pos.is_some_and(|p| e.position < p),
+            _ => false,
+        })
+        .map(|e| e.id)
+        .collect()
 }
 
 /// Whether another runner blocks `runner` to the side (caps inward lane drift).
@@ -266,4 +318,109 @@ pub fn condition_value(runner: &Runner, name: &str) -> i32 {
         .conditions
         .get(name)
         .map_or(0, |condition| condition.value_on_start())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::HashMap;
+
+    fn entry(id: u32, position: f64, strategy: Strategy) -> SnapEntry {
+        SnapEntry {
+            id: RunnerId(id),
+            position,
+            current_lane: 0.0,
+            current_speed: 20.0,
+            strategy,
+            gate: 0,
+            is_rushed: false,
+            is_dueling: false,
+        }
+    }
+
+    fn snapshot(entries: Vec<SnapEntry>) -> FieldSnapshot {
+        FieldSnapshot {
+            num_total: entries.len() as i64,
+            num_active: entries.len() as i64,
+            entries,
+            order: HashMap::new(),
+            previous_order: HashMap::new(),
+            pacer: None,
+            pacer_position: None,
+            second_place_position: None,
+            leader_position: None,
+        }
+    }
+
+    fn ids(mut v: Vec<RunnerId>) -> Vec<RunnerId> {
+        v.sort_by_key(|r| r.0);
+        v
+    }
+
+    #[test]
+    fn enemy_strategy_targets_matching_others_only() {
+        // R0 = caster (Late Surger), R1/R2 front runners, R3 pace chaser.
+        let snap = snapshot(vec![
+            entry(0, 100.0, Strategy::LateSurger),
+            entry(1, 120.0, Strategy::FrontRunner),
+            entry(2, 80.0, Strategy::Runaway), // Runaway counts as nige (front)
+            entry(3, 90.0, Strategy::PaceChaser),
+        ]);
+        let got = resolve_debuff_targets(
+            &snap,
+            RunnerId(0),
+            SkillTarget::EnemyStrategy,
+            Some(Strategy::FrontRunner),
+        );
+        assert_eq!(ids(got), vec![RunnerId(1), RunnerId(2)]);
+    }
+
+    #[test]
+    fn enemy_strategy_excludes_self_even_if_same_style() {
+        // A front runner casting a nige-targeting debuff hits the *other* front
+        // runner, never itself.
+        let snap = snapshot(vec![
+            entry(0, 100.0, Strategy::FrontRunner),
+            entry(1, 120.0, Strategy::FrontRunner),
+            entry(2, 90.0, Strategy::PaceChaser),
+        ]);
+        let got = resolve_debuff_targets(
+            &snap,
+            RunnerId(0),
+            SkillTarget::EnemyStrategy,
+            Some(Strategy::FrontRunner),
+        );
+        assert_eq!(got, vec![RunnerId(1)]);
+    }
+
+    #[test]
+    fn enemy_strategy_without_derived_strategy_hits_nobody() {
+        let snap = snapshot(vec![
+            entry(0, 100.0, Strategy::LateSurger),
+            entry(1, 120.0, Strategy::FrontRunner),
+        ]);
+        let got = resolve_debuff_targets(&snap, RunnerId(0), SkillTarget::EnemyStrategy, None);
+        assert!(got.is_empty());
+    }
+
+    #[test]
+    fn all_and_position_relative_targets() {
+        let snap = snapshot(vec![
+            entry(0, 100.0, Strategy::PaceChaser), // caster
+            entry(1, 120.0, Strategy::FrontRunner), // ahead
+            entry(2, 80.0, Strategy::LateSurger),   // behind
+        ]);
+        assert_eq!(
+            ids(resolve_debuff_targets(&snap, RunnerId(0), SkillTarget::All, None)),
+            vec![RunnerId(1), RunnerId(2)]
+        );
+        assert_eq!(
+            resolve_debuff_targets(&snap, RunnerId(0), SkillTarget::AheadOfSelf, None),
+            vec![RunnerId(1)]
+        );
+        assert_eq!(
+            resolve_debuff_targets(&snap, RunnerId(0), SkillTarget::BehindSelf, None),
+            vec![RunnerId(2)]
+        );
+    }
 }

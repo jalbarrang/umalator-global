@@ -28,7 +28,7 @@ type IndexedEvent = {
   event: RaceEvent;
 };
 
-const SKILL_KINDS = new Set<RaceEventKind>(['skill-activated']);
+const SKILL_KINDS = new Set<RaceEventKind>(['skill-activated', 'debuffed']);
 const COMBAT_KINDS = new Set<RaceEventKind>([
   'dueling-start',
   'dueling-end',
@@ -45,6 +45,7 @@ const FILTERS: Array<{ id: EventFilter; label: string }> = [
 
 const EVENT_KIND_STYLES: Record<RaceEventKind, EventKindStyle> = {
   'skill-activated': { label: 'Skill', dotClassName: 'bg-sky-500' },
+  debuffed: { label: 'Debuff', dotClassName: 'bg-fuchsia-500' },
   rushed: { label: 'Rushed', dotClassName: 'bg-amber-500' },
   'rushed-end': { label: 'Rush', dotClassName: 'bg-amber-400' },
   'dueling-start': { label: 'Duel', dotClassName: 'bg-rose-500' },
@@ -99,6 +100,12 @@ function getEventDescription(event: RaceEvent): string {
       if (!skillId) return 'activated a skill';
       const skillName = skillsService.getById(skillId)?.name;
       return skillName ? `activated ${skillName} (${skillId})` : `activated skill ${skillId}`;
+    }
+    case 'debuffed': {
+      const skillId = event.detail?.skillId;
+      if (!skillId) return 'was debuffed';
+      const skillName = skillsService.getById(skillId)?.name;
+      return skillName ? `was debuffed by ${skillName} (${skillId})` : `was debuffed by ${skillId}`;
     }
     case 'rushed':
       return 'entered rush';

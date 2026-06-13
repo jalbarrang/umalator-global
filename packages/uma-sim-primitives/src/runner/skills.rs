@@ -27,8 +27,8 @@ use crate::skills::condition::{ApplyParams, ConditionResolution, SkillEvalRunner
 use crate::skills::debuff::{get_external_debuff_effects, is_external_debuff_effect};
 use crate::skills::effect::{SkillRarity, SkillType};
 use crate::skills::model::{
-    build_skill_effects, ActiveSkill, ActiveTargetedSkill, PendingSkill, PendingTargetedSkill,
-    Skill, SkillEffect, SkillTrigger, TargetedSkillOrigin,
+    build_skill_effects, ActiveSkill, ActiveTargetedSkill, EmittedDebuff, PendingSkill,
+    PendingTargetedSkill, Skill, SkillEffect, SkillTrigger, TargetedSkillOrigin,
 };
 use crate::skills::recovery::resolve_recovery_modifier;
 
@@ -259,6 +259,7 @@ pub fn build_skill_data(params: &BuildSkillDataParams<'_>) -> Vec<SkillTrigger> 
                 regions,
                 effects,
                 extra_condition,
+                target_strategy: derive_target_strategy(&alt.condition),
             });
         }
     }
@@ -287,6 +288,7 @@ pub fn build_skill_data(params: &BuildSkillDataParams<'_>) -> Vec<SkillTrigger> 
         regions: after_end,
         effects,
         extra_condition: Some(DynamicCondition::new(|_| false)),
+        target_strategy: None,
     }]
 }
 
@@ -294,6 +296,26 @@ pub fn build_skill_data(params: &BuildSkillDataParams<'_>) -> Vec<SkillTrigger> 
 /// explicitly references the multi-trigger tokens).
 fn condition_allows_second_trigger(condition: &str) -> bool {
     condition.contains("is_activate_other_skill_detail") || condition.contains("is_used_skill_id")
+}
+
+/// Derive the running style an `EnemyStrategy` external debuff targets from its
+/// activation condition. The effect data is identical across the whole *Hesitant*
+/// family (`target:18, valueUsage:1`), so the only signal for *which* strategy is
+/// hit is the `running_style_count_<style>_otherself` token in the condition.
+/// Returns `None` when the condition names no such style.
+fn derive_target_strategy(condition: &str) -> Option<crate::shared_kernel::language::Strategy> {
+    use crate::shared_kernel::language::Strategy;
+    if condition.contains("running_style_count_nige_otherself") {
+        Some(Strategy::FrontRunner)
+    } else if condition.contains("running_style_count_senko_otherself") {
+        Some(Strategy::PaceChaser)
+    } else if condition.contains("running_style_count_sashi_otherself") {
+        Some(Strategy::LateSurger)
+    } else if condition.contains("running_style_count_oikomi_otherself") {
+        Some(Strategy::EndCloser)
+    } else {
+        None
+    }
 }
 
 impl Runner {
@@ -318,6 +340,7 @@ impl Runner {
         self.heals_activated_count = 0;
         self.used_skills.clear();
         self.used_targeted_skills.clear();
+        self.emitted_debuffs.clear();
         self.pending_skill_removal.clear();
         self.pending_skills.clear();
         self.pending_targeted_skills.clear();
@@ -354,6 +377,7 @@ impl Runner {
                     trigger: trigger_region,
                     effects: trigger.effects,
                     extra_condition: trigger.extra_condition,
+                    target_strategy: trigger.target_strategy,
                 });
             }
         }
@@ -541,10 +565,17 @@ impl Runner {
         for effect in &effects {
             // External debuffs target other runners (e.g. Wild Wind / Speed
             // Eater bundle a self-buff with an opponent-facing Current Speed
-            // debuff). They must never land on the caster — only the manual
-            // injected-debuff path (`process_targeted_skill_activations`) routes
-            // these onto another runner.
+            // debuff; the Hesitant family debuffs a whole enemy strategy). They
+            // must never land on the caster: emit them to the per-frame outbox so
+            // the race aggregate's `coordinate_external_debuffs` pass routes them
+            // onto the resolved target runners via `receive_targeted_effect`.
             if is_external_debuff_effect(effect) {
+                self.emitted_debuffs.push(EmittedDebuff {
+                    skill_id: skill.skill_id.clone(),
+                    effect: *effect,
+                    target: effect.target,
+                    target_strategy: skill.target_strategy,
+                });
                 continue;
             }
             let scaling = if skill.rarity == SkillRarity::Evolution {

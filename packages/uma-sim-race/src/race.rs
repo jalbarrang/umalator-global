@@ -17,7 +17,7 @@ use uma_sim_primitives::events::{RaceObservation, RaceObserver, RaceObservers};
 use uma_sim_primitives::position_keep::{update_position_keep_coefficient, PositionKeepContext};
 use uma_sim_primitives::race_support::{
     build_field_snapshot, build_field_view, has_side_blocking_runner, is_overtaking_runner,
-    proximity_snapshots, FieldOrderTracker,
+    proximity_snapshots, resolve_debuff_targets, FieldOrderTracker, FieldSnapshot,
 };
 use uma_sim_primitives::runner::lifecycle::{CreateRunner, PrepareContext};
 use uma_sim_primitives::runner::physics::{
@@ -351,6 +351,12 @@ impl Race {
         }
         self.runners = runners;
 
+        // Route opponent-facing debuffs that runners emitted this frame onto the
+        // runners they target (Hesitant family, Wild Wind / Speed Eater, ...).
+        // Runners only *emit* during their own update; the aggregate *commits*
+        // the cross-runner application here, against the same frozen snapshot.
+        self.coordinate_external_debuffs(&snapshot);
+
         // Cross-runner coordinator passes: contention mechanics that
         // observe/mutate the rest of the field. These run as aggregate passes
         // over the just-updated field so resolution order is irrelevant.
@@ -364,6 +370,61 @@ impl Race {
         update_first_position_in_late_race(&mut self.runners, self.course.distance);
 
         self.emit_runner_ticks_and_finishes(dt);
+    }
+
+    /// **External-debuff routing** coordinator. Drains every runner's per-frame
+    /// emitted-debuff outbox (populated when the runner activated a skill with an
+    /// opponent-facing effect) and applies each effect onto the resolved target
+    /// runners through the existing targeted-effect path
+    /// ([`Runner::receive_targeted_effect`]). The caster never receives its own
+    /// external effect; finished runners (absent from the snapshot) are not hit.
+    ///
+    /// Determinism: outboxes are drained in ascending `RunnerId` order and
+    /// targets are resolved from the frozen frame snapshot. Effect modifiers add
+    /// commutatively, so multiple sources debuffing one target in a frame yield
+    /// an order-independent result.
+    fn coordinate_external_debuffs(&mut self, snapshot: &FieldSnapshot) {
+        let course_distance = self.course.distance;
+
+        // Phase 1: drain outboxes (RunnerId order) and resolve target ids.
+        struct Route {
+            target: RunnerId,
+            source: RunnerId,
+            skill_id: uma_sim_primitives::shared_kernel::ids::SkillId,
+            effect: uma_sim_primitives::skills::model::SkillEffect,
+        }
+        let mut routes: Vec<Route> = Vec::new();
+        for runner in &mut self.runners {
+            if runner.emitted_debuffs.is_empty() {
+                continue;
+            }
+            let source = runner.id;
+            let emitted = std::mem::take(&mut runner.emitted_debuffs);
+            for debuff in emitted {
+                let targets =
+                    resolve_debuff_targets(snapshot, source, debuff.target, debuff.target_strategy);
+                for target in targets {
+                    routes.push(Route {
+                        target,
+                        source,
+                        skill_id: debuff.skill_id.clone(),
+                        effect: debuff.effect,
+                    });
+                }
+            }
+        }
+
+        // Phase 2: apply onto each target via the targeted-effect path.
+        for route in routes {
+            if let Some(target) = self.runners.iter_mut().find(|r| r.id == route.target) {
+                target.receive_targeted_effect(
+                    route.skill_id,
+                    vec![route.effect],
+                    route.source,
+                    course_distance,
+                );
+            }
+        }
     }
 
     /// Normal-mode **proximity dueling** coordinator (port of `proximityDueling`).
@@ -714,6 +775,69 @@ mod tests {
         assert_eq!(a.finished_runners(), b.finished_runners());
     }
 
+    fn hesitant_props(name: &str, strategy: Strategy) -> CreateRunner {
+        use uma_sim_primitives::shared_kernel::ids::SkillId;
+        use uma_sim_primitives::skills::effect::{SkillRarity, SkillTarget};
+        use uma_sim_primitives::skills::model::{RawSkillEffect, Skill, SkillAlternative};
+        let mut p = props(name, strategy);
+        p.skills = vec![Skill {
+            skill_id: SkillId::new("200851"),
+            rarity: SkillRarity::White,
+            alternatives: vec![SkillAlternative {
+                base_duration: 30000.0,
+                cooldown_time: None,
+                condition: "running_style_count_nige_otherself>=1&phase_random==2".to_owned(),
+                precondition: None,
+                effects: vec![RawSkillEffect {
+                    modifier: -1500.0,
+                    target: SkillTarget::EnemyStrategy,
+                    effect_type: 21, // Current Speed
+                    value_usage: Some(1),
+                    value_level_usage: Some(1),
+                }],
+            }],
+        }];
+        p
+    }
+
+    fn hesitant_field() -> Race {
+        let mut race = Race::new(
+            test_course(),
+            GroundCondition::Firm,
+            SimulationSettings::default(),
+            test_race_params(),
+        );
+        let strategies = [
+            Strategy::FrontRunner,
+            Strategy::FrontRunner,
+            Strategy::PaceChaser,
+            Strategy::LateSurger,
+            Strategy::EndCloser,
+        ];
+        for (i, s) in strategies.into_iter().enumerate() {
+            race.add_runner(hesitant_props(&format!("R{i}"), s));
+        }
+        race
+    }
+
+    #[test]
+    fn cross_runner_debuff_routing_is_deterministic() {
+        let mut a = hesitant_field();
+        a.prepare_round(2024);
+        a.run();
+        let mut b = hesitant_field();
+        b.prepare_round(2024);
+        b.run();
+        assert_eq!(a.finished_runners(), b.finished_runners());
+        assert_eq!(a.finished_runners().len(), 5);
+        // The debuff actually fired: at least one runner received a targeted skill.
+        let any_debuffed = a
+            .runners()
+            .iter()
+            .any(|r| !r.used_targeted_skills.is_empty());
+        assert!(any_debuffed, "expected at least one Hesitant debuff to land");
+    }
+
     fn pace_chaser_race(n: u32) -> Race {
         let mut race = Race::new(
             test_course(),
@@ -725,6 +849,89 @@ mod tests {
             race.add_runner(props(&format!("R{i}"), Strategy::PaceChaser));
         }
         race
+    }
+
+    #[test]
+    fn external_debuff_routes_to_matching_strategy_not_self() {
+        use uma_sim_primitives::race_support::build_field_snapshot;
+        use uma_sim_primitives::shared_kernel::ids::SkillId;
+        use uma_sim_primitives::skills::effect::{SkillTarget, SkillType};
+        use uma_sim_primitives::skills::model::{EmittedDebuff, SkillEffect};
+
+        // R0 caster (Late Surger), R1 Front Runner (target), R2 Pace Chaser.
+        let mut race = Race::new(
+            test_course(),
+            GroundCondition::Firm,
+            SimulationSettings::default(),
+            test_race_params(),
+        );
+        race.add_runner(props("caster", Strategy::LateSurger));
+        race.add_runner(props("front", Strategy::FrontRunner));
+        race.add_runner(props("pace", Strategy::PaceChaser));
+        race.prepare_round(7);
+
+        let snapshot =
+            build_field_snapshot(&mut race.runners, &race.finished_runners, &mut race.order_tracker);
+
+        // The caster emits a nige-targeting Current Speed debuff this frame.
+        race.runners[0].emitted_debuffs.push(EmittedDebuff {
+            skill_id: SkillId::new("200851"),
+            effect: SkillEffect {
+                target: SkillTarget::EnemyStrategy,
+                effect_type: SkillType::CurrentSpeed,
+                base_duration: 3.0,
+                modifier: -0.15,
+                value_usage: Some(1),
+                value_level_usage: Some(1),
+            },
+            target: SkillTarget::EnemyStrategy,
+            target_strategy: Some(Strategy::FrontRunner),
+        });
+
+        race.coordinate_external_debuffs(&snapshot);
+
+        // The front runner is debuffed; caster and pace chaser are untouched.
+        assert_eq!(race.runners[1].targeted_current_speed_active.len(), 1);
+        assert!(race.runners[1].modifiers.current_speed.total() < 0.0);
+        assert!(race.runners[0].targeted_current_speed_active.is_empty());
+        assert!(race.runners[2].targeted_current_speed_active.is_empty());
+        // The emitter's outbox is drained.
+        assert!(race.runners[0].emitted_debuffs.is_empty());
+        // The victim logged the received debuff.
+        assert_eq!(race.runners[1].used_targeted_skills.len(), 1);
+        assert_eq!(race.runners[1].used_targeted_skills[0].skill_id.as_str(), "200851");
+    }
+
+    #[test]
+    fn finished_runners_keep_their_place_in_the_order_map() {
+        use uma_sim_primitives::race_support::{build_field_snapshot, build_field_view};
+
+        let mut race = pace_chaser_race(3);
+        race.prepare_round(99);
+
+        // Lay the field out on course: R2 ahead, R1 middle, R0 behind.
+        race.runners[0].position = 1000.0;
+        race.runners[1].position = 1500.0;
+        race.runners[2].position = 2000.0;
+
+        // The two leaders cross the line; only R0 is still racing.
+        race.finished_runners = vec![RunnerId(2), RunnerId(1)];
+
+        let snapshot =
+            build_field_snapshot(&mut race.runners, &race.finished_runners, &mut race.order_tracker);
+
+        // Finished runners hold places 1 and 2 (in finish order); the lone active
+        // runner is ranked last, not promoted to "order 1".
+        assert_eq!(snapshot.order.get(&RunnerId(2)).copied(), Some(1));
+        assert_eq!(snapshot.order.get(&RunnerId(1)).copied(), Some(2));
+        assert_eq!(snapshot.order.get(&RunnerId(0)).copied(), Some(3));
+        assert_eq!(snapshot.num_active, 1);
+        assert_eq!(snapshot.num_total, 3);
+
+        // The trailing runner's field view reports last place over the full field.
+        let view = build_field_view(RunnerId(0), &snapshot);
+        assert_eq!(view.self_order, Some(3));
+        assert_eq!(view.num_umas, 3);
     }
 
     #[test]

@@ -255,6 +255,7 @@ impl Runner {
             heals_activated_count: 0,
             used_skills: std::collections::HashSet::new(),
             used_targeted_skills: Vec::new(),
+            emitted_debuffs: Vec::new(),
             pending_skills: Vec::new(),
             pending_targeted_skills: Vec::new(),
             pending_skill_removal: std::collections::HashSet::new(),

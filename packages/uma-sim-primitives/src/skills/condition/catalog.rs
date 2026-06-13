@@ -1518,21 +1518,48 @@ pub fn build_catalog() -> ConditionCatalog {
             Some(f64::from(same) / f64::from(num))
         }),
     );
+    // `running_style_count_<style>_otherself` counts how many *other* runners in
+    // the field share that running style (excluding self). The previous
+    // implementation only checked whether *self* had the style, so a front
+    // runner would only ever satisfy `running_style_count_nige_otherself` (never
+    // the senko/sashi/oikomi variants) regardless of the actual field — e.g.
+    // "Hesitant Front Runners" was the only Hesitant skill that could ever fire.
     add(
         "running_style_count_nige_otherself",
-        value_filter(|p| f64::from(strategy_matches(p.runner.strategy, Strategy::FrontRunner))),
+        value_filter_or_noop(|p| {
+            let counts = p.extra.strategy_counts.as_ref()?;
+            let total = counts.get(&Strategy::FrontRunner).copied().unwrap_or(0)
+                + counts.get(&Strategy::Runaway).copied().unwrap_or(0);
+            let self_in = strategy_matches(p.runner.strategy, Strategy::FrontRunner);
+            Some(f64::from(total) - if self_in { 1.0 } else { 0.0 })
+        }),
     );
     add(
         "running_style_count_senko_otherself",
-        value_filter(|p| f64::from(strategy_matches(p.runner.strategy, Strategy::PaceChaser))),
+        value_filter_or_noop(|p| {
+            let counts = p.extra.strategy_counts.as_ref()?;
+            let total = counts.get(&Strategy::PaceChaser).copied().unwrap_or(0);
+            let self_in = p.runner.strategy == Strategy::PaceChaser;
+            Some(f64::from(total) - if self_in { 1.0 } else { 0.0 })
+        }),
     );
     add(
         "running_style_count_sashi_otherself",
-        value_filter(|p| f64::from(strategy_matches(p.runner.strategy, Strategy::LateSurger))),
+        value_filter_or_noop(|p| {
+            let counts = p.extra.strategy_counts.as_ref()?;
+            let total = counts.get(&Strategy::LateSurger).copied().unwrap_or(0);
+            let self_in = p.runner.strategy == Strategy::LateSurger;
+            Some(f64::from(total) - if self_in { 1.0 } else { 0.0 })
+        }),
     );
     add(
         "running_style_count_oikomi_otherself",
-        value_filter(|p| f64::from(strategy_matches(p.runner.strategy, Strategy::EndCloser))),
+        value_filter_or_noop(|p| {
+            let counts = p.extra.strategy_counts.as_ref()?;
+            let total = counts.get(&Strategy::EndCloser).copied().unwrap_or(0);
+            let self_in = p.runner.strategy == Strategy::EndCloser;
+            Some(f64::from(total) - if self_in { 1.0 } else { 0.0 })
+        }),
     );
     add(
         "running_style_equal_popularity_one",
@@ -2005,6 +2032,66 @@ mod tests {
         let (regions, cond) = apply_with("order_rate<=50", ConditionResolution::Static);
         assert!(cond.is_none());
         assert_eq!(regions.0, whole_course(&course()).0);
+    }
+
+    fn apply_otherself(condition: &str, self_strategy: Strategy, counts: &[(Strategy, u32)]) -> bool {
+        use std::collections::HashMap;
+        let catalog = build_catalog();
+        let parser = ConditionParser::new(&catalog);
+        let op = parser.parse(condition).expect("parse");
+        let course = course();
+        let mut runner = runner();
+        runner.strategy = self_strategy;
+        let mut extra = params();
+        let map: HashMap<Strategy, u32> = counts.iter().copied().collect();
+        extra.strategy_counts = Some(map);
+        let regions = whole_course(&course);
+        let (out, _) = op
+            .apply(&ApplyParams {
+                regions,
+                course: &course,
+                runner: &runner,
+                extra: &extra,
+                resolution: ConditionResolution::Dynamic,
+            })
+            .expect("apply");
+        !out.0.is_empty()
+    }
+
+    #[test]
+    fn running_style_count_otherself_counts_the_field_excluding_self() {
+        // Field: 2 front runners + 1 runaway (all "nige") + 3 pace chasers.
+        let field = [
+            (Strategy::FrontRunner, 2),
+            (Strategy::Runaway, 1),
+            (Strategy::PaceChaser, 3),
+        ];
+
+        // A front runner sees the *other* 2 nige runners (3 total - self).
+        assert!(apply_otherself(
+            "running_style_count_nige_otherself>=1",
+            Strategy::FrontRunner,
+            &field
+        ));
+        // ...and the 3 pace chasers (it is not one of them).
+        assert!(apply_otherself(
+            "running_style_count_senko_otherself>=3",
+            Strategy::FrontRunner,
+            &field
+        ));
+        // No late surgers in the field -> the sashi variant must not fire.
+        assert!(!apply_otherself(
+            "running_style_count_sashi_otherself>=1",
+            Strategy::FrontRunner,
+            &field
+        ));
+
+        // The lone front runner in a field is the only nige -> 0 others.
+        assert!(!apply_otherself(
+            "running_style_count_nige_otherself>=1",
+            Strategy::FrontRunner,
+            &[(Strategy::FrontRunner, 1), (Strategy::PaceChaser, 8)]
+        ));
     }
 
     #[test]

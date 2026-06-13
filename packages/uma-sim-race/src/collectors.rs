@@ -283,6 +283,9 @@ impl RaceObserver for CollectorObserver {
 pub enum RaceLogEventKind {
     /// A skill activated.
     SkillActivated,
+    /// An opponent-facing debuff landed on this runner (cross-runner or
+    /// injected). `detail.skill_id` is the debuff skill.
+    Debuffed,
     /// Entered the rushed (temptation) state.
     Rushed,
     /// Left the rushed state.
@@ -364,6 +367,9 @@ struct RunnerPrevState {
     out_of_hp: bool,
     skills_activated_count: i64,
     seen_used_skills: HashSet<String>,
+    /// Number of received-targeted-skill log entries already turned into
+    /// `Debuffed` events (the log is append-only, so this is a high-water mark).
+    seen_targeted_count: usize,
     position_keep_state: i64,
     phase: i64,
     is_overtaking: bool,
@@ -602,6 +608,25 @@ impl RaceObserver for EventLogObserver {
             }
         }
 
+        // Newly received debuffs (cross-runner external debuffs or injected
+        // debuffs) appended to the runner's targeted-skill log since last tick.
+        let targeted = runner.used_targeted_skills();
+        let seen_targeted = targeted.len().max(prev.seen_targeted_count);
+        if targeted.len() > prev.seen_targeted_count {
+            for entry in &targeted[prev.seen_targeted_count..] {
+                inner.push(
+                    RaceLogEventKind::Debuffed,
+                    id,
+                    position,
+                    tick,
+                    Some(RaceLogEventDetail {
+                        skill_id: Some(entry.skill_id.clone()),
+                        ..Default::default()
+                    }),
+                );
+            }
+        }
+
         inner.states.insert(
             id,
             RunnerPrevState {
@@ -612,6 +637,7 @@ impl RaceObserver for EventLogObserver {
                 out_of_hp,
                 skills_activated_count: count,
                 seen_used_skills: seen,
+                seen_targeted_count: seen_targeted,
                 position_keep_state: pk,
                 phase,
                 is_overtaking: overtaking,
