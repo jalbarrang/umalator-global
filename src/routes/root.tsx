@@ -1,6 +1,8 @@
 import { Route, Routes, useNavigate } from 'react-router';
 
+import { Link } from 'react-router';
 import { Toaster } from '@/components/ui/sonner';
+import { AnalyticsConsentBanner } from '@/components/analytics-consent-banner';
 import { PageMetadata } from '@/components/seo/page-metadata';
 import { Button } from '@/components/ui/button';
 import { ChangelogModal } from '@/components/changelog-modal';
@@ -214,6 +216,25 @@ export function RootComponent() {
             <Route path="*" element={<NotFoundComponent />} />
           </Routes>
         </main>
+
+        <footer className="shrink-0 border-t px-4 py-1.5 text-xs text-muted-foreground">
+          <div className="flex items-center justify-center gap-3">
+            <Link to="/privacy" className="hover:text-foreground hover:underline">
+              Privacy Policy
+            </Link>
+            <span aria-hidden="true">·</span>
+            <a
+              href="https://github.com/jalbarrang/umalator-global"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-foreground hover:underline"
+            >
+              GitHub
+            </a>
+          </div>
+        </footer>
+
+        <AnalyticsConsentBanner />
 
         <CreditsModal />
         <ChangelogModal />

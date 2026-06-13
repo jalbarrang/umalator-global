@@ -23,12 +23,21 @@ import { RootComponent } from './routes/root';
 
 import posthog from 'posthog-js';
 import { PostHogErrorBoundary, PostHogProvider } from '@posthog/react';
+import { useAnalyticsConsentStore } from '@/store/analytics-consent.store';
 
 if (config.posthog.key) {
   posthog.init(config.posthog.key, {
     api_host: config.posthog.host,
-    defaults: '2026-01-30'
+    defaults: '2026-01-30',
+    // No capturing until the visitor explicitly opts in (see ConsentBanner).
+    opt_out_capturing_by_default: true,
+    respect_dnt: true
   });
+
+  // Re-apply a previously stored decision on load.
+  if (useAnalyticsConsentStore.getState().consent === 'granted') {
+    posthog.opt_in_capturing();
+  }
 }
 
 enableMapSet();
