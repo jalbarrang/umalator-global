@@ -2,7 +2,7 @@
 // Types
 // =======
 
-import { loadedSupportCards } from '../loaders/support-card-loader';
+
 
 export type SupportCardSkillEntry = {
   id: number;
@@ -66,4 +66,9 @@ export class SupportCardService {
   };
 }
 
-export const supportCardsService = new SupportCardService(loadedSupportCards);
+// Populated once by `bootstrapData()` via `initSupportCardService` (ESM live binding).
+export let supportCardsService: SupportCardService = undefined as unknown as SupportCardService;
+
+export function initSupportCardService(supportCards: SupportCardsMap): void {
+  supportCardsService = new SupportCardService(supportCards);
+}

@@ -1,4 +1,4 @@
-import coursesJson from '@/modules/data/json/course_data.json';
+
 import { distances, orientations, phases, surfaces } from 'sunday-tools/course/definitions';
 import type {
   CourseData,
@@ -229,4 +229,9 @@ export class CourseService {
   }
 }
 
-export const coursesService = new CourseService(coursesJson as CoursesMap);
+// Populated once by `bootstrapData()` via `initCourseService` (ESM live binding).
+export let coursesService: CourseService = undefined as unknown as CourseService;
+
+export function initCourseService(courses: CoursesMap): void {
+  coursesService = new CourseService(courses);
+}

@@ -48,70 +48,87 @@ const CARD_ROW_OVERSCAN = 3;
 
 type SupportSkill = SupportCardEntry['hintSkills'][number];
 
-const supportCards = supportCardsService.getAll();
+type SupportSkillOption = {
+  value: string;
+  label: string;
+  hintCount: number;
+  chainEventCount: number;
+  randomEventCount: number;
+};
 
-const supportSkillStatsById = new Map<
-  string,
-  {
-    value: string;
-    label: string;
-    hintCount: number;
-    chainEventCount: number;
-    randomEventCount: number;
-  }
->();
+type SupportCardData = {
+  supportCards: ReturnType<typeof supportCardsService.getAll>;
+  supportSkillOptions: Array<SupportSkillOption>;
+  supportSkillLabelById: Map<string, string>;
+};
 
-for (const card of supportCards) {
-  for (const skill of card.hintSkills) {
-    const skillId = `${skill.id}`;
-    const stats = supportSkillStatsById.get(skillId) ?? {
-      value: skillId,
-      label: skill.name,
-      hintCount: 0,
-      chainEventCount: 0,
-      randomEventCount: 0
-    };
+// Lazily memoized: the support-card service is only populated after the data
+// bootstrap, so this must not run at module-init time.
+let supportCardDataCache: SupportCardData | null = null;
 
-    stats.hintCount += 1;
-    supportSkillStatsById.set(skillId, stats);
+function getSupportCardData(): SupportCardData {
+  if (supportCardDataCache) {
+    return supportCardDataCache;
   }
 
-  for (const skill of card.chainEventSkills) {
-    const skillId = `${skill.id}`;
-    const stats = supportSkillStatsById.get(skillId) ?? {
-      value: skillId,
-      label: skill.name,
-      hintCount: 0,
-      chainEventCount: 0,
-      randomEventCount: 0
-    };
+  const supportCards = supportCardsService.getAll();
+  const supportSkillStatsById = new Map<string, SupportSkillOption>();
 
-    stats.chainEventCount += 1;
-    supportSkillStatsById.set(skillId, stats);
+  for (const card of supportCards) {
+    for (const skill of card.hintSkills) {
+      const skillId = `${skill.id}`;
+      const stats = supportSkillStatsById.get(skillId) ?? {
+        value: skillId,
+        label: skill.name,
+        hintCount: 0,
+        chainEventCount: 0,
+        randomEventCount: 0
+      };
+
+      stats.hintCount += 1;
+      supportSkillStatsById.set(skillId, stats);
+    }
+
+    for (const skill of card.chainEventSkills) {
+      const skillId = `${skill.id}`;
+      const stats = supportSkillStatsById.get(skillId) ?? {
+        value: skillId,
+        label: skill.name,
+        hintCount: 0,
+        chainEventCount: 0,
+        randomEventCount: 0
+      };
+
+      stats.chainEventCount += 1;
+      supportSkillStatsById.set(skillId, stats);
+    }
+
+    for (const skill of card.randomEventSkills) {
+      const skillId = `${skill.id}`;
+      const stats = supportSkillStatsById.get(skillId) ?? {
+        value: skillId,
+        label: skill.name,
+        hintCount: 0,
+        chainEventCount: 0,
+        randomEventCount: 0
+      };
+
+      stats.randomEventCount += 1;
+      supportSkillStatsById.set(skillId, stats);
+    }
   }
 
-  for (const skill of card.randomEventSkills) {
-    const skillId = `${skill.id}`;
-    const stats = supportSkillStatsById.get(skillId) ?? {
-      value: skillId,
-      label: skill.name,
-      hintCount: 0,
-      chainEventCount: 0,
-      randomEventCount: 0
-    };
+  const supportSkillOptions = Array.from(supportSkillStatsById.values()).sort((a, b) =>
+    a.label.localeCompare(b.label)
+  );
 
-    stats.randomEventCount += 1;
-    supportSkillStatsById.set(skillId, stats);
-  }
+  const supportSkillLabelById = new Map(
+    supportSkillOptions.map((skill) => [skill.value, skill.label] as const)
+  );
+
+  supportCardDataCache = { supportCards, supportSkillOptions, supportSkillLabelById };
+  return supportCardDataCache;
 }
-
-const supportSkillOptions = Array.from(supportSkillStatsById.values()).sort((a, b) =>
-  a.label.localeCompare(b.label)
-);
-
-const supportSkillLabelById = new Map(
-  supportSkillOptions.map((skill) => [skill.value, skill.label] as const)
-);
 
 const SUPPORT_CARD_FALLBACK_IMAGE = `${config.basePath}img/support-cards/support_thumb_00000.png`;
 
@@ -227,6 +244,7 @@ type ActiveFilterChipsProps = {
 };
 
 function ActiveFilterChips(props: ActiveFilterChipsProps) {
+  const { supportSkillLabelById } = getSupportCardData();
   const {
     searchText,
     cardTypeFilters,
@@ -304,6 +322,7 @@ type SupportCardFiltersDialogProps = {
 };
 
 function SupportCardFiltersDialog(props: SupportCardFiltersDialogProps) {
+  const { supportSkillLabelById } = getSupportCardData();
   const {
     cardTypeFilters,
     cardRarityFilters,
@@ -461,12 +480,13 @@ function SupportCardFiltersDialog(props: SupportCardFiltersDialogProps) {
 }
 
 function SkillSourceSelect(props: SkillSourceSelectProps) {
+  const { supportSkillOptions } = getSupportCardData();
   const { values, onValuesChange } = props;
   const [inputValue, setInputValue] = useState('');
 
   const selectedSkillOptions = useMemo(() => {
     return supportSkillOptions.filter((skill) => values.includes(skill.value));
-  }, [values]);
+  }, [values, supportSkillOptions]);
 
   const filteredSkillOptions = useMemo(() => {
     const normalizedInput = inputValue.trim().toLowerCase();
@@ -478,7 +498,7 @@ function SkillSourceSelect(props: SkillSourceSelectProps) {
     return supportSkillOptions.filter((skill) =>
       `${skill.value} ${skill.label}`.toLowerCase().includes(normalizedInput)
     );
-  }, [inputValue]);
+  }, [inputValue, supportSkillOptions]);
 
   return (
     <Combobox
@@ -694,6 +714,7 @@ function SupportCardsUpcomingToggle(props: { checked: boolean; onToggle: () => v
 }
 
 export function SupportCardsPage() {
+  const { supportCards } = getSupportCardData();
   const [searchText, setSearchText] = useState('');
   const [skillFilters, setSkillFilters] = useState<SkillFilterEntry[]>([]);
   const [cardTypeFilters, setCardTypeFilters] = useState<string[]>([]);
@@ -763,7 +784,7 @@ export function SupportCardsPage() {
 
       return true;
     });
-  }, [cardRarityFilters, cardTypeFilters, deferredSearchText, skillFilters, showUpcoming]);
+  }, [cardRarityFilters, cardTypeFilters, deferredSearchText, skillFilters, showUpcoming, supportCards]);
 
   const rowCount = Math.ceil(filteredCards.length / columns);
 

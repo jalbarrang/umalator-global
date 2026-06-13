@@ -2,7 +2,7 @@
 // Types
 // =======
 
-import { loadedUmas } from '../loaders/uma-loader';
+import type { LoadUmasResult } from '../loaders/uma-loader';
 
 export type UmaAptitudes = {
   turf: string;
@@ -103,6 +103,11 @@ export class UmaService {
   }
 }
 
-export const umasService = new UmaService(loadedUmas.umas, {
-  releasedOutfits: loadedUmas.releasedOutfits
-});
+// Populated once by `bootstrapData()` via `initUmaService` (ESM live binding).
+export let umasService: UmaService = undefined as unknown as UmaService;
+
+export function initUmaService(loaded: LoadUmasResult): void {
+  umasService = new UmaService(loaded.umas, {
+    releasedOutfits: loaded.releasedOutfits
+  });
+}

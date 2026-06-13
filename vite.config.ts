@@ -10,6 +10,7 @@ import react, { reactCompilerPreset } from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import babel from '@rolldown/plugin-babel';
 import sitemap from 'vite-sitemap-plugin';
+import { generateDataManifest } from './scripts/generate-data-manifest';
 
 const root = dirname(fileURLToPath(import.meta.url));
 
@@ -34,6 +35,21 @@ function getCommitHash(): string {
 }
 
 const __APP__VERSION__ = `${getSemver()}+${getCommitHash()}`;
+
+// Emit the runtime data datasets as content-hashed files under `public/${DATA_DIR}/`
+// plus a stable `manifest.json` mapping logical key -> hashed filename. This is
+// what lets the app fetch data at runtime (instead of inlining ~3.6MB of JSON in
+// the JS bundle) AND keeps the JS bundle byte-identical across data-only updates
+// (the bundle references the stable manifest URL, not the hashed files). Runs in
+// dev (server start) + build via `buildStart`; outputs are gitignored.
+function dataManifest(): Plugin {
+  return {
+    name: 'data-manifest',
+    buildStart() {
+      generateDataManifest(root);
+    }
+  };
+}
 
 // The wasm-pack (`--target web`) bundle is imported by the loader through a
 // runtime, Vite-ignored specifier (`./pkg/uma_sim_wasm.js`), so Vite never
@@ -79,6 +95,7 @@ export default defineConfig({
     tsconfigPaths: true
   },
   plugins: [
+    dataManifest(),
     copyUmaSimWasmPkg(),
     react(),
     babel({

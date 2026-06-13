@@ -42,7 +42,9 @@ describe('loadSupportCards', () => {
           event_skills: []
         }
       ],
-      new Set(['30010'])
+      new Set(['30010']),
+      new Map(),
+      new Map()
     );
 
     expect(cards['30010']?.released).toBe(true);

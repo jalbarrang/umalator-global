@@ -54,14 +54,24 @@ import type { SkillEntry } from '@/modules/data/services/SkillService';
 // Internal Data Structures
 // ============================================================================
 
-/** Map of skill ID to all family member IDs (including self) */
-const skillFamilyMap = new Map<string, Array<string>>();
+/**
+ * Map of skill ID to all family member IDs (including self), built lazily on
+ * first use. Lazy (not module-load) so it doesn't read `skillsService` before
+ * the async data bootstrap has populated it.
+ */
+let skillFamilyMapCache: Map<string, Array<string>> | null = null;
 
-for (const skill of skillsService.getAll()) {
-  if (skill.versions && skill.versions.length > 0) {
-    const family = [skill.id, ...skill.versions.map(String)];
-    skillFamilyMap.set(skill.id, family);
+function getSkillFamilyMap(): Map<string, Array<string>> {
+  if (!skillFamilyMapCache) {
+    const map = new Map<string, Array<string>>();
+    for (const skill of skillsService.getAll()) {
+      if (skill.versions && skill.versions.length > 0) {
+        map.set(skill.id, [skill.id, ...skill.versions.map(String)]);
+      }
+    }
+    skillFamilyMapCache = map;
   }
+  return skillFamilyMapCache;
 }
 
 // ============================================================================
@@ -167,7 +177,7 @@ function getGoldSkillInFamily(familyIds: Array<string>): SkillEntry | undefined 
  * getSkillFamily("200011") // returns ["200011", "200012", "200013", "200014"]
  */
 export function getSkillFamily(skillId: string): Array<string> {
-  const family = skillFamilyMap.get(skillId);
+  const family = getSkillFamilyMap().get(skillId);
 
   if (!family) {
     // Skill not found - return just the ID itself
@@ -205,7 +215,7 @@ export function isStackableSkill(skillId: string): boolean {
     return false;
   }
 
-  const family = skillFamilyMap.get(skillId);
+  const family = getSkillFamilyMap().get(skillId);
   if (!family) {
     return false;
   }
@@ -232,7 +242,7 @@ export function getGoldVersion(whiteSkillId: string): string | undefined {
     return undefined;
   }
 
-  const family = skillFamilyMap.get(whiteSkillId);
+  const family = getSkillFamilyMap().get(whiteSkillId);
   if (!family) {
     return undefined;
   }
@@ -258,7 +268,7 @@ export function getWhiteVersion(goldSkillId: string): string | undefined {
     return undefined;
   }
 
-  const family = skillFamilyMap.get(goldSkillId);
+  const family = getSkillFamilyMap().get(goldSkillId);
   if (!family) {
     return undefined;
   }
@@ -303,7 +313,7 @@ export function getBaseTier(skillId: string): string {
     return skillId;
   }
 
-  const family = skillFamilyMap.get(skillId);
+  const family = getSkillFamilyMap().get(skillId);
   if (!family) {
     return skillId;
   }
@@ -342,7 +352,7 @@ export function getUpgradeTier(skillId: string): string | undefined {
     return undefined;
   }
 
-  const family = skillFamilyMap.get(skillId);
+  const family = getSkillFamilyMap().get(skillId);
   if (!family) {
     return undefined;
   }

@@ -64,4 +64,13 @@ i18n.use(initReactI18next).init({
   }
 });
 
+/**
+ * Merge skill-id -> display-name translations into the `translation` bundle.
+ * Called during data bootstrap (the skill service is not populated at i18n init
+ * time), so `t('skillnames.<id>')` resolves once data is ready.
+ */
+export function applySkillNameTranslations(skillNames: Record<string, string>): void {
+  i18n.addResourceBundle('en', 'translation', { skillnames: skillNames }, true, true);
+}
+
 export default i18n;

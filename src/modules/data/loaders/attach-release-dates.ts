@@ -1,5 +1,3 @@
-import characterCardsJson from '@/modules/data/json/gametora/character-cards.json';
-import supportCardsJson from '@/modules/data/json/gametora/support-cards.json';
 import type { SkillsMap } from '@/modules/data/services/SkillService';
 
 type CharacterCard = {
@@ -25,10 +23,10 @@ const MS_PER_DAY = 86_400_000;
  * Compute the JP→Global lag in days from character cards that have both dates.
  * Returns the median offset, or a sensible fallback.
  */
-function computeJpToGlobalLagDays(): number {
+function computeJpToGlobalLagDays(characterCards: Array<CharacterCard>): number {
   const diffs: Array<number> = [];
 
-  for (const card of characterCardsJson as Array<CharacterCard>) {
+  for (const card of characterCards) {
     if (card.release && card.release_en) {
       const jp = new Date(card.release).getTime();
       const en = new Date(card.release_en).getTime();
@@ -53,7 +51,10 @@ type SkillDateSource = {
   dateJp?: string;
 };
 
-function buildSkillDateSources(): Map<string, SkillDateSource> {
+function buildSkillDateSources(
+  characterCards: Array<CharacterCard>,
+  supportCards: Array<SupportCard>
+): Map<string, SkillDateSource> {
   const sources = new Map<string, SkillDateSource>();
 
   function track(skillId: number, dateEn?: string, dateJp?: string) {
@@ -72,7 +73,7 @@ function buildSkillDateSources(): Map<string, SkillDateSource> {
   }
 
   // Character cards
-  for (const card of characterCardsJson as Array<CharacterCard>) {
+  for (const card of characterCards) {
     const dateEn = card.release_en;
     const dateJp = card.release;
 
@@ -89,7 +90,7 @@ function buildSkillDateSources(): Map<string, SkillDateSource> {
   }
 
   // Support cards
-  for (const card of supportCardsJson as Array<SupportCard>) {
+  for (const card of supportCards) {
     const dateEn = card.release_en;
     const dateJp = card.release;
 
@@ -108,9 +109,13 @@ function buildSkillDateSources(): Map<string, SkillDateSource> {
  * - Upcoming skills (GameTora only): use JP release date + JP→Global lag offset,
  *   so they sort after all released skills while maintaining relative JP order.
  */
-export function attachReleaseDates(skills: SkillsMap): void {
-  const dateSources = buildSkillDateSources();
-  const lagDays = computeJpToGlobalLagDays();
+export function attachReleaseDates(
+  skills: SkillsMap,
+  characterCards: Array<CharacterCard>,
+  supportCards: Array<SupportCard>
+): void {
+  const dateSources = buildSkillDateSources(characterCards, supportCards);
+  const lagDays = computeJpToGlobalLagDays(characterCards);
 
   for (const [skillId, entry] of Object.entries(skills)) {
     // Already has a date from master.mdb extraction

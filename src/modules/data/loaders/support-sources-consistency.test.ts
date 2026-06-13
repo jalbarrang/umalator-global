@@ -1,23 +1,17 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  attachSupportCardEventSources,
-  attachSupportCardHintSources
-} from '@/modules/data/loaders/attach-support-sources';
-import { loadedSkills } from '@/modules/data/loaders/skill-loader';
-import { loadSupportCards } from '@/modules/data/loaders/support-card-loader';
+import { skillsService } from '@/modules/data/services/SkillService';
+import { supportCardsService } from '@/modules/data/services/SupportCardService';
 
+// The data services are populated from the real JSON by the test setup
+// (`initDataFromRaw`), which runs the same loader + attach-sources pipeline the
+// app uses at bootstrap. This verifies that pipeline leaves skill `supportSources`
+// consistent with each support card's hint/event skills.
 describe('support card skill sources consistency', () => {
   it('matches hint and event skills on cards to skill supportSources', () => {
-    const { skills } = loadedSkills;
-    const supportCards = loadSupportCards(skills);
-
-    attachSupportCardHintSources(skills, supportCards);
-    attachSupportCardEventSources(skills, supportCards);
-
-    for (const card of Object.values(supportCards)) {
+    for (const card of supportCardsService.getAll()) {
       for (const hintSkill of card.hintSkills) {
-        const skill = skills[String(hintSkill.id)];
+        const skill = skillsService.getById(String(hintSkill.id));
         expect(skill, `missing skill ${hintSkill.id} for card ${card.id} hint`).toBeDefined();
         expect(
           skill?.supportSources?.some(
@@ -29,7 +23,7 @@ describe('support card skill sources consistency', () => {
       }
 
       for (const eventSkill of card.eventSkills) {
-        const skill = skills[String(eventSkill.id)];
+        const skill = skillsService.getById(String(eventSkill.id));
         expect(skill, `missing skill ${eventSkill.id} for card ${card.id} event`).toBeDefined();
         expect(
           skill?.supportSources?.some(

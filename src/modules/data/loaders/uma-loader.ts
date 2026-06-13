@@ -1,5 +1,4 @@
-import characterCardsJson from '@/modules/data/json/gametora/character-cards.json';
-import { collectReleasedOutfitIds } from '@/modules/data/loaders/global-cutover';
+
 import type { UmaAptitudes, UmasMap } from '@/modules/data/services/UmaService';
 
 const DEFAULT_APTITUDE = 'G';
@@ -35,8 +34,8 @@ function normalizeAptitudes(aptitude: Array<string> = []): UmaAptitudes {
 }
 
 export function loadUmas(
-  characterCards: Array<CharacterCardSnapshot> = characterCardsJson as Array<CharacterCardSnapshot>,
-  releasedOutfits: Set<string> = collectReleasedOutfitIds()
+  characterCards: Array<CharacterCardSnapshot>,
+  releasedOutfits: Set<string>
 ): LoadUmasResult {
   const umas: UmasMap = {};
 
@@ -76,4 +75,4 @@ export function loadUmas(
   };
 }
 
-export const loadedUmas = loadUmas();
+

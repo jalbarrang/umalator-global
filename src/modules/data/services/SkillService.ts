@@ -6,7 +6,7 @@ import {
 } from 'sunday-tools/skills/simulatability';
 import type { SkillMatch } from '@/modules/runners/data/types';
 import { SkillFilterer, type SkillFiltererConfig } from './SkillFilterer';
-import { loadedSkills } from '@/modules/data/loaders/skill-loader';
+import type { LoadSkillsResult } from '@/modules/data/loaders/skill-loader';
 
 // =======
 // Types
@@ -593,7 +593,14 @@ export class SkillService {
   }
 }
 
-export const skillsService = new SkillService(loadedSkills.skills, {
-  releasedSkillIds: loadedSkills.releasedSkillIds,
-  activationChecks: loadedSkills.activationChecks
-});
+// Populated once by `bootstrapData()` (or the test setup) via `initSkillService`.
+// Consumers import this binding and read it synchronously after bootstrap; ESM
+// live bindings surface the assignment to every importer.
+export let skillsService: SkillService = undefined as unknown as SkillService;
+
+export function initSkillService(loaded: LoadSkillsResult): void {
+  skillsService = new SkillService(loaded.skills, {
+    releasedSkillIds: loaded.releasedSkillIds,
+    activationChecks: loaded.activationChecks
+  });
+}

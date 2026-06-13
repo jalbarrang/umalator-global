@@ -22,11 +22,18 @@ import { coursesService } from '@/modules/data/services/CourseService';
 import { skillsService } from '@/modules/data/services/SkillService';
 import { useUmaSkillSelectionStore } from '@/modules/simulation/stores/uma-skill-selection.store';
 
-const uniqueSkillIds = skillsService.getUniqueSkillIds();
-
 const createUmaBasinPoolWorker = (options: { name: string }) => new UmaBasinPoolWasmWorker(options);
 
+// Lazily memoized: `skillsService` is only populated after the data bootstrap,
+// so this must not run at module-init time.
+let cachedUniqueSkillIds: Array<string> | null = null;
+function getUniqueSkillIds(): Array<string> {
+  cachedUniqueSkillIds ??= skillsService.getUniqueSkillIds();
+  return cachedUniqueSkillIds;
+}
+
 function removeUniqueSkillsFromRunner(uma: IRunnerState): IRunnerState {
+  const uniqueSkillIds = getUniqueSkillIds();
   const filteredSkills = uma.skills.filter((skillId) => !uniqueSkillIds.includes(skillId));
 
   return { ...uma, skills: filteredSkills };
@@ -64,7 +71,7 @@ export function useUmaBasinPoolRunner() {
     const filterer = skillsService.createFilterer({ runner, course, raceParams: params });
     const { selectedSkillIds } = useUmaSkillSelectionStore.getState();
 
-    const candidates = filterer.filterCandidates(uniqueSkillIds, {
+    const candidates = filterer.filterCandidates(getUniqueSkillIds(), {
       selectedSkillIds,
       selectionMode: selectedSkillIds.size > 0 ? 'selected-only' : 'all-matching'
     });

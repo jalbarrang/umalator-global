@@ -5,7 +5,7 @@ if (config.enableGrab) {
 }
 
 import './polyfills';
-import '@/modules/data/bootstrap-skill-indexes';
+import { DataBootGate } from '@/components/data-boot-gate';
 
 // Supports weights 100-900
 import '@fontsource-variable/inter/wght.css';
@@ -41,12 +41,18 @@ if (!rootComponent) {
 }
 
 const root = createRoot(rootComponent);
+
+// The app mounts immediately; <DataBootGate> (inside the providers) shows the
+// splash while the data bootstrap runs, then renders the routes once the service
+// singletons are populated.
 root.render(
   <PostHogProvider client={posthog}>
     <PostHogErrorBoundary>
       <BrowserRouter basename={config.basePath}>
         <ThemeStoreProvider>
-          <RootComponent />
+          <DataBootGate>
+            <RootComponent />
+          </DataBootGate>
         </ThemeStoreProvider>
       </BrowserRouter>
     </PostHogErrorBoundary>

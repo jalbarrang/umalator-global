@@ -1,16 +1,8 @@
-import gameToraSupportCardsJson from '@/modules/data/json/gametora/support-cards.json';
-import { collectReleasedSupportCardIds } from '@/modules/data/loaders/global-cutover';
 import type { SkillsMap } from '@/modules/data/services/SkillService';
 import type {
   SupportCardSkillEntry,
   SupportCardsMap
 } from '@/modules/data/services/SupportCardService';
-import { loadedSkills } from './skill-loader';
-import {
-  attachSupportCardEventSources,
-  attachSupportCardHintSources
-} from './attach-support-sources';
-import { loadChainEventSkillIds, loadRandomEventSkillIds } from './chain-event-skills-loader';
 
 type SupportCardSnapshot = {
   support_id: number;
@@ -56,10 +48,10 @@ function toSupportCardSkillEntry(skillId: number, skills: SkillsMap): SupportCar
 
 export function loadSupportCards(
   skills: SkillsMap,
-  supportCards: Array<SupportCardSnapshot> = gameToraSupportCardsJson as Array<SupportCardSnapshot>,
-  releasedCardIds: Set<string> = collectReleasedSupportCardIds(),
-  chainEventSkillIds: Map<number, Set<number>> = loadChainEventSkillIds(),
-  randomEventSkillIds: Map<number, Set<number>> = loadRandomEventSkillIds()
+  supportCards: Array<SupportCardSnapshot>,
+  releasedCardIds: Set<string>,
+  chainEventSkillIds: Map<number, Set<number>>,
+  randomEventSkillIds: Map<number, Set<number>>
 ): SupportCardsMap {
   const supportCardMap: SupportCardsMap = {};
 
@@ -97,6 +89,4 @@ export function loadSupportCards(
   return supportCardMap;
 }
 
-export const loadedSupportCards = loadSupportCards(loadedSkills.skills);
-attachSupportCardHintSources(loadedSkills.skills, loadedSupportCards);
-attachSupportCardEventSources(loadedSkills.skills, loadedSupportCards);
+

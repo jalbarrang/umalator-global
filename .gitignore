@@ -42,5 +42,8 @@ docs/prd/
 .dolt/
 *.db
 .beads-credential-key
+# Generated, content-hashed data datasets + manifest (data-manifest plugin)
+public/data/manifest.json
+public/data/*.*.json
 .pi/context-folders.json
 src/lib/uma-sim-wasm/pkg/

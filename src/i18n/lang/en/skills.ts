@@ -1,12 +1,9 @@
-import { skillsService } from '@/modules/data/services/SkillService';
-
-const skillNames: Record<string, string> = {};
-for (const skill of skillsService.getAll()) {
-  skillNames[skill.id] = skill.name;
-}
-
+// `skillnames` (skill id -> display name) is populated after the data bootstrap
+// via `applySkillNameTranslations`, not at module load (the skill service does
+// not exist until bootstrap). i18n initializes with an empty map and the names
+// are merged in once data is ready.
 export default {
-  skillnames: skillNames,
+  skillnames: {} as Record<string, string>,
   skillfilters: {
     search: 'Search by skill name or conditions',
     // Skills ratities

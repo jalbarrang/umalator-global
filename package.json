@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "bun run wasm:build && vite build",
+    "build": "bun run data:manifest && bun run wasm:build && vite build",
     "preview": "vite preview",
     "typecheck": "tsgo --noEmit",
     "typecheck:legacy": "tsc --noEmit",
@@ -31,7 +31,8 @@
     "release:dry-run": "semantic-release --dry-run",
     "changelog:generate": "conventional-changelog -p conventionalcommits -i CHANGELOG.md -s -r 0",
     "wasm:build": "bun scripts/build-wasm.ts",
-    "check:worker-bundles": "bun scripts/check-worker-bundles.ts"
+    "check:worker-bundles": "bun scripts/check-worker-bundles.ts",
+    "data:manifest": "bun scripts/generate-data-manifest.ts"
   },
   "repository": {
     "type": "git",

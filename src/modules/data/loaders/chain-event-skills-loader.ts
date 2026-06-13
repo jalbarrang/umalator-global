@@ -1,6 +1,4 @@
-import eventSkillSourcesJson from '@/modules/data/json/gametora/event-skill-sources.json';
-
-type EventSkillSources = Record<
+export type EventSkillSources = Record<
   string,
   {
     chain_event_skills: Array<number>;
@@ -8,7 +6,14 @@ type EventSkillSources = Record<
   }
 >;
 
-const eventSkillSources = eventSkillSourcesJson as EventSkillSources;
+// Set once during data bootstrap (see `bootstrap.ts`) instead of statically
+// importing the JSON, so it isn't inlined into the bundle. The lookups below
+// run at runtime, so the data must be resident after bootstrap.
+let eventSkillSources: EventSkillSources = {};
+
+export function initEventSkillSources(sources: EventSkillSources): void {
+  eventSkillSources = sources;
+}
 
 /**
  * Returns the set of skill IDs obtainable from chain events for a support card.
