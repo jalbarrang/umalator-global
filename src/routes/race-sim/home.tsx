@@ -1,7 +1,10 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { Loader2, Users } from 'lucide-react';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { decodeRaceSimShareCode } from '@/modules/race-sim/share/share-code';
+import { importRaceSimSnapshot } from '@/modules/race-sim/share/snapshot';
 import { useRaceSimContext } from '@/modules/race-sim/context';
 import { RunnerListItem } from '@/modules/race-sim/components/RunnerListItem';
 import { RunnerDetailPanel } from '@/modules/race-sim/components/RunnerDetailPanel';
@@ -22,6 +25,25 @@ export default function RaceSimHome() {
 
   const handleSelectRunner = useCallback((index: number) => {
     setSelectedIndex(index);
+  }, []);
+
+  const hashImportedRef = useRef(false);
+
+  useEffect(() => {
+    if (hashImportedRef.current) return;
+    const hash = window.location.hash.slice(1);
+    if (!hash.startsWith('rs1:')) return;
+    hashImportedRef.current = true;
+
+    void decodeRaceSimShareCode(hash).then((snapshot) => {
+      if (snapshot) {
+        importRaceSimSnapshot(snapshot);
+        toast.success('Race configuration loaded from link');
+      } else {
+        toast.error('Invalid race configuration link');
+      }
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    });
   }, []);
 
   return (

@@ -1,4 +1,5 @@
 import { BitVector } from './bit-vector';
+import { base64ToBytes, bytesToBase64, extractEncodedPayload } from './gzip-base64';
 import type { ISingleExportData, ISingleExportSkill } from './types';
 
 const MIN_BITS_PER_CHARACTER = 109;
@@ -12,36 +13,11 @@ function currentUtcTimestamp(): string {
   );
 }
 
-function base64ToBytes(base64: string): Uint8Array {
-  const standard = base64.replaceAll('-', '+').replaceAll('_', '/');
-  const binaryStr = atob(standard);
-  const bytes = new Uint8Array(binaryStr.length);
-  for (let i = 0; i < binaryStr.length; i++) {
-    bytes[i] = binaryStr.codePointAt(i)!;
-  }
-  return bytes;
-}
-
-function bytesToBase64(bytes: Uint8Array): string {
-  const binaryStr = Array.from(bytes)
-    .map((byte) => String.fromCodePoint(byte))
-    .join('');
-  const standard = btoa(binaryStr);
-  return standard.replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
-}
-
 async function decompressGzip(compressedBase64: string): Promise<string> {
   const compressedBytes = base64ToBytes(compressedBase64) as unknown as BlobPart;
   const stream = new Blob([compressedBytes]).stream().pipeThrough(new DecompressionStream('gzip'));
   const decompressedBuffer = await new Response(stream).arrayBuffer();
   return bytesToBase64(new Uint8Array(decompressedBuffer));
-}
-
-function extractEncodedPayload(input: string): string {
-  const trimmed = input.trim();
-  const hashIndex = trimmed.indexOf('#');
-  if (hashIndex !== -1) return trimmed.slice(hashIndex + 1);
-  return trimmed;
 }
 
 function decodeCharacter(bv: BitVector): ISingleExportData {

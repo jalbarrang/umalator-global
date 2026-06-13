@@ -1,8 +1,20 @@
 import { useRef, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
+import { ChevronDown, Download, Link2, Upload } from 'lucide-react';
+import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
 import { SimulationControlBar } from '@/components/simulation-control-bar';
+import { buildRaceSimSnapshot, downloadRaceSimSnapshot } from '@/modules/race-sim/share/snapshot';
+import { encodeRaceSimShareCode } from '@/modules/race-sim/share/share-code';
+import { ImportRaceSimDialog } from '@/modules/race-sim/share/import-race-sim-dialog';
 import {
   clearResults,
   createNewRaceSeed,
@@ -28,6 +40,7 @@ export function RaceSimActionBar({ isRunning, onRun, onCancel, onReplay }: RaceS
   );
 
   const [sampleInput, setSampleInput] = useState(() => nsamples.toString());
+  const [importOpen, setImportOpen] = useState(false);
   const prevNsamplesRef = useRef(nsamples);
 
   if (prevNsamplesRef.current !== nsamples) {
@@ -46,6 +59,20 @@ export function RaceSimActionBar({ isRunning, onRun, onCancel, onReplay }: RaceS
   };
 
   const clearDisabled = results === null;
+
+  const handleCopyShareCode = async () => {
+    if (!navigator.clipboard) {
+      toast.error('Clipboard is not available in this browser');
+      return;
+    }
+    try {
+      const code = await encodeRaceSimShareCode(buildRaceSimSnapshot());
+      await navigator.clipboard.writeText(code);
+      toast.success('Share code copied to clipboard');
+    } catch {
+      toast.error('Failed to copy share code');
+    }
+  };
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -78,6 +105,33 @@ export function RaceSimActionBar({ isRunning, onRun, onCancel, onReplay }: RaceS
           disabled={isRunning}
         />
       </div>
+
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <Button variant="outline" size="sm" disabled={isRunning}>
+              Share settings
+              <ChevronDown className="size-3" />
+            </Button>
+          }
+        />
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => downloadRaceSimSnapshot()}>
+            <Download className="size-4 mr-2" />
+            Export race configuration
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => void handleCopyShareCode()}>
+            <Link2 className="size-4 mr-2" />
+            Copy share code
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setImportOpen(true)}>
+            <Upload className="size-4 mr-2" />
+            Import race configuration
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <ImportRaceSimDialog open={importOpen} onOpenChange={setImportOpen} />
     </div>
   );
 }
