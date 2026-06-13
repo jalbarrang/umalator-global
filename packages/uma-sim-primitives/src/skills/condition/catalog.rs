@@ -2034,7 +2034,11 @@ mod tests {
         assert_eq!(regions.0, whole_course(&course()).0);
     }
 
-    fn apply_otherself(condition: &str, self_strategy: Strategy, counts: &[(Strategy, u32)]) -> bool {
+    fn apply_otherself(
+        condition: &str,
+        self_strategy: Strategy,
+        counts: &[(Strategy, u32)],
+    ) -> bool {
         use std::collections::HashMap;
         let catalog = build_catalog();
         let parser = ConditionParser::new(&catalog);

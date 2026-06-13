@@ -406,12 +406,17 @@ mod tests {
     #[test]
     fn all_and_position_relative_targets() {
         let snap = snapshot(vec![
-            entry(0, 100.0, Strategy::PaceChaser), // caster
+            entry(0, 100.0, Strategy::PaceChaser),  // caster
             entry(1, 120.0, Strategy::FrontRunner), // ahead
             entry(2, 80.0, Strategy::LateSurger),   // behind
         ]);
         assert_eq!(
-            ids(resolve_debuff_targets(&snap, RunnerId(0), SkillTarget::All, None)),
+            ids(resolve_debuff_targets(
+                &snap,
+                RunnerId(0),
+                SkillTarget::All,
+                None
+            )),
             vec![RunnerId(1), RunnerId(2)]
         );
         assert_eq!(

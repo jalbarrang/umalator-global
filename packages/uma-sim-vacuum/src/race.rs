@@ -335,7 +335,14 @@ impl Race {
         self.runners = runners;
 
         // No cross-runner contention coordinator in the vacuum engine: there is
-        // no live field, so proximity dueling / spot-struggle never emerge.
+        // no live field, so proximity dueling / spot-struggle never emerge, and
+        // opponent-facing debuffs have no target. A runner may still *emit* an
+        // external debuff (e.g. its own Hesitant skill activating), so drop the
+        // per-frame outbox here rather than let it accumulate — being debuffed in
+        // a vacuum is modelled via manual debuff injection, not self-casts.
+        for runner in &mut self.runners {
+            runner.emitted_debuffs.clear();
+        }
 
         update_first_position_in_late_race(&mut self.runners, self.course.distance);
 

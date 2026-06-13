@@ -835,7 +835,10 @@ mod tests {
             .runners()
             .iter()
             .any(|r| !r.used_targeted_skills.is_empty());
-        assert!(any_debuffed, "expected at least one Hesitant debuff to land");
+        assert!(
+            any_debuffed,
+            "expected at least one Hesitant debuff to land"
+        );
     }
 
     fn pace_chaser_race(n: u32) -> Race {
@@ -870,8 +873,11 @@ mod tests {
         race.add_runner(props("pace", Strategy::PaceChaser));
         race.prepare_round(7);
 
-        let snapshot =
-            build_field_snapshot(&mut race.runners, &race.finished_runners, &mut race.order_tracker);
+        let snapshot = build_field_snapshot(
+            &mut race.runners,
+            &race.finished_runners,
+            &mut race.order_tracker,
+        );
 
         // The caster emits a nige-targeting Current Speed debuff this frame.
         race.runners[0].emitted_debuffs.push(EmittedDebuff {
@@ -899,7 +905,10 @@ mod tests {
         assert!(race.runners[0].emitted_debuffs.is_empty());
         // The victim logged the received debuff.
         assert_eq!(race.runners[1].used_targeted_skills.len(), 1);
-        assert_eq!(race.runners[1].used_targeted_skills[0].skill_id.as_str(), "200851");
+        assert_eq!(
+            race.runners[1].used_targeted_skills[0].skill_id.as_str(),
+            "200851"
+        );
     }
 
     #[test]
@@ -917,8 +926,11 @@ mod tests {
         // The two leaders cross the line; only R0 is still racing.
         race.finished_runners = vec![RunnerId(2), RunnerId(1)];
 
-        let snapshot =
-            build_field_snapshot(&mut race.runners, &race.finished_runners, &mut race.order_tracker);
+        let snapshot = build_field_snapshot(
+            &mut race.runners,
+            &race.finished_runners,
+            &mut race.order_tracker,
+        );
 
         // Finished runners hold places 1 and 2 (in finish order); the lone active
         // runner is ranked last, not promoted to "order 1".
