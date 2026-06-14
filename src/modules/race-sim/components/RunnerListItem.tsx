@@ -6,6 +6,7 @@ import type { IRunnerState } from '@/modules/runners/components/runner-card/type
 import { getUmaDisplayInfo, getUmaImageUrl } from '@/modules/runners/utils';
 import { getIconUrl } from '@/assets/icons';
 import { getTeamStyle } from '@/modules/race-sim/team-colors';
+import { rankLabel } from '@/modules/race-sim/rank-badge';
 
 type RunnerListItemProps = {
   index: number;
@@ -128,6 +129,14 @@ export function RunnerListItem(props: Readonly<RunnerListItemProps>) {
               )}
             >
               {getTeamStyle(runner.team).label}
+            </span>
+          )}
+          {typeof runner.rankScore === 'number' && (
+            <span
+              className="text-[10px] rounded bg-primary/15 px-1 py-px font-semibold text-primary"
+              title={`Rank score ${runner.rankScore}`}
+            >
+              {rankLabel(runner.rankScore)}
             </span>
           )}
           <span className="text-[10px] rounded bg-secondary px-1 py-px font-medium text-secondary-foreground">
