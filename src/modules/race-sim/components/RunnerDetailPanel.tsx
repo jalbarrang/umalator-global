@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { PlusIcon, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
@@ -22,8 +22,15 @@ import { SkillItem } from '@/modules/skills/components/skill-list/skill-item/ite
 import { openSkillPicker, updateCurrentSkills } from '@/modules/skills/store';
 import { getSelectableSkillsForUma, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import { updateRunner, useRaceSimStore } from '@/modules/simulation/stores/race-sim.store';
+import { useSettingsStore } from '@/store/settings.store';
 import { rankLabel } from '@/modules/race-sim/rank-badge';
 import { estimateRunnerRankScore } from '@/modules/race-sim/eval/rank-score';
+import { BucketAptitudesEditor } from '@/modules/race-sim/components/BucketAptitudesEditor';
+import {
+  bucketsFromRunner,
+  collapsedForCourse,
+  type AptitudeBucketKey
+} from '@/modules/race-sim/aptitude-buckets';
 import { cn } from '@/lib/utils';
 
 type RunnerDetailPanelProps = {
@@ -57,6 +64,8 @@ export function RunnerDetailPanel({
     if (runnerIndex < 0 || runnerIndex >= state.runners.length) return null;
     return state.runners[runnerIndex];
   });
+  const courseId = useSettingsStore((state) => state.courseId);
+  const [showBuckets, setShowBuckets] = useState(false);
 
   const runnerDisplayName = useMemo(() => {
     if (!runner) return 'Runner';
@@ -121,9 +130,55 @@ export function RunnerDetailPanel({
 
   const handleUpdateAptitudes = useCallback(
     (nextRunner: IRunnerState) => {
-      applyRunnerPatch(nextRunner);
+      // When per-bucket aptitudes are in use, keep them consistent with coarse edits.
+      if (!runner?.aptitudes) {
+        applyRunnerPatch(nextRunner);
+        return;
+      }
+      let aptitudes = runner.aptitudes;
+      if (nextRunner.distanceAptitude !== runner.distanceAptitude) {
+        aptitudes = {
+          ...aptitudes,
+          distanceShort: nextRunner.distanceAptitude,
+          distanceMile: nextRunner.distanceAptitude,
+          distanceMiddle: nextRunner.distanceAptitude,
+          distanceLong: nextRunner.distanceAptitude
+        };
+      }
+      if (nextRunner.surfaceAptitude !== runner.surfaceAptitude) {
+        aptitudes = {
+          ...aptitudes,
+          turf: nextRunner.surfaceAptitude,
+          dirt: nextRunner.surfaceAptitude
+        };
+      }
+      if (nextRunner.strategyAptitude !== runner.strategyAptitude) {
+        aptitudes = {
+          ...aptitudes,
+          nige: nextRunner.strategyAptitude,
+          senko: nextRunner.strategyAptitude,
+          sashi: nextRunner.strategyAptitude,
+          oikomi: nextRunner.strategyAptitude
+        };
+      }
+      // Strategy change re-derives the collapsed style grade from the matching bucket.
+      const collapsed =
+        nextRunner.strategy !== runner.strategy
+          ? collapsedForCourse(aptitudes, courseId, nextRunner.strategy)
+          : {};
+      applyRunnerPatch({ ...nextRunner, aptitudes, ...collapsed });
     },
-    [applyRunnerPatch]
+    [applyRunnerPatch, runner, courseId]
+  );
+
+  const handleBucketChange = useCallback(
+    (key: AptitudeBucketKey, grade: string) => {
+      if (!runner) return;
+      const aptitudes = { ...bucketsFromRunner(runner), [key]: grade };
+      const collapsed = collapsedForCourse(aptitudes, courseId, runner.strategy);
+      applyRunnerPatch({ aptitudes, ...collapsed });
+    },
+    [applyRunnerPatch, runner, courseId]
   );
 
   const handleOpenSkillPicker = useCallback(() => {
@@ -264,6 +319,33 @@ export function RunnerDetailPanel({
               hasRunawaySkill={hasRunawaySkill}
               onRunawayStrategy={handleRunawayStrategy}
             />
+          </Section>
+
+          <Section
+            title="Per-bucket aptitudes"
+            action={
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs"
+                onClick={() => setShowBuckets((open: boolean) => !open)}
+              >
+                {showBuckets ? 'Hide' : runner.aptitudes ? 'Edit' : 'Set all 10'}
+              </Button>
+            }
+          >
+            {showBuckets ? (
+              <BucketAptitudesEditor
+                value={bucketsFromRunner(runner)}
+                onChange={handleBucketChange}
+              />
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                {runner.aptitudes
+                  ? 'Per-distance / surface / style grades are set. The coarse grades above follow the current course.'
+                  : 'Edit each distance, surface, and running-style aptitude individually for full fidelity.'}
+              </p>
+            )}
           </Section>
 
           <Section title="Team">

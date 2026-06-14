@@ -8,6 +8,7 @@ import { racedefToParams } from '@/utils/races';
 import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { RaceSimContext } from '@/modules/race-sim/context';
+import { collapsedForCourse } from '@/modules/race-sim/aptitude-buckets';
 import { loadResults } from '@/modules/race-sim/stores/playback.store';
 import { useRaceSimRunner } from '@/modules/simulation/hooks/race-sim/useRaceSimRunner';
 import {
@@ -85,9 +86,14 @@ export function RaceSimRoot() {
     (seed: number) => {
       const allSkillIds = runners.flatMap((r) => r.skills);
       const sorter = createSkillSorterByGroup(allSkillIds);
-      const raceRunners = runners.map((runner) =>
-        toCreateRunner(runner, runner.skills.toSorted(sorter))
-      );
+      const raceRunners = runners.map((runner) => {
+        // When per-bucket aptitudes are set, resolve the grades for THIS course so
+        // the engine uses the correct distance/surface/style bucket.
+        const resolved = runner.aptitudes
+          ? { ...runner, ...collapsedForCourse(runner.aptitudes, courseId, runner.strategy) }
+          : runner;
+        return toCreateRunner(resolved, resolved.skills.toSorted(sorter));
+      });
       const params: RaceSimWorkerParams = {
         course: coursesService.getSimCourse(courseId),
         parameters: racedefToParams(racedef),
