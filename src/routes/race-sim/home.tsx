@@ -10,6 +10,7 @@ import { RunnerListItem } from '@/modules/race-sim/components/RunnerListItem';
 import { RunnerDetailPanel } from '@/modules/race-sim/components/RunnerDetailPanel';
 import { RaceSettingsPanel } from '@/modules/skill-planner/components/RaceSettingsPanel';
 import { RaceSimActionBar } from '@/modules/race-sim/components/RaceSimActionBar';
+import { RacePredictionPanel } from '@/modules/race-sim/components/RacePredictionPanel';
 import { toggleFocusRunner, useRaceSimStore } from '@/modules/simulation/stores/race-sim.store';
 
 export default function RaceSimHome() {
@@ -86,6 +87,9 @@ export default function RaceSimHome() {
         </aside>
 
         <main className="flex flex-1 flex-col min-h-0 min-w-0 bg-background">
+          <div className="shrink-0 border-b p-3">
+            <RacePredictionPanel />
+          </div>
           <RunnerDetailPanel
             runnerIndex={selectedIndex}
             totalRunners={runners.length}
