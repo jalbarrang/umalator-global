@@ -1,3 +1,9 @@
+## [0.15.1](https://github.com/jalbarrang/umalator-global/compare/v0.15.0...v0.15.1) (2026-06-14)
+
+### Bug Fixes
+
+* **ci:** use bun for wrangler deploy and drop stale package-lock.json ([1b940b5](https://github.com/jalbarrang/umalator-global/commit/1b940b550bd6c94e5905faa4e3b07cdb37eaf2a0))
+
 ## [0.15.0](https://github.com/jalbarrang/umalator-global/compare/v0.14.2...v0.15.0) (2026-06-14)
 
 ### Features
