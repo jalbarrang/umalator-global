@@ -94,7 +94,8 @@ export function parseRaceSimSnapshotJson(raw: string): RaceSimSnapshot | null {
 export function importRaceSimSnapshot(data: RaceSimSnapshot): void {
   useSettingsStore.setState({
     courseId: data.courseId,
-    racedef: cloneDeep(data.racedef)
+    racedef: cloneDeep(data.racedef),
+    selectedPresetId: null
   });
 
   useRaceSimStore.setState({

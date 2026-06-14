@@ -11,6 +11,8 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { GroundConditionName, SeasonName, WeatherName } from 'sunday-tools/course/definitions';
+import type { RaceConditions } from '@/utils/races';
 import { getUmaDisplayInfo } from '@/modules/runners/utils';
 import { trackDescription } from '@/modules/racetrack/labels';
 import { useSettingsStore } from '@/store/settings.store';
@@ -42,6 +44,13 @@ function courseLabel(courseId: number): string {
 function runnerName(outfitId: string): string {
   if (!outfitId) return '(no uma)';
   return getUmaDisplayInfo(outfitId)?.name ?? `${outfitId} (mob)`;
+}
+
+function conditionsLabel(racedef: RaceConditions): string {
+  const ground = GroundConditionName[racedef.ground] ?? `Ground ${racedef.ground}`;
+  const weather = WeatherName[racedef.weather] ?? `Weather ${racedef.weather}`;
+  const season = SeasonName[racedef.season] ?? `Season ${racedef.season}`;
+  return `${ground} · ${weather} · ${season}`;
 }
 
 export function ImportRaceSimDialog({ open, onOpenChange }: ImportRaceSimDialogProps) {
@@ -262,6 +271,15 @@ export function ImportRaceSimDialog({ open, onOpenChange }: ImportRaceSimDialogP
               <span className="text-muted-foreground">Course: </span>
               <span className="font-medium">{courseLabel(preview.courseId)}</span>
             </div>
+            <div>
+              <span className="text-muted-foreground">Conditions: </span>
+              <span className="font-medium">{conditionsLabel(preview.racedef)}</span>
+            </div>
+            {source === 'hakuraku' && (
+              <div className="text-xs text-muted-foreground">
+                Time of day &amp; grade aren't included in race files — left at defaults.
+              </div>
+            )}
             <div>
               <span className="text-muted-foreground">Field: </span>
               <span className="font-medium">{preview.runners.length} runners</span>
