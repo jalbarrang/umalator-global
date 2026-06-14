@@ -39,7 +39,9 @@ export function parseChangelog(markdown: string): Array<ChangelogEntry> {
     currentEntry.changes.push(itemMatch[1].trim());
   }
 
-  return entries;
+  // Drop releases with no user-facing changes (e.g. chore/perf-only bumps)
+  // so the modal never shows a contentless version section.
+  return entries.filter((entry) => entry.changes.length > 0);
 }
 
 export const changelog = parseChangelog(changelogRaw);

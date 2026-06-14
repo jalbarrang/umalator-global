@@ -1,4 +1,18 @@
 
+## [0.14.2](https://github.com/jalbarrang/umalator-global/compare/v0.14.1...v0.14.2) (2026-06-05)
+
+## [0.14.1](https://github.com/jalbarrang/umalator-global/compare/v0.14.0...v0.14.1) (2026-05-29)
+
+### Bug Fixes
+
+* **ci:** run deploy after versioning so changelog includes new release ([d84b49b](https://github.com/jalbarrang/umalator-global/commit/d84b49b57eeaa9719cb4275679a58c940291c2b0))
+
+## [0.14.0](https://github.com/jalbarrang/umalator-global/compare/v0.13.0...v0.14.0) (2026-05-29)
+
+### Features
+
+* **racetrack:** add granular display controls with dropdown UI ([11e4d30](https://github.com/jalbarrang/umalator-global/commit/11e4d306372dc87349c905729d8af72d225b9a41))
+
 ## [0.13.0](https://github.com/jalbarrang/umalator-global/compare/v0.12.0...v0.13.0) (2026-05-29)
 
 ### Features
