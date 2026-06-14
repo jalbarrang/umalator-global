@@ -1,3 +1,28 @@
+## [0.15.0](https://github.com/jalbarrang/umalator-global/compare/v0.14.2...v0.15.0) (2026-06-14)
+
+### Features
+
+* add copyright notice to footer ([723dc8c](https://github.com/jalbarrang/umalator-global/commit/723dc8c2fda5961d279c1c86785bd21aaa259f3b))
+* add privacy policy page ([8d85c67](https://github.com/jalbarrang/umalator-global/commit/8d85c67e5d564ad28291bedf252d20f8c0661a53))
+* gate PostHog behind consent + persistent privacy footer ([5d71a53](https://github.com/jalbarrang/umalator-global/commit/5d71a5315d715ccf06855a6feed635a02d1c2314))
+* **race-sim:** clear preset on import + show conditions in import preview ([6847511](https://github.com/jalbarrang/umalator-global/commit/6847511c90fa8caf4ea7d5e7c94079fb444f8919))
+* **race-sim:** export, import & share full-race configs ([83c2e80](https://github.com/jalbarrang/umalator-global/commit/83c2e80bf97ed2f1997e3925748580c9fb1e8bb9))
+* **race-sim:** import Hakuraku race files + source selector ([69bbf2d](https://github.com/jalbarrang/umalator-global/commit/69bbf2d5d130216fe4f0712b0a39cf60deaf8dae))
+* show Cygames non-affiliation notice in footer ([81a77b4](https://github.com/jalbarrang/umalator-global/commit/81a77b4acd139c37e9bd6a10b8dbc56329b584b4))
+
+### Bug Fixes
+
+* full-race debuffs ([00b6a8d](https://github.com/jalbarrang/umalator-global/commit/00b6a8dbfeb535b91bc8dba7ecac1f133f560989))
+* **skills:** link opponent-debuff skill families (Intense/Petrifying Gaze) ([fe8f0cc](https://github.com/jalbarrang/umalator-global/commit/fe8f0cc3dabb8c241a2d7398a010ef74d5412568))
+* **wasm:** ship the wasm-pack pkg in production builds ([334498d](https://github.com/jalbarrang/umalator-global/commit/334498dc71a9fd97c95d714d11294c082dce3f45))
+* **wasm:** silence wasm-bindgen init deprecation warning ([f5bc16d](https://github.com/jalbarrang/umalator-global/commit/f5bc16d9b84454a3a564a161296fef71655d3b78))
+
+### Performance Improvements
+
+* **basin:** cache baseline vacuum across candidates (skill/uma basin) ([fefe840](https://github.com/jalbarrang/umalator-global/commit/fefe84054ddc4c5637972aab600e6fe96b370088))
+* **data:** immutable caching for hashed datasets via _headers ([e042071](https://github.com/jalbarrang/umalator-global/commit/e04207196f3a6aa514f50806c66a74fefa5a0df4))
+* **data:** manifest-driven async data loading (Phase 2) ([245e715](https://github.com/jalbarrang/umalator-global/commit/245e71538a63ba7ae2d77e2f31d79c789158f4af))
+* **workers:** make WASM workers data-free (Phase 1) ([5fe3d57](https://github.com/jalbarrang/umalator-global/commit/5fe3d57c5bdb205c87ddde25b29fd47a3f41e233))
 
 ## [0.14.2](https://github.com/jalbarrang/umalator-global/compare/v0.14.1...v0.14.2) (2026-06-05)
 
