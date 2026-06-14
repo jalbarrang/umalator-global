@@ -37,6 +37,7 @@ export type IRunnerState = {
   mood: IMood;
   skills: Array<string>;
   team?: number | null; // CM/LoH team grouping (1-based); null/undefined = no team
+  gate?: number | null; // 1-based post/gate position; null/undefined = auto-assign
   randomMobId?: number; // For placeholder image when no uma selected
   linkedRunnerId?: string; // Link to saved runner in library
 };

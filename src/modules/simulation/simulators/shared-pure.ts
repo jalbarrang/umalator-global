@@ -96,6 +96,8 @@ export function toCreateRunner(
       wit: runner.wisdom
     },
     skills: sortedSkills,
+    // IRunnerState.gate is the 1-based post; the engine expects a 0-based gate.
+    gate: typeof runner.gate === 'number' ? runner.gate - 1 : undefined,
     forcedPositions,
     injectedDebuffs: injectedDebuffs?.map(({ skillId, position }) => ({ skillId, position })),
     forcedRushedRegions: scenarioOverrides?.forcedRushed

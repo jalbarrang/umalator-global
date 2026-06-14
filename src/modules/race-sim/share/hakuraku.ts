@@ -113,7 +113,9 @@ function horseToRunner(horse: Record<string, unknown>): IRunnerState | null {
     ...singleExportToRunnerState(single),
     strategy: strategy ?? StrategyName[Strategy.FrontRunner],
     mood: motivationToMood(horse.motivation) ?? Mood.Normal,
-    team: firstFiniteNumber(horse.team_id) ?? null
+    team: firstFiniteNumber(horse.team_id) ?? null,
+    // frame_order is the 1-based post position.
+    gate: firstFiniteNumber(horse.frame_order) ?? null
   });
 }
 

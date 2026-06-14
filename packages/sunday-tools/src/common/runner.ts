@@ -74,6 +74,7 @@ export type CreateRunner = {
   aptitudes: RunnerAptitudes;
   stats: StatLine;
   skills: Array<string>;
+  gate?: number; // Fixed 0-based gate; when omitted, the race assigns one randomly.
   forcedPositions?: Record<string, number>;
   injectedDebuffs?: Array<{ skillId: string; position: number }>;
   forcedRushedRegions?: Array<{ start: number; end: number }>;
@@ -107,6 +108,7 @@ export type RunnerProps = {
   aptitudes: RunnerAptitudes;
   stats: StatLine;
   skillIds: Array<string>;
+  gate?: number;
   forcedPositions?: Record<string, number>;
   injectedDebuffs?: Array<{ skillId: string; position: number }>;
   forcedRushedRegions?: Array<{ start: number; end: number }>;
@@ -179,6 +181,8 @@ export class Runner {
    * This value will be set by the RaceSimulator based on the gate roll.
    */
   public gate!: number;
+  // Optional fixed gate request (0-based); honoured by Race.assignGates when set.
+  public requestedGate?: number;
   public startDelay!: number;
   public startDelayAccumulator!: number;
 
@@ -349,6 +353,7 @@ export class Runner {
     this.forcedDuelingRegions = props.forcedDuelingRegions ?? [];
     this.forcedSpotStruggleRegions = props.forcedSpotStruggleRegions ?? [];
     this.forcedRank = props.forcedRank ?? [];
+    this.requestedGate = props.gate;
   }
 
   /**
@@ -1510,6 +1515,7 @@ export class Runner {
       aptitudes: props.aptitudes,
       stats: props.stats,
       skillIds: props.skills,
+      gate: props.gate,
       forcedPositions: props.forcedPositions,
       injectedDebuffs: props.injectedDebuffs,
       forcedRushedRegions: props.forcedRushedRegions,

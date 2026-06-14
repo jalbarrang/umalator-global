@@ -187,8 +187,8 @@ export function RunnerDetailPanel({
               <p className="text-xs text-muted-foreground leading-tight">{outfitName}</p>
             )}
 
-            {!outfitName && (
-              <p className="text-xs text-muted-foreground leading-tight">Gate {runnerIndex + 1}</p>
+            {!outfitName && typeof runner.gate === 'number' && (
+              <p className="text-xs text-muted-foreground leading-tight">Gate {runner.gate}</p>
             )}
           </div>
         </div>

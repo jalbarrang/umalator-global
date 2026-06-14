@@ -12,8 +12,14 @@ import {
 import { RACE_SIM_SNAPSHOT_VERSION } from './types';
 
 const makeRunners = () => [
-  createRunnerState({ outfitId: '100101', strategy: 'Front Runner', mood: Mood.Great, team: 1 }),
-  createRunnerState({ outfitId: '100201', strategy: 'Pace Chaser', team: 2 })
+  createRunnerState({
+    outfitId: '100101',
+    strategy: 'Front Runner',
+    mood: Mood.Great,
+    team: 1,
+    gate: 3
+  }),
+  createRunnerState({ outfitId: '100201', strategy: 'Pace Chaser', team: 2, gate: 7 })
 ];
 
 describe('race-sim snapshot', () => {
@@ -40,8 +46,9 @@ describe('race-sim snapshot', () => {
     expect(parsed).not.toBeNull();
     expect(parsed).toEqual(snapshot);
     expect(parsed?.version).toBe(RACE_SIM_SNAPSHOT_VERSION);
-    // Team grouping survives the round-trip.
+    // Team grouping and gate posts survive the round-trip.
     expect(parsed?.runners.map((runner) => runner.team)).toEqual([1, 2]);
+    expect(parsed?.runners.map((runner) => runner.gate)).toEqual([3, 7]);
   });
 
   it('importRaceSimSnapshot writes both stores and resets results/isStale', () => {

@@ -138,6 +138,9 @@ export function RunnerListItem(props: Readonly<RunnerListItemProps>) {
               {runner.skills.length} skill{runner.skills.length === 1 ? '' : 's'}
             </span>
           )}
+          {typeof runner.gate === 'number' && (
+            <span className="text-[10px] text-muted-foreground">Gate {runner.gate}</span>
+          )}
         </div>
       </div>
     </button>

@@ -41,7 +41,8 @@ function isRunnerState(value: unknown): value is RaceSimSnapshot['runners'][numb
     typeof value.mood === 'number' &&
     Array.isArray(value.skills) &&
     // Optional fields: validate only when present.
-    (value.team === undefined || value.team === null || typeof value.team === 'number')
+    (value.team === undefined || value.team === null || typeof value.team === 'number') &&
+    (value.gate === undefined || value.gate === null || typeof value.gate === 'number')
   );
 }
 
