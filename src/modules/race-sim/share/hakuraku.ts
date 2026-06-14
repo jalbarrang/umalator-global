@@ -115,7 +115,8 @@ function horseToRunner(horse: Record<string, unknown>): IRunnerState | null {
     mood: motivationToMood(horse.motivation) ?? Mood.Normal,
     team: firstFiniteNumber(horse.team_id) ?? null,
     // frame_order is the 1-based post position.
-    gate: firstFiniteNumber(horse.frame_order) ?? null
+    gate: firstFiniteNumber(horse.frame_order) ?? null,
+    rankScore: firstFiniteNumber(horse.rank_score) ?? null
   });
 }
 

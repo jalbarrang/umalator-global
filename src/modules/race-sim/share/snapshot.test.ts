@@ -17,7 +17,8 @@ const makeRunners = () => [
     strategy: 'Front Runner',
     mood: Mood.Great,
     team: 1,
-    gate: 3
+    gate: 3,
+    rankScore: 17527
   }),
   createRunnerState({ outfitId: '100201', strategy: 'Pace Chaser', team: 2, gate: 7 })
 ];
@@ -49,6 +50,7 @@ describe('race-sim snapshot', () => {
     // Team grouping and gate posts survive the round-trip.
     expect(parsed?.runners.map((runner) => runner.team)).toEqual([1, 2]);
     expect(parsed?.runners.map((runner) => runner.gate)).toEqual([3, 7]);
+    expect(parsed?.runners[0].rankScore).toBe(17527);
   });
 
   it('importRaceSimSnapshot writes both stores and resets results/isStale', () => {

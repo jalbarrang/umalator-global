@@ -46,8 +46,7 @@ export function runnersToRaceHorseInfo(runners: IRunnerState[]): Array<Record<st
       })),
       card_id: Number(runner.outfitId) || 0,
       chara_id: runner.outfitId ? Number(runner.outfitId.slice(0, 4)) || 0 : 0,
-      // Not tracked in IRunnerState; the model tolerates 0 (degrades rank features).
-      rank_score: 0
+      rank_score: typeof runner.rankScore === 'number' ? runner.rankScore : 0
     };
   });
 }
