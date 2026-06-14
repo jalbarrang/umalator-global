@@ -2,7 +2,11 @@ import { Route, Routes, useNavigate } from 'react-router';
 
 import { Link } from 'react-router';
 import { Fragment } from 'react';
-import { setShowChangelogModal, setShowSuggestionModal } from '@/store/ui.store';
+import {
+  setShowChangelogModal,
+  setShowCreditsModal,
+  setShowSuggestionModal
+} from '@/store/ui.store';
 import { Toaster } from '@/components/ui/sonner';
 import { AnalyticsConsentBanner } from '@/components/analytics-consent-banner';
 import { PageMetadata } from '@/components/seo/page-metadata';
@@ -251,6 +255,14 @@ function AppFooter() {
     <Link key="privacy" to="/privacy" className={footerLinkClass}>
       Privacy Policy
     </Link>,
+    <button
+      key="credits"
+      type="button"
+      className={footerLinkClass}
+      onClick={() => setShowCreditsModal(true)}
+    >
+      Credits
+    </button>,
     <button
       key="changelog"
       type="button"

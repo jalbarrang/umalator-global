@@ -3,11 +3,9 @@ import { useCallback, useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Drawer, DrawerContent, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 import { cn } from '@/lib/utils';
-import { setShowCreditsModal } from '@/store/ui.store';
-import { MenuIcon, UsersIcon } from 'lucide-react';
+import { MenuIcon } from 'lucide-react';
 
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -52,21 +50,6 @@ export function Navbar() {
       )}
 
       <div className="flex items-center gap-2">
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                variant="outline"
-                className="flex size-9 items-center justify-center"
-                onClick={() => setShowCreditsModal(true)}
-                aria-label="Open credits"
-              />
-            }
-          >
-            <UsersIcon className="size-4" />
-          </TooltipTrigger>
-          <TooltipContent>Credits</TooltipContent>
-        </Tooltip>
         <ThemeToggle />
       </div>
     </header>
