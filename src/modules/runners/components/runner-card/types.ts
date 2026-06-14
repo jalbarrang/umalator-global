@@ -39,8 +39,26 @@ export type IRunnerState = {
   team?: number | null; // CM/LoH team grouping (1-based); null/undefined = no team
   gate?: number | null; // 1-based post/gate position; null/undefined = auto-assign
   rankScore?: number | null; // Game character-strength score (from imported races)
+  star?: number | null; // Character star rating (1-5); affects unique-skill evaluation
+  skillLevels?: Record<string, number>; // base skill id -> level (incl. unique)
+  aptitudes?: RunnerAptitudes; // Full 10-bucket aptitude grades (fidelity over the 3 collapsed)
   randomMobId?: number; // For placeholder image when no uma selected
   linkedRunnerId?: string; // Link to saved runner in library
+};
+
+// Per-bucket aptitude grades (letters S..G). Used when richer fidelity than the
+// three collapsed grades is available (e.g. imported rosters).
+export type RunnerAptitudes = {
+  distanceShort: string;
+  distanceMile: string;
+  distanceMiddle: string;
+  distanceLong: string;
+  turf: string;
+  dirt: string;
+  nige: string;
+  senko: string;
+  sashi: string;
+  oikomi: string;
 };
 
 export const runawaySkillId = '202051' as const;

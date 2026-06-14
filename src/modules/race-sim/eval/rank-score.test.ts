@@ -39,6 +39,23 @@ describe('computeRankScore', () => {
     const lvl5 = computeRankScore([1200, 744, 1029, 893, 898], apt, skills, { uniqueLevel: 5 });
     expect(lvl6 - lvl5).toBe(170);
   });
+
+  it('★<3 scores the unique at 120 per level instead of 170', () => {
+    const skills = ['100271'];
+    const star3 = computeRankScore([1200, 744, 1029, 893, 898], apt, skills, { star: 3, uniqueLevel: 1 });
+    const star1 = computeRankScore([1200, 744, 1029, 893, 898], apt, skills, { star: 1, uniqueLevel: 1 });
+    expect(star3 - star1).toBe(50); // 170 - 120
+  });
+
+  it('per-skill uniqueLevels override the default unique level', () => {
+    const skills = ['100271'];
+    const base = computeRankScore([1200, 744, 1029, 893, 898], apt, skills, { uniqueLevel: 6 });
+    const overridden = computeRankScore([1200, 744, 1029, 893, 898], apt, skills, {
+      uniqueLevel: 6,
+      uniqueLevels: { '100271': 3 }
+    });
+    expect(base - overridden).toBe(3 * 170);
+  });
 });
 
 describe('estimateRunnerRankScore', () => {
@@ -61,5 +78,24 @@ describe('estimateRunnerRankScore', () => {
       skills: []
     });
     expect(estimateRunnerRankScore(runner)).toBe(12620);
+  });
+
+  it('honours stored star + skillLevels for the unique', () => {
+    const runner = createRunnerState({
+      outfitId: '100101',
+      speed: 1200,
+      stamina: 744,
+      power: 1029,
+      guts: 893,
+      wisdom: 898,
+      distanceAptitude: 'S',
+      surfaceAptitude: 'A',
+      strategyAptitude: 'A',
+      skills: ['100271'],
+      star: 5,
+      skillLevels: { '100271': 6 }
+    });
+    // 12620 stats + unique 6 * 170 (★5 -> 170)
+    expect(estimateRunnerRankScore(runner)).toBe(12620 + 6 * 170);
   });
 });

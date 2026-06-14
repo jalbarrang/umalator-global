@@ -15,9 +15,12 @@ const STRATEGY_NAME_TO_ID = new Map<string, number>(
  */
 export function runnersToRaceHorseInfo(runners: IRunnerState[]): Array<Record<string, unknown>> {
   return runners.map((runner, index) => {
+    const full = runner.aptitudes;
     const distance = aptitudeToEncoding(runner.distanceAptitude);
     const ground = aptitudeToEncoding(runner.surfaceAptitude);
     const style = aptitudeToEncoding(runner.strategyAptitude);
+    const apt = (grade: string | undefined, fallback: number) =>
+      grade !== undefined ? aptitudeToEncoding(grade) : fallback;
     const runningStyle = STRATEGY_NAME_TO_ID.get(runner.strategy) ?? Strategy.FrontRunner;
 
     return {
@@ -32,16 +35,16 @@ export function runnersToRaceHorseInfo(runners: IRunnerState[]): Array<Record<st
       pow: runner.power,
       guts: runner.guts,
       wiz: runner.wisdom,
-      proper_distance_short: distance,
-      proper_distance_mile: distance,
-      proper_distance_middle: distance,
-      proper_distance_long: distance,
-      proper_ground_turf: ground,
-      proper_ground_dirt: ground,
-      proper_running_style_nige: style,
-      proper_running_style_senko: style,
-      proper_running_style_sashi: style,
-      proper_running_style_oikomi: style,
+      proper_distance_short: apt(full?.distanceShort, distance),
+      proper_distance_mile: apt(full?.distanceMile, distance),
+      proper_distance_middle: apt(full?.distanceMiddle, distance),
+      proper_distance_long: apt(full?.distanceLong, distance),
+      proper_ground_turf: apt(full?.turf, ground),
+      proper_ground_dirt: apt(full?.dirt, ground),
+      proper_running_style_nige: apt(full?.nige, style),
+      proper_running_style_senko: apt(full?.senko, style),
+      proper_running_style_sashi: apt(full?.sashi, style),
+      proper_running_style_oikomi: apt(full?.oikomi, style),
       skill_array: runner.skills.map((skillId) => ({
         skillId: Number((skillId.split('-')[0] ?? skillId).trim())
       })),

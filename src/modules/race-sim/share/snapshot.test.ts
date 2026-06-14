@@ -18,7 +18,21 @@ const makeRunners = () => [
     mood: Mood.Great,
     team: 1,
     gate: 3,
-    rankScore: 17527
+    rankScore: 17527,
+    star: 5,
+    skillLevels: { '100271': 6 },
+    aptitudes: {
+      distanceShort: 'A',
+      distanceMile: 'A',
+      distanceMiddle: 'S',
+      distanceLong: 'B',
+      turf: 'A',
+      dirt: 'G',
+      nige: 'A',
+      senko: 'A',
+      sashi: 'B',
+      oikomi: 'C'
+    }
   }),
   createRunnerState({ outfitId: '100201', strategy: 'Pace Chaser', team: 2, gate: 7 })
 ];
@@ -51,6 +65,9 @@ describe('race-sim snapshot', () => {
     expect(parsed?.runners.map((runner) => runner.team)).toEqual([1, 2]);
     expect(parsed?.runners.map((runner) => runner.gate)).toEqual([3, 7]);
     expect(parsed?.runners[0].rankScore).toBe(17527);
+    expect(parsed?.runners[0].star).toBe(5);
+    expect(parsed?.runners[0].skillLevels).toEqual({ '100271': 6 });
+    expect(parsed?.runners[0].aptitudes?.distanceMiddle).toBe('S');
   });
 
   it('importRaceSimSnapshot writes both stores and resets results/isStale', () => {

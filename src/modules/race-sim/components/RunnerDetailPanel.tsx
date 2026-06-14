@@ -156,6 +156,13 @@ export function RunnerDetailPanel({
     [applyRunnerPatch]
   );
 
+  const handleSetStar = useCallback(
+    (value: string | undefined) => {
+      applyRunnerPatch({ star: value && value !== 'none' ? Number(value) : null });
+    },
+    [applyRunnerPatch]
+  );
+
   const uniqueSkillId = useMemo(() => {
     if (!runner?.outfitId) return null;
     return getUniqueSkillForByUmaId(runner.outfitId);
@@ -269,6 +276,21 @@ export function RunnerDetailPanel({
               <ToggleGroupItem value="1">Team 1</ToggleGroupItem>
               <ToggleGroupItem value="2">Team 2</ToggleGroupItem>
               <ToggleGroupItem value="3">Team 3</ToggleGroupItem>
+            </ToggleGroup>
+          </Section>
+
+          <Section title="Star Rating">
+            <ToggleGroup
+              value={[typeof runner.star === 'number' ? String(runner.star) : 'none']}
+              onValueChange={(value) => handleSetStar(value[0])}
+              variant="outline"
+            >
+              <ToggleGroupItem value="none">None</ToggleGroupItem>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <ToggleGroupItem key={star} value={String(star)}>
+                  {'★'.repeat(star)}
+                </ToggleGroupItem>
+              ))}
             </ToggleGroup>
           </Section>
 
