@@ -23,6 +23,8 @@ import {
 import { getUmaDisplayInfo, getUmaImageUrl } from '@/modules/runners/utils';
 import { StatsTable } from './stats-table';
 import { AptitudeBucketsField } from '@/modules/runners/components/aptitude-buckets-field';
+import { aptitudesFromInnate, collapsedFromBuckets } from '@/modules/runners/aptitude-buckets';
+import { umasService } from '@/modules/data/services/UmaService';
 import { runawaySkillId } from './types';
 import type { IRunnerState } from './types';
 import type { StatsKey } from './stats-table';
@@ -244,9 +246,18 @@ export const RunnerCard = (props: RunnerCardProps) => {
         newSkills.unshift(getUniqueSkillForByUmaId(outfitId));
       }
 
+      const innate = outfitId ? umasService.getByOutfitId(outfitId)?.aptitudes[outfitId] : undefined;
+
+      if (innate) {
+        const aptitudes = aptitudesFromInnate(innate);
+        const collapsed = collapsedFromBuckets(aptitudes, state.strategy, courseId);
+        onChange({ ...state, outfitId, skills: newSkills, aptitudes, ...collapsed });
+        return;
+      }
+
       onChange({ ...state, outfitId: outfitId, skills: newSkills });
     },
-    [onChange, state]
+    [onChange, state, courseId]
   );
 
   const handleUpdateStat = (prop: StatsKey) => (value: number) => {

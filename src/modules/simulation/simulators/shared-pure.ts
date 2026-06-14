@@ -77,12 +77,14 @@ export function toCreateRunner(
   sortedSkills: Array<string>,
   forcedPositions?: Record<string, number>,
   injectedDebuffs?: Array<InjectedDebuff>,
-  scenarioOverrides?: ScenarioOverrides
+  scenarioOverrides?: ScenarioOverrides,
+  popularity?: number
 ): CreateRunner {
   return {
     outfitId: runner.outfitId,
     mood: runner.mood,
     strategy: parseStrategyName(runner.strategy),
+    popularity,
     aptitudes: {
       distance: parseAptitudeName(runner.distanceAptitude),
       surface: parseAptitudeName(runner.surfaceAptitude),

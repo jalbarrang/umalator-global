@@ -1,5 +1,5 @@
-import { useCallback, useMemo } from 'react';
-import { PlusIcon, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import { useCallback, useMemo, useState } from 'react';
+import { PlusIcon, ChevronLeft, ChevronRight, Sparkles, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { skillsService } from '@/modules/data/services/SkillService';
@@ -25,6 +25,7 @@ import { updateRunner, useRaceSimStore } from '@/modules/simulation/stores/race-
 import { useSettingsStore } from '@/store/settings.store';
 import { rankLabel } from '@/modules/race-sim/rank-badge';
 import { estimateRunnerRankScore } from '@/modules/race-sim/eval/rank-score';
+import { computeFieldPopularity } from '@/modules/race-sim/eval/popularity';
 import { cn } from '@/lib/utils';
 
 type RunnerDetailPanelProps = {
@@ -59,6 +60,14 @@ export function RunnerDetailPanel({
     return state.runners[runnerIndex];
   });
   const courseId = useSettingsStore((state) => state.courseId);
+  const allRunners = useRaceSimStore((state) => state.runners);
+
+  // Auto popularity (人気) order for the whole field, so the override control can
+  // show the effective rank a runner gets when left on "Auto".
+  const autoPopularity = useMemo(
+    () => computeFieldPopularity(allRunners)[runnerIndex],
+    [allRunners, runnerIndex]
+  );
 
   const runnerDisplayName = useMemo(() => {
     if (!runner) return 'Runner';
@@ -121,7 +130,6 @@ export function RunnerDetailPanel({
     [applyRunnerPatch, runner]
   );
 
-
   const handleOpenSkillPicker = useCallback(() => {
     if (!runner) return;
     openSkillPicker({
@@ -155,6 +163,13 @@ export function RunnerDetailPanel({
   const handleSetStar = useCallback(
     (value: string | undefined) => {
       applyRunnerPatch({ star: value && value !== 'none' ? Number(value) : null });
+    },
+    [applyRunnerPatch]
+  );
+
+  const handleSetPopularity = useCallback(
+    (value: string | undefined) => {
+      applyRunnerPatch({ popularity: value && value !== 'auto' ? Number(value) : null });
     },
     [applyRunnerPatch]
   );
@@ -249,20 +264,16 @@ export function RunnerDetailPanel({
             />
           </Section>
 
-          <Section title="Star Rating">
-            <ToggleGroup
-              value={[typeof runner.star === 'number' ? String(runner.star) : 'none']}
-              onValueChange={(value) => handleSetStar(value[0])}
-              variant="outline"
-            >
-              <ToggleGroupItem value="none">None</ToggleGroupItem>
-              {[1, 2, 3, 4, 5].map((star) => (
-                <ToggleGroupItem key={star} value={String(star)}>
-                  {'★'.repeat(star)}
-                </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
-          </Section>
+          {/* Star only affects the *estimated* rank score. It's irrelevant for
+              imported runners (e.g. Hakuraku races — opponents copied from a real
+              race) and for anyone carrying a real rankScore (used verbatim). */}
+          {!runner.imported && typeof runner.rankScore !== 'number' && (
+            <StarRating
+              value={typeof runner.star === 'number' ? runner.star : 1}
+              onChange={(star) => handleSetStar(String(star))}
+              size="sm"
+            />
+          )}
 
           <Section title="Stats">
             <StatsTable value={runner} onChange={handleUpdateStat} />
@@ -288,6 +299,23 @@ export function RunnerDetailPanel({
               <ToggleGroupItem value="1">Team 1</ToggleGroupItem>
               <ToggleGroupItem value="2">Team 2</ToggleGroupItem>
               <ToggleGroupItem value="3">Team 3</ToggleGroupItem>
+            </ToggleGroup>
+          </Section>
+
+          <Section title="Popularity">
+            <ToggleGroup
+              value={[typeof runner.popularity === 'number' ? String(runner.popularity) : 'auto']}
+              onValueChange={(value) => handleSetPopularity(value[0])}
+              variant="outline"
+            >
+              <ToggleGroupItem value="auto">
+                Auto{typeof autoPopularity === 'number' ? ` (#${autoPopularity})` : ''}
+              </ToggleGroupItem>
+              {Array.from({ length: totalRunners }, (_, index) => index + 1).map((rank) => (
+                <ToggleGroupItem key={rank} value={String(rank)}>
+                  {rank}
+                </ToggleGroupItem>
+              ))}
             </ToggleGroup>
           </Section>
 
@@ -333,6 +361,54 @@ export function RunnerDetailPanel({
           </Section>
         </div>
       </div>
+    </div>
+  );
+}
+
+function StarRating(
+  props: Readonly<{
+    value: number;
+    onChange: (value: number) => void;
+    size?: 'sm' | 'default';
+  }>
+) {
+  const { value, onChange, size = 'default' } = props;
+
+  const [hovered, setHovered] = useState<number | null>(null);
+  const active = hovered ?? value;
+
+  const isSmall = size === 'sm';
+
+  return (
+    <div
+      className={cn('flex items-center', isSmall ? 'gap-0' : 'gap-1')}
+      onMouseLeave={() => setHovered(null)}
+    >
+      {[1, 2, 3, 4, 5].map((star) => {
+        const filled = star <= active;
+        return (
+          <button
+            key={star}
+            type="button"
+            aria-label={`${star} star${star > 1 ? 's' : ''}`}
+            aria-pressed={value === star}
+            onMouseEnter={() => setHovered(star)}
+            onClick={() => onChange(star)}
+            className={cn(
+              'rounded-sm text-muted-foreground transition-colors hover:text-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+              isSmall ? 'p-px' : 'p-0.5'
+            )}
+          >
+            <Star
+              className={cn(
+                'transition-colors',
+                isSmall ? 'size-3.5' : 'size-6',
+                filled ? 'fill-amber-400 text-amber-400' : 'fill-transparent'
+              )}
+            />
+          </button>
+        );
+      })}
     </div>
   );
 }

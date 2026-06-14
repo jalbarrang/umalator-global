@@ -47,6 +47,10 @@ function isRunnerState(value: unknown): value is RaceSimSnapshot['runners'][numb
       value.rankScore === null ||
       typeof value.rankScore === 'number') &&
     (value.star === undefined || value.star === null || typeof value.star === 'number') &&
+    (value.popularity === undefined ||
+      value.popularity === null ||
+      typeof value.popularity === 'number') &&
+    (value.imported === undefined || typeof value.imported === 'boolean') &&
     (value.skillLevels === undefined || isRecord(value.skillLevels)) &&
     (value.aptitudes === undefined || isRecord(value.aptitudes))
   );

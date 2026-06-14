@@ -114,6 +114,7 @@ export function sundayRunnerToWasm(runner: CreateRunner, name: string): WasmCrea
     name,
     mood: runner.mood,
     strategy: runner.strategy,
+    popularity: runner.popularity ?? 0,
     aptitudes: runner.aptitudes,
     stats: runner.stats,
     skills,

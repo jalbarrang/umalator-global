@@ -9,7 +9,7 @@ export const defaultRunnerState: IRunnerState = {
   guts: 400,
   wisdom: 400,
   strategy: 'Front Runner',
-  distanceAptitude: 'S',
+  distanceAptitude: 'A',
   surfaceAptitude: 'A',
   strategyAptitude: 'A',
   mood: Mood.Great,
@@ -40,6 +40,8 @@ export type IRunnerState = {
   gate?: number | null; // 1-based post/gate position; null/undefined = auto-assign
   rankScore?: number | null; // Game character-strength score (from imported races)
   star?: number | null; // Character star rating (1-5); affects unique-skill evaluation
+  popularity?: number | null; // Manual betting-popularity rank override (1-based); null = auto
+  imported?: boolean; // Runner came from a race import (e.g. Hakuraku); star is irrelevant
   skillLevels?: Record<string, number>; // base skill id -> level (incl. unique)
   aptitudes?: RunnerAptitudes; // Full 10-bucket aptitude grades (fidelity over the 3 collapsed)
   randomMobId?: number; // For placeholder image when no uma selected

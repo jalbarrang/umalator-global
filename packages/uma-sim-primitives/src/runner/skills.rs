@@ -449,6 +449,7 @@ impl Runner {
             },
             strategy: self.strategy,
             mood: self.mood,
+            popularity: self.popularity,
         }
     }
 
@@ -927,6 +928,7 @@ mod tests {
             },
             strategy: Strategy::PaceChaser,
             mood: Mood::Normal,
+            popularity: 0,
         }
     }
 
@@ -1021,6 +1023,7 @@ mod tests {
             name: "Test".to_owned(),
             mood: Mood::Normal,
             strategy: Strategy::PaceChaser,
+            popularity: 0,
             aptitudes: RunnerAptitudes {
                 distance: Aptitude::A,
                 strategy: Aptitude::A,

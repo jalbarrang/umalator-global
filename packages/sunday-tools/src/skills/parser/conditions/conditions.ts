@@ -775,7 +775,12 @@ export const defaultConditions: ConditionsMap<ICondition> = {
     filterGt: notSupported,
     filterGte: notSupported
   },
-  popularity: noopImmediate,
+  popularity: valueFilterOrNoop(({ runner }) => {
+    // Popularity is static for the race. `0`/undefined (e.g. mob runners) means
+    // unknown and is treated as "no constraint".
+    const value = runner.popularity;
+    return typeof value === 'number' && value > 0 ? value : undefined;
+  }),
   post_number: (function () {
     function gateBlock(runner: Runner) {
       const gateNumber = runner.gate; // modulo result guaranteed to be uniformly distributed due to the properties of runner.gateRoll

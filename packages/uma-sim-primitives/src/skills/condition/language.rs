@@ -425,6 +425,7 @@ mod tests {
             },
             strategy: Strategy::PaceChaser,
             mood: Mood::Normal,
+            popularity: 0,
         }
     }
 

@@ -9,6 +9,7 @@ import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { RaceSimContext } from '@/modules/race-sim/context';
 import { collapsedForCourse } from '@/modules/runners/aptitude-buckets';
+import { computeFieldPopularity } from '@/modules/race-sim/eval/popularity';
 import { loadResults } from '@/modules/race-sim/stores/playback.store';
 import { useRaceSimRunner } from '@/modules/simulation/hooks/race-sim/useRaceSimRunner';
 import {
@@ -86,13 +87,24 @@ export function RaceSimRoot() {
     (seed: number) => {
       const allSkillIds = runners.flatMap((r) => r.skills);
       const sorter = createSkillSorterByGroup(allSkillIds);
-      const raceRunners = runners.map((runner) => {
+      // Popularity (人気) order drives popularity-gated skills (e.g. "Target in
+      // sight", "Long-shot"). Derive it from rank score, honouring manual
+      // overrides, across the whole field before per-runner conversion.
+      const popularity = computeFieldPopularity(runners);
+      const raceRunners = runners.map((runner, index) => {
         // When per-bucket aptitudes are set, resolve the grades for THIS course so
         // the engine uses the correct distance/surface/style bucket.
         const resolved = runner.aptitudes
           ? { ...runner, ...collapsedForCourse(runner.aptitudes, courseId, runner.strategy) }
           : runner;
-        return toCreateRunner(resolved, resolved.skills.toSorted(sorter));
+        return toCreateRunner(
+          resolved,
+          resolved.skills.toSorted(sorter),
+          undefined,
+          undefined,
+          undefined,
+          popularity[index]
+        );
       });
       const params: RaceSimWorkerParams = {
         course: coursesService.getSimCourse(courseId),

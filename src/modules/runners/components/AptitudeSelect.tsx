@@ -14,10 +14,12 @@ type AptitudeSelectProps = {
   value: string;
   onChange: (value: string) => void;
   className?: string;
+  size?: 'sm' | 'default';
+  iconClassName?: string;
 };
 
 export const AptitudeSelect = (props: AptitudeSelectProps) => {
-  const { value, onChange, className } = props;
+  const { value, onChange, className, size = 'default', iconClassName = 'size-4' } = props;
 
   const handleChange = (newValue: string | null) => {
     if (!newValue) {
@@ -29,8 +31,13 @@ export const AptitudeSelect = (props: AptitudeSelectProps) => {
 
   return (
     <Select value={value} onValueChange={handleChange}>
-      <SelectTrigger className={cn('border-none rounded-none shadow-none w-full', className)}>
-        <SelectValue>{(value) => <AptitudeIcon aptitude={value} className="size-4" />}</SelectValue>
+      <SelectTrigger
+        size={size}
+        className={cn('border-none rounded-none shadow-none w-full', className)}
+      >
+        <SelectValue>
+          {(value) => <AptitudeIcon aptitude={value} className={iconClassName} />}
+        </SelectValue>
       </SelectTrigger>
 
       <SelectContent>

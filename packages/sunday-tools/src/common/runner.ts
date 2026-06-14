@@ -75,6 +75,7 @@ export type CreateRunner = {
   stats: StatLine;
   skills: Array<string>;
   gate?: number; // Fixed 0-based gate; when omitted, the race assigns one randomly.
+  popularity?: number; // Betting popularity rank (1 = most popular); 0/undefined = unknown.
   forcedPositions?: Record<string, number>;
   injectedDebuffs?: Array<{ skillId: string; position: number }>;
   forcedRushedRegions?: Array<{ start: number; end: number }>;
@@ -109,6 +110,7 @@ export type RunnerProps = {
   stats: StatLine;
   skillIds: Array<string>;
   gate?: number;
+  popularity?: number;
   forcedPositions?: Record<string, number>;
   injectedDebuffs?: Array<{ skillId: string; position: number }>;
   forcedRushedRegions?: Array<{ start: number; end: number }>;
@@ -183,6 +185,9 @@ export class Runner {
   public gate!: number;
   // Optional fixed gate request (0-based); honoured by Race.assignGates when set.
   public requestedGate?: number;
+  // Betting popularity rank (1 = most popular); 0 = unknown. Read by the
+  // `popularity` skill condition (this Runner is used as the SkillEvalRunner).
+  public popularity: number = 0;
   public startDelay!: number;
   public startDelayAccumulator!: number;
 
@@ -354,6 +359,7 @@ export class Runner {
     this.forcedSpotStruggleRegions = props.forcedSpotStruggleRegions ?? [];
     this.forcedRank = props.forcedRank ?? [];
     this.requestedGate = props.gate;
+    this.popularity = props.popularity ?? 0;
   }
 
   /**
@@ -1533,6 +1539,7 @@ export class Runner {
       stats: props.stats,
       skillIds: props.skills,
       gate: props.gate,
+      popularity: props.popularity,
       forcedPositions: props.forcedPositions,
       injectedDebuffs: props.injectedDebuffs,
       forcedRushedRegions: props.forcedRushedRegions,

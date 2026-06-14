@@ -1424,7 +1424,18 @@ pub fn build_catalog() -> ConditionCatalog {
             })
             .build(),
     );
-    add("popularity", noop_immediate());
+    add(
+        "popularity",
+        value_filter_or_noop(|p| {
+            // Popularity is static for the race. `0` means unknown (e.g. mob
+            // runners) and is treated as "no constraint".
+            if p.runner.popularity > 0 {
+                Some(p.runner.popularity as f64)
+            } else {
+                None
+            }
+        }),
+    );
     add(
         "post_number",
         immediate()
@@ -1918,6 +1929,7 @@ mod tests {
             },
             strategy: Strategy::PaceChaser,
             mood: Mood::Great,
+            popularity: 0,
         }
     }
 
@@ -2000,6 +2012,44 @@ mod tests {
         assert_eq!(regions.0, whole_course(&course()).0);
         let (empty, _) = apply("running_style==1");
         assert!(empty.0.is_empty());
+    }
+
+    #[test]
+    fn popularity_filters_on_static_rank() {
+        fn apply_pop(condition: &str, popularity: i64) -> ConditionResult {
+            let catalog = build_catalog();
+            let parser = ConditionParser::new(&catalog);
+            let op = parser.parse(condition).expect("parse");
+            let course = course();
+            let mut runner = runner();
+            runner.popularity = popularity;
+            let extra = params();
+            let regions = whole_course(&course);
+            op.apply(&ApplyParams {
+                regions,
+                course: &course,
+                runner: &runner,
+                extra: &extra,
+                resolution: ConditionResolution::Dynamic,
+            })
+            .expect("apply")
+        }
+
+        // "Target in sight"-style favourite check: passes for #1, empties otherwise.
+        let (favourite, _) = apply_pop("popularity==1", 1);
+        assert_eq!(favourite.0, whole_course(&course()).0);
+        let (not_favourite, _) = apply_pop("popularity==1", 3);
+        assert!(not_favourite.0.is_empty());
+
+        // "Long-shot"-style underdog check (popularity>=6).
+        let (underdog, _) = apply_pop("popularity>=6", 7);
+        assert_eq!(underdog.0, whole_course(&course()).0);
+        let (not_underdog, _) = apply_pop("popularity>=6", 2);
+        assert!(not_underdog.0.is_empty());
+
+        // Unknown popularity (0, e.g. mob runners) is treated as no constraint.
+        let (unknown, _) = apply_pop("popularity<=3", 0);
+        assert_eq!(unknown.0, whole_course(&course()).0);
     }
 
     #[test]

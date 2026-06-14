@@ -1,7 +1,24 @@
 import type { IRunnerState, RunnerAptitudes } from '@/modules/runners/components/runner-card/types';
+import type { UmaAptitudes } from '@/modules/data/services/UmaService';
 import { coursesService } from '@/modules/data/services/CourseService';
 
 export type AptitudeBucketKey = keyof RunnerAptitudes;
+
+/** Map an outfit's innate aptitudes onto the 10-bucket runner aptitude shape. */
+export function aptitudesFromInnate(innate: UmaAptitudes): RunnerAptitudes {
+  return {
+    turf: innate.turf,
+    dirt: innate.dirt,
+    distanceShort: innate.sprint,
+    distanceMile: innate.mile,
+    distanceMiddle: innate.medium,
+    distanceLong: innate.long,
+    nige: innate.frontRunner,
+    senko: innate.paceChaser,
+    sashi: innate.lateSurger,
+    oikomi: innate.endCloser
+  };
+}
 
 export const DISTANCE_BUCKETS: ReadonlyArray<{ key: AptitudeBucketKey; label: string }> = [
   { key: 'distanceShort', label: 'Sprint' },

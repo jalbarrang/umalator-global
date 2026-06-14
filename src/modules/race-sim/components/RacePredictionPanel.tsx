@@ -26,7 +26,11 @@ export function RacePredictionPanel() {
     return map;
   }, [runners]);
 
-  if (prediction.status === 'unsupported' || prediction.status === 'incompatible') {
+  if (prediction.status === 'unsupported') {
+    return null;
+  }
+
+  if (prediction.status === 'incompatible') {
     return (
       <div className="rounded-lg border p-3 text-xs text-muted-foreground">
         <div className="flex items-center gap-1.5 font-medium text-foreground">
@@ -34,9 +38,8 @@ export function RacePredictionPanel() {
           Win prediction
         </div>
         <p className="mt-1">
-          {prediction.status === 'incompatible'
-            ? 'Win prediction needs a Champions Meeting room: 3 teams of 3 runners each. Assign teams (and import gates) to enable it.'
-            : 'No prediction model is available for this course yet. Supported on Champions Meeting courses with a trained model.'}
+          Win prediction needs a Champions Meeting room: 3 teams of 3 runners each. Assign
+          teams (and import gates) to enable it.
         </p>
       </div>
     );
