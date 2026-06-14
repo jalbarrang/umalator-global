@@ -102,6 +102,7 @@ export const RunnerEditorLayout = (props: RunnerEditorLayoutProps) => {
                   onChange={handleRunnerChange}
                   onOpenSkillPicker={() => setSkillPickerOpen(true)}
                   showShareButton={false}
+                  showStrategyMood={false}
                 />
               </div>
             </div>

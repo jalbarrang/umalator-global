@@ -171,6 +171,7 @@ export const RunnersPanel = () => {
           <RunnerCard
             value={runner}
             courseDistance={course.distance}
+            courseId={courseId}
             runnerId={runnerId}
             onChange={updateRunner}
             onReset={resetRunner}

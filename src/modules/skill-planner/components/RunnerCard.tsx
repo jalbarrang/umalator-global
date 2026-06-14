@@ -5,8 +5,9 @@ import type { IRunnerState } from '@/modules/runners/components/runner-card/type
 import { cn } from '@/lib/utils';
 import { StatsTable } from '@/modules/runners/components/runner-card/stats-table';
 import { UmaSelector } from '@/modules/runners/components/runner-selector';
-import { AptitudesTable } from '@/modules/runners/components/runner-card/aptitudes-table';
+import { AptitudeBucketsField } from '@/modules/runners/components/aptitude-buckets-field';
 import { runawaySkillId } from '@/modules/runners/components/runner-card/types';
+import { useSettingsStore } from '@/store/settings.store';
 import { ImportVeteranDialog } from './ImportVeteranDialog';
 import { Button } from '@/components/ui/button';
 
@@ -21,6 +22,7 @@ type RunnerCardProps = {
 export const RunnerCard = (props: RunnerCardProps) => {
   const { value, onChange, onReset, onImportVeteran, className, ...rest } = props;
   const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const courseId = useSettingsStore((state) => state.courseId);
 
   const handleUpdateOutfitId = (outfitId: string) => {
     onChange({ outfitId });
@@ -79,9 +81,10 @@ export const RunnerCard = (props: RunnerCardProps) => {
 
         <StatsTable value={value} onChange={handleUpdateStat} />
 
-        <AptitudesTable
+        <AptitudeBucketsField
           value={value}
           onChange={handleUpdateAptitude}
+          courseId={courseId}
           hasRunawaySkill={hasRunawaySkill}
           onRunawayStrategy={handleUpdateRunawayStrategy}
         />
