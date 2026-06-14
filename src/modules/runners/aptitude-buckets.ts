@@ -22,23 +22,69 @@ export const STYLE_BUCKETS: ReadonlyArray<{ key: AptitudeBucketKey; label: strin
   { key: 'oikomi', label: 'End' }
 ];
 
-/** Full bucket set, falling back to the collapsed grades broadcast across each axis. */
+const VALID_GRADES = new Set(['S', 'A', 'B', 'C', 'D', 'E', 'F', 'G']);
+const GRADE_RANK = ['S', 'A', 'B', 'C', 'D', 'E', 'F', 'G'];
+
+function isValidGrade(value: unknown): value is string {
+  return typeof value === 'string' && VALID_GRADES.has(value);
+}
+
+/** Best (highest) valid grade among the candidates, else undefined. */
+function bestGrade(...grades: unknown[]): string | undefined {
+  let best: string | undefined;
+  for (const grade of grades) {
+    if (!isValidGrade(grade)) continue;
+    if (best === undefined || GRADE_RANK.indexOf(grade) < GRADE_RANK.indexOf(best)) {
+      best = grade;
+    }
+  }
+  return best;
+}
+
+/**
+ * Full bucket set. When `aptitudes` is present, any missing/invalid bucket is
+ * backfilled from its valid siblings (then the collapsed grade, then 'G') so the
+ * UI and scoring never see a blank grade. Without `aptitudes`, the collapsed
+ * grades are broadcast across each axis.
+ */
 export function bucketsFromRunner(runner: IRunnerState): RunnerAptitudes {
-  if (runner.aptitudes) return runner.aptitudes;
   const d = runner.distanceAptitude;
   const s = runner.surfaceAptitude;
   const st = runner.strategyAptitude;
+
+  if (!runner.aptitudes) {
+    return {
+      distanceShort: d,
+      distanceMile: d,
+      distanceMiddle: d,
+      distanceLong: d,
+      turf: s,
+      dirt: s,
+      nige: st,
+      senko: st,
+      sashi: st,
+      oikomi: st
+    };
+  }
+
+  const a = runner.aptitudes;
+  const distanceFallback =
+    bestGrade(a.distanceShort, a.distanceMile, a.distanceMiddle, a.distanceLong, d) ?? 'G';
+  const surfaceFallback = bestGrade(a.turf, a.dirt, s) ?? 'G';
+  const styleFallback = bestGrade(a.nige, a.senko, a.sashi, a.oikomi, st) ?? 'G';
+  const fix = (value: unknown, fallback: string) => (isValidGrade(value) ? value : fallback);
+
   return {
-    distanceShort: d,
-    distanceMile: d,
-    distanceMiddle: d,
-    distanceLong: d,
-    turf: s,
-    dirt: s,
-    nige: st,
-    senko: st,
-    sashi: st,
-    oikomi: st
+    distanceShort: fix(a.distanceShort, distanceFallback),
+    distanceMile: fix(a.distanceMile, distanceFallback),
+    distanceMiddle: fix(a.distanceMiddle, distanceFallback),
+    distanceLong: fix(a.distanceLong, distanceFallback),
+    turf: fix(a.turf, surfaceFallback),
+    dirt: fix(a.dirt, surfaceFallback),
+    nige: fix(a.nige, styleFallback),
+    senko: fix(a.senko, styleFallback),
+    sashi: fix(a.sashi, styleFallback),
+    oikomi: fix(a.oikomi, styleFallback)
   };
 }
 

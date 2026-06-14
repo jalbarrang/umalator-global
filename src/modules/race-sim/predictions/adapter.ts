@@ -1,6 +1,7 @@
 import { Strategy, StrategyName } from 'sunday-tools/runner/definitions';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import { aptitudeToEncoding } from '@/modules/runners/share/converters';
+import { bucketsFromRunner } from '@/modules/runners/aptitude-buckets';
 import { estimateRunnerRankScore } from '@/modules/race-sim/eval/rank-score';
 
 const STRATEGY_NAME_TO_ID = new Map<string, number>(
@@ -15,12 +16,7 @@ const STRATEGY_NAME_TO_ID = new Map<string, number>(
  */
 export function runnersToRaceHorseInfo(runners: IRunnerState[]): Array<Record<string, unknown>> {
   return runners.map((runner, index) => {
-    const full = runner.aptitudes;
-    const distance = aptitudeToEncoding(runner.distanceAptitude);
-    const ground = aptitudeToEncoding(runner.surfaceAptitude);
-    const style = aptitudeToEncoding(runner.strategyAptitude);
-    const apt = (grade: string | undefined, fallback: number) =>
-      grade !== undefined ? aptitudeToEncoding(grade) : fallback;
+    const full = bucketsFromRunner(runner);
     const runningStyle = STRATEGY_NAME_TO_ID.get(runner.strategy) ?? Strategy.FrontRunner;
 
     return {
@@ -35,16 +31,16 @@ export function runnersToRaceHorseInfo(runners: IRunnerState[]): Array<Record<st
       pow: runner.power,
       guts: runner.guts,
       wiz: runner.wisdom,
-      proper_distance_short: apt(full?.distanceShort, distance),
-      proper_distance_mile: apt(full?.distanceMile, distance),
-      proper_distance_middle: apt(full?.distanceMiddle, distance),
-      proper_distance_long: apt(full?.distanceLong, distance),
-      proper_ground_turf: apt(full?.turf, ground),
-      proper_ground_dirt: apt(full?.dirt, ground),
-      proper_running_style_nige: apt(full?.nige, style),
-      proper_running_style_senko: apt(full?.senko, style),
-      proper_running_style_sashi: apt(full?.sashi, style),
-      proper_running_style_oikomi: apt(full?.oikomi, style),
+      proper_distance_short: aptitudeToEncoding(full.distanceShort),
+      proper_distance_mile: aptitudeToEncoding(full.distanceMile),
+      proper_distance_middle: aptitudeToEncoding(full.distanceMiddle),
+      proper_distance_long: aptitudeToEncoding(full.distanceLong),
+      proper_ground_turf: aptitudeToEncoding(full.turf),
+      proper_ground_dirt: aptitudeToEncoding(full.dirt),
+      proper_running_style_nige: aptitudeToEncoding(full.nige),
+      proper_running_style_senko: aptitudeToEncoding(full.senko),
+      proper_running_style_sashi: aptitudeToEncoding(full.sashi),
+      proper_running_style_oikomi: aptitudeToEncoding(full.oikomi),
       skill_array: runner.skills.map((skillId) => ({
         skillId: Number((skillId.split('-')[0] ?? skillId).trim())
       })),

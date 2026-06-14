@@ -1,5 +1,6 @@
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import { aptitudeToEncoding } from '@/modules/runners/share/converters';
+import { bucketsFromRunner } from '@/modules/runners/aptitude-buckets';
 import skillGradesJson from './skill-grades.json';
 
 /**
@@ -162,37 +163,20 @@ export function computeRankScore(
 }
 
 function runnerAptitudes(runner: IRunnerState): RankAptitudes {
-  // Prefer the full 10-bucket aptitudes when present; else broadcast the three
-  // collapsed grades across each axis.
-  const full = runner.aptitudes;
-  if (full) {
-    return {
-      turf: aptitudeToEncoding(full.turf),
-      dirt: aptitudeToEncoding(full.dirt),
-      sprint: aptitudeToEncoding(full.distanceShort),
-      mile: aptitudeToEncoding(full.distanceMile),
-      medium: aptitudeToEncoding(full.distanceMiddle),
-      long: aptitudeToEncoding(full.distanceLong),
-      front: aptitudeToEncoding(full.nige),
-      pace: aptitudeToEncoding(full.senko),
-      late: aptitudeToEncoding(full.sashi),
-      end: aptitudeToEncoding(full.oikomi)
-    };
-  }
-  const distance = aptitudeToEncoding(runner.distanceAptitude);
-  const ground = aptitudeToEncoding(runner.surfaceAptitude);
-  const style = aptitudeToEncoding(runner.strategyAptitude);
+  // bucketsFromRunner backfills any missing bucket (and broadcasts the collapsed
+  // grades when there is no per-bucket data).
+  const full = bucketsFromRunner(runner);
   return {
-    turf: ground,
-    dirt: ground,
-    sprint: distance,
-    mile: distance,
-    medium: distance,
-    long: distance,
-    front: style,
-    pace: style,
-    late: style,
-    end: style
+    turf: aptitudeToEncoding(full.turf),
+    dirt: aptitudeToEncoding(full.dirt),
+    sprint: aptitudeToEncoding(full.distanceShort),
+    mile: aptitudeToEncoding(full.distanceMile),
+    medium: aptitudeToEncoding(full.distanceMiddle),
+    long: aptitudeToEncoding(full.distanceLong),
+    front: aptitudeToEncoding(full.nige),
+    pace: aptitudeToEncoding(full.senko),
+    late: aptitudeToEncoding(full.sashi),
+    end: aptitudeToEncoding(full.oikomi)
   };
 }
 

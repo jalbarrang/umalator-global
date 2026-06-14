@@ -22,6 +22,18 @@ describe('bucketsFromRunner', () => {
     expect(bucketsFromRunner(runner)).toEqual(aptitudes);
   });
 
+  it('backfills a missing/invalid bucket from its best sibling', () => {
+    // distanceMiddle missing -> should fall back to the best distance sibling (S).
+    const partial = {
+      ...aptitudes,
+      distanceMiddle: '' as string
+    };
+    const runner = createRunnerState({ aptitudes: partial, distanceAptitude: 'A' });
+    const result = bucketsFromRunner(runner);
+    expect(result.distanceMiddle).toBe('S'); // best of Sprint S / Mile A / Long C
+    expect(result.distanceShort).toBe('S');
+  });
+
   it('broadcasts the collapsed grades when no bucket data', () => {
     const runner = createRunnerState({
       distanceAptitude: 'B',
