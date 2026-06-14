@@ -45,7 +45,7 @@ function loadTurnstileScript(): Promise<void> {
     script.defer = true;
     script.addEventListener('load', () => resolve());
     script.addEventListener('error', () => reject(new Error('Turnstile failed to load')));
-    document.head.appendChild(script);
+    document.head.append(script);
   });
 
   return scriptPromise;

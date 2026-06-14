@@ -58,14 +58,14 @@ export const LengthDifferenceChart = React.memo(
       }));
 
       // Find max basinn per bin
-      beneficialActivations.forEach(({ positions, horseLength }) => {
+      for (const { positions, horseLength } of beneficialActivations) {
         for (const position of positions) {
           const binIndex = Math.floor(position / DEFAULT_BIN_SIZE);
           if (binIndex >= 0 && binIndex < bins.length) {
             bins[binIndex].maxBasinn = Math.max(bins[binIndex].maxBasinn, Math.abs(horseLength));
           }
         }
-      });
+      }
 
       const maxValue = Math.max(...bins.map((b) => b.maxBasinn), 0);
       const phaseStarts = getPhaseReferenceLines(courseDistance);

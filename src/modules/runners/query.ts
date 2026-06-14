@@ -65,10 +65,10 @@ export class UmaQuery {
   whereText(searchText: string): this {
     if (searchText.length === 0) return this;
 
-    const normalizedSearch = searchText.replace(/\./g, '');
+    const normalizedSearch = searchText.replaceAll('.', '');
 
     this.predicates.push((uma) => {
-      const target = `${uma.outfit} ${uma.name}`.replace(/\./g, '');
+      const target = `${uma.outfit} ${uma.name}`.replaceAll('.', '');
 
       if (target.toUpperCase().includes(normalizedSearch.toUpperCase())) {
         return true;

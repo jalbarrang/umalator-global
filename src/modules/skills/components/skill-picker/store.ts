@@ -88,9 +88,9 @@ export const createSkillPickerStore = () => {
             // If all are active, clicking one makes it exclusive (deselects others)
             const newIconFilters: Record<string, boolean> = {};
 
-            groups_filters.icontype.forEach((f) => {
+            for (const f of groups_filters.icontype) {
               newIconFilters[f] = f === filter;
-            });
+            }
 
             set({ filters: { ...filters, icontype: newIconFilters } });
             return;
@@ -104,9 +104,9 @@ export const createSkillPickerStore = () => {
           const anyActive = groups_filters.icontype.some((f) => newIconFilters[f]);
           if (!anyActive) {
             // Re-enable all if none would be active
-            groups_filters.icontype.forEach((f) => {
+            for (const f of groups_filters.icontype) {
               newIconFilters[f] = true;
-            });
+            }
           }
 
           set({ filters: { ...filters, icontype: newIconFilters } });
@@ -119,9 +119,9 @@ export const createSkillPickerStore = () => {
           // If the filter is already active, deactivate it (toggle off)
           // Otherwise, make it the only active one
           const newGroupFilters: Record<string, boolean> = {};
-          Object.keys(groupFilters).forEach((f) => {
+          for (const f of Object.keys(groupFilters)) {
             newGroupFilters[f] = !groupFilters[filter] && f === filter;
-          });
+          }
 
           set({ filters: { ...filters, [group]: newGroupFilters } });
         },

@@ -528,6 +528,9 @@ pub struct WasmCreateRunner {
     pub mood: i32,
     /// Strategy (numeric).
     pub strategy: i32,
+    /// Betting popularity rank (1 = most popular). `0`/omitted = unknown.
+    #[serde(default)]
+    pub popularity: i64,
     /// Aptitudes.
     pub aptitudes: WasmAptitudes,
     /// Raw stats.
@@ -562,6 +565,7 @@ impl WasmCreateRunner {
             name: self.name,
             mood: to_mood(self.mood)?,
             strategy: to_strategy(self.strategy)?,
+            popularity: self.popularity,
             aptitudes: self.aptitudes.into_domain()?,
             stats: self.stats.into(),
             skills: self

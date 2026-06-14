@@ -1,6 +1,7 @@
 import { Aptitude, Strategy, strategies } from './definitions';
 import type { IAptitude, IStrategy } from './definitions';
 
+// eslint-disable-next-line unicorn/no-static-only-class -- TS assertion signatures (`asserts x is T`) only work on class/function members, not object-literal methods
 export class StrategyHelpers {
   static assertIsStrategy(strategy: number): asserts strategy is IStrategy {
     if (!strategies.includes(strategy as IStrategy)) {

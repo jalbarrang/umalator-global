@@ -128,13 +128,13 @@ export function createOcrDialogStore(engineRef: RefObject<OcrEngine | null>) {
         processComposited: async (blob, maskType, existingData) => {
           const state = get();
 
-          if (state.isProcessing) return Promise.resolve(state.results);
+          if (state.isProcessing) return state.results;
 
           const engine = state._engineRef.current;
           if (!engine) {
             const msg = 'No OCR engine is ready. Enter your Gemini API key to get started.';
             set({ error: msg });
-            return Promise.reject(new Error(msg));
+            throw new Error(msg);
           }
 
           const baseData = existingData ?? state.results;

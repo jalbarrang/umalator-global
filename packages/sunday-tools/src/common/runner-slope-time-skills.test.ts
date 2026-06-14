@@ -91,7 +91,7 @@ function getRunner(race: Race): TestRunner {
 
 function getPendingSkill(runner: TestRunner, baseSkillId: string): PendingSkill {
   const pendingSkill = runner.pendingSkills.find(
-    (skill: PendingSkill) => (skill.skillId.split('-')[0] ?? skill.skillId) === baseSkillId
+    (skill: PendingSkill) => (skill.skillId.split('-', 1)[0] ?? skill.skillId) === baseSkillId
   );
 
   if (!pendingSkill) {

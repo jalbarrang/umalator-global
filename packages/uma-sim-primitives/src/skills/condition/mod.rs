@@ -56,6 +56,9 @@ pub struct SkillEvalRunner {
     pub strategy: Strategy,
     /// Motivation.
     pub mood: Mood,
+    /// Betting popularity rank (1 = most popular). `0` means unknown/unset and
+    /// is treated as "no constraint" by the `popularity` condition.
+    pub popularity: i64,
 }
 
 /// Parameters passed to a [`Condition`] filter method.

@@ -58,7 +58,7 @@ export function courseDataToWasm(course: CourseData): WasmCourseData {
 
 /** Resolve a skill id (possibly with a `-suffix`) to its WASM input DTO. */
 export function resolveSkillInput(skillId: string): WasmSkillInput | null {
-  const baseId = skillId.split('-')[0] ?? skillId;
+  const baseId = skillId.split('-', 1)[0] ?? skillId;
   const entry = skillsService.getById(baseId);
   if (!entry) {
     return null;
@@ -114,6 +114,7 @@ export function sundayRunnerToWasm(runner: CreateRunner, name: string): WasmCrea
     name,
     mood: runner.mood,
     strategy: runner.strategy,
+    popularity: runner.popularity ?? 0,
     aptitudes: runner.aptitudes,
     stats: runner.stats,
     skills,

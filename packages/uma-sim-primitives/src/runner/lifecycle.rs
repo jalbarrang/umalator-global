@@ -61,6 +61,8 @@ pub struct CreateRunner {
     pub mood: Mood,
     /// Running style.
     pub strategy: Strategy,
+    /// Betting popularity rank (1 = most popular). `0` means unknown/unset.
+    pub popularity: i64,
     /// Aptitudes.
     pub aptitudes: RunnerAptitudes,
     /// Raw input stats.
@@ -140,6 +142,7 @@ impl Runner {
             strategy: props.strategy,
             position_keep_strategy: props.strategy,
             mood: props.mood,
+            popularity: props.popularity,
             aptitudes: props.aptitudes,
             stats: props.stats,
             base_stats,
@@ -394,6 +397,7 @@ mod tests {
             name: "Test Runner".to_owned(),
             mood: Mood::Great,
             strategy,
+            popularity: 0,
             aptitudes: RunnerAptitudes {
                 distance: Aptitude::A,
                 strategy: Aptitude::A,

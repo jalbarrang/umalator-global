@@ -30,7 +30,7 @@ export function buildExportData(params: BuildExportDataParams): SkillPlannerExpo
   const strategy = strategyNameToValue[runner.strategy] ?? 1;
 
   return {
-    card_id: parseInt(runner.outfitId, 10) || 0,
+    card_id: Number.parseInt(runner.outfitId, 10) || 0,
     speed: runner.speed,
     stamina: runner.stamina,
     power: runner.power,
@@ -50,9 +50,9 @@ export function buildExportData(params: BuildExportDataParams): SkillPlannerExpo
     mood: runner.mood,
     budget,
     fast_learner: hasFastLearner,
-    obtained_skills: obtainedSkillIds.map((id) => ({ skill_id: parseInt(id, 10) || 0 })),
+    obtained_skills: obtainedSkillIds.map((id) => ({ skill_id: Number.parseInt(id, 10) || 0 })),
     candidate_skills: candidates.map((c) => ({
-      skill_id: parseInt(c.skillId, 10) || 0,
+      skill_id: Number.parseInt(c.skillId, 10) || 0,
       hint_level: c.hintLevel
     }))
   };

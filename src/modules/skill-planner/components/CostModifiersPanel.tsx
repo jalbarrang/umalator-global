@@ -54,7 +54,7 @@ export function CostModifiersPanel(props: CostModifiersPanelProps) {
   );
 
   const handleBudgetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value) || 0;
+    const value = Number.parseInt(e.target.value) || 0;
 
     setBudget(value);
   };

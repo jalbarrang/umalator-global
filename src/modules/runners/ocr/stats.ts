@@ -35,7 +35,7 @@ export function extractStats(text: string): Partial<ExtractedUmaData> {
   // Keep comma-grouped values together so OCR text like "14,441" isn't split into "14" and "441".
   const allNumbers = searchText.match(/\d{1,3}(?:,\d{3})+|\d+/g) || [];
   const validStats = allNumbers
-    .map((n) => parseInt(n.replaceAll(',', ''), 10))
+    .map((n) => Number.parseInt(n.replaceAll(',', ''), 10))
     .filter((n) => n >= 100 && n <= 2000);
 
   // We need exactly 5 stats in order

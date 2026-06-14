@@ -112,7 +112,17 @@ function horseToRunner(horse: Record<string, unknown>): IRunnerState | null {
   return createRunnerState({
     ...singleExportToRunnerState(single),
     strategy: strategy ?? StrategyName[Strategy.FrontRunner],
-    mood: motivationToMood(horse.motivation) ?? Mood.Normal
+    mood: motivationToMood(horse.motivation) ?? Mood.Normal,
+    team: firstFiniteNumber(horse.team_id) ?? null,
+    // frame_order is the 1-based post position.
+    gate: firstFiniteNumber(horse.frame_order) ?? null,
+    rankScore: firstFiniteNumber(horse.rank_score) ?? null,
+    // Mark as imported so UI can hide controls that don't apply to opponents
+    // copied from a real race (e.g. the star rating).
+    imported: true,
+    // Compact race files carry no per-skill levels; leave unset rather than
+    // implying level 1 (rank score is imported directly anyway).
+    skillLevels: undefined
   });
 }
 

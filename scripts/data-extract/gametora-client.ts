@@ -15,7 +15,7 @@ async function ensureDir(dir: string): Promise<void> {
 function cachePathFor(url: string): string {
   const slug = url
     .replace(/^https?:\/\//, '')
-    .replace(/[^a-zA-Z0-9.-]/g, '_')
+    .replaceAll(/[^a-zA-Z0-9.-]/g, '_')
     .slice(0, 200);
   const ext = slug.endsWith('.json') ? '' : '.json';
 

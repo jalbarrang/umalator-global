@@ -30,6 +30,7 @@ fn mob_runner(index: usize, strategy: Strategy) -> CreateRunner {
         name: format!("Mob {index}"),
         mood: Mood::Normal,
         strategy,
+        popularity: 0,
         aptitudes: RunnerAptitudes {
             distance: Aptitude::A,
             strategy: Aptitude::A,

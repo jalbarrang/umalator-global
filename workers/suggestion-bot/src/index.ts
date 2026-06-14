@@ -66,7 +66,7 @@ function corsHeaders(origin: string | null): Record<string, string> {
 }
 
 function json(body: unknown, status: number, headers: Record<string, string>): Response {
-  return new Response(JSON.stringify(body), {
+  return Response.json(body, {
     status,
     headers: { 'Content-Type': 'application/json', ...headers }
   });

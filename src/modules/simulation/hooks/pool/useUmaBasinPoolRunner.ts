@@ -82,7 +82,7 @@ export function useUmaBasinPoolRunner() {
 
     // Create placeholder results
     const filler: SkillComparisonResponse = {};
-    skills.forEach((id) => (filler[id] = getNullSkillComparisonRow(id)));
+    for (const id of skills) (filler[id] = getNullSkillComparisonRow(id));
 
     resetTable();
     setTable(filler);

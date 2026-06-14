@@ -118,6 +118,9 @@ pub struct Runner {
     pub position_keep_strategy: Strategy,
     /// Motivation.
     pub mood: Mood,
+    /// Betting popularity rank (1 = most popular). `0` means unknown/unset.
+    /// Static for the race; read by the `popularity` skill condition.
+    pub popularity: i64,
     /// Distance / strategy / surface aptitudes.
     pub aptitudes: RunnerAptitudes,
     /// Raw input stats (pre-adjustment).
@@ -518,6 +521,7 @@ pub mod test_support {
             name: format!("Runner {id}"),
             mood: Mood::Normal,
             strategy,
+            popularity: 0,
             aptitudes: RunnerAptitudes {
                 distance: Aptitude::A,
                 strategy: Aptitude::A,

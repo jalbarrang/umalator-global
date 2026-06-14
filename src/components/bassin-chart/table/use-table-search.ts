@@ -25,12 +25,12 @@ export function useTableSearch<T>({
     const query = searchQuery.toLowerCase();
     const matches: Array<number> = [];
 
-    rows.forEach((row, index) => {
+    for (const [index, row] of rows.entries()) {
       const searchText = getSearchableText(row).toLowerCase();
       if (searchText.includes(query)) {
         matches.push(index);
       }
-    });
+    }
 
     return matches;
   }, [rows, searchQuery, getSearchableText]);

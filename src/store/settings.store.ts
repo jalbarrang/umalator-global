@@ -99,7 +99,7 @@ export const useStaminaDrainOverrides = () =>
   useSettingsStore(useShallow((state) => state.staminaDrainOverrides));
 
 export const setStaminaDrainOverride = (skillId: string, value: number | null) => {
-  const normalizedSkillId = skillId.split('-')[0] ?? skillId;
+  const normalizedSkillId = skillId.split('-', 1)[0] ?? skillId;
   useSettingsStore.setState((state) => {
     const nextOverrides = { ...state.staminaDrainOverrides };
 

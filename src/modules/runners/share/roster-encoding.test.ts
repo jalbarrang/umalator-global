@@ -13,7 +13,7 @@ function toBase64Url(bytes: Uint8Array): string {
     .toString('base64')
     .replaceAll('+', '-')
     .replaceAll('/', '_')
-    .replace(/=+$/g, '');
+    .replaceAll(/=+$/g, '');
 }
 
 function fromBase64Url(value: string): Uint8Array {
@@ -168,7 +168,7 @@ describe('decodeRoster', () => {
     });
 
     it('decodes from hash fragment only (z-prefixed compressed)', async () => {
-      const hashFragment = TEST_ROSTER_URL.split('#')[1];
+      const hashFragment = TEST_ROSTER_URL.split('#', 2)[1];
       expect(hashFragment).toBeTruthy();
       expect(hashFragment?.startsWith('z')).toBe(true);
 

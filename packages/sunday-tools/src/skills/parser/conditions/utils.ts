@@ -143,18 +143,18 @@ export function shiftRegionsForwardByMinTime(params: ConditionFilterParams) {
   const minDistance = avgSpeed * minTime;
   const shiftedRegions = new RegionList();
 
-  regions.forEach((region) => {
+  for (const region of regions) {
     if (region.end <= minDistance) {
-      return;
+      continue;
     }
 
     if (region.start < minDistance) {
       shiftedRegions.push(new Region(minDistance, region.end));
-      return;
+      continue;
     }
 
     shiftedRegions.push(region);
-  });
+  }
 
   return shiftedRegions;
 }

@@ -23,7 +23,7 @@ type IRunnerLibraryStore = {
 
 // Generate a simple UUID-like ID
 const generateId = () => {
-  return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 };
 
 export const useRunnerLibraryStore = create<IRunnerLibraryStore>()(

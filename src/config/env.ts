@@ -40,7 +40,7 @@ export function envNumber(name: string, defaultValue: number = 0): number {
   if (val == '') return defaultValue;
   const n = Number(val);
 
-  return !isNaN(n) ? n : defaultValue;
+  return !Number.isNaN(n) ? n : defaultValue;
 }
 
 export function setEnv(key: string, value: string | number | boolean) {

@@ -15,6 +15,8 @@ export interface SkillEvalRunner {
   baseStats: StatLine;
   strategy: IStrategy;
   mood: IMood;
+  /** Betting popularity rank (1 = most popular). `0`/undefined = unknown. */
+  popularity?: number;
 }
 
 export type ApplyParams = {

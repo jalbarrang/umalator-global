@@ -22,7 +22,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { getUmaDisplayInfo, getUmaImageUrl } from '@/modules/runners/utils';
 import { StatsTable } from './stats-table';
-import { AptitudesTable } from './aptitudes-table';
+import { AptitudeBucketsField } from '@/modules/runners/components/aptitude-buckets-field';
+import { aptitudesFromInnate, collapsedFromBuckets } from '@/modules/runners/aptitude-buckets';
+import { umasService } from '@/modules/data/services/UmaService';
 import { runawaySkillId } from './types';
 import type { IRunnerState } from './types';
 import type { StatsKey } from './stats-table';
@@ -92,6 +94,8 @@ type RunnerCardProps = {
   hideSkillButton?: boolean;
   showSkillSpCosts?: boolean;
   showShareButton?: boolean;
+  courseId?: number;
+  showStrategyMood?: boolean;
 };
 
 type RunnerCardSkillRowProps = {
@@ -143,7 +147,9 @@ export const RunnerCard = (props: RunnerCardProps) => {
     onOpenSkillPicker,
     hideSkillButton = false,
     showSkillSpCosts = false,
-    showShareButton = true
+    showShareButton = true,
+    courseId,
+    showStrategyMood = true
   } = props;
 
   const isMobile = useIsMobile();
@@ -240,9 +246,18 @@ export const RunnerCard = (props: RunnerCardProps) => {
         newSkills.unshift(getUniqueSkillForByUmaId(outfitId));
       }
 
+      const innate = outfitId ? umasService.getByOutfitId(outfitId)?.aptitudes[outfitId] : undefined;
+
+      if (innate) {
+        const aptitudes = aptitudesFromInnate(innate);
+        const collapsed = collapsedFromBuckets(aptitudes, state.strategy, courseId);
+        onChange({ ...state, outfitId, skills: newSkills, aptitudes, ...collapsed });
+        return;
+      }
+
       onChange({ ...state, outfitId: outfitId, skills: newSkills });
     },
-    [onChange, state]
+    [onChange, state, courseId]
   );
 
   const handleUpdateStat = (prop: StatsKey) => (value: number) => {
@@ -462,9 +477,11 @@ export const RunnerCard = (props: RunnerCardProps) => {
       <div className="flex flex-col gap-2" data-tutorial="runner-stats">
         <StatsTable value={state} onChange={handleUpdateStat} />
 
-        <AptitudesTable
+        <AptitudeBucketsField
           value={state}
           onChange={onChange}
+          courseId={courseId}
+          showStrategyMood={showStrategyMood}
           hasRunawaySkill={hasRunawaySkill}
           onRunawayStrategy={handleRunawayStrategy}
         />

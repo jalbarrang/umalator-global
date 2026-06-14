@@ -8,7 +8,7 @@ export type ChangelogEntry = {
 
 export function parseChangelog(markdown: string): Array<ChangelogEntry> {
   const entries: Array<ChangelogEntry> = [];
-  const lines = markdown.replace(/\r\n/g, '\n').split('\n');
+  const lines = markdown.replaceAll('\r\n', '\n').split('\n');
 
   let currentEntry: ChangelogEntry | null = null;
 
@@ -30,7 +30,7 @@ export function parseChangelog(markdown: string): Array<ChangelogEntry> {
     }
 
     // Skip section headers like ### Features, ### Bug Fixes
-    if (line.match(/^###\s+/)) continue;
+    if (/^###\s+/.test(line)) continue;
 
     // Match both `- item` and `* item` bullets
     const itemMatch = line.match(/^[-*]\s+(.+)$/);

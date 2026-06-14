@@ -29,7 +29,7 @@ type RunnerSummaryRow = {
   worst: number;
 };
 
-type FinishOrderTableProps = {};
+type FinishOrderTableProps = Record<string, never>;
 
 function getPositionColor(position: number, total = 9): string {
   const ratio = (position - 1) / Math.max(total - 1, 1);

@@ -87,7 +87,7 @@ export function buildSkillData(params: BuildSkillDataParams): Array<SkillTrigger
     }
 
     let full = new RegionList();
-    wholeCourse.forEach((r) => full.push(r));
+    for (const r of wholeCourse) full.push(r);
 
     if (skillAlternative.precondition) {
       const parsedPrecondition = parser.parse(skillAlternative.precondition);

@@ -9,9 +9,9 @@ export const generateSeed = () => {
  * Parse a seed from a string to a number.
  */
 export const parseSeed = (seed: string) => {
-  const parsedSeed = parseInt(seed, 10);
+  const parsedSeed = Number.parseInt(seed, 10);
 
-  if (isNaN(parsedSeed)) {
+  if (Number.isNaN(parsedSeed)) {
     return null;
   }
 

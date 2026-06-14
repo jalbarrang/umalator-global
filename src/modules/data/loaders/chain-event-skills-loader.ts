@@ -22,7 +22,7 @@ export function initEventSkillSources(sources: EventSkillSources): void {
  */
 export function getChainEventSkillIds(supportCardId: number): Set<number> {
   const entry = eventSkillSources[String(supportCardId)];
-  return new Set(entry?.chain_event_skills ?? []);
+  return new Set(entry?.chain_event_skills);
 }
 
 /**
@@ -32,7 +32,7 @@ export function getChainEventSkillIds(supportCardId: number): Set<number> {
  */
 export function getRandomEventSkillIds(supportCardId: number): Set<number> {
   const entry = eventSkillSources[String(supportCardId)];
-  return new Set(entry?.random_event_skills ?? []);
+  return new Set(entry?.random_event_skills);
 }
 
 /**

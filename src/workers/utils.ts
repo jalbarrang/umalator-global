@@ -69,13 +69,13 @@ export const mergeResultSets = (
   resultSetA: SkillComparisonResponse,
   resultSetB: SkillComparisonResponse
 ) => {
-  Object.entries(resultSetB).forEach(([id, resultB]) => {
+  for (const [id, resultB] of Object.entries(resultSetB)) {
     const resultA = resultSetA[id];
 
     if (resultA) {
       resultSetA[id] = mergeSkillResults(resultA, resultB);
     }
-  });
+  }
 };
 
 export const calculateStagesFor = (length: number) => {

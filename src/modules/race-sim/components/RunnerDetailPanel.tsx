@@ -1,8 +1,9 @@
-import { useCallback, useMemo } from 'react';
-import { PlusIcon, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import { useCallback, useMemo, useState } from 'react';
+import { PlusIcon, ChevronLeft, ChevronRight, Sparkles, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { skillsService } from '@/modules/data/services/SkillService';
-import { AptitudesTable } from '@/modules/runners/components/runner-card/aptitudes-table';
+import { AptitudeBucketsField } from '@/modules/runners/components/aptitude-buckets-field';
 import { StatsTable, type StatsKey } from '@/modules/runners/components/runner-card/stats-table';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import { runawaySkillId } from '@/modules/runners/components/runner-card/types';
@@ -21,6 +22,10 @@ import { SkillItem } from '@/modules/skills/components/skill-list/skill-item/ite
 import { openSkillPicker, updateCurrentSkills } from '@/modules/skills/store';
 import { getSelectableSkillsForUma, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import { updateRunner, useRaceSimStore } from '@/modules/simulation/stores/race-sim.store';
+import { useSettingsStore } from '@/store/settings.store';
+import { rankLabel } from '@/modules/race-sim/rank-badge';
+import { estimateRunnerRankScore } from '@/modules/race-sim/eval/rank-score';
+import { computeFieldPopularity } from '@/modules/race-sim/eval/popularity';
 import { cn } from '@/lib/utils';
 
 type RunnerDetailPanelProps = {
@@ -54,6 +59,15 @@ export function RunnerDetailPanel({
     if (runnerIndex < 0 || runnerIndex >= state.runners.length) return null;
     return state.runners[runnerIndex];
   });
+  const courseId = useSettingsStore((state) => state.courseId);
+  const allRunners = useRaceSimStore((state) => state.runners);
+
+  // Auto popularity (人気) order for the whole field, so the override control can
+  // show the effective rank a runner gets when left on "Auto".
+  const autoPopularity = useMemo(
+    () => computeFieldPopularity(allRunners)[runnerIndex],
+    [allRunners, runnerIndex]
+  );
 
   const runnerDisplayName = useMemo(() => {
     if (!runner) return 'Runner';
@@ -104,7 +118,7 @@ export function RunnerDetailPanel({
     (outfitId: string) => {
       if (!runner) return;
       const keptSkills = runner.skills.filter((skillId) => {
-        const baseSkillId = skillId.split('-')[0] ?? skillId;
+        const baseSkillId = skillId.split('-', 1)[0] ?? skillId;
         const skillData = skillsService.getById(baseSkillId);
         return Boolean(skillData?.rarity && skillData.rarity < 3);
       });
@@ -114,13 +128,6 @@ export function RunnerDetailPanel({
       applyRunnerPatch({ outfitId, skills: keptSkills });
     },
     [applyRunnerPatch, runner]
-  );
-
-  const handleUpdateAptitudes = useCallback(
-    (nextRunner: IRunnerState) => {
-      applyRunnerPatch(nextRunner);
-    },
-    [applyRunnerPatch]
   );
 
   const handleOpenSkillPicker = useCallback(() => {
@@ -145,6 +152,27 @@ export function RunnerDetailPanel({
   const handleRunawayStrategy = useCallback(() => {
     applyRunnerPatch({ strategy: 'Runaway' });
   }, [applyRunnerPatch]);
+
+  const handleSetTeam = useCallback(
+    (value: string | undefined) => {
+      applyRunnerPatch({ team: value && value !== 'none' ? Number(value) : null });
+    },
+    [applyRunnerPatch]
+  );
+
+  const handleSetStar = useCallback(
+    (value: string | undefined) => {
+      applyRunnerPatch({ star: value && value !== 'none' ? Number(value) : null });
+    },
+    [applyRunnerPatch]
+  );
+
+  const handleSetPopularity = useCallback(
+    (value: string | undefined) => {
+      applyRunnerPatch({ popularity: value && value !== 'auto' ? Number(value) : null });
+    },
+    [applyRunnerPatch]
+  );
 
   const uniqueSkillId = useMemo(() => {
     if (!runner?.outfitId) return null;
@@ -174,13 +202,26 @@ export function RunnerDetailPanel({
             className="size-10 rounded-md object-cover ring-1 ring-border"
           />
           <div>
-            <h2 className="text-sm font-semibold leading-tight">{runnerDisplayName}</h2>
+            <h2 className="flex items-center gap-1.5 text-sm font-semibold leading-tight">
+              {runnerDisplayName}
+              {runner.outfitId && (
+                <span
+                  className="rounded bg-primary/15 px-1 py-px text-[10px] font-semibold text-primary"
+                  title={`${
+                    typeof runner.rankScore === 'number' ? 'Rank' : 'Estimated rank'
+                  } score ${estimateRunnerRankScore(runner)}`}
+                >
+                  {rankLabel(estimateRunnerRankScore(runner))}
+                  {typeof runner.rankScore === 'number' ? '' : '*'}
+                </span>
+              )}
+            </h2>
             {outfitName && (
               <p className="text-xs text-muted-foreground leading-tight">{outfitName}</p>
             )}
 
-            {!outfitName && (
-              <p className="text-xs text-muted-foreground leading-tight">Gate {runnerIndex + 1}</p>
+            {!outfitName && typeof runner.gate === 'number' && (
+              <p className="text-xs text-muted-foreground leading-tight">Gate {runner.gate}</p>
             )}
           </div>
         </div>
@@ -223,17 +264,59 @@ export function RunnerDetailPanel({
             />
           </Section>
 
+          {/* Star only affects the *estimated* rank score. It's irrelevant for
+              imported runners (e.g. Hakuraku races — opponents copied from a real
+              race) and for anyone carrying a real rankScore (used verbatim). */}
+          {!runner.imported && typeof runner.rankScore !== 'number' && (
+            <StarRating
+              value={typeof runner.star === 'number' ? runner.star : 1}
+              onChange={(star) => handleSetStar(String(star))}
+              size="sm"
+            />
+          )}
+
           <Section title="Stats">
             <StatsTable value={runner} onChange={handleUpdateStat} />
           </Section>
 
           <Section title="Aptitudes & Style">
-            <AptitudesTable
+            <AptitudeBucketsField
               value={runner}
-              onChange={handleUpdateAptitudes}
+              onChange={applyRunnerPatch}
+              courseId={courseId}
               hasRunawaySkill={hasRunawaySkill}
               onRunawayStrategy={handleRunawayStrategy}
             />
+          </Section>
+
+          <Section title="Team">
+            <ToggleGroup
+              value={[typeof runner.team === 'number' ? String(runner.team) : 'none']}
+              onValueChange={(value) => handleSetTeam(value[0])}
+              variant="outline"
+            >
+              <ToggleGroupItem value="none">None</ToggleGroupItem>
+              <ToggleGroupItem value="1">Team 1</ToggleGroupItem>
+              <ToggleGroupItem value="2">Team 2</ToggleGroupItem>
+              <ToggleGroupItem value="3">Team 3</ToggleGroupItem>
+            </ToggleGroup>
+          </Section>
+
+          <Section title="Popularity">
+            <ToggleGroup
+              value={[typeof runner.popularity === 'number' ? String(runner.popularity) : 'auto']}
+              onValueChange={(value) => handleSetPopularity(value[0])}
+              variant="outline"
+            >
+              <ToggleGroupItem value="auto">
+                Auto{typeof autoPopularity === 'number' ? ` (#${autoPopularity})` : ''}
+              </ToggleGroupItem>
+              {Array.from({ length: totalRunners }, (_, index) => index + 1).map((rank) => (
+                <ToggleGroupItem key={rank} value={String(rank)}>
+                  {rank}
+                </ToggleGroupItem>
+              ))}
+            </ToggleGroup>
           </Section>
 
           <Section
@@ -278,6 +361,54 @@ export function RunnerDetailPanel({
           </Section>
         </div>
       </div>
+    </div>
+  );
+}
+
+function StarRating(
+  props: Readonly<{
+    value: number;
+    onChange: (value: number) => void;
+    size?: 'sm' | 'default';
+  }>
+) {
+  const { value, onChange, size = 'default' } = props;
+
+  const [hovered, setHovered] = useState<number | null>(null);
+  const active = hovered ?? value;
+
+  const isSmall = size === 'sm';
+
+  return (
+    <div
+      className={cn('flex items-center', isSmall ? 'gap-0' : 'gap-1')}
+      onMouseLeave={() => setHovered(null)}
+    >
+      {[1, 2, 3, 4, 5].map((star) => {
+        const filled = star <= active;
+        return (
+          <button
+            key={star}
+            type="button"
+            aria-label={`${star} star${star > 1 ? 's' : ''}`}
+            aria-pressed={value === star}
+            onMouseEnter={() => setHovered(star)}
+            onClick={() => onChange(star)}
+            className={cn(
+              'rounded-sm text-muted-foreground transition-colors hover:text-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+              isSmall ? 'p-px' : 'p-0.5'
+            )}
+          >
+            <Star
+              className={cn(
+                'transition-colors',
+                isSmall ? 'size-3.5' : 'size-6',
+                filled ? 'fill-amber-400 text-amber-400' : 'fill-transparent'
+              )}
+            />
+          </button>
+        );
+      })}
     </div>
   );
 }

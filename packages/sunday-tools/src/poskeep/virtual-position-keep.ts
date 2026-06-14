@@ -198,8 +198,7 @@ export function applyVirtualPositionKeep(runner: RunnerLike): void {
                 (runner.posKeepMaxThreshold - runner.posKeepMinThreshold) +
               runner.posKeepMinThreshold;
           }
-        } else if (behind < runner.posKeepMinThreshold) {
-          if (
+        } else if (behind < runner.posKeepMinThreshold && 
             runner.targetSpeedSkillsActive.length === 0 &&
             runner.currentSpeedSkillsActive.length === 0
           ) {
@@ -210,7 +209,6 @@ export function applyVirtualPositionKeep(runner: RunnerLike): void {
                 (runner.posKeepMaxThreshold - runner.posKeepMinThreshold) +
               runner.posKeepMinThreshold;
           }
-        }
       }
 
       if (runner.positionKeepState === PositionKeepState.None) {

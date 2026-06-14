@@ -203,7 +203,8 @@ umalator-global/
     ├── package.json                  # Dependencies and scripts
     ├── tsconfig.json                 # TypeScript configuration
     ├── vite.config.ts                # Vite build configuration
-    ├── .oxlintrc.json                # oxlint linter configuration
+    ├── eslint.config.js              # ESLint (flat config) linter configuration
+    ├── eslint-rules/                 # Project-local ESLint rules (React/Zustand)
     ├── .oxfmtrc.json                 # oxfmt formatter configuration
     ├── .editorconfig                 # Editor configuration
     ├── components.json               # shadcn/ui configuration
@@ -298,7 +299,7 @@ Feature flags are managed via environment variables prefixed with `VITE_FEATURE_
 - **Recharts** for chart visualizations
 - **Zod** for schema validation
 - **Vitest** for unit tests
-- **oxlint** for linting
+- **ESLint** (flat config, with `eslint-plugin-unicorn`) for linting
 - **oxfmt** for formatting
 - **Lucide React** for icons
 
@@ -451,7 +452,11 @@ Formatting is enforced by **oxfmt** (`.oxfmtrc.json`):
 - 100 character line width
 - LF line endings
 
-Linting is enforced by **oxlint** (`.oxlintrc.json`).
+Linting is enforced by **ESLint** using its flat config (`eslint.config.js`). It layers
+`@eslint/js`, `typescript-eslint`, `eslint-plugin-react`, `eslint-plugin-react-hooks`,
+`eslint-plugin-jsx-a11y`, and `eslint-plugin-unicorn` (the `unopinionated` preset, with the
+finicky/stylistic rules turned off), plus the project-local `react-props` rules in
+`eslint-rules/`.
 
 TypeScript strict mode is enabled. Use functional React components with hooks. Style with Tailwind CSS utility classes. Use path aliases for imports.
 

@@ -47,24 +47,24 @@ export function ActivationFrequencyChart({
     // Process all run types (minrun, maxrun, meanrun, medianrun)
     const runTypes = ['minrun', 'maxrun', 'meanrun', 'medianrun'] as const;
 
-    runTypes.forEach((runType) => {
+    for (const runType of runTypes) {
       const run = runData[runType];
-      if (!run || !run.sk) return;
+      if (!run || !run.sk) continue;
 
       // Check BOTH uma indices since the skill could be on either runner
       // In Basinn simulations, we're comparing WITH skill vs WITHOUT
 
       // Check only uma 2 since the skill is always on uma2
       const skillMap = run.sk[1];
-      if (!skillMap) return;
+      if (!skillMap) continue;
 
       const activations = skillMap[skillId];
-      if (!activations) return;
+      if (!activations) continue;
 
-      activations.forEach((activation: SkillEffectLog) => {
+      for (const activation of activations as SkillEffectLog[]) {
         activationPositions.push(activation.start);
-      });
-    });
+      }
+    }
 
     if (activationPositions.length === 0) {
       return { bins: [], totalActivations: 0, phaseStarts: [] };
@@ -85,18 +85,18 @@ export function ActivationFrequencyChart({
     }
 
     // Fill bins with activation counts
-    activationPositions.forEach((pos) => {
+    for (const pos of activationPositions) {
       const binIndex = Math.floor(pos / binSize);
       if (binIndex >= 0 && binIndex < bins.length) {
         bins[binIndex].count++;
       }
-    });
+    }
 
     // Calculate percentages
     const totalActivations = activationPositions.length;
-    bins.forEach((bin) => {
+    for (const bin of bins) {
       bin.percentage = totalActivations > 0 ? (bin.count / totalActivations) * 100 : 0;
-    });
+    }
 
     // Get phase boundaries
     const phaseStarts = [

@@ -33,7 +33,7 @@ export const DEFAULT_DUELING_RATES: DuelingRates = {
 };
 
 export function normalizeSkillId(skillId: string): string {
-  return skillId.split('-')[0] ?? skillId;
+  return skillId.split('-', 1)[0] ?? skillId;
 }
 
 export function isSameSkill(skillIdA: string, skillIdB: string): boolean {
@@ -59,7 +59,7 @@ export function createSkillSorterByGroupWith(
     const index = commonSkills.findIndex(
       (skillId) => groupIdOf(normalizeSkillId(skillId)) === groupId
     );
-    return index > -1 ? index : commonSkills.length;
+    return index !== -1 ? index : commonSkills.length;
   };
 
   return (a: string, b: string) => {
@@ -77,12 +77,14 @@ export function toCreateRunner(
   sortedSkills: Array<string>,
   forcedPositions?: Record<string, number>,
   injectedDebuffs?: Array<InjectedDebuff>,
-  scenarioOverrides?: ScenarioOverrides
+  scenarioOverrides?: ScenarioOverrides,
+  popularity?: number
 ): CreateRunner {
   return {
     outfitId: runner.outfitId,
     mood: runner.mood,
     strategy: parseStrategyName(runner.strategy),
+    popularity,
     aptitudes: {
       distance: parseAptitudeName(runner.distanceAptitude),
       surface: parseAptitudeName(runner.surfaceAptitude),
@@ -96,6 +98,8 @@ export function toCreateRunner(
       wit: runner.wisdom
     },
     skills: sortedSkills,
+    // IRunnerState.gate is the 1-based post; the engine expects a 0-based gate.
+    gate: typeof runner.gate === 'number' ? runner.gate - 1 : undefined,
     forcedPositions,
     injectedDebuffs: injectedDebuffs?.map(({ skillId, position }) => ({ skillId, position })),
     forcedRushedRegions: scenarioOverrides?.forcedRushed

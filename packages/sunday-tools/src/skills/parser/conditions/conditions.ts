@@ -79,7 +79,7 @@ function getCornerRegionsForArg(params: ConditionFilterParams): RegionList {
       corners.push(new Region(corner.start, corner.start + corner.length));
     }
 
-    return new RegionList(...corners.reverse());
+    return new RegionList(...corners.toReversed());
   }
 
   return new RegionList();
@@ -420,7 +420,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
         throw new Error('must be is_dirtgrade==1');
       }
 
-      return [10101, 10103, 10104, 10105].indexOf(course.raceTrackId) > -1
+      return [10101, 10103, 10104, 10105].includes(course.raceTrackId)
         ? regions
         : new RegionList();
     },
@@ -429,7 +429,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
         throw new Error('must be is_dirtgrade!=1');
       }
 
-      return [10101, 10103, 10104, 10105].indexOf(course.raceTrackId) == -1
+      return ![10101, 10103, 10104, 10105].includes(course.raceTrackId)
         ? regions
         : new RegionList();
     }
@@ -643,7 +643,7 @@ export const defaultConditions: ConditionsMap<ICondition> = {
           '120451',
           '920451',
           '101502121'
-        ].indexOf(extra.skillId) > -1
+        ].includes(extra.skillId)
           ? 10
           : 0;
       const bounds = new Region(
@@ -775,7 +775,12 @@ export const defaultConditions: ConditionsMap<ICondition> = {
     filterGt: notSupported,
     filterGte: notSupported
   },
-  popularity: noopImmediate,
+  popularity: valueFilterOrNoop(({ runner }) => {
+    // Popularity is static for the race. `0`/undefined (e.g. mob runners) means
+    // unknown and is treated as "no constraint".
+    const value = runner.popularity;
+    return typeof value === 'number' && value > 0 ? value : undefined;
+  }),
   post_number: (function () {
     function gateBlock(runner: Runner) {
       const gateNumber = runner.gate; // modulo result guaranteed to be uniformly distributed due to the properties of runner.gateRoll

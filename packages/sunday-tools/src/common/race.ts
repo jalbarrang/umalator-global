@@ -258,20 +258,40 @@ export class Race {
   private assignGates(): void {
     if (!this.rng) throw new Error('Race RNG not set');
 
-    // Create gate pool (0 to 8, always 9 gates)
-    const gates = Array.from({ length: 9 }, (_, i) => i);
+    const runners = Array.from(this.runners.values());
 
-    // Fisher-Yates shuffle using race RNG
-    for (let i = gates.length - 1; i > 0; i--) {
-      const j = this.rng.uniform(i + 1);
-      [gates[i], gates[j]] = [gates[j], gates[i]];
+    // Honour valid, unique fixed-gate requests; everything else draws from the
+    // remaining pool. A request that's out of range or collides with an earlier
+    // one falls back to random assignment.
+    const taken = new Set<number>();
+    const fixedByRunnerId = new Map<number, number>();
+    for (const runner of runners) {
+      const requested = runner.requestedGate;
+      if (
+        requested !== undefined &&
+        Number.isInteger(requested) &&
+        requested >= 0 &&
+        requested <= 8 &&
+        !taken.has(requested)
+      ) {
+        taken.add(requested);
+        fixedByRunnerId.set(runner.id, requested);
+      }
     }
 
-    // Assign first N gates to runners (in iteration order, which is insertion order for Map)
-    let gateIndex = 0;
-    for (const runner of this.runners.values()) {
-      runner.setGate(gates[gateIndex]);
-      gateIndex++;
+    // Remaining gate pool (those not claimed by a fixed request).
+    const pool = Array.from({ length: 9 }, (_, i) => i).filter((gate) => !taken.has(gate));
+
+    // Fisher-Yates shuffle the remaining pool using race RNG.
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = this.rng.uniform(i + 1);
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+
+    let poolIndex = 0;
+    for (const runner of runners) {
+      const fixed = fixedByRunnerId.get(runner.id);
+      runner.setGate(fixed !== undefined ? fixed : pool[poolIndex++]);
     }
   }
 

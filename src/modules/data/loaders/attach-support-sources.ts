@@ -24,7 +24,7 @@ function upsertSupportSource(skill: SkillEntry, source: SkillSupportCardSourceEn
   const sources = skill.supportSources ?? [];
   const existingIndex = sources.findIndex((entry) => sourceKey(entry) === sourceKey(source));
 
-  if (existingIndex >= 0) {
+  if (existingIndex !== -1) {
     sources[existingIndex] = source;
   } else {
     sources.push(source);

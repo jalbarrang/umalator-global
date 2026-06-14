@@ -5,6 +5,9 @@ import { strategyNames } from 'sunday-tools/runner/definitions';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import { getUmaDisplayInfo, getUmaImageUrl } from '@/modules/runners/utils';
 import { getIconUrl } from '@/assets/icons';
+import { getTeamStyle } from '@/modules/race-sim/team-colors';
+import { rankLabel } from '@/modules/race-sim/rank-badge';
+import { estimateRunnerRankScore } from '@/modules/race-sim/eval/rank-score';
 
 type RunnerListItemProps = {
   index: number;
@@ -22,6 +25,20 @@ const statIcons = [
   getIconUrl('status_03.png'),
   getIconUrl('status_04.png')
 ] as const;
+
+function RankBadge({ runner }: Readonly<{ runner: IRunnerState }>) {
+  const score = estimateRunnerRankScore(runner);
+  const estimated = typeof runner.rankScore !== 'number';
+  return (
+    <span
+      className="text-[10px] rounded bg-primary/15 px-1 py-px font-semibold text-primary"
+      title={`${estimated ? 'Estimated rank' : 'Rank'} score ${score}`}
+    >
+      {rankLabel(score)}
+      {estimated ? '*' : ''}
+    </span>
+  );
+}
 
 export function RunnerListItem(props: Readonly<RunnerListItemProps>) {
   const { index, runner, isSelected, isFocused, onSelect, onToggleFocus } = props;
@@ -94,6 +111,7 @@ export function RunnerListItem(props: Readonly<RunnerListItemProps>) {
             )}
           </div>
 
+          {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/click-events-have-key-events -- label is bound to the checkbox via htmlFor; onClick only stops row-selection propagation */}
           <label
             htmlFor={focusCheckboxId}
             className="shrink-0 cursor-pointer"
@@ -119,6 +137,19 @@ export function RunnerListItem(props: Readonly<RunnerListItemProps>) {
         </div>
 
         <div className="flex items-center gap-2">
+          {typeof runner.team === 'number' && (
+            <span
+              className={cn(
+                'text-[10px] rounded px-1 py-px font-medium',
+                getTeamStyle(runner.team).chipClass
+              )}
+            >
+              {getTeamStyle(runner.team).label}
+            </span>
+          )}
+          {runner.outfitId && (
+            <RankBadge runner={runner} />
+          )}
           <span className="text-[10px] rounded bg-secondary px-1 py-px font-medium text-secondary-foreground">
             {strategyNames.find((name) => name === runner.strategy) ?? 'Unknown'}
           </span>
@@ -126,6 +157,9 @@ export function RunnerListItem(props: Readonly<RunnerListItemProps>) {
             <span className="text-[10px] text-muted-foreground">
               {runner.skills.length} skill{runner.skills.length === 1 ? '' : 's'}
             </span>
+          )}
+          {typeof runner.gate === 'number' && (
+            <span className="text-[10px] text-muted-foreground">Gate {runner.gate}</span>
           )}
         </div>
       </div>

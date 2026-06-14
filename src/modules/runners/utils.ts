@@ -48,7 +48,7 @@ function buildUmaSearchData(includeUpcoming = false): UmaSearchData {
         return [id, ''];
       }
 
-      return [id, (uma.outfits[id] + ' ' + uma.name[1]).toUpperCase().replace(/\./g, '')];
+      return [id, (uma.outfits[id] + ' ' + uma.name[1]).toUpperCase().replaceAll('.', '')];
     })
   );
 
@@ -133,7 +133,7 @@ export function rankForStat(x: number) {
   }
 }
 export function searchNames(query: string, includeUpcoming = false) {
-  const q = query.toUpperCase().replace(/\./g, '');
+  const q = query.toUpperCase().replaceAll('.', '');
   const namesForSearch = getUmaNamesForSearch(includeUpcoming);
   return getUmaAltIds(includeUpcoming).filter((oid) => namesForSearch[oid]?.indexOf(q) > -1);
 }
@@ -155,9 +155,8 @@ export const getUmaImageUrl = (outfitId: string | undefined, randomMobId?: numbe
 /**
  * Get the image URL for a random mob
  */
-export const getMobImageUrl = (randomMobId?: number): string => {
-  const mobId = randomMobId || 8000;
-  return getIconUrl(`mob/trained_mob_chr_icon_${mobId}_000001_01.png`);
+export const getMobImageUrl = (randomMobId = 8000): string => {
+  return getIconUrl(`mob/trained_mob_chr_icon_${randomMobId}_000001_01.png`);
 };
 
 /**

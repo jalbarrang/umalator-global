@@ -27,14 +27,14 @@ export function runnerStateToSingleExport(
   runner: IRunnerState,
   createdAt?: number
 ): ISingleExportData {
-  const cardId = parseInt(runner.outfitId, 10);
+  const cardId = Number.parseInt(runner.outfitId, 10);
   const aptDistance = aptitudeToEncoding(runner.distanceAptitude);
   const aptSurface = aptitudeToEncoding(runner.surfaceAptitude);
   const aptStrategy = aptitudeToEncoding(runner.strategyAptitude);
   const ts = createdAt ?? Date.now();
 
   return {
-    card_id: isNaN(cardId) ? 0 : cardId,
+    card_id: Number.isNaN(cardId) ? 0 : cardId,
     speed: runner.speed,
     stamina: runner.stamina,
     power: runner.power,
@@ -52,7 +52,7 @@ export function runnerStateToSingleExport(
     proper_running_style_oikomi: aptStrategy,
     create_time: formatUtcTimestamp(ts),
     skill_array: runner.skills.map((id) => ({
-      skill_id: parseInt(id, 10),
+      skill_id: Number.parseInt(id, 10),
       skill_level: 1
     }))
   };
@@ -73,6 +73,13 @@ export function singleExportToRunnerState(data: ISingleExportData): Partial<IRun
     data.proper_running_style_oikomi
   );
 
+  const skillLevels: Record<string, number> = {};
+  for (const skill of data.skill_array) {
+    if (typeof skill.skill_level === 'number' && skill.skill_level > 0) {
+      skillLevels[String(skill.skill_id)] = skill.skill_level;
+    }
+  }
+
   return {
     outfitId: String(data.card_id),
     speed: data.speed,
@@ -83,6 +90,20 @@ export function singleExportToRunnerState(data: ISingleExportData): Partial<IRun
     distanceAptitude: encodingToAptitude(distanceMax),
     surfaceAptitude: encodingToAptitude(surfaceMax),
     strategyAptitude: encodingToAptitude(strategyMax),
-    skills: data.skill_array.map((s) => String(s.skill_id))
+    skills: data.skill_array.map((s) => String(s.skill_id)),
+    // Preserve full fidelity from the roster code.
+    aptitudes: {
+      distanceShort: encodingToAptitude(data.proper_distance_short),
+      distanceMile: encodingToAptitude(data.proper_distance_mile),
+      distanceMiddle: encodingToAptitude(data.proper_distance_middle),
+      distanceLong: encodingToAptitude(data.proper_distance_long),
+      turf: encodingToAptitude(data.proper_ground_turf),
+      dirt: encodingToAptitude(data.proper_ground_dirt),
+      nige: encodingToAptitude(data.proper_running_style_nige),
+      senko: encodingToAptitude(data.proper_running_style_senko),
+      sashi: encodingToAptitude(data.proper_running_style_sashi),
+      oikomi: encodingToAptitude(data.proper_running_style_oikomi)
+    },
+    skillLevels: Object.keys(skillLevels).length > 0 ? skillLevels : undefined
   };
 }

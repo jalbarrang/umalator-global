@@ -29,7 +29,7 @@ function which(cmd: string, env: NodeJS.ProcessEnv): string | null {
   if (res.status !== 0 || !res.stdout) {
     return null;
   }
-  return res.stdout.split(/\r?\n/)[0]?.trim() || null;
+  return res.stdout.split(/\r?\n/, 1)[0]?.trim() || null;
 }
 
 const env: NodeJS.ProcessEnv = { ...process.env };

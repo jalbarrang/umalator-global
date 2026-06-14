@@ -124,7 +124,7 @@ function calcHName(checksum: bigint, size: bigint, name: Uint8Array): string {
 }
 
 function formatBigInt(value: bigint): string {
-  return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return value.toString().replaceAll(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
 function formatHex64(value: bigint): string {
@@ -159,7 +159,7 @@ async function downloadFile(
     return new Uint8Array(await response.arrayBuffer());
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') {
-      throw new Error(`Request timed out after ${timeoutSeconds}s for ${url}`);
+      throw new Error(`Request timed out after ${timeoutSeconds}s for ${url}`, { cause: error });
     }
     throw error;
   } finally {
@@ -201,14 +201,14 @@ type Schema = [typeByte: number, fixedSize: number | null];
 
 function asString(value: BsvValue): string {
   if (typeof value !== 'string') {
-    throw new Error(`Expected string BSV value, got ${typeof value}`);
+    throw new TypeError(`Expected string BSV value, got ${typeof value}`);
   }
   return value;
 }
 
 function asBigInt(value: BsvValue): bigint {
   if (typeof value !== 'bigint') {
-    throw new Error(`Expected bigint BSV value, got ${typeof value}`);
+    throw new TypeError(`Expected bigint BSV value, got ${typeof value}`);
   }
   return value;
 }

@@ -703,6 +703,7 @@ mod tests {
             name: name.to_owned(),
             mood: Mood::Normal,
             strategy,
+            popularity: 0,
             aptitudes: RunnerAptitudes {
                 distance: Aptitude::A,
                 strategy: Aptitude::A,

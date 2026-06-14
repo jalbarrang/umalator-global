@@ -271,7 +271,7 @@ export class RaceEventLogCollector {
     const tick = this.getCurrentTick(race);
     const position = this.clampPosition(race, runner.position);
     const finishPlaceIndex = race.finishedRunners.indexOf(runner.id);
-    const finishPlace = finishPlaceIndex >= 0 ? finishPlaceIndex + 1 : undefined;
+    const finishPlace = finishPlaceIndex !== -1 ? finishPlaceIndex + 1 : undefined;
 
     this.pushEvent({
       kind: 'finished',

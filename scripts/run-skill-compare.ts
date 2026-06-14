@@ -39,8 +39,8 @@ program
   .action((skillId, options) => {
     // Load and validate config
 
-    const samples = parseInt(options.samples);
-    let seed = parseInt(options.seed);
+    const samples = Number.parseInt(options.samples);
+    let seed = Number.parseInt(options.seed);
     if (seed === 0) {
       seed = Math.floor(Math.random() * 1000000);
     }
@@ -57,9 +57,9 @@ program
         console.error('❌ Failed to load config:', error.message);
         if ('issues' in error) {
           console.error('\nValidation errors:');
-          (error as any).issues.forEach((issue: any) => {
+          for (const issue of (error as any).issues) {
             console.error(`  - ${issue.path.join('.')}: ${issue.message}`);
-          });
+          }
         }
       }
       process.exit(1);
@@ -130,7 +130,7 @@ program
     }
 
     console.log('\n📈 All Run Types:');
-    ['minrun', 'maxrun', 'meanrun', 'medianrun'].forEach((runType) => {
+    for (const runType of ['minrun', 'maxrun', 'meanrun', 'medianrun']) {
       const run = result.runData[runType as keyof typeof result.runData];
       const totalActivations =
         Object.values(run.sk[0]).flat().length + Object.values(run.sk[1]).flat().length;
@@ -139,21 +139,21 @@ program
 
       // Show detailed breakdown for this run if verbose
       if (options.verbose && totalActivations > 0) {
-        [0, 1].forEach((umaIndex) => {
+        for (const umaIndex of [0, 1]) {
           const skillMap = run.sk[umaIndex];
-          Object.entries(skillMap).forEach(([executionId, activations]) => {
+          for (const [executionId, activations] of Object.entries(skillMap)) {
             console.log(
               `    Uma ${umaIndex}, execution ${executionId}: ${activations.length} activations`
             );
-            activations.forEach((act, i) => {
+            for (const [i, act] of activations.entries()) {
               console.log(
                 `      [${i}] ${act.skillId} @ ${Math.round(act.start)}m-${Math.round(act.end)}m (${act.effectType})`
               );
-            });
-          });
-        });
+            }
+          }
+        }
       }
-    });
+    }
 
     console.log('\n✅ Debug complete!\n');
   });

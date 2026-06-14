@@ -13,9 +13,9 @@ import type { UmaLookupEntry, UmaMatch } from './types';
 export function normalize(text: string): string {
   return text
     .toLowerCase()
-    .replace(/[☆♪★♫◎○●◇◆■□▲△▼▽♠♣♥♦]/g, '') // Remove special game chars
-    .replace(/[^\w\s]/g, ' ') // Replace other special chars with space
-    .replace(/\s+/g, ' ') // Collapse whitespace
+    .replaceAll(/[☆♪★♫◎○●◇◆■□▲△▼▽♠♣♥♦]/g, '') // Remove special game chars
+    .replaceAll(/[^\w\s]/g, ' ') // Replace other special chars with space
+    .replaceAll(/\s+/g, ' ') // Collapse whitespace
     .trim();
 }
 
@@ -103,7 +103,7 @@ export function getUmaLookup(): Map<string, UmaLookupEntry> {
 /** Find best uma match from outfit and name */
 export function findBestUmaMatch(outfit: string, umaName: string): UmaMatch | null {
   const lookup = getUmaLookup();
-  const normalizedOutfit = normalize(outfit.replace(/[[\]]/g, ''));
+  const normalizedOutfit = normalize(outfit.replaceAll(/[[\]]/g, ''));
   const normalizedUmaName = normalize(umaName);
 
   // Try combined match first

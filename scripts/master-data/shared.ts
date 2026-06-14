@@ -11,7 +11,7 @@ import path from 'node:path';
  */
 export function sortByNumericKey<T>(obj: Record<string, T>): Record<string, T> {
   return Object.keys(obj)
-    .sort((a, b) => parseInt(a) - parseInt(b))
+    .sort((a, b) => Number.parseInt(a) - Number.parseInt(b))
     .reduce(
       (acc, key) => {
         acc[key] = obj[key];
@@ -66,7 +66,7 @@ function getDefaultMasterDbPath(): string {
       throw new Error('Could not determine AppData path on Windows');
     }
     // Navigate to LocalLow\Cygames\Umamusume\master\master.mdb
-    return `${appData}\\..\\LocalLow\\Cygames\\Umamusume\\master\\master.mdb`;
+    return String.raw`${appData}\..\LocalLow\Cygames\Umamusume\master\master.mdb`;
   } else if (platform === 'darwin' || platform === 'linux') {
     // macOS/Linux - look for Steam/Proton installation
     const home = process.env.HOME;

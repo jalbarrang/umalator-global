@@ -15,6 +15,7 @@ export const RegionDisplayTypeLabel: Record<IRegionDisplayType, string> = {
 export const regionDisplayTypes: IRegionDisplayType[] = Object.values(RegionDisplayType);
 export const regionDisplayTypeLabels = Object.values(RegionDisplayTypeLabel);
 
+// eslint-disable-next-line @typescript-eslint/no-namespace -- grouped layout constants with internal cross-references; an object literal can't self-reference
 export namespace RaceTrackDimensions {
   // Viewbox dimensions
   export const ViewWidth = 960;

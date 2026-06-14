@@ -71,11 +71,11 @@ function createRaceWithCollector(
     ...options?.runner,
     aptitudes: {
       ...TEST_RUNNER.aptitudes,
-      ...(options?.runner?.aptitudes ?? {})
+      ...options?.runner?.aptitudes
     },
     stats: {
       ...TEST_RUNNER.stats,
-      ...(options?.runner?.stats ?? {})
+      ...options?.runner?.stats
     }
   };
 

@@ -83,7 +83,7 @@ type RunnerCollectorState = {
   seenTargetedSkillCount: number;
 };
 
-export type VacuumCompareDataCollectorProps = {};
+export type VacuumCompareDataCollectorProps = Record<string, never>;
 
 export class VacuumCompareDataCollector implements RaceLifecycleObserver {
   protected currentSeed = 0;

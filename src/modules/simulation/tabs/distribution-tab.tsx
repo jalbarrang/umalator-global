@@ -169,7 +169,7 @@ export const DistributionTab = () => {
                 />
               </div>
             </div>
-            {parseFloat(distributionStats.winRates.tie) > 0 && (
+            {Number.parseFloat(distributionStats.winRates.tie) > 0 && (
               <div>
                 <div className="flex justify-between text-sm mb-1">
                   <span className="text-muted-foreground font-medium">Ties</span>
