@@ -550,7 +550,7 @@ async function fetchSupportEvents(options: FetchSupportEventsOptions = { dryRun:
       for (const event of sampleEvents.slice(0, 3)) {
         console.log(`  ${event.eventName}`);
         for (const choice of event.choices) {
-          const prefix = choice.label ? `    [${choice.label}] ` : '    ';
+          const prefix = choice.label ? `    [${choice.label}] ` : ' '.repeat(4);
           for (const reward of choice.rewards) {
             if (reward.skillId != null) {
               console.log(`${prefix}${reward.label} ${reward.value}`);

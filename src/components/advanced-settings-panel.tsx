@@ -102,7 +102,7 @@ export const AdvancedSettingsPanel = () => {
     const equippedSkills = [...uma1.skills, ...uma2.skills];
 
     for (const equippedSkillId of equippedSkills) {
-      const baseSkillId = equippedSkillId.split('-')[0] ?? equippedSkillId;
+      const baseSkillId = equippedSkillId.split('-', 1)[0] ?? equippedSkillId;
       if (uniqueSkillIds.has(baseSkillId)) {
         continue;
       }

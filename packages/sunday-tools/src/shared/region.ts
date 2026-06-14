@@ -23,18 +23,18 @@ export class Region {
 export class RegionList extends Array<Region> {
   rmap(f: (r: Region) => Region | Array<Region>) {
     const out = new RegionList();
-    this.forEach((r) => {
+    for (const r of this) {
       const newr = f(r);
       if (Array.isArray(newr)) {
-        newr.forEach((nr) => {
+        for (const nr of newr) {
           if (nr.start > -1) {
             out.push(nr);
           }
-        });
+        }
       } else if (newr.start > -1) {
         out.push(newr);
       }
-    });
+    }
     return out;
   }
 

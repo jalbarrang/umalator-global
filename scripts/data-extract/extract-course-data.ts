@@ -255,13 +255,17 @@ async function extractCourseData(
       let straightState = 0; // 0 = not in straight, 1 = in straight
 
       for (const event of eventParams.courseParams) {
-        if (event._paramType === 0) {
+        switch (event._paramType) {
+        case 0: {
           // Corner
           corners.push({
             start: event._distance,
             length: event._values[1]
           });
-        } else if (event._paramType === 2) {
+        
+        break;
+        }
+        case 2: {
           // Straight
           if (straightState === 0) {
             // Start of straight
@@ -292,13 +296,20 @@ async function extractCourseData(
             pendingStraight = null;
             straightState = 0;
           }
-        } else if (event._paramType === 11) {
+        
+        break;
+        }
+        case 11: {
           // Slope
           slopes.push({
             start: event._distance,
             length: event._values[1],
             slope: event._values[0]
           });
+        
+        break;
+        }
+        // No default
         }
       }
 

@@ -81,7 +81,7 @@ export class UmaService {
   }
 
   umaForUniqueSkill(skillId: string): string | null {
-    const sid = parseInt(skillId);
+    const sid = Number.parseInt(skillId);
     if (sid < 100000 || sid >= 200000) return null;
 
     const remainder = sid - 100001;

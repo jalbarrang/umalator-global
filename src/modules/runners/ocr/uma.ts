@@ -37,7 +37,7 @@ export function extractUmaIdentity(text: string): UmaMatch | null {
       const nextLine = lines[outfitLineIdx + 1];
 
       // Uma name should not contain certain keywords
-      if (!nextLine.match(/witness|legend|change|epithet|rank/i)) {
+      if (!/witness|legend|change|epithet|rank/i.test(nextLine)) {
         umaName = nextLine;
       }
     }
@@ -45,7 +45,7 @@ export function extractUmaIdentity(text: string): UmaMatch | null {
     // Check line before outfit if we didn't find it after
     if (!umaName && outfitLineIdx > 0) {
       const prevLine = lines[outfitLineIdx - 1];
-      if (!prevLine.match(/witness|legend|change|epithet|rank/i)) {
+      if (!/witness|legend|change|epithet|rank/i.test(prevLine)) {
         umaName = prevLine;
       }
     }
@@ -55,7 +55,7 @@ export function extractUmaIdentity(text: string): UmaMatch | null {
   if (!umaName) {
     for (const line of lines) {
       // Skip lines that are clearly not uma names
-      if (line.match(/speed|stamina|power|guts|wit|track|distance|style|skills|lvl|close/i)) {
+      if (/speed|stamina|power|guts|wit|track|distance|style|skills|lvl|close/i.test(line)) {
         continue;
       }
 

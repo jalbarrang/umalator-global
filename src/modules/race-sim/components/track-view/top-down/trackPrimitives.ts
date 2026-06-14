@@ -243,7 +243,7 @@ function assignCornerLabels(courseData: CourseData): string[] {
   }
   turns.push(Array.from({ length: sorted.length - turnStart }, (_, j) => turnStart + j));
 
-  const labels: string[] = new Array(sorted.length);
+  const labels: string[] = Array.from({length: sorted.length});
   for (let t = 0; t < turns.length; t++) {
     const fromEnd = turns.length - 1 - t;
     const base = fromEnd % 2 === 0 ? 3 : 1;
@@ -255,7 +255,7 @@ function assignCornerLabels(courseData: CourseData): string[] {
   const origOrder = courseData.corners
     .map((c, i) => ({ start: c.start, origIdx: i }))
     .sort((a, b) => a.start - b.start);
-  const result: string[] = new Array(courseData.corners.length);
+  const result: string[] = Array.from({length: courseData.corners.length});
   for (let i = 0; i < sorted.length; i++) {
     result[origOrder[i].origIdx] = labels[i];
   }

@@ -108,7 +108,7 @@ export const ResultButtonGroups = () => {
               resultsSummary[displaying as keyof typeof resultsSummary] &&
               (() => {
                 const currentResult = resultsSummary[displaying as keyof typeof resultsSummary];
-                const bashinDiff = parseFloat(currentResult.value);
+                const bashinDiff = Number.parseFloat(currentResult.value);
                 const uma1Faster = bashinDiff < 0;
 
                 return (

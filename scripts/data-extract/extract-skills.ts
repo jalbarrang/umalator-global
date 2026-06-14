@@ -486,14 +486,14 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
       };
 
       if (SPLIT_ALTERNATIVES.has(row.id)) {
-        alternatives.forEach((alt, index) => {
+        for (const [index, alt] of alternatives.entries()) {
           const suffix = index === 0 ? '' : `-${index}`;
           const key = `${row.id}${suffix}`;
           extractedSkills[key] = {
             ...baseEntry,
             alternatives: [alt]
           };
-        });
+        }
       } else {
         extractedSkills[row.id.toString()] = {
           ...baseEntry,

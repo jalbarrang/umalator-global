@@ -35,7 +35,7 @@ type BuildDedupedSkillListNetTotalOptions = {
 };
 
 export const normalizeSkillIdForCostSummary = (skillId: string): string => {
-  return skillId.split('-')[0] ?? skillId;
+  return skillId.split('-', 1)[0] ?? skillId;
 };
 
 const toHintLevel = (value: number | undefined): HintLevel => {

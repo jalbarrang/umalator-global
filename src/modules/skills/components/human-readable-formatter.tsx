@@ -155,7 +155,7 @@ function interpolate(template: string, conditionName: string, arg: number) {
     value: formatArg(conditionName, arg)
   };
 
-  return template.replace(/\{\{(\w+)\}\}/g, (_match, variableName: string) => {
+  return template.replaceAll(/\{\{(\w+)\}\}/g, (_match, variableName: string) => {
     return variables[variableName] ?? arg.toString();
   });
 }

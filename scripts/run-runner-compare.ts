@@ -156,7 +156,7 @@ async function loadConfig(path: string): Promise<ConfigInput> {
     return JSON.parse(content) as ConfigInput;
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-      throw new Error(`Config file not found: ${path}`);
+      throw new Error(`Config file not found: ${path}`, { cause: error });
     }
 
     throw error;
@@ -297,7 +297,7 @@ program
       throw new Error(`Invalid --samples value: "${options.samples}"`);
     }
     if (!Number.isFinite(seed)) {
-      throw new Error(`Invalid --seed value: "${options.seed}"`);
+      throw new TypeError(`Invalid --seed value: "${options.seed}"`);
     }
     if (!Number.isFinite(epsilon) || epsilon < 0) {
       throw new Error(`Invalid --epsilon value: "${options.epsilon}"`);

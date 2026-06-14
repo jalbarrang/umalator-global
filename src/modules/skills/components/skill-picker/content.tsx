@@ -85,7 +85,7 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
 
     for (const id of currentSkills) {
       // Use the pre-built map for O(1) lookup
-      const skill = skillsById.get(id.split('-')[0]); // Handle debuff suffixes like "123456-1"
+      const skill = skillsById.get(id.split('-', 1)[0]); // Handle debuff suffixes like "123456-1"
       if (!skill) continue;
 
       // Skip debuffs - they can be selected multiple times
@@ -115,7 +115,7 @@ export function SkillPickerContent(props: SkillPickerContentProps) {
         let count = 0;
 
         for (const newSelectedId of newSelected) {
-          if (newSelectedId.split('-')[0] === skill.id) {
+          if (newSelectedId.split('-', 1)[0] === skill.id) {
             count++;
           }
         }

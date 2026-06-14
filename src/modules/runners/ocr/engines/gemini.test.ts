@@ -15,7 +15,7 @@ function createGeminiApiResponse(text: string) {
 
 function mockGeminiFetch(text: string) {
   const fetchMock = vi.fn().mockResolvedValue(
-    new Response(JSON.stringify(createGeminiApiResponse(text)), {
+    Response.json(createGeminiApiResponse(text), {
       status: 200,
       headers: {
         'Content-Type': 'application/json'

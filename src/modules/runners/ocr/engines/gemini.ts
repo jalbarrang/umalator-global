@@ -92,7 +92,7 @@ function toBase64(buffer: ArrayBuffer): string {
   }
 
   if (typeof btoa !== 'function') {
-    throw new Error('Base64 encoding is not available in this environment');
+    throw new TypeError('Base64 encoding is not available in this environment');
   }
 
   return btoa(binary);
@@ -179,7 +179,7 @@ function parseStringField(
   const value = payload[key];
 
   if (typeof value !== 'string') {
-    throw new Error(`Gemini JSON is missing a valid "${key}" string`);
+    throw new TypeError(`Gemini JSON is missing a valid "${key}" string`);
   }
 
   return value.trim();
@@ -251,7 +251,7 @@ export function parseGeminiJsonResponse(text: string): GeminiStructuredResponse 
     return validateGeminiJson(JSON.parse(jsonText));
   } catch (error) {
     if (error instanceof SyntaxError) {
-      throw new Error('Gemini returned malformed JSON');
+      throw new Error('Gemini returned malformed JSON', { cause: error });
     }
 
     throw error;

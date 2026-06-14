@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 const THEMES = { light: '', dark: '.dark' } as const;
 
 function sanitizeCssIdentifier(value: string) {
-  return value.replace(/[^a-zA-Z0-9_-]/g, '');
+  return value.replaceAll(/[^a-zA-Z0-9_-]/g, '');
 }
 
 function isSafeCssVariableKey(value: string) {
@@ -88,7 +88,7 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
   return (
     <style
       // Chart theme CSS is generated from internal config only, not user input.
-      // eslint-disable-next-line react/no-danger
+       
       dangerouslySetInnerHTML={{
         __html: Object.entries(THEMES)
           .map(([theme, prefix]) => {

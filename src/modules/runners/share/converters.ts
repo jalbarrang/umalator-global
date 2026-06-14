@@ -27,14 +27,14 @@ export function runnerStateToSingleExport(
   runner: IRunnerState,
   createdAt?: number
 ): ISingleExportData {
-  const cardId = parseInt(runner.outfitId, 10);
+  const cardId = Number.parseInt(runner.outfitId, 10);
   const aptDistance = aptitudeToEncoding(runner.distanceAptitude);
   const aptSurface = aptitudeToEncoding(runner.surfaceAptitude);
   const aptStrategy = aptitudeToEncoding(runner.strategyAptitude);
   const ts = createdAt ?? Date.now();
 
   return {
-    card_id: isNaN(cardId) ? 0 : cardId,
+    card_id: Number.isNaN(cardId) ? 0 : cardId,
     speed: runner.speed,
     stamina: runner.stamina,
     power: runner.power,
@@ -52,7 +52,7 @@ export function runnerStateToSingleExport(
     proper_running_style_oikomi: aptStrategy,
     create_time: formatUtcTimestamp(ts),
     skill_array: runner.skills.map((id) => ({
-      skill_id: parseInt(id, 10),
+      skill_id: Number.parseInt(id, 10),
       skill_level: 1
     }))
   };

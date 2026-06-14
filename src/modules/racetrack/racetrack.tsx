@@ -75,7 +75,7 @@ export const RaceTrack = (props: RaceTrackProps) => {
         const runnerId = umaIndex === 0 ? 'uma1' : ('uma2' as const);
 
         if (skillId.startsWith('__forced_rank_') && debuffId) {
-          const regionIndex = parseInt(debuffId.split('-')[2], 10);
+          const regionIndex = Number.parseInt(debuffId.split('-', 3)[2], 10);
           const existing = useScenarioOverridesStore.getState()[runnerId].forcedRank[regionIndex];
           if (existing) {
             updateForcedRank(runnerId, regionIndex, {
@@ -88,9 +88,21 @@ export const RaceTrack = (props: RaceTrackProps) => {
         }
 
         const region = { start: Math.round(newStart), end: Math.round(newEnd) };
-        if (skillId === '__forced_rushed') setForcedRushed(runnerId, region);
-        else if (skillId === '__forced_dueling') setForcedDueling(runnerId, region);
-        else if (skillId === '__forced_spot_struggle') setForcedSpotStruggle(runnerId, region);
+        switch (skillId) {
+        case '__forced_rushed': {
+        setForcedRushed(runnerId, region);
+        break;
+        }
+        case '__forced_dueling': {
+        setForcedDueling(runnerId, region);
+        break;
+        }
+        case '__forced_spot_struggle': {
+        setForcedSpotStruggle(runnerId, region);
+        // No default
+        }
+        break;
+        }
         return;
       }
 

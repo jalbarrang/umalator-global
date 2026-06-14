@@ -291,10 +291,10 @@ export function buildFrontendRoom(
     const aptGroundField = surface === 1 ? "proper_ground_turf" : "proper_ground_dirt";
 
     const teams = new Map<number, FrontendTeam>();
-    raceHorseInfo.forEach((data, index) => {
+    for (const [index, data] of raceHorseInfo.entries()) {
         const teamId = Number(data.team_id ?? 0);
         if (teamId <= 0) {
-            return;
+            continue;
         }
 
         const trainedChara = fromRaceHorseData(data);
@@ -334,7 +334,7 @@ export function buildFrontendRoom(
             teams.set(teamId, { team_id: teamId, horses: [] });
         }
         teams.get(teamId)!.horses.push(horse);
-    });
+    }
 
     const roomTeams = Array.from(teams.values());
     if (
@@ -461,11 +461,11 @@ function computeRankPct(values: number[]): Map<number, number> {
     const ordered = [...values].sort((a, b) => b - a);
     const count = Math.max(1, ordered.length - 1);
     const result = new Map<number, number>();
-    ordered.forEach((value, index) => {
+    for (const [index, value] of ordered.entries()) {
         if (!result.has(value)) {
             result.set(value, index / count);
         }
-    });
+    }
     return result;
 }
 
@@ -477,7 +477,7 @@ function computeRankPctAgainst(values: number[], candidate: number): number {
 }
 
 function relu(values: number[]): number[] {
-    return values.map((value) => (value > 0 ? value : 0));
+    return values.map((value) => (Math.max(value, 0)));
 }
 
 function sigmoid(value: number): number {
@@ -494,7 +494,7 @@ function linear(row: number[], weight: TensorPayload | undefined, bias: TensorPa
         return [];
     }
     const [outDim, inDim] = weight.shape;
-    const result = new Array(outDim).fill(0);
+    const result = Array.from({ length: outDim }, () => 0);
     for (let outIndex = 0; outIndex < outDim; outIndex++) {
         let sum = bias.data[outIndex] ?? 0;
         for (let inIndex = 0; inIndex < inDim; inIndex++) {
@@ -510,12 +510,12 @@ function countRecoveryBuckets(
     recoveryValueBySkillId: Record<string, number>,
 ): Record<number, number> {
     const counts = Object.fromEntries(SURROGATE_RECOVERY_BUCKETS.map((bucket) => [bucket, 0])) as Record<number, number>;
-    learnedSkillIds.forEach((skillId) => {
+    for (const skillId of learnedSkillIds) {
         const value = Number(recoveryValueBySkillId[String(skillId)] ?? 0);
         if (SURROGATE_RECOVERY_BUCKETS.includes(value)) {
             counts[value] += 1;
         }
-    });
+    }
     return counts;
 }
 
@@ -525,7 +525,7 @@ function buildSurrogateInputVector(
     recoveryValueBySkillId: Record<string, number>,
 ): number[] {
     const recoveryCounts = countRecoveryBuckets(horse.learned_skill_ids, recoveryValueBySkillId);
-    const learnedSkillIds = new Set(horse.learned_skill_ids.map((skillId) => Number(skillId)));
+    const learnedSkillIds = new Set(horse.learned_skill_ids.map(Number));
     return inputFeatureNames.map((featureName) => {
         switch (featureName) {
             case "speed":
@@ -573,12 +573,12 @@ function computeSurrogateOutputs(horse: FrontendHorse, model: FrontendModel): Re
     const second = relu(linear(first, surrogate.weights["net.3.weight"], surrogate.weights["net.3.bias"]));
     const logits = linear(second, surrogate.weights["net.6.weight"], surrogate.weights["net.6.bias"]);
     const result: Record<string, number> = {};
-    surrogate.outputFeatureNames.forEach((featureName, index) => {
+    for (const [index, featureName] of surrogate.outputFeatureNames.entries()) {
         const value = logits[index] ?? 0;
         result[featureName] = featureName === "surrogate_full_spurt_prob" || featureName === "surrogate_no_spurt_prob"
             ? sigmoid(value)
             : value;
-    });
+    }
     return result;
 }
 
@@ -690,58 +690,58 @@ export function encodeRoom(room: FrontendRoom, model: FrontendModel): { features
     const skillIndex = new Map(skillVocab.map((skillId, index) => [skillId, index]));
 
     const roomStyleCounts = new Map<number, number>();
-    styleIds.forEach((styleId) => roomStyleCounts.set(styleId, 0));
-    allHorses.forEach((horse) => {
+    for (const styleId of styleIds) roomStyleCounts.set(styleId, 0);
+    for (const horse of allHorses) {
         roomStyleCounts.set(horse.strategy, (roomStyleCounts.get(horse.strategy) ?? 0) + 1);
-    });
+    }
 
     const rankLookup = new Map<string, Map<number, number>>();
-    model.schema.rankFields.forEach((field) => {
+    for (const field of model.schema.rankFields) {
         const values = allHorses.map((horse) => numericHorseField(horse, field));
         rankLookup.set(field, computeRankPct(values));
-    });
+    }
     const roomMaxLookup = new Map<string, number>();
-    model.schema.rankFields.forEach((field) => {
+    for (const field of model.schema.rankFields) {
         roomMaxLookup.set(field, Math.max(...allHorses.map((horse) => numericHorseField(horse, field))));
-    });
+    }
     const roomMeanLookup = new Map<string, number>();
-    model.schema.rankFields.forEach((field) => {
+    for (const field of model.schema.rankFields) {
         const values = allHorses.map((horse) => numericHorseField(horse, field));
         roomMeanLookup.set(field, values.reduce((sum, value) => sum + value, 0) / Math.max(values.length, 1));
-    });
+    }
 
     const features = canonical.teams.map((team) => {
         const teamStyleCounts = new Map<number, number>();
-        styleIds.forEach((styleId) => teamStyleCounts.set(styleId, 0));
-        team.horses.forEach((horse) => {
+        for (const styleId of styleIds) teamStyleCounts.set(styleId, 0);
+        for (const horse of team.horses) {
             teamStyleCounts.set(horse.strategy, (teamStyleCounts.get(horse.strategy) ?? 0) + 1);
-        });
+        }
         const opponentHorses = canonical.teams
             .filter((otherTeam) => otherTeam.team_id !== team.team_id)
             .flatMap((otherTeam) => otherTeam.horses);
         const teamRankLookup = new Map<string, Map<number, number>>();
-        model.schema.rankFields.forEach((field) => {
+        for (const field of model.schema.rankFields) {
             const values = team.horses.map((horse) => numericHorseField(horse, field));
             teamRankLookup.set(field, computeRankPct(values));
-        });
+        }
         const teamMeanLookup = new Map<string, number>();
-        model.schema.rankFields.forEach((field) => {
+        for (const field of model.schema.rankFields) {
             const values = team.horses.map((horse) => numericHorseField(horse, field));
             teamMeanLookup.set(field, values.reduce((sum, value) => sum + value, 0) / Math.max(values.length, 1));
-        });
+        }
         const teamMaxLookup = new Map<string, number>();
-        model.schema.rankFields.forEach((field) => {
+        for (const field of model.schema.rankFields) {
             teamMaxLookup.set(field, Math.max(...team.horses.map((horse) => numericHorseField(horse, field))));
-        });
+        }
         const opponentMeanLookup = new Map<string, number>();
-        model.schema.rankFields.forEach((field) => {
+        for (const field of model.schema.rankFields) {
             const values = opponentHorses.map((horse) => numericHorseField(horse, field));
             opponentMeanLookup.set(field, values.reduce((sum, value) => sum + value, 0) / Math.max(values.length, 1));
-        });
+        }
         const opponentMaxLookup = new Map<string, number>();
-        model.schema.rankFields.forEach((field) => {
+        for (const field of model.schema.rankFields) {
             opponentMaxLookup.set(field, Math.max(...opponentHorses.map((horse) => numericHorseField(horse, field))));
-        });
+        }
         const teamGateNumbers = team.horses.map((horse) => horse.frame_order + 1);
         const teamGateMean = teamGateNumbers.reduce((sum, value) => sum + value, 0) / Math.max(teamGateNumbers.length, 1);
         const teamGateSpread = teamGateNumbers.length > 0
@@ -753,135 +753,135 @@ export function encodeRoom(room: FrontendRoom, model: FrontendModel): { features
             const gateNumber = horse.frame_order + 1;
             const mechanics = computeRaceMechanicsFeatureMap(horse, model.courseContext);
             const surrogateContext = computeSurrogateContextFeatureMap(horse, model, mechanics);
-            model.schema.numericFields.forEach((field) => {
+            for (const field of model.schema.numericFields) {
                 row.push(numericHorseField(horse, field));
-            });
-            styleIds.forEach((styleId) => {
+            }
+            for (const styleId of styleIds) {
                 row.push(horse.strategy === styleId ? 1 : 0);
-            });
-            gateNumbers.forEach((gateNumber) => {
+            }
+            for (const gateNumber of gateNumbers) {
                 row.push(horse.frame_order + 1 === gateNumber ? 1 : 0);
-            });
-            model.schema.aptitudeFields.forEach((field) => {
+            }
+            for (const field of model.schema.aptitudeFields) {
                 row.push(numericHorseField(horse, field));
-            });
-            styleIds.forEach((styleId) => {
+            }
+            for (const styleId of styleIds) {
                 row.push(Number(teamStyleCounts.get(styleId) ?? 0));
-            });
-            styleIds.forEach((styleId) => {
+            }
+            for (const styleId of styleIds) {
                 row.push(Number(roomStyleCounts.get(styleId) ?? 0));
-            });
-            model.schema.rankFields.forEach((field) => {
+            }
+            for (const field of model.schema.rankFields) {
                 const value = numericHorseField(horse, field);
                 row.push(rankLookup.get(field)?.get(value) ?? 1);
-            });
-            extraFeatureNames.forEach((featureName) => {
+            }
+            for (const featureName of extraFeatureNames) {
                 if (featureName.startsWith("team_mean_")) {
                     const field = featureName.replace("team_mean_", "");
                     row.push(teamMeanLookup.get(field) ?? 0);
-                    return;
+                    continue;
                 }
                 if (featureName.startsWith("gap_to_room_max_")) {
                     const field = featureName.replace("gap_to_room_max_", "");
                     row.push((roomMaxLookup.get(field) ?? 0) - numericHorseField(horse, field));
-                    return;
+                    continue;
                 }
                 if (featureName.startsWith("gap_to_team_max_")) {
                     const field = featureName.replace("gap_to_team_max_", "");
                     row.push((teamMaxLookup.get(field) ?? 0) - numericHorseField(horse, field));
-                    return;
+                    continue;
                 }
                 if (featureName.startsWith("gap_to_room_mean_")) {
                     const field = featureName.replace("gap_to_room_mean_", "");
                     row.push((roomMeanLookup.get(field) ?? 0) - numericHorseField(horse, field));
-                    return;
+                    continue;
                 }
                 if (featureName.startsWith("team_rank_pct_")) {
                     const field = featureName.replace("team_rank_pct_", "");
                     const value = numericHorseField(horse, field);
                     row.push(teamRankLookup.get(field)?.get(value) ?? 1);
-                    return;
+                    continue;
                 }
                 if (featureName.startsWith("opponent_rank_pct_")) {
                     const field = featureName.replace("opponent_rank_pct_", "");
                     row.push(computeRankPctAgainst(opponentHorses.map((otherHorse) => numericHorseField(otherHorse, field)), numericHorseField(horse, field)));
-                    return;
+                    continue;
                 }
                 if (featureName.startsWith("gap_to_opponent_max_")) {
                     const field = featureName.replace("gap_to_opponent_max_", "");
                     row.push((opponentMaxLookup.get(field) ?? 0) - numericHorseField(horse, field));
-                    return;
+                    continue;
                 }
                 if (featureName.startsWith("gap_to_opponent_mean_")) {
                     const field = featureName.replace("gap_to_opponent_mean_", "");
                     row.push((opponentMeanLookup.get(field) ?? 0) - numericHorseField(horse, field));
-                    return;
+                    continue;
                 }
                 if (featureName.startsWith("opp_style_count_")) {
                     const styleId = Number(featureName.replace("opp_style_count_", ""));
                     row.push((roomStyleCounts.get(styleId) ?? 0) - (teamStyleCounts.get(styleId) ?? 0));
-                    return;
+                    continue;
                 }
                 if (featureName === "learned_skill_count") {
                     row.push(horse.learned_skill_ids.length);
-                    return;
+                    continue;
                 }
                 if (featureName === "matched_passive_count") {
                     row.push(horse.matched_passive_skill_ids?.length ?? 0);
-                    return;
+                    continue;
                 }
                 if (featureName === "last_spurt_target_speed") {
                     row.push(horse.last_spurt_target_speed ?? 0);
-                    return;
+                    continue;
                 }
                 if (featureName === "adjusted_stat_sum") {
                     row.push(horse.speed + horse.stamina + horse.pow + horse.guts + horse.wiz);
-                    return;
+                    continue;
                 }
                 if (featureName === "speed_stamina_sum") {
                     row.push(horse.speed + horse.stamina);
-                    return;
+                    continue;
                 }
                 if (featureName === "capped_core_stat_count") {
                     row.push([horse.speed, horse.stamina, horse.pow, horse.guts, horse.wiz].filter((stat) => stat >= 1200).length);
-                    return;
+                    continue;
                 }
                 if (featureName === "gate_number_norm") {
                     row.push(gateNumber > 0 ? gateNumber / 9 : 0);
-                    return;
+                    continue;
                 }
                 if (featureName === "gate_bucket_inner") {
                     row.push(gateNumber >= 1 && gateNumber <= 3 ? 1 : 0);
-                    return;
+                    continue;
                 }
                 if (featureName === "gate_bucket_middle") {
                     row.push(gateNumber >= 4 && gateNumber <= 6 ? 1 : 0);
-                    return;
+                    continue;
                 }
                 if (featureName === "gate_bucket_outer") {
                     row.push(gateNumber >= 7 && gateNumber <= 9 ? 1 : 0);
-                    return;
+                    continue;
                 }
                 if (featureName === "team_gate_mean") {
                     row.push(teamGateMean);
-                    return;
+                    continue;
                 }
                 if (featureName === "team_gate_spread") {
                     row.push(teamGateSpread);
-                    return;
+                    continue;
                 }
                 if (featureName.startsWith("mech_")) {
                     row.push(mechanics[featureName] ?? 0);
-                    return;
+                    continue;
                 }
                 if (featureName.startsWith("surrogate_")) {
                     row.push(surrogateContext[featureName] ?? 0);
-                    return;
+                    continue;
                 }
                 row.push(0);
-            });
+            }
 
-            const skillFlags = new Array(skillVocab.length).fill(0);
+            const skillFlags = Array.from({ length: skillVocab.length }, () => 0);
             for (const skillId of horse.learned_skill_ids) {
                 const index = skillIndex.get(skillId);
                 if (index !== undefined) skillFlags[index] = 1;

@@ -11,6 +11,7 @@ if (!Array.prototype.toSorted) {
 if (!Array.prototype.toReversed) {
   Object.defineProperty(Array.prototype, 'toReversed', {
     value: function toReversed<T>(this: Array<T>) {
+      // eslint-disable-next-line unicorn/no-array-reverse -- this IS the toReversed polyfill; reverse() on a copy is the implementation
       return [...this].reverse();
     },
     writable: true,

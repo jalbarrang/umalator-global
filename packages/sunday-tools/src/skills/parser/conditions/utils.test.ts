@@ -34,7 +34,7 @@ const TEST_COURSE: CourseData = {
 
 function buildParams(regions: Array<[number, number]>, minTime: number): ConditionFilterParams {
   const regionList = new RegionList();
-  regions.forEach(([start, end]) => regionList.push(new Region(start, end)));
+  for (const [start, end] of regions) regionList.push(new Region(start, end));
 
   return {
     regions: regionList,

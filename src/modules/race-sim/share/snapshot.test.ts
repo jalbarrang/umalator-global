@@ -110,7 +110,7 @@ describe('race-sim snapshot', () => {
     ).toBeNull();
     expect(parseRaceSimSnapshotJson(JSON.stringify({ ...base, runners: [] }))).toBeNull();
 
-    const badRunner = JSON.parse(JSON.stringify(base));
+    const badRunner = structuredClone(base) as Record<string, any>;
     delete badRunner.runners[0].outfitId;
     expect(parseRaceSimSnapshotJson(JSON.stringify(badRunner))).toBeNull();
 

@@ -61,8 +61,8 @@ function parseTextResult(
     if (
       !recognizedTexts.has(lower) &&
       line.length > 3 &&
-      !line.match(
-        /^(speed|stamina|power|guts|wit|track|distance|style|skills|inspiration|career|close|select|cancel|umamusume|details|\d+|[sabcdefg]|turf|dirt|sprint|mile|medium|long|front|pace|late|end|witness|legend|change|epithet|rank|lvl\s*\d+)$/i
+      !/^(speed|stamina|power|guts|wit|track|distance|style|skills|inspiration|career|close|select|cancel|umamusume|details|\d+|[sabcdefg]|turf|dirt|sprint|mile|medium|long|front|pace|late|end|witness|legend|change|epithet|rank|lvl\s*\d+)$/i.test(
+        line
       )
     ) {
       result.unrecognized.push(line);

@@ -298,7 +298,7 @@ export function RosterImportDialog({ open, onOpenChange }: Readonly<IRosterImpor
       newRunners.push({
         ...runner.state,
         notes: 'Imported from RosterView',
-        id: `${now}-${idx}-${Math.random().toString(36).substring(2, 9)}`,
+        id: `${now}-${idx}-${Math.random().toString(36).slice(2, 9)}`,
         createdAt: now,
         updatedAt: now
       });

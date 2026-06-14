@@ -120,6 +120,12 @@ export const OverviewTab = () => {
                 }
               )}
               onClick={() => setDisplaying(stat.key)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  setDisplaying(stat.key);
+                }
+              }}
             >
               <span className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
                 {stat.label}

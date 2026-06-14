@@ -18,7 +18,7 @@ export function openDatabase(path: string): Database {
     return db;
   } catch (err) {
     const error = err as Error;
-    throw new Error(`Failed to open database at ${path}: ${error.message}`);
+    throw new Error(`Failed to open database at ${path}: ${error.message}`, { cause: err });
   }
 }
 
@@ -46,7 +46,7 @@ export function queryAll<T>(db: Database, sql: string): Array<T> {
     return db.prepare(sql).all() as Array<T>;
   } catch (err) {
     const error = err as Error;
-    throw new Error(`Query failed: ${error.message}\nSQL: ${sql}`);
+    throw new Error(`Query failed: ${error.message}\nSQL: ${sql}`, { cause: err });
   }
 }
 
@@ -67,7 +67,8 @@ export function queryAllWithParams<
   } catch (err) {
     const error = err as Error;
     throw new Error(
-      `Query with params failed: ${error.message}\nSQL: ${sql}\nParams: ${JSON.stringify(params)}`
+      `Query with params failed: ${error.message}\nSQL: ${sql}\nParams: ${JSON.stringify(params)}`,
+      { cause: err }
     );
   }
 }

@@ -113,11 +113,11 @@ export const BasinnChart = (props: BasinnChartProps) => {
 
   const handleGridClick = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
-      const actionsEl = (e.target as HTMLElement).closest(
-        `[data-event="${BASSIN_DATA_EVENT_OPEN_SKILL_ACTIONS}"]`
+      const actionsEl = (e.target as HTMLElement).closest<HTMLElement>(
+        `[data-event="${CSS.escape(BASSIN_DATA_EVENT_OPEN_SKILL_ACTIONS)}"]`
       );
       if (actionsEl) {
-        const skillId = actionsEl.getAttribute('data-skill-id');
+        const skillId = actionsEl.dataset.skillId;
         if (!skillId) return;
         if (!onReplaceOutfit) {
           onAddSkill(skillId);
@@ -127,11 +127,11 @@ export const BasinnChart = (props: BasinnChartProps) => {
         return;
       }
 
-      const detailsEl = (e.target as HTMLElement).closest(
-        `[data-event="${BASSIN_DATA_EVENT_TOGGLE_SKILL_DETAILS}"]`
+      const detailsEl = (e.target as HTMLElement).closest<HTMLElement>(
+        `[data-event="${CSS.escape(BASSIN_DATA_EVENT_TOGGLE_SKILL_DETAILS)}"]`
       );
       if (detailsEl) {
-        const skillId = detailsEl.getAttribute('data-skill-id');
+        const skillId = detailsEl.dataset.skillId;
         if (!skillId) return;
         setSkillDetailsAnchor((prev) => {
           if (prev?.skillId === skillId) return null;
@@ -140,12 +140,12 @@ export const BasinnChart = (props: BasinnChartProps) => {
         return;
       }
 
-      const el = (e.target as HTMLElement).closest(
-        `[data-event="${BASSIN_DATA_EVENT_TOGGLE_ACTIVATION_DETAILS}"]`
+      const el = (e.target as HTMLElement).closest<HTMLElement>(
+        `[data-event="${CSS.escape(BASSIN_DATA_EVENT_TOGGLE_ACTIVATION_DETAILS)}"]`
       );
       if (!el) return;
 
-      const skillId = el.getAttribute('data-skill-id');
+      const skillId = el.dataset.skillId;
       if (!skillId) return;
 
       setExpandedSkillId((prev) => (prev === skillId ? null : skillId));
@@ -190,7 +190,7 @@ export const BasinnChart = (props: BasinnChartProps) => {
       overscan: 30,
       getItemKey: (index: number) => rows[index].id,
       measureElement:
-        typeof window !== 'undefined' && navigator.userAgent.indexOf('Firefox') === -1
+        typeof window !== 'undefined' && !navigator.userAgent.includes('Firefox')
           ? (element: Element) => element?.getBoundingClientRect().height
           : undefined
     }),

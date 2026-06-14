@@ -104,7 +104,7 @@ function clampNonOverlapping(regions: Array<ForcedRankRegion>): Array<ForcedRank
     }
   }
 
-  const result = new Array<ForcedRankRegion>(regions.length);
+  const result: ForcedRankRegion[] = Array.from({ length: regions.length });
   for (const { _idx, ...region } of sorted) {
     result[_idx] = region;
   }

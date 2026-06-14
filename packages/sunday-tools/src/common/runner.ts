@@ -979,8 +979,8 @@ export class Runner {
       return;
     }
 
-    const existingFirst = runners.find((runner) => runner.firstPositionInLateRace);
-    if (existingFirst) {
+    const hasExistingFirst = runners.some((runner) => runner.firstPositionInLateRace);
+    if (hasExistingFirst) {
       return;
     }
 
@@ -1081,16 +1081,33 @@ export class Runner {
     if (this.canDuel === null) {
       if (duelingRates) {
         let rate = 0;
-        if (this.positionKeepStrategy === Strategy.Runaway) {
+        switch (this.positionKeepStrategy) {
+        case Strategy.Runaway: {
           rate = duelingRates.runaway;
-        } else if (this.positionKeepStrategy === Strategy.FrontRunner) {
+        
+        break;
+        }
+        case Strategy.FrontRunner: {
           rate = duelingRates.frontRunner;
-        } else if (this.positionKeepStrategy === Strategy.PaceChaser) {
+        
+        break;
+        }
+        case Strategy.PaceChaser: {
           rate = duelingRates.paceChaser;
-        } else if (this.positionKeepStrategy === Strategy.LateSurger) {
+        
+        break;
+        }
+        case Strategy.LateSurger: {
           rate = duelingRates.lateSurger;
-        } else if (this.positionKeepStrategy === Strategy.EndCloser) {
+        
+        break;
+        }
+        case Strategy.EndCloser: {
           rate = duelingRates.endCloser;
+        
+        break;
+        }
+        // No default
         }
 
         this.canDuel = this.duelingRng.random() < rate / 100;
@@ -1544,7 +1561,7 @@ export class Runner {
 
   private getRecoveryModifierForSkill(skillId: string, effect: SkillEffect): number {
     const overrides = this.race.settings.staminaDrainOverrides;
-    const baseSkillId = skillId.split('-')[0] ?? skillId;
+    const baseSkillId = skillId.split('-', 1)[0] ?? skillId;
     const override = overrides?.[baseSkillId];
 
     return resolveRecoveryModifier(effect, this.skillRng, override);
@@ -1837,7 +1854,7 @@ export class Runner {
     );
 
     const triggers = skillTrigers.map((skillTrigger) => {
-      const baseSkillId = skillTrigger.skillId.split('-')[0] ?? skillTrigger.skillId;
+      const baseSkillId = skillTrigger.skillId.split('-', 1)[0] ?? skillTrigger.skillId;
       const forcedPosition = this.forcedPositions[baseSkillId];
 
       if (forcedPosition !== undefined) {
@@ -2139,16 +2156,14 @@ export class Runner {
     }
 
     // Check for recovery every 3 seconds
-    if (
+    // 55% chance to snap out of it
+      if (
       this.rushedTimer.t > 0 &&
       Math.floor(this.rushedTimer.t / 3) > Math.floor((this.rushedTimer.t - 0.017) / 3)
-    ) {
-      // 55% chance to snap out of it
-      if (this.rushedRng.random() < 0.55) {
+     && this.rushedRng.random() < 0.55) {
         this.leaveRushed();
         return;
       }
-    }
 
     // Force end after max duration
     if (this.rushedTimer.t >= this.rushedMaxDuration) {

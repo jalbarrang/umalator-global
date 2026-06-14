@@ -63,8 +63,8 @@ function parseCliArgs(argv: Array<string>): ExtractUmaInfoOptions {
  */
 function uniqueSkillForOutfit(outfitId: number): number {
   const outfitIdStr = outfitId.toString();
-  const i = parseInt(outfitIdStr.substring(1, outfitIdStr.length - 2));
-  const v = parseInt(outfitIdStr.substring(outfitIdStr.length - 2));
+  const i = Number.parseInt(outfitIdStr.slice(1, -2));
+  const v = Number.parseInt(outfitIdStr.slice(Math.max(0, outfitIdStr.length - 2)));
   return 100000 + 10000 * (v - 1) + i * 10 + 1;
 }
 

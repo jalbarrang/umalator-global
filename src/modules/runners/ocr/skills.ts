@@ -34,7 +34,7 @@ const normalizeLineWithLevels = (value: string): string => {
     .replace(/\s+[Oo0]$/u, '\u25cb')
     .replace(/\s+[Xx]$/u, '\u00d7')
     .toLowerCase()
-    .replace(/[^\p{L}\p{N}\u25cb\u25ce\u00d7]/gu, '');
+    .replaceAll(/[^\p{L}\p{N}\u25cb\u25ce\u00d7]/gu, '');
 };
 
 const collectSubstringCandidates = (
@@ -49,7 +49,7 @@ const collectSubstringCandidates = (
     }
 
     const start = normalizedLine.indexOf(key);
-    if (start < 0) {
+    if (start === -1) {
       continue;
     }
 
@@ -154,8 +154,8 @@ export function extractSkills(text: string, imageIndex: number): Array<Extracted
     }
 
     const cleanedLine = line
-      .replace(/[£$&¥@#%^*()[\]{}|\\<>]/g, ' ')
-      .replace(/\s+/g, ' ')
+      .replaceAll(/[£$&¥@#%^*()[\]{}|\\<>]/g, ' ')
+      .replaceAll(/\s+/g, ' ')
       .trim();
 
     if (!cleanedLine || cleanedLine.length < 4) {
@@ -191,8 +191,8 @@ export function extractSkills(text: string, imageIndex: number): Array<Extracted
               released: skillsService.isReleased(wholeMatch.id)
             },
             confidence: wholeMatch.confidence,
-            start: start >= 0 ? start : 0,
-            end: start >= 0 ? start + normalizedMatchName.length : normalizedMatchName.length
+            start: Math.max(start, 0),
+            end: start !== -1 ? start + normalizedMatchName.length : normalizedMatchName.length
           }
         ];
       }

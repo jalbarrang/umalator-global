@@ -18,11 +18,13 @@ function formatOcrSkillDebugReport(results: Partial<ExtractedUmaData>): string {
   ];
 
   for (const [index, skill] of (results.skills ?? []).entries()) {
-    lines.push(`- [${index + 1}] Raw: ${skill.originalText || '—'}`);
-    lines.push(`  Normalized: ${skillsService.normalizeSkillName(skill.originalText) || '—'}`);
-    lines.push(`  Matched: ${skill.name}`);
-    lines.push(`  Skill ID: ${skill.id}`);
-    lines.push(`  Confidence: ${skill.confidence.toFixed(2)}`);
+    lines.push(
+      `- [${index + 1}] Raw: ${skill.originalText || '—'}`,
+      `  Normalized: ${skillsService.normalizeSkillName(skill.originalText) || '—'}`,
+      `  Matched: ${skill.name}`,
+      `  Skill ID: ${skill.id}`,
+      `  Confidence: ${skill.confidence.toFixed(2)}`,
+    );
   }
 
   if (results.unrecognized && results.unrecognized.length > 0) {

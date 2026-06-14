@@ -155,12 +155,12 @@ describe('targeted skill initialization', () => {
     ).toBe(true);
     expect(
       raceRunner.pendingSkills.some(
-        (skill: { skillId: string }) => skill.skillId.split('-')[0] === TEST_DEBUFF_SKILL_ID
+        (skill: { skillId: string }) => skill.skillId.split('-', 1)[0] === TEST_DEBUFF_SKILL_ID
       )
     ).toBe(false);
     expect(
       raceRunner.pendingTargetedSkills.some(
-        (skill: { skillId: string }) => skill.skillId.split('-')[0] === TEST_DEBUFF_SKILL_ID
+        (skill: { skillId: string }) => skill.skillId.split('-', 1)[0] === TEST_DEBUFF_SKILL_ID
       )
     ).toBe(true);
   });

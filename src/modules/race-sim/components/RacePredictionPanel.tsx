@@ -19,10 +19,10 @@ export function RacePredictionPanel() {
   // Map a 1-based post (gate, else field order) back to its runner.
   const runnerByPost = useMemo(() => {
     const map = new Map<number, { outfitId: string; team?: number | null; index: number }>();
-    runners.forEach((runner, index) => {
+    for (const [index, runner] of runners.entries()) {
       const post = typeof runner.gate === 'number' ? runner.gate : index + 1;
       map.set(post, { outfitId: runner.outfitId, team: runner.team, index });
-    });
+    }
     return map;
   }, [runners]);
 

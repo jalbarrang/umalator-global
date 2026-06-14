@@ -42,7 +42,7 @@ export function runnersToRaceHorseInfo(runners: IRunnerState[]): Array<Record<st
       proper_running_style_sashi: aptitudeToEncoding(full.sashi),
       proper_running_style_oikomi: aptitudeToEncoding(full.oikomi),
       skill_array: runner.skills.map((skillId) => ({
-        skillId: Number((skillId.split('-')[0] ?? skillId).trim())
+        skillId: Number((skillId.split('-', 1)[0] ?? skillId).trim())
       })),
       card_id: Number(runner.outfitId) || 0,
       chara_id: runner.outfitId ? Number(runner.outfitId.slice(0, 4)) || 0 : 0,

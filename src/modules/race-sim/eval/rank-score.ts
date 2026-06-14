@@ -191,7 +191,7 @@ export function estimateRunnerRankScore(
   if (typeof runner.rankScore === 'number') {
     return runner.rankScore;
   }
-  const skillIds = runner.skills.map((id) => id.split('-')[0] ?? id);
+  const skillIds = runner.skills.map((id) => id.split('-', 1)[0] ?? id);
   const merged: RankScoreOptions = {
     star: runner.star ?? options?.star,
     uniqueLevel: options?.uniqueLevel,

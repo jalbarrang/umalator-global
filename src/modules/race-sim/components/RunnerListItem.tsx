@@ -111,6 +111,7 @@ export function RunnerListItem(props: Readonly<RunnerListItemProps>) {
             )}
           </div>
 
+          {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/click-events-have-key-events -- label is bound to the checkbox via htmlFor; onClick only stops row-selection propagation */}
           <label
             htmlFor={focusCheckboxId}
             className="shrink-0 cursor-pointer"

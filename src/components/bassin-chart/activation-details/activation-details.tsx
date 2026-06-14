@@ -41,7 +41,7 @@ export const ActivationDetails = React.memo((props: ActivationDetailsProps) => {
   );
 
   const activationPositions = useMemo(
-    () => currentSkillActivations.map((activation) => activation.positions).flat(),
+    () => currentSkillActivations.flatMap((activation) => activation.positions),
     [currentSkillActivations]
   );
 

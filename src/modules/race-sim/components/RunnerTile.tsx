@@ -66,6 +66,7 @@ export function RunnerTile(props: RunnerTileProps) {
             {!umaInfo && <div className="text-sm text-muted-foreground">Runner</div>}
           </div>
 
+          {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/click-events-have-key-events -- label is bound to the checkbox via htmlFor; onClick only stops tile-selection propagation */}
           <label
             htmlFor={focusCheckboxId}
             className="flex shrink-0 items-center gap-1.5 cursor-pointer"

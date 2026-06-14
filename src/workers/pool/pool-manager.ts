@@ -90,10 +90,10 @@ export class PoolManager {
   }
 
   private disposeWorkers(): void {
-    this.workers.forEach((worker, id) => {
+    for (const [id, worker] of this.workers.entries()) {
       worker.terminate();
       this.workerStates.set(id, 'terminated');
-    });
+    }
     this.workers = [];
     this.workerStates.clear();
   }
@@ -204,11 +204,11 @@ export class PoolManager {
    * Distribute work to all idle workers
    */
   private distributeWorkToIdleWorkers(): void {
-    this.workerStates.forEach((state, workerId) => {
+    for (const [workerId, state] of this.workerStates.entries()) {
       if (state === 'idle') {
         this.assignWorkToWorker(workerId);
       }
-    });
+    }
   }
 
   /**
@@ -304,13 +304,13 @@ export class PoolManager {
 
   /** Send the init message (optionally with a shared compiled module) to all workers. */
   private broadcastInit(compiledModule?: WebAssembly.Module): void {
-    this.workers.forEach((worker, id) => {
+    for (const [id, worker] of this.workers.entries()) {
       worker.postMessage({
         type: 'init',
         workerId: id,
         compiledModule
       } as WorkerInMessage);
-    });
+    }
   }
 
   /**

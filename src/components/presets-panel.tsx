@@ -83,9 +83,7 @@ const PresetCourseDetails = ({ preset }: { preset: RacePreset }) => {
 
   const conditions = useMemo(() => {
     const parts: string[] = [];
-    parts.push(GroundConditionName[preset.ground as IGroundCondition] ?? `Ground ${preset.ground}`);
-    parts.push(SeasonName[preset.season as ISeason] ?? `Season ${preset.season}`);
-    parts.push(WeatherName[preset.weather as IWeather] ?? `Weather ${preset.weather}`);
+    parts.push(GroundConditionName[preset.ground as IGroundCondition] ?? `Ground ${preset.ground}`, SeasonName[preset.season as ISeason] ?? `Season ${preset.season}`, WeatherName[preset.weather as IWeather] ?? `Weather ${preset.weather}`);
     return parts.join(' \u00b7 ');
   }, [preset.ground, preset.season, preset.weather]);
 

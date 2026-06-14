@@ -54,15 +54,9 @@ export function ImportSnapshotDialog({ open, onOpenChange }: ImportSnapshotDialo
     onOpenChange(next);
   };
 
-  const handleFile = (file: File) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result;
-      if (typeof result === 'string') {
-        applyParsed(result);
-      }
-    };
-    reader.readAsText(file);
+  const handleFile = async (file: File) => {
+    const text = await file.text();
+    applyParsed(text);
   };
 
   const handleDrop = (e: React.DragEvent) => {

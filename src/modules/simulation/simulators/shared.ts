@@ -13,7 +13,7 @@ export * from './shared-pure';
 
 export function getSkillEffectMetadata(skillId: string): Array<EffectMeta> {
   const baseSkillId = normalizeSkillId(skillId);
-  let effects: Array<{ type: number; target?: number }> = [];
+  let effects: Array<{ type: number; target?: number }>;
   try {
     const skillData = skillsService.getById(baseSkillId);
     effects = skillData?.alternatives?.[0]?.effects ?? [];

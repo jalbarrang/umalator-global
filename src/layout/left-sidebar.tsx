@@ -80,17 +80,13 @@ export const LeftSidebar = () => {
         icon: CrosshairIcon,
         content: <ForcedPositionsPanel />,
         hasBadge: hasForcedPositions
-      });
-
-      basePanels.push({
+      }, {
         id: 'debuffs',
         label: 'Debuffs',
         icon: CircleAlert,
         content: <DebuffsPanel />,
         hasBadge: hasDebuffs
-      });
-
-      basePanels.push({
+      }, {
         id: 'scenario-overrides',
         label: 'Scenario Overrides',
         icon: Swords,

@@ -3,7 +3,7 @@ import { createParser } from 'sunday-tools/skills/parser/ConditionParser';
 import { mockConditions } from 'sunday-tools/skills/parser/ConditionMatcher';
 import type { SkillService } from '@/modules/data/services/SkillService';
 
-var parser: ReturnType<typeof createParser> | null = null;
+let parser: ReturnType<typeof createParser> | null = null;
 
 function getParser() {
   if (!parser) {
@@ -42,7 +42,7 @@ function tokenizeSkillsConditions(skillsService: SkillService) {
   return acc;
 }
 
-export var tokenizedConditions: Record<string, Array<Operator>> = {};
+export let tokenizedConditions: Record<string, Array<Operator>> = {};
 
 export function rebuildTokenizedConditionsCache(skillsService: SkillService): void {
   tokenizedConditions = tokenizeSkillsConditions(skillsService);

@@ -14,7 +14,7 @@ function layerNorm(row: number[], weight: number[], bias: number[], epsilon = 1e
 function linear(row: number[], weight: FrontendModel["weights"][string], bias: FrontendModel["weights"][string]): number[] {
     const outDim = weight.shape[0];
     const inDim = weight.shape[1];
-    const output = new Array(outDim).fill(0);
+    const output = Array.from({ length: outDim }, () => 0);
     for (let outIndex = 0; outIndex < outDim; outIndex++) {
         let sum = bias.data[outIndex] ?? 0;
         const offset = outIndex * inDim;
@@ -68,30 +68,30 @@ export function predictEncodedRoom(
     const teamMaxes: number[][] = [];
     for (let teamIndex = 0; teamIndex < normalizedFeatures.length; teamIndex++) {
         const teamHorses = horseEmbeddings.slice(teamIndex * 3, teamIndex * 3 + 3);
-        const mean = new Array(hiddenDim).fill(0);
-        const max = new Array(hiddenDim).fill(Number.NEGATIVE_INFINITY);
-        teamHorses.forEach((horse) => {
+        const mean = Array.from({ length: hiddenDim }, () => 0);
+        const max = Array.from({ length: hiddenDim }, () => Number.NEGATIVE_INFINITY);
+        for (const horse of teamHorses) {
             for (let i = 0; i < hiddenDim; i++) {
                 mean[i] += horse[i] / teamHorses.length;
                 if (horse[i] > max[i]) max[i] = horse[i];
             }
-        });
+        }
         teamMeans.push(mean);
         teamMaxes.push(max);
     }
 
-    const roomMean = new Array(hiddenDim).fill(0);
-    const roomMax = new Array(hiddenDim).fill(Number.NEGATIVE_INFINITY);
-    teamMeans.forEach((team) => {
+    const roomMean = Array.from({ length: hiddenDim }, () => 0);
+    const roomMax = Array.from({ length: hiddenDim }, () => Number.NEGATIVE_INFINITY);
+    for (const team of teamMeans) {
         for (let i = 0; i < hiddenDim; i++) {
             roomMean[i] += team[i] / teamMeans.length;
         }
-    });
-    teamMaxes.forEach((team) => {
+    }
+    for (const team of teamMaxes) {
         for (let i = 0; i < hiddenDim; i++) {
             if (team[i] > roomMax[i]) roomMax[i] = team[i];
         }
-    });
+    }
 
     const logits = horseEmbeddings.map((horse, index) => {
         const teamIndex = Math.floor(index / 3);

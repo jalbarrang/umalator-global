@@ -284,13 +284,13 @@ export class SkillService {
   // ============
 
   getUniqueSkillIds(): Array<string> {
-    const uniqueSkillRarities = [4, 5];
+    const uniqueSkillRarities = new Set([4, 5]);
     const result: Array<string> = [];
     const skillsArray = this.getAll();
 
     for (let i = 0; i < skillsArray.length; i++) {
       const skill = skillsArray[i];
-      if (skill.character?.length === 1 && uniqueSkillRarities.includes(skill.rarity)) {
+      if (skill.character?.length === 1 && uniqueSkillRarities.has(skill.rarity)) {
         result.push(skill.id);
       }
     }
@@ -317,7 +317,7 @@ export class SkillService {
   }
 
   normalizeSkillId(skillId: string): string {
-    return skillId.split('-')[0] ?? skillId;
+    return skillId.split('-', 1)[0] ?? skillId;
   }
 
   getNames(): Array<string> {
@@ -361,11 +361,11 @@ export class SkillService {
       .replaceAll('✖', '×')
       .replaceAll('©', '◎')
       .replaceAll('®', '○')
-      .replace(/\b(?:lvl|level)\s*\d+\b/giu, ' ')
+      .replaceAll(/\b(?:lvl|level)\s*\d+\b/giu, ' ')
       .replace(/\s+[Oo0]$/u, '○')
       .replace(/\s+[Xx]$/u, '×')
       .toLowerCase()
-      .replace(/[[\]\s\-_・!！?？,、.。:：;；'"""''「」『』【】()（）☆★]/gu, '')
+      .replaceAll(/[[\]\s\-_・!！?？,、.。:：;；'"""''「」『』【】()（）☆★]/gu, '')
       .trim();
   }
 

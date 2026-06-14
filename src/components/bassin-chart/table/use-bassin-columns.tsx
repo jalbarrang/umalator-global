@@ -90,7 +90,7 @@ export function useBassinColumns({
           if (cost === 0) {
             return <span className="text-muted-foreground text-xs">Owned</span>;
           }
-          if (value == null || !isFinite(value)) {
+          if (value == null || !Number.isFinite(value)) {
             return <span className="text-muted-foreground">—</span>;
           }
           return <span>{value.toFixed(3)}</span>;

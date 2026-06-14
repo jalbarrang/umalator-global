@@ -45,14 +45,14 @@ export function getUniqueSkillForByUmaId(outfitId: UmaAltId): string {
 /**
  * Skills that are never acquired through training, so we don't need to test them.
  */
-const nonMeasurableSkills = ['300051', '300061'];
+const nonMeasurableSkills = new Set(['300051', '300061']);
 
 export const getBaseSkillsToTest = () => {
   const skillIds = skillsService.getAll().map((skill) => skill.id);
   const skillsToTest = [];
 
   for (const id of skillIds) {
-    if (nonMeasurableSkills.includes(id)) continue;
+    if (nonMeasurableSkills.has(id)) continue;
 
     const skillData = skillsService.getById(id);
 
@@ -74,10 +74,10 @@ export const getSelectableSkillsForUma = (umaId: UmaAltId, includeUpcoming = fal
   const ids: Array<string> = [];
 
   // White, Gold, Upgraded Unique (2* Umas), Unique (3* Umas)
-  const allowedRarities = [1, 2, 4, 5];
+  const allowedRarities = new Set([1, 2, 4, 5]);
 
   for (const skill of skillsService.getAll()) {
-    if (!allowedRarities.includes(skill.rarity)) continue;
+    if (!allowedRarities.has(skill.rarity)) continue;
     if (!includeUpcoming && !skillsService.isReleased(skill.id)) continue;
 
     // Inherited uniques (9xxxxx) are added via the gene_version redirect
@@ -86,7 +86,7 @@ export const getSelectableSkillsForUma = (umaId: UmaAltId, includeUpcoming = fal
 
     const character = skill.character;
 
-    const onlyAvailableInOneUma = character.length === 1 && character.includes(parseInt(umaId));
+    const onlyAvailableInOneUma = character.length === 1 && character.includes(Number.parseInt(umaId));
     const isUnique = skill.rarity === SkillRarity.Unique;
 
     // Filter
@@ -149,19 +149,19 @@ export function estimateSkillActivationPhase(skillId: string): number | null {
   // phase==X is most specific
   const phaseMatch = condition.match(/phase==(\d)/);
   if (phaseMatch?.[1]) {
-    return parseInt(phaseMatch[1], 10);
+    return Number.parseInt(phaseMatch[1], 10);
   }
 
   // phase>=X means X or later
   const phaseGteMatch = condition.match(/phase>=(\d)/);
   if (phaseGteMatch?.[1]) {
-    return parseInt(phaseGteMatch[1], 10);
+    return Number.parseInt(phaseGteMatch[1], 10);
   }
 
   // phase_random==X
   const phaseRandomMatch = condition.match(/phase_random==(\d)/);
   if (phaseRandomMatch?.[1]) {
-    return parseInt(phaseRandomMatch[1], 10);
+    return Number.parseInt(phaseRandomMatch[1], 10);
   }
 
   // is_lastspurt==1 means phase 2 or 3, estimate as phase 2

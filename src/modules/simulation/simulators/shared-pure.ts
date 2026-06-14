@@ -33,7 +33,7 @@ export const DEFAULT_DUELING_RATES: DuelingRates = {
 };
 
 export function normalizeSkillId(skillId: string): string {
-  return skillId.split('-')[0] ?? skillId;
+  return skillId.split('-', 1)[0] ?? skillId;
 }
 
 export function isSameSkill(skillIdA: string, skillIdB: string): boolean {
@@ -59,7 +59,7 @@ export function createSkillSorterByGroupWith(
     const index = commonSkills.findIndex(
       (skillId) => groupIdOf(normalizeSkillId(skillId)) === groupId
     );
-    return index > -1 ? index : commonSkills.length;
+    return index !== -1 ? index : commonSkills.length;
   };
 
   return (a: string, b: string) => {

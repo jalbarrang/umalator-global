@@ -279,13 +279,13 @@ function runNineRunnerParity() {
   const wasmResult = wasm.runRaceSim(raceSimParamsToWasm(params, (_r, i) => `R${i}`));
 
   const meanRank = (orders: Array<Array<{ runnerId: number }>>) => {
-    const sum = new Array(9).fill(0);
-    const cnt = new Array(9).fill(0);
+    const sum = Array.from({ length: 9 }, () => 0);
+    const cnt = Array.from({ length: 9 }, () => 0);
     for (const round of orders) {
-      round.forEach((e, rank) => {
+      for (const [rank, e] of round.entries()) {
         sum[e.runnerId] += rank;
         cnt[e.runnerId] += 1;
-      });
+      }
     }
     return sum.map((s, i) => (cnt[i] > 0 ? s / cnt[i] : 0));
   };

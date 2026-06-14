@@ -109,7 +109,7 @@ export function RunnerDetailPanel({
     (outfitId: string) => {
       if (!runner) return;
       const keptSkills = runner.skills.filter((skillId) => {
-        const baseSkillId = skillId.split('-')[0] ?? skillId;
+        const baseSkillId = skillId.split('-', 1)[0] ?? skillId;
         const skillData = skillsService.getById(baseSkillId);
         return Boolean(skillData?.rarity && skillData.rarity < 3);
       });
