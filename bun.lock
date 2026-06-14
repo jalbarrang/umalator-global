@@ -90,6 +90,7 @@
         "vite-sitemap-plugin": "^1.20.0",
         "vitest": "^4.1.7",
         "web-vitals": "^5.2.0",
+        "wrangler": "4.95.0",
       },
     },
     "packages/sunday-tools": {
