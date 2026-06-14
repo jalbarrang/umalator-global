@@ -294,8 +294,7 @@ function AppFooter() {
 
   return (
     <footer className="shrink-0 border-t px-4 py-1.5 text-xs text-muted-foreground">
-      <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-0.5 text-center">
-        <span>This website is not affiliated with Cygames, Inc.</span>
+      <div className="flex flex-col items-center gap-0.5 text-center">
         <span className="flex flex-wrap items-center justify-center gap-x-3 gap-y-0.5">
           {links.map((link, index) => (
             <Fragment key={link!.key}>
@@ -304,6 +303,7 @@ function AppFooter() {
             </Fragment>
           ))}
         </span>
+        <span>This website is not affiliated with Cygames, Inc.</span>
       </div>
     </footer>
   );
