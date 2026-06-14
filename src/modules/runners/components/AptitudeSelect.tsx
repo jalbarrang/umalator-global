@@ -8,13 +8,16 @@ import {
 import { getIconUrl } from '@/assets/icons';
 import { Aptitude, AptitudeName } from 'sunday-tools/runner/definitions';
 
+import { cn } from '@/lib/utils';
+
 type AptitudeSelectProps = {
   value: string;
   onChange: (value: string) => void;
+  className?: string;
 };
 
 export const AptitudeSelect = (props: AptitudeSelectProps) => {
-  const { value, onChange } = props;
+  const { value, onChange, className } = props;
 
   const handleChange = (newValue: string | null) => {
     if (!newValue) {
@@ -26,7 +29,7 @@ export const AptitudeSelect = (props: AptitudeSelectProps) => {
 
   return (
     <Select value={value} onValueChange={handleChange}>
-      <SelectTrigger className="border-none rounded-none shadow-none w-full">
+      <SelectTrigger className={cn('border-none rounded-none shadow-none w-full', className)}>
         <SelectValue>{(value) => <AptitudeIcon aptitude={value} className="size-4" />}</SelectValue>
       </SelectTrigger>
 
