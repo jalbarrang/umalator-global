@@ -36,6 +36,7 @@ export type IRunnerState = {
   strategyAptitude: string;
   mood: IMood;
   skills: Array<string>;
+  team?: number | null; // CM/LoH team grouping (1-based); null/undefined = no team
   randomMobId?: number; // For placeholder image when no uma selected
   linkedRunnerId?: string; // Link to saved runner in library
 };

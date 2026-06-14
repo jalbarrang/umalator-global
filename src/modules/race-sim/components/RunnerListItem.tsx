@@ -5,6 +5,7 @@ import { strategyNames } from 'sunday-tools/runner/definitions';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import { getUmaDisplayInfo, getUmaImageUrl } from '@/modules/runners/utils';
 import { getIconUrl } from '@/assets/icons';
+import { getTeamStyle } from '@/modules/race-sim/team-colors';
 
 type RunnerListItemProps = {
   index: number;
@@ -119,6 +120,16 @@ export function RunnerListItem(props: Readonly<RunnerListItemProps>) {
         </div>
 
         <div className="flex items-center gap-2">
+          {typeof runner.team === 'number' && (
+            <span
+              className={cn(
+                'text-[10px] rounded px-1 py-px font-medium',
+                getTeamStyle(runner.team).chipClass
+              )}
+            >
+              {getTeamStyle(runner.team).label}
+            </span>
+          )}
           <span className="text-[10px] rounded bg-secondary px-1 py-px font-medium text-secondary-foreground">
             {strategyNames.find((name) => name === runner.strategy) ?? 'Unknown'}
           </span>

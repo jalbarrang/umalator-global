@@ -112,7 +112,8 @@ function horseToRunner(horse: Record<string, unknown>): IRunnerState | null {
   return createRunnerState({
     ...singleExportToRunnerState(single),
     strategy: strategy ?? StrategyName[Strategy.FrontRunner],
-    mood: motivationToMood(horse.motivation) ?? Mood.Normal
+    mood: motivationToMood(horse.motivation) ?? Mood.Normal,
+    team: firstFiniteNumber(horse.team_id) ?? null
   });
 }
 

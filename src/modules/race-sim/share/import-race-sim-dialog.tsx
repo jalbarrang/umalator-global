@@ -169,6 +169,13 @@ export function ImportRaceSimDialog({ open, onOpenChange }: ImportRaceSimDialogP
   const selectedRunners = preview?.runners.filter((runner) => runner.outfitId) ?? [];
   const previewNames = selectedRunners.slice(0, 3).map((runner) => runnerName(runner.outfitId));
   const extraCount = selectedRunners.length - previewNames.length;
+  const teamCount = preview
+    ? new Set(
+        preview.runners
+          .map((runner) => runner.team)
+          .filter((team): team is number => typeof team === 'number')
+      ).size
+    : 0;
 
   const sourceDescription =
     source === 'hakuraku'
@@ -282,7 +289,10 @@ export function ImportRaceSimDialog({ open, onOpenChange }: ImportRaceSimDialogP
             )}
             <div>
               <span className="text-muted-foreground">Field: </span>
-              <span className="font-medium">{preview.runners.length} runners</span>
+              <span className="font-medium">
+                {preview.runners.length} runners
+                {teamCount > 0 ? ` · ${teamCount} teams` : ''}
+              </span>
             </div>
             <div>
               <span className="text-muted-foreground">Samples: </span>

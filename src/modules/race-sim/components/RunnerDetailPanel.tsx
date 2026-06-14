@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import { PlusIcon, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { skillsService } from '@/modules/data/services/SkillService';
 import { AptitudesTable } from '@/modules/runners/components/runner-card/aptitudes-table';
 import { StatsTable, type StatsKey } from '@/modules/runners/components/runner-card/stats-table';
@@ -146,6 +147,13 @@ export function RunnerDetailPanel({
     applyRunnerPatch({ strategy: 'Runaway' });
   }, [applyRunnerPatch]);
 
+  const handleSetTeam = useCallback(
+    (value: string | undefined) => {
+      applyRunnerPatch({ team: value && value !== 'none' ? Number(value) : null });
+    },
+    [applyRunnerPatch]
+  );
+
   const uniqueSkillId = useMemo(() => {
     if (!runner?.outfitId) return null;
     return getUniqueSkillForByUmaId(runner.outfitId);
@@ -234,6 +242,19 @@ export function RunnerDetailPanel({
               hasRunawaySkill={hasRunawaySkill}
               onRunawayStrategy={handleRunawayStrategy}
             />
+          </Section>
+
+          <Section title="Team">
+            <ToggleGroup
+              value={[typeof runner.team === 'number' ? String(runner.team) : 'none']}
+              onValueChange={(value) => handleSetTeam(value[0])}
+              variant="outline"
+            >
+              <ToggleGroupItem value="none">None</ToggleGroupItem>
+              <ToggleGroupItem value="1">Team 1</ToggleGroupItem>
+              <ToggleGroupItem value="2">Team 2</ToggleGroupItem>
+              <ToggleGroupItem value="3">Team 3</ToggleGroupItem>
+            </ToggleGroup>
           </Section>
 
           <Section
