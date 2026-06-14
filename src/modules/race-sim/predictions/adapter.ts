@@ -1,6 +1,7 @@
 import { Strategy, StrategyName } from 'sunday-tools/runner/definitions';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import { aptitudeToEncoding } from '@/modules/runners/share/converters';
+import { estimateRunnerRankScore } from '@/modules/race-sim/eval/rank-score';
 
 const STRATEGY_NAME_TO_ID = new Map<string, number>(
   Object.entries(StrategyName).map(([id, name]) => [name, Number(id)])
@@ -46,7 +47,8 @@ export function runnersToRaceHorseInfo(runners: IRunnerState[]): Array<Record<st
       })),
       card_id: Number(runner.outfitId) || 0,
       chara_id: runner.outfitId ? Number(runner.outfitId.slice(0, 4)) || 0 : 0,
-      rank_score: typeof runner.rankScore === 'number' ? runner.rankScore : 0
+      // Use the imported rank score when present, else our native estimate.
+      rank_score: estimateRunnerRankScore(runner)
     };
   });
 }

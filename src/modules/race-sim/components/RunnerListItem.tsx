@@ -7,6 +7,7 @@ import { getUmaDisplayInfo, getUmaImageUrl } from '@/modules/runners/utils';
 import { getIconUrl } from '@/assets/icons';
 import { getTeamStyle } from '@/modules/race-sim/team-colors';
 import { rankLabel } from '@/modules/race-sim/rank-badge';
+import { estimateRunnerRankScore } from '@/modules/race-sim/eval/rank-score';
 
 type RunnerListItemProps = {
   index: number;
@@ -24,6 +25,20 @@ const statIcons = [
   getIconUrl('status_03.png'),
   getIconUrl('status_04.png')
 ] as const;
+
+function RankBadge({ runner }: Readonly<{ runner: IRunnerState }>) {
+  const score = estimateRunnerRankScore(runner);
+  const estimated = typeof runner.rankScore !== 'number';
+  return (
+    <span
+      className="text-[10px] rounded bg-primary/15 px-1 py-px font-semibold text-primary"
+      title={`${estimated ? 'Estimated rank' : 'Rank'} score ${score}`}
+    >
+      {rankLabel(score)}
+      {estimated ? '*' : ''}
+    </span>
+  );
+}
 
 export function RunnerListItem(props: Readonly<RunnerListItemProps>) {
   const { index, runner, isSelected, isFocused, onSelect, onToggleFocus } = props;
@@ -131,13 +146,8 @@ export function RunnerListItem(props: Readonly<RunnerListItemProps>) {
               {getTeamStyle(runner.team).label}
             </span>
           )}
-          {typeof runner.rankScore === 'number' && (
-            <span
-              className="text-[10px] rounded bg-primary/15 px-1 py-px font-semibold text-primary"
-              title={`Rank score ${runner.rankScore}`}
-            >
-              {rankLabel(runner.rankScore)}
-            </span>
+          {runner.outfitId && (
+            <RankBadge runner={runner} />
           )}
           <span className="text-[10px] rounded bg-secondary px-1 py-px font-medium text-secondary-foreground">
             {strategyNames.find((name) => name === runner.strategy) ?? 'Unknown'}

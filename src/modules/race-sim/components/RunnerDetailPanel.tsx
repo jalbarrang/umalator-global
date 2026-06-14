@@ -23,6 +23,7 @@ import { openSkillPicker, updateCurrentSkills } from '@/modules/skills/store';
 import { getSelectableSkillsForUma, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
 import { updateRunner, useRaceSimStore } from '@/modules/simulation/stores/race-sim.store';
 import { rankLabel } from '@/modules/race-sim/rank-badge';
+import { estimateRunnerRankScore } from '@/modules/race-sim/eval/rank-score';
 import { cn } from '@/lib/utils';
 
 type RunnerDetailPanelProps = {
@@ -185,12 +186,15 @@ export function RunnerDetailPanel({
           <div>
             <h2 className="flex items-center gap-1.5 text-sm font-semibold leading-tight">
               {runnerDisplayName}
-              {typeof runner.rankScore === 'number' && (
+              {runner.outfitId && (
                 <span
                   className="rounded bg-primary/15 px-1 py-px text-[10px] font-semibold text-primary"
-                  title={`Rank score ${runner.rankScore}`}
+                  title={`${
+                    typeof runner.rankScore === 'number' ? 'Rank' : 'Estimated rank'
+                  } score ${estimateRunnerRankScore(runner)}`}
                 >
-                  {rankLabel(runner.rankScore)}
+                  {rankLabel(estimateRunnerRankScore(runner))}
+                  {typeof runner.rankScore === 'number' ? '' : '*'}
                 </span>
               )}
             </h2>
