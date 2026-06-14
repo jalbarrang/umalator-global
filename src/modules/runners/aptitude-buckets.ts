@@ -86,3 +86,46 @@ export function collapsedForCourse(
     strategyAptitude: aptitudes[styleKey]
   };
 }
+
+const GRADE_ORDER = ['G', 'F', 'E', 'D', 'C', 'B', 'A', 'S'];
+
+function maxGrade(grades: string[]): string {
+  return grades.reduce(
+    (best, grade) =>
+      GRADE_ORDER.indexOf(grade) > GRADE_ORDER.indexOf(best) ? grade : best,
+    grades[0] ?? 'G'
+  );
+}
+
+/**
+ * Collapse buckets without a course: distance/surface use the best (max) grade,
+ * style uses the bucket matching the strategy. Used where there is no race
+ * (e.g. the Veteran library).
+ */
+export function collapsedMax(
+  aptitudes: RunnerAptitudes,
+  strategy: IRunnerState['strategy']
+): Pick<IRunnerState, 'distanceAptitude' | 'surfaceAptitude' | 'strategyAptitude'> {
+  const styleKey = STYLE_KEY_BY_STRATEGY[strategy] ?? 'nige';
+  return {
+    distanceAptitude: maxGrade([
+      aptitudes.distanceShort,
+      aptitudes.distanceMile,
+      aptitudes.distanceMiddle,
+      aptitudes.distanceLong
+    ]),
+    surfaceAptitude: maxGrade([aptitudes.turf, aptitudes.dirt]),
+    strategyAptitude: aptitudes[styleKey]
+  };
+}
+
+/** Resolve collapsed grades: course-aware when courseId is given, else max. */
+export function collapsedFromBuckets(
+  aptitudes: RunnerAptitudes,
+  strategy: IRunnerState['strategy'],
+  courseId?: number
+): Pick<IRunnerState, 'distanceAptitude' | 'surfaceAptitude' | 'strategyAptitude'> {
+  return courseId !== undefined
+    ? collapsedForCourse(aptitudes, courseId, strategy)
+    : collapsedMax(aptitudes, strategy);
+}

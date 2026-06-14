@@ -4,7 +4,7 @@ import {
   STYLE_BUCKETS,
   SURFACE_BUCKETS,
   type AptitudeBucketKey
-} from '@/modules/race-sim/aptitude-buckets';
+} from '@/modules/runners/aptitude-buckets';
 import type { RunnerAptitudes } from '@/modules/runners/components/runner-card/types';
 
 type BucketAptitudesEditorProps = {

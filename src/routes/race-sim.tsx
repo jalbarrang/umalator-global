@@ -8,7 +8,7 @@ import { racedefToParams } from '@/utils/races';
 import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { RaceSimContext } from '@/modules/race-sim/context';
-import { collapsedForCourse } from '@/modules/race-sim/aptitude-buckets';
+import { collapsedForCourse } from '@/modules/runners/aptitude-buckets';
 import { loadResults } from '@/modules/race-sim/stores/playback.store';
 import { useRaceSimRunner } from '@/modules/simulation/hooks/race-sim/useRaceSimRunner';
 import {
