@@ -1,3 +1,9 @@
+## [0.16.0](https://github.com/jalbarrang/umalator-global/compare/v0.15.1...v0.16.0) (2026-06-15)
+
+### Features
+
+* added skill planner deeplink ([f94d5a4](https://github.com/jalbarrang/umalator-global/commit/f94d5a4e7187a501edbc74f1e54085809ee69aa0))
+
 ## [0.15.1](https://github.com/jalbarrang/umalator-global/compare/v0.15.0...v0.15.1) (2026-06-14)
 
 ### Bug Fixes
