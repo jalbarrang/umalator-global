@@ -59,6 +59,13 @@ export default tseslint.config(
       // `any` is a smell, not a build-breaker — surface it without failing CI.
       '@typescript-eslint/no-explicit-any': 'warn',
 
+      // Flag oversized files for refactor without failing CI. Counts code
+      // lines only (blanks + comments skipped).
+      'max-lines': [
+        'warn',
+        { max: 300, skipBlankLines: true, skipComments: true },
+      ],
+
       // React Compiler / experimental hook rules: informative but noisy and
       // prone to false positives (e.g. TanStack Virtual). Keep as warnings.
       'react-hooks/refs': 'warn',
