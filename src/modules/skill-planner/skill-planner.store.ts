@@ -16,6 +16,7 @@ import {
   getGoldVersion,
   getUpgradeTier,
   getWhiteVersion,
+  isSelfDebuffSkillById,
   isStackableSkill
 } from '@/modules/skills/skill-relationships';
 import { getSelectableSkillsForUma, getUniqueSkillForByUmaId } from '@/modules/skills/utils';
@@ -616,6 +617,62 @@ export const importRunnerBaseline = (runnerSnapshot: IRunnerState, resetSession 
   importVeteranRunner(runnerSnapshot, resetSession);
 };
 
+// Higher value wins when an imported list contains multiple members of the same
+// skill family. The planner keeps a single representative per family (see the
+// dedup in `addCandidate`), so an external source that lists e.g. both a gold and
+// its white prerequisite must collapse to the gold — the white is expanded as a
+// prerequisite automatically during optimization.
+const getCandidateFamilyRank = (skillId: string): number => {
+  const skill = skillsService.getById(skillId);
+  if (!skill) {
+    return 0;
+  }
+
+  // Gold (and other premium rarities) outrank every white tier.
+  if (skill.rarity !== 1) {
+    return 4;
+  }
+
+  if (isSelfDebuffSkillById(skillId)) {
+    return 1;
+  }
+
+  const baseTier = getBaseTier(skillId);
+  const upgradeTier = getUpgradeTier(baseTier);
+  if (upgradeTier && skillId === upgradeTier) {
+    return 3; // ◎ upgrade tier
+  }
+
+  return 2; // ○ base tier / non-stackable white
+};
+
+// Collapse the imported candidate list to one entry per skill family, preferring
+// the highest-value representative. Without this, `addCandidate`'s last-write-wins
+// dedup drops golds/◎ when a lower white sibling is imported afterwards.
+const dedupeImportedCandidates = (
+  candidates: Array<{ skillId: string; hintLevel: HintLevel }>
+): Array<{ skillId: string; hintLevel: HintLevel }> => {
+  const bestByFamily = new Map<string, { skillId: string; hintLevel: HintLevel }>();
+
+  for (const candidate of candidates) {
+    if (!skillsService.getById(candidate.skillId)) {
+      continue;
+    }
+
+    const familyKey = getRelatedSkillIds(candidate.skillId).toSorted()[0] ?? candidate.skillId;
+    const existing = bestByFamily.get(familyKey);
+
+    if (
+      !existing ||
+      getCandidateFamilyRank(candidate.skillId) > getCandidateFamilyRank(existing.skillId)
+    ) {
+      bestByFamily.set(familyKey, candidate);
+    }
+  }
+
+  return Array.from(bestByFamily.values());
+};
+
 export const importFromCode = (params: {
   runner: Partial<IRunnerState>;
   obtainedSkillIds: Array<string>;
@@ -632,8 +689,8 @@ export const importFromCode = (params: {
   });
   importVeteranRunner(runnerSnapshot, true);
 
-  // 2. Add each candidate with hint level
-  for (const { skillId, hintLevel } of candidates) {
+  // 2. Add each candidate with hint level (one representative per family)
+  for (const { skillId, hintLevel } of dedupeImportedCandidates(candidates)) {
     addCandidate(skillId, hintLevel);
   }
 
