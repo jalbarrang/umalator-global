@@ -1,3 +1,9 @@
+## [0.16.1](https://github.com/jalbarrang/umalator-global/compare/v0.16.0...v0.16.1) (2026-06-19)
+
+### Bug Fixes
+
+* **parser:** support negative integers in skill conditions ([983ab0e](https://github.com/jalbarrang/umalator-global/commit/983ab0e6929cc188908cebd50df1a3ce20e5f0ae))
+
 ## [0.16.0](https://github.com/jalbarrang/umalator-global/compare/v0.15.1...v0.16.0) (2026-06-15)
 
 ### Features
