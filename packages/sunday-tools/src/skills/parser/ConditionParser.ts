@@ -212,6 +212,17 @@ function generateParser<TCondition = ICondition, TOperator = Operator>(
             yield OperatorAnd;
             ++i;
             break;
+          case '-': {
+            let characterCode = conditionString.charCodeAt(++i);
+            if (!isNumber(characterCode)) throw new ParseError('expected number after -');
+            let digit = 0;
+            while (isNumber(characterCode)) {
+              digit = digit * 10 + (characterCode - 48);
+              characterCode = conditionString.charCodeAt(++i);
+            }
+            yield new IntValue<TCondition, TOperator>(-digit);
+            break;
+          }
           default:
             throw new ParseError('invalid character');
         }
