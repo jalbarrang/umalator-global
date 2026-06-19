@@ -18,6 +18,7 @@ export default tseslint.config(
       'node_modules/',
       'packages/target/',
       'packages/**/target/',
+      'src/lib/uma-sim-wasm/pkg/',
       '**/*.d.ts',
       'public/',
       'db/',
