@@ -248,9 +248,7 @@ pub fn build_skill_data(params: &BuildSkillDataParams<'_>) -> Vec<SkillTrigger> 
             continue;
         }
 
-        let Ok(effects) = build_skill_effects(alt) else {
-            return Vec::new();
-        };
+        let effects = build_skill_effects(alt);
         if !effects.is_empty() || params.ignore_null_effects {
             triggers.push(SkillTrigger {
                 skill_id: skill.skill_id.clone(),
@@ -273,9 +271,7 @@ pub fn build_skill_data(params: &BuildSkillDataParams<'_>) -> Vec<SkillTrigger> 
     let Some(first) = skill.alternatives.first() else {
         return Vec::new();
     };
-    let Ok(effects) = build_skill_effects(first) else {
-        return Vec::new();
-    };
+    let effects = build_skill_effects(first);
     if effects.is_empty() && !params.ignore_null_effects {
         return Vec::new();
     }
@@ -952,6 +948,38 @@ mod tests {
         }
     }
 
+    /// A Savvy-shaped skill: Wisdom Up (type 5, modeled) bundled with a vision
+    /// effect (type 8, unmodeled), gated on the Pace Chaser running style — the
+    /// exact shape of real skill 201531 (Pace Chaser Savvy ◎).
+    fn savvy_skill(id: &str) -> Skill {
+        Skill {
+            skill_id: SkillId::new(id),
+            rarity: SkillRarity::White,
+            alternatives: vec![SkillAlternative {
+                base_duration: -10000.0,
+                cooldown_time: None,
+                condition: "running_style==2".to_owned(),
+                precondition: None,
+                effects: vec![
+                    RawSkillEffect {
+                        modifier: 600000.0,
+                        target: SkillTarget::SelfTarget,
+                        effect_type: 5, // Wisdom Up (modeled)
+                        value_usage: Some(1),
+                        value_level_usage: Some(1),
+                    },
+                    RawSkillEffect {
+                        modifier: 100000.0,
+                        target: SkillTarget::SelfTarget,
+                        effect_type: 8, // vision (unmodeled)
+                        value_usage: Some(1),
+                        value_level_usage: Some(1),
+                    },
+                ],
+            }],
+        }
+    }
+
     fn build(skill: &Skill) -> Vec<SkillTrigger> {
         let course = test_course();
         let catalog = build_catalog();
@@ -1245,6 +1273,39 @@ mod tests {
         let field = FieldView::at_gate();
         r.process_skill_activations(&field, 2400.0);
         assert_eq!(r.heals_activated_count, 1);
+    }
+
+    #[test]
+    fn savvy_skill_builds_trigger_with_only_wisdom_effect() {
+        // Regression: a Savvy skill (Wisdom Up + vision) must still produce a
+        // trigger — carrying only the modeled Wisdom Up effect — instead of being
+        // discarded wholesale because of the unmodeled vision effect.
+        let triggers = build(&savvy_skill("201531"));
+        assert_eq!(triggers.len(), 1, "the Savvy skill must still trigger");
+        assert_eq!(triggers[0].effects.len(), 1, "only the modeled effect remains");
+        assert_eq!(triggers[0].effects[0].effect_type, SkillType::WisdomUp);
+    }
+
+    #[test]
+    fn savvy_skill_activates_at_gate_and_applies_wit_bonus() {
+        // End-to-end: Pace Chaser Savvy is a green (running-style) skill, so it
+        // activates at the gate during `on_prepare` and adds its wit bonus —
+        // rather than silently never firing because of the bundled vision effect.
+        let baseline = runner_with_skills(vec![]);
+        let wit_before = baseline.adjusted_stats.wit;
+
+        let mut r = runner_with_skills(vec![savvy_skill("201531")]);
+        prepare(&mut r);
+
+        // Green skill consumed off the pending queue at the gate.
+        assert!(r.pending_skills.is_empty());
+        assert_eq!(r.skills_activated_count, 1, "Savvy must fire, not be dropped");
+        assert!(r.used_skills.contains("201531"));
+        assert_eq!(
+            r.adjusted_stats.wit,
+            wit_before + 60.0,
+            "the modeled Wisdom Up (+60) must apply"
+        );
     }
 
     #[test]

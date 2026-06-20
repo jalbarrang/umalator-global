@@ -16,7 +16,7 @@ use crate::shared_kernel::math::Timer;
 use crate::shared_kernel::region::{Region, RegionList};
 use crate::skills::activation::ActivationSamplePolicy;
 use crate::skills::condition::dynamic::DynamicCondition;
-use crate::skills::effect::{SkillRarity, SkillTarget, SkillType, UnknownSkillType};
+use crate::skills::effect::{SkillRarity, SkillTarget, SkillType};
 
 /// Raw effect as it appears in the skill data, before duration is attached and
 /// modifiers are scaled.
@@ -93,16 +93,26 @@ pub struct SkillEffect {
 /// Build the scaled [`SkillEffect`]s for one alternative.
 ///
 /// Port of `buildSkillEffects`: `base_duration` and every `modifier` are divided
-/// by `10000`, and the raw type id is resolved to a [`SkillType`]. Returns an
-/// error if any effect carries an unknown type id.
-pub fn build_skill_effects(alt: &SkillAlternative) -> Result<Vec<SkillEffect>, UnknownSkillType> {
+/// by `10000`, and the raw type id is resolved to a [`SkillType`].
+///
+/// Effects whose raw type id has no [`SkillType`] mapping are **skipped**, not
+/// fatal. The game bundles unmodeled effects (vision `8`, temptation `13`,
+/// carnival/event `502`/`503`, ...) alongside ones we do model — e.g. every
+/// Savvy skill carries Wisdom Up (`5`) *and* a vision effect (`8`). Rejecting the
+/// whole alternative on the unknown type silently killed the entire skill (no
+/// trigger, no stat bonus, no proc). Dropping only the unmodeled effect keeps the
+/// known ones (the wit bonus) live. An alternative whose effects are *all*
+/// unmapped yields an empty list, which `build_skill_data` treats as "no trigger"
+/// (correct — there is nothing to simulate).
+pub fn build_skill_effects(alt: &SkillAlternative) -> Vec<SkillEffect> {
     let base_duration = alt.base_duration / 10000.0;
     alt.effects
         .iter()
-        .map(|effect| {
-            Ok(SkillEffect {
+        .filter_map(|effect| {
+            let effect_type = SkillType::try_from(effect.effect_type).ok()?;
+            Some(SkillEffect {
                 target: effect.target,
-                effect_type: SkillType::try_from(effect.effect_type)?,
+                effect_type,
                 base_duration,
                 modifier: effect.modifier / 10000.0,
                 value_usage: effect.value_usage,
@@ -257,7 +267,7 @@ mod tests {
                 },
             ],
         };
-        let effects = build_skill_effects(&alt).expect("known types");
+        let effects = build_skill_effects(&alt);
         assert_eq!(effects.len(), 2);
         assert_eq!(effects[0].base_duration, 3.0);
         assert_eq!(effects[0].modifier, 0.45);
@@ -268,7 +278,41 @@ mod tests {
     }
 
     #[test]
-    fn build_skill_effects_rejects_unknown_type() {
+    fn build_skill_effects_skips_unknown_type_and_keeps_known() {
+        // Regression: a Savvy-shaped alternative bundles Wisdom Up (5, modeled)
+        // with a vision effect (8, unmodeled). The unknown type must be dropped,
+        // not reject the whole alternative — otherwise the skill silently never
+        // activates and the wit bonus is lost.
+        let alt = SkillAlternative {
+            base_duration: -10000.0,
+            cooldown_time: None,
+            condition: "running_style==2".to_owned(),
+            precondition: None,
+            effects: vec![
+                RawSkillEffect {
+                    modifier: 600000.0,
+                    target: SkillTarget::SelfTarget,
+                    effect_type: 5, // Wisdom Up (modeled)
+                    value_usage: Some(1),
+                    value_level_usage: Some(1),
+                },
+                RawSkillEffect {
+                    modifier: 100000.0,
+                    target: SkillTarget::SelfTarget,
+                    effect_type: 8, // vision (unmodeled)
+                    value_usage: Some(1),
+                    value_level_usage: Some(1),
+                },
+            ],
+        };
+        let effects = build_skill_effects(&alt);
+        assert_eq!(effects.len(), 1, "the unmodeled type-8 effect is dropped");
+        assert_eq!(effects[0].effect_type, SkillType::WisdomUp);
+        assert_eq!(effects[0].modifier, 60.0);
+    }
+
+    #[test]
+    fn build_skill_effects_all_unknown_yields_empty() {
         let alt = SkillAlternative {
             base_duration: 0.0,
             cooldown_time: None,
@@ -282,7 +326,7 @@ mod tests {
                 value_level_usage: None,
             }],
         };
-        assert_eq!(build_skill_effects(&alt), Err(UnknownSkillType(999)));
+        assert!(build_skill_effects(&alt).is_empty());
     }
 
     #[test]
