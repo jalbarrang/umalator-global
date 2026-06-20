@@ -1282,7 +1282,11 @@ mod tests {
         // discarded wholesale because of the unmodeled vision effect.
         let triggers = build(&savvy_skill("201531"));
         assert_eq!(triggers.len(), 1, "the Savvy skill must still trigger");
-        assert_eq!(triggers[0].effects.len(), 1, "only the modeled effect remains");
+        assert_eq!(
+            triggers[0].effects.len(),
+            1,
+            "only the modeled effect remains"
+        );
         assert_eq!(triggers[0].effects[0].effect_type, SkillType::WisdomUp);
     }
 
@@ -1299,7 +1303,10 @@ mod tests {
 
         // Green skill consumed off the pending queue at the gate.
         assert!(r.pending_skills.is_empty());
-        assert_eq!(r.skills_activated_count, 1, "Savvy must fire, not be dropped");
+        assert_eq!(
+            r.skills_activated_count, 1,
+            "Savvy must fire, not be dropped"
+        );
         assert!(r.used_skills.contains("201531"));
         assert_eq!(
             r.adjusted_stats.wit,
