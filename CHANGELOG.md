@@ -1,3 +1,9 @@
+## [0.16.2](https://github.com/jalbarrang/umalator-global/compare/v0.16.1...v0.16.2) (2026-06-20)
+
+### Bug Fixes
+
+* green skills not proc ([cfdd3d7](https://github.com/jalbarrang/umalator-global/commit/cfdd3d7ae853697da101380276b5828784acb5e0))
+
 ## [0.16.1](https://github.com/jalbarrang/umalator-global/compare/v0.16.0...v0.16.1) (2026-06-19)
 
 ### Bug Fixes
