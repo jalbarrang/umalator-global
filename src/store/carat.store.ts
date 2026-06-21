@@ -5,7 +5,7 @@ import { defaultPaidPackPurchases, type PaidPackPurchases } from '@/modules/cara
 const CARAT_STORE_NAME = 'umalator-carat';
 
 export type CaratServer = 'global' | 'jp';
-export type TrainingPass = 'free' | 'paid';
+export type TrainingPass = 'none' | 'free' | 'paid';
 
 export type CaratSettings = {
   server: CaratServer;
@@ -56,8 +56,8 @@ export const defaultCaratSettings: CaratSettings = {
   monthlyTickets: 27,
   teamTrialsClass: 'class-6',
   clubRank: 'b',
-  cmPlacement: 'group-b-2nd',
-  lohRank: 'gold-4',
+  cmPlacement: 'none',
+  lohRank: 'none',
   dailyCaratPack: true,
   trainingPass: 'free',
   trackPaidCarats: false
@@ -141,6 +141,18 @@ export function removePlannedBanner(id: string) {
   useCaratStore.setState((state) => ({
     plannedBanners: state.plannedBanners.filter((banner) => banner.id !== id)
   }));
+}
+
+export function restorePlannedBanner(banner: PlannedBanner) {
+  useCaratStore.setState((state) => {
+    if (state.plannedBanners.some((planned) => planned.id === banner.id)) {
+      return state;
+    }
+
+    return {
+      plannedBanners: [...state.plannedBanners, banner].sort((a, b) => a.order - b.order)
+    };
+  });
 }
 
 export function setPlannedPulls(id: string, plannedPulls: number) {

@@ -24,6 +24,7 @@ export const CLUB_RANK_MONTHLY_CARATS = {
 } as const;
 
 export const CHAMPIONS_MEETING_REWARDS = {
+  none: { carats: 0, tickets: 0 },
   champion: { carats: 3300, tickets: 10 },
   second: { carats: 2400, tickets: 8 },
   third: { carats: 1600, tickets: 6 },
@@ -36,6 +37,7 @@ export const CHAMPIONS_MEETING_REWARDS = {
 } as const;
 
 export const LEAGUE_OF_HEROES_REWARDS = {
+  none: { carats: 0, tickets: 0 },
   'platinum-4': { carats: 3300, tickets: 4 },
   'platinum-3': { carats: 2800, tickets: 4 },
   'platinum-2': { carats: 2300, tickets: 4 },
@@ -50,6 +52,7 @@ export const LEAGUE_OF_HEROES_REWARDS = {
 export const DAILY_CARAT_PACK_MONTHLY_CARATS = 2000;
 
 export const TRAINING_PASS_MONTHLY_CARATS = {
+  none: 0,
   free: 500,
   paid: 2200
 } as const;

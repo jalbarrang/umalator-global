@@ -35,16 +35,30 @@ export function CopiesOddsBar(props: CopiesOddsBarProps) {
 
   return (
     <div className={cn('min-w-[180px] space-y-1.5', className)}>
-      <div className="text-xs font-medium tabular-nums">
-        MLB {formatPercent(odds.mlb)} · ≥1 copy {formatPercent(atLeastOne)}
-      </div>
-      <div className="hidden h-3 overflow-hidden rounded-full border bg-muted sm:flex" aria-label={`MLB ${formatPercent(odds.mlb, 1)}, at least one copy ${formatPercent(atLeastOne, 1)}`}>
+      <div
+        className="flex h-6 overflow-hidden rounded-full border bg-muted"
+        aria-label={`MLB ${formatPercent(odds.mlb, 1)}, at least one copy ${formatPercent(atLeastOne, 1)}`}
+      >
         {SEGMENTS.map((segment) => {
           const value = odds[segment.key];
           if (value <= 0) return null;
+          // Only label slices wide enough to fit the text; narrow ones stay bare.
+          const showLabel = value >= 0.16;
           return (
             <Tooltip key={segment.key}>
-              <TooltipTrigger render={<div className={cn('h-full min-w-0', segment.className)} style={{ width: `${value * 100}%` }} />} />
+              <TooltipTrigger
+                render={
+                  <div
+                    className={cn(
+                      'flex h-full min-w-0 items-center justify-center overflow-hidden whitespace-nowrap px-1 text-[11px] font-medium tabular-nums text-white',
+                      segment.className
+                    )}
+                    style={{ width: `${value * 100}%` }}
+                  >
+                    {showLabel ? `${segment.label} ${formatPercent(value)}` : null}
+                  </div>
+                }
+              />
               <TooltipContent>{segment.label}: {formatPercent(value, 1)}</TooltipContent>
             </Tooltip>
           );

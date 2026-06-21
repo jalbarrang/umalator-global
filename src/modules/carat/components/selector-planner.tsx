@@ -1,5 +1,6 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CopiesOddsBar } from '@/modules/carat/components/copies-odds-bar';
@@ -37,7 +38,16 @@ export function SelectorPlanner(props: SelectorPlannerProps) {
   const settings = useCaratStore((state) => state.settings);
   const paidPurchases = useCaratStore((state) => state.paidPurchases);
   const selectorChoices = useCaratStore((state) => state.selectorChoices);
+  const [hidePast, setHidePast] = useState(true);
   const anniversaries = useMemo(() => selectorAnniversariesFromTimeline(timeline), [timeline]);
+  const now = Date.now();
+  const isPast = (anniversary: (typeof anniversaries)[number]) => {
+    if (!anniversary.endDate) return false;
+    const end = new Date(anniversary.endDate).getTime();
+    return !Number.isNaN(end) && end < now;
+  };
+  const pastCount = useMemo(() => anniversaries.filter(isPast).length, [anniversaries, now]);
+  const visibleAnniversaries = hidePast ? anniversaries.filter((anniversary) => !isPast(anniversary)) : anniversaries;
   const totals = useMemo(
     () => anniversaries.reduce(
       (summary, anniversary) => {
@@ -50,7 +60,7 @@ export function SelectorPlanner(props: SelectorPlannerProps) {
   );
 
   return (
-    <section className="space-y-4 rounded-xl border bg-card p-4 shadow-sm">
+    <div className="space-y-4">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h2 className="text-sm font-semibold">Selector / Step-up Planner</h2>
@@ -58,14 +68,21 @@ export function SelectorPlanner(props: SelectorPlannerProps) {
             Track anniversary paid packs, choose selector targets, and preview step-up copy odds. Dates come from the live timeline; selector rosters are a v1 seed and can be extended as spreadsheet data is extracted.
           </p>
         </div>
-        <div className="rounded-lg bg-muted/60 px-3 py-2 text-right text-xs tabular-nums">
-          <div className="font-semibold">{formatCarats(totals.paidCarats)} paid carats</div>
-          <div className="text-muted-foreground">{formatUsd(totals.usd)} cumulative</div>
+        <div className="flex items-center gap-2 sm:flex-col sm:items-end">
+          {pastCount > 0 ? (
+            <Button type="button" variant="outline" size="sm" onClick={() => setHidePast((value) => !value)}>
+              {hidePast ? `Show past (${pastCount})` : 'Hide past'}
+            </Button>
+          ) : null}
+          <div className="rounded-lg bg-muted/60 px-3 py-2 text-right text-xs tabular-nums">
+            <div className="font-semibold">{formatCarats(totals.paidCarats)} paid carats</div>
+            <div className="text-muted-foreground">{formatUsd(totals.usd)} cumulative</div>
+          </div>
         </div>
       </div>
 
-      <div className="grid gap-3 xl:grid-cols-2">
-        {anniversaries.map((anniversary) => {
+      <div className="grid gap-3">
+        {visibleAnniversaries.map((anniversary) => {
           const purchases = { ...defaultPaidPackPurchases, ...paidPurchases[anniversary.id] };
           const summary = paidCaratsFromPacks(purchases, settings.server);
           const choices = selectorChoices[anniversary.id] ?? {};
@@ -80,17 +97,38 @@ export function SelectorPlanner(props: SelectorPlannerProps) {
                 <Badge variant={anniversary.isConfirmed ? 'secondary' : 'outline'}>{anniversary.isConfirmed ? 'Confirmed' : 'Estimated'}</Badge>
               </div>
 
-              <div className="mt-3 grid gap-2 sm:grid-cols-3">
+              <div className="mt-3 grid gap-2">
                 {packIds.map((packId) => (
-                  <label key={packId} className="space-y-1 text-xs">
+                  <label key={packId} className="flex items-center justify-between gap-2 text-xs">
                     <span className="text-muted-foreground">{paidPackDefinitions[packId].carats.toLocaleString()} pack</span>
-                    <Input
-                      type="number"
-                      min={0}
-                      value={purchases[packId]}
-                      onChange={(event) => setPaidPackPurchase(anniversary.id, packId, Number(event.target.value))}
-                      className="text-right tabular-nums"
-                    />
+                    <div className="flex items-center gap-1">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon-sm"
+                        aria-label={`Decrease ${paidPackDefinitions[packId].carats.toLocaleString()} pack`}
+                        disabled={purchases[packId] <= 0}
+                        onClick={() => setPaidPackPurchase(anniversary.id, packId, Math.max(0, purchases[packId] - 1))}
+                      >
+                        −
+                      </Button>
+                      <Input
+                        type="number"
+                        min={0}
+                        value={purchases[packId]}
+                        onChange={(event) => setPaidPackPurchase(anniversary.id, packId, Number(event.target.value))}
+                        className="w-20 text-right tabular-nums"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon-sm"
+                        aria-label={`Increase ${paidPackDefinitions[packId].carats.toLocaleString()} pack`}
+                        onClick={() => setPaidPackPurchase(anniversary.id, packId, purchases[packId] + 1)}
+                      >
+                        +
+                      </Button>
+                    </div>
                   </label>
                 ))}
               </div>
@@ -138,6 +176,6 @@ export function SelectorPlanner(props: SelectorPlannerProps) {
           );
         })}
       </div>
-    </section>
+    </div>
   );
 }

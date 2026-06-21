@@ -28,23 +28,18 @@ const clubRankOptions = Object.entries(CLUB_RANK_MONTHLY_CARATS).map(([value, ca
   suffix: `${carats.toLocaleString()}/mo`
 }));
 
-const cmOptions = Object.entries(CHAMPIONS_MEETING_REWARDS).map(([value, reward]) => ({
+const formatRewardOption = ([value, reward]: [string, { carats: number; tickets: number }]) => ({
   value,
   label: value
     .split('-')
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' '),
-  suffix: `${reward.carats.toLocaleString()} + ${reward.tickets} tickets`
-}));
+  suffix: reward.carats === 0 && reward.tickets === 0 ? 'No rewards' : `${reward.carats.toLocaleString()} + ${reward.tickets} tickets`
+});
 
-const lohOptions = Object.entries(LEAGUE_OF_HEROES_REWARDS).map(([value, reward]) => ({
-  value,
-  label: value
-    .split('-')
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' '),
-  suffix: `${reward.carats.toLocaleString()} + ${reward.tickets} tickets`
-}));
+const cmOptions = Object.entries(CHAMPIONS_MEETING_REWARDS).map(formatRewardOption);
+
+const lohOptions = Object.entries(LEAGUE_OF_HEROES_REWARDS).map(formatRewardOption);
 
 type NumberSettingKey = {
   [K in keyof CaratSettings]: CaratSettings[K] extends number ? K : never;
@@ -88,7 +83,9 @@ function SelectField(props: {
       <span className="text-muted-foreground">{label}</span>
       <Select value={value} onValueChange={(nextValue) => nextValue && onValueChange(nextValue)}>
         <SelectTrigger className="w-full">
-          <SelectValue />
+          <SelectValue>
+            {(selected: string) => options.find((option) => option.value === selected)?.label ?? selected}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
           {options.map((option) => (
