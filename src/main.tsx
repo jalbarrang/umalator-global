@@ -14,6 +14,7 @@ import '@fontsource-variable/noto-sans-jp/wght.css';
 
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import './i18n';
 
 import { enableMapSet } from 'immer';
@@ -50,6 +51,7 @@ if (!rootComponent) {
 }
 
 const root = createRoot(rootComponent);
+const queryClient = new QueryClient();
 
 // The app mounts immediately; <DataBootGate> (inside the providers) shows the
 // splash while the data bootstrap runs, then renders the routes once the service
@@ -57,13 +59,15 @@ const root = createRoot(rootComponent);
 root.render(
   <PostHogProvider client={posthog}>
     <PostHogErrorBoundary>
-      <BrowserRouter basename={config.basePath}>
-        <ThemeStoreProvider>
-          <DataBootGate>
-            <RootComponent />
-          </DataBootGate>
-        </ThemeStoreProvider>
-      </BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter basename={config.basePath}>
+          <ThemeStoreProvider>
+            <DataBootGate>
+              <RootComponent />
+            </DataBootGate>
+          </ThemeStoreProvider>
+        </BrowserRouter>
+      </QueryClientProvider>
     </PostHogErrorBoundary>
   </PostHogProvider>
 );

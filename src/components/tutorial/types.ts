@@ -5,7 +5,7 @@
  * Provides type-safe tutorial step definitions with positioning options.
  */
 
-export type TutorialId = 'umalator' | 'skill-bassin' | 'uma-bassin';
+export type TutorialId = 'umalator' | 'skill-bassin' | 'uma-bassin' | 'carat-calculator';
 
 export type Side = 'top' | 'bottom' | 'left' | 'right';
 export type Align = 'start' | 'center' | 'end';

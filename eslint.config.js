@@ -16,6 +16,7 @@ export default tseslint.config(
       '.pi/',
       'dist/',
       'node_modules/',
+      '**/.wrangler/',
       'packages/target/',
       'packages/**/target/',
       'src/lib/uma-sim-wasm/pkg/',

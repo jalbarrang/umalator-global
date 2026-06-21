@@ -1,0 +1,24 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "torena-sim-timeline-proxy",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-05-01",
+  "observability": {
+    "enabled": true
+  },
+
+  // Keep the public *.workers.dev URL (used as VITE_TIMELINE_WORKER_URL).
+  "workers_dev": true,
+  // Per-version preview URLs aren't needed; disabling reduces exposed surface.
+  "preview_urls": false,
+
+  // Public, non-secret config. Comma-separated list of origins allowed via CORS
+  // and the origin gate. Includes local dev origins for `wrangler dev`.
+  "vars": {
+    "ALLOWED_ORIGIN": "https://torena-sim.pages.dev,https://jalbarrang.github.io,http://localhost:5173,http://localhost:4173"
+  }
+
+  // ── Secrets (set via `wrangler secret put <NAME>`, never commit) ──
+  //   UMA_MOE_API_KEY  - upstream uma.moe API key (sent as X-API-Key to uma.moe)
+  //   PROXY_API_KEY    - optional shared key for non-browser callers (X-Proxy-Key / ?key=)
+}
