@@ -108,6 +108,14 @@
         "wrangler": "^4.42.0",
       },
     },
+    "workers/timeline-proxy": {
+      "name": "@drekki/timeline-proxy",
+      "version": "0.0.0",
+      "devDependencies": {
+        "@cloudflare/workers-types": "^4.20251201.0",
+        "wrangler": "^4.42.0",
+      },
+    },
   },
   "packages": {
     "@acemir/cssom": ["@acemir/cssom@0.9.31", "", {}, "sha512-ZnR3GSaH+/vJ0YlHau21FjfLYjMpYVIzTD8M8vIEQvIGxeOXyXdzCI140rrCY862p/C/BbzWsjc1dgnM9mkoTA=="],
@@ -273,6 +281,8 @@
     "@dotenvx/dotenvx": ["@dotenvx/dotenvx@1.65.0", "", { "dependencies": { "commander": "^11.1.0", "dotenv": "^17.2.1", "eciesjs": "^0.4.10", "execa": "^5.1.1", "fdir": "^6.2.0", "ignore": "^5.3.0", "object-treeify": "1.1.33", "picomatch": "^4.0.4", "which": "^4.0.0", "yocto-spinner": "^1.1.0" }, "bin": { "dotenvx": "src/cli/dotenvx.js" } }, "sha512-v4FA/Lw3pTEloLxBqTOaYDX6MNo0Jo7lGBsPZhwnJBqRJp0AzQg1ZZNxrFsh6HVC6QWeWrfIKLn0y2eyIXaVDg=="],
 
     "@drekki/suggestion-bot": ["@drekki/suggestion-bot@workspace:workers/suggestion-bot"],
+
+    "@drekki/timeline-proxy": ["@drekki/timeline-proxy@workspace:workers/timeline-proxy"],
 
     "@ecies/ciphers": ["@ecies/ciphers@0.2.6", "", { "peerDependencies": { "@noble/ciphers": "^1.0.0" } }, "sha512-patgsRPKGkhhoBjETV4XxD0En4ui5fbX0hzayqI3M8tvNMGUoUvmyYAIWwlxBc1KX5cturfqByYdj5bYGRpN9g=="],
 
