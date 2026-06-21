@@ -36,7 +36,8 @@ export type RawData = {
   skills: Parameters<typeof loadSkills>[0];
   gametoraSkills: Parameters<typeof loadSkills>[1];
   masterSupportCards: Parameters<typeof collectReleasedSupportCardIds>[0];
-  gametoraSupportCards: Parameters<typeof loadSupportCards>[1] & Parameters<typeof attachReleaseDates>[2];
+  gametoraSupportCards: Parameters<typeof loadSupportCards>[1] &
+    Parameters<typeof attachReleaseDates>[2];
   masterUmas: Parameters<typeof collectReleasedOutfitIds>[0];
   characterCards: Parameters<typeof loadUmas>[0] & Parameters<typeof attachReleaseDates>[1];
   eventSkillSources: Parameters<typeof initEventSkillSources>[0];

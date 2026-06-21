@@ -50,6 +50,7 @@ import RaceSimResults from './race-sim/results';
 // Tools
 import { SkillsPage } from './_tools/skills';
 import { SparkOddsPage } from './_tools/spark-odds';
+import { CaratCalculatorPage } from './_tools/carat-calculator';
 
 import { SupportCardsPage } from './_tools/support-cards';
 import PrivacyPolicy from './privacy';
@@ -197,6 +198,18 @@ export function RootComponent() {
             />
 
             <Route path="/spark-odds" element={<SparkOddsPage />} />
+
+            <Route
+              path="/carat-calculator"
+              element={
+                <RoutePage
+                  title="Carat Calculator"
+                  description="Plan your gacha pulls against the live banner timeline"
+                >
+                  <CaratCalculatorPage />
+                </RoutePage>
+              }
+            />
 
             <Route
               path="/privacy"

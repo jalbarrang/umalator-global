@@ -246,7 +246,9 @@ export const RunnerCard = (props: RunnerCardProps) => {
         newSkills.unshift(getUniqueSkillForByUmaId(outfitId));
       }
 
-      const innate = outfitId ? umasService.getByOutfitId(outfitId)?.aptitudes[outfitId] : undefined;
+      const innate = outfitId
+        ? umasService.getByOutfitId(outfitId)?.aptitudes[outfitId]
+        : undefined;
 
       if (innate) {
         const aptitudes = aptitudesFromInnate(innate);

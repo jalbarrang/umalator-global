@@ -2,8 +2,6 @@
 // Types
 // =======
 
-
-
 export type SupportCardSkillEntry = {
   id: number;
   name: string;

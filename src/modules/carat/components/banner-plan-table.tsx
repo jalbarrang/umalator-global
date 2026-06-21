@@ -1,0 +1,160 @@
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy
+} from '@dnd-kit/sortable';
+import { useMemo, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { InfoHint } from '@/modules/carat/components/info-hint';
+import { SortablePlanCard } from '@/modules/carat/components/sortable-plan-card';
+import { SortablePlanRow } from '@/modules/carat/components/sortable-plan-row';
+import { useWideViewport } from '@/modules/carat/components/use-wide-viewport';
+import type { TimelineEvent, TimelinePayload } from '@/modules/carat/data/timeline-types';
+import { computePlan } from '@/modules/carat/model/plan';
+import { reorderPlannedBanners, useCaratStore } from '@/store/carat.store';
+
+type BannerPlanTableProps = { timeline: TimelinePayload };
+type SortMode = 'date' | 'manual';
+
+function dateTime(event: TimelineEvent) {
+  return new Date(event.global_release_date ?? event.jp_release_date ?? 0).getTime();
+}
+
+export function BannerPlanTable(props: BannerPlanTableProps) {
+  const { timeline } = props;
+  const [sortMode, setSortMode] = useState<SortMode>('date');
+  const isWide = useWideViewport();
+  const settings = useCaratStore((state) => state.settings);
+  const plannedBanners = useCaratStore((state) => state.plannedBanners);
+  const paidPurchases = useCaratStore((state) => state.paidPurchases);
+  const showPaid = settings.trackPaidCarats;
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const rows = useMemo(() => {
+    const plan = computePlan(settings, timeline, plannedBanners, paidPurchases);
+    if (sortMode === 'manual') {
+      return [...plan].sort(
+        (a, b) =>
+          a.plannedBanner.order - b.plannedBanner.order || dateTime(a.event) - dateTime(b.event)
+      );
+    }
+    return plan;
+  }, [paidPurchases, plannedBanners, settings, sortMode, timeline]);
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const ids = rows.map((row) => row.event.id);
+    const oldIndex = ids.indexOf(String(active.id));
+    const newIndex = ids.indexOf(String(over.id));
+    if (oldIndex === -1 || newIndex === -1) return;
+    const nextIds = [...ids];
+    const [moved] = nextIds.splice(oldIndex, 1);
+    nextIds.splice(newIndex, 0, moved);
+    reorderPlannedBanners(nextIds);
+    setSortMode('manual');
+  };
+
+  if (rows.length === 0) {
+    return (
+      <div className="rounded-xl border border-dashed bg-background/60 p-8 text-center">
+        <div className="text-sm font-semibold">Start with three quick steps</div>
+        <ol className="mx-auto mt-3 w-fit space-y-1 text-left text-sm text-muted-foreground">
+          <li>1. Set your carats in the panel on the left</li>
+          <li>
+            2. Add a banner with{' '}
+            <span className="font-medium text-foreground">+ Add banner from timeline</span>
+          </li>
+          <li>3. Set pulls and watch the balance verdict update</li>
+        </ol>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex justify-end gap-2">
+        <Button
+          size="sm"
+          variant={sortMode === 'date' ? 'secondary' : 'outline'}
+          onClick={() => setSortMode('date')}
+        >
+          Date sort
+        </Button>
+        <Button
+          size="sm"
+          variant={sortMode === 'manual' ? 'secondary' : 'outline'}
+          onClick={() => setSortMode('manual')}
+        >
+          Manual order
+        </Button>
+      </div>
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext
+          items={rows.map((row) => row.event.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          {isWide ? (
+            <div className="overflow-x-auto rounded-xl border">
+              <table className="w-full text-sm">
+                <thead className="border-b bg-muted/50 text-xs text-muted-foreground">
+                  <tr>
+                    <th className="px-2 py-2" />
+                    <th className="px-2 py-2 text-left">Banner</th>
+                    <th className="px-2 py-2 text-right">Carats avail.</th>
+                    <th className="w-44 min-w-44 px-2 py-2 text-left">
+                      <span className="inline-flex items-center gap-1">
+                        Pulls
+                        <InfoHint label="Pulls and sparks help" title="Pulls and sparks">
+                          One pull costs 150 carats. One spark is 200 pulls and can be exchanged for
+                          a guaranteed pickup copy.
+                        </InfoHint>
+                      </span>
+                    </th>
+                    {showPaid ? <th className="px-2 py-2 text-right">Paid pool</th> : null}
+                    <th className="px-2 py-2 text-right">Balance</th>
+                    <th className="px-2 py-2 text-center">
+                      <span className="inline-flex items-center gap-1">
+                        Odds
+                        <InfoHint label="Copy odds help" title="LB / MLB odds">
+                          LB means limit break copies. MLB usually means five total copies. The bar
+                          estimates the chance to end at each copy count. For Uma banners, it
+                          instead shows the fixed chance to pull the rate-up Uma, and to pull any
+                          off-banner 3-star Uma, within 200 pulls.
+                        </InfoHint>
+                      </span>
+                    </th>
+                    <th className="px-2 py-2" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((row) => (
+                    <SortablePlanRow key={row.event.id} row={row} showPaid={showPaid} />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {rows.map((row) => (
+                <SortablePlanCard key={row.event.id} row={row} showPaid={showPaid} />
+              ))}
+            </div>
+          )}
+        </SortableContext>
+      </DndContext>
+    </div>
+  );
+}

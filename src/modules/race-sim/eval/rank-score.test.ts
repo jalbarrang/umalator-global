@@ -22,7 +22,22 @@ describe('computeRankScore', () => {
     const score = computeRankScore(
       [1200, 744, 1029, 893, 898],
       apt,
-      ['100271', '200154', '200171', '200332', '200592', '200602', '200611', '200702', '201032', '201072', '201391', '210061', '900061', '910611'],
+      [
+        '100271',
+        '200154',
+        '200171',
+        '200332',
+        '200592',
+        '200602',
+        '200611',
+        '200702',
+        '201032',
+        '201072',
+        '201391',
+        '210061',
+        '900061',
+        '910611'
+      ],
       { star: 3, uniqueLevel: 6 }
     );
     expect(score).toBe(17527);
@@ -42,8 +57,14 @@ describe('computeRankScore', () => {
 
   it('★<3 scores the unique at 120 per level instead of 170', () => {
     const skills = ['100271'];
-    const star3 = computeRankScore([1200, 744, 1029, 893, 898], apt, skills, { star: 3, uniqueLevel: 1 });
-    const star1 = computeRankScore([1200, 744, 1029, 893, 898], apt, skills, { star: 1, uniqueLevel: 1 });
+    const star3 = computeRankScore([1200, 744, 1029, 893, 898], apt, skills, {
+      star: 3,
+      uniqueLevel: 1
+    });
+    const star1 = computeRankScore([1200, 744, 1029, 893, 898], apt, skills, {
+      star: 1,
+      uniqueLevel: 1
+    });
     expect(star3 - star1).toBe(50); // 170 - 120
   });
 

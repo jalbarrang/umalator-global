@@ -156,9 +156,14 @@ function enforcePrerequisites(
         if (upgradeId && candidateMap.has(upgradeId)) prereqs.push(upgradeId);
       }
     } else // Upgrade ◎ → needs base ○
-      if (candidate.isStackable && candidate.tierLevel === 2 && candidate.previousTierId && candidateMap.has(candidate.previousTierId)) {
-        prereqs.push(candidate.previousTierId);
-      }
+    if (
+      candidate.isStackable &&
+      candidate.tierLevel === 2 &&
+      candidate.previousTierId &&
+      candidateMap.has(candidate.previousTierId)
+    ) {
+      prereqs.push(candidate.previousTierId);
+    }
 
     if (prereqs.length > 0) {
       prerequisites.set(candidate.skillId, prereqs);

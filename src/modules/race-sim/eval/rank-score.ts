@@ -184,10 +184,7 @@ function runnerAptitudes(runner: IRunnerState): RankAptitudes {
  * Estimate a runner's rank score from its stats, aptitudes, and skills. Returns
  * the imported `rankScore` directly when present (the game's real value).
  */
-export function estimateRunnerRankScore(
-  runner: IRunnerState,
-  options?: RankScoreOptions
-): number {
+export function estimateRunnerRankScore(runner: IRunnerState, options?: RankScoreOptions): number {
   if (typeof runner.rankScore === 'number') {
     return runner.rankScore;
   }

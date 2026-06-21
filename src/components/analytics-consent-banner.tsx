@@ -2,10 +2,7 @@ import posthog from 'posthog-js';
 import { Link } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { config } from '@/config';
-import {
-  setAnalyticsConsent,
-  useAnalyticsConsentStore
-} from '@/store/analytics-consent.store';
+import { setAnalyticsConsent, useAnalyticsConsentStore } from '@/store/analytics-consent.store';
 
 export function AnalyticsConsentBanner() {
   const consent = useAnalyticsConsentStore((state) => state.consent);

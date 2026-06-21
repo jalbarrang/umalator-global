@@ -23,7 +23,7 @@ function formatOcrSkillDebugReport(results: Partial<ExtractedUmaData>): string {
       `  Normalized: ${skillsService.normalizeSkillName(skill.originalText) || '—'}`,
       `  Matched: ${skill.name}`,
       `  Skill ID: ${skill.id}`,
-      `  Confidence: ${skill.confidence.toFixed(2)}`,
+      `  Confidence: ${skill.confidence.toFixed(2)}`
     );
   }
 

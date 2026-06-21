@@ -28,7 +28,10 @@ const horse = (overrides: Record<string, unknown> = {}) => ({
 describe('parseHakurakuRaceJson', () => {
   it('parses the new race_horse_data_array format', () => {
     const json = JSON.stringify({
-      race_horse_data_array: [horse(), horse({ card_id: 100201, running_style: Strategy.EndCloser })],
+      race_horse_data_array: [
+        horse(),
+        horse({ card_id: 100201, running_style: Strategy.EndCloser })
+      ],
       race_course_set: { id: 10101 },
       ground_condition: GroundCondition.Good,
       weather: Weather.Rainy,
@@ -57,9 +60,7 @@ describe('parseHakurakuRaceJson', () => {
 
   it('parses the legacy <RaceHorse>k__BackingField format', () => {
     const json = JSON.stringify({
-      '<RaceHorse>k__BackingField': [
-        { _responseHorseData: horse({ pow: 850, power: undefined }) }
-      ],
+      '<RaceHorse>k__BackingField': [{ _responseHorseData: horse({ pow: 850, power: undefined }) }],
       '<RaceCourseSet>k__BackingField': { '<Id>k__BackingField': 20202 },
       '<GroundCondition>k__BackingField': GroundCondition.Heavy,
       '<Weather>k__BackingField': Weather.Snowy,

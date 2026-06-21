@@ -4,11 +4,7 @@ import { createRunnerState } from '@/modules/runners/components/runner-card/type
 import { createRaceConditions } from '@/utils/races';
 import { useSettingsStore } from '@/store/settings.store';
 import { useRaceSimStore } from '@/modules/simulation/stores/race-sim.store';
-import {
-  buildRaceSimSnapshot,
-  parseRaceSimSnapshotJson,
-  importRaceSimSnapshot
-} from './snapshot';
+import { buildRaceSimSnapshot, parseRaceSimSnapshotJson, importRaceSimSnapshot } from './snapshot';
 import { RACE_SIM_SNAPSHOT_VERSION } from './types';
 
 const makeRunners = () => [
@@ -99,26 +95,16 @@ describe('race-sim snapshot', () => {
 
     const base = buildRaceSimSnapshot();
 
-    expect(
-      parseRaceSimSnapshotJson(JSON.stringify({ ...base, version: 999 }))
-    ).toBeNull();
-    expect(
-      parseRaceSimSnapshotJson(JSON.stringify({ ...base, runners: undefined }))
-    ).toBeNull();
-    expect(
-      parseRaceSimSnapshotJson(JSON.stringify({ ...base, runners: 'nope' }))
-    ).toBeNull();
+    expect(parseRaceSimSnapshotJson(JSON.stringify({ ...base, version: 999 }))).toBeNull();
+    expect(parseRaceSimSnapshotJson(JSON.stringify({ ...base, runners: undefined }))).toBeNull();
+    expect(parseRaceSimSnapshotJson(JSON.stringify({ ...base, runners: 'nope' }))).toBeNull();
     expect(parseRaceSimSnapshotJson(JSON.stringify({ ...base, runners: [] }))).toBeNull();
 
     const badRunner = structuredClone(base) as Record<string, any>;
     delete badRunner.runners[0].outfitId;
     expect(parseRaceSimSnapshotJson(JSON.stringify(badRunner))).toBeNull();
 
-    expect(
-      parseRaceSimSnapshotJson(JSON.stringify({ ...base, racedef: { foo: 1 } }))
-    ).toBeNull();
-    expect(
-      parseRaceSimSnapshotJson(JSON.stringify({ ...base, seed: 'abc' }))
-    ).toBeNull();
+    expect(parseRaceSimSnapshotJson(JSON.stringify({ ...base, racedef: { foo: 1 } }))).toBeNull();
+    expect(parseRaceSimSnapshotJson(JSON.stringify({ ...base, seed: 'abc' }))).toBeNull();
   });
 });

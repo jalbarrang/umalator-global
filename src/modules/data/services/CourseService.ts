@@ -1,4 +1,3 @@
-
 import { distances, orientations, phases, surfaces } from 'sunday-tools/course/definitions';
 import type {
   CourseData,

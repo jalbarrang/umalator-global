@@ -79,7 +79,9 @@ function main(): void {
 
     const hit = probes.find((probe) => content.includes(probe));
     if (hit) {
-      violations.push(`${file}: contains dataset string "${hit}" — a worker re-imported the data layer`);
+      violations.push(
+        `${file}: contains dataset string "${hit}" — a worker re-imported the data layer`
+      );
     }
   }
 

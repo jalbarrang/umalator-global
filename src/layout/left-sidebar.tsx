@@ -74,25 +74,29 @@ export const LeftSidebar = () => {
     ];
 
     if (isCompareRunnersView) {
-      basePanels.push({
-        id: 'forced-positions',
-        label: 'Force Skill Positions',
-        icon: CrosshairIcon,
-        content: <ForcedPositionsPanel />,
-        hasBadge: hasForcedPositions
-      }, {
-        id: 'debuffs',
-        label: 'Debuffs',
-        icon: CircleAlert,
-        content: <DebuffsPanel />,
-        hasBadge: hasDebuffs
-      }, {
-        id: 'scenario-overrides',
-        label: 'Scenario Overrides',
-        icon: Swords,
-        content: <ScenarioOverridesPanel />,
-        hasBadge: hasScenarioOverrides
-      });
+      basePanels.push(
+        {
+          id: 'forced-positions',
+          label: 'Force Skill Positions',
+          icon: CrosshairIcon,
+          content: <ForcedPositionsPanel />,
+          hasBadge: hasForcedPositions
+        },
+        {
+          id: 'debuffs',
+          label: 'Debuffs',
+          icon: CircleAlert,
+          content: <DebuffsPanel />,
+          hasBadge: hasDebuffs
+        },
+        {
+          id: 'scenario-overrides',
+          label: 'Scenario Overrides',
+          icon: Swords,
+          content: <ScenarioOverridesPanel />,
+          hasBadge: hasScenarioOverrides
+        }
+      );
     }
 
     return basePanels;

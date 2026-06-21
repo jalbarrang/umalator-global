@@ -12,6 +12,9 @@ export type AppConfig = {
     workerUrl?: string;
     turnstileSiteKey?: string;
   };
+  timeline: {
+    workerUrl?: string;
+  };
 };
 
 export const config: AppConfig = {
@@ -25,5 +28,8 @@ export const config: AppConfig = {
   suggestions: {
     workerUrl: envString('VITE_SUGGESTION_WORKER_URL'),
     turnstileSiteKey: envString('VITE_TURNSTILE_SITE_KEY')
+  },
+  timeline: {
+    workerUrl: envString('VITE_TIMELINE_WORKER_URL')
   }
 };

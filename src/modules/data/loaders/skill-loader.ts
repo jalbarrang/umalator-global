@@ -6,7 +6,6 @@ import type {
 } from '@/modules/data/services/SkillService';
 import type { SkillAlternative } from 'sunday-tools/skills/skill.types';
 
-
 type GameToraEffect = {
   type: number;
   value: number;
@@ -353,5 +352,3 @@ export function loadSkills(
     activationChecks
   };
 }
-
-

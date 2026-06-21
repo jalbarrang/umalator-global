@@ -15,13 +15,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function ServiceCard({
-  tag,
-  children
-}: {
-  tag: string;
-  children: React.ReactNode;
-}) {
+function ServiceCard({ tag, children }: { tag: string; children: React.ReactNode }) {
   return (
     <div className="rounded-lg border bg-card p-4 space-y-2">
       <span className="inline-block rounded-full border px-2.5 py-0.5 text-xs text-muted-foreground">
@@ -125,8 +119,8 @@ export default function PrivacyPolicy() {
 
           <Section title="6. Contact">
             <p>
-              Questions? Reach out to <span className="font-medium text-foreground">@albhax</span> on
-              Discord, or open an issue on{' '}
+              Questions? Reach out to <span className="font-medium text-foreground">@albhax</span>{' '}
+              on Discord, or open an issue on{' '}
               <ExternalLink href="https://github.com/jalbarrang/umalator-global">
                 GitHub
               </ExternalLink>

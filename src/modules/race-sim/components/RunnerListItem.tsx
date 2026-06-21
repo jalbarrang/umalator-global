@@ -147,9 +147,7 @@ export function RunnerListItem(props: Readonly<RunnerListItemProps>) {
               {getTeamStyle(runner.team).label}
             </span>
           )}
-          {runner.outfitId && (
-            <RankBadge runner={runner} />
-          )}
+          {runner.outfitId && <RankBadge runner={runner} />}
           <span className="text-[10px] rounded bg-secondary px-1 py-px font-medium text-secondary-foreground">
             {strategyNames.find((name) => name === runner.strategy) ?? 'Unknown'}
           </span>

@@ -2,10 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { bootstrapData } from '@/modules/data/bootstrap';
 import { BootSplash } from '@/components/boot-splash';
 
-type BootStatus =
-  | { state: 'loading' }
-  | { state: 'ready' }
-  | { state: 'error'; message: string };
+type BootStatus = { state: 'loading' } | { state: 'ready' } | { state: 'error'; message: string };
 
 type DataBootGateProps = {
   children: ReactNode;

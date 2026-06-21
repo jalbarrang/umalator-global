@@ -32,10 +32,7 @@ export function buildSkillSamplingPlan(params: Run1RoundParams): SkillSamplingPl
     const runnerWithTrackedSkill = cloneDeep(uma);
     runnerWithTrackedSkill.skills.push(id);
 
-    const skillSorter = createSkillSorterByGroup([
-      ...uma.skills,
-      ...runnerWithTrackedSkill.skills
-    ]);
+    const skillSorter = createSkillSorterByGroup([...uma.skills, ...runnerWithTrackedSkill.skills]);
 
     const baselineRunner = toCreateRunner(uma, uma.skills.toSorted(skillSorter));
     const trackedRunner = toCreateRunner(

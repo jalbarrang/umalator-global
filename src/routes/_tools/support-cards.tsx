@@ -784,7 +784,14 @@ export function SupportCardsPage() {
 
       return true;
     });
-  }, [cardRarityFilters, cardTypeFilters, deferredSearchText, skillFilters, showUpcoming, supportCards]);
+  }, [
+    cardRarityFilters,
+    cardTypeFilters,
+    deferredSearchText,
+    skillFilters,
+    showUpcoming,
+    supportCards
+  ]);
 
   const rowCount = Math.ceil(filteredCards.length / columns);
 

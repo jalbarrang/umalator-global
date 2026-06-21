@@ -256,60 +256,60 @@ async function extractCourseData(
 
       for (const event of eventParams.courseParams) {
         switch (event._paramType) {
-        case 0: {
-          // Corner
-          corners.push({
-            start: event._distance,
-            length: event._values[1]
-          });
-        
-        break;
-        }
-        case 2: {
-          // Straight
-          if (straightState === 0) {
-            // Start of straight
-            if (event._values[0] !== 1) {
-              throw new Error(
-                `Confused about course event params: straight ended before it started? (course id ${row.id})`
-              );
-            }
-            pendingStraight = {
+          case 0: {
+            // Corner
+            corners.push({
               start: event._distance,
-              frontType: event._values[1]
-            };
-            straightState = 1;
-          } else {
-            // End of straight
-            if (event._values[0] !== 2) {
-              throw new Error(
-                `Confused about course event params: new straight started before previous straight ended (course id ${row.id})`
-              );
-            }
-            if (pendingStraight) {
-              straights.push({
-                start: pendingStraight.start!,
-                end: event._distance,
-                frontType: pendingStraight.frontType!
-              });
-            }
-            pendingStraight = null;
-            straightState = 0;
+              length: event._values[1]
+            });
+
+            break;
           }
-        
-        break;
-        }
-        case 11: {
-          // Slope
-          slopes.push({
-            start: event._distance,
-            length: event._values[1],
-            slope: event._values[0]
-          });
-        
-        break;
-        }
-        // No default
+          case 2: {
+            // Straight
+            if (straightState === 0) {
+              // Start of straight
+              if (event._values[0] !== 1) {
+                throw new Error(
+                  `Confused about course event params: straight ended before it started? (course id ${row.id})`
+                );
+              }
+              pendingStraight = {
+                start: event._distance,
+                frontType: event._values[1]
+              };
+              straightState = 1;
+            } else {
+              // End of straight
+              if (event._values[0] !== 2) {
+                throw new Error(
+                  `Confused about course event params: new straight started before previous straight ended (course id ${row.id})`
+                );
+              }
+              if (pendingStraight) {
+                straights.push({
+                  start: pendingStraight.start!,
+                  end: event._distance,
+                  frontType: pendingStraight.frontType!
+                });
+              }
+              pendingStraight = null;
+              straightState = 0;
+            }
+
+            break;
+          }
+          case 11: {
+            // Slope
+            slopes.push({
+              start: event._distance,
+              length: event._values[1],
+              slope: event._values[0]
+            });
+
+            break;
+          }
+          // No default
         }
       }
 

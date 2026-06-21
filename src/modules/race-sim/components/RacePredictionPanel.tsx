@@ -38,8 +38,8 @@ export function RacePredictionPanel() {
           Win prediction
         </div>
         <p className="mt-1">
-          Win prediction needs a Champions Meeting room: 3 teams of 3 runners each. Assign
-          teams (and import gates) to enable it.
+          Win prediction needs a Champions Meeting room: 3 teams of 3 runners each. Assign teams
+          (and import gates) to enable it.
         </p>
       </div>
     );

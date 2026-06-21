@@ -21,7 +21,17 @@ function loadModel(): FrontendModel {
 
 // A synthetic 3v3v3 CM field (course 10602) with distinct gates/teams.
 function makeField(): IRunnerState[] {
-  const outfits = ['100101', '100201', '100301', '100401', '100501', '100801', '101001', '101101', '101401'];
+  const outfits = [
+    '100101',
+    '100201',
+    '100301',
+    '100401',
+    '100501',
+    '100801',
+    '101001',
+    '101101',
+    '101401'
+  ];
   return outfits.map((outfitId, index) =>
     createRunnerState({
       outfitId,

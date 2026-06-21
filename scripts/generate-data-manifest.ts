@@ -8,14 +8,7 @@
 // only the stable manifest URL, a data-only change leaves the JS byte-identical.
 
 import { createHash } from 'node:crypto';
-import {
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  readdirSync,
-  rmSync,
-  writeFileSync
-} from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DATASETS, DATA_DIR, MANIFEST_FILE } from '../src/modules/data/dataset-manifest';
