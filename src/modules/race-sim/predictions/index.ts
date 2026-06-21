@@ -11,11 +11,7 @@ import { predictEncodedRoom } from './runtime';
 import { runnersToRaceHorseInfo } from './adapter';
 import type { FrontendModel, RaceRoomModelSpec, RaceRoomPredictionResult } from './types';
 
-export type {
-  RaceRoomModelSpec,
-  RaceRoomPrediction,
-  RaceRoomPredictionResult
-} from './types';
+export type { RaceRoomModelSpec, RaceRoomPrediction, RaceRoomPredictionResult } from './types';
 export { getRaceRoomModelForCourse, listRaceRoomModels } from './registry';
 export { runnersToRaceHorseInfo } from './adapter';
 

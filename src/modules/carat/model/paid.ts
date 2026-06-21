@@ -28,10 +28,13 @@ export const paidPackDefinitions: Record<PaidPackId, PaidPackDefinition> = {
 };
 
 function cleanQuantity(value: number | undefined) {
-  return Math.max(0, Math.floor(Number.isFinite(value) ? value ?? 0 : 0));
+  return Math.max(0, Math.floor(Number.isFinite(value) ? (value ?? 0) : 0));
 }
 
-export function paidCaratsFromPacks(purchases: Partial<PaidPackPurchases>, server: CaratServer): PaidPackSummary {
+export function paidCaratsFromPacks(
+  purchases: Partial<PaidPackPurchases>,
+  server: CaratServer
+): PaidPackSummary {
   return (Object.keys(paidPackDefinitions) as PaidPackId[]).reduce<PaidPackSummary>(
     (summary, packId) => {
       const quantity = cleanQuantity(purchases[packId]);

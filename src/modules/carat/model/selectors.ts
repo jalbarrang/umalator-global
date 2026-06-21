@@ -21,7 +21,10 @@ export type SelectorAnniversary = {
   isConfirmed: boolean;
 };
 
-type SelectorAnniversarySeed = Omit<SelectorAnniversary, 'startDate' | 'endDate' | 'label' | 'isConfirmed'> & {
+type SelectorAnniversarySeed = Omit<
+  SelectorAnniversary,
+  'startDate' | 'endDate' | 'label' | 'isConfirmed'
+> & {
   label?: string;
 };
 
@@ -100,7 +103,13 @@ export const selectorAnniversarySeeds: Record<string, SelectorAnniversarySeed> =
 };
 
 function timelineAnniversaryId(anniversary: TimelineAnniversary) {
-  const label = String(anniversary.label ?? anniversary.index ?? anniversary.global_date ?? anniversary.date ?? 'anniversary');
+  const label = String(
+    anniversary.label ??
+      anniversary.index ??
+      anniversary.global_date ??
+      anniversary.date ??
+      'anniversary'
+  );
   return slug(label.toLowerCase().includes('anniversary') ? label : `${label}-anniversary`);
 }
 
@@ -116,7 +125,9 @@ function endDateFromStart(value: string | null) {
   return date.toISOString();
 }
 
-export function selectorAnniversariesFromTimeline(timeline: TimelinePayload): SelectorAnniversary[] {
+export function selectorAnniversariesFromTimeline(
+  timeline: TimelinePayload
+): SelectorAnniversary[] {
   return timeline.anniversaries.map((anniversary) => {
     const id = timelineAnniversaryId(anniversary);
     const seed = selectorAnniversarySeeds[id];

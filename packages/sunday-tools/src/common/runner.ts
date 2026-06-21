@@ -16,10 +16,7 @@ import {
 } from '../shared/definitions';
 import { CourseService } from '@/modules/data/services/CourseService';
 import { buildSkillData } from '../runner/runner.utils';
-import {
-  getExternalDebuffEffects,
-  isExternalDebuffEffect
-} from '../skills/external-debuffs';
+import { getExternalDebuffEffects, isExternalDebuffEffect } from '../skills/external-debuffs';
 import { createFixedPositionPolicy } from '../skills/policies/ActivationSamplePolicy';
 import { StrategyHelpers } from '../runner/runner.types';
 import { Region } from '../shared/region';
@@ -1088,32 +1085,32 @@ export class Runner {
       if (duelingRates) {
         let rate = 0;
         switch (this.positionKeepStrategy) {
-        case Strategy.Runaway: {
-          rate = duelingRates.runaway;
-        
-        break;
-        }
-        case Strategy.FrontRunner: {
-          rate = duelingRates.frontRunner;
-        
-        break;
-        }
-        case Strategy.PaceChaser: {
-          rate = duelingRates.paceChaser;
-        
-        break;
-        }
-        case Strategy.LateSurger: {
-          rate = duelingRates.lateSurger;
-        
-        break;
-        }
-        case Strategy.EndCloser: {
-          rate = duelingRates.endCloser;
-        
-        break;
-        }
-        // No default
+          case Strategy.Runaway: {
+            rate = duelingRates.runaway;
+
+            break;
+          }
+          case Strategy.FrontRunner: {
+            rate = duelingRates.frontRunner;
+
+            break;
+          }
+          case Strategy.PaceChaser: {
+            rate = duelingRates.paceChaser;
+
+            break;
+          }
+          case Strategy.LateSurger: {
+            rate = duelingRates.lateSurger;
+
+            break;
+          }
+          case Strategy.EndCloser: {
+            rate = duelingRates.endCloser;
+
+            break;
+          }
+          // No default
         }
 
         this.canDuel = this.duelingRng.random() < rate / 100;
@@ -2164,13 +2161,14 @@ export class Runner {
 
     // Check for recovery every 3 seconds
     // 55% chance to snap out of it
-      if (
+    if (
       this.rushedTimer.t > 0 &&
-      Math.floor(this.rushedTimer.t / 3) > Math.floor((this.rushedTimer.t - 0.017) / 3)
-     && this.rushedRng.random() < 0.55) {
-        this.leaveRushed();
-        return;
-      }
+      Math.floor(this.rushedTimer.t / 3) > Math.floor((this.rushedTimer.t - 0.017) / 3) &&
+      this.rushedRng.random() < 0.55
+    ) {
+      this.leaveRushed();
+      return;
+    }
 
     // Force end after max duration
     if (this.rushedTimer.t >= this.rushedMaxDuration) {

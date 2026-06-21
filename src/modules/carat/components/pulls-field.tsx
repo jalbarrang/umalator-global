@@ -14,7 +14,8 @@ type PullsFieldProps = {
 };
 
 function usePullControls(row: BannerPlanRow) {
-  const updatePulls = (value: number) => setPlannedPulls(row.event.id, Math.max(0, Math.floor(value || 0)));
+  const updatePulls = (value: number) =>
+    setPlannedPulls(row.event.id, Math.max(0, Math.floor(value || 0)));
   return { updatePulls };
 }
 
@@ -64,10 +65,18 @@ export function PullsField(props: PullsFieldProps) {
           <Button size="xs" variant="outline" onClick={() => updatePulls(0)}>
             0
           </Button>
-          <Button size="xs" variant="outline" onClick={() => updatePulls(row.plannedBanner.plannedPulls - 200)}>
+          <Button
+            size="xs"
+            variant="outline"
+            onClick={() => updatePulls(row.plannedBanner.plannedPulls - 200)}
+          >
             -200
           </Button>
-          <Button size="xs" variant="outline" onClick={() => updatePulls(row.plannedBanner.plannedPulls + 200)}>
+          <Button
+            size="xs"
+            variant="outline"
+            onClick={() => updatePulls(row.plannedBanner.plannedPulls + 200)}
+          >
             +200
           </Button>
         </div>

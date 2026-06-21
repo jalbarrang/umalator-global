@@ -23,7 +23,7 @@ export function windowText(event: TimelineEvent) {
   const crossesYears = start && end && start.getFullYear() !== end.getFullYear();
   const yearFor = (date: Date) => crossesYears || date.getFullYear() !== currentYear;
   // Same-year ranges only repeat the year once, on the end date.
-  const startNeedsYear = start ? (crossesYears ? yearFor(start) : false) : false;
+  const startNeedsYear = Boolean(start && crossesYears && yearFor(start));
   const endNeedsYear = end ? yearFor(end) : false;
 
   const startText = start ? formatDay(start, startNeedsYear) : 'TBD';

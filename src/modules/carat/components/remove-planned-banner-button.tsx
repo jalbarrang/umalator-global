@@ -12,7 +12,9 @@ export function RemovePlannedBannerButton(props: RemovePlannedBannerButtonProps)
   const { bannerId, bannerLabel } = props;
 
   const handleRemove = () => {
-    const banner = useCaratStore.getState().plannedBanners.find((planned) => planned.id === bannerId);
+    const banner = useCaratStore
+      .getState()
+      .plannedBanners.find((planned) => planned.id === bannerId);
     if (!banner) return;
 
     removePlannedBanner(bannerId);
@@ -26,7 +28,12 @@ export function RemovePlannedBannerButton(props: RemovePlannedBannerButtonProps)
   };
 
   return (
-    <Button size="icon-sm" variant="ghost" onClick={handleRemove} aria-label={`Remove ${bannerLabel}`}>
+    <Button
+      size="icon-sm"
+      variant="ghost"
+      onClick={handleRemove}
+      aria-label={`Remove ${bannerLabel}`}
+    >
       <Trash2 className="size-4" />
     </Button>
   );

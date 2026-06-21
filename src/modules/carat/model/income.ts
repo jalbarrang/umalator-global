@@ -42,7 +42,12 @@ export function monthlyRecurringCarats(settings: CaratSettings): ProjectedIncome
   const dailyPack = settings.dailyCaratPack ? DAILY_CARAT_PACK_MONTHLY_CARATS : 0;
 
   return {
-    carats: settings.monthlyCarats + clubRank + dailyPack + trainingPass + teamTrialsWeekly * WEEKS_PER_MONTH,
+    carats:
+      settings.monthlyCarats +
+      clubRank +
+      dailyPack +
+      trainingPass +
+      teamTrialsWeekly * WEEKS_PER_MONTH,
     tickets: settings.monthlyTickets
   };
 }
@@ -80,7 +85,10 @@ export function projectIncome(
 
   const fromTime = from.getTime();
   const toTime = to.getTime();
-  const cmReward = safeRecordValue(CHAMPIONS_MEETING_REWARDS, settings.cmPlacement, { carats: 0, tickets: 0 });
+  const cmReward = safeRecordValue(CHAMPIONS_MEETING_REWARDS, settings.cmPlacement, {
+    carats: 0,
+    tickets: 0
+  });
 
   for (const event of timeline.events) {
     if (event.type !== 'champions_meeting') {
@@ -96,7 +104,10 @@ export function projectIncome(
 
   // TODO verify vs sheet: the current timeline payload has CM events but no distinct LoH event type,
   // so LoH is accrued linearly as a monthly expected reward.
-  const lohReward = safeRecordValue(LEAGUE_OF_HEROES_REWARDS, settings.lohRank, { carats: 0, tickets: 0 });
+  const lohReward = safeRecordValue(LEAGUE_OF_HEROES_REWARDS, settings.lohRank, {
+    carats: 0,
+    tickets: 0
+  });
   carats += lohReward.carats * monthCount;
   tickets += lohReward.tickets * monthCount;
 

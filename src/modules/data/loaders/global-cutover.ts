@@ -5,9 +5,7 @@ type MasterUmaEntry = {
 /**
  * Outfit IDs present in the master.mdb extract — live on the Global client.
  */
-export function collectReleasedOutfitIds(
-  masterUmas: Record<string, MasterUmaEntry>
-): Set<string> {
+export function collectReleasedOutfitIds(masterUmas: Record<string, MasterUmaEntry>): Set<string> {
   const outfitIds = new Set<string>();
 
   for (const uma of Object.values(masterUmas)) {

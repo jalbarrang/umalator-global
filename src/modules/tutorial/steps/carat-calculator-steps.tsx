@@ -14,7 +14,8 @@ export const caratCalculatorSteps: Array<TutorialStep> = [
           Use this calculator to decide which banners you can afford before they arrive on Global.
         </div>
         <div>
-          You will set your income, add banners, enter planned pulls, then check whether each plan is
+          You will set your income, add banners, enter planned pulls, then check whether each plan
+          is
           <strong className="text-foreground"> affordable</strong>.
         </div>
       </div>
@@ -43,8 +44,8 @@ export const caratCalculatorSteps: Array<TutorialStep> = [
     description: (
       <div className="flex flex-col gap-2 text-muted-foreground">
         <div>
-          These cards summarize your current stash, estimated monthly income, planned spend, and final
-          balance after the last banner in your plan.
+          These cards summarize your current stash, estimated monthly income, planned spend, and
+          final balance after the last banner in your plan.
         </div>
         <div>
           If the last card says <strong className="text-foreground">Affordable ✓</strong>, your full
@@ -110,10 +111,12 @@ export const caratCalculatorSteps: Array<TutorialStep> = [
     description: (
       <div className="flex flex-col gap-2 text-muted-foreground">
         <div>
-          The odds bar estimates your chance to land <Term>0LB</Term> through <Term>MLB</Term> copies.
+          The odds bar estimates your chance to land <Term>0LB</Term> through <Term>MLB</Term>{' '}
+          copies.
         </div>
         <div>
-          Sparks/pity help guarantee copies, but random rate-up copies still decide how likely MLB is.
+          Sparks/pity help guarantee copies, but random rate-up copies still decide how likely MLB
+          is.
         </div>
       </div>
     ),
@@ -141,7 +144,9 @@ export const caratCalculatorSteps: Array<TutorialStep> = [
     title: 'You are ready to plan 🎉',
     description: (
       <div className="flex flex-col gap-2 text-muted-foreground">
-        <div>Try adding one must-pull banner, set it to <Term>200</Term> pulls, and watch the balance.</div>
+        <div>
+          Try adding one must-pull banner, set it to <Term>200</Term> pulls, and watch the balance.
+        </div>
         <div>Then add lower-priority banners until the plan stops being affordable.</div>
       </div>
     ),

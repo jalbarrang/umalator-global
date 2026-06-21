@@ -46,7 +46,8 @@ export function computePlan(
   let previousDate = new Date();
   let runningFreeBalance = settings.startingFreeCarats;
   let runningPaidBalance = settings.trackPaidCarats
-    ? settings.startingPaidCarats + totalPaidCaratsFromPurchases(paidPurchases, settings.server).paidCarats
+    ? settings.startingPaidCarats +
+      totalPaidCaratsFromPurchases(paidPurchases, settings.server).paidCarats
     : 0;
 
   return rows.map(({ event, plannedBanner }) => {

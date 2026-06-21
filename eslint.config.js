@@ -14,6 +14,7 @@ export default tseslint.config(
     ignores: [
       '.agents/',
       '.pi/',
+      '.cursor/',
       'dist/',
       'node_modules/',
       '**/.wrangler/',
@@ -23,8 +24,8 @@ export default tseslint.config(
       '**/*.d.ts',
       'public/',
       'db/',
-      'courseeventparams/',
-    ],
+      'courseeventparams/'
+    ]
   },
 
   js.configs.recommended,
@@ -42,14 +43,14 @@ export default tseslint.config(
     languageOptions: {
       globals: {
         ...globals.browser,
-        ...globals.node,
-      },
+        ...globals.node
+      }
     },
     settings: {
-      react: { version: '19.0' },
+      react: { version: '19.0' }
     },
     plugins: {
-      'react-props': reactProps,
+      'react-props': reactProps
     },
     rules: {
       // React 19 + the automatic JSX runtime make these classic rules noise.
@@ -63,10 +64,7 @@ export default tseslint.config(
 
       // Flag oversized files for refactor without failing CI. Counts code
       // lines only (blanks + comments skipped).
-      'max-lines': [
-        'warn',
-        { max: 300, skipBlankLines: true, skipComments: true },
-      ],
+      'max-lines': ['warn', { max: 300, skipBlankLines: true, skipComments: true }],
 
       // React Compiler / experimental hook rules: informative but noisy and
       // prone to false positives (e.g. TanStack Virtual). Keep as warnings.
@@ -76,7 +74,7 @@ export default tseslint.config(
       'react-hooks/incompatible-library': 'warn',
       '@typescript-eslint/no-unused-vars': [
         'warn',
-        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }
       ],
 
       // Project-specific React/Zustand rules.
@@ -103,20 +101,20 @@ export default tseslint.config(
       'unicorn/prefer-module': 'off',
       'unicorn/prefer-global-this': 'off',
       'unicorn/no-abusive-eslint-disable': 'off',
-      'unicorn/no-anonymous-default-export': 'off',
-    },
+      'unicorn/no-anonymous-default-export': 'off'
+    }
   },
 
   {
     // Scripts and config run in Node/Bun — relax browser-leaning rules.
     files: ['scripts/**', '*.config.{ts,js,mjs}', 'eslint-rules/**'],
     languageOptions: {
-      globals: { ...globals.node },
+      globals: { ...globals.node }
     },
     rules: {
       'no-console': 'off',
       'unicorn/no-process-exit': 'off',
-      'unicorn/no-exports-in-scripts': 'off',
-    },
-  },
+      'unicorn/no-exports-in-scripts': 'off'
+    }
+  }
 );

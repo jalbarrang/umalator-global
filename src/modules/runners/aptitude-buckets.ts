@@ -154,8 +154,7 @@ const GRADE_ORDER = ['G', 'F', 'E', 'D', 'C', 'B', 'A', 'S'];
 
 function maxGrade(grades: string[]): string {
   return grades.reduce(
-    (best, grade) =>
-      GRADE_ORDER.indexOf(grade) > GRADE_ORDER.indexOf(best) ? grade : best,
+    (best, grade) => (GRADE_ORDER.indexOf(grade) > GRADE_ORDER.indexOf(best) ? grade : best),
     grades[0] ?? 'G'
   );
 }

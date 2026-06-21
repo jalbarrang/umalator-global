@@ -221,9 +221,7 @@ class RepresentativeRunTracker {
  * baseline skill order. Reused results are read-only in the reduction.
  */
 function baselineKey(params: WasmCompareParams): string {
-  const skillOrder = (params.runners[0]?.skills ?? [])
-    .map((skill) => skill.skillId)
-    .join(',');
+  const skillOrder = (params.runners[0]?.skills ?? []).map((skill) => skill.skillId).join(',');
   return `${params.masterSeed}:${params.nsamples}:${skillOrder}`;
 }
 
@@ -234,8 +232,13 @@ export async function runSkillComparisonFromEntry(
   entry: SkillSamplingPlanEntry,
   baselineCache?: BaselineCache
 ): Promise<SkillComparisonResult> {
-  const { skillId: trackedSkillId, nsamples, fallback, wasmParamsBaseline, wasmParamsTracked } =
-    entry;
+  const {
+    skillId: trackedSkillId,
+    nsamples,
+    fallback,
+    wasmParamsBaseline,
+    wasmParamsTracked
+  } = entry;
 
   // The baseline (runner without the tracked skill) is identical across every
   // candidate in the run — run it once and reuse, instead of per skill.

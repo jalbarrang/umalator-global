@@ -176,7 +176,11 @@ export function reorderPlannedBanners(idsInOrder: string[]) {
   });
 }
 
-export function setPaidPackPurchase(anniversaryId: string, packId: keyof PaidPackPurchases, quantity: number) {
+export function setPaidPackPurchase(
+  anniversaryId: string,
+  packId: keyof PaidPackPurchases,
+  quantity: number
+) {
   useCaratStore.setState((state) => ({
     paidPurchases: {
       ...state.paidPurchases,

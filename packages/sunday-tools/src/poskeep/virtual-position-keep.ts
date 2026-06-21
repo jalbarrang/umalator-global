@@ -198,17 +198,17 @@ export function applyVirtualPositionKeep(runner: RunnerLike): void {
                 (runner.posKeepMaxThreshold - runner.posKeepMinThreshold) +
               runner.posKeepMinThreshold;
           }
-        } else if (behind < runner.posKeepMinThreshold && 
-            runner.targetSpeedSkillsActive.length === 0 &&
-            runner.currentSpeedSkillsActive.length === 0
-          ) {
-            runner.positionKeepState = PositionKeepState.PaceDown;
-            runner.positionKeepActivations.push([runner.position, 0, PositionKeepState.PaceDown]);
-            runner.posKeepExitDistance =
-              runner.posKeepRng.random() *
-                (runner.posKeepMaxThreshold - runner.posKeepMinThreshold) +
-              runner.posKeepMinThreshold;
-          }
+        } else if (
+          behind < runner.posKeepMinThreshold &&
+          runner.targetSpeedSkillsActive.length === 0 &&
+          runner.currentSpeedSkillsActive.length === 0
+        ) {
+          runner.positionKeepState = PositionKeepState.PaceDown;
+          runner.positionKeepActivations.push([runner.position, 0, PositionKeepState.PaceDown]);
+          runner.posKeepExitDistance =
+            runner.posKeepRng.random() * (runner.posKeepMaxThreshold - runner.posKeepMinThreshold) +
+            runner.posKeepMinThreshold;
+        }
       }
 
       if (runner.positionKeepState === PositionKeepState.None) {

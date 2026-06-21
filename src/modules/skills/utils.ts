@@ -86,7 +86,8 @@ export const getSelectableSkillsForUma = (umaId: UmaAltId, includeUpcoming = fal
 
     const character = skill.character;
 
-    const onlyAvailableInOneUma = character.length === 1 && character.includes(Number.parseInt(umaId));
+    const onlyAvailableInOneUma =
+      character.length === 1 && character.includes(Number.parseInt(umaId));
     const isUnique = skill.rarity === SkillRarity.Unique;
 
     // Filter

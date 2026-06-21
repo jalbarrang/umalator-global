@@ -7,7 +7,13 @@ describe('paidCaratsFromPacks', () => {
   });
 
   it('applies server multipliers for larger packs', () => {
-    expect(paidCaratsFromPacks({ p11000: 1, p7500: 1 }, 'jp')).toEqual({ paidCarats: 21450, usd: 210 });
-    expect(paidCaratsFromPacks({ p11000: 1, p7500: 1 }, 'global')).toEqual({ paidCarats: 20350, usd: 210 });
+    expect(paidCaratsFromPacks({ p11000: 1, p7500: 1 }, 'jp')).toEqual({
+      paidCarats: 21450,
+      usd: 210
+    });
+    expect(paidCaratsFromPacks({ p11000: 1, p7500: 1 }, 'global')).toEqual({
+      paidCarats: 20350,
+      usd: 210
+    });
   });
 });

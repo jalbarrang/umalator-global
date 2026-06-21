@@ -14,7 +14,9 @@ function SecondaryMetric(props: { label: string; value: string; sub: string }) {
 
   return (
     <div className="px-4 py-3">
-      <div className="text-[11px] font-bold uppercase tracking-[0.04em] text-muted-foreground">{label}</div>
+      <div className="text-[11px] font-bold uppercase tracking-[0.04em] text-muted-foreground">
+        {label}
+      </div>
       <div className="mt-1 text-lg font-semibold tabular-nums">{value}</div>
       <div className="mt-0.5 text-[11px] text-muted-foreground">{sub}</div>
     </div>
@@ -31,7 +33,9 @@ export function SummaryStats() {
     staleTime: 5 * 60 * 1000
   });
   const monthly = monthlyRecurringCarats(settings);
-  const plan = timelineQuery.data ? computePlan(settings, timelineQuery.data, plannedBanners, paidPurchases) : [];
+  const plan = timelineQuery.data
+    ? computePlan(settings, timelineQuery.data, plannedBanners, paidPurchases)
+    : [];
   const plannedSpend = plan.reduce((total, row) => total + row.cost, 0);
   const plannedPulls = plan.reduce((total, row) => total + row.plannedBanner.plannedPulls, 0);
   const lastRow = plan.at(-1);
@@ -41,7 +45,10 @@ export function SummaryStats() {
   const shortfall = lastRow ? Math.abs(lastRow.balanceAfter) : 0;
 
   return (
-    <section data-tutorial="carat-summary" className="mb-4 grid gap-3 lg:grid-cols-[minmax(280px,1fr)_minmax(0,1.45fr)]">
+    <section
+      data-tutorial="carat-summary"
+      className="mb-4 grid gap-3 lg:grid-cols-[minmax(280px,1fr)_minmax(0,1.45fr)]"
+    >
       {/* Primary verdict — the one answer this page exists to deliver. */}
       <div
         className={cn(
@@ -52,7 +59,9 @@ export function SummaryStats() {
         )}
       >
         <div className="flex items-center justify-between gap-2">
-          <span className="text-[11.5px] font-bold uppercase tracking-[0.04em] text-muted-foreground">Balance at last banner</span>
+          <span className="text-[11.5px] font-bold uppercase tracking-[0.04em] text-muted-foreground">
+            Balance at last banner
+          </span>
           {lastRow ? (
             <span
               className={cn(

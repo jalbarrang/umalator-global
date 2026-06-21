@@ -56,8 +56,18 @@ describe('income model', () => {
       cmPlacement: 'champion'
     };
 
-    const withEvent = projectIncome(settings, timeline, new Date('2026-02-01T23:00:00.000Z'), new Date('2026-03-01T23:00:00.000Z'));
-    const withoutEvent = projectIncome(settings, emptyTimeline, new Date('2026-02-01T23:00:00.000Z'), new Date('2026-03-01T23:00:00.000Z'));
+    const withEvent = projectIncome(
+      settings,
+      timeline,
+      new Date('2026-02-01T23:00:00.000Z'),
+      new Date('2026-03-01T23:00:00.000Z')
+    );
+    const withoutEvent = projectIncome(
+      settings,
+      emptyTimeline,
+      new Date('2026-02-01T23:00:00.000Z'),
+      new Date('2026-03-01T23:00:00.000Z')
+    );
 
     expect(withEvent.carats - withoutEvent.carats).toBeCloseTo(3300);
     expect(withEvent.tickets - withoutEvent.tickets).toBeCloseTo(10);
@@ -66,8 +76,16 @@ describe('income model', () => {
   it('keeps caratsAvailableAt monotonic as dates move forward', () => {
     vi.setSystemTime(new Date('2026-01-01T23:00:00.000Z'));
 
-    const earlier = caratsAvailableAt(defaultCaratSettings, emptyTimeline, new Date('2026-02-01T23:00:00.000Z'));
-    const later = caratsAvailableAt(defaultCaratSettings, emptyTimeline, new Date('2026-03-01T23:00:00.000Z'));
+    const earlier = caratsAvailableAt(
+      defaultCaratSettings,
+      emptyTimeline,
+      new Date('2026-02-01T23:00:00.000Z')
+    );
+    const later = caratsAvailableAt(
+      defaultCaratSettings,
+      emptyTimeline,
+      new Date('2026-03-01T23:00:00.000Z')
+    );
 
     expect(later).toBeGreaterThan(earlier);
 

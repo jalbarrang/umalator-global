@@ -78,7 +78,7 @@ export function useSkillBasinPoolRunner() {
 
     // Create placeholder results
     const filler: SkillComparisonResponse = {};
-    for (const id of skills) (filler[id] = getNullSkillComparisonRow(id));
+    for (const id of skills) filler[id] = getNullSkillComparisonRow(id);
 
     resetTable();
     setTable(filler);

@@ -20,7 +20,11 @@ import {
 } from '@/components/ui/dialog';
 import { bannerImageUrl } from '@/modules/carat/data/banner-image';
 import { resolveBannerLabel } from '@/modules/carat/data/card-names';
-import type { TimelineEvent, TimelinePayload, TimelinePredictionKind } from '@/modules/carat/data/timeline-types';
+import type {
+  TimelineEvent,
+  TimelinePayload,
+  TimelinePredictionKind
+} from '@/modules/carat/data/timeline-types';
 import { addPlannedBanner, removePlannedBanner, useCaratStore } from '@/store/carat.store';
 import { cn } from '@/lib/utils';
 
@@ -55,7 +59,11 @@ function ConfidenceBadge(props: { kind: TimelinePredictionKind | undefined }) {
   const { kind } = props;
   if (kind === 'confirmed') return <Badge variant="secondary">Confirmed</Badge>;
   if (kind === 'interpolated') return <Badge variant="outline">Estimated</Badge>;
-  return <Badge variant="ghost" className="text-muted-foreground">Predicted</Badge>;
+  return (
+    <Badge variant="ghost" className="text-muted-foreground">
+      Predicted
+    </Badge>
+  );
 }
 
 function typeLabel(cardType: string | null) {
@@ -65,7 +73,11 @@ function typeLabel(cardType: string | null) {
 
 function dateText(value: string | null | undefined) {
   if (!value) return 'Date TBD';
-  return new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(value));
+  return new Intl.DateTimeFormat(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  }).format(new Date(value));
 }
 
 function windowSuffix(event: TimelineEvent) {
@@ -74,7 +86,11 @@ function windowSuffix(event: TimelineEvent) {
 }
 
 function searchableText(event: TimelineEvent) {
-  return [resolveBannerLabel(event), event.related_characters?.join(' '), event.related_support_cards?.join(' ')]
+  return [
+    resolveBannerLabel(event),
+    event.related_characters?.join(' '),
+    event.related_support_cards?.join(' ')
+  ]
     .filter(Boolean)
     .join(' ')
     .toLowerCase();
@@ -90,7 +106,11 @@ function FilterGroup<T extends string>(props: {
   return (
     <div className="flex items-center gap-2">
       <span className="w-20 shrink-0 text-xs font-medium text-muted-foreground">{label}</span>
-      <div role="group" aria-label={label} className="flex flex-wrap gap-0.5 rounded-lg bg-muted p-0.5">
+      <div
+        role="group"
+        aria-label={label}
+        className="flex flex-wrap gap-0.5 rounded-lg bg-muted p-0.5"
+      >
         {options.map((option) => {
           const active = value === option.value;
           return (
@@ -101,7 +121,9 @@ function FilterGroup<T extends string>(props: {
               onClick={() => onChange(option.value)}
               className={cn(
                 'inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:min-h-8',
-                active ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                active
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
               )}
             >
               {option.label}
@@ -119,7 +141,9 @@ export function AddBannerDialog(props: AddBannerDialogProps) {
   const [typeFilter, setTypeFilter] = useState<BannerTypeFilter>('all');
   const [confidenceFilter, setConfidenceFilter] = useState<ConfidenceFilter>('all');
   const [search, setSearch] = useState('');
-  const plannedBannerIds = useCaratStore(useShallow((state) => state.plannedBanners.map((banner) => banner.id)));
+  const plannedBannerIds = useCaratStore(
+    useShallow((state) => state.plannedBanners.map((banner) => banner.id))
+  );
   const plannedIds = useMemo(() => new Set(plannedBannerIds), [plannedBannerIds]);
 
   const filtersActive = typeFilter !== 'all' || confidenceFilter !== 'all' || search.trim() !== '';
@@ -143,7 +167,11 @@ export function AddBannerDialog(props: AddBannerDialogProps) {
       .filter((event) => typeFilter === 'all' || event.card_type === typeFilter)
       .filter((event) => confidenceFilter === 'all' || event.prediction?.kind === confidenceFilter)
       .filter((event) => !searchText || searchableText(event).includes(searchText))
-      .sort((a, b) => new Date(a.global_release_date ?? 0).getTime() - new Date(b.global_release_date ?? 0).getTime());
+      .sort(
+        (a, b) =>
+          new Date(a.global_release_date ?? 0).getTime() -
+          new Date(b.global_release_date ?? 0).getTime()
+      );
   }, [confidenceFilter, search, timeline.events, typeFilter]);
 
   // Toggle in place and keep the dialog open so a whole plan can be built in one pass.
@@ -157,33 +185,61 @@ export function AddBannerDialog(props: AddBannerDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button data-tutorial="carat-add-banner" />}>+ Add banner from timeline</DialogTrigger>
-      <DialogContent className="flex max-h-[85vh] flex-col overflow-hidden p-0 sm:max-w-5xl!" showCloseButton>
+      <DialogTrigger render={<Button data-tutorial="carat-add-banner" />}>
+        + Add banner from timeline
+      </DialogTrigger>
+      <DialogContent
+        className="flex max-h-[85vh] flex-col overflow-hidden p-0 sm:max-w-5xl!"
+        showCloseButton
+      >
         <DialogHeader className="px-4 pt-4">
           <DialogTitle>Add banners from timeline</DialogTitle>
-          <DialogDescription>Tap to add or remove future banners. The list stays open so you can build your whole plan in one go.</DialogDescription>
+          <DialogDescription>
+            Tap to add or remove future banners. The list stays open so you can build your whole
+            plan in one go.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-col gap-2 px-4">
-          <FilterGroup label="Type" value={typeFilter} options={TYPE_OPTIONS} onChange={setTypeFilter} />
-          <FilterGroup label="Confidence" value={confidenceFilter} options={CONFIDENCE_OPTIONS} onChange={setConfidenceFilter} />
+          <FilterGroup
+            label="Type"
+            value={typeFilter}
+            options={TYPE_OPTIONS}
+            onChange={setTypeFilter}
+          />
+          <FilterGroup
+            label="Confidence"
+            value={confidenceFilter}
+            options={CONFIDENCE_OPTIONS}
+            onChange={setConfidenceFilter}
+          />
         </div>
 
         <div className="flex items-center justify-between gap-2 px-4 pt-2 text-xs text-muted-foreground">
-          <span>{banners.length.toLocaleString()} upcoming banner{banners.length === 1 ? '' : 's'}</span>
+          <span>
+            {banners.length.toLocaleString()} upcoming banner{banners.length === 1 ? '' : 's'}
+          </span>
           {filtersActive ? (
-            <Button size="xs" variant="ghost" onClick={clearFilters}>Clear filters</Button>
+            <Button size="xs" variant="ghost" onClick={clearFilters}>
+              Clear filters
+            </Button>
           ) : null}
         </div>
 
         <Command shouldFilter={false} className="min-h-0 flex-1 rounded-none">
-          <CommandInput value={search} onValueChange={setSearch} placeholder="Search banners, characters, or cards…" />
+          <CommandInput
+            value={search}
+            onValueChange={setSearch}
+            placeholder="Search banners, characters, or cards…"
+          />
           <CommandList className="max-h-[56vh] [&_[cmdk-list-sizer]]:gap-x-2 sm:[&_[cmdk-list-sizer]]:grid sm:[&_[cmdk-list-sizer]]:grid-cols-2">
             <CommandEmpty className="sm:col-span-2">
               <div className="flex flex-col items-center gap-3 py-2">
                 <span>No future banners match these filters.</span>
                 {filtersActive ? (
-                  <Button size="sm" variant="outline" onClick={clearFilters}>Clear filters</Button>
+                  <Button size="sm" variant="outline" onClick={clearFilters}>
+                    Clear filters
+                  </Button>
                 ) : null}
               </div>
             </CommandEmpty>
@@ -198,10 +254,18 @@ export function AddBannerDialog(props: AddBannerDialogProps) {
                   className={cn('items-start gap-3 py-2', added && 'bg-secondary/40')}
                   aria-label={`${resolveBannerLabel(event)}, ${added ? 'added — tap to remove' : 'tap to add'}`}
                 >
-                  <img src={bannerImageUrl(event)} alt="" className="aspect-[9/6] w-24 shrink-0 rounded-lg object-contain" loading="lazy" />
+                  <img
+                    src={bannerImageUrl(event)}
+                    alt=""
+                    className="aspect-[9/6] w-24 shrink-0 rounded-lg object-contain"
+                    loading="lazy"
+                  />
                   <div className="min-w-0 flex-1">
                     <div className="truncate font-medium">{resolveBannerLabel(event)}</div>
-                    <div className="mt-1 text-xs text-muted-foreground tabular-nums">{dateText(event.global_release_date)}{windowSuffix(event)}</div>
+                    <div className="mt-1 text-xs text-muted-foreground tabular-nums">
+                      {dateText(event.global_release_date)}
+                      {windowSuffix(event)}
+                    </div>
                     <div className="mt-2 flex flex-wrap gap-1">
                       <Badge variant="outline">{typeLabel(event.card_type)}</Badge>
                       <ConfidenceBadge kind={kind} />
@@ -223,7 +287,9 @@ export function AddBannerDialog(props: AddBannerDialogProps) {
           <span className="text-xs text-muted-foreground tabular-nums">
             {plannedIds.size.toLocaleString()} banner{plannedIds.size === 1 ? '' : 's'} in your plan
           </span>
-          <Button size="sm" variant="secondary" onClick={() => setOpen(false)}>Done</Button>
+          <Button size="sm" variant="secondary" onClick={() => setOpen(false)}>
+            Done
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

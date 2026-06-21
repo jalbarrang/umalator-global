@@ -89,19 +89,20 @@ export const RaceTrack = (props: RaceTrackProps) => {
 
         const region = { start: Math.round(newStart), end: Math.round(newEnd) };
         switch (skillId) {
-        case '__forced_rushed': {
-        setForcedRushed(runnerId, region);
-        break;
-        }
-        case '__forced_dueling': {
-        setForcedDueling(runnerId, region);
-        break;
-        }
-        case '__forced_spot_struggle': {
-        setForcedSpotStruggle(runnerId, region);
-        // No default
-        }
-        break;
+          case '__forced_rushed': {
+            setForcedRushed(runnerId, region);
+            break;
+          }
+          case '__forced_dueling': {
+            setForcedDueling(runnerId, region);
+            break;
+          }
+          case '__forced_spot_struggle':
+            {
+              setForcedSpotStruggle(runnerId, region);
+              // No default
+            }
+            break;
         }
         return;
       }

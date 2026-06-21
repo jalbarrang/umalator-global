@@ -1,5 +1,17 @@
-import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
-import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy
+} from '@dnd-kit/sortable';
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { InfoHint } from '@/modules/carat/components/info-hint';
@@ -33,7 +45,10 @@ export function BannerPlanTable(props: BannerPlanTableProps) {
   const rows = useMemo(() => {
     const plan = computePlan(settings, timeline, plannedBanners, paidPurchases);
     if (sortMode === 'manual') {
-      return [...plan].sort((a, b) => a.plannedBanner.order - b.plannedBanner.order || dateTime(a.event) - dateTime(b.event));
+      return [...plan].sort(
+        (a, b) =>
+          a.plannedBanner.order - b.plannedBanner.order || dateTime(a.event) - dateTime(b.event)
+      );
     }
     return plan;
   }, [paidPurchases, plannedBanners, settings, sortMode, timeline]);
@@ -58,7 +73,10 @@ export function BannerPlanTable(props: BannerPlanTableProps) {
         <div className="text-sm font-semibold">Start with three quick steps</div>
         <ol className="mx-auto mt-3 w-fit space-y-1 text-left text-sm text-muted-foreground">
           <li>1. Set your carats in the panel on the left</li>
-          <li>2. Add a banner with <span className="font-medium text-foreground">+ Add banner from timeline</span></li>
+          <li>
+            2. Add a banner with{' '}
+            <span className="font-medium text-foreground">+ Add banner from timeline</span>
+          </li>
           <li>3. Set pulls and watch the balance verdict update</li>
         </ol>
       </div>
@@ -68,11 +86,26 @@ export function BannerPlanTable(props: BannerPlanTableProps) {
   return (
     <div className="space-y-3">
       <div className="flex justify-end gap-2">
-        <Button size="sm" variant={sortMode === 'date' ? 'secondary' : 'outline'} onClick={() => setSortMode('date')}>Date sort</Button>
-        <Button size="sm" variant={sortMode === 'manual' ? 'secondary' : 'outline'} onClick={() => setSortMode('manual')}>Manual order</Button>
+        <Button
+          size="sm"
+          variant={sortMode === 'date' ? 'secondary' : 'outline'}
+          onClick={() => setSortMode('date')}
+        >
+          Date sort
+        </Button>
+        <Button
+          size="sm"
+          variant={sortMode === 'manual' ? 'secondary' : 'outline'}
+          onClick={() => setSortMode('manual')}
+        >
+          Manual order
+        </Button>
       </div>
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <SortableContext items={rows.map((row) => row.event.id)} strategy={verticalListSortingStrategy}>
+        <SortableContext
+          items={rows.map((row) => row.event.id)}
+          strategy={verticalListSortingStrategy}
+        >
           {isWide ? (
             <div className="overflow-x-auto rounded-xl border">
               <table className="w-full text-sm">
@@ -84,7 +117,10 @@ export function BannerPlanTable(props: BannerPlanTableProps) {
                     <th className="w-44 min-w-44 px-2 py-2 text-left">
                       <span className="inline-flex items-center gap-1">
                         Pulls
-                        <InfoHint label="Pulls and sparks help" title="Pulls and sparks">One pull costs 150 carats. One spark is 200 pulls and can be exchanged for a guaranteed pickup copy.</InfoHint>
+                        <InfoHint label="Pulls and sparks help" title="Pulls and sparks">
+                          One pull costs 150 carats. One spark is 200 pulls and can be exchanged for
+                          a guaranteed pickup copy.
+                        </InfoHint>
                       </span>
                     </th>
                     {showPaid ? <th className="px-2 py-2 text-right">Paid pool</th> : null}
@@ -92,17 +128,30 @@ export function BannerPlanTable(props: BannerPlanTableProps) {
                     <th className="px-2 py-2 text-center">
                       <span className="inline-flex items-center gap-1">
                         Odds
-                        <InfoHint label="Copy odds help" title="LB / MLB odds">LB means limit break copies. MLB usually means five total copies. The bar estimates the chance to end at each copy count. For Uma banners, it instead shows the fixed chance to pull the rate-up Uma, and to pull any off-banner 3-star Uma, within 200 pulls.</InfoHint>
+                        <InfoHint label="Copy odds help" title="LB / MLB odds">
+                          LB means limit break copies. MLB usually means five total copies. The bar
+                          estimates the chance to end at each copy count. For Uma banners, it
+                          instead shows the fixed chance to pull the rate-up Uma, and to pull any
+                          off-banner 3-star Uma, within 200 pulls.
+                        </InfoHint>
                       </span>
                     </th>
                     <th className="px-2 py-2" />
                   </tr>
                 </thead>
-                <tbody>{rows.map((row) => <SortablePlanRow key={row.event.id} row={row} showPaid={showPaid} />)}</tbody>
+                <tbody>
+                  {rows.map((row) => (
+                    <SortablePlanRow key={row.event.id} row={row} showPaid={showPaid} />
+                  ))}
+                </tbody>
               </table>
             </div>
           ) : (
-            <div className="space-y-3">{rows.map((row) => <SortablePlanCard key={row.event.id} row={row} showPaid={showPaid} />)}</div>
+            <div className="space-y-3">
+              {rows.map((row) => (
+                <SortablePlanCard key={row.event.id} row={row} showPaid={showPaid} />
+              ))}
+            </div>
           )}
         </SortableContext>
       </DndContext>

@@ -1,4 +1,3 @@
-
 import type { UmaAptitudes, UmasMap } from '@/modules/data/services/UmaService';
 
 const DEFAULT_APTITUDE = 'G';
@@ -74,5 +73,3 @@ export function loadUmas(
     releasedOutfits
   };
 }
-
-

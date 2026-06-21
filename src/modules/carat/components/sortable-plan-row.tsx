@@ -20,18 +20,26 @@ type SortablePlanRowProps = {
 export function SortablePlanRow(props: SortablePlanRowProps) {
   const { row, showPaid } = props;
   const bannerLabel = resolveBannerLabel(row.event);
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: row.event.id });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: row.event.id
+  });
   const style = { transform: CSS.Transform.toString(transform), transition };
 
   return (
-    <tr ref={setNodeRef} style={style} className={cn('border-b align-middle', isDragging && 'relative z-10 bg-accent shadow-md')}>
+    <tr
+      ref={setNodeRef}
+      style={style}
+      className={cn('border-b align-middle', isDragging && 'relative z-10 bg-accent shadow-md')}
+    >
       <td className="w-10 px-2 py-3">
         <PlanDragHandle attributes={attributes} listeners={listeners} />
       </td>
       <td className="min-w-[220px] px-2 py-3">
         <BannerIdentity row={row} showWindow />
       </td>
-      <td className="px-2 py-3 text-right font-mono tabular-nums">{formatCarats(row.caratsAvailable)}</td>
+      <td className="px-2 py-3 text-right font-mono tabular-nums">
+        {formatCarats(row.caratsAvailable)}
+      </td>
       <td className="w-44 min-w-44 px-2 py-3">
         <PullsField row={row} showCost density="table" />
       </td>
@@ -40,7 +48,9 @@ export function SortablePlanRow(props: SortablePlanRowProps) {
           {row.paidCaratsAvailable > 0 || row.paidBalanceAfter > 0 ? (
             <>
               <div>{formatCarats(row.paidCaratsAvailable)}</div>
-              <div className="text-xs text-muted-foreground">after {formatCarats(row.paidBalanceAfter)}</div>
+              <div className="text-xs text-muted-foreground">
+                after {formatCarats(row.paidBalanceAfter)}
+              </div>
             </>
           ) : (
             '—'
@@ -54,7 +64,10 @@ export function SortablePlanRow(props: SortablePlanRowProps) {
         {row.event.card_type === 'character' ? (
           <UmaOddsBar pickupCount={characterPickupCount(row.event)} />
         ) : (
-          <CopiesOddsBar pulls={row.plannedBanner.plannedPulls} startingDupes={row.plannedBanner.startingDupes} />
+          <CopiesOddsBar
+            pulls={row.plannedBanner.plannedPulls}
+            startingDupes={row.plannedBanner.startingDupes}
+          />
         )}
       </td>
       <td className="w-10 px-2 py-3 text-right">

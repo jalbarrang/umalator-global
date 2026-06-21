@@ -13,8 +13,7 @@ type BucketAptitudesEditorProps = {
 };
 
 // One shared 5-column template (label + 4 buckets) so every row aligns.
-const ROW_GRID =
-  'grid grid-cols-[4rem_repeat(4,minmax(0,1fr))] items-center gap-2 px-2 py-1.5';
+const ROW_GRID = 'grid grid-cols-[4rem_repeat(4,minmax(0,1fr))] items-center gap-2 px-2 py-1.5';
 
 function BucketRow({
   label,
@@ -31,10 +30,7 @@ function BucketRow({
     <div className={ROW_GRID}>
       <span className="text-right text-xs font-medium text-muted-foreground">{label}</span>
       {buckets.map((bucket) => (
-        <div
-          key={bucket.key}
-          className="flex items-center justify-between pl-2 pr-0.5 py-0"
-        >
+        <div key={bucket.key} className="flex items-center justify-between pl-2 pr-0.5 py-0">
           <span className="text-xs text-muted-foreground">{bucket.label}</span>
           <AptitudeSelect
             value={value[bucket.key]}

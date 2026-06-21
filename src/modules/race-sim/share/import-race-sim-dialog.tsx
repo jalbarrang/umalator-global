@@ -246,7 +246,9 @@ export function ImportRaceSimDialog({ open, onOpenChange }: ImportRaceSimDialogP
         <textarea
           className="w-full min-h-[180px] p-3 rounded-md border bg-background font-mono text-xs resize-y focus:outline-none focus:ring-2 focus:ring-primary"
           placeholder={
-            source === 'hakuraku' ? 'Or paste race file JSON here...' : 'Or paste JSON / share code here...'
+            source === 'hakuraku'
+              ? 'Or paste race file JSON here...'
+              : 'Or paste JSON / share code here...'
           }
           value={text}
           onChange={(e) => applyParsed(e.target.value)}

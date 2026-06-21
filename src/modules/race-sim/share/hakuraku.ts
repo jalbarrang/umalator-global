@@ -69,8 +69,7 @@ function horseToSingleExport(horse: Record<string, unknown>): ISingleExportData 
   const aptDistance = firstFiniteNumber(horse.apt_distance) ?? 1;
   const aptGround = firstFiniteNumber(horse.apt_ground) ?? 1;
   const aptStyle = firstFiniteNumber(horse.apt_style) ?? 1;
-  const apt = (key: string, fallback: number): number =>
-    firstFiniteNumber(horse[key]) ?? fallback;
+  const apt = (key: string, fallback: number): number => firstFiniteNumber(horse[key]) ?? fallback;
 
   return {
     card_id: cardId,
@@ -106,8 +105,7 @@ function horseToRunner(horse: Record<string, unknown>): IRunnerState | null {
   if (single === null) return null;
 
   const runningStyle = firstFiniteNumber(horse.running_style, horse.runningStyle);
-  const strategy =
-    runningStyle !== undefined ? STRATEGY_BY_RUNNING_STYLE[runningStyle] : undefined;
+  const strategy = runningStyle !== undefined ? STRATEGY_BY_RUNNING_STYLE[runningStyle] : undefined;
 
   return createRunnerState({
     ...singleExportToRunnerState(single),

@@ -50,7 +50,11 @@ export function BootSplash(props: BootSplashProps) {
     <div className="boot-splash" role="status" aria-live="polite" aria-label="Loading Torena Sim">
       <style>{SPLASH_CSS}</style>
       <div className="boot-splash__inner">
-        <img className="boot-splash__logo" src={`${config.basePath}social-logo.png`} alt="Torena Sim" />
+        <img
+          className="boot-splash__logo"
+          src={`${config.basePath}social-logo.png`}
+          alt="Torena Sim"
+        />
         <div className="boot-splash__stack">
           <div className="boot-splash__title">
             Torena <b>Sim</b>

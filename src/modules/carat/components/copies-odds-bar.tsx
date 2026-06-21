@@ -25,11 +25,18 @@ const SEGMENTS: OddsSegment[] = [
 ];
 
 function formatPercent(value: number, maximumFractionDigits = 0) {
-  return new Intl.NumberFormat(undefined, { style: 'percent', maximumFractionDigits }).format(value);
+  return new Intl.NumberFormat(undefined, { style: 'percent', maximumFractionDigits }).format(
+    value
+  );
 }
 
 export function CopiesOddsBar(props: CopiesOddsBarProps) {
-  const { pulls, startingDupes = 0, odds = copiesOdds({ pulls, startingDupes }), className } = props;
+  const {
+    pulls,
+    startingDupes = 0,
+    odds = copiesOdds({ pulls, startingDupes }),
+    className
+  } = props;
   const atLeastOne = 1 - odds.none;
   const sparkReached = pulls >= PITY_PULLS;
 
@@ -59,7 +66,9 @@ export function CopiesOddsBar(props: CopiesOddsBarProps) {
                   </div>
                 }
               />
-              <TooltipContent>{segment.label}: {formatPercent(value, 1)}</TooltipContent>
+              <TooltipContent>
+                {segment.label}: {formatPercent(value, 1)}
+              </TooltipContent>
             </Tooltip>
           );
         })}

@@ -24,15 +24,8 @@ export type CopiesOddsInput = {
 const LOG_SQRT_TWO_PI = 0.9189385332046727;
 const LANCZOS_G = 7;
 const LANCZOS_COEFFICIENTS = [
-  0.9999999999998099,
-  676.5203681218851,
-  -1259.1392167224028,
-  771.3234287776531,
-  -176.6150291621406,
-  12.507343278686905,
-  -0.13857109526572012,
-  0.000009984369578019572,
-  0.00000015056327351493116
+  0.9999999999998099, 676.5203681218851, -1259.1392167224028, 771.3234287776531, -176.6150291621406,
+  12.507343278686905, -0.13857109526572012, 0.000009984369578019572, 0.00000015056327351493116
 ];
 
 function normalizeCount(value: number) {
@@ -59,7 +52,13 @@ function binomLogPmf(k: number, n: number, p: number) {
   if (p === 0) return k === 0 ? 0 : Number.NEGATIVE_INFINITY;
   if (p === 1) return k === n ? 0 : Number.NEGATIVE_INFINITY;
 
-  return logGamma(n + 1) - logGamma(k + 1) - logGamma(n - k + 1) + k * Math.log(p) + (n - k) * Math.log1p(-p);
+  return (
+    logGamma(n + 1) -
+    logGamma(k + 1) -
+    logGamma(n - k + 1) +
+    k * Math.log(p) +
+    (n - k) * Math.log1p(-p)
+  );
 }
 
 export function binomDist(k: number, n: number, p: number, cumulative: boolean): number {
@@ -132,7 +131,8 @@ export function copiesOdds(input: CopiesOddsInput): CopiesOdds {
   const p = input.p ?? (mode === 'stepup' ? STEPUP_SLOT_P : RATEUP_P);
   const pulls = normalizeCount(input.pulls);
   const dupes = normalizeCount(startingDupes);
-  const guaranteed = mode === 'stepup' ? Math.floor(pulls / 5) + dupes : Math.floor(pulls / PITY_PULLS) + dupes;
+  const guaranteed =
+    mode === 'stepup' ? Math.floor(pulls / 5) + dupes : Math.floor(pulls / PITY_PULLS) + dupes;
   const randomPulls = mode === 'stepup' ? pulls * 10 : pulls;
 
   const none = tierPmf(0, guaranteed, randomPulls, p);

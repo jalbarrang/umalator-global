@@ -50,7 +50,10 @@ export function buildPlannerWasmContext(args: BuildPlannerContextArgs): PlannerW
 
   // Runner DTO with no skills; the worker injects each combination's resolved
   // skill inputs per evaluation.
-  const runnerBase = sundayRunnerToWasm(toCreateRunner(runner, []), resolveRunnerName(runner.outfitId));
+  const runnerBase = sundayRunnerToWasm(
+    toCreateRunner(runner, []),
+    resolveRunnerName(runner.outfitId)
+  );
 
   const skillInputs: Record<string, ReturnType<typeof resolveSkillInput>> = {};
   const groupIds: Record<string, number> = {};
