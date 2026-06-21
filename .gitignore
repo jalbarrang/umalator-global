@@ -38,10 +38,6 @@ docs/prd/
 .issues/
 .asset-bot/
 
-# Beads / Dolt files (added by bd init)
-.dolt/
-*.db
-.beads-credential-key
 # Generated, content-hashed data datasets + manifest (data-manifest plugin)
 public/data/manifest.json
 public/data/sets/
@@ -54,7 +50,5 @@ package-lock.json
 yarn.lock
 pnpm-lock.yaml
 
-
-# Other codebases I use for telling the AI not to drift
 /.references/
 /.api-tests/
