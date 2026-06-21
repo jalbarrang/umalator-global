@@ -1,3 +1,9 @@
+## [0.17.0](https://github.com/jalbarrang/umalator-global/compare/v0.16.2...v0.17.0) (2026-06-21)
+
+### Features
+
+* **carat:** Carat Calculator + timeline-proxy worker ([#57](https://github.com/jalbarrang/umalator-global/issues/57)) ([2292ba9](https://github.com/jalbarrang/umalator-global/commit/2292ba9a37ae02072215c449cb2f5451d4bc5615))
+
 ## [0.16.2](https://github.com/jalbarrang/umalator-global/compare/v0.16.1...v0.16.2) (2026-06-20)
 
 ### Bug Fixes
