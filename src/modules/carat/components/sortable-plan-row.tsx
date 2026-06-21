@@ -4,10 +4,11 @@ import { BalanceVerdict } from '@/modules/carat/components/balance-verdict';
 import { BannerIdentity } from '@/modules/carat/components/banner-identity';
 import { formatCarats } from '@/modules/carat/components/banner-plan-format';
 import { CopiesOddsBar } from '@/modules/carat/components/copies-odds-bar';
+import { UmaOddsBar } from '@/modules/carat/components/uma-odds-bar';
 import { PlanDragHandle } from '@/modules/carat/components/plan-drag-handle';
 import { PullsField } from '@/modules/carat/components/pulls-field';
 import { RemovePlannedBannerButton } from '@/modules/carat/components/remove-planned-banner-button';
-import { resolveBannerLabel } from '@/modules/carat/data/card-names';
+import { characterPickupCount, resolveBannerLabel } from '@/modules/carat/data/card-names';
 import type { BannerPlanRow } from '@/modules/carat/model/plan';
 import { cn } from '@/lib/utils';
 
@@ -50,7 +51,11 @@ export function SortablePlanRow(props: SortablePlanRowProps) {
         <BalanceVerdict row={row} />
       </td>
       <td data-tutorial="carat-odds" className="px-2 py-3 text-left">
-        <CopiesOddsBar pulls={row.plannedBanner.plannedPulls} startingDupes={row.plannedBanner.startingDupes} />
+        {row.event.card_type === 'character' ? (
+          <UmaOddsBar pickupCount={characterPickupCount(row.event)} />
+        ) : (
+          <CopiesOddsBar pulls={row.plannedBanner.plannedPulls} startingDupes={row.plannedBanner.startingDupes} />
+        )}
       </td>
       <td className="w-10 px-2 py-3 text-right">
         <RemovePlannedBannerButton bannerId={row.event.id} bannerLabel={bannerLabel} />

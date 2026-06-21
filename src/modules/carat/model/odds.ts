@@ -91,6 +91,42 @@ function tierPmf(totalCopies: number, guaranteed: number, pulls: number, p: numb
   return binomPmf(totalCopies - guaranteed, pulls, p);
 }
 
+// Confirmed by the live gacha_odds endpoint: total 3-star rate on a character
+// banner is 3%, each rate-up (pickup) Uma is 0.75%, and the remainder is split
+// across the off-banner 3-star pool.
+export const TOTAL_3STAR_P = 0.03;
+// "Less than 200 pulls" excludes the guaranteed spark at pull 200.
+export const SUB_SPARK_PULLS = PITY_PULLS - 1;
+
+function noneChance(p: number, pulls: number): number {
+  return binomPmf(0, Math.max(0, Math.floor(pulls)), p);
+}
+
+function rateUpPoolP(pickupCount: number): number {
+  return Math.min(TOTAL_3STAR_P, Math.max(0, Math.floor(pickupCount)) * RATEUP_P);
+}
+
+// Three mutually-exclusive outcomes for a character banner over `pulls` pulls,
+// summing to 1: you land the rate-up Uma, you land only off-banner 3-stars, or
+// you whiff every 3-star. Multi-pickup banners combine the per-pickup rate.
+export type UmaOutcomeOdds = {
+  rateUp: number;
+  offBannerOnly: number;
+  nothing: number;
+};
+
+export function umaOutcomeOdds(pickupCount = 1, pulls: number = SUB_SPARK_PULLS): UmaOutcomeOdds {
+  const rateUpP = rateUpPoolP(pickupCount);
+  const noRateUp = noneChance(rateUpP, pulls);
+  const nothing = noneChance(TOTAL_3STAR_P, pulls);
+
+  return {
+    rateUp: 1 - noRateUp,
+    offBannerOnly: Math.max(0, noRateUp - nothing),
+    nothing
+  };
+}
+
 export function copiesOdds(input: CopiesOddsInput): CopiesOdds {
   const { startingDupes = 0, mode = 'standard' } = input;
   const p = input.p ?? (mode === 'stepup' ? STEPUP_SLOT_P : RATEUP_P);

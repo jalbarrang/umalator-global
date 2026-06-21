@@ -4,11 +4,12 @@ import { BalanceVerdict } from '@/modules/carat/components/balance-verdict';
 import { BannerIdentity } from '@/modules/carat/components/banner-identity';
 import { formatCarats } from '@/modules/carat/components/banner-plan-format';
 import { CopiesOddsBar } from '@/modules/carat/components/copies-odds-bar';
+import { UmaOddsBar } from '@/modules/carat/components/uma-odds-bar';
 import { InfoHint } from '@/modules/carat/components/info-hint';
 import { PlanDragHandle } from '@/modules/carat/components/plan-drag-handle';
 import { PullsField } from '@/modules/carat/components/pulls-field';
 import { RemovePlannedBannerButton } from '@/modules/carat/components/remove-planned-banner-button';
-import { resolveBannerLabel } from '@/modules/carat/data/card-names';
+import { characterPickupCount, resolveBannerLabel } from '@/modules/carat/data/card-names';
 import type { BannerPlanRow } from '@/modules/carat/model/plan';
 import { cn } from '@/lib/utils';
 
@@ -60,7 +61,11 @@ export function SortablePlanCard(props: SortablePlanCardProps) {
       </div>
 
       <div className="mt-3">
-        <CopiesOddsBar pulls={row.plannedBanner.plannedPulls} startingDupes={row.plannedBanner.startingDupes} className="min-w-0" />
+        {row.event.card_type === 'character' ? (
+          <UmaOddsBar pickupCount={characterPickupCount(row.event)} className="min-w-0" />
+        ) : (
+          <CopiesOddsBar pulls={row.plannedBanner.plannedPulls} startingDupes={row.plannedBanner.startingDupes} className="min-w-0" />
+        )}
       </div>
     </div>
   );

@@ -21,6 +21,15 @@ export const characterCardNameMap = new Map<number, CharacterCardName>(
   ])
 );
 
+// Counts the rate-up (pickup) 3-star Umas on a banner, used to split the
+// 3% total 3-star rate between the rate-up pool and the off-banner pool.
+export function characterPickupCount(event: TimelineEvent): number {
+  const count = (event.pickup_card_ids ?? []).filter(
+    (cardId) => characterCardNameMap.get(cardId)?.rarity === 3
+  ).length;
+  return Math.max(1, count);
+}
+
 export function resolveBannerLabel(event: TimelineEvent): string {
   if (event.title) return event.title;
 

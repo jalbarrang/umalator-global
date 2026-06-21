@@ -92,7 +92,7 @@ export function BannerPlanTable(props: BannerPlanTableProps) {
                     <th className="px-2 py-2 text-center">
                       <span className="inline-flex items-center gap-1">
                         Odds
-                        <InfoHint label="Copy odds help" title="LB / MLB odds">LB means limit break copies. MLB usually means five total copies. The bar estimates the chance to end at each copy count.</InfoHint>
+                        <InfoHint label="Copy odds help" title="LB / MLB odds">LB means limit break copies. MLB usually means five total copies. The bar estimates the chance to end at each copy count. For Uma banners, it instead shows the fixed chance to pull the rate-up Uma, and to pull any off-banner 3-star Uma, within 200 pulls.</InfoHint>
                       </span>
                     </th>
                     <th className="px-2 py-2" />
