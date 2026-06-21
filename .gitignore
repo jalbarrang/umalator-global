@@ -13,6 +13,8 @@ results/
 
 # AI tools
 .cursor/plans
+.impeccable/
+.cursor/skills/impeccable/scripts/
 
 CLAUDE.md
 
