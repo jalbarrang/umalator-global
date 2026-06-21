@@ -296,7 +296,7 @@ function AppFooter() {
     ) : null,
     <a
       key="github"
-      href="https://github.com/jalbarrang/umalator-global"
+      href="https://github.com/jalbarrang/torena-sim"
       target="_blank"
       rel="noopener noreferrer"
       className={footerLinkClass}

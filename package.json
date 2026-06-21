@@ -1,5 +1,5 @@
 {
-  "name": "@drekki/umalator-global",
+  "name": "@drekki/torena-sim",
   "private": true,
   "type": "module",
   "scripts": {
@@ -36,7 +36,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jalbarrang/umalator-global.git"
+    "url": "https://github.com/jalbarrang/torena-sim.git"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
