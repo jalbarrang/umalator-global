@@ -46,6 +46,7 @@ export function CaratCalculatorPage() {
   }, [isActive, tutorialId]);
 
   const startTour = () => {
+    setActiveTab('calculator');
     setIsFirstVisitNudgeOpen(false);
     start('carat-calculator', caratCalculatorSteps);
   };
