@@ -47,8 +47,8 @@ describe('computePlan', () => {
     const early = banner('early', 1);
     const late = banner('late', 40);
     const plan: PlannedBanner[] = [
-      { id: 'late', plannedPulls: 0, startingDupes: 0, order: 0 },
-      { id: 'early', plannedPulls: 100, startingDupes: 0, order: 1 }
+      { id: 'late', plannedPulls: 0, startingDupes: 0, copyGoals: {}, ownedCopies: {}, order: 0 },
+      { id: 'early', plannedPulls: 100, startingDupes: 0, copyGoals: {}, ownedCopies: {}, order: 1 }
     ];
 
     const rows = computePlan(settings, timeline([late, early]), plan);
@@ -64,8 +64,8 @@ describe('computePlan', () => {
 
   it('ignores planned banners that are not present in the timeline', () => {
     const rows = computePlan(settings, timeline([banner('real', 5)]), [
-      { id: 'example-banner', plannedPulls: 200, startingDupes: 0, order: 0 },
-      { id: 'real', plannedPulls: 1, startingDupes: 0, order: 1 }
+      { id: 'example-banner', plannedPulls: 200, startingDupes: 0, copyGoals: {}, ownedCopies: {}, order: 0 },
+      { id: 'real', plannedPulls: 1, startingDupes: 0, copyGoals: {}, ownedCopies: {}, order: 1 }
     ]);
 
     expect(rows).toHaveLength(1);
@@ -77,7 +77,7 @@ describe('computePlan', () => {
     const rows = computePlan(
       { ...settings, trackPaidCarats: true, startingPaidCarats: 1500 },
       timeline([banner('paid', 1)]),
-      [{ id: 'paid', plannedPulls: 20, startingDupes: 0, order: 0 }],
+      [{ id: 'paid', plannedPulls: 20, startingDupes: 0, copyGoals: {}, ownedCopies: {}, order: 0 }],
       { '1st-anniversary': { p1500: 1 } }
     );
 

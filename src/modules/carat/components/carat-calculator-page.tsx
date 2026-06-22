@@ -46,6 +46,7 @@ export function CaratCalculatorPage() {
   }, [isActive, tutorialId]);
 
   const startTour = () => {
+    setActiveTab('calculator');
     setIsFirstVisitNudgeOpen(false);
     start('carat-calculator', caratCalculatorSteps);
   };
@@ -102,6 +103,11 @@ export function CaratCalculatorPage() {
           </div>
         </div>
       ) : null}
+
+      <p className="mb-4 text-[11px] leading-relaxed text-muted-foreground">
+        Estimates only. Odds use independent-probability models and are not guarantees — your actual
+        results will vary. This is not financial advice; only spend what you can comfortably afford.
+      </p>
 
       <SummaryStats />
 

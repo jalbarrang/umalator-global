@@ -8,7 +8,12 @@ import { UmaOddsBar } from '@/modules/carat/components/uma-odds-bar';
 import { PlanDragHandle } from '@/modules/carat/components/plan-drag-handle';
 import { PullsField } from '@/modules/carat/components/pulls-field';
 import { RemovePlannedBannerButton } from '@/modules/carat/components/remove-planned-banner-button';
-import { characterPickupCount, resolveBannerLabel } from '@/modules/carat/data/card-names';
+import {
+  characterPickupCount,
+  resolveBannerLabel,
+  supportPickupCount
+} from '@/modules/carat/data/card-names';
+import { TargetGoals } from '@/modules/carat/components/target-goals';
 import type { BannerPlanRow } from '@/modules/carat/model/plan';
 import { cn } from '@/lib/utils';
 
@@ -67,8 +72,10 @@ export function SortablePlanRow(props: SortablePlanRowProps) {
           <CopiesOddsBar
             pulls={row.plannedBanner.plannedPulls}
             startingDupes={row.plannedBanner.startingDupes}
+            pickupCount={supportPickupCount(row.event)}
           />
         )}
+        <TargetGoals row={row} className="mt-2" />
       </td>
       <td className="w-10 px-2 py-3 text-right">
         <RemovePlannedBannerButton bannerId={row.event.id} bannerLabel={bannerLabel} />

@@ -82,6 +82,7 @@ export function binomPmf(k: number, n: number, p: number): number {
   return binomDist(k, n, p, false);
 }
 
+
 export function binomCdf(k: number, n: number, p: number): number {
   return binomDist(k, n, p, true);
 }
@@ -92,7 +93,11 @@ function tierPmf(totalCopies: number, guaranteed: number, pulls: number, p: numb
 
 // Confirmed by the live gacha_odds endpoint: total 3-star rate on a character
 // banner is 3%, each rate-up (pickup) Uma is 0.75%, and the remainder is split
-// across the off-banner 3-star pool.
+// across the off-banner 3-star pool. The same flat 0.75% holds per rate-up SSR
+// support card and does NOT divide on multi-pickup banners (verified against the
+// 2-SSR Maruzensky/Nakayama and 4th Anniv 2-SSR banners), so per-target copy
+// odds are correct as-is; multi-pickup banners only need a labeling caveat that
+// the spark guarantees a single copy of a single card.
 export const TOTAL_3STAR_P = 0.03;
 // "Less than 200 pulls" excludes the guaranteed spark at pull 200.
 export const SUB_SPARK_PULLS = PITY_PULLS - 1;
@@ -124,6 +129,60 @@ export function umaOutcomeOdds(pickupCount = 1, pulls: number = SUB_SPARK_PULLS)
     offBannerOnly: Math.max(0, noRateUp - nothing),
     nothing
   };
+}
+
+export type TargetGoalsInput = {
+  pulls: number;
+  // Desired total copies per targeted card (1..MLB_COPIES). Cards with goal 0
+  // are ignored. Each rate-up shares the same per-pull rate `p`.
+  goals: number[];
+  p?: number;
+  mode?: CopiesOddsMode;
+};
+
+// Probability of meeting every per-card copy goal at once. Random copies for
+// each card are independent Binomial(pulls, p) (the combined rate-up rate stays
+// below ~6%, so multinomial correlation is negligible). Pity sparks are
+// guaranteed exchanges allocated optimally to cover shortfalls, so success is
+// exactly: total shortfall = Σ max(0, goal_i - randomCopies_i) ≤ sparks. We build
+// each card's shortfall distribution and convolve them, then sum P(total ≤ sparks).
+export function targetGoalsOdds(input: TargetGoalsInput): number {
+  const mode = input.mode ?? 'standard';
+  const p = input.p ?? (mode === 'stepup' ? STEPUP_SLOT_P : RATEUP_P);
+  const pulls = normalizeCount(input.pulls);
+  const goals = input.goals
+    .map((goal) => Math.min(MLB_COPIES, normalizeCount(goal)))
+    .filter((goal) => goal >= 1);
+  if (goals.length === 0) return 1;
+
+  const sparkAt = mode === 'stepup' ? 5 : PITY_PULLS;
+  const randomPulls = mode === 'stepup' ? pulls * 10 : pulls;
+  const sparks = Math.floor(pulls / sparkAt);
+
+  // dist[s] = probability that the running total shortfall equals s.
+  let dist = [1];
+  for (const goal of goals) {
+    const shortfall: number[] = Array.from({ length: goal + 1 }, () => 0);
+    // shortfall 0 means the card already has >= goal random copies.
+    shortfall[0] = 1 - binomCdf(goal - 1, randomPulls, p);
+    for (let missing = 1; missing <= goal; missing += 1) {
+      shortfall[missing] = binomPmf(goal - missing, randomPulls, p);
+    }
+
+    const next: number[] = Array.from({ length: dist.length + goal }, () => 0);
+    for (let a = 0; a < dist.length; a += 1) {
+      for (let missing = 0; missing <= goal; missing += 1) {
+        next[a + missing] += dist[a] * shortfall[missing];
+      }
+    }
+    dist = next;
+  }
+
+  let total = 0;
+  for (let s = 0; s <= Math.min(sparks, dist.length - 1); s += 1) {
+    total += dist[s];
+  }
+  return Math.min(1, Math.max(0, total));
 }
 
 export function copiesOdds(input: CopiesOddsInput): CopiesOdds {
