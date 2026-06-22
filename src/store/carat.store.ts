@@ -28,6 +28,12 @@ export type PlannedBanner = {
   id: string;
   plannedPulls: number;
   startingDupes: number;
+  // Desired total copies per rate-up card, keyed by pickup card id. Absent or 0
+  // means "not targeted". Empty object falls back to the single-card odds view.
+  copyGoals: Record<string, number>;
+  // Copies the player already owns per rate-up card (reruns), keyed by pickup
+  // card id. These reduce how many copies the banner needs to supply.
+  ownedCopies: Record<string, number>;
   order: number;
 };
 
@@ -68,6 +74,8 @@ export const defaultPlannedBanners: PlannedBanner[] = [
     id: 'example-banner',
     plannedPulls: 200,
     startingDupes: 0,
+    copyGoals: {},
+    ownedCopies: {},
     order: 0
   }
 ];
@@ -89,7 +97,11 @@ export const useCaratStore = create<CaratStore>()(
         ...current,
         ...state,
         settings: { ...defaultCaratSettings, ...state.settings },
-        plannedBanners: state.plannedBanners ?? defaultPlannedBanners,
+        plannedBanners: (state.plannedBanners ?? defaultPlannedBanners).map((banner) => ({
+          ...banner,
+          copyGoals: banner.copyGoals ?? {},
+          ownedCopies: banner.ownedCopies ?? {}
+        })),
         paidPurchases: state.paidPurchases ?? {},
         selectorChoices: state.selectorChoices ?? {}
       };
@@ -130,6 +142,8 @@ export function addPlannedBanner(id: string) {
           id,
           plannedPulls: 0,
           startingDupes: 0,
+          copyGoals: {},
+          ownedCopies: {},
           order: nextOrder
         }
       ]
@@ -160,6 +174,38 @@ export function setPlannedPulls(id: string, plannedPulls: number) {
     plannedBanners: state.plannedBanners.map((banner) =>
       banner.id === id ? { ...banner, plannedPulls } : banner
     )
+  }));
+}
+
+export function setCopyGoal(bannerId: string, cardId: number, copies: number) {
+  useCaratStore.setState((state) => ({
+    plannedBanners: state.plannedBanners.map((banner) => {
+      if (banner.id !== bannerId) return banner;
+      const nextGoals = { ...banner.copyGoals };
+      const value = Math.max(0, Math.min(5, Math.floor(copies || 0)));
+      if (value <= 0) {
+        delete nextGoals[cardId];
+      } else {
+        nextGoals[cardId] = value;
+      }
+      return { ...banner, copyGoals: nextGoals };
+    })
+  }));
+}
+
+export function setOwnedCopies(bannerId: string, cardId: number, copies: number) {
+  useCaratStore.setState((state) => ({
+    plannedBanners: state.plannedBanners.map((banner) => {
+      if (banner.id !== bannerId) return banner;
+      const nextOwned = { ...banner.ownedCopies };
+      const value = Math.max(0, Math.min(4, Math.floor(copies || 0)));
+      if (value <= 0) {
+        delete nextOwned[cardId];
+      } else {
+        nextOwned[cardId] = value;
+      }
+      return { ...banner, ownedCopies: nextOwned };
+    })
   }));
 }
 

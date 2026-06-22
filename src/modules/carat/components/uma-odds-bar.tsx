@@ -16,7 +16,7 @@ export function UmaOddsBar(props: UmaOddsBarProps) {
   const { pickupCount = 1, className } = props;
 
   const chance = umaOutcomeOdds(pickupCount).rateUp;
-  const target = pickupCount > 1 ? 'a rate-up Uma' : 'the rate-up Uma';
+  const target = pickupCount > 1 ? `any one of ${pickupCount} rate-up Umas` : 'the rate-up Uma';
 
   return (
     <p className={cn('min-w-[180px] text-xs leading-snug text-muted-foreground', className)}>

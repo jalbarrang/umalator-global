@@ -9,7 +9,12 @@ import { InfoHint } from '@/modules/carat/components/info-hint';
 import { PlanDragHandle } from '@/modules/carat/components/plan-drag-handle';
 import { PullsField } from '@/modules/carat/components/pulls-field';
 import { RemovePlannedBannerButton } from '@/modules/carat/components/remove-planned-banner-button';
-import { characterPickupCount, resolveBannerLabel } from '@/modules/carat/data/card-names';
+import {
+  characterPickupCount,
+  resolveBannerLabel,
+  supportPickupCount
+} from '@/modules/carat/data/card-names';
+import { TargetGoals } from '@/modules/carat/components/target-goals';
 import type { BannerPlanRow } from '@/modules/carat/model/plan';
 import { cn } from '@/lib/utils';
 
@@ -85,9 +90,11 @@ export function SortablePlanCard(props: SortablePlanCardProps) {
           <CopiesOddsBar
             pulls={row.plannedBanner.plannedPulls}
             startingDupes={row.plannedBanner.startingDupes}
+            pickupCount={supportPickupCount(row.event)}
             className="min-w-0"
           />
         )}
+        <TargetGoals row={row} className="mt-2" />
       </div>
     </div>
   );

@@ -103,6 +103,11 @@ export function CaratCalculatorPage() {
         </div>
       ) : null}
 
+      <p className="mb-4 text-[11px] leading-relaxed text-muted-foreground">
+        Estimates only. Odds use independent-probability models and are not guarantees — your actual
+        results will vary. This is not financial advice; only spend what you can comfortably afford.
+      </p>
+
       <SummaryStats />
 
       <div className="grid items-start gap-4 lg:grid-cols-[330px_1fr]">

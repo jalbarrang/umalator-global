@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 export type CopiesOddsBarProps = {
   pulls: number;
   startingDupes?: number;
+  pickupCount?: number;
   odds?: CopiesOdds;
   className?: string;
 };
@@ -34,11 +35,13 @@ export function CopiesOddsBar(props: CopiesOddsBarProps) {
   const {
     pulls,
     startingDupes = 0,
+    pickupCount = 1,
     odds = copiesOdds({ pulls, startingDupes }),
     className
   } = props;
   const atLeastOne = 1 - odds.none;
   const sparkReached = pulls >= PITY_PULLS;
+  const multiPickup = pickupCount > 1;
 
   return (
     <div className={cn('min-w-[180px] space-y-1.5', className)}>
@@ -76,6 +79,12 @@ export function CopiesOddsBar(props: CopiesOddsBarProps) {
       <div className="text-[11px] text-muted-foreground">
         {sparkReached ? 'Spark reached' : `${Math.max(0, PITY_PULLS - pulls)} pulls to spark`}
       </div>
+      {multiPickup ? (
+        <div className="text-[11px] leading-snug text-muted-foreground">
+          Bar is for <span className="font-medium text-foreground">one</span> targeted card. Use
+          Goals to plan for {pickupCount} rate-up SSRs with different copy targets.
+        </div>
+      ) : null}
     </div>
   );
 }
