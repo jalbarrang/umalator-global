@@ -1,13 +1,13 @@
-export type TimelineCardType = 'character' | 'support' | null;
+type TimelineCardType = 'character' | 'support' | null;
 export type TimelinePredictionKind = 'confirmed' | 'interpolated' | 'extrapolated';
-export type TimelineBannerType = 'character_banner' | 'support_card_banner' | 'paid_banner';
-export type TimelineNonBannerType =
+type TimelineBannerType = 'character_banner' | 'support_card_banner' | 'paid_banner';
+type TimelineNonBannerType =
   | 'campaign'
   | 'story_event'
   | 'champions_meeting'
   | 'legend_race';
 
-export type TimelinePrediction = {
+type TimelinePrediction = {
   kind: TimelinePredictionKind;
   confidence?: number;
   based_on?: string;
@@ -53,7 +53,7 @@ export type TimelineAnniversary = {
   [key: string]: unknown;
 };
 
-export type TimelineCalculation = {
+type TimelineCalculation = {
   generated_at?: string;
   source?: string;
   [key: string]: unknown;

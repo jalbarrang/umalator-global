@@ -21,7 +21,7 @@ interface TutorialState {
 
 type ITutorialStore = TutorialState;
 
-export const useTutorialStore = create<ITutorialStore>()(
+const useTutorialStore = create<ITutorialStore>()(
   persist(
     (_) => ({
       completedTutorials: [],
@@ -56,7 +56,7 @@ export const dismissTutorial = (tutorialId: TutorialId) => {
   }));
 };
 
-export const resetTutorial = (tutorialId: TutorialId) => {
+const resetTutorial = (tutorialId: TutorialId) => {
   useTutorialStore.setState((state) => ({
     completedTutorials: state.completedTutorials.filter((id) => id !== tutorialId),
     dismissedTutorials: state.dismissedTutorials.filter((id) => id !== tutorialId),
@@ -67,7 +67,7 @@ export const resetTutorial = (tutorialId: TutorialId) => {
   }));
 };
 
-export const resetAllTutorials = () => {
+const resetAllTutorials = () => {
   useTutorialStore.setState({
     completedTutorials: [],
     dismissedTutorials: [],
@@ -75,7 +75,7 @@ export const resetAllTutorials = () => {
   });
 };
 
-export const isFirstVisit = (section: string): boolean => {
+const isFirstVisit = (section: string): boolean => {
   const state = useTutorialStore.getState();
   return state.firstVisits[section] !== true;
 };

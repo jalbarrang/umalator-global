@@ -34,7 +34,7 @@ export interface OptimizationParams {
   onProgress?: (progress: OptimizationProgress) => void;
 }
 
-export interface OptimizationStageConfig {
+interface OptimizationStageConfig {
   /** Number of samples for this stage */
   samples: number;
   /** Stage name for logging */

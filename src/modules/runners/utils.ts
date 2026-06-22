@@ -11,7 +11,7 @@ export type UmaSearchEntry = {
   aptitudes: UmaAptitudes;
 };
 
-export type Uma = {
+type Uma = {
   name: Array<string>;
   outfits: Record<string, string>;
 };
@@ -82,7 +82,7 @@ function buildUmaSearchData(includeUpcoming = false): UmaSearchData {
 
 // Base Functions
 
-export const getUmaBaseId = (id: string) => {
+const getUmaBaseId = (id: string) => {
   if (id.length > 4) {
     return id.slice(0, 4);
   }
@@ -90,7 +90,7 @@ export const getUmaBaseId = (id: string) => {
   return id;
 };
 
-export const getUmaById = (id: string) => {
+const getUmaById = (id: string) => {
   const baseId = getUmaBaseId(id);
 
   const uma = umasService.getById(baseId);
@@ -103,13 +103,13 @@ export const getUmaById = (id: string) => {
 };
 
 export type UmaAltId = string;
-export const getUmaAltIds = (includeUpcoming = false) => buildUmaSearchData(includeUpcoming).altIds;
+const getUmaAltIds = (includeUpcoming = false) => buildUmaSearchData(includeUpcoming).altIds;
 
 // Lookup Functions
 
-export const getUmaNamesForSearch = (includeUpcoming = false) =>
+const getUmaNamesForSearch = (includeUpcoming = false) =>
   buildUmaSearchData(includeUpcoming).namesForSearch;
-export const getUmasForSearch = (includeUpcoming = false) =>
+const getUmasForSearch = (includeUpcoming = false) =>
   buildUmaSearchData(includeUpcoming).umasForSearch;
 
 export function useUmasForSearch(includeUpcoming = false): Array<UmaSearchEntry> {
@@ -132,7 +132,7 @@ export function rankForStat(x: number) {
     return Math.floor(x / 50);
   }
 }
-export function searchNames(query: string, includeUpcoming = false) {
+function searchNames(query: string, includeUpcoming = false) {
   const q = query.toUpperCase().replaceAll('.', '');
   const namesForSearch = getUmaNamesForSearch(includeUpcoming);
   return getUmaAltIds(includeUpcoming).filter((oid) => namesForSearch[oid]?.indexOf(q) > -1);
@@ -155,14 +155,14 @@ export const getUmaImageUrl = (outfitId: string | undefined, randomMobId?: numbe
 /**
  * Get the image URL for a random mob
  */
-export const getMobImageUrl = (randomMobId = 8000): string => {
+const getMobImageUrl = (randomMobId = 8000): string => {
   return getIconUrl(`mob/trained_mob_chr_icon_${randomMobId}_000001_01.png`);
 };
 
 /**
  * Get Uma outfit name by outfit ID
  */
-export const getUmaOutfitName = (outfitId: string): string | null => {
+const getUmaOutfitName = (outfitId: string): string | null => {
   try {
     const uma = getUmaById(outfitId);
     return uma.outfits[outfitId] || null;

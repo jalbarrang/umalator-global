@@ -60,7 +60,7 @@ export function OcrDialogProvider(props: Readonly<OcrDialogProviderProps>) {
   return <OcrDialogStoreContext.Provider value={store}>{children}</OcrDialogStoreContext.Provider>;
 }
 
-export function useOcrDialogStore<T>(selector: (state: IOcrDialogStore) => T): T {
+function useOcrDialogStore<T>(selector: (state: IOcrDialogStore) => T): T {
   const store = use(OcrDialogStoreContext);
 
   if (!store) {

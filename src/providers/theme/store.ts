@@ -21,7 +21,7 @@ export const applyTheme = (resolvedTheme: 'light' | 'dark') => {
   root.classList.add(resolvedTheme);
 };
 
-export const defaultThemeState: ThemeState = {
+const defaultThemeState: ThemeState = {
   theme: 'dark'
 };
 

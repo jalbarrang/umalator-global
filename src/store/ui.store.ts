@@ -55,21 +55,21 @@ export const useUIStore = create<IUIStore>()(
   )
 );
 
-export const setRunOnceCounter = (runOnceCounter: number) => {
+const setRunOnceCounter = (runOnceCounter: number) => {
   useUIStore.setState({ runOnceCounter });
 };
 
-export const incrementRunOnceCounter = () => {
+const incrementRunOnceCounter = () => {
   useUIStore.setState((state) => ({
     runOnceCounter: state.runOnceCounter + 1
   }));
 };
 
-export const setIsPacemakerDropdownOpen = (isPacemakerDropdownOpen: boolean) => {
+const setIsPacemakerDropdownOpen = (isPacemakerDropdownOpen: boolean) => {
   useUIStore.setState({ isPacemakerDropdownOpen });
 };
 
-export const toggleShowVirtualPacemakerOnGraph = () => {
+const toggleShowVirtualPacemakerOnGraph = () => {
   useUIStore.setState((state) => ({
     showVirtualPacemakerOnGraph: !state.showVirtualPacemakerOnGraph
   }));

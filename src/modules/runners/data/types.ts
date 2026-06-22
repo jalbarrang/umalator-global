@@ -10,7 +10,7 @@ export interface UmaLookupEntry {
 }
 
 /** Uma data structure from umas.json */
-export interface UmaData {
+interface UmaData {
   name: Array<string>;
   outfits: Record<string, string>;
 }

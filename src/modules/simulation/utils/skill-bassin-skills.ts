@@ -17,7 +17,7 @@ function sortSkills(a: SkillEntry, b: SkillEntry): number {
   return a.name.localeCompare(b.name);
 }
 
-export function getCandidateSkillIdsForPool(
+function getCandidateSkillIdsForPool(
   runner: IRunnerState,
   pool: ActivatableSkillPool
 ): Array<string> {
@@ -34,7 +34,7 @@ export function getCandidateSkillIdsForPool(
   );
 }
 
-export function getActivatableSkillIdsForRace(
+function getActivatableSkillIdsForRace(
   runner: IRunnerState,
   course: CourseData,
   raceParams: RaceParameters,

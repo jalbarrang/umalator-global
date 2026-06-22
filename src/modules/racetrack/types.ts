@@ -5,15 +5,15 @@ export const RegionDisplayType = {
   Marker: 3
 } as const;
 export type IRegionDisplayType = (typeof RegionDisplayType)[keyof typeof RegionDisplayType];
-export const RegionDisplayTypeLabel: Record<IRegionDisplayType, string> = {
+const RegionDisplayTypeLabel: Record<IRegionDisplayType, string> = {
   [RegionDisplayType.Immediate]: 'Immediate',
   [RegionDisplayType.Regions]: 'Regions',
   [RegionDisplayType.Textbox]: 'Textbox',
   [RegionDisplayType.Marker]: 'Marker'
 };
 
-export const regionDisplayTypes: IRegionDisplayType[] = Object.values(RegionDisplayType);
-export const regionDisplayTypeLabels = Object.values(RegionDisplayTypeLabel);
+const regionDisplayTypes: IRegionDisplayType[] = Object.values(RegionDisplayType);
+const regionDisplayTypeLabels = Object.values(RegionDisplayTypeLabel);
 
 // eslint-disable-next-line @typescript-eslint/no-namespace -- grouped layout constants with internal cross-references; an object literal can't self-reference
 export namespace RaceTrackDimensions {
@@ -59,7 +59,7 @@ export namespace RaceTrackDimensions {
   export const UmaSkillSectionRowHeight = UmaSkillSectionHeight / 2;
 }
 
-export const slopeConversionValue = 10000;
+const slopeConversionValue = 10000;
 export const slopeValueToPercentage = (value: number) => {
   return value / slopeConversionValue;
 };

@@ -1,7 +1,7 @@
 import { config } from '@/config';
 import type { TimelinePayload } from './timeline-types';
 
-export class TimelineWorkerUrlMissingError extends Error {
+class TimelineWorkerUrlMissingError extends Error {
   constructor() {
     super('VITE_TIMELINE_WORKER_URL is not configured. Set it to the timeline Worker origin.');
     this.name = 'TimelineWorkerUrlMissingError';

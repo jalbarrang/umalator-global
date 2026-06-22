@@ -228,7 +228,7 @@ function baselineKey(params: WasmCompareParams): string {
 /** Per-run cache of baseline vacuum results, keyed by {@link baselineKey}. */
 export type BaselineCache = Map<string, Promise<WasmCompareData>>;
 
-export async function runSkillComparisonFromEntry(
+async function runSkillComparisonFromEntry(
   entry: SkillSamplingPlanEntry,
   baselineCache?: BaselineCache
 ): Promise<SkillComparisonResult> {

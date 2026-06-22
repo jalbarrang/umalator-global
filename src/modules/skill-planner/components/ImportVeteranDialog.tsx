@@ -21,7 +21,7 @@ type ImportVeteranDialogProps = {
   onImportRunner: (runner: IRunnerState) => void;
 };
 
-export function toRunnerStateSnapshot(runner: ISavedRunner): IRunnerState {
+function toRunnerStateSnapshot(runner: ISavedRunner): IRunnerState {
   return {
     outfitId: runner.outfitId,
     speed: runner.speed,

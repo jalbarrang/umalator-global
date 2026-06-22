@@ -5,7 +5,7 @@
  * @param bashin - The bashin difference (1 bashin = 2.5m)
  * @returns Human-readable string representation
  */
-export function formatBashin(bashin: number): string {
+function formatBashin(bashin: number): string {
   const abs = Math.abs(bashin);
 
   // Very close finishes

@@ -61,7 +61,7 @@ export type MapPinMarkerGeometry = {
   highlightOffsetY: number;
 };
 
-export type MapPinMarkerColors = {
+type MapPinMarkerColors = {
   fill: string;
   stroke: string;
   highlight: string;

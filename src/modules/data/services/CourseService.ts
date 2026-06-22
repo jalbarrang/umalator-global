@@ -10,18 +10,18 @@ import type {
 // =======
 // Types
 // =======
-export type Corner = {
+type Corner = {
   start: number;
   length: number;
 };
 
-export type Straight = {
+type Straight = {
   start: number;
   end: number;
   frontType?: number;
 };
 
-export type Slope = {
+type Slope = {
   start: number;
   length: number;
   slope: number;

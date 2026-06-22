@@ -25,7 +25,7 @@ type BuildRunnerMarkersParams = {
   transform: CanvasTransform;
 };
 
-export function buildRunnerMarkers(p: BuildRunnerMarkersParams): RunnerMarker[] {
+function buildRunnerMarkers(p: BuildRunnerMarkersParams): RunnerMarker[] {
   const {
     runnerIds,
     runnerPositions,
@@ -254,7 +254,7 @@ function paintPackCentroidOnMainCanvas(
   );
 }
 
-export function collectRunnerWorldPositions(p: {
+function collectRunnerWorldPositions(p: {
   runnerIds: number[];
   runnerPositions: Record<number, number>;
   runnerLanes: Record<number, number>;

@@ -45,7 +45,7 @@ export async function downloadJson(runner: IRunnerState, filename: string, creat
   }
 }
 
-export const TRANSPARENT_PIXEL =
+const TRANSPARENT_PIXEL =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQI12NgAAIABQABNjN9GQAAAABJRU5ErkJggg==';
 
 function imageToDataUri(img: HTMLImageElement): Promise<string> {
@@ -76,7 +76,7 @@ function imageToDataUri(img: HTMLImageElement): Promise<string> {
   });
 }
 
-export async function inlineAllImages(element: HTMLElement) {
+async function inlineAllImages(element: HTMLElement) {
   const images = element.querySelectorAll('img');
   await Promise.all(
     Array.from(images).map(async (img) => {

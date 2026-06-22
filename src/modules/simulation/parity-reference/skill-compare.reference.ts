@@ -166,7 +166,7 @@ export function runSkillComparison(params: SkillCompareParams): SkillComparisonR
   };
 }
 
-export const runSampling = (params: Run1RoundParams): SkillComparisonResponse => {
+const runSampling = (params: Run1RoundParams): SkillComparisonResponse => {
   const { nsamples, skills, course, racedef, uma, options } = params;
 
   const data: SkillComparisonResponse = {};

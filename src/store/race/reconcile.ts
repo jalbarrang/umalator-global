@@ -15,7 +15,7 @@ export function reconcileStoresAfterHydration() {
  * Clear selectedPresetId from settings if it references a preset that no longer exists.
  * Called at startup and after preset resets/deletions.
  */
-export function clearSelectedPresetIfInvalid() {
+function clearSelectedPresetIfInvalid() {
   const presets = usePresetStore.getState().presets;
   const selectedPresetId = useSettingsStore.getState().selectedPresetId;
 

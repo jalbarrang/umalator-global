@@ -39,7 +39,7 @@ function slug(value: string) {
 
 // extracted from spreadsheet v5.3 — extend as needed
 // TODO: Fill exhaustive selector rosters once the spreadsheet extract is available.
-export const selectorAnniversarySeeds: Record<string, SelectorAnniversarySeed> = {
+const selectorAnniversarySeeds: Record<string, SelectorAnniversarySeed> = {
   '0-5th-anniversary': {
     id: '0-5th-anniversary',
     selectors: { uma: ['Tokai Teio', 'Mejiro McQueen'], ssr: ['Kitasan Black'] },

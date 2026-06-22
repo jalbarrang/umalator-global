@@ -2,9 +2,9 @@
 // `packages/uma-sim-wasm/src/dto.rs`). Enums cross the boundary as the same
 // numeric codes the app already uses; keys are camelCase.
 
-export type WasmCorner = { start: number; length: number };
-export type WasmStraight = { start: number; end: number; frontType?: number };
-export type WasmSlope = { start: number; length: number; slope: number };
+type WasmCorner = { start: number; length: number };
+type WasmStraight = { start: number; end: number; frontType?: number };
+type WasmSlope = { start: number; length: number; slope: number };
 
 export type WasmCourseData = {
   courseId: number;
@@ -26,7 +26,7 @@ export type WasmCourseData = {
   moveLanePoint: number;
 };
 
-export type WasmStatLine = {
+type WasmStatLine = {
   speed: number;
   stamina: number;
   power: number;
@@ -34,13 +34,13 @@ export type WasmStatLine = {
   wit: number;
 };
 
-export type WasmAptitudes = {
+type WasmAptitudes = {
   distance: number; // 0 S, 1 A, .. 7 G
   strategy: number;
   surface: number;
 };
 
-export type WasmRawEffect = {
+type WasmRawEffect = {
   modifier: number; // raw x10000 units
   target: number; // numeric SkillTarget
   type: number; // numeric SkillType
@@ -48,7 +48,7 @@ export type WasmRawEffect = {
   valueLevelUsage?: number;
 };
 
-export type WasmSkillAlternative = {
+type WasmSkillAlternative = {
   baseDuration: number; // raw x10000 units
   cooldownTime?: number;
   condition: string;
@@ -62,9 +62,9 @@ export type WasmSkillInput = {
   alternatives: WasmSkillAlternative[];
 };
 
-export type WasmForcedRegion = { start: number; end: number };
-export type WasmForcedRank = { start: number; end: number; rank: number };
-export type WasmInjectedDebuff = { skill: WasmSkillInput; position: number };
+type WasmForcedRegion = { start: number; end: number };
+type WasmForcedRank = { start: number; end: number; rank: number };
+type WasmInjectedDebuff = { skill: WasmSkillInput; position: number };
 
 export type WasmCreateRunner = {
   outfitId: string;
@@ -133,7 +133,7 @@ export type WasmRaceSimParams = {
   focusRunnerIds?: number[];
 };
 
-export type WasmFinishEntry = {
+type WasmFinishEntry = {
   runnerId: number;
   name: string;
   strategy: number;
@@ -141,7 +141,7 @@ export type WasmFinishEntry = {
   finishTime: number;
 };
 
-export type WasmTickSample = {
+type WasmTickSample = {
   time: number;
   position: number;
   speed: number;
@@ -149,15 +149,15 @@ export type WasmTickSample = {
   health: number;
 };
 
-export type WasmFocusTrace = {
+type WasmFocusTrace = {
   runnerId: number;
   samples: WasmTickSample[];
   /** Self-cast skill-effect duration logs, keyed by skill id (JS object, not a Map). */
   skillActivations: Record<string, WasmSkillEffectLog[]>;
 };
-export type WasmRoundData = { seed: number; focus: WasmFocusTrace[] };
+type WasmRoundData = { seed: number; focus: WasmFocusTrace[] };
 
-export type WasmRaceEventDetail = {
+type WasmRaceEventDetail = {
   skillId?: string;
   otherRunnerIds?: number[];
   finishPlace?: number;
@@ -165,7 +165,7 @@ export type WasmRaceEventDetail = {
 };
 
 // `kind` is a kebab-case string matching the TS RaceEventKind union.
-export type WasmRaceEvent = {
+type WasmRaceEvent = {
   kind: string;
   runnerId: number;
   position: number;
@@ -215,7 +215,7 @@ export type WasmCompareRoundData = {
   finishPosition: number;
 };
 
-export type WasmCompareRound = {
+type WasmCompareRound = {
   seed: number;
   primaryRunnerId?: number;
   runners: WasmCompareRoundData[];

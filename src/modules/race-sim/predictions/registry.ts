@@ -23,6 +23,6 @@ export function getRaceRoomModelForCourse(courseId: number | undefined): RaceRoo
   return ROOM_MODEL_REGISTRY.find((model) => model.courseId === courseId) ?? null;
 }
 
-export function listRaceRoomModels(): RaceRoomModelSpec[] {
+function listRaceRoomModels(): RaceRoomModelSpec[] {
   return ROOM_MODEL_REGISTRY.slice();
 }

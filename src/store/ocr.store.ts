@@ -6,7 +6,7 @@ type IOcrStore = {
   setGeminiApiKey: (key: string) => void;
 };
 
-export const useOcrStore = create<IOcrStore>()(
+const useOcrStore = create<IOcrStore>()(
   persist(
     (set) => ({
       geminiApiKey: '',

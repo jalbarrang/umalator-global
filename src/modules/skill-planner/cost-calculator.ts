@@ -4,7 +4,7 @@ import { getBaseTier, getUpgradeTier } from '@/modules/skills/skill-relationship
 import { isSkillCoveredByOwnedFamily } from './skill-family';
 
 // Hint level discount mapping (as shown in game screenshots)
-export const HINT_DISCOUNTS: Readonly<Record<HintLevel, number>> = {
+const HINT_DISCOUNTS: Readonly<Record<HintLevel, number>> = {
   0: 0, // No discount
   1: 0.1, // 10% off (Hint Lvl 1)
   2: 0.2, // 20% off (Hint Lvl 2)
@@ -56,7 +56,7 @@ export function getNetCost(candidate: CandidateSkill, hasFastLearner: boolean): 
 /**
  * Get the base cost of a skill without any discounts
  */
-export function getBaseCost(skillId: string): number {
+function getBaseCost(skillId: string): number {
   const skill = skillsService.getById(skillId);
   if (!skill) {
     throw new Error(`Skill not found: ${skillId}`);
@@ -166,7 +166,7 @@ export function calculateDisplayCost(
  * @param hasFastLearner - Whether Fast Learner discount applies
  * @returns Object with total cost and detailed breakdown per skill
  */
-export function calculatePoolCost(
+function calculatePoolCost(
   candidates: Record<string, CandidateSkill>,
   obtainedSkills: Array<string>,
   hasFastLearner: boolean

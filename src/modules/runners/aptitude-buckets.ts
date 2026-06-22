@@ -164,7 +164,7 @@ function maxGrade(grades: string[]): string {
  * style uses the bucket matching the strategy. Used where there is no race
  * (e.g. the Veteran library).
  */
-export function collapsedMax(
+function collapsedMax(
   aptitudes: RunnerAptitudes,
   strategy: IRunnerState['strategy']
 ): Pick<IRunnerState, 'distanceAptitude' | 'surfaceAptitude' | 'strategyAptitude'> {

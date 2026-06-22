@@ -113,7 +113,7 @@ function clampNonOverlapping(regions: Array<ForcedRankRegion>): Array<ForcedRank
 
 // --- Multi-region actions (forced rank) ---
 
-export const addForcedRank = (runnerId: CompareRunnerId, region: ForcedRankRegion) => {
+const addForcedRank = (runnerId: CompareRunnerId, region: ForcedRankRegion) => {
   useScenarioOverridesStore.setState((prev) => {
     const next = [...prev[runnerId].forcedRank, region];
     return {
@@ -125,7 +125,7 @@ export const addForcedRank = (runnerId: CompareRunnerId, region: ForcedRankRegio
   });
 };
 
-export const removeForcedRank = (runnerId: CompareRunnerId, index: number) => {
+const removeForcedRank = (runnerId: CompareRunnerId, index: number) => {
   useScenarioOverridesStore.setState((prev) => ({
     [runnerId]: {
       ...prev[runnerId],

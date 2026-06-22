@@ -20,7 +20,7 @@ export function initEventSkillSources(sources: EventSkillSources): void {
  * Chain events are the sequential story events unique to each support card that
  * fire in order during training (as opposed to random standalone events).
  */
-export function getChainEventSkillIds(supportCardId: number): Set<number> {
+function getChainEventSkillIds(supportCardId: number): Set<number> {
   const entry = eventSkillSources[String(supportCardId)];
   return new Set(entry?.chain_event_skills);
 }
@@ -30,7 +30,7 @@ export function getChainEventSkillIds(supportCardId: number): Set<number> {
  * Random events are standalone events that can fire independently with some
  * probability during training.
  */
-export function getRandomEventSkillIds(supportCardId: number): Set<number> {
+function getRandomEventSkillIds(supportCardId: number): Set<number> {
   const entry = eventSkillSources[String(supportCardId)];
   return new Set(entry?.random_event_skills);
 }

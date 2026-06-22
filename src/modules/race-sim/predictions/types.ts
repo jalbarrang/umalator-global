@@ -3,7 +3,7 @@ export type TensorPayload = {
   data: number[];
 };
 
-export type PassiveEffectSummary = {
+type PassiveEffectSummary = {
   speed: number;
   stamina: number;
   power: number;
@@ -11,18 +11,18 @@ export type PassiveEffectSummary = {
   wisdom: number;
 };
 
-export type PassiveConditionGroup = {
+type PassiveConditionGroup = {
   condition: string;
   effects: PassiveEffectSummary;
 };
 
-export type PassiveSkillCatalogEntry = {
+type PassiveSkillCatalogEntry = {
   skillId: number;
   name: string;
   groups: PassiveConditionGroup[];
 };
 
-export type FrontendPassiveModifiers = {
+type FrontendPassiveModifiers = {
   speed: number;
   stamina: number;
   power: number;

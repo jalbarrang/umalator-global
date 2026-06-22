@@ -421,7 +421,7 @@ export const setObtainedSkills = (skillIds: Array<string>) => {
   });
 };
 
-export const addObtainedSkill = (skillId: string) => {
+const addObtainedSkill = (skillId: string) => {
   const { obtainedSkillIds } = useSkillPlannerStore.getState();
   setObtainedSkills([...obtainedSkillIds, skillId]);
 };
@@ -441,15 +441,15 @@ export const getObtainedSkills = (): Array<string> => {
   return useSkillPlannerStore.getState().obtainedSkillIds;
 };
 
-export const hasObtainedSkill = (skillId: string) => {
+const hasObtainedSkill = (skillId: string) => {
   return isSkillCoveredByOwnedFamily(skillId, useSkillPlannerStore.getState().obtainedSkillIds);
 };
 
-export const hasCandidate = (skillId: string) => {
+const hasCandidate = (skillId: string) => {
   return useSkillPlannerStore.getState().candidates[skillId] !== undefined;
 };
 
-export const canAddToPool = (skillId: string): { canAdd: boolean; reason?: string } => {
+const canAddToPool = (skillId: string): { canAdd: boolean; reason?: string } => {
   const { obtainedSkillIds, runner } = useSkillPlannerStore.getState();
 
   if (!runner.outfitId) {
@@ -542,7 +542,7 @@ export const removeCandidate = (skillId: string) => {
   });
 };
 
-export const clearCandidates = () => {
+const clearCandidates = () => {
   useSkillPlannerStore.setState({
     candidates: {},
     skillMetaById: {},
@@ -763,6 +763,6 @@ export const setLastOptimizationFingerprint = (lastOptimizationFingerprint: stri
   useSkillPlannerStore.setState({ lastOptimizationFingerprint });
 };
 
-export const clearResult = () => {
+const clearResult = () => {
   useSkillPlannerStore.setState({ result: null, lastOptimizationFingerprint: null });
 };

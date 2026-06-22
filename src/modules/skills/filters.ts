@@ -33,7 +33,7 @@ export const groups_filters = {
 };
 
 /** Icon shown on the self-debuff filter chip (e.g. Corner Recovery ×). */
-export const SELF_DEBUFF_FILTER_ICON_ID = '20024';
+const SELF_DEBUFF_FILTER_ICON_ID = '20024';
 
 export const SELF_DEBUFF_ICON_FILTER_KEY = 'selfdebuff';
 

@@ -109,7 +109,7 @@ export async function runCompare(params: WasmCompareParams): Promise<WasmCompare
 }
 
 /** Streaming callbacks for {@link createRaceSimulator}. */
-export type RaceSimCallbacks = {
+type RaceSimCallbacks = {
   onRoundStart?: (seed: number) => void;
   onBeforeTick?: (dt: number) => void;
   onAfterRunnerTick?: (snapshot: RunnerTickSnapshot) => void;
@@ -121,7 +121,7 @@ export type RaceSimCallbacks = {
  * Build a streaming simulator. Callbacks fire live during the returned `run()`;
  * the serialized batch result is returned when all rounds complete.
  */
-export async function createRaceSimulator(
+async function createRaceSimulator(
   params: WasmRaceSimParams,
   callbacks: RaceSimCallbacks = {}
 ): Promise<() => WasmRaceSimResult> {

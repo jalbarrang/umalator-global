@@ -1,7 +1,7 @@
 export const RATEUP_P = 0.0075;
-export const STEPUP_SLOT_P = 0.003;
+const STEPUP_SLOT_P = 0.003;
 export const PITY_PULLS = 200;
-export const MLB_COPIES = 5;
+const MLB_COPIES = 5;
 
 export type CopiesOdds = {
   none: number;
@@ -12,7 +12,7 @@ export type CopiesOdds = {
   mlb: number;
 };
 
-export type CopiesOddsMode = 'standard' | 'stepup';
+type CopiesOddsMode = 'standard' | 'stepup';
 
 export type CopiesOddsInput = {
   pulls: number;
@@ -61,7 +61,7 @@ function binomLogPmf(k: number, n: number, p: number) {
   );
 }
 
-export function binomDist(k: number, n: number, p: number, cumulative: boolean): number {
+function binomDist(k: number, n: number, p: number, cumulative: boolean): number {
   const trials = normalizeCount(n);
   const successes = Math.floor(k);
 
@@ -83,7 +83,7 @@ export function binomPmf(k: number, n: number, p: number): number {
 }
 
 
-export function binomCdf(k: number, n: number, p: number): number {
+function binomCdf(k: number, n: number, p: number): number {
   return binomDist(k, n, p, true);
 }
 
@@ -98,9 +98,9 @@ function tierPmf(totalCopies: number, guaranteed: number, pulls: number, p: numb
 // 2-SSR Maruzensky/Nakayama and 4th Anniv 2-SSR banners), so per-target copy
 // odds are correct as-is; multi-pickup banners only need a labeling caveat that
 // the spark guarantees a single copy of a single card.
-export const TOTAL_3STAR_P = 0.03;
+const TOTAL_3STAR_P = 0.03;
 // "Less than 200 pulls" excludes the guaranteed spark at pull 200.
-export const SUB_SPARK_PULLS = PITY_PULLS - 1;
+const SUB_SPARK_PULLS = PITY_PULLS - 1;
 
 function noneChance(p: number, pulls: number): number {
   return binomPmf(0, Math.max(0, Math.floor(pulls)), p);

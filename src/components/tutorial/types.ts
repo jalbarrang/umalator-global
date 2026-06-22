@@ -7,9 +7,9 @@
 
 export type TutorialId = 'umalator' | 'skill-bassin' | 'uma-bassin' | 'carat-calculator';
 
-export type Side = 'top' | 'bottom' | 'left' | 'right';
-export type Align = 'start' | 'center' | 'end';
-export type ButtonType = 'previous' | 'next' | 'close';
+type Side = 'top' | 'bottom' | 'left' | 'right';
+type Align = 'start' | 'center' | 'end';
+type ButtonType = 'previous' | 'next' | 'close';
 
 /**
  * Tutorial step definition
@@ -43,7 +43,7 @@ export interface TutorialStep {
 /**
  * Tutorial configuration
  */
-export interface TutorialConfig {
+interface TutorialConfig {
   id: TutorialId;
   name: string;
   steps: Array<TutorialStep>;

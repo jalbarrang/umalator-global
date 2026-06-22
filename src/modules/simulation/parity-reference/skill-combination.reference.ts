@@ -94,7 +94,7 @@ type BatchSimulationResult = {
 /**
  * Evaluate multiple skill combinations in batch
  */
-export function runBatchSkillEvaluation(
+function runBatchSkillEvaluation(
   params: SkillPlannerSimulationParams
 ): BatchSimulationResult {
   const results: Array<CombinationSimulationResult> = [];

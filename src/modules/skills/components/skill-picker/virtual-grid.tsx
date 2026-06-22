@@ -3,7 +3,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { cn } from '@/lib/utils';
 import type { SkillEntry } from '@/modules/data/services/SkillService';
 
-export const SKILL_PICKER_ROW_HEIGHT = 52;
+const SKILL_PICKER_ROW_HEIGHT = 52;
 const MOBILE_SKILL_OVERSCAN = 20;
 const DESKTOP_SKILL_OVERSCAN = 8;
 

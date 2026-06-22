@@ -65,7 +65,7 @@ export const mergeSkillResults = (
   };
 };
 
-export const mergeResultSets = (
+const mergeResultSets = (
   resultSetA: SkillComparisonResponse,
   resultSetB: SkillComparisonResponse
 ) => {
@@ -78,7 +78,7 @@ export const mergeResultSets = (
   }
 };
 
-export const calculateStagesFor = (length: number) => {
+const calculateStagesFor = (length: number) => {
   if (length > 100) {
     return [3, 10, 30, 100];
   }

@@ -94,7 +94,7 @@ export function attachSupportCardEventSources(
 /**
  * Attaches both hint and event support-card sources onto skills.
  */
-export function attachSupportCardSources(skills: SkillsMap, supportCards: SupportCardsMap): void {
+function attachSupportCardSources(skills: SkillsMap, supportCards: SupportCardsMap): void {
   attachSupportCardHintSources(skills, supportCards);
   attachSupportCardEventSources(skills, supportCards);
 }

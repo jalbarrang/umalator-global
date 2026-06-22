@@ -85,7 +85,7 @@ const resetCompareRunner = (runner: RunnerType) => {
   useRunnersStore.setState({ [runner]: createRunnerState() });
 };
 
-export const resetRunners = () => {
+const resetRunners = () => {
   useRunnersStore.setState({
     uma1: createRunnerState(),
     uma2: createRunnerState()

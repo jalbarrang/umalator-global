@@ -84,7 +84,7 @@ export const useSettingsStore = create<ISettingsStore>()(
 export const useWitVariance = () =>
   useSettingsStore(useShallow((state) => state.witVarianceSettings));
 
-export const getWitVariance = () => useSettingsStore.getState().witVarianceSettings;
+const getWitVariance = () => useSettingsStore.getState().witVarianceSettings;
 
 export const setWitVariance = (witVarianceSettings: Partial<WitVarianceSettings>) => {
   useSettingsStore.setState((state) => ({
@@ -149,7 +149,7 @@ export const useRaceTrackDisplay = () =>
     }))
   );
 
-export const setRaceTrackDisplay = (partial: Partial<RaceTrackDisplaySettings>) => {
+const setRaceTrackDisplay = (partial: Partial<RaceTrackDisplaySettings>) => {
   useSettingsStore.setState(partial);
 };
 
@@ -158,4 +158,4 @@ export const toggleRaceTrackDisplay = (key: keyof RaceTrackDisplaySettings) => {
 };
 
 /** @deprecated Use useRaceTrackDisplay instead */
-export const useRaceTrackUI = useRaceTrackDisplay;
+const useRaceTrackUI = useRaceTrackDisplay;

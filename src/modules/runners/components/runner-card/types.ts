@@ -1,7 +1,7 @@
 import type { IMood, IStrategyName } from 'sunday-tools/runner/definitions';
 import { Mood } from 'sunday-tools/runner/definitions';
 
-export const defaultRunnerState: IRunnerState = {
+const defaultRunnerState: IRunnerState = {
   outfitId: '',
   speed: 1200,
   stamina: 1200,

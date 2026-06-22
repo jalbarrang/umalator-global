@@ -18,7 +18,7 @@ export interface FirstUMAStats {
   uma2: FirstUMAStatsUma1;
 }
 
-export interface FirstUMAStatsUma1 {
+interface FirstUMAStatsUma1 {
   firstPlaceRate: number;
 }
 
@@ -27,7 +27,7 @@ export interface Stats {
   uma2: LeadCompetitionStatsUma1;
 }
 
-export interface LeadCompetitionStatsUma1 {
+interface LeadCompetitionStatsUma1 {
   min: number;
   max: number;
   mean: number;
@@ -122,7 +122,7 @@ export interface SkillSimulationRun {
 }
 
 // [RegionStart, RegionEnd]
-export type RegionActivation = [number, number];
+type RegionActivation = [number, number];
 
 /**
  * Metadata for tracking skill activations
@@ -159,7 +159,7 @@ export interface StaminaStats {
   uma2: StaminaStatsUma1;
 }
 
-export interface StaminaStatsUma1 {
+interface StaminaStatsUma1 {
   staminaSurvivalRate: number;
   fullSpurtRate: number;
 }

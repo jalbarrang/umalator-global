@@ -3,7 +3,7 @@ import { getIconUrl } from '@/assets/icons';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 
-export type Stats = {
+type Stats = {
   speed: number;
   stamina: number;
   power: number;

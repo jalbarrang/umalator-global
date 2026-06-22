@@ -1,15 +1,9 @@
 import type { RoundResult, SkillComparisonRoundResult } from '@/modules/simulation/types';
 
 // Re-export chart utilities for external consumers
-export {
-  PHASE_COLORS,
-  DEFAULT_BIN_SIZE,
-  getPhaseForPosition,
-  getPhaseReferenceLines,
-  createDistanceBins
-} from './charts/utils';
+;
 
-export function getNullRow(skillid: string): RoundResult {
+function getNullRow(skillid: string): RoundResult {
   return {
     id: skillid,
     min: 0,

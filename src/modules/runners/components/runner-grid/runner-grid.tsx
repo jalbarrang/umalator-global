@@ -10,10 +10,10 @@ export function meetsMinGrade(actual: string, min: string): boolean {
   return aptitudeNames.indexOf(actual as any) <= aptitudeNames.indexOf(min as any);
 }
 
-export const CARD_HEIGHT = 182;
-export const GAP = 8;
-export const ROW_HEIGHT = CARD_HEIGHT + GAP;
-export const OVERSCAN = 2;
+const CARD_HEIGHT = 182;
+const GAP = 8;
+const ROW_HEIGHT = CARD_HEIGHT + GAP;
+const OVERSCAN = 2;
 
 type IVirtualRunnerGridProps = {
   items: ISavedRunner[];

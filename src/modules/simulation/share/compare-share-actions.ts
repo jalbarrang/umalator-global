@@ -15,7 +15,7 @@ import type { RaceConditions } from '@/utils/races';
 import type { SimulationData, SimulationRun } from '@/modules/simulation/compare.types';
 import type { CompareShareCardProps, CompareShareStatRow } from './compare-share-card';
 
-export function resolveCompareChartData(race: {
+function resolveCompareChartData(race: {
   chartData: SimulationRun | null;
   runData: SimulationData | null;
   displaying: string;
@@ -33,7 +33,7 @@ const groundConditions: Record<number, string> = {
   4: 'Heavy'
 };
 
-export function getRaceSettingsSummaryLine(courseId: number, racedef: RaceConditions): string {
+function getRaceSettingsSummaryLine(courseId: number, racedef: RaceConditions): string {
   const trackId = getDefaultTrackIdForCourse(courseId);
   const trackName = i18n.t(`tracknames.${trackId}`);
   const courseDesc = trackDescription({ courseid: courseId });

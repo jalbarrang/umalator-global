@@ -1,6 +1,6 @@
 export type OcrMaskType = 'full-details-own' | 'full-details-other' | 'skills-only';
 
-export interface CanvasTransform {
+interface CanvasTransform {
   x: number;
   y: number;
   scale: number;

@@ -3,7 +3,7 @@ import type { SkillEntry } from '@/modules/data/services/SkillService';
 import type { SkillCostSummary } from '@/modules/skills/skill-cost-summary';
 import type { SkillMeta } from './context';
 
-export type SkillItemRootSize = 'default' | 'summary';
+type SkillItemRootSize = 'default' | 'summary';
 
 export type SkillItemIdentityProps = {
   iconId?: string;

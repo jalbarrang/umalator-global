@@ -1,0 +1,55 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "ignoreBinaries": ["rustup", "wasm-pack"],
+  "rules": {
+    "files": "off",
+    "duplicates": "off",
+    "namespaceMembers": "off"
+  },
+  "ignoreDependencies": [
+    "tailwindcss",
+    "tw-animate-css",
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/github",
+    "@semantic-release/npm",
+    "@semantic-release/release-notes-generator"
+  ],
+  "ignore": [".agents/**", "**/*.test.ts", "src/components/ui/**"],
+  "workspaces": {
+    ".": {
+      "entry": [
+        "src/main.tsx",
+        "scripts/**/*.ts",
+        "src/components/work-in-progress.tsx",
+        "src/lib/feature-flags.ts",
+        "src/modules/race-sim/components/FinishOrderTable.tsx",
+        "src/modules/race-sim/components/RunnerTile.tsx",
+        "src/modules/race-sim/components/RunnerTileEditor.tsx",
+        "src/modules/race-sim/components/StrategyBadge.tsx",
+        "src/modules/race-sim/components/SwimLanesView.tsx",
+        "src/modules/race-sim/share/index.ts",
+        "src/modules/racetrack/chrome/track-header.tsx",
+        "src/modules/racetrack/components/distance-marker.tsx",
+        "src/modules/racetrack/layers/forced-rank-bar.tsx",
+        "src/modules/racetrack/primitives/skill-marker.tsx",
+        "src/modules/runners/components/ocr/components/ocr-preview-panel.tsx",
+        "src/modules/runners/components/ocr/components/ocr-unrecognized.tsx",
+        "src/modules/runners/components/runner-card/aptitudes-table.tsx",
+        "src/modules/simulation/components/ScenarioOverrideGroup.tsx",
+        "src/modules/simulation/tabs/distribution-tab.tsx",
+        "src/modules/simulation/tabs/runner-stats-tab.tsx",
+        "src/modules/simulation/tabs/summary-tab.tsx",
+        "src/modules/skill-planner/components/HelpDialog.tsx",
+        "src/modules/skills/components/skill-picker/drawer.tsx",
+        "src/modules/skills/components/SkillItemRows.tsx",
+        "src/modules/skills/effects-query.ts",
+        "src/routes/_tools/stamina-calculator.tsx",
+        "src/utils/settings.ts"
+      ],
+      "project": ["src/**/*.{ts,tsx}", "scripts/**/*.ts"]
+    },
+    "packages/sunday-tools": { "project": ["src/**/*.ts"] },
+    "workers/timeline-proxy": { "project": ["src/**/*.ts"] },
+    "workers/suggestion-bot": { "project": ["src/**/*.ts"] }
+  }
+}

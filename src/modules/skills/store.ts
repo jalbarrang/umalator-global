@@ -40,7 +40,7 @@ export const updateCurrentSkills = (skills: Array<string>) => {
   useSkillModalStore.setState({ currentSkills: skills });
 };
 
-export const resetSkillPicker = () => {
+const resetSkillPicker = () => {
   useSkillModalStore.setState({
     umaId: '',
     options: [],

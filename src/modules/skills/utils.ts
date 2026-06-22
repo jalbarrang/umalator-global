@@ -4,7 +4,7 @@ import { skillsService } from '@/modules/data/services/SkillService';
 
 // Methods
 
-export const getBaseSkillId = (id: string): string => {
+const getBaseSkillId = (id: string): string => {
   const [skillId] = id.split('-');
 
   if (!skillId) {
@@ -140,7 +140,7 @@ export const matchRarity = (skillId: string, rarityB: string) => {
  * - Phase 2 (Late-race): Sections 17-20 (~66.7% to ~83.3% of course)
  * - Phase 3 (Last Spurt): Sections 21-24 (~83.3% to 100%)
  */
-export function estimateSkillActivationPhase(skillId: string): number | null {
+function estimateSkillActivationPhase(skillId: string): number | null {
   const data = skillsService.getById(skillId);
   if (!data?.alternatives?.[0]?.condition) return null;
 

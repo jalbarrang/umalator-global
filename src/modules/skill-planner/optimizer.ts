@@ -28,7 +28,7 @@ import { calculateCombinationCost } from './combination-cost';
 /**
  * Input parameters for skill optimization
  */
-export interface OptimizerInput {
+interface OptimizerInput {
   /** Skills already owned from career (cost = 0, always included) */
   obtainedSkills: Array<string>;
   /** Candidate skills available to purchase */

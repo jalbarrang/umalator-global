@@ -19,6 +19,6 @@ export function binSearch(a: Array<number>, x: number) {
   return Math.abs(a[lo] - x) < Math.abs(a[hi] - x) ? lo : hi;
 }
 
-export function id(x: number) {
+function id(x: number) {
   return x;
 }

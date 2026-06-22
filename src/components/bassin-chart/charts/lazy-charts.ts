@@ -14,7 +14,7 @@ export const LazyLengthDifferenceChart = lazy(() =>
 );
 
 /** Reserved for upcoming activation frequency UI — use this export when wiring the feature. */
-export const LazyActivationFrequencyChart = lazy(() =>
+const LazyActivationFrequencyChart = lazy(() =>
   import('./activation-frequency-chart').then((module) => ({
     default: module.ActivationFrequencyChart
   }))

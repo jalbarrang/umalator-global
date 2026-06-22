@@ -98,7 +98,7 @@ function toBase64(buffer: ArrayBuffer): string {
   return btoa(binary);
 }
 
-export async function blobToBase64(imageData: Blob | File): Promise<{
+async function blobToBase64(imageData: Blob | File): Promise<{
   base64: string;
   mimeType: string;
 }> {
@@ -110,7 +110,7 @@ export async function blobToBase64(imageData: Blob | File): Promise<{
   };
 }
 
-export function buildGeminiRequestBody(imageBase64: string, mimeType: string) {
+function buildGeminiRequestBody(imageBase64: string, mimeType: string) {
   return {
     contents: [
       {
@@ -137,7 +137,7 @@ export function buildGeminiRequestBody(imageBase64: string, mimeType: string) {
   };
 }
 
-export function extractGeminiResponseText(response: unknown): string {
+function extractGeminiResponseText(response: unknown): string {
   if (!isRecord(response)) {
     throw new Error('Gemini returned an invalid response payload');
   }
@@ -165,7 +165,7 @@ export function extractGeminiResponseText(response: unknown): string {
   return text;
 }
 
-export function stripMarkdownFences(value: string): string {
+function stripMarkdownFences(value: string): string {
   const trimmed = value.trim();
   const match = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
 
@@ -244,7 +244,7 @@ function validateGeminiJson(value: unknown): GeminiStructuredResponse {
   };
 }
 
-export function parseGeminiJsonResponse(text: string): GeminiStructuredResponse {
+function parseGeminiJsonResponse(text: string): GeminiStructuredResponse {
   const jsonText = stripMarkdownFences(text);
 
   try {
@@ -258,7 +258,7 @@ export function parseGeminiJsonResponse(text: string): GeminiStructuredResponse 
   }
 }
 
-export function mapGeminiStrategyName(strategy: string): IStrategyName | undefined {
+function mapGeminiStrategyName(strategy: string): IStrategyName | undefined {
   const normalized = strategy.trim().toLowerCase();
 
   return STRATEGY_NAME_MAP[normalized];
@@ -297,7 +297,7 @@ function mapGeminiSkills(skills: Array<string>): Array<ExtractedSkill> {
   return extractedSkills;
 }
 
-export function mapGeminiStructuredData(
+function mapGeminiStructuredData(
   payload: GeminiStructuredResponse
 ): Partial<ExtractedUmaData> {
   const structured: Partial<ExtractedUmaData> = {

@@ -35,7 +35,7 @@ export type BuiltTrackPath = {
 const SAMPLE_EVERY_M = 2;
 const HALF_PI = Math.PI / 2;
 
-export function turnSignFromOrientation(turn: IOrientation): number {
+function turnSignFromOrientation(turn: IOrientation): number {
   if (turn === Orientation.NoTurns) return 0;
   if (turn === Orientation.Counterclockwise) return 1;
   return -1;
@@ -44,7 +44,7 @@ export function turnSignFromOrientation(turn: IOrientation): number {
 /**
  * Unit vector pointing from the inner rail toward the outer rail (positive `currentLane`).
  */
-export function outwardFromInnerRail(heading: number, turnSign: number): { x: number; y: number } {
+function outwardFromInnerRail(heading: number, turnSign: number): { x: number; y: number } {
   if (turnSign === 0) {
     return { x: -Math.sin(heading), y: Math.cos(heading) };
   }

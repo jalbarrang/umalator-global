@@ -15,7 +15,7 @@ type IAlternativeDetailsProps = {
   distanceFactor?: number;
 };
 
-export function AlternativeDetails(props: Readonly<IAlternativeDetailsProps>) {
+function AlternativeDetails(props: Readonly<IAlternativeDetailsProps>) {
   const { alternative, distanceFactor } = props;
   const precondition = alternative.precondition ?? '';
 

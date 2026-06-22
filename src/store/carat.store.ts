@@ -5,7 +5,7 @@ import { defaultPaidPackPurchases, type PaidPackPurchases } from '@/modules/cara
 const CARAT_STORE_NAME = 'umalator-carat';
 
 export type CaratServer = 'global' | 'jp';
-export type TrainingPass = 'none' | 'free' | 'paid';
+type TrainingPass = 'none' | 'free' | 'paid';
 
 export type CaratSettings = {
   server: CaratServer;
@@ -69,7 +69,7 @@ export const defaultCaratSettings: CaratSettings = {
   trackPaidCarats: false
 };
 
-export const defaultPlannedBanners: PlannedBanner[] = [
+const defaultPlannedBanners: PlannedBanner[] = [
   {
     id: 'example-banner',
     plannedPulls: 200,
@@ -251,6 +251,6 @@ export function setSelectorChoice(anniversaryId: string, choice: Partial<Selecto
   }));
 }
 
-export function resetCaratPlan() {
+function resetCaratPlan() {
   useCaratStore.setState(initialCaratState);
 }

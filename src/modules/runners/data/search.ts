@@ -20,7 +20,7 @@ export function normalize(text: string): string {
 }
 
 /** Levenshtein distance for fuzzy matching */
-export function levenshteinDistance(a: string, b: string): number {
+function levenshteinDistance(a: string, b: string): number {
   const matrix: Array<Array<number>> = [];
 
   for (let i = 0; i <= b.length; i++) {
@@ -49,7 +49,7 @@ export function levenshteinDistance(a: string, b: string): number {
 }
 
 /** Calculate similarity ratio (0-1) */
-export function similarity(a: string, b: string): number {
+function similarity(a: string, b: string): number {
   const normalizedA = normalize(a);
   const normalizedB = normalize(b);
 
@@ -157,7 +157,7 @@ export function findBestUmaMatch(outfit: string, umaName: string): UmaMatch | nu
 // =============================================================================
 
 /** Export lookup sizes for debugging */
-export function getSearchDebugInfo() {
+function getSearchDebugInfo() {
   return {
     umaLookupSize: getUmaLookup().size
   };

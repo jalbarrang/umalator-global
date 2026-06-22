@@ -4,7 +4,7 @@ import { config } from '@/config';
 
 const courseGeometryUrl = `${config.basePath}data/course_geometry.json`;
 
-export type CourseGeometryRotation = {
+type CourseGeometryRotation = {
   x: number;
   y: number;
   z: number;
@@ -54,7 +54,7 @@ export async function getCourseGeometry(courseId: number): Promise<CourseGeometr
   return courseGeometry[String(courseId)] ?? null;
 }
 
-export const useFetchAllCourseGeometry = () => {
+const useFetchAllCourseGeometry = () => {
   return useQuery({
     queryKey: ['courseGeometry'],
     queryFn: loadCourseGeometry,

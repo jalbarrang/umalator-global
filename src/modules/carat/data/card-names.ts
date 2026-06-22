@@ -9,9 +9,9 @@ type CharacterCardRecord = {
   rarity: number;
 };
 
-export type CharacterCardName = Pick<CharacterCardRecord, 'name_en' | 'char_id' | 'rarity'>;
+type CharacterCardName = Pick<CharacterCardRecord, 'name_en' | 'char_id' | 'rarity'>;
 
-export const characterCardNameMap = new Map<number, CharacterCardName>(
+const characterCardNameMap = new Map<number, CharacterCardName>(
   (characterCards as CharacterCardRecord[]).map((card) => [
     card.card_id,
     {

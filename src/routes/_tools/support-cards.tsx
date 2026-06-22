@@ -132,7 +132,7 @@ function getSupportCardData(): SupportCardData {
 
 const SUPPORT_CARD_FALLBACK_IMAGE = `${config.basePath}img/support-cards/support_thumb_00000.png`;
 
-export function getSupportCardImageUrl(cardId: number) {
+function getSupportCardImageUrl(cardId: number) {
   return `${config.basePath}img/support-cards/support_card_s_${cardId}.png`;
 }
 

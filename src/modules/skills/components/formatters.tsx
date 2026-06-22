@@ -203,7 +203,7 @@ function forceSign(n: number) {
   return n <= 0 ? n.toString() : '+' + n;
 }
 
-export const formatStat = forceSign;
+const formatStat = forceSign;
 
 function formatSpeed(n: number) {
   return i18n.t('skilldetails.speed', { n: forceSign(n) });

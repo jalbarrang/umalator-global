@@ -15,7 +15,7 @@ export type SkillCostMeta = {
   removed?: boolean;
 };
 
-export type RunnerCostSettings = {
+type RunnerCostSettings = {
   hasFastLearner: boolean;
 };
 
@@ -144,11 +144,11 @@ export const setBought = (runnerId: string, skillId: string, bought: boolean) =>
   });
 };
 
-export const setReceived = (runnerId: string, skillId: string, received: boolean) => {
+const setReceived = (runnerId: string, skillId: string, received: boolean) => {
   updateSkillMeta(runnerId, skillId, { received });
 };
 
-export const setRemoved = (runnerId: string, skillId: string, removed: boolean) => {
+const setRemoved = (runnerId: string, skillId: string, removed: boolean) => {
   updateSkillMeta(runnerId, skillId, { removed });
 };
 
@@ -157,7 +157,7 @@ export const getSkillCostMeta = (runnerId: string, skillId: string): SkillCostMe
   return resolveMeta(state, runnerId, skillId);
 };
 
-export const getNetCostForSkill = (runnerId: string, skillId: string): number => {
+const getNetCostForSkill = (runnerId: string, skillId: string): number => {
   const state = useSkillCostMetaStore.getState();
   const meta = resolveMeta(state, runnerId, skillId);
 
@@ -191,7 +191,7 @@ export function computeSkillCostSummary(
 /**
  * Computes the total net cost for a skill, including representative prerequisite/family costs.
  */
-export function computeTotalNetCost(
+function computeTotalNetCost(
   skillId: string,
   runnerId: string,
   skillMetaMap: Record<string, SkillCostMeta>,
@@ -209,11 +209,11 @@ export const setFastLearner = (runnerId: string, hasFastLearner: boolean) => {
   }));
 };
 
-export const runnerHasFastLearner = (runnerId: string): boolean => {
+const runnerHasFastLearner = (runnerId: string): boolean => {
   return useSkillCostMetaStore.getState().runnerSettingsById[runnerId]?.hasFastLearner ?? false;
 };
 
-export const useSkillCostMeta = (runnerId: string, skillId: string) => {
+const useSkillCostMeta = (runnerId: string, skillId: string) => {
   return useSkillCostMetaStore(useShallow((state) => resolveMeta(state, runnerId, skillId)));
 };
 

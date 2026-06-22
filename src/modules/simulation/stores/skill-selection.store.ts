@@ -16,7 +16,7 @@ export const useSkillSelectionStore = create<SkillSelectionState>()(() => ({
  * Initialize the selection with all released + simulatable skills.
  * No-ops if already initialized.
  */
-export const initializeSkillSelection = () => {
+const initializeSkillSelection = () => {
   if (useSkillSelectionStore.getState().initialized) return;
 
   const baseSkills = getBaseSkillsToTest();
@@ -39,7 +39,7 @@ export const resetSkillSelectionForRace = (releasedActivatableIds: Array<string>
   });
 };
 
-export const setSelectedSkillIds = (ids: Set<string>) => {
+const setSelectedSkillIds = (ids: Set<string>) => {
   useSkillSelectionStore.setState({ selectedSkillIds: ids });
 };
 
@@ -84,7 +84,7 @@ export const deselectAllSkills = (skillIds: Array<string>) => {
 /**
  * Preset: select only released skills.
  */
-export const selectReleasedOnly = () => {
+const selectReleasedOnly = () => {
   const baseSkills = getBaseSkillsToTest();
   const simulatable = skillsService.filterSimulatable(baseSkills);
   const released = new Set(simulatable.filter((id) => skillsService.isReleased(id)));
@@ -95,7 +95,7 @@ export const selectReleasedOnly = () => {
 /**
  * Preset: select all simulatable skills (released + upcoming).
  */
-export const selectAll = () => {
+const selectAll = () => {
   const baseSkills = getBaseSkillsToTest();
   const simulatable = new Set(skillsService.filterSimulatable(baseSkills));
 
@@ -105,7 +105,7 @@ export const selectAll = () => {
 /**
  * Preset: select only upcoming (unreleased) skills.
  */
-export const selectUpcomingOnly = () => {
+const selectUpcomingOnly = () => {
   const baseSkills = getBaseSkillsToTest();
   const simulatable = skillsService.filterSimulatable(baseSkills);
   const upcoming = new Set(simulatable.filter((id) => !skillsService.isReleased(id)));
@@ -116,6 +116,6 @@ export const selectUpcomingOnly = () => {
 /**
  * Preset: clear all selections.
  */
-export const clearSelection = () => {
+const clearSelection = () => {
   useSkillSelectionStore.setState({ selectedSkillIds: new Set() });
 };

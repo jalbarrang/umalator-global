@@ -322,7 +322,7 @@ function AppFooter() {
   );
 }
 
-export function NotFoundComponent() {
+function NotFoundComponent() {
   const navigate = useNavigate();
 
   return (

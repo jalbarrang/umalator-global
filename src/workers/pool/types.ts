@@ -57,9 +57,9 @@ export type WorkerOutMessage =
   | { type: 'worker-error'; workerId: number; error: string };
 
 // Skill Basin specific messages
-export type SkillBasinWorkerInMessage = WorkerInMessage;
-export type SkillBasinWorkerOutMessage = WorkerOutMessage;
+type SkillBasinWorkerInMessage = WorkerInMessage;
+type SkillBasinWorkerOutMessage = WorkerOutMessage;
 
 // Uma Basin specific messages
-export type UmaBasinWorkerInMessage = WorkerInMessage;
-export type UmaBasinWorkerOutMessage = WorkerOutMessage;
+type UmaBasinWorkerInMessage = WorkerInMessage;
+type UmaBasinWorkerOutMessage = WorkerOutMessage;

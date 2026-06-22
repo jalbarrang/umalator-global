@@ -24,7 +24,7 @@ function safeRecordValue<T>(record: Record<string, T>, key: string, fallback: T)
   return record[key] ?? fallback;
 }
 
-export function normalizeToResetDate(date: Date) {
+function normalizeToResetDate(date: Date) {
   const normalized = new Date(date);
   normalized.setUTCHours(RESET_HOUR_UTC, 0, 0, 0);
 

@@ -96,7 +96,7 @@ export function createCanvasTransform(
   };
 }
 
-export function computePackBoundsFromWorldPoints(
+function computePackBoundsFromWorldPoints(
   points: Array<{ x: number; y: number }>,
   courseWidth: number
 ): Bounds {
@@ -156,7 +156,7 @@ export function toCanvas(
   };
 }
 
-export function clampZoom(zoom: number): number {
+function clampZoom(zoom: number): number {
   return clamp(zoom, 0.6, 6);
 }
 

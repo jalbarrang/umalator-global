@@ -7,7 +7,7 @@ import type {
 import type { CourseData } from 'sunday-tools/course/definitions';
 import type { RaceParameters } from 'sunday-tools/common/race';
 
-export type FilterReason = 'negligible-effect' | 'low-variance' | null;
+type FilterReason = 'negligible-effect' | 'low-variance' | null;
 
 export type RoundResult = {
   id: string;
@@ -20,7 +20,7 @@ export type RoundResult = {
   filterReason?: FilterReason;
 };
 
-export type SkillBasinResponse = Record<string, RoundResult>;
+type SkillBasinResponse = Record<string, RoundResult>;
 
 export type SkillComparisonRoundResult = {
   id: string;
@@ -71,7 +71,7 @@ export type RunComparisonParams = {
   options: SimulationOptions;
 };
 
-export type ForcedPositionsMap = {
+type ForcedPositionsMap = {
   uma1: Record<string, number>;
   uma2: Record<string, number>;
 };

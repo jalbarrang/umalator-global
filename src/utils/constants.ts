@@ -1,6 +1,6 @@
 export const DEFAULT_SAMPLES = 500;
 
-export const hiddenSkills: ReadonlyArray<string> = [
+const hiddenSkills: ReadonlyArray<string> = [
   '10011',
   '10012',
   '10016',

@@ -194,14 +194,14 @@ export function setSpeed(speed: PlaybackSpeed) {
   usePlaybackStore.setState({ speed });
 }
 
-export function tick(nextTick: number) {
+function tick(nextTick: number) {
   usePlaybackStore.setState({
     currentTick: nextTick,
     currentTimeDisplay: toTimeDisplay(nextTick)
   });
 }
 
-export function stopPlaying() {
+function stopPlaying() {
   usePlaybackStore.setState({ isPlaying: false });
 }
 

@@ -1,7 +1,7 @@
 const multiplier = 2;
 export const TICKS_PER_SECOND = 15 * multiplier;
 /** Converts sim-seconds to display-seconds. */
-export const SIM_TO_DISPLAY_RATIO = 1.18;
+const SIM_TO_DISPLAY_RATIO = 1.18;
 /**
  * Tick-rate-adjusted factor: `(tick / TICKS_PER_SECOND) * SIM_TO_DISPLAY_SECONDS`
  * gives display-seconds. Only use with tick-based formulas.
@@ -19,7 +19,7 @@ export function simToDisplaySeconds(simSeconds: number): number {
 }
 
 /** Convert display-seconds to the nearest tick (seek / hotkey jumps). */
-export function displaySecondsToTicks(displaySeconds: number): number {
+function displaySecondsToTicks(displaySeconds: number): number {
   return Math.round((displaySeconds * TICKS_PER_SECOND) / SIM_TO_DISPLAY_SECONDS);
 }
 
@@ -39,7 +39,7 @@ export const PHASE_LABELS = ['Early-race', 'Mid-race', 'Late-race', 'Last Spurt'
 
 // Colors sourced from the racetrack PhaseBar (phase-bar.tsx) at reduced opacity
 // so they work as region backgrounds on both light and dark themes.
-export const PHASE_COLORS = [
+const PHASE_COLORS = [
   { main: 'rgb(0, 154, 111)', accent: 'rgb(0, 92, 66)' },
   { main: 'rgb(242, 233, 103)', accent: 'rgb(190, 179, 16)' },
   { main: 'rgb(209, 134, 175)', accent: 'rgb(149, 56, 107)' },
@@ -53,5 +53,5 @@ export const PHASE_STYLES: ReadonlyArray<{ label: string; fill: string; stroke: 
   { label: PHASE_LABELS[3], fill: 'rgba(199, 109, 159, 0.15)', stroke: 'rgba(133, 51, 96, 0.40)' }
 ];
 
-export const TERRAIN_COLOR = 'rgb(211, 243, 68)';
-export const TERRAIN_LINE_COLOR = 'rgb(140, 170, 10)';
+const TERRAIN_COLOR = 'rgb(211, 243, 68)';
+const TERRAIN_LINE_COLOR = 'rgb(140, 170, 10)';

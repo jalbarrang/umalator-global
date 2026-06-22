@@ -19,7 +19,7 @@ export type SkillReferenceEntry = {
   iconId: string;
 };
 
-export type SkillGeneVersionEntry = SkillReferenceEntry;
+type SkillGeneVersionEntry = SkillReferenceEntry;
 
 export type SkillUmaSourceEntry = {
   outfitId: number;

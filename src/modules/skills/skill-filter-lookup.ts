@@ -65,7 +65,7 @@ function getConditionFilterMap(): ConditionFilterMap {
   return conditionFilterMapCache;
 }
 
-export const generateSkillFilterLookUp = (skillsToMatch: SkillsMap) => {
+const generateSkillFilterLookUp = (skillsToMatch: SkillsMap) => {
   const filterLookup: Record<string, Set<string>> = {};
   const filterMapEntries = Object.entries(getConditionFilterMap());
 

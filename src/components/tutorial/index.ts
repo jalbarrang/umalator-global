@@ -33,10 +33,10 @@
 export {
   TutorialProvider,
   useTutorial,
-  useCurrentStep,
-  useTutorialProgress
+  
+  
 } from './tutorial-context';
 export { TutorialRoot } from './tutorial-root';
-export { TutorialOverlay } from './tutorial-overlay';
-export { TutorialPopover } from './tutorial-popover';
-export type { TutorialStep, TutorialConfig, TutorialId } from './types';
+;
+;
+export type { TutorialStep,  TutorialId } from './types';

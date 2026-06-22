@@ -1,6 +1,6 @@
 const env = import.meta.env;
 
-export const appEnv: Record<string, string | undefined> = {
+const appEnv: Record<string, string | undefined> = {
   VITE_BASE_PATH: env.VITE_BASE_PATH,
 
   VITE_REACT_SCAN: env.VITE_REACT_SCAN ?? 'false',
@@ -35,7 +35,7 @@ export function envBoolean(name: string, defaultValue: boolean = false): boolean
   return defaultValue;
 }
 
-export function envNumber(name: string, defaultValue: number = 0): number {
+function envNumber(name: string, defaultValue: number = 0): number {
   const val = envString(name, '');
 
   if (val == '') return defaultValue;
@@ -44,10 +44,10 @@ export function envNumber(name: string, defaultValue: number = 0): number {
   return !Number.isNaN(n) ? n : defaultValue;
 }
 
-export function setEnv(key: string, value: string | number | boolean) {
+function setEnv(key: string, value: string | number | boolean) {
   localStorage.setItem(key, String(value));
 }
 
-export function deleteEnv(key: string) {
+function deleteEnv(key: string) {
   localStorage.removeItem(key);
 }

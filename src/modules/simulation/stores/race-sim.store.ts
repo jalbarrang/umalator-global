@@ -48,7 +48,7 @@ const createDefaultRunner = (strategy: IRunnerState['strategy']): IRunnerState =
   randomMobId: Math.floor(Math.random() * 624) + 8000
 });
 
-export const generateDefaultFieldAsRunnerState = (): IRunnerState[] => {
+const generateDefaultFieldAsRunnerState = (): IRunnerState[] => {
   return DEFAULT_FIELD_STRATEGIES.map((strategy) => createDefaultRunner(strategy));
 };
 
@@ -122,7 +122,7 @@ export const updateRunner = (index: number, partial: Partial<IRunnerState>) => {
   });
 };
 
-export const randomizeField = () => {
+const randomizeField = () => {
   useRaceSimStore.setState({
     runners: generateDefaultFieldAsRunnerState(),
     focusRunnerIndices: [],

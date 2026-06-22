@@ -11,8 +11,8 @@ import { predictEncodedRoom } from './runtime';
 import { runnersToRaceHorseInfo } from './adapter';
 import type { FrontendModel, RaceRoomModelSpec, RaceRoomPredictionResult } from './types';
 
-export type { RaceRoomModelSpec, RaceRoomPrediction, RaceRoomPredictionResult } from './types';
-export { getRaceRoomModelForCourse, listRaceRoomModels } from './registry';
+export type { RaceRoomModelSpec,  RaceRoomPredictionResult } from './types';
+;
 export { runnersToRaceHorseInfo } from './adapter';
 
 export function getSupportedRaceRoomModel(courseId: number | undefined): RaceRoomModelSpec | null {
@@ -62,7 +62,7 @@ async function predictFromHorseInfo(
 }
 
 /** Predict win favorites for a raw raceHorseInfo room (e.g. an imported file). */
-export function predictRaceRoom(
+function predictRaceRoom(
   raceHorseInfo: Array<Record<string, unknown>>,
   courseId: number | undefined
 ): Promise<RaceRoomPredictionResult | null> {

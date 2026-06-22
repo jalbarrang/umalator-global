@@ -6,7 +6,7 @@ export type ChangelogEntry = {
   changes: Array<string>;
 };
 
-export function parseChangelog(markdown: string): Array<ChangelogEntry> {
+function parseChangelog(markdown: string): Array<ChangelogEntry> {
   const entries: Array<ChangelogEntry> = [];
   const lines = markdown.replaceAll('\r\n', '\n').split('\n');
 

@@ -10,7 +10,7 @@ import {
   getActivatableSkillsForRace
 } from '@/modules/simulation/utils/skill-bassin-skills';
 
-export function useRaceSettingsKey() {
+function useRaceSettingsKey() {
   const { courseId, racedef } = useSettingsStore(
     useShallow((state) => ({
       courseId: state.courseId,

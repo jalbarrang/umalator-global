@@ -9,7 +9,7 @@ import { createRunnerState } from '@/modules/runners/components/runner-card/type
 import type { SimulationSnapshot } from './types';
 import { SIMULATION_SNAPSHOT_VERSION } from './types';
 
-export function buildSnapshot(): SimulationSnapshot {
+function buildSnapshot(): SimulationSnapshot {
   const runners = useRunnersStore.getState();
   const settings = useSettingsStore.getState();
   const race = useRaceStore.getState();

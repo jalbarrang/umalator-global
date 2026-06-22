@@ -29,7 +29,7 @@ export type PosKeepLabel = {
   yOffset?: number;
 };
 
-export const ORDER_RANGE_FOR_STRATEGY = {
+const ORDER_RANGE_FOR_STRATEGY = {
   ['Front Runner']: [1, 1],
   ['Pace Chaser']: [2, 4],
   'Late Surger': [5, 9],
@@ -46,7 +46,7 @@ export type RaceConditions = {
   grade: IGrade;
 };
 
-export const defaultRaceConditions: RaceConditions = {
+const defaultRaceConditions: RaceConditions = {
   mood: Mood.Normal,
   ground: GroundCondition.Firm,
   weather: Weather.Sunny,

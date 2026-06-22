@@ -103,7 +103,7 @@ function hasPositiveEffects(skill: SkillEntry): boolean {
  * Check whether a skill has any positive effect values.
  * Useful for identifying self-debuff skills even when icon metadata is inconsistent.
  */
-export function hasPositiveSkillEffects(skillId: string): boolean {
+function hasPositiveSkillEffects(skillId: string): boolean {
   const skill = skillsService.getById(skillId);
 
   if (!skill) {
@@ -176,7 +176,7 @@ function getGoldSkillInFamily(familyIds: Array<string>): SkillEntry | undefined 
  * @example
  * getSkillFamily("200011") // returns ["200011", "200012", "200013", "200014"]
  */
-export function getSkillFamily(skillId: string): Array<string> {
+function getSkillFamily(skillId: string): Array<string> {
   const family = getSkillFamilyMap().get(skillId);
 
   if (!family) {

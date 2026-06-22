@@ -39,7 +39,7 @@ function createInitialFilterState(): FilterState {
   return state;
 }
 
-export const getActiveFilters = (filterState: FilterState, group: string): Array<string> => {
+const getActiveFilters = (filterState: FilterState, group: string): Array<string> => {
   return groups_filters[group as FilterGroup].filter((f) => filterState[group][f]);
 };
 
@@ -202,7 +202,7 @@ export const useFilteredSkills = (
   }, [deferredSearchText, filters, skills, showUpcoming]);
 };
 
-export const useSelectedOtherFiltersCount = () => {
+const useSelectedOtherFiltersCount = () => {
   return useSkillPickerStore(
     useShallow((state) => {
       let count = 0;

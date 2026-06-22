@@ -95,6 +95,6 @@ export const migrateRaceTrackDisplaySettings = (
   };
 };
 
-export const raceTrackDisplayKeys = Object.keys(defaultRaceTrackDisplaySettings()) as Array<
+const raceTrackDisplayKeys = Object.keys(defaultRaceTrackDisplaySettings()) as Array<
   keyof RaceTrackDisplaySettings
 >;
