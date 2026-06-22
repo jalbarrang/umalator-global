@@ -1,3 +1,9 @@
+## [0.18.0](https://github.com/jalbarrang/torena-sim/compare/v0.17.0...v0.18.0) (2026-06-22)
+
+### Features
+
+* **carat:** add multi-pickup copy goals ([#58](https://github.com/jalbarrang/torena-sim/issues/58)) ([8d2ba26](https://github.com/jalbarrang/torena-sim/commit/8d2ba26a76385eaf6cfd774de4649834771c48d0))
+
 ## [0.17.0](https://github.com/jalbarrang/umalator-global/compare/v0.16.2...v0.17.0) (2026-06-21)
 
 ### Features
