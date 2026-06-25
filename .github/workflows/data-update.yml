@@ -1,0 +1,98 @@
+name: Data Update
+
+on:
+  schedule:
+    # Daily at 06:00 UTC
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: data-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6.0.2
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.DATA_UPDATE_PAT }}
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Resolve versions
+        id: versions
+        run: |
+          latest="$(bun scripts/master-data/get-current-resource-version.ts)"
+          if [ -z "$latest" ]; then
+            echo "Failed to resolve latest resource version" >&2
+            exit 1
+          fi
+
+          if [ -f game-version.json ]; then
+            stored="$(jq -r '.resourceVersion // ""' game-version.json)"
+          else
+            stored=""
+          fi
+
+          echo "latest=$latest" >> "$GITHUB_OUTPUT"
+          echo "stored=$stored" >> "$GITHUB_OUTPUT"
+
+          if [ "$latest" != "$stored" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "New resource version detected: $stored -> $latest"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Already up to date at $latest; nothing to do."
+          fi
+
+      - name: Fetch master database
+        if: steps.versions.outputs.changed == 'true'
+        run: bun run db:fetch
+
+      - name: Extract all data
+        if: steps.versions.outputs.changed == 'true'
+        run: bun run extract:all
+
+      - name: Sync GameTora data
+        if: steps.versions.outputs.changed == 'true'
+        run: bun run sync:data
+
+      - name: Write version artifact
+        if: steps.versions.outputs.changed == 'true'
+        env:
+          RESOURCE_VERSION: ${{ steps.versions.outputs.latest }}
+        run: |
+          updated_at="$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"
+          jq -n \
+            --arg resourceVersion "$RESOURCE_VERSION" \
+            --arg updatedAt "$updated_at" \
+            '{resourceVersion: $resourceVersion, updatedAt: $updatedAt}' \
+            > game-version.json
+
+      - name: Commit and push data update
+        if: steps.versions.outputs.changed == 'true'
+        env:
+          RESOURCE_VERSION: ${{ steps.versions.outputs.latest }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add src/modules/data/json game-version.json
+
+          if git diff --cached --quiet; then
+            echo "No data changes to commit."
+            exit 0
+          fi
+
+          git commit -m "chore(data): update game data to $RESOURCE_VERSION"
+          git push origin HEAD:main
