@@ -1133,6 +1133,19 @@ export const defaultConditions: ConditionsMap<ICondition> = {
   weather: valueFilter(({ extra }) => extra.weather),
 
   is_exist_chara_id: noopImmediate,
+  // arg is the target skill id. True when any runner in the field owns that
+  // skill. commonSkills is a pre-race possession snapshot over every runner's
+  // skillIds (available in both the full sim and the estimator). When the field
+  // snapshot is unavailable we assume the skill may be present (noop).
+  is_exist_skill_id: immediate({
+    filterEq({ regions, arg: skillId, extra }: ConditionFilterParams) {
+      if (!extra.commonSkills) {
+        return regions;
+      }
+      const count = extra.commonSkills.get('' + skillId) ?? 0;
+      return count > 0 ? regions : new RegionList();
+    }
+  }),
   remain_distance_viewer_id: noopImmediate
 };
 
