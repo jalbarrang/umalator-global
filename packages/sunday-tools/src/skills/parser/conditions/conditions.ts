@@ -618,6 +618,18 @@ export const defaultConditions: ConditionsMap<ICondition> = {
       ];
     }
   }),
+  // arg is the target skill id (e.g. 204452 Saintess's Trial). True once the
+  // runner has activated that specific skill this race. Behaves like
+  // is_used_skill_id; the game-internal "detail one" nuance is not observable
+  // by the simulator.
+  is_used_skill_id_with_detail_one: immediate({
+    filterEq({ regions, arg: skillId }: ConditionFilterParams) {
+      return [regions, (runner: Runner) => runner.usedSkills.has('' + skillId)] as [
+        RegionList,
+        DynamicCondition
+      ];
+    }
+  }),
   lane_type: noopImmediate,
   lastspurt: immediate({
     filterEq({ regions, arg: case_, course }: ConditionFilterParams) {
