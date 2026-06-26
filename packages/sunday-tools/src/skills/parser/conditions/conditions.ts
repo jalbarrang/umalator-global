@@ -403,6 +403,20 @@ export const defaultConditions: ConditionsMap<ICondition> = {
     noopErlangRandom(3, 2.0),
     'is_other_character_activate_advantage_skill'
   ),
+  is_activate_heal_skill: immediate({
+    filterEq({ regions, arg: one }: ConditionFilterParams) {
+      if (one !== 1) {
+        throw new Error('must be is_activate_heal_skill==1');
+      }
+
+      // True once the runner has activated a stamina-recovery skill this race.
+      // healsActivatedCount only counts recovery effects that actually healed.
+      return [regions, (runner: Runner) => runner.healsActivatedCount > 0] as [
+        RegionList,
+        DynamicCondition
+      ];
+    }
+  }),
   is_activate_other_skill_detail: immediate({
     filterEq({ regions, arg: one, extra }: ConditionFilterParams) {
       if (one !== 1) {
