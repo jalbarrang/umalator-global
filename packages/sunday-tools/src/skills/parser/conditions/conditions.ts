@@ -395,6 +395,24 @@ export const defaultConditions: ConditionsMap<ICondition> = {
     }
   }),
   infront_near_lane_time: dynamicOrStatic(noopErlangRandom(3, 2.0), 'infront_near_lane_time'),
+  // True when the race is held overseas (course.isAbroad). Domestic courses and
+  // snapshots without the flag are treated as not abroad.
+  is_abroad: immediate({
+    filterEq({ regions, arg: flag, course }: ConditionFilterParams) {
+      if (flag !== 0 && flag !== 1) {
+        throw new Error('must be is_abroad==0 or is_abroad==1');
+      }
+      const abroad = course.isAbroad ? 1 : 0;
+      return abroad === flag ? regions : new RegionList();
+    },
+    filterNeq({ regions, arg: flag, course }: ConditionFilterParams) {
+      if (flag !== 0 && flag !== 1) {
+        throw new Error('must be is_abroad!=0 or is_abroad!=1');
+      }
+      const abroad = course.isAbroad ? 1 : 0;
+      return abroad !== flag ? regions : new RegionList();
+    }
+  }),
   is_activate_any_skill: immediate({
     filterEq({ regions, arg: one }: ConditionFilterParams) {
       if (one !== 1) {

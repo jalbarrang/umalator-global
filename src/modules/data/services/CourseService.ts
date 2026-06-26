@@ -37,6 +37,7 @@ export type CourseEntry = {
   laneMax: number;
   finishTimeMin: number;
   finishTimeMax: number;
+  isAbroad?: boolean;
   courseSetStatus: Array<number>;
   corners: Array<Corner>;
   straights: Array<Straight>;
