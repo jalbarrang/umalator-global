@@ -827,6 +827,42 @@ export const defaultConditions: ConditionsMap<ICondition> = {
     filterGt: notSupported,
     filterGte: notSupported
   },
+  phase_first_half_straight_random: {
+    samplePolicy: StraightRandomPolicy,
+    filterEq({ regions, arg: phase, course }: ConditionFilterParams) {
+      CourseService.assertIsPhase(phase);
+      const start = CourseService.phaseStart(course.distance, phase);
+      const end = CourseService.phaseEnd(course.distance, phase);
+      const phaseBounds = new Region(start, (start + end) / 2);
+
+      return regions
+        .rmap((r) => course.straights.map((s) => r.intersect(s)))
+        .rmap((r) => r.intersect(phaseBounds));
+    },
+    filterNeq: notSupported,
+    filterLt: notSupported,
+    filterLte: notSupported,
+    filterGt: notSupported,
+    filterGte: notSupported
+  },
+  phase_latter_half_straight_random: {
+    samplePolicy: StraightRandomPolicy,
+    filterEq({ regions, arg: phase, course }: ConditionFilterParams) {
+      CourseService.assertIsPhase(phase);
+      const start = CourseService.phaseStart(course.distance, phase);
+      const end = CourseService.phaseEnd(course.distance, phase);
+      const phaseBounds = new Region((start + end) / 2, end);
+
+      return regions
+        .rmap((r) => course.straights.map((s) => r.intersect(s)))
+        .rmap((r) => r.intersect(phaseBounds));
+    },
+    filterNeq: notSupported,
+    filterLt: notSupported,
+    filterLte: notSupported,
+    filterGt: notSupported,
+    filterGte: notSupported
+  },
   popularity: valueFilterOrNoop(({ runner }) => {
     // Popularity is static for the race. `0`/undefined (e.g. mob runners) means
     // unknown and is treated as "no constraint".
