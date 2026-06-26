@@ -144,6 +144,23 @@ export function registerProximityConditions(): void {
     return compare(nearbyRunnerCount, arg, cmp);
   });
 
+  registerDynamicCondition('near_infront_count', (arg, cmp) => (runner) => {
+    const laneThreshold = getLaneThreshold(runner, NEAR_COUNT_LANE_MULTIPLIER);
+    let nearbyAheadCount = 0;
+
+    forEachActiveOtherSnapshot(runner, (snapshot) => {
+      if (
+        isAheadOf(runner, snapshot) &&
+        isWithinDistance(runner, snapshot, NEAR_DISTANCE_METERS) &&
+        isWithinLane(runner, snapshot, laneThreshold)
+      ) {
+        nearbyAheadCount += 1;
+      }
+    });
+
+    return compare(nearbyAheadCount, arg, cmp);
+  });
+
   registerDynamicCondition('is_surrounded', (arg, cmp) => (runner) => {
     const laneThreshold = getLaneThreshold(runner, SURROUNDED_LANE_MULTIPLIER);
     let hasNearbyAheadRunner = false;

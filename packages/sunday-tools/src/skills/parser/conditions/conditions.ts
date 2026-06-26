@@ -680,6 +680,10 @@ export const defaultConditions: ConditionsMap<ICondition> = {
   }),
   motivation: valueFilter(({ runner }) => runner.mood + 3), // go from -2 to 2 to 1-5 scale
   near_count: dynamicOrStatic(noopErlangRandom(3, 2.0), 'near_count'),
+  // Runners close in front of the runner. Full sim counts ahead snapshots; the
+  // single-runner estimator falls back to the same probabilistic policy as
+  // near_count since opponents are unknown there.
+  near_infront_count: dynamicOrStatic(noopErlangRandom(3, 2.0), 'near_infront_count'),
   order: dynamicOrStatic(
     orderFilter((pos: number, _: number) => pos),
     'order'
