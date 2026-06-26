@@ -160,6 +160,14 @@ export const defaultConditions: ConditionsMap<ICondition> = {
       ];
     }
   }),
+  activate_count_later_half: immediate({
+    filterGte({ regions, arg: n }: ConditionFilterParams) {
+      return [regions, (runner: Runner) => runner.skillsActivatedHalfRaceMap[1] >= n] as [
+        RegionList,
+        DynamicCondition
+      ];
+    }
+  }),
   activate_count_middle: immediate({
     filterGte({ regions, arg: n }: ConditionFilterParams) {
       return [regions, (runner: Runner) => runner.skillsActivatedPhaseMap[1] >= n] as [
