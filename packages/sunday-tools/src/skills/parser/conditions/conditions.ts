@@ -379,6 +379,22 @@ export const defaultConditions: ConditionsMap<ICondition> = {
     }
   }),
   infront_near_lane_time: dynamicOrStatic(noopErlangRandom(3, 2.0), 'infront_near_lane_time'),
+  is_activate_any_skill: immediate({
+    filterEq({ regions, arg: one }: ConditionFilterParams) {
+      if (one !== 1) {
+        throw new Error('must be is_activate_any_skill==1');
+      }
+
+      // True once the runner has already activated any other skill this race.
+      // usedSkills only contains skills that have fired, and the skill being
+      // evaluated is not added until it activates, so size > 0 means "another
+      // skill has triggered".
+      return [regions, (runner: Runner) => runner.usedSkills.size > 0] as [
+        RegionList,
+        DynamicCondition
+      ];
+    }
+  }),
   is_activate_other_skill_detail: immediate({
     filterEq({ regions, arg: one, extra }: ConditionFilterParams) {
       if (one !== 1) {
