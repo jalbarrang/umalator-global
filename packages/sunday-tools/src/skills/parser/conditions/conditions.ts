@@ -779,6 +779,15 @@ export const defaultConditions: ConditionsMap<ICondition> = {
       return regions.rmap((r) => r.intersect(bounds));
     }
   }),
+  phase_laterhalf: immediate({
+    filterEq({ regions, arg: phase, course }: ConditionFilterParams) {
+      CourseService.assertIsPhase(phase);
+      const start = CourseService.phaseStart(course.distance, phase);
+      const end = CourseService.phaseEnd(course.distance, phase);
+      const bounds = new Region((start + end) / 2, end);
+      return regions.rmap((r) => r.intersect(bounds));
+    }
+  }),
   phase_laterhalf_random: random({
     filterEq({ regions, arg: phase, course }: ConditionFilterParams) {
       CourseService.assertIsPhase(phase);
