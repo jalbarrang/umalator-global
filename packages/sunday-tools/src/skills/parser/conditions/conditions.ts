@@ -367,6 +367,14 @@ export const defaultConditions: ConditionsMap<ICondition> = {
       return regions.rmap((r) => slopes.map((s) => r.intersect(s)));
     }
   }),
+  // furlong==N selects the (N+1)th 200m segment from the start, 0-indexed:
+  // ==0 -> [0,200), ==1 -> [200,400) ("second furlong"), ==3 -> [600,800).
+  furlong: immediate({
+    filterEq({ regions, arg: n }: ConditionFilterParams) {
+      const bounds = new Region(n * 200, (n + 1) * 200);
+      return regions.rmap((r) => r.intersect(bounds));
+    }
+  }),
   grade: valueFilter(({ extra }) => extra.grade),
   ground_condition: valueFilter(({ extra }) => extra.ground),
   ground_type: valueFilter(({ course }) => course.surface),
