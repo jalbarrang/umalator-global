@@ -123,6 +123,7 @@ export function BannerPlanTable(props: BannerPlanTableProps) {
                         </InfoHint>
                       </span>
                     </th>
+                    <th className="w-44 min-w-44 px-2 py-2 text-left">Tickets</th>
                     {showPaid ? <th className="px-2 py-2 text-right">Paid pool</th> : null}
                     <th className="px-2 py-2 text-right">Balance</th>
                     <th className="px-2 py-2 text-center">

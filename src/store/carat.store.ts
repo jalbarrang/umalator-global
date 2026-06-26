@@ -34,6 +34,9 @@ export type PlannedBanner = {
   // Copies the player already owns per rate-up card (reruns), keyed by pickup
   // card id. These reduce how many copies the banner needs to supply.
   ownedCopies: Record<string, number>;
+  // Explicit per-banner ticket allocation. Undefined means auto-fill from the
+  // matching typed ticket pool in chronological order.
+  ticketsUsed?: number;
   order: number;
 };
 
@@ -100,7 +103,11 @@ export const useCaratStore = create<CaratStore>()(
         plannedBanners: (state.plannedBanners ?? defaultPlannedBanners).map((banner) => ({
           ...banner,
           copyGoals: banner.copyGoals ?? {},
-          ownedCopies: banner.ownedCopies ?? {}
+          ownedCopies: banner.ownedCopies ?? {},
+          ticketsUsed:
+            typeof banner.ticketsUsed === 'number'
+              ? Math.max(0, Math.floor(banner.ticketsUsed || 0))
+              : undefined
         })),
         paidPurchases: state.paidPurchases ?? {},
         selectorChoices: state.selectorChoices ?? {}
@@ -174,6 +181,19 @@ export function setPlannedPulls(id: string, plannedPulls: number) {
     plannedBanners: state.plannedBanners.map((banner) =>
       banner.id === id ? { ...banner, plannedPulls } : banner
     )
+  }));
+}
+
+export function setPlannedTicketsUsed(id: string, ticketsUsed: number | undefined) {
+  useCaratStore.setState((state) => ({
+    plannedBanners: state.plannedBanners.map((banner) => {
+      if (banner.id !== id) return banner;
+      if (ticketsUsed === undefined) {
+        const { ticketsUsed: _ticketsUsed, ...rest } = banner;
+        return rest;
+      }
+      return { ...banner, ticketsUsed: Math.max(0, Math.floor(ticketsUsed || 0)) };
+    })
   }));
 }
 

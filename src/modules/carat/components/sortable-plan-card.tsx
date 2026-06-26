@@ -8,6 +8,7 @@ import { UmaOddsBar } from '@/modules/carat/components/uma-odds-bar';
 import { InfoHint } from '@/modules/carat/components/info-hint';
 import { PlanDragHandle } from '@/modules/carat/components/plan-drag-handle';
 import { PullsField } from '@/modules/carat/components/pulls-field';
+import { TicketsField } from '@/modules/carat/components/tickets-field';
 import { RemovePlannedBannerButton } from '@/modules/carat/components/remove-planned-banner-button';
 import {
   characterPickupCount,
@@ -49,22 +50,31 @@ export function SortablePlanCard(props: SortablePlanCardProps) {
       </div>
 
       <div className="mt-3 grid grid-cols-2 gap-3">
-        <div className="grid gap-1 text-xs text-muted-foreground">
-          <span className="inline-flex items-center gap-1">
-            Pulls
-            <InfoHint label="Pulls and sparks help" title="Pulls and sparks">
-              One pull costs 150 carats. One spark is 200 pulls and can be exchanged for a
-              guaranteed pickup copy.
-            </InfoHint>
-          </span>
-          <PullsField row={row} showCost />
+        <div className="grid gap-3 text-xs text-muted-foreground">
+          <div className="grid gap-1">
+            <span className="inline-flex items-center gap-1">
+              Pulls
+              <InfoHint label="Pulls and sparks help" title="Pulls and sparks">
+                One pull costs 150 carats. One spark is 200 pulls and can be exchanged for a
+                guaranteed pickup copy.
+              </InfoHint>
+            </span>
+            <PullsField row={row} showCost />
+          </div>
+          <div className="grid gap-1">
+            <span>Tickets</span>
+            <TicketsField row={row} />
+          </div>
         </div>
         <div className="grid content-start gap-2 text-right">
           <div className="text-xs text-muted-foreground">
-            Carats avail.{' '}
-            <span className="font-medium font-mono text-foreground tabular-nums">
+            <div>Carats avail.</div>
+            <div className="font-mono text-lg font-semibold text-foreground tabular-nums">
               {formatCarats(row.caratsAvailable)}
-            </span>
+            </div>
+            <div className="font-mono text-[11px] tabular-nums">
+              → {formatCarats(row.balanceAfter)} after
+            </div>
           </div>
           {showPaid && (row.paidCaratsAvailable > 0 || row.paidBalanceAfter > 0) ? (
             <div className="text-xs text-muted-foreground">

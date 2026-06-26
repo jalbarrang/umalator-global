@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { TimelineEvent, TimelinePayload } from '@/modules/carat/data/timeline-types';
+import { CARAT_PER_PULL } from '@/modules/carat/model/income-tables';
 import { computePlan } from '@/modules/carat/model/plan';
 import type { CaratSettings, PlannedBanner } from '@/store/carat.store';
 
@@ -10,11 +11,15 @@ function daysFromNow(days: number) {
   return date.toISOString();
 }
 
-function banner(id: string, days: number): TimelineEvent {
+function banner(
+  id: string,
+  days: number,
+  cardType: 'character' | 'support' | null = 'character'
+): TimelineEvent {
   return {
     id,
     type: 'banner',
-    card_type: 'character',
+    card_type: cardType,
     global_release_date: daysFromNow(days),
     estimated_end_date: daysFromNow(days + 10),
     prediction: { kind: 'confirmed' }
@@ -88,5 +93,111 @@ describe('computePlan', () => {
     expect(rows[0].paidBalanceAfter).toBe(0);
     expect(rows[0].freeBalanceAfter).toBeGreaterThanOrEqual(0);
     expect(rows[0].affordable).toBe(true);
+  });
+
+  it('auto-fills uma tickets for the earliest character banner and reduces cost', () => {
+    const rows = computePlan(
+      { ...settings, umaTickets: 3 },
+      timeline([banner('uma', 1)]),
+      [{ id: 'uma', plannedPulls: 10, startingDupes: 0, copyGoals: {}, ownedCopies: {}, order: 0 }]
+    );
+
+    expect(rows[0].ticketType).toBe('uma');
+    expect(rows[0].ticketsAvailable).toBe(3);
+    expect(rows[0].ticketsUsed).toBe(3);
+    expect(rows[0].ticketsSaved).toBe(3 * CARAT_PER_PULL);
+    expect(rows[0].ticketsRemaining).toBe(0);
+    expect(rows[0].cost).toBe(7 * CARAT_PER_PULL);
+  });
+
+  it('routes support banners to support tickets without consuming uma tickets', () => {
+    const rows = computePlan(
+      { ...settings, umaTickets: 10, supportTickets: 2 },
+      timeline([banner('support', 1, 'support')]),
+      [
+        {
+          id: 'support',
+          plannedPulls: 5,
+          startingDupes: 0,
+          copyGoals: {},
+          ownedCopies: {},
+          order: 0
+        }
+      ]
+    );
+
+    expect(rows[0].ticketType).toBe('support');
+    expect(rows[0].ticketsAvailable).toBe(2);
+    expect(rows[0].ticketsUsed).toBe(2);
+    expect(rows[0].cost).toBe(3 * CARAT_PER_PULL);
+  });
+
+  it('depletes typed ticket pools across matching banners by date', () => {
+    const first = banner('first', 1);
+    const second = banner('second', 2);
+    const rows = computePlan(
+      { ...settings, umaTickets: 5 },
+      timeline([second, first]),
+      [
+        { id: 'second', plannedPulls: 3, startingDupes: 0, copyGoals: {}, ownedCopies: {}, order: 0 },
+        { id: 'first', plannedPulls: 3, startingDupes: 0, copyGoals: {}, ownedCopies: {}, order: 1 }
+      ]
+    );
+
+    expect(rows.map((row) => row.event.id)).toEqual(['first', 'second']);
+    expect(rows[0].ticketsAvailable).toBe(5);
+    expect(rows[0].ticketsUsed).toBe(3);
+    expect(rows[0].ticketsRemaining).toBe(2);
+    expect(rows[1].ticketsAvailable).toBe(2);
+    expect(rows[1].ticketsUsed).toBe(2);
+    expect(rows[1].ticketsRemaining).toBe(0);
+  });
+
+  it('honors explicit ticket allocation and leaves unused tickets for later banners', () => {
+    const rows = computePlan(
+      { ...settings, umaTickets: 5 },
+      timeline([banner('manual', 1), banner('auto', 2)]),
+      [
+        {
+          id: 'manual',
+          plannedPulls: 3,
+          startingDupes: 0,
+          copyGoals: {},
+          ownedCopies: {},
+          ticketsUsed: 1,
+          order: 0
+        },
+        { id: 'auto', plannedPulls: 10, startingDupes: 0, copyGoals: {}, ownedCopies: {}, order: 1 }
+      ]
+    );
+
+    expect(rows[0].ticketsUsed).toBe(1);
+    expect(rows[0].ticketsRemaining).toBe(4);
+    expect(rows[1].ticketsAvailable).toBe(4);
+    expect(rows[1].ticketsUsed).toBe(4);
+    expect(rows[1].cost).toBe(6 * CARAT_PER_PULL);
+  });
+
+  it('clamps explicit ticket allocation to planned pulls and available pool', () => {
+    const rows = computePlan(
+      { ...settings, supportTickets: 20 },
+      timeline([banner('support', 1, 'support')]),
+      [
+        {
+          id: 'support',
+          plannedPulls: 10,
+          startingDupes: 0,
+          copyGoals: {},
+          ownedCopies: {},
+          ticketsUsed: 99,
+          order: 0
+        }
+      ]
+    );
+
+    expect(rows[0].ticketsUsed).toBe(10);
+    expect(rows[0].ticketsSaved).toBe(10 * CARAT_PER_PULL);
+    expect(rows[0].cost).toBe(0);
+    expect(rows[0].ticketsRemaining).toBe(10);
   });
 });
