@@ -395,6 +395,14 @@ export const defaultConditions: ConditionsMap<ICondition> = {
       ];
     }
   }),
+  // arg is a SkillType effect id (9 recovery, 21/22 current speed, 27 target
+  // speed, 31 accel). True when another runner has activated a skill carrying a
+  // positive effect of that type. Opponent state only exists in the full race
+  // sim, so the single-runner estimator falls back to a probabilistic policy.
+  is_other_character_activate_advantage_skill: dynamicOrStatic(
+    noopErlangRandom(3, 2.0),
+    'is_other_character_activate_advantage_skill'
+  ),
   is_activate_other_skill_detail: immediate({
     filterEq({ regions, arg: one, extra }: ConditionFilterParams) {
       if (one !== 1) {

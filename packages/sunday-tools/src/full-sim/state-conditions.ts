@@ -136,4 +136,20 @@ export function registerStateConditions(): void {
   registerDynamicCondition('compete_fight_count', (arg, cmp) => (runner) => {
     return compare(countActiveDuelingRunners(runner), arg, cmp);
   });
+
+  // arg is the SkillType effect id the opponent's activated skill must carry.
+  // The comparator is always ==N in the data, so we report whether any other
+  // active runner has activated a positive effect of that type.
+  registerDynamicCondition(
+    'is_other_character_activate_advantage_skill',
+    (effectType) => (runner) => {
+      let activated = false;
+      forEachActiveRunner(runner, false, (other) => {
+        if (other.activatedAdvantageEffectTypes.has(effectType)) {
+          activated = true;
+        }
+      });
+      return activated;
+    }
+  );
 }
