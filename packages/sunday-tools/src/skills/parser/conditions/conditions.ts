@@ -1067,6 +1067,20 @@ export const defaultConditions: ConditionsMap<ICondition> = {
       return regions.rmap((r) => slopes.map((s) => r.intersect(s)));
     }
   }),
+  up_slope_random_later_half: random({
+    filterEq({ regions, arg: one, course }: ConditionFilterParams) {
+      if (one !== 1) {
+        throw new Error('must be up_slope_random_later_half==1');
+      }
+      const laterHalf = new Region(course.distance / 2, course.distance);
+      const slopes = course.slopes
+        .filter((s) => s.slope > 0)
+        .map((s) => new Region(s.start, s.start + s.length));
+      return regions
+        .rmap((r) => slopes.map((s) => r.intersect(s)))
+        .rmap((r) => r.intersect(laterHalf));
+    }
+  }),
   visiblehorse: dynamicOrStatic(noopImmediate, 'visiblehorse'),
   weather: valueFilter(({ extra }) => extra.weather),
 
