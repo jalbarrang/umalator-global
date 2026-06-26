@@ -94,13 +94,16 @@ export function registerStateConditions(): void {
     return compare(countActiveRushedRunners(runner), arg, cmp);
   });
 
+  const countRushedBehind = (runner: Runner) =>
+    countActiveRushedRunners(runner, (other) => other.position < runner.position, false);
+
   registerDynamicCondition('temptation_count_behind', (arg, cmp) => (runner) => {
-    const countBehind = countActiveRushedRunners(
-      runner,
-      (other) => other.position < runner.position,
-      false
-    );
-    return compare(countBehind, arg, cmp);
+    return compare(countRushedBehind(runner), arg, cmp);
+  });
+
+  // Opponent-only variant; countActiveRushedRunners already excludes self.
+  registerDynamicCondition('temptation_opponent_count_behind', (arg, cmp) => (runner) => {
+    return compare(countRushedBehind(runner), arg, cmp);
   });
 
   registerDynamicCondition('temptation_count_infront', (arg, cmp) => (runner) => {

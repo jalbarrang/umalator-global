@@ -1091,6 +1091,12 @@ export const defaultConditions: ConditionsMap<ICondition> = {
   },
   temptation_count: dynamicOrStatic(noopImmediate, 'temptation_count'),
   temptation_count_behind: dynamicOrStatic(noopSectionRandom(2, 9), 'temptation_count_behind'),
+  // Count of distracted (rushed) opponents behind the runner. Same semantics as
+  // temptation_count_behind, which already excludes the runner itself.
+  temptation_opponent_count_behind: dynamicOrStatic(
+    noopSectionRandom(2, 9),
+    'temptation_opponent_count_behind'
+  ),
   temptation_count_infront: dynamicOrStatic(noopSectionRandom(2, 9), 'temptation_count_infront'),
   time: valueFilter(({ extra }) => extra.timeOfDay),
   track_id: valueFilter(({ course }) => course.raceTrackId),
