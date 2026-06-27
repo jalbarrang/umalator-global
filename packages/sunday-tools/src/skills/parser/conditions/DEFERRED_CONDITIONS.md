@@ -51,14 +51,28 @@ same rule. Revisit when a popularity source lands:
   - Option B: a per-skill toggle/setting that decides whether the condition
     passes, surfaced in the UI.
 
-## Needs a tight-corner course list
+## Needs the game's tight-corner threshold/definition
 
 - **`is_tight_track`** (Tight Turns `202241` / `202242` / `202243`) — true on
-  racetracks with tight corners. There is **no** column for this in
-  `master.mdb` (`race_track`, `race_course_set`), so it cannot come from the
-  course-data extraction. Needs an externally sourced list of tight-corner
-  course/track ids, then a hardcoded set in `conditions.ts` (precedent:
-  `is_dirtgrade`), or a rule derived from corner geometry we do not extract.
+  racetracks with tight corners.
+  - **Not in `master.mdb`**: no column in `race_track` / `race_course_set`, so
+    it cannot come from the standard course-data extraction.
+  - **Geometry is viable**: `public/data/course_geometry.json` has 1001
+    (x,y,z) path samples plus heading quaternions per course. Computing
+    heading change (yaw from the rotation quaternion) inside the known corner
+    segments (`course_data.json` `corners[]`), with light smoothing, yields
+    clean per-course minimum corner radii (~70-140m for current courses).
+    The raw whole-path curvature is too noisy; restrict to corner segments.
+  - **Still blocked on the cutoff**: the radii do not self-separate into an
+    obvious tight/normal cluster, and the game's actual definition is unknown.
+    The community reference still lists this token as "probably new, currently
+    under investigation" (`src/modules/skills/components/skill-conditions.json`).
+    Do not guess a threshold.
+  - **When the threshold/definition is known**: implement as a derived field
+    like `is_abroad` — compute `minCornerRadius` from geometry and emit
+    `isTightTrack` per course, then have the condition read `course.isTightTrack`.
+    (Geometry is a separate public asset, not part of the master.mdb
+    extraction, so this needs a small dedicated derivation step.)
 
 ---
 
