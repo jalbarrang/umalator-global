@@ -24,7 +24,7 @@ function buildField(others: Array<Partial<FakeRunner>>): Runner {
   const runners = self.race.runners;
   runners.set(self.id, self);
 
-  others.forEach((other, index) => {
+  for (const [index, other] of others.entries()) {
     const runner: FakeRunner = {
       id: index + 1,
       finished: other.finished ?? false,
@@ -32,7 +32,7 @@ function buildField(others: Array<Partial<FakeRunner>>): Runner {
       race: self.race
     };
     runners.set(runner.id, runner);
-  });
+  }
 
   return self as unknown as Runner;
 }
