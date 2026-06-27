@@ -107,6 +107,11 @@ pub struct CourseData {
     pub max_lane_distance: f64,
     /// Distance (metres) at which lane movement begins.
     pub move_lane_point: f64,
+
+    /// True when the race is held overseas (master.mdb `race_track.flag_type`).
+    /// Defaults to `false` for snapshots that predate the flag.
+    #[serde(default)]
+    pub is_abroad: bool,
 }
 
 #[cfg(test)]
@@ -164,6 +169,7 @@ mod tests {
             lane_change_acceleration_per_frame: 0.001,
             max_lane_distance: 5.0,
             move_lane_point: 200.0,
+            is_abroad: false,
         }
     }
 

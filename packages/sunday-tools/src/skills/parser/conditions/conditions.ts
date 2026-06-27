@@ -160,6 +160,14 @@ export const defaultConditions: ConditionsMap<ICondition> = {
       ];
     }
   }),
+  activate_count_later_half: immediate({
+    filterGte({ regions, arg: n }: ConditionFilterParams) {
+      return [regions, (runner: Runner) => runner.skillsActivatedHalfRaceMap[1] >= n] as [
+        RegionList,
+        DynamicCondition
+      ];
+    }
+  }),
   activate_count_middle: immediate({
     filterGte({ regions, arg: n }: ConditionFilterParams) {
       return [regions, (runner: Runner) => runner.skillsActivatedPhaseMap[1] >= n] as [
@@ -359,6 +367,14 @@ export const defaultConditions: ConditionsMap<ICondition> = {
       return regions.rmap((r) => slopes.map((s) => r.intersect(s)));
     }
   }),
+  // furlong==N selects the (N+1)th 200m segment from the start, 0-indexed:
+  // ==0 -> [0,200), ==1 -> [200,400) ("second furlong"), ==3 -> [600,800).
+  furlong: immediate({
+    filterEq({ regions, arg: n }: ConditionFilterParams) {
+      const bounds = new Region(n * 200, (n + 1) * 200);
+      return regions.rmap((r) => r.intersect(bounds));
+    }
+  }),
   grade: valueFilter(({ extra }) => extra.grade),
   ground_condition: valueFilter(({ extra }) => extra.ground),
   ground_type: valueFilter(({ course }) => course.surface),
@@ -379,6 +395,62 @@ export const defaultConditions: ConditionsMap<ICondition> = {
     }
   }),
   infront_near_lane_time: dynamicOrStatic(noopErlangRandom(3, 2.0), 'infront_near_lane_time'),
+  // True when the race is held overseas (course.isAbroad). Domestic courses and
+  // snapshots without the flag are treated as not abroad.
+  is_abroad: immediate({
+    filterEq({ regions, arg: flag, course }: ConditionFilterParams) {
+      if (flag !== 0 && flag !== 1) {
+        throw new Error('must be is_abroad==0 or is_abroad==1');
+      }
+      const abroad = course.isAbroad ? 1 : 0;
+      return abroad === flag ? regions : new RegionList();
+    },
+    filterNeq({ regions, arg: flag, course }: ConditionFilterParams) {
+      if (flag !== 0 && flag !== 1) {
+        throw new Error('must be is_abroad!=0 or is_abroad!=1');
+      }
+      const abroad = course.isAbroad ? 1 : 0;
+      return abroad !== flag ? regions : new RegionList();
+    }
+  }),
+  is_activate_any_skill: immediate({
+    filterEq({ regions, arg: one }: ConditionFilterParams) {
+      if (one !== 1) {
+        throw new Error('must be is_activate_any_skill==1');
+      }
+
+      // True once the runner has already activated any other skill this race.
+      // usedSkills only contains skills that have fired, and the skill being
+      // evaluated is not added until it activates, so size > 0 means "another
+      // skill has triggered".
+      return [regions, (runner: Runner) => runner.usedSkills.size > 0] as [
+        RegionList,
+        DynamicCondition
+      ];
+    }
+  }),
+  // arg is a SkillType effect id (9 recovery, 21/22 current speed, 27 target
+  // speed, 31 accel). True when another runner has activated a skill carrying a
+  // positive effect of that type. Opponent state only exists in the full race
+  // sim, so the single-runner estimator falls back to a probabilistic policy.
+  is_other_character_activate_advantage_skill: dynamicOrStatic(
+    noopErlangRandom(3, 2.0),
+    'is_other_character_activate_advantage_skill'
+  ),
+  is_activate_heal_skill: immediate({
+    filterEq({ regions, arg: one }: ConditionFilterParams) {
+      if (one !== 1) {
+        throw new Error('must be is_activate_heal_skill==1');
+      }
+
+      // True once the runner has activated a stamina-recovery skill this race.
+      // healsActivatedCount only counts recovery effects that actually healed.
+      return [regions, (runner: Runner) => runner.healsActivatedCount > 0] as [
+        RegionList,
+        DynamicCondition
+      ];
+    }
+  }),
   is_activate_other_skill_detail: immediate({
     filterEq({ regions, arg: one, extra }: ConditionFilterParams) {
       if (one !== 1) {
@@ -572,6 +644,18 @@ export const defaultConditions: ConditionsMap<ICondition> = {
       ];
     }
   }),
+  // arg is the target skill id (e.g. 204452 Saintess's Trial). True once the
+  // runner has activated that specific skill this race. Behaves like
+  // is_used_skill_id; the game-internal "detail one" nuance is not observable
+  // by the simulator.
+  is_used_skill_id_with_detail_one: immediate({
+    filterEq({ regions, arg: skillId }: ConditionFilterParams) {
+      return [regions, (runner: Runner) => runner.usedSkills.has('' + skillId)] as [
+        RegionList,
+        DynamicCondition
+      ];
+    }
+  }),
   lane_type: noopImmediate,
   lastspurt: immediate({
     filterEq({ regions, arg: case_, course }: ConditionFilterParams) {
@@ -596,6 +680,10 @@ export const defaultConditions: ConditionsMap<ICondition> = {
   }),
   motivation: valueFilter(({ runner }) => runner.mood + 3), // go from -2 to 2 to 1-5 scale
   near_count: dynamicOrStatic(noopErlangRandom(3, 2.0), 'near_count'),
+  // Runners close in front of the runner. Full sim counts ahead snapshots; the
+  // single-runner estimator falls back to the same probabilistic policy as
+  // near_count since opponents are unknown there.
+  near_infront_count: dynamicOrStatic(noopErlangRandom(3, 2.0), 'near_infront_count'),
   order: dynamicOrStatic(
     orderFilter((pos: number, _: number) => pos),
     'order'
@@ -733,6 +821,15 @@ export const defaultConditions: ConditionsMap<ICondition> = {
       return regions.rmap((r) => r.intersect(bounds));
     }
   }),
+  phase_laterhalf: immediate({
+    filterEq({ regions, arg: phase, course }: ConditionFilterParams) {
+      CourseService.assertIsPhase(phase);
+      const start = CourseService.phaseStart(course.distance, phase);
+      const end = CourseService.phaseEnd(course.distance, phase);
+      const bounds = new Region((start + end) / 2, end);
+      return regions.rmap((r) => r.intersect(bounds));
+    }
+  }),
   phase_laterhalf_random: random({
     filterEq({ regions, arg: phase, course }: ConditionFilterParams) {
       CourseService.assertIsPhase(phase);
@@ -761,6 +858,42 @@ export const defaultConditions: ConditionsMap<ICondition> = {
         CourseService.phaseStart(course.distance, phase),
         CourseService.phaseEnd(course.distance, phase)
       );
+
+      return regions
+        .rmap((r) => course.straights.map((s) => r.intersect(s)))
+        .rmap((r) => r.intersect(phaseBounds));
+    },
+    filterNeq: notSupported,
+    filterLt: notSupported,
+    filterLte: notSupported,
+    filterGt: notSupported,
+    filterGte: notSupported
+  },
+  phase_first_half_straight_random: {
+    samplePolicy: StraightRandomPolicy,
+    filterEq({ regions, arg: phase, course }: ConditionFilterParams) {
+      CourseService.assertIsPhase(phase);
+      const start = CourseService.phaseStart(course.distance, phase);
+      const end = CourseService.phaseEnd(course.distance, phase);
+      const phaseBounds = new Region(start, (start + end) / 2);
+
+      return regions
+        .rmap((r) => course.straights.map((s) => r.intersect(s)))
+        .rmap((r) => r.intersect(phaseBounds));
+    },
+    filterNeq: notSupported,
+    filterLt: notSupported,
+    filterLte: notSupported,
+    filterGt: notSupported,
+    filterGte: notSupported
+  },
+  phase_latter_half_straight_random: {
+    samplePolicy: StraightRandomPolicy,
+    filterEq({ regions, arg: phase, course }: ConditionFilterParams) {
+      CourseService.assertIsPhase(phase);
+      const start = CourseService.phaseStart(course.distance, phase);
+      const end = CourseService.phaseEnd(course.distance, phase);
+      const phaseBounds = new Region((start + end) / 2, end);
 
       return regions
         .rmap((r) => course.straights.map((s) => r.intersect(s)))
@@ -962,6 +1095,12 @@ export const defaultConditions: ConditionsMap<ICondition> = {
   },
   temptation_count: dynamicOrStatic(noopImmediate, 'temptation_count'),
   temptation_count_behind: dynamicOrStatic(noopSectionRandom(2, 9), 'temptation_count_behind'),
+  // Count of distracted (rushed) opponents behind the runner. Same semantics as
+  // temptation_count_behind, which already excludes the runner itself.
+  temptation_opponent_count_behind: dynamicOrStatic(
+    noopSectionRandom(2, 9),
+    'temptation_opponent_count_behind'
+  ),
   temptation_count_infront: dynamicOrStatic(noopSectionRandom(2, 9), 'temptation_count_infront'),
   time: valueFilter(({ extra }) => extra.timeOfDay),
   track_id: valueFilter(({ course }) => course.raceTrackId),
@@ -976,10 +1115,37 @@ export const defaultConditions: ConditionsMap<ICondition> = {
       return regions.rmap((r) => slopes.map((s) => r.intersect(s)));
     }
   }),
+  up_slope_random_later_half: random({
+    filterEq({ regions, arg: one, course }: ConditionFilterParams) {
+      if (one !== 1) {
+        throw new Error('must be up_slope_random_later_half==1');
+      }
+      const laterHalf = new Region(course.distance / 2, course.distance);
+      const slopes = course.slopes
+        .filter((s) => s.slope > 0)
+        .map((s) => new Region(s.start, s.start + s.length));
+      return regions
+        .rmap((r) => slopes.map((s) => r.intersect(s)))
+        .rmap((r) => r.intersect(laterHalf));
+    }
+  }),
   visiblehorse: dynamicOrStatic(noopImmediate, 'visiblehorse'),
   weather: valueFilter(({ extra }) => extra.weather),
 
   is_exist_chara_id: noopImmediate,
+  // arg is the target skill id. True when any runner in the field owns that
+  // skill. commonSkills is a pre-race possession snapshot over every runner's
+  // skillIds (available in both the full sim and the estimator). When the field
+  // snapshot is unavailable we assume the skill may be present (noop).
+  is_exist_skill_id: immediate({
+    filterEq({ regions, arg: skillId, extra }: ConditionFilterParams) {
+      if (!extra.commonSkills) {
+        return regions;
+      }
+      const count = extra.commonSkills.get('' + skillId) ?? 0;
+      return count > 0 ? regions : new RegionList();
+    }
+  }),
   remain_distance_viewer_id: noopImmediate
 };
 

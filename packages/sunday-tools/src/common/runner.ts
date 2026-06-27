@@ -238,6 +238,10 @@ export class Runner {
   public targetedChangeLaneSkillsActive!: Array<ActiveTargetedSkill>;
   public healsActivatedCount!: number;
   public usedSkills!: Set<string>;
+  // Positive self-applied effect types this runner has activated (SkillType ids).
+  // Used by opponent-reactive conditions like
+  // is_other_character_activate_advantage_skill.
+  public activatedAdvantageEffectTypes!: Set<number>;
   public usedTargetedSkills!: Array<{
     skillId: string;
     position: number;
@@ -815,6 +819,11 @@ export class Runner {
       // these onto another runner.
       if (isExternalDebuffEffect(skillEffect)) {
         continue;
+      }
+      // Record positive self-buffs so opponents can react via
+      // is_other_character_activate_advantage_skill (arg is the SkillType id).
+      if (skillEffect.modifier > 0) {
+        this.activatedAdvantageEffectTypes.add(skillEffect.type);
       }
       // TODO should probably be awakened skills and not just pinks
       const scaling =
@@ -1827,6 +1836,7 @@ export class Runner {
     this.pendingSkills = [];
     this.pendingTargetedSkills = [];
     this.usedSkills = new Set();
+    this.activatedAdvantageEffectTypes = new Set();
     this.usedTargetedSkills = [];
     this.pendingSkillRemoval = new Set();
 

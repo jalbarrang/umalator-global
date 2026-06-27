@@ -1740,6 +1740,205 @@ pub fn build_catalog() -> ConditionCatalog {
     add("is_exist_chara_id", noop_immediate());
     add("remain_distance_viewer_id", noop_immediate());
 
+    // --- newly supported condition tokens (parity with TS conditions.ts) ---
+    add(
+        "is_activate_any_skill",
+        immediate()
+            .eq(|p| {
+                if p.arg != 1 {
+                    return Err(ConditionError::Invalid("must be is_activate_any_skill==1"));
+                }
+                Ok((
+                    p.regions.clone(),
+                    Some(DynamicCondition::new(|r| r.skills_activated_count() > 0)),
+                ))
+            })
+            .build(),
+    );
+    add(
+        "is_activate_heal_skill",
+        immediate()
+            .eq(|p| {
+                if p.arg != 1 {
+                    return Err(ConditionError::Invalid("must be is_activate_heal_skill==1"));
+                }
+                Ok((
+                    p.regions.clone(),
+                    Some(DynamicCondition::new(|r| r.heals_activated_count() > 0)),
+                ))
+            })
+            .build(),
+    );
+    add(
+        "is_used_skill_id_with_detail_one",
+        immediate()
+            .eq(|p| {
+                let id = p.arg.to_string();
+                Ok((
+                    p.regions.clone(),
+                    Some(DynamicCondition::new(move |r| r.has_used_skill(&id))),
+                ))
+            })
+            .build(),
+    );
+    add(
+        "activate_count_later_half",
+        immediate()
+            .gte(|p| {
+                let n = p.arg;
+                Ok((
+                    p.regions.clone(),
+                    Some(DynamicCondition::new(move |r| {
+                        r.skills_activated_half_race(1) >= n
+                    })),
+                ))
+            })
+            .build(),
+    );
+    add(
+        "furlong",
+        immediate()
+            .eq(|p| {
+                let n = p.arg as f64;
+                let bounds = [Region::new(n * 200.0, (n + 1.0) * 200.0)];
+                Ok((intersect_each(&p.regions, &bounds), None))
+            })
+            .build(),
+    );
+    add(
+        "phase_laterhalf",
+        immediate()
+            .eq(|p| {
+                let phase = phase_of(p.arg)?;
+                let s = phase_start(p.course.distance, phase);
+                let e = phase_end(p.course.distance, phase);
+                let bounds = [Region::new((s + e) / 2.0, e)];
+                Ok((intersect_each(&p.regions, &bounds), None))
+            })
+            .build(),
+    );
+    add(
+        "phase_first_half_straight_random",
+        Cond::new(ActivationSamplePolicy::StraightRandom)
+            .eq(|p| {
+                let phase = phase_of(p.arg)?;
+                let s = phase_start(p.course.distance, phase);
+                let e = phase_end(p.course.distance, phase);
+                let phase_bounds = [Region::new(s, (s + e) / 2.0)];
+                let straights: Vec<Region> = p
+                    .course
+                    .straights
+                    .iter()
+                    .map(|st| Region::new(st.start, st.end))
+                    .collect();
+                let in_straights = intersect_each(&p.regions, &straights);
+                Ok((intersect_each(&in_straights, &phase_bounds), None))
+            })
+            .build(),
+    );
+    add(
+        "phase_latter_half_straight_random",
+        Cond::new(ActivationSamplePolicy::StraightRandom)
+            .eq(|p| {
+                let phase = phase_of(p.arg)?;
+                let s = phase_start(p.course.distance, phase);
+                let e = phase_end(p.course.distance, phase);
+                let phase_bounds = [Region::new((s + e) / 2.0, e)];
+                let straights: Vec<Region> = p
+                    .course
+                    .straights
+                    .iter()
+                    .map(|st| Region::new(st.start, st.end))
+                    .collect();
+                let in_straights = intersect_each(&p.regions, &straights);
+                Ok((intersect_each(&in_straights, &phase_bounds), None))
+            })
+            .build(),
+    );
+    add(
+        "up_slope_random_later_half",
+        random()
+            .eq(|p| {
+                if p.arg != 1 {
+                    return Err(ConditionError::Invalid(
+                        "must be up_slope_random_later_half==1",
+                    ));
+                }
+                let later_half = [Region::new(p.course.distance / 2.0, p.course.distance)];
+                let slopes: Vec<Region> = p
+                    .course
+                    .slopes
+                    .iter()
+                    .filter(|s| s.slope > 0.0)
+                    .map(|s| Region::new(s.start, s.start + s.length))
+                    .collect();
+                let in_slopes = intersect_each(&p.regions, &slopes);
+                Ok((intersect_each(&in_slopes, &later_half), None))
+            })
+            .build(),
+    );
+    add(
+        "temptation_opponent_count_behind",
+        dynamic_or_static(
+            noop_section_random(2.0, 9.0),
+            "temptation_opponent_count_behind",
+        ),
+    );
+    add(
+        "near_infront_count",
+        dynamic_or_static(noop_erlang(3, 2.0), "near_infront_count"),
+    );
+    add(
+        "is_other_character_activate_advantage_skill",
+        dynamic_or_static(
+            noop_erlang(3, 2.0),
+            "is_other_character_activate_advantage_skill",
+        ),
+    );
+    add(
+        "is_abroad",
+        immediate()
+            .eq(|p| {
+                if p.arg != 0 && p.arg != 1 {
+                    return Err(ConditionError::Invalid("must be is_abroad==0 or ==1"));
+                }
+                let abroad = i64::from(p.course.is_abroad);
+                if abroad == p.arg {
+                    pass(p.regions.clone())
+                } else {
+                    pass(RegionList::new())
+                }
+            })
+            .neq(|p| {
+                if p.arg != 0 && p.arg != 1 {
+                    return Err(ConditionError::Invalid("must be is_abroad!=0 or !=1"));
+                }
+                let abroad = i64::from(p.course.is_abroad);
+                if abroad != p.arg {
+                    pass(p.regions.clone())
+                } else {
+                    pass(RegionList::new())
+                }
+            })
+            .build(),
+    );
+    add(
+        "is_exist_skill_id",
+        immediate()
+            .eq(|p| {
+                let Some(common) = p.extra.common_skills.as_ref() else {
+                    return pass(p.regions.clone());
+                };
+                let id = p.arg.to_string();
+                if common.get(id.as_str()).copied().unwrap_or(0) > 0 {
+                    pass(p.regions.clone())
+                } else {
+                    pass(RegionList::new())
+                }
+            })
+            .build(),
+    );
+
     m
 }
 
@@ -1915,6 +2114,7 @@ mod tests {
             lane_change_acceleration_per_frame: 0.0,
             max_lane_distance: 0.0,
             move_lane_point: 0.0,
+            is_abroad: false,
         }
     }
 

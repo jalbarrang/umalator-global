@@ -45,6 +45,10 @@ pub struct ActiveRunner {
     pub is_rushed: bool,
     /// Whether the runner is currently in a duel.
     pub is_dueling: bool,
+    /// Bitmask of positive self-applied effect types this runner has activated
+    /// (bit `n` => SkillType id `n`). Read by
+    /// `is_other_character_activate_advantage_skill`.
+    pub activated_advantage_effect_types: u64,
 }
 
 /// Compare a numeric value against an argument under a [`CmpKind`].
@@ -95,6 +99,11 @@ pub trait RunnerView {
     }
     /// Number of skills activated during the given phase index (0..=2).
     fn skills_activated_in_phase(&self, _phase: usize) -> i64 {
+        0
+    }
+    /// Number of skills activated during the given half of the race (0 = first,
+    /// 1 = second).
+    fn skills_activated_half_race(&self, _half: usize) -> i64 {
         0
     }
     /// Number of recovery (heal) skills activated.

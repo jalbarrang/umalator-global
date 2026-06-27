@@ -52,7 +52,8 @@ export function courseDataToWasm(course: CourseData): WasmCourseData {
     laneChangeAcceleration: course.laneChangeAcceleration,
     laneChangeAccelerationPerFrame: course.laneChangeAccelerationPerFrame,
     maxLaneDistance: course.maxLaneDistance,
-    moveLanePoint: course.moveLanePoint
+    moveLanePoint: course.moveLanePoint,
+    isAbroad: course.isAbroad ?? false
   };
 }
 

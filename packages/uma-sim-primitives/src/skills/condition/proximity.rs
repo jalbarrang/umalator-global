@@ -112,6 +112,24 @@ pub fn register_proximity_conditions() {
         })
     });
 
+    // Runners close in front of the observer (near_count filtered to ahead).
+    register_dynamic_condition("near_infront_count", |arg, cmp| {
+        DynamicCondition::new(move |r| {
+            let threshold = lane_threshold(r, NEAR_COUNT_LANE_MULTIPLIER);
+            let position = r.position();
+            let count = r
+                .other_snapshots()
+                .iter()
+                .filter(|s| {
+                    s.position > position
+                        && within_distance(r, s, NEAR_DISTANCE_METERS)
+                        && within_lane(r, s, threshold)
+                })
+                .count();
+            compare(count as f64, arg as f64, cmp)
+        })
+    });
+
     register_dynamic_condition("is_surrounded", |arg, cmp| {
         DynamicCondition::new(move |r| {
             let threshold = lane_threshold(r, SURROUNDED_LANE_MULTIPLIER);

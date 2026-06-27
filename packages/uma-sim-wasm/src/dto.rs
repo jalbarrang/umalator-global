@@ -289,6 +289,9 @@ pub struct WasmCourseData {
     pub max_lane_distance: f64,
     /// Lane-change point.
     pub move_lane_point: f64,
+    /// Whether the race is held overseas.
+    #[serde(default)]
+    pub is_abroad: bool,
 }
 
 impl WasmCourseData {
@@ -340,6 +343,7 @@ impl WasmCourseData {
             lane_change_acceleration_per_frame: self.lane_change_acceleration_per_frame,
             max_lane_distance: self.max_lane_distance,
             move_lane_point: self.move_lane_point,
+            is_abroad: self.is_abroad,
         })
     }
 }

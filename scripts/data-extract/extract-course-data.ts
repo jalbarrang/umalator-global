@@ -24,6 +24,15 @@ interface CourseSetStatusRow {
   target_status_2: number;
 }
 
+interface RaceTrackRow {
+  id: number;
+  flag_type: number;
+}
+
+// raceTrackIds at or above this value are overseas. Used only as a fallback for
+// tracks not yet present in the race_track table (e.g. future content).
+const OVERSEAS_RACE_TRACK_ID_THRESHOLD = 10100;
+
 interface CourseRow {
   id: number;
   race_track_id: number;
@@ -74,6 +83,7 @@ interface CourseData {
   laneMax: number;
   finishTimeMin: number;
   finishTimeMax: number;
+  isAbroad: boolean;
   courseSetStatus: Array<number>;
   corners: Array<Corner>;
   straights: Array<Straight>;
@@ -215,6 +225,20 @@ async function extractCourseData(
       courseSetStatus[row.course_set_status_id] = statuses;
     }
 
+    // Query race track flags (flag_type == 1 marks an overseas track).
+    const raceTrackRows = queryAll<RaceTrackRow>(db, `SELECT id, flag_type FROM race_track`);
+    const raceTrackFlagType = new Map<number, number>();
+    for (const row of raceTrackRows) {
+      raceTrackFlagType.set(row.id, row.flag_type);
+    }
+
+    const isAbroadForTrack = (raceTrackId: number): boolean => {
+      const flag = raceTrackFlagType.get(raceTrackId);
+      return flag !== undefined
+        ? flag === 1
+        : raceTrackId >= OVERSEAS_RACE_TRACK_ID_THRESHOLD;
+    };
+
     // Query course metadata
     const courseRows = queryAll<CourseRow>(
       db,
@@ -329,6 +353,7 @@ async function extractCourseData(
         laneMax: row.float_lane_max,
         finishTimeMin: row.finish_time_min,
         finishTimeMax: row.finish_time_max,
+        isAbroad: isAbroadForTrack(row.race_track_id),
         courseSetStatus: courseSetStatus[row.course_set_status_id] || [],
         corners,
         straights,
@@ -363,6 +388,13 @@ async function extractCourseData(
       } else {
         finalCourses = courses;
         console.log(`\n✓ No existing file found, using master.mdb data only`);
+      }
+    }
+
+    // Backfill isAbroad for merge-preserved courses that predate this field.
+    for (const course of Object.values(finalCourses)) {
+      if (typeof course.isAbroad !== 'boolean') {
+        course.isAbroad = isAbroadForTrack(course.raceTrackId);
       }
     }
 

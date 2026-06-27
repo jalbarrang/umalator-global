@@ -94,13 +94,16 @@ export function registerStateConditions(): void {
     return compare(countActiveRushedRunners(runner), arg, cmp);
   });
 
+  const countRushedBehind = (runner: Runner) =>
+    countActiveRushedRunners(runner, (other) => other.position < runner.position, false);
+
   registerDynamicCondition('temptation_count_behind', (arg, cmp) => (runner) => {
-    const countBehind = countActiveRushedRunners(
-      runner,
-      (other) => other.position < runner.position,
-      false
-    );
-    return compare(countBehind, arg, cmp);
+    return compare(countRushedBehind(runner), arg, cmp);
+  });
+
+  // Opponent-only variant; countActiveRushedRunners already excludes self.
+  registerDynamicCondition('temptation_opponent_count_behind', (arg, cmp) => (runner) => {
+    return compare(countRushedBehind(runner), arg, cmp);
   });
 
   registerDynamicCondition('temptation_count_infront', (arg, cmp) => (runner) => {
@@ -136,4 +139,20 @@ export function registerStateConditions(): void {
   registerDynamicCondition('compete_fight_count', (arg, cmp) => (runner) => {
     return compare(countActiveDuelingRunners(runner), arg, cmp);
   });
+
+  // arg is the SkillType effect id the opponent's activated skill must carry.
+  // The comparator is always ==N in the data, so we report whether any other
+  // active runner has activated a positive effect of that type.
+  registerDynamicCondition(
+    'is_other_character_activate_advantage_skill',
+    (effectType) => (runner) => {
+      let activated = false;
+      forEachActiveRunner(runner, false, (other) => {
+        if (other.activatedAdvantageEffectTypes.has(effectType)) {
+          activated = true;
+        }
+      });
+      return activated;
+    }
+  );
 }

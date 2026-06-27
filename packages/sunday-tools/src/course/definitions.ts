@@ -226,6 +226,10 @@ export type CourseData = {
   readonly surface: ISurface;
   readonly turn: IOrientation;
 
+  // True when the race is held overseas (master.mdb race_track.flag_type == 1).
+  // Optional so older course_data snapshots and inline fixtures stay valid.
+  readonly isAbroad?: boolean;
+
   readonly courseSetStatus: ReadonlyArray<IThresholdStat>;
 
   readonly corners: ReadonlyArray<ICorner>;
