@@ -1,3 +1,9 @@
+## [0.19.0](https://github.com/jalbarrang/torena-sim/compare/v0.18.0...v0.19.0) (2026-06-27)
+
+### Features
+
+* **skills:** support 14 skill condition tokens, defer 4 with notes ([#59](https://github.com/jalbarrang/torena-sim/issues/59)) ([49e9f7f](https://github.com/jalbarrang/torena-sim/commit/49e9f7fb329cd29b466e8219d62ee77c09721129))
+
 ## [0.18.0](https://github.com/jalbarrang/torena-sim/compare/v0.17.0...v0.18.0) (2026-06-22)
 
 ### Features
