@@ -123,6 +123,7 @@ mod tests {
             lane_change_acceleration_per_frame: 0.0,
             max_lane_distance: 0.0,
             move_lane_point: 0.0,
+            is_abroad: false,
         }
     }
 

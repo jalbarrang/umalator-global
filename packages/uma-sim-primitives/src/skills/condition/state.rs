@@ -112,6 +112,31 @@ pub fn register_state_conditions() {
         })
     });
 
+    // Opponent-only variant; count_active_rushed already excludes self.
+    register_dynamic_condition("temptation_opponent_count_behind", |arg, cmp| {
+        DynamicCondition::new(move |r| {
+            let position = r.position();
+            let count = count_active_rushed(r, false, |o| o.position < position);
+            compare(count as f64, arg as f64, cmp)
+        })
+    });
+
+    // arg is the SkillType effect id the opponent's activated skill must carry.
+    register_dynamic_condition(
+        "is_other_character_activate_advantage_skill",
+        |arg, _cmp| {
+            DynamicCondition::new(move |r| {
+                if !(0..64).contains(&arg) {
+                    return false;
+                }
+                let bit = 1u64 << arg;
+                r.active_runners()
+                    .iter()
+                    .any(|o| !o.is_self && o.activated_advantage_effect_types & bit != 0)
+            })
+        },
+    );
+
     register_dynamic_condition("temptation_count_infront", |arg, cmp| {
         DynamicCondition::new(move |r| {
             let position = r.position();
@@ -193,6 +218,7 @@ mod tests {
             gate,
             is_rushed: rushed,
             is_dueling: false,
+            activated_advantage_effect_types: 0,
         }
     }
 

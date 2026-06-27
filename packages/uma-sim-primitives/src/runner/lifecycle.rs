@@ -257,6 +257,7 @@ impl Runner {
             skills_activated_half_race_map: [0; 2],
             heals_activated_count: 0,
             used_skills: std::collections::HashSet::new(),
+            activated_advantage_effect_types: 0,
             used_targeted_skills: Vec::new(),
             emitted_debuffs: Vec::new(),
             pending_skills: Vec::new(),
@@ -388,6 +389,7 @@ mod tests {
             lane_change_acceleration_per_frame: 0.0,
             max_lane_distance: 0.0,
             move_lane_point: 0.0,
+            is_abroad: false,
         }
     }
 

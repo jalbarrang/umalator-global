@@ -392,6 +392,10 @@ pub struct Runner {
     pub heals_activated_count: i64,
     /// Skill ids already used this round.
     pub used_skills: HashSet<String>,
+    /// Bitmask of positive self-applied effect types activated this race (bit
+    /// `n` set => SkillType id `n` activated). Read by
+    /// `is_other_character_activate_advantage_skill`.
+    pub activated_advantage_effect_types: u64,
     /// Targeted-skill activation log.
     pub used_targeted_skills: Vec<UsedTargetedSkill>,
     /// Opponent-facing debuffs this runner emitted this frame, awaiting the race
@@ -510,6 +514,7 @@ pub mod test_support {
             lane_change_acceleration_per_frame: 0.0,
             max_lane_distance: 0.0,
             move_lane_point: 0.0,
+            is_abroad: false,
         }
     }
 

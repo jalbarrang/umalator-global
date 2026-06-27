@@ -79,6 +79,13 @@ impl RunnerView for RunnerConditionView<'_> {
             .copied()
             .unwrap_or(0)
     }
+    fn skills_activated_half_race(&self, half: usize) -> i64 {
+        self.runner
+            .skills_activated_half_race_map
+            .get(half)
+            .copied()
+            .unwrap_or(0)
+    }
     fn heals_activated_count(&self) -> i64 {
         self.runner.heals_activated_count
     }
@@ -335,6 +342,7 @@ impl Runner {
         self.skills_activated_half_race_map = [0; 2];
         self.heals_activated_count = 0;
         self.used_skills.clear();
+        self.activated_advantage_effect_types = 0;
         self.used_targeted_skills.clear();
         self.emitted_debuffs.clear();
         self.pending_skill_removal.clear();
@@ -574,6 +582,14 @@ impl Runner {
                     target_strategy: skill.target_strategy,
                 });
                 continue;
+            }
+            // Record positive self-buffs so opponents can react via
+            // is_other_character_activate_advantage_skill (arg = SkillType id).
+            if effect.modifier > 0.0 {
+                let t = effect.effect_type as i64;
+                if (0..64).contains(&t) {
+                    self.activated_advantage_effect_types |= 1u64 << t;
+                }
             }
             let scaling = if skill.rarity == SkillRarity::Evolution {
                 self.modifiers.special_skill_duration_scaling

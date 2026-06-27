@@ -24,6 +24,7 @@ export type WasmCourseData = {
   laneChangeAccelerationPerFrame: number;
   maxLaneDistance: number;
   moveLanePoint: number;
+  isAbroad?: boolean;
 };
 
 type WasmStatLine = {
