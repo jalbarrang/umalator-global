@@ -25,6 +25,12 @@ export function PullsField(props: PullsFieldProps) {
   const costLine = showCost ? (
     <div className="font-mono text-[11px] text-muted-foreground tabular-nums">
       Cost {formatCarats(row.cost)}
+      {row.ticketsUsed > 0 ? (
+        <span className="text-emerald-600 dark:text-emerald-400">
+          {' '}
+          (−{row.ticketsUsed.toLocaleString()} tix)
+        </span>
+      ) : null}
       {row.paidCost > 0 ? ` · paid ${formatCarats(row.paidCost)}` : ''}
     </div>
   ) : null;

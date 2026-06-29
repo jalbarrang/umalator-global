@@ -4,12 +4,19 @@ import { CARAT_PER_PULL } from '@/modules/carat/model/income-tables';
 import { totalPaidCaratsFromPurchases, type PaidPackPurchases } from '@/modules/carat/model/paid';
 import type { CaratSettings, PlannedBanner } from '@/store/carat.store';
 
+export type TicketType = 'uma' | 'support';
+
 export type BannerPlanRow = {
   event: TimelineEvent;
   plannedBanner: PlannedBanner;
   caratsAvailable: number;
   paidCaratsAvailable: number;
   freeCaratsAvailable: number;
+  ticketType: TicketType;
+  ticketsAvailable: number;
+  ticketsUsed: number;
+  ticketsSaved: number;
+  ticketsRemaining: number;
   cost: number;
   paidCost: number;
   freeCost: number;
@@ -26,6 +33,29 @@ function eventStartDate(event: TimelineEvent) {
 function eventStartTime(event: TimelineEvent) {
   const time = eventStartDate(event).getTime();
   return Number.isFinite(time) ? time : Number.POSITIVE_INFINITY;
+}
+
+function ticketTypeForEvent(event: TimelineEvent): TicketType {
+  return event.card_type === 'character' ? 'uma' : 'support';
+}
+
+function plannedPullsOf(plannedBanner: PlannedBanner) {
+  return Math.max(0, Math.floor(plannedBanner.plannedPulls || 0));
+}
+
+function ticketAllocation(
+  plannedBanner: PlannedBanner,
+  ticketsAvailable: number,
+  plannedPulls: number
+) {
+  // ticketsAvailable is clamped defensively; the running pools are already >= 0.
+  const maxTicketsUsed = Math.min(Math.max(0, ticketsAvailable), plannedPulls);
+
+  if (plannedBanner.ticketsUsed === undefined) {
+    return maxTicketsUsed;
+  }
+
+  return Math.min(maxTicketsUsed, Math.max(0, Math.floor(plannedBanner.ticketsUsed || 0)));
 }
 
 export function computePlan(
@@ -49,13 +79,28 @@ export function computePlan(
     ? settings.startingPaidCarats +
       totalPaidCaratsFromPurchases(paidPurchases, settings.server).paidCarats
     : 0;
+  let runningUmaTickets = Math.max(0, Math.floor(settings.umaTickets || 0));
+  let runningSupportTickets = Math.max(0, Math.floor(settings.supportTickets || 0));
 
   return rows.map(({ event, plannedBanner }) => {
     const startDate = eventStartDate(event);
     const income = projectIncome(settings, timeline, previousDate, startDate);
     runningFreeBalance += income.carats + income.tickets * CARAT_PER_PULL;
 
-    const cost = plannedBanner.plannedPulls * CARAT_PER_PULL;
+    const ticketType = ticketTypeForEvent(event);
+    const ticketsAvailable = ticketType === 'uma' ? runningUmaTickets : runningSupportTickets;
+    const plannedPulls = plannedPullsOf(plannedBanner);
+    const ticketsUsed = ticketAllocation(plannedBanner, ticketsAvailable, plannedPulls);
+    const ticketsSaved = ticketsUsed * CARAT_PER_PULL;
+
+    if (ticketType === 'uma') {
+      runningUmaTickets -= ticketsUsed;
+    } else {
+      runningSupportTickets -= ticketsUsed;
+    }
+
+    const ticketedPulls = Math.max(0, plannedPulls - ticketsUsed);
+    const cost = ticketedPulls * CARAT_PER_PULL;
     const paidCost = settings.trackPaidCarats ? Math.min(runningPaidBalance, cost) : 0;
     const freeCost = cost - paidCost;
     runningPaidBalance -= paidCost;
@@ -71,6 +116,11 @@ export function computePlan(
       caratsAvailable: freeCaratsAvailable + runningPaidBalance,
       paidCaratsAvailable: runningPaidBalance + paidCost,
       freeCaratsAvailable,
+      ticketType,
+      ticketsAvailable,
+      ticketsUsed,
+      ticketsSaved,
+      ticketsRemaining: ticketType === 'uma' ? runningUmaTickets : runningSupportTickets,
       cost,
       paidCost,
       freeCost,

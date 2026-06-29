@@ -7,6 +7,7 @@ import { CopiesOddsBar } from '@/modules/carat/components/copies-odds-bar';
 import { UmaOddsBar } from '@/modules/carat/components/uma-odds-bar';
 import { PlanDragHandle } from '@/modules/carat/components/plan-drag-handle';
 import { PullsField } from '@/modules/carat/components/pulls-field';
+import { TicketsField } from '@/modules/carat/components/tickets-field';
 import { RemovePlannedBannerButton } from '@/modules/carat/components/remove-planned-banner-button';
 import {
   characterPickupCount,
@@ -43,10 +44,14 @@ export function SortablePlanRow(props: SortablePlanRowProps) {
         <BannerIdentity row={row} showWindow />
       </td>
       <td className="px-2 py-3 text-right font-mono tabular-nums">
-        {formatCarats(row.caratsAvailable)}
+        <div className="text-base font-semibold text-foreground">{formatCarats(row.caratsAvailable)}</div>
+        <div className="text-[11px] text-muted-foreground">→ {formatCarats(row.balanceAfter)} after</div>
       </td>
       <td className="w-44 min-w-44 px-2 py-3">
         <PullsField row={row} showCost density="table" />
+      </td>
+      <td className="w-44 min-w-44 px-2 py-3">
+        <TicketsField row={row} density="table" />
       </td>
       {showPaid ? (
         <td className="px-2 py-3 text-right font-mono tabular-nums">

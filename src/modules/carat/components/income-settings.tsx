@@ -82,7 +82,7 @@ function NumberField(props: {
         inputMode="numeric"
         min={0}
         value={value}
-        onChange={(event) => setCaratSetting(settingKey, Number(event.target.value) || 0)}
+        onChange={(event) => setCaratSetting(settingKey, Math.max(0, Number(event.target.value) || 0))}
         className="text-right tabular-nums"
       />
     </label>

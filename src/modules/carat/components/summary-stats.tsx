@@ -95,11 +95,16 @@ export function SummaryStats() {
       </div>
 
       {/* Supporting context — grouped, visually subordinate to the verdict. */}
-      <div className="grid grid-cols-1 divide-y rounded-xl border bg-card shadow-sm sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+      <div className="grid grid-cols-1 divide-y rounded-xl border bg-card shadow-sm sm:grid-cols-4 sm:divide-x sm:divide-y-0">
         <SecondaryMetric
           label="Current Carats"
           value={settings.startingFreeCarats.toLocaleString()}
-          sub={`${settings.trackPaidCarats ? '+ paid pool tracked' : '+ paid not tracked'} · ${(settings.umaTickets + settings.supportTickets).toLocaleString()} tickets`}
+          sub={settings.trackPaidCarats ? '+ paid pool tracked' : '+ paid not tracked'}
+        />
+        <SecondaryMetric
+          label="Starting Tickets"
+          value={`${settings.umaTickets.toLocaleString()} / ${settings.supportTickets.toLocaleString()}`}
+          sub="Uma / Support · typed pools"
         />
         <SecondaryMetric
           label="Monthly Income"
