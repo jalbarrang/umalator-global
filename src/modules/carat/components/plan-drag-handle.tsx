@@ -15,6 +15,7 @@ export function PlanDragHandle(props: PlanDragHandleProps) {
   return (
     <button
       type="button"
+      aria-label="Reorder banner"
       className={cn(
         'touch-none cursor-grab rounded-lg text-muted-foreground outline-none active:cursor-grabbing focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50',
         className
@@ -23,7 +24,6 @@ export function PlanDragHandle(props: PlanDragHandleProps) {
       {...listeners}
     >
       <GripVertical className="size-4" />
-      <span className="sr-only">Reorder banner</span>
     </button>
   );
 }

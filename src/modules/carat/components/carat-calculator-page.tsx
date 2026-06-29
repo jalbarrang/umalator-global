@@ -5,7 +5,6 @@ import { useTutorial } from '@/components/tutorial';
 import { caratCalculatorSteps } from '@/modules/tutorial/steps/carat-calculator-steps';
 import { AddBannerButton } from '@/modules/carat/components/add-banner-button';
 import { IncomeSettings } from '@/modules/carat/components/income-settings';
-import { LiveDataStatus } from '@/modules/carat/components/live-data-status';
 import { PlanSwitcher } from '@/modules/carat/components/plan-switcher';
 import { SummaryStats } from '@/modules/carat/components/summary-stats';
 import { TimelinePanel } from '@/modules/carat/components/timeline-panel';
@@ -61,15 +60,17 @@ export function CaratCalculatorPage() {
     <Tabs
       value={activeTab}
       onValueChange={(value) => setActiveTab(value as 'calculator' | 'selector')}
-      className="w-full gap-0 overflow-y-auto px-4 py-4 sm:px-6"
+      className="w-full min-h-0 px-4 py-4 overflow-y-auto lg:overflow-hidden"
     >
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      {/* Header */}
+      <div className="flex shrink-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-[21px] font-semibold tracking-tight">Carat Calculator</h1>
+          <h1 className="text-lg font-semibold tracking-tight">Carat Calculator</h1>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Plan your pulls against the live banner timeline · Global server · v5.3 data
+            Plan your pulls against the live banner timeline
           </p>
         </div>
+
         <div className="flex flex-wrap items-center gap-2">
           <PlanSwitcher />
           <Button size="sm" variant="outline" onClick={startTour}>
@@ -84,8 +85,9 @@ export function CaratCalculatorPage() {
         </div>
       </div>
 
+      {/* First visit nudge */}
       {showFirstVisitNudge ? (
-        <div className="mb-4 rounded-xl border bg-card p-3 shadow-sm">
+        <div className="mb-4 shrink-0 rounded-xl border bg-card p-3 shadow-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <div className="text-sm font-semibold">New here? Take a 60-second tour.</div>
@@ -106,30 +108,39 @@ export function CaratCalculatorPage() {
         </div>
       ) : null}
 
-      <p className="mb-4 text-[11px] leading-relaxed text-muted-foreground">
+      {/* Disclaimer */}
+      <p className="shrink-0 text-xs leading-relaxed text-muted-foreground">
         Estimates only. Odds use independent-probability models and are not guarantees — your actual
         results will vary. This is not financial advice; only spend what you can comfortably afford.
       </p>
 
-      <SummaryStats />
+      {/* Summary stats */}
+      <div className="shrink-0">
+        <SummaryStats />
+      </div>
 
-      <div className="grid items-start gap-4 lg:grid-cols-[330px_1fr]">
+      {/* Planner */}
+      <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[330px_1fr] lg:grid-rows-[minmax(0,1fr)]">
         <IncomeSettings />
 
-        <section data-tutorial="carat-planner" className="rounded-xl border bg-card shadow-sm">
+        <section
+          data-tutorial="carat-planner"
+          className="flex min-h-0 flex-col rounded-xl border bg-card shadow-sm lg:h-full"
+        >
           {activeTab === 'calculator' ? (
-            <div className="flex flex-col gap-3 border-b px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex shrink-0 flex-col gap-3 border-b px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
               <strong className="text-sm">Banner Plan</strong>
               <div className="flex items-center gap-2">
-                <LiveDataStatus />
                 <AddBannerButton />
               </div>
             </div>
           ) : null}
-          <div className="space-y-4 p-4">
+
+          <div className="relative flex min-h-0 flex-1 [&>*]:min-w-0 p-4 overflow-y-auto">
             <TabsContent value="calculator">
               <TimelinePanel mode="calculator" />
             </TabsContent>
+
             <TabsContent value="selector">
               <TimelinePanel mode="selector" />
             </TabsContent>

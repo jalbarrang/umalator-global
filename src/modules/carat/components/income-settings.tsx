@@ -207,7 +207,10 @@ export function IncomeSettings() {
   const settings = useCaratStore((state) => getActivePlan(state).settings);
 
   return (
-    <aside data-tutorial="carat-settings" className="rounded-xl border bg-card shadow-sm">
+    <aside
+      data-tutorial="carat-settings"
+      className="rounded-xl border bg-card shadow-sm lg:min-h-0 lg:overflow-y-auto"
+    >
       <div className="flex items-center justify-between border-b px-4 py-3 text-sm font-bold">
         <span className="inline-flex items-center gap-1">
           Income & Settings
