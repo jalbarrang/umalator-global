@@ -72,7 +72,7 @@ const DisplayDropdown = React.memo((props: DisplayDropdownProps) => {
             <span className="text-muted-foreground">
               ({activeCount}/{options.length})
             </span>
-            <ChevronDownIcon className="size-3.5 opacity-60" />
+            <ChevronDownIcon className="opacity-60" />
           </Button>
         }
       />
@@ -109,7 +109,7 @@ const RunnersDropdown = React.memo((props: RunnersDropdownProps) => {
             <span className="text-muted-foreground">
               ({activeCount}/{RUNNER_OPTIONS.length})
             </span>
-            <ChevronDownIcon className="size-3.5 opacity-60" />
+            <ChevronDownIcon className="opacity-60" />
           </Button>
         }
       />

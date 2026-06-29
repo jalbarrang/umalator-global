@@ -198,7 +198,7 @@ export const SkillPickerFilterRow = (props: SkillPickerFilterRowProps) => {
             className="h-7 gap-1 px-2 text-xs text-muted-foreground"
             onClick={handleClearFilters}
           >
-            <XIcon className="size-3" />
+            <XIcon />
             Clear
           </Button>
         </div>
@@ -213,7 +213,7 @@ export const SkillPickerFilterRow = (props: SkillPickerFilterRowProps) => {
           onClick={() => setMobileOpen((current) => !current)}
         >
           <span className="flex items-center gap-2 text-xs">
-            <FilterIcon className="size-3.5" />
+            <FilterIcon />
             Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
           </span>
           <ChevronDownIcon

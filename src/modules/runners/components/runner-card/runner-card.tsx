@@ -393,9 +393,9 @@ export const RunnerCard = (props: RunnerCardProps) => {
               <DropdownMenuTrigger
                 render={
                   <Button size="sm" variant="outline">
-                    <Upload className="size-4" />
+                    <Upload />
                     <span className="hidden md:inline!">Import</span>
-                    <ChevronDown className="size-3" />
+                    <ChevronDown />
                   </Button>
                 }
               />
@@ -414,7 +414,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
 
           {props.runnerId !== 'pacer' && onCopy && (
             <Button onClick={onCopy} size="sm" variant="outline" title="Copy to other runner">
-              <CopyPlus className="size-4" />
+              <CopyPlus />
               <span className="hidden md:inline!">Duplicate</span>
             </Button>
           )}
@@ -424,9 +424,9 @@ export const RunnerCard = (props: RunnerCardProps) => {
               <DropdownMenuTrigger
                 render={
                   <Button size="sm" variant="outline" title="Share runner">
-                    <Share2 className="size-4" />
+                    <Share2 />
                     <span className="hidden md:inline!">Share</span>
-                    <ChevronDown className="size-3" />
+                    <ChevronDown />
                   </Button>
                 }
               />
@@ -455,7 +455,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
 
           <Button onClick={onReset} title="Reset runner" size="sm">
             <span className="hidden md:inline!">Reset</span>
-            <TrashIcon className="size-4" />
+            <TrashIcon />
           </Button>
         </div>
       </div>
@@ -515,7 +515,7 @@ export const RunnerCard = (props: RunnerCardProps) => {
 
           <Button variant="default" onClick={handleOpenSkillPicker} className="cursor-pointer">
             Add Skills
-            <PlusIcon className="size-4" />
+            <PlusIcon />
           </Button>
         </div>
       )}

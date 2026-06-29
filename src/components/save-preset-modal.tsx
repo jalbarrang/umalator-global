@@ -207,7 +207,7 @@ export const SavePresetModal = () => {
       <DialogTrigger
         render={
           <Button variant="outline">
-            <BookmarkPlus className="size-4" />
+            <BookmarkPlus />
             Save
           </Button>
         }
@@ -332,7 +332,7 @@ const PresetForm = ({
               variant="outline"
               className="w-full justify-start text-left font-normal"
             >
-              <CalendarIcon className="mr-2 size-4" />
+              <CalendarIcon className="mr-2" />
               {date ? dayjs(date).format('YYYY-MM-DD') : 'Select date'}
             </Button>
           }

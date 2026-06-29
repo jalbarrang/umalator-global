@@ -51,7 +51,7 @@ export default function PrivacyPolicy() {
           className="mb-6 text-muted-foreground"
           onClick={() => navigate('/')}
         >
-          <ArrowLeftIcon className="size-4 mr-1.5" />
+          <ArrowLeftIcon className="mr-1.5" />
           Back
         </Button>
 

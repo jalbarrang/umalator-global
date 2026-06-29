@@ -42,7 +42,7 @@ const SkillNameTableCell = React.memo((props: SkillNameTableCellProps) => {
         data-event={BASSIN_DATA_EVENT_TOGGLE_SKILL_DETAILS}
         data-skill-id={id}
       >
-        <CircleHelp className="size-3.5" />
+        <CircleHelp />
       </Button>
     </div>
   );

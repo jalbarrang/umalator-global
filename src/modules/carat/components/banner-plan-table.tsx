@@ -20,7 +20,7 @@ import { SortablePlanRow } from '@/modules/carat/components/sortable-plan-row';
 import { useWideViewport } from '@/modules/carat/components/use-wide-viewport';
 import type { TimelineEvent, TimelinePayload } from '@/modules/carat/data/timeline-types';
 import { computePlan } from '@/modules/carat/model/plan';
-import { reorderPlannedBanners, useCaratStore } from '@/store/carat.store';
+import { getActivePlan, reorderPlannedBanners, useCaratStore } from '@/store/carat.store';
 
 type BannerPlanTableProps = { timeline: TimelinePayload };
 type SortMode = 'date' | 'manual';
@@ -33,9 +33,9 @@ export function BannerPlanTable(props: BannerPlanTableProps) {
   const { timeline } = props;
   const [sortMode, setSortMode] = useState<SortMode>('date');
   const isWide = useWideViewport();
-  const settings = useCaratStore((state) => state.settings);
-  const plannedBanners = useCaratStore((state) => state.plannedBanners);
-  const paidPurchases = useCaratStore((state) => state.paidPurchases);
+  const settings = useCaratStore((state) => getActivePlan(state).settings);
+  const plannedBanners = useCaratStore((state) => getActivePlan(state).plannedBanners);
+  const paidPurchases = useCaratStore((state) => getActivePlan(state).paidPurchases);
   const showPaid = settings.trackPaidCarats;
   const sensors = useSensors(
     useSensor(PointerSensor),

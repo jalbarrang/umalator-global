@@ -100,7 +100,7 @@ function DebuffRow({
                   handleClone();
                 }}
               >
-                <CopyIcon className="size-4" />
+                <CopyIcon />
               </Button>
               <SkillItemDetailsActions dismissable onDismiss={handleDismiss} />
             </SkillItemActions>
@@ -119,7 +119,7 @@ export function DebuffGroup({ runnerId, title, debuffs, onAdd }: DebuffGroupProp
           {title}
         </Label>
         <Button size="sm" variant="outline" onClick={() => onAdd(runnerId)}>
-          <PlusIcon className="mr-1 size-4" />
+          <PlusIcon className="mr-1" />
           Add Debuff
         </Button>
       </div>

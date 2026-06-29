@@ -109,7 +109,7 @@ export function SimulationLayout() {
               <TooltipTrigger
                 render={
                   <Button variant="default" size="lg" onClick={handleOpenSidebar} className="w-16">
-                    <SidebarOpen className="size-4" />
+                    <SidebarOpen />
                   </Button>
                 }
               />

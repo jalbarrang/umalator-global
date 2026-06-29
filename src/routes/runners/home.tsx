@@ -408,7 +408,7 @@ export default function RosterHomePage() {
               variant="outline"
               onClick={() => dispatch({ type: 'rosterImport:openChange', open: true })}
             >
-              <Import className="size-4" />
+              <Import />
               Import Roster
             </Button>
 
@@ -417,13 +417,13 @@ export default function RosterHomePage() {
               variant="outline"
               onClick={() => dispatch({ type: 'ocrImport:openChange', open: true })}
             >
-              <Camera className="size-4" />
+              <Camera />
               Import Screenshot
             </Button>
 
             <Activity mode={runners.length > 0 ? 'visible' : 'hidden'}>
               <Button size="default" onClick={handleAddNew}>
-                <Plus className="size-4" />
+                <Plus />
                 Add Runner
               </Button>
             </Activity>
@@ -467,7 +467,7 @@ export default function RosterHomePage() {
 
           {hasActiveFilters && (
             <Button variant="ghost" size="icon-sm" onClick={clearAllFilters}>
-              <X className="size-3.5" />
+              <X />
             </Button>
           )}
         </div>
@@ -532,7 +532,7 @@ export default function RosterHomePage() {
               onClick={() => dispatch({ type: 'bulkDelete:open' })}
               disabled={page.selected.size === 0}
             >
-              <Trash2 className="size-4" />
+              <Trash2 />
               Delete ({page.selected.size})
             </Button>
 
@@ -569,11 +569,11 @@ export default function RosterHomePage() {
                 variant="outline"
                 onClick={() => dispatch({ type: 'ocrImport:openChange', open: true })}
               >
-                <Camera className="size-4 mr-2" />
+                <Camera className="mr-2" />
                 Import Screenshot
               </Button>
               <Button onClick={handleAddNew}>
-                <Plus className="size-4 mr-2" />
+                <Plus className="mr-2" />
                 Add Runner
               </Button>
             </div>

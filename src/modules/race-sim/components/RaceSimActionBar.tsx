@@ -111,7 +111,7 @@ export function RaceSimActionBar({ isRunning, onRun, onCancel, onReplay }: RaceS
           render={
             <Button variant="outline" size="sm" disabled={isRunning}>
               Share settings
-              <ChevronDown className="size-3" />
+              <ChevronDown />
             </Button>
           }
         />

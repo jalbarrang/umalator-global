@@ -136,7 +136,7 @@ export const RunnersPanel = () => {
                 <TooltipTrigger
                   render={
                     <Button size="sm" variant="ghost" onClick={handleSyncToLibrary}>
-                      <Save className="size-4" />
+                      <Save />
                     </Button>
                   }
                 />
@@ -147,7 +147,7 @@ export const RunnersPanel = () => {
                 <TooltipTrigger
                   render={
                     <Button size="sm" variant="ghost" onClick={handleUnlink}>
-                      <Link2Off className="size-4" />
+                      <Link2Off />
                     </Button>
                   }
                 />
@@ -161,7 +161,7 @@ export const RunnersPanel = () => {
         {!isLinked && (
           <div className="flex items-center justify-end gap-2 p-2 bg-muted/50 border-b">
             <Button size="sm" variant="secondary" onClick={() => setSaveModalOpen(true)}>
-              <Save className="size-4 mr-2" />
+              <Save className="mr-2" />
               Save to Veterans
             </Button>
           </div>

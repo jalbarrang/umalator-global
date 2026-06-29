@@ -214,7 +214,7 @@ function SkillSourcesPopover(props: SkillSourcesPopoverProps) {
       <PopoverTrigger
         render={
           <Button variant="outline" size="sm" disabled={sourceCount === 0}>
-            <UsersIcon className="size-3" />
+            <UsersIcon />
             Sources{sourceCount > 0 ? ` (${sourceCount})` : ''}
           </Button>
         }

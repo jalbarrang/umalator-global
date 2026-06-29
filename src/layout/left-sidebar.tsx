@@ -162,7 +162,7 @@ export const LeftSidebar = () => {
             <TooltipTrigger
               render={
                 <Button variant="ghost" size="icon" className="size-9" onClick={handleCloseSidebar}>
-                  <SidebarClose className="size-4" />
+                  <SidebarClose />
                 </Button>
               }
             />

@@ -95,7 +95,7 @@ function SaveRunnerModalContent(props: SaveRunnerModalContentProps) {
           Cancel
         </Button>
         <Button onClick={handleSave} disabled={!name.trim()}>
-          <BookmarkPlus className="size-4 mr-2" />
+          <BookmarkPlus className="mr-2" />
           Save
         </Button>
       </DialogFooter>

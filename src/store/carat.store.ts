@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import { cloneDeep } from 'es-toolkit';
 import { defaultPaidPackPurchases, type PaidPackPurchases } from '@/modules/carat/model/paid';
 
 const CARAT_STORE_NAME = 'umalator-carat';
@@ -46,11 +47,20 @@ export type SelectorChoice = {
   stepUps?: Record<string, number>;
 };
 
-type CaratState = {
+export type CaratPlan = {
+  id: string;
+  name: string;
+  createdAt: number;
+  updatedAt: number;
   settings: CaratSettings;
   plannedBanners: PlannedBanner[];
   paidPurchases: Record<string, PaidPackPurchases>;
   selectorChoices: Record<string, SelectorChoice>;
+};
+
+type CaratState = {
+  plans: CaratPlan[];
+  activePlanId: string;
 };
 
 type CaratStore = CaratState;
@@ -72,79 +82,165 @@ export const defaultCaratSettings: CaratSettings = {
   trackPaidCarats: false
 };
 
-const defaultPlannedBanners: PlannedBanner[] = [
-  {
-    id: 'example-banner',
-    plannedPulls: 200,
-    startingDupes: 0,
-    copyGoals: {},
-    ownedCopies: {},
-    order: 0
-  }
-];
+function defaultPlannedBanners(): PlannedBanner[] {
+  return [
+    {
+      id: 'example-banner',
+      plannedPulls: 200,
+      startingDupes: 0,
+      copyGoals: {},
+      ownedCopies: {},
+      order: 0
+    }
+  ];
+}
 
-const initialCaratState: CaratState = {
-  settings: defaultCaratSettings,
-  plannedBanners: defaultPlannedBanners,
-  paidPurchases: {},
-  selectorChoices: {}
+function generateId(): string {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
+function createDefaultPlan(name = 'Plan 1'): CaratPlan {
+  const now = Date.now();
+  return {
+    id: generateId(),
+    name,
+    createdAt: now,
+    updatedAt: now,
+    settings: { ...defaultCaratSettings },
+    plannedBanners: defaultPlannedBanners(),
+    paidPurchases: {},
+    selectorChoices: {}
+  };
+}
+
+function makeInitialState(): CaratState {
+  const plan = createDefaultPlan();
+  return { plans: [plan], activePlanId: plan.id };
+}
+
+const initialCaratState: CaratState = makeInitialState();
+
+/** Read the active plan, falling back to the first plan if the id is stale. */
+export function getActivePlan(state: CaratState): CaratPlan {
+  return state.plans.find((plan) => plan.id === state.activePlanId) ?? state.plans[0];
+}
+
+/** Selector hook for the active plan. */
+export function useActivePlan(): CaratPlan {
+  return useCaratStore(getActivePlan);
+}
+
+function normalizeBanner(banner: PlannedBanner): PlannedBanner {
+  return {
+    ...banner,
+    copyGoals: banner.copyGoals ?? {},
+    ownedCopies: banner.ownedCopies ?? {},
+    ticketsUsed:
+      typeof banner.ticketsUsed === 'number'
+        ? Math.max(0, Math.floor(banner.ticketsUsed || 0))
+        : undefined
+  };
+}
+
+function normalizePlan(
+  plan: Partial<Omit<CaratPlan, 'settings'>> & { settings?: Partial<CaratSettings> },
+  fallbackName: string
+): CaratPlan {
+  const now = Date.now();
+  return {
+    id: plan.id ?? generateId(),
+    name: plan.name ?? fallbackName,
+    createdAt: typeof plan.createdAt === 'number' ? plan.createdAt : now,
+    updatedAt: typeof plan.updatedAt === 'number' ? plan.updatedAt : now,
+    settings: { ...defaultCaratSettings, ...plan.settings },
+    plannedBanners: (plan.plannedBanners ?? defaultPlannedBanners()).map(normalizeBanner),
+    paidPurchases: plan.paidPurchases ?? {},
+    selectorChoices: plan.selectorChoices ?? {}
+  };
+}
+
+type LegacyCaratState = {
+  settings?: Partial<CaratSettings>;
+  plannedBanners?: PlannedBanner[];
+  paidPurchases?: Record<string, PaidPackPurchases>;
+  selectorChoices?: Record<string, SelectorChoice>;
 };
+
+/**
+ * Migrate persisted state. The legacy shape stored a single flat plan
+ * (`settings`/`plannedBanners`/...); wrap it into one `CaratPlan` named
+ * "Plan 1". The current shape stores `{ plans, activePlanId }`.
+ */
+export function migratePersisted(persisted: unknown): CaratState {
+  const state = (persisted ?? {}) as Partial<CaratState> & LegacyCaratState;
+
+  if (Array.isArray(state.plans) && state.plans.length > 0) {
+    const plans = state.plans.map((plan, index) => normalizePlan(plan, `Plan ${index + 1}`));
+    const activePlanId = plans.some((plan) => plan.id === state.activePlanId)
+      ? (state.activePlanId as string)
+      : plans[0].id;
+    return { plans, activePlanId };
+  }
+
+  // Legacy flat shape (or empty) -> wrap into a single plan.
+  const legacyPlan = normalizePlan(
+    {
+      settings: state.settings,
+      plannedBanners: state.plannedBanners,
+      paidPurchases: state.paidPurchases,
+      selectorChoices: state.selectorChoices
+    },
+    'Plan 1'
+  );
+  return { plans: [legacyPlan], activePlanId: legacyPlan.id };
+}
 
 export const useCaratStore = create<CaratStore>()(
   persist(() => initialCaratState, {
     name: CARAT_STORE_NAME,
     storage: createJSONStorage(() => localStorage),
-    merge: (persisted, current) => {
-      const state = persisted as Partial<CaratState>;
-      return {
-        ...current,
-        ...state,
-        settings: { ...defaultCaratSettings, ...state.settings },
-        plannedBanners: (state.plannedBanners ?? defaultPlannedBanners).map((banner) => ({
-          ...banner,
-          copyGoals: banner.copyGoals ?? {},
-          ownedCopies: banner.ownedCopies ?? {},
-          ticketsUsed:
-            typeof banner.ticketsUsed === 'number'
-              ? Math.max(0, Math.floor(banner.ticketsUsed || 0))
-              : undefined
-        })),
-        paidPurchases: state.paidPurchases ?? {},
-        selectorChoices: state.selectorChoices ?? {}
-      };
-    }
+    merge: (persisted, current) => ({ ...current, ...migratePersisted(persisted) })
   })
 );
 
+/** Apply an updater to the active plan and bump its `updatedAt`. */
+function updateActivePlan(updater: (plan: CaratPlan) => CaratPlan) {
+  useCaratStore.setState((state) => {
+    const activeId = getActivePlan(state).id;
+    return {
+      plans: state.plans.map((plan) =>
+        plan.id === activeId ? { ...updater(plan), updatedAt: Date.now() } : plan
+      )
+    };
+  });
+}
+
 export function setCaratSetting<K extends keyof CaratSettings>(key: K, value: CaratSettings[K]) {
-  useCaratStore.setState((state) => ({
-    settings: {
-      ...state.settings,
-      [key]: value
-    }
+  updateActivePlan((plan) => ({
+    ...plan,
+    settings: { ...plan.settings, [key]: value }
   }));
 }
 
 export function updateCaratSettings(settings: Partial<CaratSettings>) {
-  useCaratStore.setState((state) => ({
-    settings: {
-      ...state.settings,
-      ...settings
-    }
+  updateActivePlan((plan) => ({
+    ...plan,
+    settings: { ...plan.settings, ...settings }
   }));
 }
 
 export function addPlannedBanner(id: string) {
-  useCaratStore.setState((state) => {
-    if (state.plannedBanners.some((banner) => banner.id === id)) {
-      return state;
+  updateActivePlan((plan) => {
+    if (plan.plannedBanners.some((banner) => banner.id === id)) {
+      return plan;
     }
 
-    const nextOrder = Math.max(-1, ...state.plannedBanners.map((banner) => banner.order)) + 1;
+    const nextOrder = Math.max(-1, ...plan.plannedBanners.map((banner) => banner.order)) + 1;
 
     return {
+      ...plan,
       plannedBanners: [
-        ...state.plannedBanners,
+        ...plan.plannedBanners,
         {
           id,
           plannedPulls: 0,
@@ -159,34 +255,38 @@ export function addPlannedBanner(id: string) {
 }
 
 export function removePlannedBanner(id: string) {
-  useCaratStore.setState((state) => ({
-    plannedBanners: state.plannedBanners.filter((banner) => banner.id !== id)
+  updateActivePlan((plan) => ({
+    ...plan,
+    plannedBanners: plan.plannedBanners.filter((banner) => banner.id !== id)
   }));
 }
 
 export function restorePlannedBanner(banner: PlannedBanner) {
-  useCaratStore.setState((state) => {
-    if (state.plannedBanners.some((planned) => planned.id === banner.id)) {
-      return state;
+  updateActivePlan((plan) => {
+    if (plan.plannedBanners.some((planned) => planned.id === banner.id)) {
+      return plan;
     }
 
     return {
-      plannedBanners: [...state.plannedBanners, banner].sort((a, b) => a.order - b.order)
+      ...plan,
+      plannedBanners: [...plan.plannedBanners, banner].sort((a, b) => a.order - b.order)
     };
   });
 }
 
 export function setPlannedPulls(id: string, plannedPulls: number) {
-  useCaratStore.setState((state) => ({
-    plannedBanners: state.plannedBanners.map((banner) =>
+  updateActivePlan((plan) => ({
+    ...plan,
+    plannedBanners: plan.plannedBanners.map((banner) =>
       banner.id === id ? { ...banner, plannedPulls } : banner
     )
   }));
 }
 
 export function setPlannedTicketsUsed(id: string, ticketsUsed: number | undefined) {
-  useCaratStore.setState((state) => ({
-    plannedBanners: state.plannedBanners.map((banner) => {
+  updateActivePlan((plan) => ({
+    ...plan,
+    plannedBanners: plan.plannedBanners.map((banner) => {
       if (banner.id !== id) return banner;
       if (ticketsUsed === undefined) {
         const { ticketsUsed: _ticketsUsed, ...rest } = banner;
@@ -198,8 +298,9 @@ export function setPlannedTicketsUsed(id: string, ticketsUsed: number | undefine
 }
 
 export function setCopyGoal(bannerId: string, cardId: number, copies: number) {
-  useCaratStore.setState((state) => ({
-    plannedBanners: state.plannedBanners.map((banner) => {
+  updateActivePlan((plan) => ({
+    ...plan,
+    plannedBanners: plan.plannedBanners.map((banner) => {
       if (banner.id !== bannerId) return banner;
       const nextGoals = { ...banner.copyGoals };
       const value = Math.max(0, Math.min(5, Math.floor(copies || 0)));
@@ -214,8 +315,9 @@ export function setCopyGoal(bannerId: string, cardId: number, copies: number) {
 }
 
 export function setOwnedCopies(bannerId: string, cardId: number, copies: number) {
-  useCaratStore.setState((state) => ({
-    plannedBanners: state.plannedBanners.map((banner) => {
+  updateActivePlan((plan) => ({
+    ...plan,
+    plannedBanners: plan.plannedBanners.map((banner) => {
       if (banner.id !== bannerId) return banner;
       const nextOwned = { ...banner.ownedCopies };
       const value = Math.max(0, Math.min(4, Math.floor(copies || 0)));
@@ -230,16 +332,15 @@ export function setOwnedCopies(bannerId: string, cardId: number, copies: number)
 }
 
 export function reorderPlannedBanners(idsInOrder: string[]) {
-  useCaratStore.setState((state) => {
-    const orderById = new Map(idsInOrder.map((id, order) => [id, order]));
+  const orderById = new Map(idsInOrder.map((id, order) => [id, order]));
 
-    return {
-      plannedBanners: state.plannedBanners.map((banner) => ({
-        ...banner,
-        order: orderById.get(banner.id) ?? banner.order
-      }))
-    };
-  });
+  updateActivePlan((plan) => ({
+    ...plan,
+    plannedBanners: plan.plannedBanners.map((banner) => ({
+      ...banner,
+      order: orderById.get(banner.id) ?? banner.order
+    }))
+  }));
 }
 
 export function setPaidPackPurchase(
@@ -247,12 +348,13 @@ export function setPaidPackPurchase(
   packId: keyof PaidPackPurchases,
   quantity: number
 ) {
-  useCaratStore.setState((state) => ({
+  updateActivePlan((plan) => ({
+    ...plan,
     paidPurchases: {
-      ...state.paidPurchases,
+      ...plan.paidPurchases,
       [anniversaryId]: {
         ...defaultPaidPackPurchases,
-        ...state.paidPurchases[anniversaryId],
+        ...plan.paidPurchases[anniversaryId],
         [packId]: Math.max(0, Math.floor(quantity || 0))
       }
     }
@@ -260,17 +362,90 @@ export function setPaidPackPurchase(
 }
 
 export function setSelectorChoice(anniversaryId: string, choice: Partial<SelectorChoice>) {
-  useCaratStore.setState((state) => ({
+  updateActivePlan((plan) => ({
+    ...plan,
     selectorChoices: {
-      ...state.selectorChoices,
+      ...plan.selectorChoices,
       [anniversaryId]: {
-        ...state.selectorChoices[anniversaryId],
+        ...plan.selectorChoices[anniversaryId],
         ...choice
       }
     }
   }));
 }
 
-function resetCaratPlan() {
-  useCaratStore.setState(initialCaratState);
+/** Reset only the active plan's contents (keeps id/name/createdAt). */
+export function resetCaratPlan() {
+  updateActivePlan((plan) => ({
+    ...plan,
+    settings: { ...defaultCaratSettings },
+    plannedBanners: defaultPlannedBanners(),
+    paidPurchases: {},
+    selectorChoices: {}
+  }));
+}
+
+// --- Plan management (CRUD) -------------------------------------------------
+
+/** Create a new plan and make it active. Returns the new plan id. */
+export function createPlan(name?: string): string {
+  const state = useCaratStore.getState();
+  const planName = name?.trim() || `Plan ${state.plans.length + 1}`;
+  const plan = createDefaultPlan(planName);
+  useCaratStore.setState((current) => ({
+    plans: [...current.plans, plan],
+    activePlanId: plan.id
+  }));
+  return plan.id;
+}
+
+/** Delete a plan. If it was the last plan, a fresh default plan is created. */
+export function deletePlan(id: string) {
+  useCaratStore.setState((state) => {
+    const remaining = state.plans.filter((plan) => plan.id !== id);
+
+    if (remaining.length === 0) {
+      const fresh = createDefaultPlan();
+      return { plans: [fresh], activePlanId: fresh.id };
+    }
+
+    const activePlanId = state.activePlanId === id ? remaining[0].id : state.activePlanId;
+    return { plans: remaining, activePlanId };
+  });
+}
+
+export function renamePlan(id: string, name: string) {
+  const trimmed = name.trim();
+  if (!trimmed) return;
+  useCaratStore.setState((state) => ({
+    plans: state.plans.map((plan) =>
+      plan.id === id ? { ...plan, name: trimmed, updatedAt: Date.now() } : plan
+    )
+  }));
+}
+
+/** Deep-clone a plan into a new "… copy" plan and make it active. */
+export function duplicatePlan(id: string): string | undefined {
+  const source = useCaratStore.getState().plans.find((plan) => plan.id === id);
+  if (!source) return undefined;
+
+  const now = Date.now();
+  const copy: CaratPlan = {
+    ...cloneDeep(source),
+    id: generateId(),
+    name: `${source.name} copy`,
+    createdAt: now,
+    updatedAt: now
+  };
+  useCaratStore.setState((state) => ({
+    plans: [...state.plans, copy],
+    activePlanId: copy.id
+  }));
+  return copy.id;
+}
+
+export function setActivePlan(id: string) {
+  useCaratStore.setState((state) =>
+    state.plans.some((plan) => plan.id === id) ? { activePlanId: id } : state
+  );
 }

@@ -1,7 +1,12 @@
 import { Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { removePlannedBanner, restorePlannedBanner, useCaratStore } from '@/store/carat.store';
+import {
+  getActivePlan,
+  removePlannedBanner,
+  restorePlannedBanner,
+  useCaratStore
+} from '@/store/carat.store';
 
 type RemovePlannedBannerButtonProps = {
   bannerId: string;
@@ -12,9 +17,9 @@ export function RemovePlannedBannerButton(props: RemovePlannedBannerButtonProps)
   const { bannerId, bannerLabel } = props;
 
   const handleRemove = () => {
-    const banner = useCaratStore
-      .getState()
-      .plannedBanners.find((planned) => planned.id === bannerId);
+    const banner = getActivePlan(useCaratStore.getState()).plannedBanners.find(
+      (planned) => planned.id === bannerId
+    );
     if (!banner) return;
 
     removePlannedBanner(bannerId);
@@ -34,7 +39,7 @@ export function RemovePlannedBannerButton(props: RemovePlannedBannerButtonProps)
       onClick={handleRemove}
       aria-label={`Remove ${bannerLabel}`}
     >
-      <Trash2 className="size-4" />
+      <Trash2 />
     </Button>
   );
 }

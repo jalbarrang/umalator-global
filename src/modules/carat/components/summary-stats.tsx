@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { monthlyRecurringCarats } from '@/modules/carat/model/income';
 import { fetchTimeline } from '@/modules/carat/data/timeline-client';
 import { computePlan } from '@/modules/carat/model/plan';
-import { useCaratStore } from '@/store/carat.store';
+import { getActivePlan, useCaratStore } from '@/store/carat.store';
 import { cn } from '@/lib/utils';
 
 function formatCarats(value: number) {
@@ -24,9 +24,9 @@ function SecondaryMetric(props: { label: string; value: string; sub: string }) {
 }
 
 export function SummaryStats() {
-  const settings = useCaratStore((state) => state.settings);
-  const plannedBanners = useCaratStore((state) => state.plannedBanners);
-  const paidPurchases = useCaratStore((state) => state.paidPurchases);
+  const settings = useCaratStore((state) => getActivePlan(state).settings);
+  const plannedBanners = useCaratStore((state) => getActivePlan(state).plannedBanners);
+  const paidPurchases = useCaratStore((state) => getActivePlan(state).paidPurchases);
   const timelineQuery = useQuery({
     queryKey: ['caratTimeline'],
     queryFn: fetchTimeline,

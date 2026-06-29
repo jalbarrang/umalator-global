@@ -22,7 +22,12 @@ import {
   selectorAnniversariesFromTimeline,
   type SelectorStepUp
 } from '@/modules/carat/model/selectors';
-import { setPaidPackPurchase, setSelectorChoice, useCaratStore } from '@/store/carat.store';
+import {
+  getActivePlan,
+  setPaidPackPurchase,
+  setSelectorChoice,
+  useCaratStore
+} from '@/store/carat.store';
 
 export type SelectorPlannerProps = {
   timeline: TimelinePayload;
@@ -57,9 +62,9 @@ function stepUpKey(stepUp: SelectorStepUp) {
 
 export function SelectorPlanner(props: SelectorPlannerProps) {
   const { timeline } = props;
-  const settings = useCaratStore((state) => state.settings);
-  const paidPurchases = useCaratStore((state) => state.paidPurchases);
-  const selectorChoices = useCaratStore((state) => state.selectorChoices);
+  const settings = useCaratStore((state) => getActivePlan(state).settings);
+  const paidPurchases = useCaratStore((state) => getActivePlan(state).paidPurchases);
+  const selectorChoices = useCaratStore((state) => getActivePlan(state).selectorChoices);
   const [hidePast, setHidePast] = useState(true);
   const anniversaries = useMemo(() => selectorAnniversariesFromTimeline(timeline), [timeline]);
   const [now] = useState(() => Date.now());

@@ -179,7 +179,7 @@ const SortablePresetItem = ({
 
       {!selectionMode && (
         <Button variant="destructive" size="icon" onClick={(e) => onDeleteClick(preset.id, e)}>
-          <Trash2 className="size-4" />
+          <Trash2 />
         </Button>
       )}
     </div>
@@ -485,7 +485,7 @@ export const PresetsPanel = () => {
                       size="sm"
                       onClick={() => dispatch({ type: 'reset:dialogOpenChange', open: true })}
                     >
-                      <RotateCcw className="size-4 mr-1" />
+                      <RotateCcw className="mr-1" />
                       Reset
                     </Button>
                     <Button

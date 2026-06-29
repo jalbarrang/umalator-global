@@ -76,7 +76,7 @@ const MobileNavbar = (props: MobileNavbarProps) => {
     <Drawer open={mobileMenuOpen} onOpenChange={setMobileMenuOpen} direction="top">
       <DrawerTrigger asChild>
         <Button variant="ghost" size="icon" aria-label="Open navigation menu">
-          <MenuIcon className="size-5" />
+          <MenuIcon />
         </Button>
       </DrawerTrigger>
 

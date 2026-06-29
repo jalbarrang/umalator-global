@@ -158,7 +158,7 @@ export const ActivationDetails = React.memo((props: ActivationDetailsProps) => {
             >
               {isSkillLoading ? (
                 <>
-                  <Loader2 className="size-3 animate-spin" />
+                  <Loader2 className="animate-spin" />
                   Running…
                 </>
               ) : (

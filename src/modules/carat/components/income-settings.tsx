@@ -22,6 +22,7 @@ import {
 import { InfoHint } from '@/modules/carat/components/info-hint';
 import {
   type CaratSettings,
+  getActivePlan,
   setCaratSetting,
   updateCaratSettings,
   useCaratStore
@@ -66,7 +67,7 @@ function NumberField(props: {
   hint?: ReactNode;
 }) {
   const { label, settingKey, helper, hint } = props;
-  const value = useCaratStore((state) => state.settings[settingKey]);
+  const value = useCaratStore((state) => getActivePlan(state).settings[settingKey]);
 
   return (
     <label className="grid gap-1.5 text-sm">
@@ -82,7 +83,9 @@ function NumberField(props: {
         inputMode="numeric"
         min={0}
         value={value}
-        onChange={(event) => setCaratSetting(settingKey, Math.max(0, Number(event.target.value) || 0))}
+        onChange={(event) =>
+          setCaratSetting(settingKey, Math.max(0, Number(event.target.value) || 0))
+        }
         className="text-right tabular-nums"
       />
     </label>
@@ -201,7 +204,7 @@ function SwitchRow(props: {
 }
 
 export function IncomeSettings() {
-  const settings = useCaratStore((state) => state.settings);
+  const settings = useCaratStore((state) => getActivePlan(state).settings);
 
   return (
     <aside data-tutorial="carat-settings" className="rounded-xl border bg-card shadow-sm">

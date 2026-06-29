@@ -78,13 +78,13 @@ export function ScenarioOverrideGroup(props: ScenarioOverrideGroupProps) {
             className="size-7 shrink-0"
             onClick={() => onRemove(index)}
           >
-            <X className="size-3" />
+            <X />
           </Button>
         </div>
       ))}
 
       <Button variant="outline" size="sm" className="self-start" onClick={onAdd}>
-        <Plus className="size-3 mr-1" />
+        <Plus className="mr-1" />
         Add
       </Button>
     </div>

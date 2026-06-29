@@ -385,7 +385,7 @@ function SupportCardFiltersDialog(props: SupportCardFiltersDialogProps) {
       <DialogTrigger
         render={
           <Button variant="outline" className="h-9 w-full md:w-auto justify-center">
-            <SlidersHorizontalIcon className="size-4" />
+            <SlidersHorizontalIcon />
             Filters
             {activeFilterCount > 0 ? <Badge variant="secondary">{activeFilterCount}</Badge> : null}
           </Button>

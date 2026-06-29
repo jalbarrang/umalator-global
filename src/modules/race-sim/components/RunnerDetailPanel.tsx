@@ -234,7 +234,7 @@ export function RunnerDetailPanel({
             disabled={!hasPrev}
             onClick={() => onNavigate(runnerIndex - 1)}
           >
-            <ChevronLeft className="size-4" />
+            <ChevronLeft />
           </Button>
 
           <span className="text-xs tabular-nums text-muted-foreground min-w-[3ch] text-center">
@@ -248,7 +248,7 @@ export function RunnerDetailPanel({
             disabled={!hasNext}
             onClick={() => onNavigate(runnerIndex + 1)}
           >
-            <ChevronRight className="size-4" />
+            <ChevronRight />
           </Button>
         </div>
       </div>
@@ -328,7 +328,7 @@ export function RunnerDetailPanel({
                 className="h-7 text-xs gap-1"
                 onClick={handleOpenSkillPicker}
               >
-                <PlusIcon className="size-3.5" />
+                <PlusIcon />
                 Add Skills
               </Button>
             }
@@ -343,7 +343,7 @@ export function RunnerDetailPanel({
                   className="mt-1 h-7 text-xs gap-1"
                   onClick={handleOpenSkillPicker}
                 >
-                  <PlusIcon className="size-3" />
+                  <PlusIcon />
                   Browse Skills
                 </Button>
               </div>

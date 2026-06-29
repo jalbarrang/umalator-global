@@ -460,7 +460,7 @@ export const UmaSelector = (props: UmaSelectorProps) => {
               <CollapsibleTrigger
                 render={
                   <Button type="button" variant="outline" size="sm">
-                    <FilterIcon className="size-3.5" />
+                    <FilterIcon />
                     Base Aptitudes
                     {activeAptitudeFilterCount > 0 && (
                       <Badge variant="secondary">{activeAptitudeFilterCount}</Badge>

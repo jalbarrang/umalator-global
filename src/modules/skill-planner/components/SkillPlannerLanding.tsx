@@ -36,7 +36,7 @@ export function SkillPlannerLanding() {
 
           <div className="flex flex-col gap-3">
             <Button size="lg" className="justify-start h-12" onClick={startFreshSession}>
-              <PlusIcon className="mr-2 size-4" />
+              <PlusIcon className="mr-2" />
               Start fresh
             </Button>
 
@@ -47,7 +47,7 @@ export function SkillPlannerLanding() {
                 className="justify-start h-12"
                 onClick={() => setImportDialogOpen(true)}
               >
-                <BookmarkIcon className="mr-2 size-4" />
+                <BookmarkIcon className="mr-2" />
                 Import from Veterans
               </Button>
 
@@ -57,7 +57,7 @@ export function SkillPlannerLanding() {
                 className="justify-start h-12"
                 onClick={() => setImportCodeDialogOpen(true)}
               >
-                <CodeIcon className="mr-2 size-4" />
+                <CodeIcon className="mr-2" />
                 Import from Code
               </Button>
             </div>

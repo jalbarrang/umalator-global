@@ -141,7 +141,7 @@ export default function CompareHomePage() {
             render={
               <Button variant="outline" size="sm" disabled={isSimulationRunning}>
                 Share settings
-                <ChevronDown className="size-3" />
+                <ChevronDown />
               </Button>
             }
           />
@@ -165,9 +165,9 @@ export default function CompareHomePage() {
                 size="sm"
                 disabled={isSimulationRunning || !compareShareProps}
               >
-                <Share2 className="size-3 mr-1" />
+                <Share2 className="mr-1" />
                 Share compare
-                <ChevronDown className="size-3" />
+                <ChevronDown />
               </Button>
             }
           />

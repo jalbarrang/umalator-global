@@ -6,6 +6,7 @@ import { caratCalculatorSteps } from '@/modules/tutorial/steps/carat-calculator-
 import { AddBannerButton } from '@/modules/carat/components/add-banner-button';
 import { IncomeSettings } from '@/modules/carat/components/income-settings';
 import { LiveDataStatus } from '@/modules/carat/components/live-data-status';
+import { PlanSwitcher } from '@/modules/carat/components/plan-switcher';
 import { SummaryStats } from '@/modules/carat/components/summary-stats';
 import { TimelinePanel } from '@/modules/carat/components/timeline-panel';
 import {
@@ -70,6 +71,7 @@ export function CaratCalculatorPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <PlanSwitcher />
           <Button size="sm" variant="outline" onClick={startTour}>
             Take a tour
           </Button>

@@ -237,7 +237,7 @@ export function RunnerTileEditor(props: RunnerTileEditorProps) {
 
               <Button variant="default" onClick={handleOpenSkillPicker}>
                 Add Skills
-                <PlusIcon className="size-4" />
+                <PlusIcon />
               </Button>
             </div>
 

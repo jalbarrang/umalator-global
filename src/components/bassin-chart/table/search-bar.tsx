@@ -62,7 +62,7 @@ export function TableSearchBar(props: TableSearchBarProps) {
           disabled={!hasMatches}
           title="Previous match (Shift+Enter)"
         >
-          <ChevronUp className="size-4" />
+          <ChevronUp />
         </Button>
         <Button
           variant="ghost"
@@ -71,10 +71,10 @@ export function TableSearchBar(props: TableSearchBarProps) {
           disabled={!hasMatches}
           title="Next match (Enter)"
         >
-          <ChevronDown className="size-4" />
+          <ChevronDown />
         </Button>
         <Button variant="ghost" size="icon-sm" onClick={onClose} title="Close (Escape)">
-          <XIcon className="size-4" />
+          <XIcon />
         </Button>
       </div>
     </div>

@@ -44,7 +44,7 @@ export const HelpButton: FC<HelpButtonProps> = ({
             aria-label={tooltipText}
             {...props}
           >
-            <HelpCircle className="size-4" />
+            <HelpCircle />
           </Button>
         }
       />

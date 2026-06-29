@@ -25,7 +25,12 @@ import type {
   TimelinePayload,
   TimelinePredictionKind
 } from '@/modules/carat/data/timeline-types';
-import { addPlannedBanner, removePlannedBanner, useCaratStore } from '@/store/carat.store';
+import {
+  addPlannedBanner,
+  getActivePlan,
+  removePlannedBanner,
+  useCaratStore
+} from '@/store/carat.store';
 import { cn } from '@/lib/utils';
 
 type BannerTypeFilter = 'all' | 'character' | 'support';
@@ -142,7 +147,7 @@ export function AddBannerDialog(props: AddBannerDialogProps) {
   const [confidenceFilter, setConfidenceFilter] = useState<ConfidenceFilter>('all');
   const [search, setSearch] = useState('');
   const plannedBannerIds = useCaratStore(
-    useShallow((state) => state.plannedBanners.map((banner) => banner.id))
+    useShallow((state) => getActivePlan(state).plannedBanners.map((banner) => banner.id))
   );
   const plannedIds = useMemo(() => new Set(plannedBannerIds), [plannedBannerIds]);
 
