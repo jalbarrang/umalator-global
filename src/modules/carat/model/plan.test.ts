@@ -200,4 +200,84 @@ describe('computePlan', () => {
     expect(rows[0].cost).toBe(0);
     expect(rows[0].ticketsRemaining).toBe(10);
   });
+
+  it('treats negative starting ticket settings as zero', () => {
+    const rows = computePlan(
+      { ...settings, umaTickets: -5, supportTickets: -3 },
+      timeline([banner('uma', 1)]),
+      [{ id: 'uma', plannedPulls: 10, startingDupes: 0, copyGoals: {}, ownedCopies: {}, order: 0 }]
+    );
+
+    expect(rows[0].ticketsAvailable).toBe(0);
+    expect(rows[0].ticketsUsed).toBe(0);
+    expect(rows[0].cost).toBe(10 * CARAT_PER_PULL);
+  });
+
+  it('does not let one ticket type pay for the other banner type', () => {
+    // Only uma tickets, but the planned banner is a support banner.
+    const rows = computePlan(
+      { ...settings, umaTickets: 20, supportTickets: 0 },
+      timeline([banner('support', 1, 'support')]),
+      [
+        {
+          id: 'support',
+          plannedPulls: 8,
+          startingDupes: 0,
+          copyGoals: {},
+          ownedCopies: {},
+          order: 0
+        }
+      ]
+    );
+
+    expect(rows[0].ticketType).toBe('support');
+    expect(rows[0].ticketsAvailable).toBe(0);
+    expect(rows[0].ticketsUsed).toBe(0);
+    expect(rows[0].cost).toBe(8 * CARAT_PER_PULL);
+  });
+
+  it('lets an explicit 0 save tickets for a later banner of the same type', () => {
+    const rows = computePlan(
+      { ...settings, umaTickets: 4 },
+      timeline([banner('first', 1), banner('second', 2)]),
+      [
+        {
+          id: 'first',
+          plannedPulls: 10,
+          startingDupes: 0,
+          copyGoals: {},
+          ownedCopies: {},
+          ticketsUsed: 0,
+          order: 0
+        },
+        { id: 'second', plannedPulls: 10, startingDupes: 0, copyGoals: {}, ownedCopies: {}, order: 1 }
+      ]
+    );
+
+    expect(rows[0].ticketsUsed).toBe(0);
+    expect(rows[0].ticketsRemaining).toBe(4);
+    expect(rows[1].ticketsAvailable).toBe(4);
+    expect(rows[1].ticketsUsed).toBe(4);
+  });
+
+  it('floors fractional planned pulls consistently for cost and allocation', () => {
+    const rows = computePlan(
+      { ...settings, umaTickets: 2 },
+      timeline([banner('uma', 1)]),
+      [
+        {
+          id: 'uma',
+          plannedPulls: 10.9,
+          startingDupes: 0,
+          copyGoals: {},
+          ownedCopies: {},
+          order: 0
+        }
+      ]
+    );
+
+    // 10 pulls after flooring, 2 covered by tickets -> 8 carat-pulls.
+    expect(rows[0].ticketsUsed).toBe(2);
+    expect(rows[0].cost).toBe(8 * CARAT_PER_PULL);
+  });
 });

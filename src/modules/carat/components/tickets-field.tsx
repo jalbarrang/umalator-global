@@ -24,7 +24,8 @@ export function TicketsField(props: TicketsFieldProps) {
   const isAuto = row.plannedBanner.ticketsUsed === undefined;
   const maxTickets = maxTicketsForRow(row);
   const label = ticketLabel(row);
-  const updateTickets = (value: number) => setPlannedTicketsUsed(row.event.id, value);
+  const updateTickets = (value: number) =>
+    setPlannedTicketsUsed(row.event.id, Math.min(maxTickets, Math.max(0, value || 0)));
   const resetToAuto = () => setPlannedTicketsUsed(row.event.id, undefined);
 
   return (

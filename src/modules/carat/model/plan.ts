@@ -39,9 +39,17 @@ function ticketTypeForEvent(event: TimelineEvent): TicketType {
   return event.card_type === 'character' ? 'uma' : 'support';
 }
 
-function ticketAllocation(plannedBanner: PlannedBanner, ticketsAvailable: number) {
-  const plannedPulls = Math.max(0, Math.floor(plannedBanner.plannedPulls || 0));
-  const maxTicketsUsed = Math.min(ticketsAvailable, plannedPulls);
+function plannedPullsOf(plannedBanner: PlannedBanner) {
+  return Math.max(0, Math.floor(plannedBanner.plannedPulls || 0));
+}
+
+function ticketAllocation(
+  plannedBanner: PlannedBanner,
+  ticketsAvailable: number,
+  plannedPulls: number
+) {
+  // ticketsAvailable is clamped defensively; the running pools are already >= 0.
+  const maxTicketsUsed = Math.min(Math.max(0, ticketsAvailable), plannedPulls);
 
   if (plannedBanner.ticketsUsed === undefined) {
     return maxTicketsUsed;
@@ -81,7 +89,8 @@ export function computePlan(
 
     const ticketType = ticketTypeForEvent(event);
     const ticketsAvailable = ticketType === 'uma' ? runningUmaTickets : runningSupportTickets;
-    const ticketsUsed = ticketAllocation(plannedBanner, ticketsAvailable);
+    const plannedPulls = plannedPullsOf(plannedBanner);
+    const ticketsUsed = ticketAllocation(plannedBanner, ticketsAvailable, plannedPulls);
     const ticketsSaved = ticketsUsed * CARAT_PER_PULL;
 
     if (ticketType === 'uma') {
@@ -90,7 +99,7 @@ export function computePlan(
       runningSupportTickets -= ticketsUsed;
     }
 
-    const ticketedPulls = Math.max(0, plannedBanner.plannedPulls - ticketsUsed);
+    const ticketedPulls = Math.max(0, plannedPulls - ticketsUsed);
     const cost = ticketedPulls * CARAT_PER_PULL;
     const paidCost = settings.trackPaidCarats ? Math.min(runningPaidBalance, cost) : 0;
     const freeCost = cost - paidCost;
