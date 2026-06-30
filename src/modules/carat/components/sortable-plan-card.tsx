@@ -31,6 +31,9 @@ export function SortablePlanCard(props: SortablePlanCardProps) {
     id: row.event.id
   });
   const style = { transform: CSS.Transform.toString(transform), transition };
+  const freeAvail = row.freeBalanceAfter + row.freeCost;
+  const paidAvail = row.paidBalanceAfter + row.paidCost;
+  const totalAvail = freeAvail + paidAvail;
 
   return (
     <div
@@ -69,21 +72,29 @@ export function SortablePlanCard(props: SortablePlanCardProps) {
         <div className="grid content-start gap-2 text-right">
           <div className="text-xs text-muted-foreground">
             <div>Carats avail.</div>
-            <div className="font-mono text-lg font-semibold text-foreground tabular-nums">
-              {formatCarats(row.caratsAvailable)}
-            </div>
-            <div className="font-mono text-[11px] tabular-nums">
-              → {formatCarats(row.balanceAfter)} after
-            </div>
+            {showPaid ? (
+              <div className="mt-0.5 grid gap-0.5">
+                <div className="flex items-baseline justify-between gap-4">
+                  <span className="text-[11px]">Total</span>
+                  <span className="font-mono text-lg font-semibold text-foreground tabular-nums">
+                    {formatCarats(totalAvail)}
+                  </span>
+                </div>
+                <div className="flex items-baseline justify-between gap-4 text-[11px]">
+                  <span>Paid</span>
+                  <span className="font-mono tabular-nums">{formatCarats(paidAvail)}</span>
+                </div>
+                <div className="flex items-baseline justify-between gap-4 text-[11px]">
+                  <span>Free</span>
+                  <span className="font-mono tabular-nums">{formatCarats(freeAvail)}</span>
+                </div>
+              </div>
+            ) : (
+              <div className="font-mono text-lg font-semibold text-foreground tabular-nums">
+                {formatCarats(totalAvail)}
+              </div>
+            )}
           </div>
-          {showPaid && (row.paidCaratsAvailable > 0 || row.paidBalanceAfter > 0) ? (
-            <div className="text-xs text-muted-foreground">
-              Paid pool{' '}
-              <span className="font-medium font-mono text-foreground tabular-nums">
-                {formatCarats(row.paidCaratsAvailable)}
-              </span>
-            </div>
-          ) : null}
           <div className="mt-1 rounded-lg border bg-muted/40 p-2">
             <div className="text-[10px] font-bold uppercase tracking-[0.04em] text-muted-foreground">
               Balance

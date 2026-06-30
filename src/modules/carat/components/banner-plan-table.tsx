@@ -84,7 +84,7 @@ export function BannerPlanTable(props: BannerPlanTableProps) {
   }
 
   return (
-    <div className="space-y-2">
+    <div className="w-full space-y-2">
       <div className="flex justify-end gap-2">
         <Button
           size="sm"
@@ -108,7 +108,7 @@ export function BannerPlanTable(props: BannerPlanTableProps) {
           strategy={verticalListSortingStrategy}
         >
           {isWide ? (
-            <div className="overflow-x-auto rounded-xl border">
+            <div className="w-full overflow-x-auto rounded-xl border">
               <table className="w-full text-sm">
                 <thead className="border-b bg-muted/50 text-xs text-muted-foreground">
                   <tr>
@@ -125,7 +125,6 @@ export function BannerPlanTable(props: BannerPlanTableProps) {
                       </span>
                     </th>
                     <th className="w-44 min-w-44 px-2 py-2 text-left">Tickets</th>
-                    {showPaid ? <th className="px-2 py-2 text-right">Paid pool</th> : null}
                     <th className="px-2 py-2 text-right">Balance</th>
                     <th className="px-2 py-2 text-center">
                       <span className="inline-flex items-center gap-1">

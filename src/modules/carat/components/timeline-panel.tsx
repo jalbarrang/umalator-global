@@ -1,15 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { BannerPlanTable } from '@/modules/carat/components/banner-plan-table';
-import { SelectorPlanner } from '@/modules/carat/components/selector-planner';
 import { fetchTimeline } from '@/modules/carat/data/timeline-client';
 
-type TimelinePanelProps = {
-  mode: 'calculator' | 'selector';
-};
-
-export function TimelinePanel(props: TimelinePanelProps) {
-  const { mode } = props;
+export function TimelinePanel() {
   const timelineQuery = useQuery({
     queryKey: ['caratTimeline'],
     queryFn: fetchTimeline,
@@ -45,9 +39,5 @@ export function TimelinePanel(props: TimelinePanelProps) {
     );
   }
 
-  return mode === 'calculator' ? (
-    <BannerPlanTable timeline={timelineQuery.data} />
-  ) : (
-    <SelectorPlanner timeline={timelineQuery.data} />
-  );
+  return <BannerPlanTable timeline={timelineQuery.data} />;
 }

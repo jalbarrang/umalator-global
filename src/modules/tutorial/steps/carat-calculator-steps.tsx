@@ -125,22 +125,6 @@ export const caratCalculatorSteps: Array<TutorialStep> = [
     showButtons: ['previous', 'next', 'close']
   },
   {
-    element: '[data-tutorial="carat-selector-tab"]',
-    title: 'Use the selector planner for anniversaries',
-    description: (
-      <div className="flex flex-col gap-2 text-muted-foreground">
-        <div>
-          The Selector Planner tracks paid selector packs and step-up banners that tend to appear
-          around anniversaries.
-        </div>
-        <div>Use it when planning paid carats or guaranteed pick tickets.</div>
-      </div>
-    ),
-    side: 'bottom',
-    align: 'end',
-    showButtons: ['previous', 'next', 'close']
-  },
-  {
     title: 'You are ready to plan 🎉',
     description: (
       <div className="flex flex-col gap-2 text-muted-foreground">

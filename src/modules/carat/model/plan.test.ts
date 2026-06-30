@@ -56,7 +56,18 @@ describe('computePlan', () => {
       { id: 'early', plannedPulls: 100, startingDupes: 0, copyGoals: {}, ownedCopies: {}, order: 1 }
     ];
 
-    const rows = computePlan(settings, timeline([late, early]), plan);
+    // Monthly income is table-driven; pick tables that accrue enough between the
+    // two banners for the running balance to recover from the early spend.
+    const incomeSettings: CaratSettings = {
+      ...settings,
+      teamTrialsClass: 'class-6',
+      clubRank: 'ss',
+      lohRank: 'platinum-4',
+      dailyCaratPack: true,
+      trainingPass: 'paid'
+    };
+
+    const rows = computePlan(incomeSettings, timeline([late, early]), plan);
 
     expect(rows.map((row) => row.event.id)).toEqual(['early', 'late']);
     expect(rows[0].cost).toBe(15000);
@@ -68,7 +79,9 @@ describe('computePlan', () => {
   });
 
   it('ignores planned banners that are not present in the timeline', () => {
-    const rows = computePlan(settings, timeline([banner('real', 5)]), [
+    // Banner at day 1 so recurring ticket accrual floors to 0 and the single
+    // pull is paid in carats (this test is about ignoring missing banners).
+    const rows = computePlan(settings, timeline([banner('real', 1)]), [
       {
         id: 'example-banner',
         plannedPulls: 200,

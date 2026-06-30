@@ -28,7 +28,7 @@ export function PullsField(props: PullsFieldProps) {
       {row.ticketsUsed > 0 ? (
         <span className="text-emerald-600 dark:text-emerald-400">
           {' '}
-          (−{row.ticketsUsed.toLocaleString()} tix)
+          (−{row.ticketsUsed.toLocaleString()} tickets)
         </span>
       ) : null}
       {row.paidCost > 0 ? ` · paid ${formatCarats(row.paidCost)}` : ''}

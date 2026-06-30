@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import { ChevronDown } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
 import {
@@ -20,11 +19,11 @@ import {
   TRAINING_PASS_MONTHLY_CARATS
 } from '@/modules/carat/model/income-tables';
 import { InfoHint } from '@/modules/carat/components/info-hint';
+import { monthlyRecurringCarats } from '@/modules/carat/model/income';
 import {
   type CaratSettings,
   getActivePlan,
   setCaratSetting,
-  updateCaratSettings,
   useCaratStore
 } from '@/store/carat.store';
 
@@ -126,43 +125,6 @@ function SelectField(props: {
   );
 }
 
-function applyIncomePreset(preset: 'casual' | 'average' | 'dedicated') {
-  const presets: Record<typeof preset, Partial<CaratSettings>> = {
-    casual: {
-      monthlyCarats: 10000,
-      monthlyTickets: 18,
-      teamTrialsClass: 'class-4',
-      clubRank: 'c',
-      cmPlacement: 'group-b-3rd',
-      lohRank: 'silver-4',
-      dailyCaratPack: false,
-      trainingPass: 'free'
-    },
-    average: {
-      monthlyCarats: 15000,
-      monthlyTickets: 27,
-      teamTrialsClass: 'class-6',
-      clubRank: 'b',
-      cmPlacement: 'group-b-2nd',
-      lohRank: 'gold-4',
-      dailyCaratPack: true,
-      trainingPass: 'free'
-    },
-    dedicated: {
-      monthlyCarats: 19000,
-      monthlyTickets: 32,
-      teamTrialsClass: 'class-6',
-      clubRank: 'a',
-      cmPlacement: 'group-a-2nd',
-      lohRank: 'platinum-4',
-      dailyCaratPack: true,
-      trainingPass: 'paid'
-    }
-  };
-
-  updateCaratSettings(presets[preset]);
-}
-
 function Section(props: {
   title: string;
   defaultOpen?: boolean;
@@ -205,6 +167,7 @@ function SwitchRow(props: {
 
 export function IncomeSettings() {
   const settings = useCaratStore((state) => getActivePlan(state).settings);
+  const monthly = monthlyRecurringCarats(settings);
 
   return (
     <aside
@@ -219,45 +182,6 @@ export function IncomeSettings() {
           </InfoHint>
         </span>
         <span className="text-xs font-normal text-muted-foreground">Global server</span>
-      </div>
-
-      <div className="border-b px-4 py-3">
-        <div className="mb-2 flex items-center gap-1 text-sm font-semibold">
-          Income presets
-          <InfoHint label="About income presets" title="Income presets">
-            Presets are rough estimates. Apply one, then adjust the fields below to match your real
-            account.
-          </InfoHint>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            size="xs"
-            variant="outline"
-            onClick={() => applyIncomePreset('casual')}
-          >
-            Casual
-          </Button>
-          <Button
-            type="button"
-            size="xs"
-            variant="outline"
-            onClick={() => applyIncomePreset('average')}
-          >
-            Average
-          </Button>
-          <Button
-            type="button"
-            size="xs"
-            variant="outline"
-            onClick={() => applyIncomePreset('dedicated')}
-          >
-            Dedicated
-          </Button>
-        </div>
-        <p className="mt-2 text-xs text-muted-foreground">
-          Estimates only — use them as a starting point, not a promise.
-        </p>
       </div>
 
       <Section title="Starting Balance" emphasis defaultOpen>
@@ -276,43 +200,7 @@ export function IncomeSettings() {
         <NumberField label="Support tickets" settingKey="supportTickets" />
       </Section>
 
-      <Section title="Recurring Income" emphasis defaultOpen>
-        <NumberField
-          label="Monthly carats (base)"
-          settingKey="monthlyCarats"
-          helper="default 15,000"
-          hint={
-            <InfoHint label="Monthly carats help" title="Monthly carats">
-              Your average free income before event-specific rewards. If unsure, use Average.
-            </InfoHint>
-          }
-        />
-        <NumberField
-          label="Monthly tickets"
-          settingKey="monthlyTickets"
-          helper="default 27"
-          hint={
-            <InfoHint label="Pull tickets help" title="Pull tickets">
-              A pull ticket counts like one pull for its banner type. Pulls cost either one ticket
-              or 150 carats.
-            </InfoHint>
-          }
-        />
-        <SelectField
-          label="Team Trials class"
-          value={settings.teamTrialsClass}
-          options={teamTrialsOptions}
-          onValueChange={(value) => setCaratSetting('teamTrialsClass', value)}
-        />
-        <SelectField
-          label="Club rank"
-          value={settings.clubRank}
-          options={clubRankOptions}
-          onValueChange={(value) => setCaratSetting('clubRank', value)}
-        />
-      </Section>
-
-      <Section title="Champion's Meeting">
+      <Section title="Competitive">
         <SelectField
           label="Expected CM placement"
           value={settings.cmPlacement}
@@ -352,6 +240,53 @@ export function IncomeSettings() {
           helper="For paid selector planning later"
           onCheckedChange={(checked) => setCaratSetting('trackPaidCarats', checked)}
         />
+      </Section>
+
+      <Section title="Recurring Income" emphasis defaultOpen>
+        <SelectField
+          label="Team Trials class"
+          value={settings.teamTrialsClass}
+          options={teamTrialsOptions}
+          onValueChange={(value) => setCaratSetting('teamTrialsClass', value)}
+        />
+        <SelectField
+          label="Club rank"
+          value={settings.clubRank}
+          options={clubRankOptions}
+          onValueChange={(value) => setCaratSetting('clubRank', value)}
+        />
+        <div className="grid gap-1.5 text-sm">
+          <span className="flex items-center justify-between gap-2">
+            <span className="inline-flex items-center gap-1 text-muted-foreground">
+              Monthly carats
+              <InfoHint label="Monthly carats help" title="Monthly carats">
+                Calculated from your Team Trials class, Club rank, and Passes &amp; Packs.
+                Competitive (CM / League of Heroes) rewards are added per event on the timeline.
+              </InfoHint>
+            </span>
+            <span className="text-[11px] text-muted-foreground">auto · from tables</span>
+          </span>
+          <div className="rounded-md border bg-muted/40 px-3 py-2 text-right font-mono tabular-nums">
+            {Math.round(monthly.carats).toLocaleString()}
+          </div>
+        </div>
+        <div className="grid gap-1.5 text-sm">
+          <span className="flex items-center justify-between gap-2">
+            <span className="inline-flex items-center gap-1 text-muted-foreground">
+              Monthly tickets
+              <InfoHint label="Monthly tickets help" title="Monthly tickets">
+                Recurring pull tickets per month: a flat baseline plus your Training Pass, counted
+                separately for Uma and Support. Champion&apos;s Meeting and League of Heroes tickets
+                are added per event on the timeline.
+              </InfoHint>
+            </span>
+            <span className="text-[11px] text-muted-foreground">auto · from tables</span>
+          </span>
+          <div className="rounded-md border bg-muted/40 px-3 py-2 text-right font-mono tabular-nums">
+            {monthly.umaTickets.toLocaleString()} Uma · {monthly.supportTickets.toLocaleString()}{' '}
+            Support
+          </div>
+        </div>
       </Section>
 
       <Collapsible>

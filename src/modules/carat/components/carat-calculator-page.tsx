@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTutorial } from '@/components/tutorial';
 import { caratCalculatorSteps } from '@/modules/tutorial/steps/carat-calculator-steps';
 import { AddBannerButton } from '@/modules/carat/components/add-banner-button';
@@ -17,7 +16,6 @@ import {
 } from '@/store/tutorial.store';
 
 export function CaratCalculatorPage() {
-  const [activeTab, setActiveTab] = useState<'calculator' | 'selector'>('calculator');
   const { start, isActive, tutorialId } = useTutorial();
   const wasCaratTourActive = useRef(false);
   const isFirstVisit = useIsFirstVisit('carat-calculator');
@@ -46,7 +44,6 @@ export function CaratCalculatorPage() {
   }, [isActive, tutorialId]);
 
   const startTour = () => {
-    setActiveTab('calculator');
     setIsFirstVisitNudgeOpen(false);
     start('carat-calculator', caratCalculatorSteps);
   };
@@ -57,11 +54,7 @@ export function CaratCalculatorPage() {
   };
 
   return (
-    <Tabs
-      value={activeTab}
-      onValueChange={(value) => setActiveTab(value as 'calculator' | 'selector')}
-      className="w-full min-h-0 px-4 py-4 overflow-y-auto lg:overflow-hidden"
-    >
+    <div className="flex w-full min-h-0 flex-col gap-2 px-4 py-4 overflow-y-auto lg:overflow-hidden">
       {/* Header */}
       <div className="flex shrink-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -76,12 +69,6 @@ export function CaratCalculatorPage() {
           <Button size="sm" variant="outline" onClick={startTour}>
             Take a tour
           </Button>
-          <TabsList aria-label="Carat calculator sections">
-            <TabsTrigger value="calculator">Calculator</TabsTrigger>
-            <TabsTrigger data-tutorial="carat-selector-tab" value="selector">
-              Selector Planner
-            </TabsTrigger>
-          </TabsList>
         </div>
       </div>
 
@@ -92,8 +79,7 @@ export function CaratCalculatorPage() {
             <div>
               <div className="text-sm font-semibold">New here? Take a 60-second tour.</div>
               <div className="text-xs text-muted-foreground">
-                Learn carats, pulls, sparks, odds, and selector planning without auto-launching
-                anything.
+                Learn carats, pulls, sparks, and odds without auto-launching anything.
               </div>
             </div>
             <div className="flex gap-2">
@@ -127,26 +113,18 @@ export function CaratCalculatorPage() {
           data-tutorial="carat-planner"
           className="flex min-h-0 flex-col rounded-xl border bg-card shadow-sm lg:h-full"
         >
-          {activeTab === 'calculator' ? (
-            <div className="flex shrink-0 flex-col gap-3 border-b px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-              <strong className="text-sm">Banner Plan</strong>
-              <div className="flex items-center gap-2">
-                <AddBannerButton />
-              </div>
+          <div className="flex shrink-0 flex-col gap-3 border-b px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <strong className="text-sm">Banner Plan</strong>
+            <div className="flex items-center gap-2">
+              <AddBannerButton />
             </div>
-          ) : null}
+          </div>
 
           <div className="relative flex min-h-0 flex-1 [&>*]:min-w-0 p-4 overflow-y-auto">
-            <TabsContent value="calculator">
-              <TimelinePanel mode="calculator" />
-            </TabsContent>
-
-            <TabsContent value="selector">
-              <TimelinePanel mode="selector" />
-            </TabsContent>
+            <TimelinePanel />
           </div>
         </section>
       </div>
-    </Tabs>
+    </div>
   );
 }

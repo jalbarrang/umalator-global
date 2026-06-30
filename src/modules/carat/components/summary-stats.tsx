@@ -106,7 +106,7 @@ export function SummaryStats() {
         <SecondaryMetric
           label="Monthly Income"
           value={formatCarats(monthly.carats)}
-          sub={`${formatCarats(monthly.tickets)} tickets · recurring`}
+          sub={`carats · ${monthly.umaTickets}/${monthly.supportTickets} tickets/mo`}
         />
         <SecondaryMetric
           label="Planned Spend"

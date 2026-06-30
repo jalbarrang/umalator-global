@@ -85,10 +85,17 @@ export function computePlan(
   return rows.map(({ event, plannedBanner }) => {
     const startDate = eventStartDate(event);
     const income = projectIncome(settings, timeline, previousDate, startDate);
-    runningFreeBalance += income.carats + income.tickets * CARAT_PER_PULL;
+    runningFreeBalance += income.carats;
+    // Income tickets are tracked per type. Pools may be fractional here (LoH and
+    // baseline tickets are amortized monthly); we floor when exposing/allocating
+    // below and carry the remainder forward.
+    runningUmaTickets += income.umaTickets;
+    runningSupportTickets += income.supportTickets;
 
     const ticketType = ticketTypeForEvent(event);
-    const ticketsAvailable = ticketType === 'uma' ? runningUmaTickets : runningSupportTickets;
+    const ticketsAvailable = Math.floor(
+      Math.max(0, ticketType === 'uma' ? runningUmaTickets : runningSupportTickets)
+    );
     const plannedPulls = plannedPullsOf(plannedBanner);
     const ticketsUsed = ticketAllocation(plannedBanner, ticketsAvailable, plannedPulls);
     const ticketsSaved = ticketsUsed * CARAT_PER_PULL;
@@ -120,7 +127,9 @@ export function computePlan(
       ticketsAvailable,
       ticketsUsed,
       ticketsSaved,
-      ticketsRemaining: ticketType === 'uma' ? runningUmaTickets : runningSupportTickets,
+      ticketsRemaining: Math.floor(
+        Math.max(0, ticketType === 'uma' ? runningUmaTickets : runningSupportTickets)
+      ),
       cost,
       paidCost,
       freeCost,

@@ -14,6 +14,7 @@ describe('income model', () => {
   it('calculates monthly recurring carats for a known settings combo', () => {
     const income = monthlyRecurringCarats({
       ...defaultCaratSettings,
+      // monthlyCarats/monthlyTickets are legacy fields and intentionally ignored.
       monthlyCarats: 15_000,
       monthlyTickets: 27,
       teamTrialsClass: 'class-4',
@@ -22,8 +23,12 @@ describe('income model', () => {
       trainingPass: 'paid'
     });
 
-    expect(income.carats).toBeCloseTo(20_101.75);
-    expect(income.tickets).toBe(27);
+    // daily-quest base (Global 75 + 150/7 per day) + club a (2250) + paid pass
+    // (2200) + team trials class-4 (150 * 4.345).
+    expect(income.carats).toBeCloseTo(8_036.79, 1);
+    // baseline 4/type + paid pass 4/type = 8 per type.
+    expect(income.umaTickets).toBe(8);
+    expect(income.supportTickets).toBe(8);
   });
 
   it('adds Champion Meeting rewards for CM events inside the window only', () => {
@@ -70,7 +75,9 @@ describe('income model', () => {
     );
 
     expect(withEvent.carats - withoutEvent.carats).toBeCloseTo(3300);
-    expect(withEvent.tickets - withoutEvent.tickets).toBeCloseTo(10);
+    // CM champion 10 tickets split evenly -> 5 per pool.
+    expect(withEvent.umaTickets - withoutEvent.umaTickets).toBeCloseTo(5);
+    expect(withEvent.supportTickets - withoutEvent.supportTickets).toBeCloseTo(5);
   });
 
   it('keeps caratsAvailableAt monotonic as dates move forward', () => {

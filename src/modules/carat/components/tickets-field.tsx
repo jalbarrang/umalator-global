@@ -40,14 +40,14 @@ export function TicketsField(props: TicketsFieldProps) {
           max={maxTickets}
           value={row.ticketsUsed}
           onChange={(event) => updateTickets(Number(event.target.value))}
-          className="font-mono text-right tabular-nums"
+          className="w-16 font-mono text-right tabular-nums"
           aria-label={`${label} tickets to use on ${resolveBannerLabel(row.event)}`}
         />
         <span className="min-w-fit text-xs text-muted-foreground">/ {maxTickets}</span>
       </div>
       <div className="font-mono text-[11px] text-muted-foreground tabular-nums">
         {row.ticketsSaved > 0 ? `Saves ${formatCarats(row.ticketsSaved)} · ` : ''}
-        {row.ticketsRemaining.toLocaleString()} {label.toLowerCase()} left
+        {row.ticketsRemaining.toLocaleString()} tickets left
       </div>
       <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
         <span>{isAuto ? 'Auto-filling earliest banner' : 'Manual ticket allocation'}</span>
