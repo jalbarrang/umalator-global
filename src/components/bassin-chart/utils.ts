@@ -1,8 +1,6 @@
 import type { RoundResult, SkillComparisonRoundResult } from '@/modules/simulation/types';
 
 // Re-export chart utilities for external consumers
-;
-
 function getNullRow(skillid: string): RoundResult {
   return {
     id: skillid,

@@ -16,7 +16,10 @@ function ticketLabel(row: BannerPlanRow) {
 }
 
 function maxTicketsForRow(row: BannerPlanRow) {
-  return Math.min(row.ticketsAvailable, Math.max(0, Math.floor(row.plannedBanner.plannedPulls || 0)));
+  return Math.min(
+    row.ticketsAvailable,
+    Math.max(0, Math.floor(row.plannedBanner.plannedPulls || 0))
+  );
 }
 
 export function TicketsField(props: TicketsFieldProps) {
@@ -49,7 +52,13 @@ export function TicketsField(props: TicketsFieldProps) {
       <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
         <span>{isAuto ? 'Auto-filling earliest banner' : 'Manual ticket allocation'}</span>
         {!isAuto ? (
-          <Button type="button" size="xs" variant="link" className="h-auto px-0" onClick={resetToAuto}>
+          <Button
+            type="button"
+            size="xs"
+            variant="link"
+            className="h-auto px-0"
+            onClick={resetToAuto}
+          >
             reset auto
           </Button>
         ) : null}

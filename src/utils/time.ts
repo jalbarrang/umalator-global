@@ -15,5 +15,3 @@ export function formatTime(seconds: number): string {
 export const formatMs = (ms: number): number => {
   return dayjs.duration(ms).asSeconds();
 };
-
-;

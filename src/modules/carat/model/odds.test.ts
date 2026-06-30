@@ -59,7 +59,10 @@ describe('binomial odds', () => {
 
   it('matches a single MLB goal against copiesOdds.mlb', () => {
     // One 5-copy (MLB) goal must equal the single-card MLB odds.
-    expect(targetGoalsOdds({ pulls: 200, goals: [5] })).toBeCloseTo(copiesOdds({ pulls: 200 }).mlb, 6);
+    expect(targetGoalsOdds({ pulls: 200, goals: [5] })).toBeCloseTo(
+      copiesOdds({ pulls: 200 }).mlb,
+      6
+    );
   });
 
   it('drops far below 100% for MLB + LB0 on a 2-SSR banner with 400 pulls', () => {

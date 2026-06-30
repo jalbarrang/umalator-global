@@ -82,7 +82,6 @@ export function binomPmf(k: number, n: number, p: number): number {
   return binomDist(k, n, p, false);
 }
 
-
 function binomCdf(k: number, n: number, p: number): number {
   return binomDist(k, n, p, true);
 }

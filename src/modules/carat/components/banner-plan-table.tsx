@@ -84,7 +84,7 @@ export function BannerPlanTable(props: BannerPlanTableProps) {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       <div className="flex justify-end gap-2">
         <Button
           size="sm"
@@ -101,6 +101,7 @@ export function BannerPlanTable(props: BannerPlanTableProps) {
           Manual order
         </Button>
       </div>
+
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext
           items={rows.map((row) => row.event.id)}

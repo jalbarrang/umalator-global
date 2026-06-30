@@ -1,11 +1,7 @@
 type TimelineCardType = 'character' | 'support' | null;
 export type TimelinePredictionKind = 'confirmed' | 'interpolated' | 'extrapolated';
 type TimelineBannerType = 'character_banner' | 'support_card_banner' | 'paid_banner';
-type TimelineNonBannerType =
-  | 'campaign'
-  | 'story_event'
-  | 'champions_meeting'
-  | 'legend_race';
+type TimelineNonBannerType = 'campaign' | 'story_event' | 'champions_meeting' | 'legend_race';
 
 type TimelinePrediction = {
   kind: TimelinePredictionKind;

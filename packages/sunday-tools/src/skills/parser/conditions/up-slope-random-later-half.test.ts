@@ -73,8 +73,6 @@ describe('up_slope_random_later_half condition', () => {
 
   it('throws for unsupported comparisons', () => {
     const parser = createParser();
-    expect(() =>
-      parser.parse('up_slope_random_later_half==0').apply(buildApplyParams())
-    ).toThrow();
+    expect(() => parser.parse('up_slope_random_later_half==0').apply(buildApplyParams())).toThrow();
   });
 });

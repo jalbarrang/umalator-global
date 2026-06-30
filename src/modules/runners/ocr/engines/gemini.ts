@@ -297,9 +297,7 @@ function mapGeminiSkills(skills: Array<string>): Array<ExtractedSkill> {
   return extractedSkills;
 }
 
-function mapGeminiStructuredData(
-  payload: GeminiStructuredResponse
-): Partial<ExtractedUmaData> {
+function mapGeminiStructuredData(payload: GeminiStructuredResponse): Partial<ExtractedUmaData> {
   const structured: Partial<ExtractedUmaData> = {
     outfitName: payload.outfit || undefined,
     umaName: payload.name || undefined,

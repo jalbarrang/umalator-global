@@ -30,13 +30,6 @@
  * ```
  */
 
-export {
-  TutorialProvider,
-  useTutorial,
-  
-  
-} from './tutorial-context';
+export { TutorialProvider, useTutorial } from './tutorial-context';
 export { TutorialRoot } from './tutorial-root';
-;
-;
-export type { TutorialStep,  TutorialId } from './types';
+export type { TutorialStep, TutorialId } from './types';

@@ -65,20 +65,26 @@ describe('is_exist_skill_id condition', () => {
   it('keeps regions when a runner in the field owns the skill', () => {
     const parser = createParser();
     const commonSkills = new Map<string, number>([[SYMPATHY, 1]]);
-    const [regions] = parser.parse(`is_exist_skill_id==${SYMPATHY}`).apply(buildApplyParams(commonSkills));
+    const [regions] = parser
+      .parse(`is_exist_skill_id==${SYMPATHY}`)
+      .apply(buildApplyParams(commonSkills));
     expect(bounds(regions)).toEqual([[0, 2000]]);
   });
 
   it('drops regions when the field snapshot exists but nobody owns the skill', () => {
     const parser = createParser();
     const commonSkills = new Map<string, number>([['999999', 2]]);
-    const [regions] = parser.parse(`is_exist_skill_id==${SYMPATHY}`).apply(buildApplyParams(commonSkills));
+    const [regions] = parser
+      .parse(`is_exist_skill_id==${SYMPATHY}`)
+      .apply(buildApplyParams(commonSkills));
     expect(bounds(regions)).toEqual([]);
   });
 
   it('assumes the skill may be present when no field snapshot is available', () => {
     const parser = createParser();
-    const [regions] = parser.parse(`is_exist_skill_id==${SYMPATHY}`).apply(buildApplyParams(undefined));
+    const [regions] = parser
+      .parse(`is_exist_skill_id==${SYMPATHY}`)
+      .apply(buildApplyParams(undefined));
     expect(bounds(regions)).toEqual([[0, 2000]]);
   });
 });

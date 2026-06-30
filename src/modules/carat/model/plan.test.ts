@@ -69,7 +69,14 @@ describe('computePlan', () => {
 
   it('ignores planned banners that are not present in the timeline', () => {
     const rows = computePlan(settings, timeline([banner('real', 5)]), [
-      { id: 'example-banner', plannedPulls: 200, startingDupes: 0, copyGoals: {}, ownedCopies: {}, order: 0 },
+      {
+        id: 'example-banner',
+        plannedPulls: 200,
+        startingDupes: 0,
+        copyGoals: {},
+        ownedCopies: {},
+        order: 0
+      },
       { id: 'real', plannedPulls: 1, startingDupes: 0, copyGoals: {}, ownedCopies: {}, order: 1 }
     ]);
 
@@ -82,7 +89,9 @@ describe('computePlan', () => {
     const rows = computePlan(
       { ...settings, trackPaidCarats: true, startingPaidCarats: 1500 },
       timeline([banner('paid', 1)]),
-      [{ id: 'paid', plannedPulls: 20, startingDupes: 0, copyGoals: {}, ownedCopies: {}, order: 0 }],
+      [
+        { id: 'paid', plannedPulls: 20, startingDupes: 0, copyGoals: {}, ownedCopies: {}, order: 0 }
+      ],
       { '1st-anniversary': { p1500: 1 } }
     );
 
@@ -96,11 +105,9 @@ describe('computePlan', () => {
   });
 
   it('auto-fills uma tickets for the earliest character banner and reduces cost', () => {
-    const rows = computePlan(
-      { ...settings, umaTickets: 3 },
-      timeline([banner('uma', 1)]),
-      [{ id: 'uma', plannedPulls: 10, startingDupes: 0, copyGoals: {}, ownedCopies: {}, order: 0 }]
-    );
+    const rows = computePlan({ ...settings, umaTickets: 3 }, timeline([banner('uma', 1)]), [
+      { id: 'uma', plannedPulls: 10, startingDupes: 0, copyGoals: {}, ownedCopies: {}, order: 0 }
+    ]);
 
     expect(rows[0].ticketType).toBe('uma');
     expect(rows[0].ticketsAvailable).toBe(3);
@@ -135,14 +142,10 @@ describe('computePlan', () => {
   it('depletes typed ticket pools across matching banners by date', () => {
     const first = banner('first', 1);
     const second = banner('second', 2);
-    const rows = computePlan(
-      { ...settings, umaTickets: 5 },
-      timeline([second, first]),
-      [
-        { id: 'second', plannedPulls: 3, startingDupes: 0, copyGoals: {}, ownedCopies: {}, order: 0 },
-        { id: 'first', plannedPulls: 3, startingDupes: 0, copyGoals: {}, ownedCopies: {}, order: 1 }
-      ]
-    );
+    const rows = computePlan({ ...settings, umaTickets: 5 }, timeline([second, first]), [
+      { id: 'second', plannedPulls: 3, startingDupes: 0, copyGoals: {}, ownedCopies: {}, order: 0 },
+      { id: 'first', plannedPulls: 3, startingDupes: 0, copyGoals: {}, ownedCopies: {}, order: 1 }
+    ]);
 
     expect(rows.map((row) => row.event.id)).toEqual(['first', 'second']);
     expect(rows[0].ticketsAvailable).toBe(5);
@@ -250,7 +253,14 @@ describe('computePlan', () => {
           ticketsUsed: 0,
           order: 0
         },
-        { id: 'second', plannedPulls: 10, startingDupes: 0, copyGoals: {}, ownedCopies: {}, order: 1 }
+        {
+          id: 'second',
+          plannedPulls: 10,
+          startingDupes: 0,
+          copyGoals: {},
+          ownedCopies: {},
+          order: 1
+        }
       ]
     );
 
@@ -261,20 +271,16 @@ describe('computePlan', () => {
   });
 
   it('floors fractional planned pulls consistently for cost and allocation', () => {
-    const rows = computePlan(
-      { ...settings, umaTickets: 2 },
-      timeline([banner('uma', 1)]),
-      [
-        {
-          id: 'uma',
-          plannedPulls: 10.9,
-          startingDupes: 0,
-          copyGoals: {},
-          ownedCopies: {},
-          order: 0
-        }
-      ]
-    );
+    const rows = computePlan({ ...settings, umaTickets: 2 }, timeline([banner('uma', 1)]), [
+      {
+        id: 'uma',
+        plannedPulls: 10.9,
+        startingDupes: 0,
+        copyGoals: {},
+        ownedCopies: {},
+        order: 0
+      }
+    ]);
 
     // 10 pulls after flooring, 2 covered by tickets -> 8 carat-pulls.
     expect(rows[0].ticketsUsed).toBe(2);

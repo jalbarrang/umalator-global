@@ -44,8 +44,12 @@ export function SortablePlanRow(props: SortablePlanRowProps) {
         <BannerIdentity row={row} showWindow />
       </td>
       <td className="px-2 py-3 text-right font-mono tabular-nums">
-        <div className="text-base font-semibold text-foreground">{formatCarats(row.caratsAvailable)}</div>
-        <div className="text-[11px] text-muted-foreground">→ {formatCarats(row.balanceAfter)} after</div>
+        <div className="text-base font-semibold text-foreground">
+          {formatCarats(row.caratsAvailable)}
+        </div>
+        <div className="text-[11px] text-muted-foreground">
+          → {formatCarats(row.balanceAfter)} after
+        </div>
       </td>
       <td className="w-44 min-w-44 px-2 py-3">
         <PullsField row={row} showCost density="table" />

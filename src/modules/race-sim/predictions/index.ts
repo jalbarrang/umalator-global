@@ -11,8 +11,7 @@ import { predictEncodedRoom } from './runtime';
 import { runnersToRaceHorseInfo } from './adapter';
 import type { FrontendModel, RaceRoomModelSpec, RaceRoomPredictionResult } from './types';
 
-export type { RaceRoomModelSpec,  RaceRoomPredictionResult } from './types';
-;
+export type { RaceRoomModelSpec, RaceRoomPredictionResult } from './types';
 export { runnersToRaceHorseInfo } from './adapter';
 
 export function getSupportedRaceRoomModel(courseId: number | undefined): RaceRoomModelSpec | null {

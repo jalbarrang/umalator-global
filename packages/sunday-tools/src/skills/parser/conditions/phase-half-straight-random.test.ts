@@ -64,9 +64,7 @@ function bounds(regions: RegionList): Array<[number, number]> {
 describe('phase half straight random conditions', () => {
   it('phase_first_half_straight_random keeps straights within the first half of the phase', () => {
     const parser = createParser();
-    const [regions] = parser
-      .parse('phase_first_half_straight_random==2')
-      .apply(buildApplyParams());
+    const [regions] = parser.parse('phase_first_half_straight_random==2').apply(buildApplyParams());
 
     expect(bounds(regions)).toEqual([[1200, 1350]]);
   });

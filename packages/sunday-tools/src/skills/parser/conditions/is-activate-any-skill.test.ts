@@ -62,9 +62,7 @@ function runnerWithUsedSkills(ids: Array<string>): Runner {
 describe('is_activate_any_skill condition', () => {
   it('keeps the full region and gates on another skill having activated', () => {
     const parser = createParser();
-    const [regions, dynamic] = parser
-      .parse('is_activate_any_skill==1')
-      .apply(buildApplyParams());
+    const [regions, dynamic] = parser.parse('is_activate_any_skill==1').apply(buildApplyParams());
 
     expect(regions.map((r) => [r.start, r.end])).toEqual([[0, 1000]]);
     expect(typeof dynamic).toBe('function');

@@ -234,9 +234,7 @@ async function extractCourseData(
 
     const isAbroadForTrack = (raceTrackId: number): boolean => {
       const flag = raceTrackFlagType.get(raceTrackId);
-      return flag !== undefined
-        ? flag === 1
-        : raceTrackId >= OVERSEAS_RACE_TRACK_ID_THRESHOLD;
+      return flag !== undefined ? flag === 1 : raceTrackId >= OVERSEAS_RACE_TRACK_ID_THRESHOLD;
     };
 
     // Query course metadata

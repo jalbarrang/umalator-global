@@ -106,7 +106,8 @@ export function SelectorPlanner(props: SelectorPlannerProps) {
             spreadsheet data is extracted.
           </p>
         </div>
-        <div className="flex items-center gap-2 sm:flex-col sm:items-end">
+
+        <div className="flex items-center gap-2 sm:flex-row-reverse">
           {pastCount > 0 ? (
             <Button
               type="button"
@@ -117,6 +118,7 @@ export function SelectorPlanner(props: SelectorPlannerProps) {
               {hidePast ? `Show past (${pastCount})` : 'Hide past'}
             </Button>
           ) : null}
+
           <div className="rounded-lg bg-muted/60 px-3 py-2 text-right text-xs tabular-nums">
             <div className="font-semibold">{formatCarats(totals.paidCarats)} paid carats</div>
             <div className="text-muted-foreground">{formatUsd(totals.usd)} cumulative</div>
@@ -124,7 +126,7 @@ export function SelectorPlanner(props: SelectorPlannerProps) {
         </div>
       </div>
 
-      <div className="grid gap-3">
+      <div className="grid gap-2">
         {visibleAnniversaries.map((anniversary) => {
           const purchases = { ...defaultPaidPackPurchases, ...paidPurchases[anniversary.id] };
           const summary = paidCaratsFromPacks(purchases, settings.server);
