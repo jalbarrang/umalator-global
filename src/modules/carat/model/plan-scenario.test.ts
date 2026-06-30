@@ -131,7 +131,7 @@ describe('carat plan scenario — Plan 2', () => {
   it('evaluates tickets, cost, and balance per banner', () => {
     const rows = computePlan(PLAN_SETTINGS, TIMELINE, PLANNED_BANNERS);
 
-    rows.forEach((row, index) => {
+    for (const [index, row] of rows.entries()) {
       const expected = EXPECTED[index];
       expect(row.event.id, `row ${index} id`).toBe(expected.id);
       expect(row.ticketType, `${expected.id} ticketType`).toBe(expected.ticketType);
@@ -142,7 +142,7 @@ describe('carat plan scenario — Plan 2', () => {
       expect(row.cost, `${expected.id} cost`).toBe(expected.cost);
       expect(row.affordable, `${expected.id} affordable`).toBe(expected.affordable);
       expect(Math.round(row.balanceAfter), `${expected.id} balanceAfter`).toBe(expected.balanceAfter);
-    });
+    }
   });
 
   it('keeps the support ticket pool independent from the uma pool', () => {
