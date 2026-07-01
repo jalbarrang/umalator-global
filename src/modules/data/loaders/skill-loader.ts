@@ -33,6 +33,8 @@ type GameToraGeneVersion = {
   enname?: string;
   name_en?: string;
   jpname?: string;
+  endesc?: string;
+  desc_en?: string;
   condition_groups?: Array<GameToraConditionGroup>;
   parent_skills?: Array<number>;
 };
@@ -44,6 +46,8 @@ type GameToraLocalizedSkill = {
   type?: string | Array<string>;
   enname?: string;
   name_en?: string;
+  endesc?: string;
+  desc_en?: string;
 };
 
 type SkillSnapshot = {
@@ -55,6 +59,8 @@ type SkillSnapshot = {
   enname?: string;
   name_en?: string;
   jpname?: string;
+  endesc?: string;
+  desc_en?: string;
   char?: Array<number>;
   type?: string | Array<string>;
   condition_groups?: Array<GameToraConditionGroup>;
@@ -238,7 +244,13 @@ function buildMergedSkillEntry(params: BuildMergedSkillEntryParams): SkillEntry 
     supportSources: existingEntry?.supportSources?.map((source) => ({ ...source })),
     gene_version: existingEntry?.gene_version ? { ...existingEntry.gene_version } : undefined,
     unique_version: existingEntry?.unique_version ? { ...existingEntry.unique_version } : undefined,
-    type: existingEntry?.type ?? defaultType
+    type: existingEntry?.type ?? defaultType,
+    description: existingEntry?.description,
+    descriptionGametora:
+      existingEntry?.descriptionGametora ??
+      ('endesc' in resolvedSkill ? resolvedSkill.endesc : undefined) ??
+      'No English description yet',
+    lastUpdated: existingEntry?.lastUpdated ?? 'unreleased'
   };
 }
 

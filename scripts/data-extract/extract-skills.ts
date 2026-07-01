@@ -4,6 +4,7 @@
  * Combines metadata, names, and activation/effect data into one file.
  */
 
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { Command } from 'commander';
 import { closeDatabase, openDatabase, queryAll } from '../master-data/database';
@@ -151,6 +152,48 @@ const EXCLUDED_SKILLS = new Set([
 ]);
 
 const SPLIT_ALTERNATIVES = new Set([100701, 900701]);
+
+const GAMETORA_SKILLS_PATH = path.join(
+  process.cwd(),
+  'src/modules/data/json/gametora/skills.json'
+);
+const GAME_VERSION_PATH = path.join(process.cwd(), 'game-version.json');
+const SKILL_HISTORY_PATH = path.join(process.cwd(), 'scripts/data-extract/skill-history.json');
+
+type SkillHistoryEntry = { hash: string; lastUpdated: string };
+type SkillHistory = Record<string, SkillHistoryEntry>;
+type GameToraSkillRaw = { id: number; endesc?: string; desc_en?: string };
+type GameVersion = { updatedAt?: string };
+
+const NO_ENGLISH_DESCRIPTION = 'No English description yet';
+
+/**
+ * Stable content fingerprint over gameplay-relevant fields only. Sources, family,
+ * and display order are excluded because they churn for reasons unrelated to a
+ * skill's mechanics or text.
+ */
+function fingerprintSkill(skill: SkillEntry): string {
+  const canonical = {
+    rarity: skill.rarity,
+    baseCost: skill.baseCost,
+    gradeValue: skill.gradeValue,
+    description: skill.description ?? '',
+    alternatives: skill.alternatives.map((alt) => ({
+      precondition: alt.precondition,
+      condition: alt.condition,
+      baseDuration: alt.baseDuration,
+      cooldownTime: alt.cooldownTime,
+      effects: alt.effects.map((effect) => ({
+        type: effect.type,
+        modifier: effect.modifier,
+        target: effect.target,
+        valueUsage: effect.valueUsage,
+        valueLevelUsage: effect.valueLevelUsage
+      }))
+    }))
+  };
+  return createHash('sha1').update(JSON.stringify(canonical)).digest('hex');
+}
 
 type ExtractSkillsOptions = {
   replaceMode: boolean;
@@ -453,10 +496,39 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
     console.log(`Found ${rows.length} skill records`);
     console.log(`Found ${nameRows.length} skill names\n`);
 
+    const descRows = queryAll<SkillNameRow>(
+      db,
+      `SELECT [index], text
+       FROM text_data
+       WHERE category = 48`
+    );
+
     const namesById: Record<string, string> = {};
     for (const row of nameRows) {
       namesById[row.index.toString()] = row.text;
     }
+
+    const descriptionsById: Record<string, string> = {};
+    for (const row of descRows) {
+      descriptionsById[row.index.toString()] = row.text;
+    }
+
+    // GameTora in-game EN text (endesc, fallback desc_en), keyed by skill id.
+    const gametoraSkills =
+      (await readJsonFileIfExists<Array<GameToraSkillRaw>>(GAMETORA_SKILLS_PATH)) ?? [];
+    const gametoraDescById = new Map<string, string>();
+    for (const gametoraSkill of gametoraSkills) {
+      if (gametoraSkill.endesc) {
+        gametoraDescById.set(gametoraSkill.id.toString(), gametoraSkill.endesc);
+      }
+    }
+
+    // Date stamped on skills whose fingerprint changed since the last extract.
+    const gameVersion = await readJsonFileIfExists<GameVersion>(GAME_VERSION_PATH);
+    const stampDate = gameVersion?.updatedAt
+      ? gameVersion.updatedAt.slice(0, 10)
+      : new Date().toISOString().slice(0, 10);
+    const history = (await readJsonFileIfExists<SkillHistory>(SKILL_HISTORY_PATH)) ?? {};
 
     const extractedSkills: Record<string, SkillEntry> = {};
 
@@ -482,7 +554,9 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
         order: row.disp_order,
         name,
         character: [],
-        releaseDate
+        releaseDate,
+        description: descriptionsById[row.id.toString()] ?? '',
+        descriptionGametora: gametoraDescById.get(row.id.toString()) ?? NO_ENGLISH_DESCRIPTION
       };
 
       if (SPLIT_ALTERNATIVES.has(row.id)) {
@@ -501,6 +575,30 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
         };
       }
     }
+
+    // Stamp lastUpdated by diffing each skill's fingerprint against the committed history.
+    const nextHistory: SkillHistory = {};
+    let changedCount = 0;
+    for (const [key, skill] of Object.entries(extractedSkills)) {
+      const hash = fingerprintSkill(skill);
+      const previous = history[key];
+      let lastUpdated: string;
+
+      if (!previous) {
+        // First time we have seen this skill: bootstrap to its release date so we
+        // do not claim every skill changed on the run that introduced history.
+        lastUpdated = skill.releaseDate ?? stampDate;
+      } else if (previous.hash === hash) {
+        lastUpdated = previous.lastUpdated;
+      } else {
+        lastUpdated = stampDate;
+        changedCount++;
+      }
+
+      skill.lastUpdated = lastUpdated;
+      nextHistory[key] = { hash, lastUpdated };
+    }
+    console.log(`Stamped lastUpdated (${changedCount} changed since last extract)`);
 
     const uniqueSkillOwnerRows = queryAll<UniqueSkillOwnerRow>(
       db,
@@ -681,6 +779,9 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
         geneSkill.unique_version = createSkillReference(uniqueSkill);
         geneSkill.character = [...uniqueSkill.character];
         geneSkill.sources = uniqueSkill.sources?.map((source) => ({ ...source }));
+        // Gene/inherited skills have no GameTora endesc of their own; inherit the
+        // parent unique skill's in-game EN text.
+        geneSkill.descriptionGametora = uniqueSkill.descriptionGametora;
       } else if (uniqueSkill) {
         uniqueSkill.gene_version = { id: row.gene_id, name: '', rarity: 1, iconId: '' };
       }
@@ -764,9 +865,24 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
       }
     }
 
+    // Skills preserved through merge but absent from the current master extract are
+    // upcoming content: mark them unreleased and backfill their GameTora text.
+    for (const [key, skill] of Object.entries(finalSkills)) {
+      if (!extractedSkills[key]) {
+        skill.lastUpdated = 'unreleased';
+        skill.descriptionGametora =
+          gametoraDescById.get(key.split('-')[0]) ??
+          skill.descriptionGametora ??
+          NO_ENGLISH_DESCRIPTION;
+      }
+    }
+
     const sorted = sortByNumericKey(finalSkills);
     await writeJsonFile(outputPath, sorted);
     console.log(`\n✓ Written to ${outputPath}`);
+
+    await writeJsonFile(SKILL_HISTORY_PATH, sortByNumericKey(nextHistory));
+    console.log(`✓ Skill history written to ${SKILL_HISTORY_PATH}`);
   } finally {
     closeDatabase(db);
   }

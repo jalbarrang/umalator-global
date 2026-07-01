@@ -62,6 +62,12 @@ export type SkillEntry = {
   type?: string | Array<string>;
   /** Earliest known release date (YYYY-MM-DD) from character/support card data. */
   releaseDate?: string;
+  /** Official EN description from master.mdb text_data category 48. Empty for skills not yet in master. */
+  description?: string;
+  /** In-game EN description from GameTora (endesc, fallback desc_en). */
+  descriptionGametora?: string;
+  /** Date (YYYY-MM-DD) the skill's mechanics/description last changed, or "unreleased" if not in the current master.mdb extract. */
+  lastUpdated?: string;
 };
 
 export type SkillsMap = Record<string, SkillEntry>;
