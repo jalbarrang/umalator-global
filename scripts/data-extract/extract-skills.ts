@@ -871,7 +871,7 @@ async function extractSkills(options: ExtractSkillsOptions = { replaceMode: fals
       if (!extractedSkills[key]) {
         skill.lastUpdated = 'unreleased';
         skill.descriptionGametora =
-          gametoraDescById.get(key.split('-')[0]) ??
+          gametoraDescById.get(key.split('-', 1)[0]) ??
           skill.descriptionGametora ??
           NO_ENGLISH_DESCRIPTION;
       }

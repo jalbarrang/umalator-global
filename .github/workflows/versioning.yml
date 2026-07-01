@@ -13,6 +13,10 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    # Disable husky git hooks in CI: semantic-release's automated release commit
+    # must not run local dev-only gates (knip/dupes/typecheck) that can fail the commit.
+    env:
+      HUSKY: '0'
     steps:
       - name: Checkout code
         uses: actions/checkout@v6.0.2
