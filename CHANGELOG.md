@@ -1,3 +1,17 @@
+## [0.20.0](https://github.com/jalbarrang/torena-sim/compare/v0.19.0...v0.20.0) (2026-07-01)
+
+### Features
+
+* added a last_updated field and descriptions to skills ([3b7bec1](https://github.com/jalbarrang/torena-sim/commit/3b7bec1c05df30886554d087dc43eac8206d6932))
+* **carat:** multiple pull plans + shareable codes ([38bfafa](https://github.com/jalbarrang/torena-sim/commit/38bfafaec548d9357e8dfe4410594ca13fb06808))
+* **carat:** spreadsheet-accurate income, typed ticket accrual, UI cleanup ([2317fbd](https://github.com/jalbarrang/torena-sim/commit/2317fbd067206f2f6ea443434a880e5f8c704fe8))
+* **carat:** type-aware ticket pools + per-banner ticket slot ([#60](https://github.com/jalbarrang/torena-sim/issues/60)) ([d7e375c](https://github.com/jalbarrang/torena-sim/commit/d7e375c9675c7a93b9e4ea1cc2e1a2181705c5a7))
+
+### Bug Fixes
+
+* **carat:** eliminate nested/document scrollbars on calculator page ([f0e90c6](https://github.com/jalbarrang/torena-sim/commit/f0e90c6dcdea07726f752b53b33a3900565ac288))
+* **lint:** replace forEach with for-of in plan-scenario test ([0026c46](https://github.com/jalbarrang/torena-sim/commit/0026c46692d40b243a780ab000f842df2ce66dc4))
+
 ## [0.19.0](https://github.com/jalbarrang/torena-sim/compare/v0.18.0...v0.19.0) (2026-06-27)
 
 ### Features
