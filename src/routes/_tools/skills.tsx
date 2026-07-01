@@ -411,6 +411,13 @@ function SkillBrowserItem(props: SkillBrowserItemProps) {
               <div className="flex gap-2">
                 {skill.baseCost > 0 && <Badge variant="outline">{skill.baseCost} SP</Badge>}
                 <Badge variant="outline">{getRarityLabel(skill.rarity)}</Badge>
+                {skill.lastUpdated ? (
+                  <Badge variant="outline">
+                    {skill.lastUpdated === 'unreleased'
+                      ? 'Unreleased'
+                      : `Updated ${skill.lastUpdated}`}
+                  </Badge>
+                ) : null}
                 <SkillSourcesPopover skill={skill} />
               </div>
             </div>
@@ -424,6 +431,12 @@ function SkillBrowserItem(props: SkillBrowserItemProps) {
           </section>
         </div>
       </div>
+
+      {skill.description ? (
+        <div className="border-b px-4 py-2 text-xs leading-relaxed text-muted-foreground md:border-none">
+          {skill.description}
+        </div>
+      ) : null}
 
       <div className="flex flex-col px-4 text-xs md:py-2">
         <SkillDetails skill={skill} />
