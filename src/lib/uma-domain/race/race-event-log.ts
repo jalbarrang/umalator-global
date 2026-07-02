@@ -16,6 +16,8 @@ export type RaceEventKind =
   | 'pace-down-end'
   | 'pace-up-start'
   | 'pace-up-end'
+  | 'pace-up-ex-start'
+  | 'pace-up-ex-end'
   | 'overtake-start'
   | 'overtake-end'
   | 'blocked-side-start'

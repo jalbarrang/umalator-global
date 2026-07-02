@@ -32,6 +32,8 @@ pub struct FieldSnapshot {
     pub pacer: Option<RunnerId>,
     /// The pacer's current position.
     pub pacer_position: Option<f64>,
+    /// The pacer's post-promotion position-keep strategy.
+    pub pacer_strategy: Option<Strategy>,
     /// Position of the second-furthest-forward runner.
     pub second_place_position: Option<f64>,
     /// Position of the furthest-forward runner.
@@ -104,6 +106,7 @@ pub fn build_field_snapshot(
 ) -> FieldSnapshot {
     // Resolve + apply pacer promotion (mutates one runner's keep-strategy).
     let selection = select_pacer(runners, tracker.pacer);
+    let mut pacer_strategy = None;
     if let Some(sel) = selection {
         if sel.promote_to_front_runner {
             if let Some(runner) = runners.iter_mut().find(|r| r.id == sel.runner_id) {
@@ -111,10 +114,12 @@ pub fn build_field_snapshot(
             }
         }
         tracker.pacer = Some(sel.runner_id);
-        tracker.pacer_position = runners
-            .iter()
-            .find(|r| r.id == sel.runner_id)
-            .map(|r| r.position);
+        if let Some(runner) = runners.iter().find(|r| r.id == sel.runner_id) {
+            tracker.pacer_position = Some(runner.position);
+            pacer_strategy = Some(runner.position_keep_strategy);
+        } else {
+            tracker.pacer_position = None;
+        }
     } else {
         tracker.pacer = None;
         tracker.pacer_position = None;
@@ -182,6 +187,7 @@ pub fn build_field_snapshot(
         previous_order,
         pacer: tracker.pacer,
         pacer_position: tracker.pacer_position,
+        pacer_strategy,
         second_place_position,
         leader_position,
     }
@@ -352,6 +358,7 @@ mod tests {
             previous_order: HashMap::new(),
             pacer: None,
             pacer_position: None,
+            pacer_strategy: None,
             second_place_position: None,
             leader_position: None,
         }

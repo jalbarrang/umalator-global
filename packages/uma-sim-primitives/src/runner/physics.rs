@@ -27,6 +27,7 @@ use crate::skills::condition::approximate::{
     create_blocked_side_condition, create_overtake_condition, ApproximateCondition,
     ApproximateConditionState,
 };
+use crate::skills::effect::PositionKeepState;
 use crate::stamina::policy::RaceStateSlice;
 
 /// Per-tick accumulators for skill-driven speed / acceleration modifiers.
@@ -402,6 +403,9 @@ impl Runner {
         }
         if self.current_speed > self.target_speed {
             self.acceleration = PHASE_DECELERATION[self.phase_index().min(2)];
+            if self.position_keep_state == PositionKeepState::PaceDown {
+                self.acceleration = -0.5;
+            }
             return;
         }
         let uphill = if self.slope_per > 0.0 { 3 } else { 0 };
@@ -800,8 +804,10 @@ mod tests {
                 position_keep_mode: 0,
                 num_runners: 1,
                 pacer_position: None,
+                pacer_strategy: None,
                 pacer_is_self: false,
                 second_place_position: None,
+                backward_strategy_runner_ahead: false,
             },
             skill_triggers: SkillTriggerInputs { field },
         }

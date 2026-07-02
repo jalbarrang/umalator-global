@@ -180,6 +180,8 @@ pub enum PositionKeepState {
     SpeedUp = 3,
     /// Overtaking.
     Overtake = 4,
+    /// Post-1.5 extended pace-up when an unexpectedly backline strategy is ahead.
+    PaceUpEx = 5,
 }
 
 #[cfg(test)]
@@ -194,6 +196,7 @@ mod tests {
         assert_eq!(SkillTarget::UsedRecovery as i32, 23);
         assert_eq!(SkillPerspective::Any as i32, 3);
         assert_eq!(PositionKeepState::Overtake as i32, 4);
+        assert_eq!(PositionKeepState::PaceUpEx as i32, 5);
     }
 
     #[test]

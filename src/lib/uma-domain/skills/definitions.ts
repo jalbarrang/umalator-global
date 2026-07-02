@@ -136,7 +136,8 @@ export const PositionKeepState = {
   PaceUp: 1,
   PaceDown: 2,
   SpeedUp: 3,
-  Overtake: 4
+  Overtake: 4,
+  PaceUpEx: 5
 } as const;
 export type IPositionKeepState = (typeof PositionKeepState)[keyof typeof PositionKeepState];
 export const PositionKeepStateName: Record<IPositionKeepState, string> = {
@@ -144,7 +145,8 @@ export const PositionKeepStateName: Record<IPositionKeepState, string> = {
   [PositionKeepState.PaceUp]: 'Pace Up',
   [PositionKeepState.PaceDown]: 'Pace Down',
   [PositionKeepState.SpeedUp]: 'Speed Up',
-  [PositionKeepState.Overtake]: 'Overtake'
+  [PositionKeepState.Overtake]: 'Overtake',
+  [PositionKeepState.PaceUpEx]: 'Pace Up Ex'
 };
 
 export type ISkillData = {

@@ -226,9 +226,9 @@ Beware that some mechanics and bugs differ based on your respective server. You 
 
 [Spot Struggle | Lead Competition 位置取り争い](#spot-struggle-|-lead-competition-位置取り争い)
 
-[Dueling | Compete Fight 追い比べ](#dueling-|-compete-fight-追い比べ)
+[Dueling](#dueling)
 
-[Charge Up / Fully Charged | Conserve Power / Release 足を貯める / 脚色十分](#charge-up-/-fully-charged-|-conserve-power-/-release-足を貯める-/-脚色十分)
+[Fully Charged](#fully-charged)
 
 [Compete Before Spurt 位置取り調整](#repositioning-位置取り調整)
 
@@ -522,7 +522,7 @@ Deceleration is determined by phase
 | Early-race                                                   | -1.2m/s2     | Yes              |
 | Mid-race                                                     | -0.8m/s2     | Yes              |
 | Late-race                                                    | -1.0m/s2     | Yes              |
-| Pace Down mode (overriding all above, after 1.5 anniversary) | -0.5m/s2     | No               |
+| Pace Down mode (overriding all above, after 1.5 anniversary) | -0.5m/s2     | Yes              |
 | Out of HP (overriding all above)                             | -1.2m/s2     | Yes              |
 
 # HP {#hp}
@@ -1148,7 +1148,7 @@ Target speed modifier: 2.0x
 Entry condition for front runners: another uma whose strategy should be behind is ahead of the uma.
 Entry condition for others: pacemaker’s strategy should be behind the uma.
 Exit condition: no other uma whose strategy should be behind is ahead of the uma.
-This mode is prioritized over all other position keep modes. This mode was added after the 1.5 anniversary (not implemented yet in Global Server).
+This mode is prioritized over all other position keep modes. This mode was added after the 1.5 anniversary and is available in Global.
 
 ## Rushed State {#rushed,-kakari-掛かり,-temptation}
 
@@ -1219,10 +1219,9 @@ Accel+=(160\*GutsStat)0.59\*0.0001\[m/s\]
 
 Competition cannot occur when HP is less than 15%, and will end if HP is reduced to below 5%.
 
-# Power Conservation and Release (足を貯める and 脚色十分) {#charge-up-/-fully-charged}
+# Fully Charged {#fully-charged}
 
-- This mechanic was added during the JP server's second anniversary on February 24, 2023.
-- Not implemented yet in Global Server, will probably be available in the 1.5th anniversary update.
+> Available in Global since 2026-07-01
 
 Note: Info in this section is inferred from the game’s parameter file, which is less concretely confirmed as results from reverse engineering.
 

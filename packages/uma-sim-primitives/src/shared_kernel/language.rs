@@ -28,6 +28,19 @@ impl Strategy {
             other => other,
         }
     }
+
+    /// Front-to-back ordering used by post-1.5 position-keep checks.
+    ///
+    /// Runaway shares Front Runner's rank; larger values are strategies that
+    /// should normally run further back.
+    pub fn order_rank(self) -> u8 {
+        match self {
+            Strategy::Runaway | Strategy::FrontRunner => 0,
+            Strategy::PaceChaser => 1,
+            Strategy::LateSurger => 2,
+            Strategy::EndCloser => 3,
+        }
+    }
 }
 
 /// Whether two strategies are considered equivalent for mechanic checks.
@@ -235,6 +248,15 @@ mod tests {
     fn base_strategy_collapses_runaway() {
         assert_eq!(Strategy::Runaway.base_strategy(), Strategy::FrontRunner);
         assert_eq!(Strategy::EndCloser.base_strategy(), Strategy::EndCloser);
+    }
+
+    #[test]
+    fn order_rank_sorts_front_to_back() {
+        assert_eq!(Strategy::Runaway.order_rank(), 0);
+        assert_eq!(Strategy::FrontRunner.order_rank(), 0);
+        assert_eq!(Strategy::PaceChaser.order_rank(), 1);
+        assert_eq!(Strategy::LateSurger.order_rank(), 2);
+        assert_eq!(Strategy::EndCloser.order_rank(), 3);
     }
 
     #[test]

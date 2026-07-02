@@ -9,7 +9,7 @@
 
 use crate::course::coefficients::position_keep;
 use crate::runner::{PositionKeepActivation, Runner};
-use crate::shared_kernel::language::{strategy_matches, Strategy};
+use crate::shared_kernel::language::{strategy_matches, Phase, Strategy};
 use crate::shared_kernel::math::Timer;
 use crate::skills::effect::PositionKeepState;
 
@@ -29,10 +29,14 @@ pub struct PositionKeepContext {
     pub num_runners: usize,
     /// The pacer's current position, if a pacer is selected.
     pub pacer_position: Option<f64>,
+    /// The pacer's post-promotion position-keep strategy, if a pacer is selected.
+    pub pacer_strategy: Option<Strategy>,
     /// Whether this runner *is* the pacer.
     pub pacer_is_self: bool,
     /// Position of the second-furthest-forward runner, if any.
     pub second_place_position: Option<f64>,
+    /// Whether any more-backward strategy is physically ahead of this runner.
+    pub backward_strategy_runner_ahead: bool,
 }
 
 /// Wit check gating speed-up / overtake entry (always passes while rushed).
@@ -59,7 +63,15 @@ pub fn update_position_keep_coefficient(runner: &mut Runner) {
         PositionKeepState::SpeedUp => 1.04,
         PositionKeepState::Overtake => 1.05,
         PositionKeepState::PaceUp => 1.04,
-        PositionKeepState::PaceDown => 0.915,
+        PositionKeepState::PaceDown => {
+            // Global post-1.5: Pace Down is less severe during mid-race only.
+            if runner.phase == Phase::MidRace {
+                0.945
+            } else {
+                0.915
+            }
+        }
+        PositionKeepState::PaceUpEx => 2.0,
         PositionKeepState::None => 1.0,
     };
 }
@@ -182,8 +194,45 @@ fn enter_from_none_pacer(runner: &mut Runner, behind: f64) {
 }
 
 fn sample_exit_distance(runner: &mut Runner) -> f64 {
-    let span = runner.pos_keep_max_threshold - runner.pos_keep_min_threshold;
+    // Global post-1.5: mid-race Pace Down rolls only through the midpoint of the
+    // min/max threshold window. Other states/phases keep the full range.
+    let max_threshold = if runner.position_keep_state == PositionKeepState::PaceDown
+        && runner.phase == Phase::MidRace
+    {
+        runner.pos_keep_min_threshold
+            + (runner.pos_keep_max_threshold - runner.pos_keep_min_threshold) * 0.5
+    } else {
+        runner.pos_keep_max_threshold
+    };
+    let span = max_threshold - runner.pos_keep_min_threshold;
     runner.pos_keep_rng.random() * span + runner.pos_keep_min_threshold
+}
+
+fn should_pace_up_ex(runner: &Runner, ctx: &PositionKeepContext) -> bool {
+    if strategy_matches(runner.position_keep_strategy, Strategy::FrontRunner) {
+        return ctx.backward_strategy_runner_ahead;
+    }
+
+    ctx.pacer_strategy
+        .is_some_and(|pacer| pacer.order_rank() > runner.position_keep_strategy.order_rank())
+}
+
+fn handle_pace_up_ex_priority(runner: &mut Runner, ctx: &PositionKeepContext) -> bool {
+    let should_enter = should_pace_up_ex(runner, ctx);
+    if should_enter {
+        if runner.position_keep_state != PositionKeepState::PaceUpEx {
+            exit_position_keep(runner, None);
+            begin_state(runner, PositionKeepState::PaceUpEx);
+        }
+        return true;
+    }
+
+    if runner.position_keep_state == PositionKeepState::PaceUpEx {
+        exit_position_keep(runner, Some(-3.0));
+        return true;
+    }
+
+    false
 }
 
 fn handle_none(runner: &mut Runner, ctx: &PositionKeepContext, behind: f64) {
@@ -267,6 +316,10 @@ pub fn apply_virtual_position_keep(runner: &mut Runner, ctx: &PositionKeepContex
         return;
     }
 
+    if handle_pace_up_ex_priority(runner, ctx) {
+        return;
+    }
+
     let forced = forced_rank_behind(runner);
     let has_forced_rank = forced.is_some();
 
@@ -285,6 +338,7 @@ pub fn apply_virtual_position_keep(runner: &mut Runner, ctx: &PositionKeepContex
         PositionKeepState::Overtake => handle_overtake(runner, ctx),
         PositionKeepState::PaceUp => handle_pace_up(runner, behind),
         PositionKeepState::PaceDown => handle_pace_down(runner, behind),
+        PositionKeepState::PaceUpEx => unreachable!("PaceUpEx is handled by priority gate"),
     }
 }
 
@@ -309,8 +363,10 @@ mod tests {
             position_keep_mode: VIRTUAL_MODE,
             num_runners: 9,
             pacer_position,
+            pacer_strategy: Some(Strategy::FrontRunner),
             pacer_is_self,
             second_place_position: second,
+            backward_strategy_runner_ahead: false,
         }
     }
 
@@ -320,6 +376,12 @@ mod tests {
         r.position_keep_state = PositionKeepState::PaceDown;
         update_position_keep_coefficient(&mut r);
         assert_eq!(r.pos_keep_speed_coef, 0.915);
+        r.phase = Phase::MidRace;
+        update_position_keep_coefficient(&mut r);
+        assert_eq!(r.pos_keep_speed_coef, 0.945);
+        r.position_keep_state = PositionKeepState::PaceUpEx;
+        update_position_keep_coefficient(&mut r);
+        assert_eq!(r.pos_keep_speed_coef, 2.0);
         r.position_keep_state = PositionKeepState::Overtake;
         update_position_keep_coefficient(&mut r);
         assert_eq!(r.pos_keep_speed_coef, 1.05);
@@ -418,5 +480,52 @@ mod tests {
         let c = ctx(Some(200.0), true, Some(197.0));
         apply_virtual_position_keep(&mut r, &c);
         assert_eq!(r.position_keep_state, PositionKeepState::SpeedUp);
+    }
+
+    #[test]
+    fn front_runner_enters_pace_up_ex_when_backline_runner_is_ahead() {
+        let mut r = runner(Strategy::FrontRunner, 200.0);
+        initialize_position_keep(&mut r, 2400.0, 3.0);
+        let mut c = ctx(Some(190.0), false, Some(190.0));
+        c.backward_strategy_runner_ahead = true;
+
+        apply_virtual_position_keep(&mut r, &c);
+
+        assert_eq!(r.position_keep_state, PositionKeepState::PaceUpEx);
+        assert_eq!(
+            r.position_keep_activations[0].state,
+            PositionKeepState::PaceUpEx
+        );
+    }
+
+    #[test]
+    fn non_front_runner_enters_pace_up_ex_when_pacer_strategy_should_be_behind() {
+        let mut r = runner(Strategy::PaceChaser, 200.0);
+        initialize_position_keep(&mut r, 2400.0, 3.0);
+        let mut c = ctx(Some(250.0), false, None);
+        c.pacer_strategy = Some(Strategy::LateSurger);
+
+        apply_virtual_position_keep(&mut r, &c);
+
+        assert_eq!(r.position_keep_state, PositionKeepState::PaceUpEx);
+    }
+
+    #[test]
+    fn pace_up_ex_exits_when_entry_condition_stops_holding() {
+        let mut r = runner(Strategy::PaceChaser, 200.0);
+        initialize_position_keep(&mut r, 2400.0, 3.0);
+        r.position_keep_state = PositionKeepState::PaceUpEx;
+        r.position_keep_activations.push(PositionKeepActivation {
+            start: 100.0,
+            end: 0.0,
+            state: PositionKeepState::PaceUpEx,
+        });
+        let c = ctx(Some(250.0), false, None);
+
+        apply_virtual_position_keep(&mut r, &c);
+
+        assert_eq!(r.position_keep_state, PositionKeepState::None);
+        assert_eq!(r.pos_keep_next_timer.t, -3.0);
+        assert_eq!(r.position_keep_activations[0].end, 200.0);
     }
 }

@@ -8,6 +8,7 @@
 
 ### Features
 
+* **race:** add Global 1.5-anniversary position-keep updates (Pace Down override + Pace Up Ex)
 * **race:** add Global Power Conservation / Fully Charged mechanic end-to-end (engine, WASM, settings, Race Mechanics panel)
 * added a last_updated field and descriptions to skills ([3b7bec1](https://github.com/jalbarrang/torena-sim/commit/3b7bec1c05df30886554d087dc43eac8206d6932))
 * **carat:** multiple pull plans + shareable codes ([38bfafa](https://github.com/jalbarrang/torena-sim/commit/38bfafaec548d9357e8dfe4410594ca13fb06808))

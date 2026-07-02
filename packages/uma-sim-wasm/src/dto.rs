@@ -1025,6 +1025,8 @@ fn log_event_kind_str(kind: RaceLogEventKind) -> &'static str {
         RaceLogEventKind::PaceDownEnd => "pace-down-end",
         RaceLogEventKind::PaceUpStart => "pace-up-start",
         RaceLogEventKind::PaceUpEnd => "pace-up-end",
+        RaceLogEventKind::PaceUpExStart => "pace-up-ex-start",
+        RaceLogEventKind::PaceUpExEnd => "pace-up-ex-end",
         RaceLogEventKind::OvertakeStart => "overtake-start",
         RaceLogEventKind::OvertakeEnd => "overtake-end",
         RaceLogEventKind::BlockedSideStart => "blocked-side-start",

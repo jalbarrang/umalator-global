@@ -63,6 +63,8 @@ const EVENT_KIND_STYLES: Record<RaceEventKind, EventKindStyle> = {
   'pace-down-end': { label: 'Pos keep', dotClassName: 'bg-cyan-500' },
   'pace-up-start': { label: 'Pos keep', dotClassName: 'bg-teal-600' },
   'pace-up-end': { label: 'Pos keep', dotClassName: 'bg-teal-500' },
+  'pace-up-ex-start': { label: 'Pos keep', dotClassName: 'bg-emerald-600' },
+  'pace-up-ex-end': { label: 'Pos keep', dotClassName: 'bg-emerald-500' },
   'overtake-start': { label: 'Lane', dotClassName: 'bg-orange-500' },
   'overtake-end': { label: 'Lane', dotClassName: 'bg-orange-400' },
   'blocked-side-start': { label: 'Lane', dotClassName: 'bg-slate-500' },
@@ -127,6 +129,10 @@ function getEventDescription(event: RaceEvent): string {
       return 'started pace up (position keep)';
     case 'pace-up-end':
       return 'ended pace up';
+    case 'pace-up-ex-start':
+      return 'started Pace Up Ex (position keep)';
+    case 'pace-up-ex-end':
+      return 'ended Pace Up Ex';
     case 'overtake-start':
       return 'started overtaking (lane)';
     case 'overtake-end':

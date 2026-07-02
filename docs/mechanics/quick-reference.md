@@ -35,7 +35,7 @@ This document is a quick reference for the race mechanics that are available cur
 - ✅ Start dash (`+24 m/s²`)
 - ✅ Start dash bug fixes (speed cap, speed debuff handling)
 - ✅ Phase deceleration (`-1.2`/`-0.8`/`-1.0`)
-- ❌ **Pace Down deceleration override** (`-0.5 m/s²`, not in Global yet)
+- ✅ **Pace Down deceleration override** (`-0.5 m/s²` during Pace Down; Out-of-HP still overrides)
 
 ### HP/Stamina System ✅
 
@@ -142,9 +142,9 @@ This document is a quick reference for the race mechanics that are available cur
 ### Non-Front Runner Modes
 
 - ✅ `PaceUp` (`1.04x`)
-- ✅ `PaceDown` (`0.915x` base)
-  - ❌ **Mid-race `0.945x` not in Global yet**
-- ❌ **Pace Up Ex (`2.0x`)** - Not in Global yet (1.5 anniversary)
+- ✅ `PaceDown` (`0.945x` mid-race, `0.915x` otherwise)
+  - ✅ Mid-race exit-distance roll caps max at `lerp(Min, Max, 0.5)`
+- ✅ **Pace Up Ex (`2.0x`)** - 1.5-anniversary position-keep override
 
 ## Special States & Competition ✅
 
@@ -208,11 +208,10 @@ This document is a quick reference for the race mechanics that are available cur
 
 ## NOT Yet Available in Global ❌
 
-### 1.5 Anniversary (Not in Global)
+### 1.5 Anniversary (Deferred / Research Needed)
 
-- ❌ Pace Down deceleration (-0.5 m/s² override)
-- ❌ Pace Down mid-race lerp for exit
-- ❌ Pace Up Ex mode (2.0x speed)
+- ❌ Post-1.5 pacemaker selection algorithm (`Range=10.0`, `Count=2.0` hints only)
+- ❌ Speed-up "12.5m only-front-runner" tweak
 
 ### 2nd Anniversary (Not in Global)
 

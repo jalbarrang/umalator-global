@@ -29,6 +29,7 @@ const ACTIVE_EFFECT_TYPES: [i32; 6] = [21, 22, 27, 28, 31, 35];
 /// Position-keep discriminants the event log watches (mirror `PositionKeepState`).
 const PK_PACE_UP: i64 = 1;
 const PK_PACE_DOWN: i64 = 2;
+const PK_PACE_UP_EX: i64 = 5;
 
 /// One per-tick sample of a focused runner.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -316,6 +317,10 @@ pub enum RaceLogEventKind {
     PaceUpStart,
     /// Stopped pacing up.
     PaceUpEnd,
+    /// Began extended pacing up.
+    PaceUpExStart,
+    /// Stopped extended pacing up.
+    PaceUpExEnd,
     /// Began overtaking.
     OvertakeStart,
     /// Stopped overtaking.
@@ -536,6 +541,12 @@ impl RaceObserver for EventLogObserver {
         }
         if prev.position_keep_state == PK_PACE_UP && pk != PK_PACE_UP {
             inner.push(RaceLogEventKind::PaceUpEnd, id, position, tick, None);
+        }
+        if prev.position_keep_state != PK_PACE_UP_EX && pk == PK_PACE_UP_EX {
+            inner.push(RaceLogEventKind::PaceUpExStart, id, position, tick, None);
+        }
+        if prev.position_keep_state == PK_PACE_UP_EX && pk != PK_PACE_UP_EX {
+            inner.push(RaceLogEventKind::PaceUpExEnd, id, position, tick, None);
         }
         if !prev.is_overtaking && overtaking {
             inner.push(RaceLogEventKind::OvertakeStart, id, position, tick, None);

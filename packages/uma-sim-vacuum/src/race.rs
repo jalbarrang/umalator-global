@@ -314,12 +314,18 @@ impl Race {
             }
             update_position_keep_coefficient(runner);
             let field = build_field_view(runner.id, &snapshot);
+            let backward_strategy_runner_ahead = snapshot.entries.iter().any(|entry| {
+                entry.position > runner.position
+                    && entry.strategy.order_rank() > runner.position_keep_strategy.order_rank()
+            });
             let position_keep = PositionKeepContext {
                 position_keep_mode: self.settings.position_keep_mode,
                 num_runners: snapshot.num_active as usize,
                 pacer_position: snapshot.pacer_position,
+                pacer_strategy: snapshot.pacer_strategy,
                 pacer_is_self: snapshot.pacer == Some(runner.id),
                 second_place_position: snapshot.second_place_position,
+                backward_strategy_runner_ahead,
             };
             // The aggregate is the *producer*: it resolves every field-presence
             // input from **approximate condition values + synthetic dueling
