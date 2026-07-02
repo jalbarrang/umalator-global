@@ -151,7 +151,7 @@ This document is a quick reference for the race mechanics that are available cur
 ### Rushed ✅
 
 - ✅ Pre-race `Wit` roll: `(6.5/log10(0.1*Wit+1))²%`
-- ❌ Restraint skill: `-3%` flat - (Skill not available in Global yet)
+- ✅ Restraint skill: `-3%` flat (ID 202161)
 - ✅ Random section `2-9` activation
 - ✅ `1.6x` HP consumption modifier
 - ✅ Forces position keep mode, auto-passes `Wit` checks
@@ -193,11 +193,11 @@ This document is a quick reference for the race mechanics that are available cur
 - ✅ Late start: `>0.08s`
 - ✅ Fast start: `<0.02s` (only on Team Trials mode)
 - ✅ Skill modifiers (`Concentration: 0.4x`, `Focus: 0.9x`, `Gatekept: 1.5x`)
-- ❌ Fixed delays for `You're Not the Boss of Me!` (`0.085s`) and `Feelin' a Bit Silly` (`0.1s`) - (Skills not available in Global yet)
-
-## Global 1.5 Anniversary ✅
+- ✅ Fixed delays for `You're Not the Boss of Me!` (`0.085s`, ID 202141) and `Feelin' a Bit Silly` (`0.1s`, ID 1100011) via `SetStartDelay`
 
 ### Power Conservation / Fully Charged ✅
+
+> Added in Global's 2026-07-01 update.
 
 - ✅ **Conserve Power / Fully Charged** (足を貯める / 脚色十分)
   - ✅ Power >1200 required
@@ -206,18 +206,14 @@ This document is a quick reference for the race mechanics that are available cur
   - ✅ Race Mechanics panel shows frequency + mean accel (`X% (+Y m/s²)`)
   - ⚠️ Assumptions pending firmer research: fully-charged threshold = `100.0`, duration = `3.0s × distance-type coefficient`, skill-ability decay interaction ignored
 
-## NOT Yet Available in Global ❌
+## NOT Yet Available in TorenaSim
 
-### 1.5 Anniversary (Deferred / Research Needed)
+### Global 7/1 Update (Deferred / Research Needed)
 
 - ❌ Post-1.5 pacemaker selection algorithm (`Range=10.0`, `Count=2.0` hints only)
 - ❌ Speed-up "12.5m only-front-runner" tweak
 
-### 2nd Anniversary (Not in Global)
-
-- ✅ **Conserve Power / Fully Charged** moved to Global 1.5 implementation above.
-
-### 2.5th Anniversary (Not in Global)
+### JP 2.5th Anniversary Update - Not in Global
 
 - ❌ **Compete Before Spurt** (位置取り調整)
   - Sections 11-15
@@ -236,7 +232,7 @@ This document is a quick reference for the race mechanics that are available cur
   - Random table coefficients
   - Updated coefficients (2024-10-29)
 
-### Not Yet Implemented (Any Server)
+### Skills not in Global
 
 - ❌ L'arc Global Potential (scenario-specific)
 
