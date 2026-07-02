@@ -10,9 +10,12 @@
 
 import { Command } from 'commander';
 
+import { initCliData } from './lib/init-data';
+import { ensureCliWasm } from './lib/wasm-init';
 import { coursesService } from '@/modules/data/services/CourseService';
 import { generateMobField } from '@/lib/uma-domain/race/mob-factory';
-import { runRaceSim } from 'sunday-tools/race-sim/run-race-sim';
+import { raceSimParamsToWasm } from '@/lib/uma-sim-wasm/adapter-params';
+import { wasmResultToRaceSimResult } from '@/lib/uma-sim-wasm/adapter-results';
 import type { RaceSimResult } from '@/lib/uma-domain/race/run-race-sim';
 import { StrategyName } from '@/lib/uma-domain/runner/definitions';
 import type { RaceParameters } from '@/lib/uma-domain/race/types';
@@ -101,6 +104,8 @@ async function main() {
   const masterSeed =
     opts.seed !== undefined ? Number(opts.seed) : Math.floor(Math.random() * 1_000_000);
 
+  initCliData();
+
   console.log(`Course: ${courseId}`);
   console.log(`Samples: ${nsamples}`);
   console.log(`Seed: ${masterSeed}`);
@@ -113,13 +118,18 @@ async function main() {
 
   const start = performance.now();
 
-  const result = runRaceSim({
-    course,
-    parameters: createDefaultRaceParams(),
-    runners,
-    nsamples,
-    masterSeed
-  });
+  const wasm = await ensureCliWasm();
+  const wasmParams = raceSimParamsToWasm(
+    {
+      course,
+      parameters: createDefaultRaceParams(),
+      runners,
+      nsamples,
+      masterSeed
+    },
+    (_runner, index) => `Mob ${index + 1}`
+  );
+  const result = wasmResultToRaceSimResult(wasm.runRaceSim(wasmParams));
 
   const elapsed = performance.now() - start;
   console.log(`Elapsed: ${elapsed.toFixed(1)}ms`);

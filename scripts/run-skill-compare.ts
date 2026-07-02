@@ -7,10 +7,12 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { Command } from 'commander';
 
+import { initCliData } from './lib/init-data';
 import { DebugConfigSchema } from './runner-config.schema';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import { coursesService } from '@/modules/data/services/CourseService';
-import { runSkillComparison } from '@/modules/simulation/parity-reference/skill-compare.reference';
+import { buildSkillSamplingPlan } from '@/modules/simulation/simulators/wasm-skill-compare-plan';
+import { runSamplingFromPlan } from '@/modules/simulation/simulators/wasm-skill-compare';
 import { racedefToParams } from '@/utils/races';
 
 export const defaultSimulationOptions = {
@@ -36,7 +38,9 @@ program
   .option('-s, --seed <seed>', 'Random seed', '0')
   .option('-c, --config <path>', 'Path to runner config JSON file')
   .option('-v, --verbose', 'Show detailed activation info', false)
-  .action((skillId, options) => {
+  .action(async (skillId, options) => {
+    initCliData();
+
     // Load and validate config
 
     const samples = Number.parseInt(options.samples);
@@ -82,24 +86,21 @@ program
 
     const testRunner: IRunnerState = runner;
 
-    // Create runner with skill
-    const runnerWithSkill: IRunnerState = {
-      ...testRunner,
-      skills: [...testRunner.skills, skillId]
-    };
-
     console.log('Running comparison...\n');
 
-    // Run comparison
-    const result = runSkillComparison({
-      trackedSkillId: skillId,
+    const plan = buildSkillSamplingPlan({
       nsamples: samples,
+      skills: [skillId],
       course,
       racedef: raceParams,
-      runnerA: testRunner,
-      runnerB: runnerWithSkill,
+      uma: testRunner,
       options: simOptions
     });
+    const response = await runSamplingFromPlan(plan);
+    const result = response[skillId];
+    if (!result) {
+      throw new Error(`WASM skill comparison produced no result for ${skillId}`);
+    }
 
     console.log('📊 Results:');
     console.log(`  Results array length: ${result.results.length}`);

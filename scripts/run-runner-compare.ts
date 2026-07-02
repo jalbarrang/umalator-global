@@ -11,12 +11,14 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { Command } from 'commander';
 
+import { initCliData } from './lib/init-data';
+import { ensureCliWasm } from './lib/wasm-init';
 import type { CreateRunner, RunnerAptitudes, StatLine } from '@/lib/uma-domain/runner/types';
 import type { DuelingRates, RaceParameters, SimulationSettings } from '@/lib/uma-domain/race/types';
-import type { CourseData } from '@/lib/uma-domain/course/definitions';
-import { Race } from 'sunday-tools/common/race';
 import { coursesService } from '@/modules/data/services/CourseService';
 import { parseAptitudeName, parseStrategyName } from '@/lib/uma-domain/runner/runner.types';
+import { compareParamsToWasm } from '@/lib/uma-sim-wasm/adapter-params';
+import { wasmCompareRoundDataToCollected } from '@/lib/uma-sim-wasm/adapter-results';
 
 type RunnerConfigInput = {
   outfitId: string;
@@ -124,31 +126,6 @@ function toRaceParameters(input: ConfigInput['raceConditions']): RaceParameters 
   };
 }
 
-function createInitializedRace(params: {
-  course: CourseData;
-  raceParameters: RaceParameters;
-  settings: SimulationSettings;
-  duelingRates: DuelingRates;
-  skillSamples: number;
-  runner: CreateRunner;
-}): Race {
-  const race = new Race({
-    course: params.course,
-    parameters: params.raceParameters,
-    settings: params.settings,
-    skillSamples: params.skillSamples,
-    duelingRates: params.duelingRates
-  });
-
-  // Current Race API still requires explicit bootstrap for parser/ids/sample fields.
-  race.onInitialize();
-  race.skillSamples = params.skillSamples;
-
-  race.addRunner(params.runner);
-  race.prepareRace().validateRaceSetup();
-  return race;
-}
-
 async function loadConfig(path: string): Promise<ConfigInput> {
   const resolved = resolve(path);
   try {
@@ -167,6 +144,8 @@ async function runRunnerCompare(options: {
   samples: number;
   seed: number;
 }): Promise<{ results: Array<SampleResult> }> {
+  initCliData();
+
   const configRunner1 = await loadConfig(CONFIG_RUNNER_1);
   const configRunner2 = await loadConfig(CONFIG_RUNNER_2);
 
@@ -202,49 +181,56 @@ async function runRunnerCompare(options: {
   const runnerBConfig = toCreateRunner(configRunner2.runner);
   const raceParameters = toRaceParameters(configRunner1.raceConditions);
 
+  const wasm = await ensureCliWasm();
+  const [dataA, dataB] = await Promise.all([
+    wasm.runCompare(
+      compareParamsToWasm({
+        course,
+        parameters: raceParameters,
+        settings: DEFAULT_SETTINGS,
+        duelingRates: DEFAULT_DUELING_RATES,
+        runner: runnerAConfig,
+        name: 'Runner A',
+        nsamples: options.samples,
+        masterSeed: options.seed
+      })
+    ),
+    wasm.runCompare(
+      compareParamsToWasm({
+        course,
+        parameters: raceParameters,
+        settings: DEFAULT_SETTINGS,
+        duelingRates: DEFAULT_DUELING_RATES,
+        runner: runnerBConfig,
+        name: 'Runner B',
+        nsamples: options.samples,
+        masterSeed: options.seed
+      })
+    )
+  ]);
+
   const results: Array<SampleResult> = [];
 
   for (let i = 0; i < options.samples; i++) {
-    const sampleSeed = options.seed + i;
+    const roundA = dataA.rounds[i]?.runners[0];
+    const roundB = dataB.rounds[i]?.runners[0];
+    if (!roundA || !roundB) {
+      throw new Error(`Missing WASM compare data for sample ${i}`);
+    }
 
-    const raceA = createInitializedRace({
-      course,
-      raceParameters,
-      settings: DEFAULT_SETTINGS,
-      duelingRates: DEFAULT_DUELING_RATES,
-      skillSamples: options.samples,
-      runner: runnerAConfig
-    });
-
-    const raceB = createInitializedRace({
-      course,
-      raceParameters,
-      settings: DEFAULT_SETTINGS,
-      duelingRates: DEFAULT_DUELING_RATES,
-      skillSamples: options.samples,
-      runner: runnerBConfig
-    });
-
-    raceA.prepareRound(sampleSeed);
-    raceB.prepareRound(sampleSeed);
-    raceA.run();
-    raceB.run();
-
-    const runnerA = Array.from(raceA.runners.values())[0];
-    const runnerB = Array.from(raceB.runners.values())[0];
-
-    const timeA = raceA.accumulatedTime;
-    const timeB = raceB.accumulatedTime;
-    const finalPosA = runnerA?.position ?? 0;
-    const finalPosB = runnerB?.position ?? 0;
-
+    const runnerA = wasmCompareRoundDataToCollected(roundA);
+    const runnerB = wasmCompareRoundDataToCollected(roundB);
+    const timeA = runnerA.time.at(-1) ?? 0;
+    const timeB = runnerB.time.at(-1) ?? 0;
+    const finalPosA = runnerA.position.at(-1) ?? 0;
+    const finalPosB = runnerB.position.at(-1) ?? 0;
     const timeDelta = timeB - timeA;
     const timeDiffAbs = Math.abs(timeDelta);
     const posDelta = finalPosA - finalPosB;
     const posDiffAbs = Math.abs(posDelta);
 
     results.push({
-      seed: sampleSeed,
+      seed: options.seed + i,
       timeA,
       timeB,
       timeDelta,
