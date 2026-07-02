@@ -1,7 +1,7 @@
 import { create } from 'zustand';
-import type { RaceEvent } from 'sunday-tools/race-sim/race-event-log';
-import type { RaceSimResult } from 'sunday-tools/race-sim/run-race-sim';
-import type { RaceSimCollectedRound } from 'sunday-tools/race-sim/race-sim-collector';
+import type { RaceEvent } from '@/lib/uma-domain/race/race-event-log';
+import type { RaceSimResult } from '@/lib/uma-domain/race/run-race-sim';
+import type { RaceSimCollectedRound } from '@/lib/uma-domain/race/race-sim-collector';
 import { TICKS_PER_SECOND, tickToDisplaySeconds } from '@/modules/race-sim/constants';
 import { formatTime } from '@/utils/time';
 

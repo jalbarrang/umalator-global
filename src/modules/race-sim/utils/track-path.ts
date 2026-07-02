@@ -3,7 +3,7 @@ import {
   type CourseData,
   type ICorner,
   type IOrientation
-} from 'sunday-tools/course/definitions';
+} from '@/lib/uma-domain/course/definitions';
 import { getCourseGeometry } from '@/modules/data/course-geometry';
 import { coursesService } from '@/modules/data/services/CourseService';
 

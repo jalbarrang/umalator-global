@@ -2,7 +2,7 @@ import React from 'react';
 import { SectionText } from '../primitives/section-text';
 import { DistanceMarker } from '../primitives/distance-marker';
 import { CourseService } from '@/modules/data/services/CourseService';
-import { CourseData } from 'sunday-tools/course/definitions';
+import { CourseData } from '@/lib/uma-domain/course/definitions';
 import { RaceTrackDimensions } from '../types';
 
 // Phase configuration

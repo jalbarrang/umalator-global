@@ -6,14 +6,14 @@
 // (data-free, worker-safe) live in `adapter-results.ts`.
 
 import { skillsService } from '@/modules/data/services/SkillService';
-import type { CourseData } from 'sunday-tools/course/definitions';
-import type { CreateRunner } from 'sunday-tools/common/runner';
-import type { RaceSimParams } from 'sunday-tools/race-sim/run-race-sim';
+import type { CourseData } from '@/lib/uma-domain/course/definitions';
+import type { CreateRunner } from '@/lib/uma-domain/runner/types';
+import type { RaceSimParams } from '@/lib/uma-domain/race/run-race-sim';
 import type {
   DuelingRates,
   RaceParameters as SundayRaceParameters,
   SimulationSettings
-} from 'sunday-tools/common/race';
+} from '@/lib/uma-domain/race/types';
 import type {
   WasmCompareParams,
   WasmCourseData,

@@ -1,6 +1,6 @@
 import { memo, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
-import type { CourseData } from 'sunday-tools/course/definitions';
+import type { CourseData } from '@/lib/uma-domain/course/definitions';
 import {
   getRunnerLanesAtTick,
   getRunnerPositionsAtTick,

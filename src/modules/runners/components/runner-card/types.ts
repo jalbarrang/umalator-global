@@ -1,5 +1,5 @@
-import type { IMood, IStrategyName } from 'sunday-tools/runner/definitions';
-import { Mood } from 'sunday-tools/runner/definitions';
+import type { IMood, IStrategyName } from '@/lib/uma-domain/runner/definitions';
+import { Mood } from '@/lib/uma-domain/runner/definitions';
 
 const defaultRunnerState: IRunnerState = {
   outfitId: '',

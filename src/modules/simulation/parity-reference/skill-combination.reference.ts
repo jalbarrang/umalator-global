@@ -5,9 +5,9 @@
  * (`optimization-engine.reference.ts`). See this directory's README and ADR-0004.
  * Production planner optimization runs on WASM (`skill-planner/optimization-engine-wasm.ts`).
  */
-import type { RaceParameters } from 'sunday-tools/common/race';
+import type { RaceParameters } from '@/lib/uma-domain/race/types';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
-import type { CourseData } from 'sunday-tools/course/definitions';
+import type { CourseData } from '@/lib/uma-domain/course/definitions';
 import type { SimulationOptions } from '@/modules/simulation/types';
 import { runPlannerComparison } from './planner-compare.reference';
 

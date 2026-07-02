@@ -12,9 +12,9 @@ import type {
   SkillTrackedMeta,
   SkillTrackedMetaCollection
 } from '@/modules/simulation/compare.types';
-import type { CollectedRunnerRoundData } from 'sunday-tools/common/race-observer';
+import type { CollectedRunnerRoundData } from '@/lib/uma-domain/race/race-observer';
 import { initializeSkillSimulationRun } from '@/modules/simulation/compare.types';
-import { SkillPerspective } from 'sunday-tools/skills/definitions';
+import { SkillPerspective } from '@/lib/uma-domain/skills/definitions';
 import { wasmCompareRoundDataToCollected } from '@/lib/uma-sim-wasm/adapter-results';
 import { runCompare } from '@/lib/uma-sim-wasm/loader';
 import type { WasmCompareData, WasmCompareParams } from '@/lib/uma-sim-wasm/types';

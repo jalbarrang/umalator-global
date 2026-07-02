@@ -13,8 +13,8 @@ import {
   recoveryColors,
   rushedColors
 } from '@/utils/colors';
-import { SkillType } from 'sunday-tools/skills/definitions';
-import { isExternalDebuffEffect } from 'sunday-tools/skills/external-debuffs';
+import { SkillType } from '@/lib/uma-domain/skills/definitions';
+import { isExternalDebuffEffect } from '@/lib/uma-domain/skills/external-debuffs';
 import { coursesService } from '@/modules/data/services/CourseService';
 import { useDebuffs } from '@/modules/simulation/stores/compare.store';
 import { useScenarioOverrides } from '@/modules/simulation/stores/scenario-overrides.store';

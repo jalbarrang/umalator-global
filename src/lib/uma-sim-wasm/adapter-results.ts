@@ -4,11 +4,11 @@
 // it separate from `adapter-params.ts` is what lets worker bundles stay free of
 // the inlined datasets.
 
-import type { RaceSimResult, FinishEntry } from 'sunday-tools/race-sim/run-race-sim';
-import type { RaceEvent, RaceEventKind } from 'sunday-tools/race-sim/race-event-log';
-import type { IStrategy } from 'sunday-tools/runner/definitions';
-import type { CollectedRunnerRoundData } from 'sunday-tools/common/race-observer';
-import type { ISkillPerspective, ISkillTarget, ISkillType } from 'sunday-tools/skills/definitions';
+import type { RaceSimResult, FinishEntry } from '@/lib/uma-domain/race/run-race-sim';
+import type { RaceEvent, RaceEventKind } from '@/lib/uma-domain/race/race-event-log';
+import type { IStrategy } from '@/lib/uma-domain/runner/definitions';
+import type { CollectedRunnerRoundData } from '@/lib/uma-domain/race/race-observer';
+import type { ISkillPerspective, ISkillTarget, ISkillType } from '@/lib/uma-domain/skills/definitions';
 import type { SkillEffectLog } from '@/modules/simulation/compare.types';
 import type { WasmCompareRoundData, WasmRaceSimResult, WasmSkillEffectLog } from './types';
 

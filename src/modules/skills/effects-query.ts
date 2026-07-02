@@ -1,5 +1,5 @@
 import type { SkillActivationMap, SkillEffectLog } from '@/modules/simulation/compare.types';
-import { SkillPerspective, SkillTarget, SkillType } from 'sunday-tools/skills/definitions';
+import { SkillPerspective, SkillTarget, SkillType } from '@/lib/uma-domain/skills/definitions';
 
 export class EffectQuery {
   private activations: SkillActivationMap;

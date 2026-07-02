@@ -11,12 +11,12 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { Command } from 'commander';
 
-import type { CreateRunner, RunnerAptitudes, StatLine } from 'sunday-tools/common/runner';
-import type { DuelingRates, RaceParameters, SimulationSettings } from 'sunday-tools/common/race';
-import type { CourseData } from 'sunday-tools/course/definitions';
+import type { CreateRunner, RunnerAptitudes, StatLine } from '@/lib/uma-domain/runner/types';
+import type { DuelingRates, RaceParameters, SimulationSettings } from '@/lib/uma-domain/race/types';
+import type { CourseData } from '@/lib/uma-domain/course/definitions';
 import { Race } from 'sunday-tools/common/race';
 import { coursesService } from '@/modules/data/services/CourseService';
-import { parseAptitudeName, parseStrategyName } from 'sunday-tools/runner/runner.types';
+import { parseAptitudeName, parseStrategyName } from '@/lib/uma-domain/runner/runner.types';
 
 type RunnerConfigInput = {
   outfitId: string;

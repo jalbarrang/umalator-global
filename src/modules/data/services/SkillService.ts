@@ -1,9 +1,9 @@
-import { ISkillType } from 'sunday-tools/skills/definitions';
-import type { SkillAlternative } from 'sunday-tools/skills/skill.types';
+import { ISkillType } from '@/lib/uma-domain/skills/definitions';
+import type { SkillAlternative } from '@/lib/uma-domain/skills/skill.types';
 import {
   areAlternativesSimulatable,
   findUnknownConditionTokens
-} from 'sunday-tools/skills/simulatability';
+} from '@/lib/uma-domain/skills/simulatability';
 import type { SkillMatch } from '@/modules/runners/data/types';
 import { SkillFilterer, type SkillFiltererConfig } from './SkillFilterer';
 import type { LoadSkillsResult } from '@/modules/data/loaders/skill-loader';

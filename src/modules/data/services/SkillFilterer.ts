@@ -1,12 +1,12 @@
-import type { CourseData } from 'sunday-tools/course/definitions';
-import type { RaceParameters } from 'sunday-tools/common/race';
-import type { SkillEvalRunner } from 'sunday-tools/skills/parser/definitions';
+import type { CourseData } from '@/lib/uma-domain/course/definitions';
+import type { RaceParameters } from '@/lib/uma-domain/race/types';
+import type { SkillEvalRunner } from '@/lib/uma-domain/skills/parser/definitions';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
-import { buildBaseStats } from 'sunday-tools/common/runner';
-import { buildSkillData } from 'sunday-tools/runner/runner.utils';
-import { parseStrategyName } from 'sunday-tools/runner/runner.types';
-import { createParser } from 'sunday-tools/skills/parser/ConditionParser';
-import { Region, RegionList } from 'sunday-tools/shared/region';
+import { buildBaseStats } from '@/lib/uma-domain/runner/types';
+import { buildSkillData } from '@/lib/uma-domain/runner/runner.utils';
+import { parseStrategyName } from '@/lib/uma-domain/runner/runner.types';
+import { createParser } from '@/lib/uma-domain/skills/parser/ConditionParser';
+import { Region, RegionList } from '@/lib/uma-domain/shared/region';
 import type { SkillService } from './SkillService';
 
 // =======

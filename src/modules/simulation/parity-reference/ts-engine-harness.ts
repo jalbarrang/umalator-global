@@ -11,9 +11,9 @@ import type {
   RaceLifecycleObserver,
   SimulationSettings,
   RaceParameters as SundayRaceParameters
-} from 'sunday-tools/common/race';
-import type { CourseData } from 'sunday-tools/course/definitions';
-import type { CreateRunner } from 'sunday-tools/common/runner';
+} from '@/lib/uma-domain/race/types';
+import type { CourseData } from '@/lib/uma-domain/course/definitions';
+import type { CreateRunner } from '@/lib/uma-domain/runner/types';
 import { Race } from 'sunday-tools/common/race';
 import { subscribeObserver } from 'sunday-tools/common/race-events';
 

@@ -19,15 +19,15 @@
  */
 import { createRequire } from 'node:module';
 import { describe, expect, it } from 'vitest';
-import { knownConditionTokens as tsKnownConditionTokens } from 'sunday-tools/skills/parser/conditions/conditions';
-import { extractConditionTokens } from 'sunday-tools/skills/simulatability';
+import { knownConditionTokens as tsKnownConditionTokens } from '@/lib/uma-domain/skills/parser/conditions/conditions';
+import { extractConditionTokens } from '@/lib/uma-domain/skills/simulatability';
 import { skillsService } from '@/modules/data/services/SkillService';
 import { coursesService } from '@/modules/data/services/CourseService';
 import { getDefaultCourseId } from '@/store/race/defaults';
 import { createRaceConditions, racedefToParams } from '@/utils/races';
 import { createRunnerState, runawaySkillId } from '@/modules/runners/components/runner-card/types';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
-import type { IStrategyName } from 'sunday-tools/runner/definitions';
+import type { IStrategyName } from '@/lib/uma-domain/runner/definitions';
 import { defaultSimulationOptions } from '@/components/bassin-chart/utils';
 import { createPlannerCompareSettings } from '@/modules/simulation/simulators/skill-planner-compare';
 import { runPlannerComparison } from '@/modules/simulation/parity-reference/planner-compare.reference';

@@ -1,5 +1,5 @@
-import { OrientationName } from 'sunday-tools/course/definitions';
-import type { IOrientation } from 'sunday-tools/course/definitions';
+import { OrientationName } from '@/lib/uma-domain/course/definitions';
+import type { IOrientation } from '@/lib/uma-domain/course/definitions';
 import type { BuiltTrackPath } from '@/modules/race-sim/utils/track-path';
 import { outwardFromTrackPoint } from '@/modules/race-sim/utils/track-path';
 import { buildVisibleTrackPoints, computeBounds, createCanvasTransform } from './canvasMath';

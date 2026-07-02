@@ -9,8 +9,8 @@
  */
 import type { CandidateSkill, OptimizationProgress } from './types';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
-import type { CourseData } from 'sunday-tools/course/definitions';
-import type { RaceParameters } from 'sunday-tools/common/race';
+import type { CourseData } from '@/lib/uma-domain/course/definitions';
+import type { RaceParameters } from '@/lib/uma-domain/race/types';
 import type { SimulationOptions } from '@/modules/simulation/types';
 
 export interface OptimizationParams {

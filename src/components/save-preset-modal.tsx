@@ -2,7 +2,7 @@ import dayjs from 'dayjs';
 import { BookmarkPlus, CalendarIcon } from 'lucide-react';
 import { useReducer } from 'react';
 import { toast } from 'sonner';
-import type { IEventType } from 'sunday-tools/course/definitions';
+import type { IEventType } from '@/lib/uma-domain/course/definitions';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -28,7 +28,7 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { addPreset, updatePreset, usePresetStore } from '@/store/race/preset.store';
 import { setSelectedPresetId, useSettingsStore } from '@/store/settings.store';
-import { EventType } from 'sunday-tools/course/definitions';
+import { EventType } from '@/lib/uma-domain/course/definitions';
 import type { RacePreset } from '@/utils/races';
 
 type SaveMode = 'edit' | 'new';

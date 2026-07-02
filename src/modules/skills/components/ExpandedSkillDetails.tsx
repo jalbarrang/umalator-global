@@ -1,8 +1,8 @@
 import type { SkillEntry } from '@/modules/data/services/SkillService';
-import type { SkillAlternative } from 'sunday-tools/skills/skill.types';
+import type { SkillAlternative } from '@/lib/uma-domain/skills/skill.types';
 import { FormatParser, formatEffect } from '@/modules/skills/components/formatters';
 import { HumanReadableParser } from '@/modules/skills/components/human-readable-formatter';
-import { describeRecoveryEffect } from 'sunday-tools/skills/recovery-effect-utils';
+import { describeRecoveryEffect } from '@/lib/uma-domain/skills/recovery-effect-utils';
 import { cn } from '@/lib/utils';
 import i18n from '@/i18n';
 import { Code } from 'lucide-react';

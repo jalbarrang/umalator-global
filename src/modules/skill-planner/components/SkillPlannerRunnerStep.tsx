@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { PlusIcon, UploadIcon } from 'lucide-react';
-import { strategyNames } from 'sunday-tools/runner/definitions';
+import { strategyNames } from '@/lib/uma-domain/runner/definitions';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
 import { OcrImportDialog } from '@/modules/runners/components/ocr-import-dialog';

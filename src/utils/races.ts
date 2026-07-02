@@ -1,4 +1,4 @@
-import type { RaceParameters } from 'sunday-tools/common/race';
+import type { RaceParameters } from '@/lib/uma-domain/race/types';
 import type {
   IEventType,
   IGrade,
@@ -6,16 +6,16 @@ import type {
   ISeason,
   ITimeOfDay,
   IWeather
-} from 'sunday-tools/course/definitions';
-import type { IMood } from 'sunday-tools/runner/definitions';
-import { Mood } from 'sunday-tools/runner/definitions';
+} from '@/lib/uma-domain/course/definitions';
+import type { IMood } from '@/lib/uma-domain/runner/definitions';
+import { Mood } from '@/lib/uma-domain/runner/definitions';
 import {
   Grade,
   GroundCondition,
   Season,
   TimeOfDay,
   Weather
-} from 'sunday-tools/course/definitions';
+} from '@/lib/uma-domain/course/definitions';
 
 export type PosKeepLabel = {
   umaIndex: number;

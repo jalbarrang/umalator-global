@@ -1,11 +1,11 @@
-import { distances, orientations, phases, surfaces } from 'sunday-tools/course/definitions';
+import { distances, orientations, phases, surfaces } from '@/lib/uma-domain/course/definitions';
 import type {
   CourseData,
   IDistanceType,
   IOrientation,
   IPhase,
   ISurface
-} from 'sunday-tools/course/definitions';
+} from '@/lib/uma-domain/course/definitions';
 
 // =======
 // Types

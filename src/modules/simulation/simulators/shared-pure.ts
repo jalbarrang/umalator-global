@@ -5,19 +5,19 @@
 // `shared.ts`, which must stay main-thread-only.
 
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
-import type { CreateRunner } from 'sunday-tools/common/runner';
+import type { CreateRunner } from '@/lib/uma-domain/runner/types';
 import type {
   DuelingRates,
   SimulationSettings,
   RaceParameters as SundayRaceParameters
-} from 'sunday-tools/common/race';
-import type { ISkillTarget, ISkillType } from 'sunday-tools/skills/definitions';
+} from '@/lib/uma-domain/race/types';
+import type { ISkillTarget, ISkillType } from '@/lib/uma-domain/skills/definitions';
 import type {
   InjectedDebuff,
   RunComparisonParams,
   ScenarioOverrides
 } from '@/modules/simulation/types';
-import { parseAptitudeName, parseStrategyName } from 'sunday-tools/runner/runner.types';
+import { parseAptitudeName, parseStrategyName } from '@/lib/uma-domain/runner/runner.types';
 
 export type EffectMeta = {
   effectType: ISkillType;

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { Mood } from 'sunday-tools/runner/definitions';
+import { Mood } from '@/lib/uma-domain/runner/definitions';
 import { createRunnerState } from '@/modules/runners/components/runner-card/types';
 import { createRaceConditions } from '@/utils/races';
 import { useSettingsStore } from '@/store/settings.store';

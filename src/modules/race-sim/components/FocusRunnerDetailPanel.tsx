@@ -12,7 +12,7 @@ import { getSkillNameById } from '@/modules/skills/utils';
 import { getUmaDisplayInfo } from '@/modules/runners/utils';
 import { cn } from '@/lib/utils';
 import { useRaceSimStore } from '@/modules/simulation/stores/race-sim.store';
-import type { CollectedRunnerRoundData } from 'sunday-tools/common/race-observer';
+import type { CollectedRunnerRoundData } from '@/lib/uma-domain/race/race-observer';
 
 type FocusRunnerDetailPanelProps = {
   runnerIndex: number;

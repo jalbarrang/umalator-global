@@ -3,7 +3,7 @@ import { useForcedPositionMap } from '@/modules/simulation/stores/forced-positio
 import { useRaceTrackDisplay } from '@/store/settings.store';
 import { DragStartHandler, RegionDisplayType } from '../types';
 import { RaceTrackDimensions } from '../types';
-import type { CourseData } from 'sunday-tools/course/definitions';
+import type { CourseData } from '@/lib/uma-domain/course/definitions';
 import { RegionData } from '../hooks/useVisualizationData';
 import { useDragPreviewForUma } from '../hooks/useDragSkill';
 

@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 
 import { ChevronsUpDown, Zap } from 'lucide-react';
-import type { ISkillTarget, ISkillType } from 'sunday-tools/skills/definitions';
+import type { ISkillTarget, ISkillType } from '@/lib/uma-domain/skills/definitions';
 import { useRaceStore } from '@/modules/simulation/stores/compare.store';
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -17,7 +17,7 @@ import {
   SkillType,
   translateSkillEffectTarget,
   translateSkillEffectType
-} from 'sunday-tools/skills/definitions';
+} from '@/lib/uma-domain/skills/definitions';
 
 /**
  * Returns skill activates grouped by skill id

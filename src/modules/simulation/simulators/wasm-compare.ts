@@ -11,7 +11,7 @@ import type {
   StaminaStats,
   Stats
 } from '@/modules/simulation/compare.types';
-import type { CollectedRunnerRoundData } from 'sunday-tools/common/race-observer';
+import type { CollectedRunnerRoundData } from '@/lib/uma-domain/race/race-observer';
 import type { WasmCompareParams } from '@/lib/uma-sim-wasm/types';
 import { initializeSimulationRun } from '@/modules/simulation/compare.types';
 import { wasmCompareRoundDataToCollected } from '@/lib/uma-sim-wasm/adapter-results';

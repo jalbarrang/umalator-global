@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { ArrowUpDown } from 'lucide-react';
 import { useShallow } from 'zustand/shallow';
-import { StrategyName, type IStrategyName } from 'sunday-tools/runner/definitions';
+import { StrategyName, type IStrategyName } from '@/lib/uma-domain/runner/definitions';
 import {
   Table,
   TableBody,

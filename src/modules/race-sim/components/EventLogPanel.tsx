@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button-group';
 import { cn } from '@/lib/utils';
-import type { RaceEvent, RaceEventKind } from 'sunday-tools/race-sim/race-event-log';
+import type { RaceEvent, RaceEventKind } from '@/lib/uma-domain/race/race-event-log';
 import { simToDisplaySeconds, tickToDisplaySeconds } from '@/modules/race-sim/constants';
 import { usePlaybackStore } from '@/modules/race-sim/stores/playback.store';
 import { skillsService } from '@/modules/data/services/SkillService';

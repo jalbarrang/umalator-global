@@ -1,4 +1,4 @@
-import { Strategy, StrategyName } from 'sunday-tools/runner/definitions';
+import { Strategy, StrategyName } from '@/lib/uma-domain/runner/definitions';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import { aptitudeToEncoding } from '@/modules/runners/share/converters';
 import { bucketsFromRunner } from '@/modules/runners/aptitude-buckets';

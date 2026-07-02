@@ -1,5 +1,5 @@
 import '../polyfills';
-import type { RaceSimParams, RaceSimResult } from 'sunday-tools/race-sim/run-race-sim';
+import type { RaceSimParams, RaceSimResult } from '@/lib/uma-domain/race/run-race-sim';
 import type { WasmRaceSimParams } from '@/lib/uma-sim-wasm/types';
 import { initUmaSimWasm, runRaceSim } from '@/lib/uma-sim-wasm/loader';
 import { wasmResultToRaceSimResult } from '@/lib/uma-sim-wasm/adapter-results';

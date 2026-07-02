@@ -2,7 +2,7 @@ import { AptitudeSelect } from '../AptitudeSelect';
 import { MoodSelect } from '../MoodSelect';
 import { StrategySelect } from '../StrategySelect';
 import type { IRunnerState } from './types';
-import type { IMood } from 'sunday-tools/runner/definitions';
+import type { IMood } from '@/lib/uma-domain/runner/definitions';
 import { Label } from '@/components/ui/label';
 
 export type Aptitude =

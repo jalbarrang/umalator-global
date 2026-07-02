@@ -1,5 +1,5 @@
 import type { UmaAltId } from '@/modules/runners/utils';
-import { SkillRarity } from 'sunday-tools/skills/definitions';
+import { SkillRarity } from '@/lib/uma-domain/skills/definitions';
 import { skillsService } from '@/modules/data/services/SkillService';
 
 // Methods

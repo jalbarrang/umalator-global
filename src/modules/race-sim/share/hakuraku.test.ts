@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { Mood, Strategy, StrategyName } from 'sunday-tools/runner/definitions';
-import { GroundCondition, Season, Weather } from 'sunday-tools/course/definitions';
+import { Mood, Strategy, StrategyName } from '@/lib/uma-domain/runner/definitions';
+import { GroundCondition, Season, Weather } from '@/lib/uma-domain/course/definitions';
 import { parseHakurakuRaceJson } from './hakuraku';
 
 const horse = (overrides: Record<string, unknown> = {}) => ({

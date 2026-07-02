@@ -6,7 +6,7 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { getIconUrl } from '@/assets/icons';
-import { Aptitude, AptitudeName } from 'sunday-tools/runner/definitions';
+import { Aptitude, AptitudeName } from '@/lib/uma-domain/runner/definitions';
 
 import { cn } from '@/lib/utils';
 

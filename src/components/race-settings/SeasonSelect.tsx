@@ -1,4 +1,4 @@
-import type { ISeason } from 'sunday-tools/course/definitions';
+import type { ISeason } from '@/lib/uma-domain/course/definitions';
 import strings_en from '@/i18n/lang/en/skills';
 import { setRaceParams, useSettingsStore } from '@/store/settings.store';
 import { getIconUrl } from '@/assets/icons';

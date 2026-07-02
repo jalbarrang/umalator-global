@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { GroundConditionName, SeasonName, WeatherName } from 'sunday-tools/course/definitions';
+import { GroundConditionName, SeasonName, WeatherName } from '@/lib/uma-domain/course/definitions';
 import type { RaceConditions } from '@/utils/races';
 import { getUmaDisplayInfo } from '@/modules/runners/utils';
 import { trackDescription } from '@/modules/racetrack/labels';

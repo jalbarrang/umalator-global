@@ -47,7 +47,7 @@
  */
 
 import { skillsService } from '@/modules/data/services/SkillService';
-import { SkillTarget } from 'sunday-tools/skills/definitions';
+import { SkillTarget } from '@/lib/uma-domain/skills/definitions';
 import type { SkillEntry } from '@/modules/data/services/SkillService';
 
 // ============================================================================

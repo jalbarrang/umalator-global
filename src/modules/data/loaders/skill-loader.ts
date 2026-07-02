@@ -4,7 +4,7 @@ import type {
   SkillReferenceEntry,
   SkillsMap
 } from '@/modules/data/services/SkillService';
-import type { SkillAlternative } from 'sunday-tools/skills/skill.types';
+import type { SkillAlternative } from '@/lib/uma-domain/skills/skill.types';
 
 type GameToraEffect = {
   type: number;

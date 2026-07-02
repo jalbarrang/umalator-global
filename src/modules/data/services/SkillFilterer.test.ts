@@ -3,7 +3,7 @@ import { createRunnerState } from '@/modules/runners/components/runner-card/type
 import { coursesService } from '@/modules/data/services/CourseService';
 import { skillsService } from '@/modules/data/services/SkillService';
 import { createRaceConditions, racedefToParams } from '@/utils/races';
-import * as runnerUtils from 'sunday-tools/runner/runner.utils';
+import * as runnerUtils from '@/lib/uma-domain/runner/runner.utils';
 
 const TEST_COURSE_ID = 10101;
 // Tight Turns ◎ — its only condition is is_tight_track==1, which the engine does

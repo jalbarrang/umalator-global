@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import type { RaceSimResult } from 'sunday-tools/race-sim/run-race-sim';
-import { Mood } from 'sunday-tools/runner/definitions';
+import type { RaceSimResult } from '@/lib/uma-domain/race/run-race-sim';
+import { Mood } from '@/lib/uma-domain/runner/definitions';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import { generateSeed } from '@/utils/crypto';
 

@@ -1,5 +1,5 @@
-import { Mood, Strategy, StrategyName } from 'sunday-tools/runner/definitions';
-import type { IMood, IStrategyName } from 'sunday-tools/runner/definitions';
+import { Mood, Strategy, StrategyName } from '@/lib/uma-domain/runner/definitions';
+import type { IMood, IStrategyName } from '@/lib/uma-domain/runner/definitions';
 import { createRunnerState } from '@/modules/runners/components/runner-card/types';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import { singleExportToRunnerState } from '@/modules/runners/share/converters';

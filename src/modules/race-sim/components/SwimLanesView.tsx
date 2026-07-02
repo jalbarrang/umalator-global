@@ -1,7 +1,7 @@
 import { memo, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { CourseService } from '@/modules/data/services/CourseService';
-import type { CourseData } from 'sunday-tools/course/definitions';
+import type { CourseData } from '@/lib/uma-domain/course/definitions';
 import { PHASE_STYLES, RUNNER_COLORS } from '@/modules/race-sim/constants';
 import {
   getRunnerPositionsAtTick,

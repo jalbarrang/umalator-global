@@ -1,6 +1,6 @@
-import type { Operator } from 'sunday-tools/skills/parser/definitions';
-import { createParser } from 'sunday-tools/skills/parser/ConditionParser';
-import { mockConditions } from 'sunday-tools/skills/parser/ConditionMatcher';
+import type { Operator } from '@/lib/uma-domain/skills/parser/definitions';
+import { createParser } from '@/lib/uma-domain/skills/parser/ConditionParser';
+import { mockConditions } from '@/lib/uma-domain/skills/parser/ConditionMatcher';
 import type { SkillService } from '@/modules/data/services/SkillService';
 
 let parser: ReturnType<typeof createParser> | null = null;

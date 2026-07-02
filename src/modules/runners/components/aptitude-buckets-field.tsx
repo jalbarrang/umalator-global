@@ -4,7 +4,7 @@ import { StrategySelect } from './StrategySelect';
 import { MoodSelect } from './MoodSelect';
 import { BucketAptitudesEditor } from './BucketAptitudesEditor';
 import type { IRunnerState } from './runner-card/types';
-import type { IMood } from 'sunday-tools/runner/definitions';
+import type { IMood } from '@/lib/uma-domain/runner/definitions';
 import {
   bucketsFromRunner,
   collapsedFromBuckets,

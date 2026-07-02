@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import type { KeyboardEvent } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
-import { strategyNames } from 'sunday-tools/runner/definitions';
+import { strategyNames } from '@/lib/uma-domain/runner/definitions';
 import { getIconUrl } from '@/assets/icons';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
 import { getUmaDisplayInfo, getUmaImageUrl } from '@/modules/runners/utils';

@@ -1,7 +1,7 @@
 import { SeasonIcon } from '@/components/race-settings/SeasonSelect';
 import { WeatherIcon } from '@/components/race-settings/WeatherSelect';
 import i18n from '@/i18n';
-import { CourseData, Surface } from 'sunday-tools/course/definitions';
+import { CourseData, Surface } from '@/lib/uma-domain/course/definitions';
 import { RaceConditions } from '@/utils/races';
 import { ExternalLinkIcon } from 'lucide-react';
 import React, { useMemo } from 'react';

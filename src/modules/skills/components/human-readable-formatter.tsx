@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import i18n from '@/i18n';
-import { createTypedParser } from 'sunday-tools/skills/parser/ConditionParser';
+import { createTypedParser } from '@/lib/uma-domain/skills/parser/ConditionParser';
 import rawConditionTranslations from './condition-translations.json';
 
 type OperatorKey = 'eq' | 'neq' | 'lt' | 'lte' | 'gt' | 'gte';

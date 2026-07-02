@@ -4,8 +4,8 @@
 // helpers from `shared-pure.ts` directly. Pure helpers are re-exported here so
 // existing main-side callers keep their `from './shared'` imports working.
 
-import { SkillTarget, SkillType } from 'sunday-tools/skills/definitions';
-import type { ISkillTarget, ISkillType } from 'sunday-tools/skills/definitions';
+import { SkillTarget, SkillType } from '@/lib/uma-domain/skills/definitions';
+import type { ISkillTarget, ISkillType } from '@/lib/uma-domain/skills/definitions';
 import { skillsService } from '@/modules/data/services/SkillService';
 import { normalizeSkillId, createSkillSorterByGroupWith, type EffectMeta } from './shared-pure';
 

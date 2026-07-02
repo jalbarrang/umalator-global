@@ -3,7 +3,7 @@ import { initReactI18next } from 'react-i18next';
 import skills_en from './lang/en/skills';
 
 import { TRACKNAMES_en } from './lang/tracknames';
-import { GroundCondition } from 'sunday-tools/course/definitions';
+import { GroundCondition } from '@/lib/uma-domain/course/definitions';
 
 const definitions = {
   en: {

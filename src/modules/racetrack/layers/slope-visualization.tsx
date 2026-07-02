@@ -1,4 +1,4 @@
-import { CourseData } from 'sunday-tools/course/definitions';
+import { CourseData } from '@/lib/uma-domain/course/definitions';
 import React, { useMemo } from 'react';
 import { RaceTrackDimensions, slopeValueToPercentage } from '../types';
 
