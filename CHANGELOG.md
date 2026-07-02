@@ -1,3 +1,13 @@
+## [0.23.0](https://github.com/jalbarrang/torena-sim/compare/v0.22.0...v0.23.0) (2026-07-02)
+
+### Features
+
+* **theme:** follow system theme via prefers-color-scheme ([61f5185](https://github.com/jalbarrang/torena-sim/commit/61f51858beea6f99fec94c3a52d8e711a9c30feb))
+
+### Bug Fixes
+
+* **runners:** game-accurate Runaway skill/style coupling ([b0bcc22](https://github.com/jalbarrang/torena-sim/commit/b0bcc22f87a7eedce4272f571714cc4db4293dc3))
+
 ## [0.22.0](https://github.com/jalbarrang/torena-sim/compare/v0.21.0...v0.22.0) (2026-07-02)
 
 ### Features
