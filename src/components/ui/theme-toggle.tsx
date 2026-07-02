@@ -1,5 +1,5 @@
 import React from 'react';
-import { SunIcon, MoonIcon } from 'lucide-react';
+import { SunIcon, MoonIcon, MonitorIcon } from 'lucide-react';
 import { useThemeStore } from '@/providers/theme/context';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -9,18 +9,7 @@ interface ThemeToggleProps {
 }
 
 export const ThemeToggle: React.FC<ThemeToggleProps> = ({ className }) => {
-  const { theme, setTheme } = useThemeStore((state) => state);
-
-  const handleToggle = () => {
-    switch (theme) {
-      case 'light':
-        setTheme('dark');
-        break;
-      case 'dark':
-        setTheme('light');
-        break;
-    }
-  };
+  const { theme, toggleTheme } = useThemeStore((state) => state);
 
   const getIcon = () => {
     switch (theme) {
@@ -28,6 +17,8 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({ className }) => {
         return <SunIcon className="size-4" />;
       case 'dark':
         return <MoonIcon className="size-4" />;
+      case 'system':
+        return <MonitorIcon className="size-4" />;
     }
   };
 
@@ -37,13 +28,15 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({ className }) => {
         return 'Switch to dark mode';
       case 'dark':
         return 'Switch to system theme';
+      case 'system':
+        return 'Switch to light mode';
     }
   };
 
   return (
     <Button
       variant="outline"
-      onClick={handleToggle}
+      onClick={toggleTheme}
       aria-label={getLabel()}
       title={getLabel()}
       className={cn('flex size-9 items-center justify-center', className)}

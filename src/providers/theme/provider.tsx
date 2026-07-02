@@ -10,8 +10,17 @@ export const ThemeStoreProvider = ({ children }: ThemeStoreProviderProps) => {
   const [store] = useState(() => createThemeStore());
 
   useEffect(() => {
-    const { theme } = store.getState();
-    applyTheme(theme);
+    applyTheme(store.getState().theme);
+
+    const mql = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleSystemChange = () => {
+      if (store.getState().theme === 'system') {
+        applyTheme('system');
+      }
+    };
+
+    mql.addEventListener('change', handleSystemChange);
+    return () => mql.removeEventListener('change', handleSystemChange);
   }, [store]);
 
   return <ThemeStoreContext.Provider value={store}>{children}</ThemeStoreContext.Provider>;

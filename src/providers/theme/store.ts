@@ -1,8 +1,7 @@
-// import { useEffect } from 'react';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { create } from 'zustand';
 
-type Theme = 'light' | 'dark';
+export type Theme = 'light' | 'dark' | 'system';
 
 export type ThemeState = {
   theme: Theme;
@@ -13,16 +12,28 @@ export type ThemeStore = ThemeState & {
   toggleTheme: () => void;
 };
 
-export const applyTheme = (resolvedTheme: 'light' | 'dark') => {
+export const resolveTheme = (theme: Theme): 'light' | 'dark' => {
+  if (theme !== 'system') return theme;
+  if (typeof window === 'undefined') return 'dark';
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+};
+
+export const applyTheme = (theme: Theme) => {
   if (typeof window === 'undefined') return;
 
   const root = window.document.documentElement;
   root.classList.remove('light', 'dark');
-  root.classList.add(resolvedTheme);
+  root.classList.add(resolveTheme(theme));
 };
 
 const defaultThemeState: ThemeState = {
-  theme: 'dark'
+  theme: 'system'
+};
+
+const themeCycle: Record<Theme, Theme> = {
+  light: 'dark',
+  dark: 'system',
+  system: 'light'
 };
 
 export const createThemeStore = (initState: ThemeState = defaultThemeState) => {
@@ -37,8 +48,7 @@ export const createThemeStore = (initState: ThemeState = defaultThemeState) => {
           },
           toggleTheme: () => {
             const { theme, setTheme } = get();
-            const newTheme = theme === 'dark' ? 'light' : 'dark';
-            setTheme(newTheme);
+            setTheme(themeCycle[theme]);
           }
         };
       },
