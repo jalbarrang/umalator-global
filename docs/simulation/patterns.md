@@ -92,7 +92,7 @@ Use this family for optimization workflows where the baseline runner is only a f
 ## Shared Infrastructure
 
 - `src/modules/simulation/simulators/shared.ts`: race setup adapters and comparison helpers.
-- `src/lib/sunday-tools/common/race-observer.ts`: data collectors used by compare simulators.
+- `src/lib/uma-domain/race/race-observer.ts`: run snapshot types consumed by compare simulators; Rust/WASM collectors produce the source telemetry.
 - `src/modules/simulation/compare.types.ts`: run snapshot and skill activation types.
 
 ## Conventions

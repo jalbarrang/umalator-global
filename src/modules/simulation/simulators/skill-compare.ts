@@ -2,9 +2,7 @@
  * # Skill Comparison — shared settings + result shape
  *
  * Pure, engine-agnostic settings builder and result type for skill comparison.
- * Consumed by the live WASM path (`wasm-skill-compare.ts`). The TS-engine oracle
- * that produces these results lives in
- * `../parity-reference/skill-compare.reference.ts` (test-only; see ADR-0004).
+ * Consumed by the live WASM path (`wasm-skill-compare.ts`).
  */
 import type { RunComparisonParams } from '@/modules/simulation/types';
 import type {

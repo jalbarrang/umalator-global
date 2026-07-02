@@ -3,8 +3,6 @@
  *
  * Pure, engine-agnostic settings builder and result types for the planner's
  * paired comparison. Consumed by the live WASM path (`wasm-skill-planner.ts`).
- * The TS-engine oracle that produces these results lives in
- * `../parity-reference/planner-compare.reference.ts` (test-only; see ADR-0004).
  */
 import type { RunComparisonParams } from '@/modules/simulation/types';
 import type { SkillTrackedMetaCollection } from '@/modules/simulation/compare.types';

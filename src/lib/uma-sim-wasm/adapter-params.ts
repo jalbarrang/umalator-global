@@ -1,4 +1,4 @@
-// Param-side conversions: sunday-tools domain shapes -> WASM boundary input
+// Param-side conversions: uma-domain shapes -> WASM boundary input
 // DTOs. This is the ONLY half of the adapter that reads skill data, so it must
 // stay main-thread-only (imported from hooks / pool-manager, never from a
 // `src/workers/**` module). Keeping it out of worker graphs is what prevents the
@@ -83,7 +83,7 @@ export function resolveSkillInput(skillId: string): WasmSkillInput | null {
   };
 }
 
-/** Map a sunday-tools `RaceParameters` to the WASM DTO (numeric 1:1). */
+/** Map a uma-domain `RaceParameters` to the WASM DTO (numeric 1:1). */
 export function raceParametersToWasm(parameters: RaceSimParams['parameters']): WasmRaceParameters {
   return {
     ground: parameters.ground,
@@ -94,7 +94,7 @@ export function raceParametersToWasm(parameters: RaceSimParams['parameters']): W
   };
 }
 
-/** Convert a sunday-tools `CreateRunner` (skill ids) to the WASM DTO. */
+/** Convert a uma-domain `CreateRunner` (skill ids) to the WASM DTO. */
 export function sundayRunnerToWasm(runner: CreateRunner, name: string): WasmCreateRunner {
   const skills: WasmSkillInput[] = [];
   for (const skillId of runner.skills) {
@@ -128,7 +128,7 @@ export function sundayRunnerToWasm(runner: CreateRunner, name: string): WasmCrea
   };
 }
 
-/** Map a sunday-tools `SimulationSettings` to the compare WASM settings DTO. */
+/** Map a uma-domain `SimulationSettings` to the compare WASM settings DTO. */
 export function compareSettingsToWasm(settings: SimulationSettings): WasmSettings {
   return {
     mode: settings.mode,
@@ -145,7 +145,7 @@ export function compareSettingsToWasm(settings: SimulationSettings): WasmSetting
   };
 }
 
-/** Map sunday-tools `DuelingRates` to the WASM DTO (field-compatible). */
+/** Map uma-domain `DuelingRates` to the WASM DTO (field-compatible). */
 export function duelingRatesToWasm(rates: DuelingRates): WasmDuelingRates {
   return {
     runaway: rates.runaway,
@@ -182,12 +182,12 @@ export function compareParamsToWasm(args: CompareParamsToWasmArgs): WasmCompareP
 }
 
 /**
- * Build the WASM batch params from sunday-tools `RaceSimParams`.
+ * Build the WASM batch params from uma-domain `RaceSimParams`.
  *
  * `focusRunnerIds` is forced to the full field (every insertion index) so the
  * result-adapter can reconstruct `allRunnerPositions` / `allRunnerLanes` from
  * the per-tick focus traces. `resolveName` provides each runner's display name
- * (the WASM boundary requires a name; the sunday-tools input omits it).
+ * (the WASM boundary requires a name; the uma-domain input omits it).
  */
 export function raceSimParamsToWasm(
   params: RaceSimParams,

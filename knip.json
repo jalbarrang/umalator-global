@@ -48,7 +48,6 @@
       ],
       "project": ["src/**/*.{ts,tsx}", "scripts/**/*.ts"]
     },
-    "packages/sunday-tools": { "project": ["src/**/*.ts"] },
     "workers/timeline-proxy": { "project": ["src/**/*.ts"] },
     "workers/suggestion-bot": { "project": ["src/**/*.ts"] }
   }

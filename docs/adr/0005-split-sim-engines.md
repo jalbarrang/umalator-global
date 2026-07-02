@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Accepted. The temporary TS-oracle/parity-gate portions are superseded by [ADR-0006](0006-retire-ts-simulation-oracle.md).
 
 Supersedes an earlier draft of this ADR that proposed a single engine with a
 `FieldModel` runtime seam — see "Discarded options". Builds on the parity bar

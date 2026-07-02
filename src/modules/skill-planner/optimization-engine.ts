@@ -2,10 +2,7 @@
  * Skill Planner Optimization — shared parameter/stage types.
  *
  * Engine-agnostic types consumed by the live WASM optimizer
- * (`optimization-engine-wasm.ts`). The TS-engine reference optimizer that
- * consumes these types lives in
- * `../simulation/parity-reference/optimization-engine.reference.ts`
- * (test-only; see ADR-0004).
+ * (`optimization-engine-wasm.ts`).
  */
 import type { CandidateSkill, OptimizationProgress } from './types';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';

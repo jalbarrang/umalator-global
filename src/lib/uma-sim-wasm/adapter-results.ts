@@ -1,4 +1,4 @@
-// Result-side conversions: WASM boundary output DTOs -> sunday-tools domain
+// Result-side conversions: WASM boundary output DTOs -> uma-domain
 // shapes the UI consumes. This half is data-free (pure reshaping) and therefore
 // worker-safe: it MUST NOT import anything under `src/modules/data/**`. Keeping
 // it separate from `adapter-params.ts` is what lets worker bundles stay free of
@@ -32,7 +32,7 @@ function skillActivationMapFromWasm(
 }
 
 /**
- * Reshape one WASM `CompareRoundData` into the sunday-tools
+ * Reshape one WASM `CompareRoundData` into the uma-domain
  * `CollectedRunnerRoundData` the compare orchestration consumes. Optional WASM
  * regions/values map to the `[]`/`null` sentinels the TS shape expects.
  */
@@ -72,7 +72,7 @@ export function wasmCompareRoundDataToCollected(
 }
 
 /**
- * Reshape the lean WASM result into the rich sunday-tools `RaceSimResult` the UI
+ * Reshape the lean WASM result into the rich uma-domain `RaceSimResult` the UI
  * consumes.
  *
  * - `finishOrders` maps numeric strategy 1:1 to `IStrategy`.

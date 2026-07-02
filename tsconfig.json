@@ -30,8 +30,7 @@
       "@/*": ["./src/*"],
       "@scripts/*": ["./scripts/*"],
       "@workers/*": ["./src/workers/*"],
-      "@cli/*": ["./cli/*"],
-      "sunday-tools/*": ["./packages/sunday-tools/src/*"]
+      "@cli/*": ["./cli/*"]
     }
   },
   "include": ["src", "tests", "scripts", ".cursor", "vite.config.ts"],

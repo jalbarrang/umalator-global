@@ -52,17 +52,13 @@ umalator-global/
 │   │   └── stamina-calculator.tsx    # Stamina calculator page
 │   │
 │   ├── lib/                          # Core libraries
-│   │   ├── sunday-tools/             # Race simulation engine
-│   │   │   ├── common/               # Race, runner, spurt calculator, observer
+│   │   ├── uma-domain/               # TS domain DTOs, definitions, parser, helpers
 │   │   │   ├── course/               # Course data and definitions
-│   │   │   ├── conditions/           # Approximate and special conditions
-│   │   │   ├── health/               # HP/stamina policies
-│   │   │   ├── poskeep/              # Position keeping (analytical pacer)
+│   │   │   ├── race/                 # Race DTO/result/event types and helpers
 │   │   │   ├── runner/               # Runner types, definitions, utilities
 │   │   │   ├── shared/               # Shared definitions, region, random
-│   │   │   ├── skills/               # Skill types, definitions, parser, policies
-│   │   │   │   └── parser/           # Condition parser and matcher
-│   │   │   └── simulator.types.ts    # Top-level simulator types
+│   │   │   └── skills/               # Skill types, definitions, parser, policies
+│   │   ├── uma-sim-wasm/             # WASM loader, DTOs, adapters
 │   │   ├── feature-flags.ts          # Feature flag utilities
 │   │   └── utils.ts                  # General utilities (cn, etc.)
 │   │
@@ -279,7 +275,7 @@ The build uses **Vite** with the following plugins (`vite.config.ts`):
 
 ```typescript
 import { useSettingsStore } from '@/store/settings.store';
-import { Race } from '@/lib/sunday-tools/common/race';
+import { runRaceSim } from '@/lib/uma-sim-wasm/loader';
 ```
 
 **Feature Flags:**
@@ -332,19 +328,18 @@ Feature flags are managed via environment variables prefixed with `VITE_FEATURE_
 | `/runners/:runnerId/edit` | `RunnersEdit`    | Edit runner             |
 | `/skill-planner`          | `SkillPlanner`   | Skill planner           |
 
-### Simulation Engine (`src/lib/sunday-tools/`)
+### Simulation Engine (`packages/uma-sim-*` + `src/lib/uma-sim-wasm/`)
 
-The core race simulation engine lives in `src/lib/sunday-tools/`. This is a self-contained library implementing Uma Musume race mechanics:
+The race simulation engine lives in Rust:
 
-- **`common/`**: `Race`, `Runner`, `SpurtCalculator`, `RaceObserver`
-- **`course/`**: Course data loading and definitions
-- **`conditions/`**: Skill activation condition evaluation
-- **`health/`**: HP/stamina consumption policies
-- **`poskeep/`**: Position keeping with analytical pacing
-- **`runner/`**: Runner type definitions and utilities
-- **`skills/`**: Skill types, parser, condition matching, activation policies
+- **`packages/uma-sim-primitives`**: shared formulas, parser, data models, and race-support primitives.
+- **`packages/uma-sim-race`**: contested 9-runner race simulation.
+- **`packages/uma-sim-vacuum`**: solo/compare simulation.
+- **`packages/uma-sim-wasm`**: WebAssembly boundary consumed by the app.
+- **`src/lib/uma-sim-wasm/`**: TypeScript loader, DTOs, and app-facing adapters.
+- **`src/lib/uma-domain/`**: TypeScript domain definitions, condition parser, and UI/result DTOs.
 
-See `src/lib/sunday-tools/README.md` for simulation mode documentation and `docs/quick-reference.md` for implemented race mechanics.
+See `src/lib/uma-sim-wasm/README.md`, `docs/race-mechanics.md`, and `docs/quick-reference.md` for simulation and mechanics notes.
 
 ### Simulation Orchestration (`src/modules/simulation/`)
 
@@ -464,9 +459,9 @@ TypeScript strict mode is enabled. Use functional React components with hooks. S
 
 #### Adding a New Skill Effect
 
-1. Check if the effect type exists in `src/lib/sunday-tools/skills/`
-2. Add effect handling in the appropriate simulation file
-3. Update condition parsing if needed in `src/lib/sunday-tools/skills/parser/`
+1. Check if the effect type exists in `src/lib/uma-domain/skills/` and the Rust skill model.
+2. Add mechanics handling in the appropriate Rust crate under `packages/uma-sim-*`.
+3. Update TypeScript condition parsing if needed in `src/lib/uma-domain/skills/parser/`.
 4. Add or update tests in corresponding `*.test.ts` files
 5. Test with known skills that use the effect
 
@@ -621,7 +616,7 @@ Be prepared to:
 ## Additional Resources
 
 - [`scripts/README.md`](scripts/README.md) — data extraction script documentation
-- [`src/lib/sunday-tools/README.md`](src/lib/sunday-tools/README.md) — simulation engine documentation
+- [`src/lib/uma-sim-wasm/README.md`](src/lib/uma-sim-wasm/README.md) — WASM simulation integration documentation
 - [`docs/quick-reference.md`](docs/quick-reference.md) — race mechanics quick reference
 - [`docs/race-mechanics.md`](docs/race-mechanics.md) — detailed race mechanics
 - [`docs/simulator-patterns.md`](docs/simulator-patterns.md) — simulator design patterns

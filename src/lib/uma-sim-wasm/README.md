@@ -106,11 +106,9 @@ engine, not a replacement for the worker/hook/store path.
 - `src/workers/race-sim-wasm.worker.ts` — mirrors `race-sim.worker.ts` but
   `await initUmaSimWasm()` + runs the WASM `runRaceSim`, converting inputs via
   `raceSimParamsToWasm` and reshaping the output via `wasmResultToRaceSimResult`.
-  It accepts/returns the **same** `RaceSimParams` / `RaceSimResult` contract as
-  the TS worker, so it is a drop-in.
+  It accepts/returns the app-level `RaceSimParams` / `RaceSimResult` contract.
 - `useRaceSimRunner` runs on the WASM worker unconditionally. The legacy TS
-  engine has been relocated to the deprecated `packages/sunday-tools` package
-  and is no longer wired into any sim path; the `engine: 'ts' | 'wasm'` opt-in
+  simulation engine and parity oracle were removed; the `engine: 'ts' | 'wasm'` opt-in
   was removed across all runners (Race Sim, Compare, Skill/Unique Bassin,
   Skill Planner).
 
