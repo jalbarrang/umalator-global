@@ -25,7 +25,7 @@ import { StatsTable } from './stats-table';
 import { AptitudeBucketsField } from '@/modules/runners/components/aptitude-buckets-field';
 import { aptitudesFromInnate, collapsedFromBuckets } from '@/modules/runners/aptitude-buckets';
 import { umasService } from '@/modules/data/services/UmaService';
-import { runawaySkillId } from './types';
+import { reconcileRunawayOnSkillsChange } from './types';
 import type { IRunnerState } from './types';
 import type { StatsKey } from './stats-table';
 import type { ExtractedUmaData } from '@/modules/runners/ocr/types';
@@ -176,12 +176,9 @@ export const RunnerCard = (props: RunnerCardProps) => {
 
   const handleSetSkills = useCallback(
     (skills: Array<string>) => {
-      onChange({ ...state, skills: skills });
-      updateCurrentSkills(skills);
-
-      if (skills.includes(runawaySkillId) && state.strategy !== 'Runaway') {
-        onChange({ ...state, strategy: 'Runaway' });
-      }
+      const reconciled = reconcileRunawayOnSkillsChange(skills, state.strategy);
+      onChange({ ...state, skills: reconciled.skills, strategy: reconciled.strategy });
+      updateCurrentSkills(reconciled.skills);
     },
     [onChange, state]
   );
@@ -264,11 +261,6 @@ export const RunnerCard = (props: RunnerCardProps) => {
 
   const handleUpdateStat = (prop: StatsKey) => (value: number) => {
     onChange({ ...state, [prop]: value });
-  };
-
-  const hasRunawaySkill = state.skills.includes(runawaySkillId);
-  const handleRunawayStrategy = () => {
-    onChange({ ...state, strategy: 'Runaway' });
   };
 
   const umaUniqueSkillId = useMemo(() => getUniqueSkillForByUmaId(umaId), [umaId]);
@@ -484,8 +476,6 @@ export const RunnerCard = (props: RunnerCardProps) => {
           onChange={onChange}
           courseId={courseId}
           showStrategyMood={showStrategyMood}
-          hasRunawaySkill={hasRunawaySkill}
-          onRunawayStrategy={handleRunawayStrategy}
         />
       </div>
 

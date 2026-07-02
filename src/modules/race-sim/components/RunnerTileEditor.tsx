@@ -14,7 +14,7 @@ import { skillsService } from '@/modules/data/services/SkillService';
 import { AptitudesTable } from '@/modules/runners/components/runner-card/aptitudes-table';
 import { StatsTable, type StatsKey } from '@/modules/runners/components/runner-card/stats-table';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
-import { runawaySkillId } from '@/modules/runners/components/runner-card/types';
+import { reconcileRunawayOnSkillsChange } from '@/modules/runners/components/runner-card/types';
 import { UmaSelector } from '@/modules/runners/components/runner-selector';
 import { getUmaDisplayInfo } from '@/modules/runners/utils';
 import {
@@ -104,13 +104,9 @@ export function RunnerTileEditor(props: RunnerTileEditorProps) {
         return;
       }
 
-      const partial: Partial<IRunnerState> = { skills };
-      if (skills.includes(runawaySkillId) && runner.strategy !== 'Runaway') {
-        partial.strategy = 'Runaway';
-      }
-
-      applyRunnerPatch(partial);
-      updateCurrentSkills(skills);
+      const reconciled = reconcileRunawayOnSkillsChange(skills, runner.strategy);
+      applyRunnerPatch({ skills: reconciled.skills, strategy: reconciled.strategy });
+      updateCurrentSkills(reconciled.skills);
     },
     [applyRunnerPatch, runner]
   );
@@ -171,10 +167,6 @@ export function RunnerTileEditor(props: RunnerTileEditorProps) {
     [handleSetSkills, runner]
   );
 
-  const handleRunawayStrategy = useCallback(() => {
-    applyRunnerPatch({ strategy: 'Runaway' });
-  }, [applyRunnerPatch]);
-
   const uniqueSkillId = useMemo(() => {
     if (!runner?.outfitId) {
       return null;
@@ -184,7 +176,6 @@ export function RunnerTileEditor(props: RunnerTileEditorProps) {
   }, [runner?.outfitId]);
 
   const gateLabel = runnerIndex === null ? '-' : runnerIndex + 1;
-  const hasRunawaySkill = runner?.skills.includes(runawaySkillId) ?? false;
 
   return (
     <Drawer
@@ -226,8 +217,6 @@ export function RunnerTileEditor(props: RunnerTileEditorProps) {
             <AptitudesTable
               value={runner}
               onChange={handleUpdateAptitudes}
-              hasRunawaySkill={hasRunawaySkill}
-              onRunawayStrategy={handleRunawayStrategy}
             />
 
             <div className="flex items-center gap-2">

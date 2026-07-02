@@ -6,7 +6,6 @@ import { cn } from '@/lib/utils';
 import { StatsTable } from '@/modules/runners/components/runner-card/stats-table';
 import { UmaSelector } from '@/modules/runners/components/runner-selector';
 import { AptitudeBucketsField } from '@/modules/runners/components/aptitude-buckets-field';
-import { runawaySkillId } from '@/modules/runners/components/runner-card/types';
 import { useSettingsStore } from '@/store/settings.store';
 import { ImportVeteranDialog } from './ImportVeteranDialog';
 import { Button } from '@/components/ui/button';
@@ -36,15 +35,9 @@ export const RunnerCard = (props: RunnerCardProps) => {
     onChange(runnerState);
   };
 
-  const handleUpdateRunawayStrategy = () => {
-    onChange({ strategy: 'Runaway' });
-  };
-
   const handleResetRunner = () => {
     onReset();
   };
-
-  const hasRunawaySkill = value.skills.includes(runawaySkillId);
 
   return (
     <>
@@ -85,8 +78,6 @@ export const RunnerCard = (props: RunnerCardProps) => {
           value={value}
           onChange={handleUpdateAptitude}
           courseId={courseId}
-          hasRunawaySkill={hasRunawaySkill}
-          onRunawayStrategy={handleUpdateRunawayStrategy}
         />
       </div>
     </>

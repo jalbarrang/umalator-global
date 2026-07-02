@@ -6,7 +6,7 @@ import { skillsService } from '@/modules/data/services/SkillService';
 import { AptitudeBucketsField } from '@/modules/runners/components/aptitude-buckets-field';
 import { StatsTable, type StatsKey } from '@/modules/runners/components/runner-card/stats-table';
 import type { IRunnerState } from '@/modules/runners/components/runner-card/types';
-import { runawaySkillId } from '@/modules/runners/components/runner-card/types';
+import { reconcileRunawayOnSkillsChange } from '@/modules/runners/components/runner-card/types';
 import { UmaSelector } from '@/modules/runners/components/runner-selector';
 import { getUmaDisplayInfo, getUmaImageUrl } from '@/modules/runners/utils';
 import {
@@ -104,12 +104,9 @@ export function RunnerDetailPanel({
   const handleSetSkills = useCallback(
     (skills: Array<string>) => {
       if (!runner) return;
-      const partial: Partial<IRunnerState> = { skills };
-      if (skills.includes(runawaySkillId) && runner.strategy !== 'Runaway') {
-        partial.strategy = 'Runaway';
-      }
-      applyRunnerPatch(partial);
-      updateCurrentSkills(skills);
+      const reconciled = reconcileRunawayOnSkillsChange(skills, runner.strategy);
+      applyRunnerPatch({ skills: reconciled.skills, strategy: reconciled.strategy });
+      updateCurrentSkills(reconciled.skills);
     },
     [applyRunnerPatch, runner]
   );
@@ -149,10 +146,6 @@ export function RunnerDetailPanel({
     [handleSetSkills, runner]
   );
 
-  const handleRunawayStrategy = useCallback(() => {
-    applyRunnerPatch({ strategy: 'Runaway' });
-  }, [applyRunnerPatch]);
-
   const handleSetTeam = useCallback(
     (value: string | undefined) => {
       applyRunnerPatch({ team: value && value !== 'none' ? Number(value) : null });
@@ -178,8 +171,6 @@ export function RunnerDetailPanel({
     if (!runner?.outfitId) return null;
     return getUniqueSkillForByUmaId(runner.outfitId);
   }, [runner?.outfitId]);
-
-  const hasRunawaySkill = runner?.skills.includes(runawaySkillId) ?? false;
 
   if (!runner) {
     return (
@@ -284,8 +275,6 @@ export function RunnerDetailPanel({
               value={runner}
               onChange={applyRunnerPatch}
               courseId={courseId}
-              hasRunawaySkill={hasRunawaySkill}
-              onRunawayStrategy={handleRunawayStrategy}
             />
           </Section>
 

@@ -3,8 +3,11 @@ import { Label } from '@/components/ui/label';
 import { StrategySelect } from './StrategySelect';
 import { MoodSelect } from './MoodSelect';
 import { BucketAptitudesEditor } from './BucketAptitudesEditor';
+import { reconcileRunawayOnStrategyChange } from './runner-card/types';
 import type { IRunnerState } from './runner-card/types';
-import type { IMood } from '@/lib/uma-domain/runner/definitions';
+import { updateCurrentSkills } from '@/modules/skills/store';
+import { strategyNames } from '@/lib/uma-domain/runner/definitions';
+import type { IMood, IStrategyName } from '@/lib/uma-domain/runner/definitions';
 import {
   bucketsFromRunner,
   collapsedFromBuckets,
@@ -18,17 +21,13 @@ type AptitudeBucketsFieldProps = {
   courseId?: number;
   /** Veteran/library editors hide strategy + mood (not race-specific). */
   showStrategyMood?: boolean;
-  hasRunawaySkill?: boolean;
-  onRunawayStrategy?: () => void;
 };
 
 export function AptitudeBucketsField({
   value,
   onChange,
   courseId,
-  showStrategyMood = true,
-  hasRunawaySkill = false,
-  onRunawayStrategy
+  showStrategyMood = true
 }: AptitudeBucketsFieldProps) {
   const handleBucketChange = useCallback(
     (key: AptitudeBucketKey, grade: string) => {
@@ -41,15 +40,25 @@ export function AptitudeBucketsField({
 
   const handleStrategy = useCallback(
     (strategy: string | null) => {
-      if (!strategy) return;
-      const next = { ...value, strategy } as IRunnerState;
+      if (!strategy || !strategyNames.includes(strategy as IStrategyName)) return;
+      const reconciled = reconcileRunawayOnStrategyChange(
+        strategy as IStrategyName,
+        value.skills
+      );
+      const next = {
+        ...value,
+        strategy: reconciled.strategy,
+        skills: reconciled.skills
+      } as IRunnerState;
       if (value.aptitudes) {
         Object.assign(next, collapsedFromBuckets(value.aptitudes, next.strategy, courseId));
       }
       onChange(next);
-      if (strategy === 'Runaway') onRunawayStrategy?.();
+      if (reconciled.skills !== value.skills) {
+        updateCurrentSkills(reconciled.skills);
+      }
     },
-    [onChange, value, courseId, onRunawayStrategy]
+    [onChange, value, courseId]
   );
 
   const handleMood = useCallback(
@@ -67,11 +76,7 @@ export function AptitudeBucketsField({
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           <div className="flex items-center gap-2 rounded-xl border">
             <Label className="w-16 pl-2 text-xs">Style:</Label>
-            <StrategySelect
-              value={value.strategy}
-              onChange={handleStrategy}
-              disabled={hasRunawaySkill}
-            />
+            <StrategySelect value={value.strategy} onChange={handleStrategy} />
           </div>
           <div className="flex items-center gap-2 rounded-xl border">
             <Label className="w-16 pl-2 text-xs">Mood:</Label>

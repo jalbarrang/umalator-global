@@ -1,8 +1,11 @@
 import { AptitudeSelect } from '../AptitudeSelect';
 import { MoodSelect } from '../MoodSelect';
 import { StrategySelect } from '../StrategySelect';
+import { reconcileRunawayOnStrategyChange } from './types';
 import type { IRunnerState } from './types';
-import type { IMood } from '@/lib/uma-domain/runner/definitions';
+import { updateCurrentSkills } from '@/modules/skills/store';
+import { strategyNames } from '@/lib/uma-domain/runner/definitions';
+import type { IMood, IStrategyName } from '@/lib/uma-domain/runner/definitions';
 import { Label } from '@/components/ui/label';
 
 export type Aptitude =
@@ -15,26 +18,24 @@ export type Aptitude =
 type AptitudesTableProps = {
   value: IRunnerState;
   onChange: (value: IRunnerState) => void;
-  hasRunawaySkill: boolean;
-  onRunawayStrategy: () => void;
 };
 
 export const AptitudesTable = (props: AptitudesTableProps) => {
-  const { value, onChange, hasRunawaySkill, onRunawayStrategy } = props;
+  const { value, onChange } = props;
 
   const handleUpdateAptitude = (prop: Aptitude) => (newValue: string) => {
     onChange({ ...value, [prop]: newValue });
   };
 
-  const handleUpdateStrategy = (prop: Aptitude) => (newValue: string | null) => {
-    if (!newValue) {
+  const handleUpdateStrategy = () => (newValue: string | null) => {
+    if (!newValue || !strategyNames.includes(newValue as IStrategyName)) {
       return;
     }
 
-    onChange({ ...value, [prop]: newValue });
-
-    if (newValue === 'Runaway') {
-      onRunawayStrategy();
+    const reconciled = reconcileRunawayOnStrategyChange(newValue as IStrategyName, value.skills);
+    onChange({ ...value, strategy: reconciled.strategy, skills: reconciled.skills });
+    if (reconciled.skills !== value.skills) {
+      updateCurrentSkills(reconciled.skills);
     }
   };
 
@@ -63,11 +64,7 @@ export const AptitudesTable = (props: AptitudesTableProps) => {
 
       <div className="flex items-center gap-2 border rounded-xl">
         <Label className="pl-2 w-24 text-xs">Style:</Label>
-        <StrategySelect
-          value={value.strategy}
-          onChange={handleUpdateStrategy('strategy')}
-          disabled={hasRunawaySkill}
-        />
+        <StrategySelect value={value.strategy} onChange={handleUpdateStrategy()} />
       </div>
 
       <div className="flex items-center gap-2 border rounded-xl">

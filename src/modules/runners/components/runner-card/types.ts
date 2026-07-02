@@ -64,3 +64,36 @@ export type RunnerAptitudes = {
 };
 
 export const runawaySkillId = '202051' as const;
+
+/**
+ * Game-accurate Runaway coupling, applied when the skill list changes:
+ * - Gaining the skill while running Front Runner converts the style to Runaway.
+ * - Losing the skill while running Runaway reverts the style to Front Runner.
+ * Any other style is left alone (the skill is inert for it).
+ */
+export const reconcileRunawayOnSkillsChange = (
+  skills: Array<string>,
+  strategy: IStrategyName
+): { skills: Array<string>; strategy: IStrategyName } => {
+  const hasSkill = skills.includes(runawaySkillId);
+  if (hasSkill && strategy === 'Front Runner') return { skills, strategy: 'Runaway' };
+  if (!hasSkill && strategy === 'Runaway') return { skills, strategy: 'Front Runner' };
+  return { skills, strategy };
+};
+
+/**
+ * Game-accurate Runaway coupling, applied when the style changes:
+ * - Selecting Runaway auto-learns the skill (the sim requires it).
+ * - Selecting Front Runner while owning the skill coerces to Runaway.
+ */
+export const reconcileRunawayOnStrategyChange = (
+  strategy: IStrategyName,
+  skills: Array<string>
+): { skills: Array<string>; strategy: IStrategyName } => {
+  const hasSkill = skills.includes(runawaySkillId);
+  if (strategy === 'Runaway' && !hasSkill) {
+    return { strategy, skills: [...skills, runawaySkillId] };
+  }
+  if (strategy === 'Front Runner' && hasSkill) return { strategy: 'Runaway', skills };
+  return { strategy, skills };
+};
