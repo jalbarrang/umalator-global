@@ -1,3 +1,9 @@
+## [0.22.0](https://github.com/jalbarrang/torena-sim/compare/v0.21.0...v0.22.0) (2026-07-02)
+
+### Features
+
+* **race:** add post-anniversary position keep ([f2d79d6](https://github.com/jalbarrang/torena-sim/commit/f2d79d6c9f306e8bb013f124e71add3cb0f636ac))
+
 ## [0.21.0](https://github.com/jalbarrang/torena-sim/compare/v0.20.0...v0.21.0) (2026-07-02)
 
 ### Features
