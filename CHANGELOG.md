@@ -1,3 +1,9 @@
+## [0.21.0](https://github.com/jalbarrang/torena-sim/compare/v0.20.0...v0.21.0) (2026-07-02)
+
+### Features
+
+* add support for fully charged mechanic ([61d7423](https://github.com/jalbarrang/torena-sim/commit/61d7423a24248bb133926110f80d28a8a9feef85))
+
 ## [0.20.0](https://github.com/jalbarrang/torena-sim/compare/v0.19.0...v0.20.0) (2026-07-01)
 
 ### Features
