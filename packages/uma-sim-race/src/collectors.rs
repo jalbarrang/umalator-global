@@ -298,6 +298,10 @@ pub enum RaceLogEventKind {
     SpotStruggleStart,
     /// Left a spot struggle.
     SpotStruggleEnd,
+    /// Began Fully Charged release.
+    FullyCharged,
+    /// Ended Fully Charged release.
+    FullyChargedEnd,
     /// Entered last spurt.
     LastSpurt,
     /// Ran out of HP.
@@ -363,6 +367,7 @@ struct RunnerPrevState {
     is_rushed: bool,
     is_dueling: bool,
     in_spot_struggle: bool,
+    is_fully_charged: bool,
     is_last_spurt: bool,
     out_of_hp: bool,
     skills_activated_count: i64,
@@ -487,6 +492,7 @@ impl RaceObserver for EventLogObserver {
         let is_rushed = runner.is_rushed();
         let is_dueling = runner.is_dueling();
         let in_spot = runner.in_spot_struggle();
+        let is_fully_charged = runner.is_fully_charged();
         let is_last_spurt = runner.is_last_spurt();
         let out_of_hp = runner.out_of_hp();
         let count = runner.skills_activated_count();
@@ -571,6 +577,12 @@ impl RaceObserver for EventLogObserver {
                 detail,
             );
         }
+        if !prev.is_fully_charged && is_fully_charged {
+            inner.push(RaceLogEventKind::FullyCharged, id, position, tick, None);
+        }
+        if prev.is_fully_charged && !is_fully_charged {
+            inner.push(RaceLogEventKind::FullyChargedEnd, id, position, tick, None);
+        }
         if !prev.is_last_spurt && is_last_spurt {
             inner.push(RaceLogEventKind::LastSpurt, id, position, tick, None);
         }
@@ -633,6 +645,7 @@ impl RaceObserver for EventLogObserver {
                 is_rushed,
                 is_dueling,
                 in_spot_struggle: in_spot,
+                is_fully_charged,
                 is_last_spurt,
                 out_of_hp,
                 skills_activated_count: count,

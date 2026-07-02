@@ -195,6 +195,17 @@ This document is a quick reference for the race mechanics that are available cur
 - ✅ Skill modifiers (`Concentration: 0.4x`, `Focus: 0.9x`, `Gatekept: 1.5x`)
 - ❌ Fixed delays for `You're Not the Boss of Me!` (`0.085s`) and `Feelin' a Bit Silly` (`0.1s`) - (Skills not available in Global yet)
 
+## Global 1.5 Anniversary ✅
+
+### Power Conservation / Fully Charged ✅
+
+- ✅ **Conserve Power / Fully Charged** (足を貯める / 脚色十分)
+  - ✅ Power >1200 required
+  - ✅ Last-spurt acceleration boost
+  - ✅ Strategy-distance coefficients
+  - ✅ Race Mechanics panel shows frequency + mean accel (`X% (+Y m/s²)`)
+  - ⚠️ Assumptions pending firmer research: fully-charged threshold = `100.0`, duration = `3.0s × distance-type coefficient`, skill-ability decay interaction ignored
+
 ## NOT Yet Available in Global ❌
 
 ### 1.5 Anniversary (Not in Global)
@@ -205,10 +216,7 @@ This document is a quick reference for the race mechanics that are available cur
 
 ### 2nd Anniversary (Not in Global)
 
-- ❌ **Conserve Power / Fully Charged** (足を貯める / 脚色十分)
-  - Power >1200 required
-  - Last spurt accel boost
-  - Strategy-distance coefficients
+- ✅ **Conserve Power / Fully Charged** moved to Global 1.5 implementation above.
 
 ### 2.5th Anniversary (Not in Global)
 

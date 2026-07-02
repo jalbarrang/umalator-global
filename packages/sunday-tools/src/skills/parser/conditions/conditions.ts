@@ -12,8 +12,11 @@
 	running_style_count_nige_otherself, running_style_count_oikomi_otherself, running_style_count_same, running_style_count_same_rate,
 	running_style_count_sashi_otherself, running_style_count_senko_otherself, running_style_equal_popularity_one,
 	running_style_temptation_count_nige, running_style_temptation_count_oikomi, running_style_temptation_count_sashi,
-	running_style_temptation_count_senko, same_skill_horse_count, season, slope, straight_front_type, straight_random, temptation_count,
-	temptation_count_behind, temptation_count_infront, track_id, up_slope_random, weather
+	running_style_temptation_count_senko, running_style_temptation_opponent_count_nige,
+	running_style_temptation_opponent_count_oikomi, running_style_temptation_opponent_count_sashi,
+	running_style_temptation_opponent_count_senko, same_skill_horse_count, season, slope, straight_front_type,
+	straight_random, temptation_count, temptation_count_behind, temptation_count_infront,
+	temptation_opponent_count_infront, track_id, up_slope_random, weather
 */
 
 import {
@@ -1026,6 +1029,22 @@ export const defaultConditions: ConditionsMap<ICondition> = {
     noopSectionRandom(2, 9),
     'running_style_temptation_count_oikomi'
   ),
+  running_style_temptation_opponent_count_nige: dynamicOrStatic(
+    noopSectionRandom(2, 9),
+    'running_style_temptation_opponent_count_nige'
+  ),
+  running_style_temptation_opponent_count_senko: dynamicOrStatic(
+    noopSectionRandom(2, 9),
+    'running_style_temptation_opponent_count_senko'
+  ),
+  running_style_temptation_opponent_count_sashi: dynamicOrStatic(
+    noopSectionRandom(2, 9),
+    'running_style_temptation_opponent_count_sashi'
+  ),
+  running_style_temptation_opponent_count_oikomi: dynamicOrStatic(
+    noopSectionRandom(2, 9),
+    'running_style_temptation_opponent_count_oikomi'
+  ),
   same_skill_horse_count: valueFilterOrNoop(({ extra }) => {
     if (!extra.commonSkills) {
       return undefined;
@@ -1102,6 +1121,10 @@ export const defaultConditions: ConditionsMap<ICondition> = {
     'temptation_opponent_count_behind'
   ),
   temptation_count_infront: dynamicOrStatic(noopSectionRandom(2, 9), 'temptation_count_infront'),
+  temptation_opponent_count_infront: dynamicOrStatic(
+    noopSectionRandom(2, 9),
+    'temptation_opponent_count_infront'
+  ),
   time: valueFilter(({ extra }) => extra.timeOfDay),
   track_id: valueFilter(({ course }) => course.raceTrackId),
   up_slope_random: random({

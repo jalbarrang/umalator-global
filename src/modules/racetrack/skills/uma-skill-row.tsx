@@ -41,13 +41,18 @@ const normalizeUmaIndex = (value?: number): 0 | 1 | null => {
 
 const isRushedRegion = (region: RegionData) => region.text.startsWith('Rushed');
 
+const isFullyChargedRegion = (region: RegionData) => region.text.startsWith('Fully Charged');
+
 const isScenarioRegion = (region: RegionData) =>
   region.markerType === 'scenario' && !isRushedRegion(region);
 
 const isDebuffRegion = (region: RegionData) => region.isDebuff || region.markerType === 'debuff';
 
 const isSkillRegion = (region: RegionData) =>
-  !isDebuffRegion(region) && !isRushedRegion(region) && !isScenarioRegion(region);
+  !isDebuffRegion(region) &&
+  !isRushedRegion(region) &&
+  !isFullyChargedRegion(region) &&
+  !isScenarioRegion(region);
 
 const isMarkerTypeVisible = (
   region: RegionData,
@@ -55,10 +60,12 @@ const isMarkerTypeVisible = (
     showSkillMarkers: boolean;
     showDebuffMarkers: boolean;
     showRushedMarkers: boolean;
+    showFullyChargedMarkers: boolean;
     showScenarioMarkers: boolean;
   }
 ) => {
   if (isRushedRegion(region)) return flags.showRushedMarkers;
+  if (isFullyChargedRegion(region)) return flags.showFullyChargedMarkers;
   if (isScenarioRegion(region)) return flags.showScenarioMarkers;
   if (isDebuffRegion(region)) return flags.showDebuffMarkers;
   if (isSkillRegion(region)) return flags.showSkillMarkers;
@@ -69,15 +76,28 @@ export type UmaSkillSectionProps = {
   course: CourseData;
   skillActivations: Array<RegionData>;
   rushedIndicators: Array<RegionData>;
+  fullyChargedIndicators: Array<RegionData>;
   debuffIndicators: Array<RegionData>;
   onDragStart: DragStartHandler;
 };
 
 export const UmaSkillSection = React.memo<UmaSkillSectionProps>((props) => {
-  const { course, skillActivations, rushedIndicators, debuffIndicators, onDragStart } = props;
+  const {
+    course,
+    skillActivations,
+    rushedIndicators,
+    fullyChargedIndicators,
+    debuffIndicators,
+    onDragStart
+  } = props;
 
-  const { showSkillMarkers, showDebuffMarkers, showRushedMarkers, showScenarioMarkers } =
-    useRaceTrackDisplay();
+  const {
+    showSkillMarkers,
+    showDebuffMarkers,
+    showRushedMarkers,
+    showFullyChargedMarkers,
+    showScenarioMarkers
+  } = useRaceTrackDisplay();
 
   const positionsMapUma1 = useForcedPositionMap('uma1');
   const positionsMapUma2 = useForcedPositionMap('uma2');
@@ -88,7 +108,7 @@ export const UmaSkillSection = React.memo<UmaSkillSectionProps>((props) => {
 
   const visibleRegions = useMemo(
     () =>
-      [...skillActivations, ...rushedIndicators, ...debuffIndicators]
+      [...skillActivations, ...rushedIndicators, ...fullyChargedIndicators, ...debuffIndicators]
         .filter((region) => {
           const regionUmaIndex = normalizeUmaIndex(region.umaIndex);
           if (regionUmaIndex === null) return false;
@@ -97,6 +117,7 @@ export const UmaSkillSection = React.memo<UmaSkillSectionProps>((props) => {
             showSkillMarkers,
             showDebuffMarkers,
             showRushedMarkers,
+            showFullyChargedMarkers,
             showScenarioMarkers
           });
         })
@@ -111,10 +132,12 @@ export const UmaSkillSection = React.memo<UmaSkillSectionProps>((props) => {
     [
       skillActivations,
       rushedIndicators,
+      fullyChargedIndicators,
       debuffIndicators,
       showSkillMarkers,
       showDebuffMarkers,
       showRushedMarkers,
+      showFullyChargedMarkers,
       showScenarioMarkers
     ]
   );

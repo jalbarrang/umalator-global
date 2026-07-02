@@ -97,6 +97,7 @@ export type WasmSettings = {
   healthSystem?: boolean;
   rushed?: boolean;
   downhill?: boolean;
+  conservePower?: boolean;
   spotStruggle?: boolean;
   dueling?: boolean;
   witChecks?: boolean;
@@ -205,6 +206,8 @@ export type WasmCompareRoundData = {
   rushed: [number, number][];
   duelingRegion?: [number, number];
   spotStruggleRegion?: [number, number];
+  fullyChargedRegion?: [number, number];
+  fullyChargedAccel?: number;
   hasAchievedFullSpurt: boolean;
   outOfHp: boolean;
   outOfHpPosition?: number;

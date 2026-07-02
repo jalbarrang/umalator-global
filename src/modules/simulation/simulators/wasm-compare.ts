@@ -68,6 +68,10 @@ function reduceCompareRounds(
     uma1: { lengths: [], count: 0 } as CompareStatsAccumulator,
     uma2: { lengths: [], count: 0 } as CompareStatsAccumulator
   };
+  const fullyChargedStats = {
+    uma1: { lengths: [], count: 0 } as CompareStatsAccumulator,
+    uma2: { lengths: [], count: 0 } as CompareStatsAccumulator
+  };
   const leadCompetitionStats = {
     uma1: { lengths: [], count: 0 } as CompareStatsAccumulator,
     uma2: { lengths: [], count: 0 } as CompareStatsAccumulator
@@ -101,7 +105,9 @@ function reduceCompareRounds(
       startDelay: [roundA.startDelay, roundB.startDelay],
       rushed: [roundA.rushed, roundB.rushed],
       duelingRegions: [roundA.duelingRegion, roundB.duelingRegion],
-      spotStruggleRegions: [roundA.spotStruggleRegion, roundB.spotStruggleRegion]
+      spotStruggleRegions: [roundA.spotStruggleRegion, roundB.spotStruggleRegion],
+      fullyChargedRegions: [roundA.fullyChargedRegion, roundB.fullyChargedRegion],
+      fullyChargedAccel: [roundA.fullyChargedAccel, roundB.fullyChargedAccel]
     });
 
     if (roundA.rushed.length > 0) {
@@ -113,6 +119,15 @@ function reduceCompareRounds(
       const [start, end] = roundB.rushed[0];
       rushedStats.uma2.lengths.push(end - start);
       rushedStats.uma2.count++;
+    }
+
+    if (roundA.fullyChargedRegion.length === 2 && roundA.fullyChargedAccel != null) {
+      fullyChargedStats.uma1.lengths.push(roundA.fullyChargedAccel);
+      fullyChargedStats.uma1.count++;
+    }
+    if (roundB.fullyChargedRegion.length === 2 && roundB.fullyChargedAccel != null) {
+      fullyChargedStats.uma2.lengths.push(roundB.fullyChargedAccel);
+      fullyChargedStats.uma2.count++;
     }
 
     if (roundA.spotStruggleRegion.length === 2) {
@@ -178,6 +193,10 @@ function reduceCompareRounds(
     uma1: calculateStats(rushedStats.uma1, nsamples),
     uma2: calculateStats(rushedStats.uma2, nsamples)
   };
+  const fullyChargedSummary: Stats = {
+    uma1: calculateStats(fullyChargedStats.uma1, nsamples),
+    uma2: calculateStats(fullyChargedStats.uma2, nsamples)
+  };
   const leadCompetitionSummary: Stats = {
     uma1: calculateStats(leadCompetitionStats.uma1, nsamples),
     uma2: calculateStats(leadCompetitionStats.uma2, nsamples)
@@ -227,6 +246,7 @@ function reduceCompareRounds(
     results: diff,
     runData: { minrun, maxrun, meanrun, medianrun },
     rushedStats: rushedSummary,
+    fullyChargedStats: fullyChargedSummary,
     leadCompetitionStats: leadCompetitionSummary,
     spurtInfo: null,
     staminaStats: staminaSummary,

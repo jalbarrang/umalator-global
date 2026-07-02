@@ -18,6 +18,8 @@ export type WitVarianceSettings = {
   allowRushedUma2: boolean;
   allowDownhillUma1: boolean;
   allowDownhillUma2: boolean;
+  allowConservePowerUma1: boolean;
+  allowConservePowerUma2: boolean;
   allowSectionModifierUma1: boolean;
   allowSectionModifierUma2: boolean;
   allowSkillCheckChanceUma1: boolean;
@@ -51,6 +53,8 @@ export const useSettingsStore = create<ISettingsStore>()(
         allowRushedUma2: true,
         allowDownhillUma1: true,
         allowDownhillUma2: true,
+        allowConservePowerUma1: true,
+        allowConservePowerUma2: true,
         allowSectionModifierUma1: true,
         allowSectionModifierUma2: true,
         allowSkillCheckChanceUma1: true,
@@ -65,17 +69,30 @@ export const useSettingsStore = create<ISettingsStore>()(
     {
       name: 'umalator-settings',
       storage: createJSONStorage(() => localStorage),
-      version: 2,
+      version: 3,
       migrate: (persistedState, version) => {
-        if (version < 2) {
+        const migrated =
+          version < 2
+            ? {
+                ...(persistedState as object),
+                ...migrateRaceTrackDisplaySettings(
+                  persistedState as Parameters<typeof migrateRaceTrackDisplaySettings>[0]
+                )
+              }
+            : (persistedState as ISettingsStore);
+
+        if (version < 3) {
+          const state = migrated as ISettingsStore;
           return {
-            ...(persistedState as object),
-            ...migrateRaceTrackDisplaySettings(
-              persistedState as Parameters<typeof migrateRaceTrackDisplaySettings>[0]
-            )
-          };
+            ...state,
+            witVarianceSettings: {
+              ...state.witVarianceSettings,
+              allowConservePowerUma1: state.witVarianceSettings.allowConservePowerUma1 ?? true,
+              allowConservePowerUma2: state.witVarianceSettings.allowConservePowerUma2 ?? true
+            }
+          } satisfies ISettingsStore;
         }
-        return persistedState as ISettingsStore;
+        return migrated as ISettingsStore;
       }
     }
   )
@@ -144,6 +161,7 @@ export const useRaceTrackDisplay = () =>
       showSkillMarkers: state.showSkillMarkers,
       showDebuffMarkers: state.showDebuffMarkers,
       showRushedMarkers: state.showRushedMarkers,
+      showFullyChargedMarkers: state.showFullyChargedMarkers,
       showScenarioMarkers: state.showScenarioMarkers,
       showPosKeepLabels: state.showPosKeepLabels
     }))

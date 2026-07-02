@@ -74,12 +74,16 @@ function hasSameStyleAsPopularityOneRunner(runner: Runner): boolean {
   return StrategyHelpers.strategyMatches(runner.strategy, popularityOneRunner.strategy);
 }
 
-function registerStyleTemptationCountCondition(name: string, strategy: IStrategy): void {
+function registerStyleTemptationCountCondition(
+  name: string,
+  strategy: IStrategy,
+  includeSelf = true
+): void {
   registerDynamicCondition(name, (arg, cmp) => (runner) => {
     const count = countActiveRushedRunners(
       runner,
       (other) => StrategyHelpers.strategyMatches(other.strategy, strategy),
-      true
+      includeSelf
     );
     return compare(count, arg, cmp);
   });
@@ -106,13 +110,15 @@ export function registerStateConditions(): void {
     return compare(countRushedBehind(runner), arg, cmp);
   });
 
+  const countRushedInFront = (runner: Runner) =>
+    countActiveRushedRunners(runner, (other) => other.position > runner.position, false);
+
   registerDynamicCondition('temptation_count_infront', (arg, cmp) => (runner) => {
-    const countInfront = countActiveRushedRunners(
-      runner,
-      (other) => other.position > runner.position,
-      false
-    );
-    return compare(countInfront, arg, cmp);
+    return compare(countRushedInFront(runner), arg, cmp);
+  });
+
+  registerDynamicCondition('temptation_opponent_count_infront', (arg, cmp) => (runner) => {
+    return compare(countRushedInFront(runner), arg, cmp);
   });
 
   registerStyleTemptationCountCondition(
@@ -130,6 +136,26 @@ export function registerStateConditions(): void {
   registerStyleTemptationCountCondition(
     'running_style_temptation_count_oikomi',
     Strategy.EndCloser
+  );
+  registerStyleTemptationCountCondition(
+    'running_style_temptation_opponent_count_nige',
+    Strategy.FrontRunner,
+    false
+  );
+  registerStyleTemptationCountCondition(
+    'running_style_temptation_opponent_count_senko',
+    Strategy.PaceChaser,
+    false
+  );
+  registerStyleTemptationCountCondition(
+    'running_style_temptation_opponent_count_sashi',
+    Strategy.LateSurger,
+    false
+  );
+  registerStyleTemptationCountCondition(
+    'running_style_temptation_opponent_count_oikomi',
+    Strategy.EndCloser,
+    false
   );
 
   registerDynamicCondition('running_style_equal_popularity_one', (arg, cmp) => (runner) => {

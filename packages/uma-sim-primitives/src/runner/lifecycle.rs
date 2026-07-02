@@ -214,6 +214,18 @@ impl Runner {
             is_downhill_mode: false,
             is_dueling: false,
             in_spot_struggle: false,
+            is_fully_charged: false,
+            conserve_power_enabled: true,
+            conserve_power_stat: f64::from(props.stats.power),
+            conserved_power: 0.0,
+            last_conserve_power_check_frame: 0,
+            conserve_power_saw_rushed: false,
+            conserve_power_saw_spot_struggle: false,
+            fully_charged_timer: Timer::new(0.0),
+            fully_charged_duration: 0.0,
+            fully_charged_accel: 0.0,
+            fully_charged_region: None,
+            distance_type: course.distance_type,
             has_been_rushed: false,
             rushed_section: -1,
             rushed_enter_position: -1.0,
@@ -307,6 +319,7 @@ impl Runner {
         self.is_downhill_mode = false;
         self.is_dueling = false;
         self.in_spot_struggle = false;
+        self.is_fully_charged = false;
         self.modifiers = SpeedModifiers::zeroed();
 
         // ---- dependency-safe init chain (TS onPrepare order) ----
@@ -325,6 +338,7 @@ impl Runner {
         self.initialize_downhill_mode();
         self.initialize_dueling();
         self.initialize_spot_struggle();
+        self.initialize_power_conservation(course.distance_type);
         initialize_position_keep(self, course_distance, ctx.pos_keep_end_multiplier);
         self.initialize_health_policy();
         self.initialize_base_accelerations(course);

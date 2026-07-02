@@ -55,6 +55,10 @@ export function wasmCompareRoundDataToCollected(
     spotStruggleRegion: data.spotStruggleRegion
       ? [data.spotStruggleRegion[0], data.spotStruggleRegion[1]]
       : [],
+    fullyChargedRegion: data.fullyChargedRegion
+      ? [data.fullyChargedRegion[0], data.fullyChargedRegion[1]]
+      : [],
+    fullyChargedAccel: data.fullyChargedAccel ?? null,
     hasAchievedFullSpurt: data.hasAchievedFullSpurt,
     outOfHp: data.outOfHp,
     outOfHpPosition: data.outOfHpPosition ?? null,
@@ -123,6 +127,8 @@ export function wasmResultToRaceSimResult(result: WasmRaceSimResult): RaceSimRes
         rushed: [],
         duelingRegion: [],
         spotStruggleRegion: [],
+        fullyChargedRegion: [],
+        fullyChargedAccel: null,
         hasAchievedFullSpurt: false,
         outOfHp: false,
         outOfHpPosition: null,

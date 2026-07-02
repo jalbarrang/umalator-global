@@ -14,6 +14,8 @@ export type RaceEventKind =
   | 'dueling-end'
   | 'spot-struggle-start'
   | 'spot-struggle-end'
+  | 'fully-charged'
+  | 'fully-charged-end'
   | 'last-spurt'
   | 'hp-out'
   | 'finished'

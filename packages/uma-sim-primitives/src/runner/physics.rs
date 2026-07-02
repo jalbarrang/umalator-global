@@ -190,6 +190,7 @@ impl Runner {
         apply_virtual_position_keep(self, &field_inputs.position_keep);
         self.update_dueling(field_inputs, ctx); // t-016
         self.update_spot_struggle(ctx); // t-016
+        self.update_power_conservation();
         self.update_last_spurt_state(); // t-016
         self.update_target_speed();
         self.apply_forces();
@@ -273,6 +274,7 @@ impl Runner {
         self.rushed_timer.advance(dt);
         self.dueling_timer.advance(dt);
         self.spot_struggle_timer.advance(dt);
+        self.fully_charged_timer.advance(dt);
         advance_skill_timers(&mut self.target_speed_skills_active, dt);
         advance_skill_timers(&mut self.current_speed_skills_active, dt);
         advance_skill_timers(&mut self.acceleration_skills_active, dt);
@@ -407,6 +409,9 @@ impl Runner {
         self.acceleration += self.modifiers.accel.total();
         if self.is_dueling {
             self.acceleration += (160.0 * self.adjusted_stats.guts).powf(0.59) * 0.0001;
+        }
+        if self.is_fully_charged {
+            self.acceleration += self.fully_charged_accel;
         }
     }
 

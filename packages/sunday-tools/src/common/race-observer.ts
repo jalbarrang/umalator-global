@@ -63,6 +63,8 @@ export type CollectedRunnerRoundData = {
   rushed: Array<[number, number]>;
   duelingRegion: [number, number] | [];
   spotStruggleRegion: [number, number] | [];
+  fullyChargedRegion: [number, number] | [];
+  fullyChargedAccel: number | null;
   hasAchievedFullSpurt: boolean;
   outOfHp: boolean;
   outOfHpPosition: number | null;
@@ -171,6 +173,8 @@ export class VacuumCompareDataCollector implements RaceLifecycleObserver {
         rushed: [],
         duelingRegion: [],
         spotStruggleRegion: [],
+        fullyChargedRegion: [],
+        fullyChargedAccel: null,
         hasAchievedFullSpurt: false,
         outOfHp: false,
         outOfHpPosition: null,
@@ -524,6 +528,11 @@ export class VacuumCompareDataCollector implements RaceLifecycleObserver {
         Array.isArray(data.spotStruggleRegion) && data.spotStruggleRegion.length === 2
           ? ([...data.spotStruggleRegion] as [number, number])
           : [],
+      fullyChargedRegion:
+        Array.isArray(data.fullyChargedRegion) && data.fullyChargedRegion.length === 2
+          ? ([...data.fullyChargedRegion] as [number, number])
+          : [],
+      fullyChargedAccel: data.fullyChargedAccel,
       hasAchievedFullSpurt: data.hasAchievedFullSpurt,
       outOfHp: data.outOfHp,
       outOfHpPosition: data.outOfHpPosition,

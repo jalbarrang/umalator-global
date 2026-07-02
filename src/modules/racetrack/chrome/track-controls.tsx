@@ -48,6 +48,7 @@ const MARKER_OPTIONS: DisplayOption[] = [
   { settingKey: 'showSkillMarkers', label: 'Skill markers' },
   { settingKey: 'showDebuffMarkers', label: 'Debuff markers' },
   { settingKey: 'showRushedMarkers', label: 'Rushed markers' },
+  { settingKey: 'showFullyChargedMarkers', label: 'Fully Charged markers' },
   { settingKey: 'showScenarioMarkers', label: 'Scenario markers' },
   { settingKey: 'showPosKeepLabels', label: 'Pos-keep labels' }
 ];

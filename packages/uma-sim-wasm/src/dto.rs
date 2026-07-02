@@ -674,6 +674,9 @@ pub struct WasmSettings {
     /// Downhill mode.
     #[serde(default)]
     pub downhill: Option<bool>,
+    /// Power Conservation / Fully Charged.
+    #[serde(default)]
+    pub conserve_power: Option<bool>,
     /// Spot struggle.
     #[serde(default)]
     pub spot_struggle: Option<bool>,
@@ -704,6 +707,7 @@ struct ResolvedSettings {
     section_modifier: bool,
     rushed: bool,
     downhill: bool,
+    conserve_power: bool,
     spot_struggle: bool,
     dueling: bool,
     wit_checks: bool,
@@ -719,6 +723,7 @@ impl WasmSettings {
             section_modifier: self.section_modifier.unwrap_or(true),
             rushed: self.rushed.unwrap_or(true),
             downhill: self.downhill.unwrap_or(true),
+            conserve_power: self.conserve_power.unwrap_or(true),
             spot_struggle: self.spot_struggle.unwrap_or(true),
             dueling: self.dueling.unwrap_or(true),
             wit_checks: self.wit_checks.unwrap_or(true),
@@ -735,6 +740,7 @@ impl WasmSettings {
             section_modifier: r.section_modifier,
             rushed: r.rushed,
             downhill: r.downhill,
+            conserve_power: r.conserve_power,
             spot_struggle: r.spot_struggle,
             dueling: r.dueling,
             wit_checks: r.wit_checks,
@@ -751,6 +757,7 @@ impl WasmSettings {
             section_modifier: r.section_modifier,
             rushed: r.rushed,
             downhill: r.downhill,
+            conserve_power: r.conserve_power,
             spot_struggle: r.spot_struggle,
             dueling: r.dueling,
             wit_checks: r.wit_checks,
@@ -1009,6 +1016,8 @@ fn log_event_kind_str(kind: RaceLogEventKind) -> &'static str {
         RaceLogEventKind::DuelingEnd => "dueling-end",
         RaceLogEventKind::SpotStruggleStart => "spot-struggle-start",
         RaceLogEventKind::SpotStruggleEnd => "spot-struggle-end",
+        RaceLogEventKind::FullyCharged => "fully-charged",
+        RaceLogEventKind::FullyChargedEnd => "fully-charged-end",
         RaceLogEventKind::LastSpurt => "last-spurt",
         RaceLogEventKind::HpOut => "hp-out",
         RaceLogEventKind::Finished => "finished",
@@ -1192,6 +1201,12 @@ pub struct WasmCompareRoundData {
     /// Spot-struggle region, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub spot_struggle_region: Option<[f64; 2]>,
+    /// Fully Charged release region, if any.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub fully_charged_region: Option<[f64; 2]>,
+    /// Fully Charged acceleration bonus, if any.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub fully_charged_accel: Option<f64>,
     /// Whether a full last spurt was achieved.
     pub has_achieved_full_spurt: bool,
     /// Whether HP ran out.
@@ -1231,6 +1246,8 @@ impl From<&CompareRoundData> for WasmCompareRoundData {
             rushed: d.rushed.iter().map(|&(s, e)| [s, e]).collect(),
             dueling_region: d.dueling_region.map(|(s, e)| [s, e]),
             spot_struggle_region: d.spot_struggle_region.map(|(s, e)| [s, e]),
+            fully_charged_region: d.fully_charged_region.map(|(s, e)| [s, e]),
+            fully_charged_accel: d.fully_charged_accel,
             has_achieved_full_spurt: d.has_achieved_full_spurt,
             out_of_hp: d.out_of_hp,
             out_of_hp_position: d.out_of_hp_position,

@@ -121,6 +121,18 @@ pub trait RunnerObservation {
     fn in_spot_struggle(&self) -> bool {
         false
     }
+    /// Whether the runner is currently releasing Fully Charged acceleration.
+    fn is_fully_charged(&self) -> bool {
+        false
+    }
+    /// Fully Charged release region (`None` if it never triggered).
+    fn fully_charged_region(&self) -> Option<(f64, f64)> {
+        None
+    }
+    /// Fully Charged acceleration bonus (`None` if it never triggered).
+    fn fully_charged_accel(&self) -> Option<f64> {
+        None
+    }
     /// Whether the runner has entered last spurt.
     fn is_last_spurt(&self) -> bool {
         false

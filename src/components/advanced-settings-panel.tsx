@@ -236,6 +236,13 @@ export const AdvancedSettingsPanel = () => {
               disabled={!witVarianceSettings.simWitVariance}
             />
             <WitVarianceSettingRow
+              label="Power Conservation"
+              uma1Key="allowConservePowerUma1"
+              uma2Key="allowConservePowerUma2"
+              settings={witVarianceSettings}
+              onToggle={toggleWitVarianceSetting}
+            />
+            <WitVarianceSettingRow
               label="Section Modifier"
               uma1Key="allowSectionModifierUma1"
               uma2Key="allowSectionModifierUma2"

@@ -321,10 +321,16 @@ export function runComparison(params: CompareParams): CompareResult {
     }
   };
 
+  const fullyChargedSummary: Stats = {
+    uma1: calculateStats({ lengths: [], count: 0 }, nsamples),
+    uma2: calculateStats({ lengths: [], count: 0 }, nsamples)
+  };
+
   return {
     results: diff,
     runData: { minrun, maxrun, meanrun, medianrun },
     rushedStats: rushedSummary,
+    fullyChargedStats: fullyChargedSummary,
     leadCompetitionStats: leadCompetitionSummary,
     spurtInfo: null,
     staminaStats: staminaSummary,

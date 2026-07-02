@@ -52,7 +52,7 @@ export const RaceTrack = (props: RaceTrackProps) => {
   const mouseTextRef = useRef<SVGTextElement>(null);
   const tooltipRef = useRef<RaceTrackTooltipHandle>(null);
 
-  const { skillActivations, rushedIndicators, debuffIndicators, posKeepLabels } =
+  const { skillActivations, rushedIndicators, fullyChargedIndicators, debuffIndicators, posKeepLabels } =
     useVisualizationData({
       chartData
     });
@@ -244,6 +244,7 @@ export const RaceTrack = (props: RaceTrackProps) => {
                 course={course}
                 skillActivations={skillActivations}
                 rushedIndicators={rushedIndicators}
+                fullyChargedIndicators={fullyChargedIndicators}
                 debuffIndicators={debuffIndicators}
                 onDragStart={handleDragStart}
               />

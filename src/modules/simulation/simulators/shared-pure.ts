@@ -142,6 +142,7 @@ export function createCompareSettings(
     sectionModifier: false,
     rushed: false,
     downhill: false,
+    conservePower: false,
     spotStruggle: false,
     dueling: false,
     witChecks: false,

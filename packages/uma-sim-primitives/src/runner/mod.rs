@@ -24,7 +24,7 @@ pub mod stats;
 use std::collections::{HashMap, HashSet};
 
 use crate::shared_kernel::ids::{RunnerId, SkillId};
-use crate::shared_kernel::language::{Mood, Phase, Strategy};
+use crate::shared_kernel::language::{DistanceType, Mood, Phase, Strategy};
 use crate::shared_kernel::math::Timer;
 use crate::shared_kernel::params::StatLine;
 use crate::shared_kernel::rng::Prng;
@@ -292,6 +292,32 @@ pub struct Runner {
     pub is_dueling: bool,
     /// Whether the runner is in a spot-struggle.
     pub in_spot_struggle: bool,
+    /// Whether Fully Charged release acceleration is active.
+    pub is_fully_charged: bool,
+
+    // --- power-conservation / fully-charged state machine ---
+    /// Whether power conservation is enabled for this runner.
+    pub conserve_power_enabled: bool,
+    /// Un-halved power value used by the Power Conservation formula.
+    pub conserve_power_stat: f64,
+    /// Accumulated conserved-power gauge.
+    pub conserved_power: f64,
+    /// Last frame at which a conserve-power check ran.
+    pub last_conserve_power_check_frame: i64,
+    /// Whether this runner has ever rushed this round (for release activity coef).
+    pub conserve_power_saw_rushed: bool,
+    /// Whether this runner has ever spot-struggled this round (for release activity coef).
+    pub conserve_power_saw_spot_struggle: bool,
+    /// Fully Charged release timer.
+    pub fully_charged_timer: Timer,
+    /// Fully Charged release duration in seconds.
+    pub fully_charged_duration: f64,
+    /// Fully Charged release acceleration bonus.
+    pub fully_charged_accel: f64,
+    /// Closed Fully Charged release region, if it triggered.
+    pub fully_charged_region: Option<(f64, f64)>,
+    /// Course distance bucket used by the release formula.
+    pub distance_type: DistanceType,
 
     // --- rushed (temptation) state machine ---
     /// Whether the runner has already been rushed this round.

@@ -7,6 +7,7 @@ export interface CompareResult {
   results: Array<number>;
   runData: SimulationData;
   rushedStats: Stats;
+  fullyChargedStats: Stats;
   leadCompetitionStats: Stats;
   spurtInfo: null;
   staminaStats: StaminaStats;
@@ -115,6 +116,14 @@ export interface SimulationRun {
    * Spot Struggle Regions for each uma
    */
   spotStruggleRegions: Array<RegionActivation | []>;
+  /**
+   * Fully Charged release regions for each uma
+   */
+  fullyChargedRegions: Array<RegionActivation | []>;
+  /**
+   * Fully Charged accel bonus for each uma
+   */
+  fullyChargedAccel: Array<number | null>;
 }
 
 export interface SkillSimulationRun {
@@ -176,7 +185,9 @@ const defaultSimulationRun: SimulationRun = {
   startDelay: [0, 0],
   rushed: [[], []],
   duelingRegions: [[], []],
-  spotStruggleRegions: [[], []]
+  spotStruggleRegions: [[], []],
+  fullyChargedRegions: [[], []],
+  fullyChargedAccel: [null, null]
 };
 
 export const initializeSimulationRun = (

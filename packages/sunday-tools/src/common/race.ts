@@ -48,6 +48,10 @@ export type SimulationSettings = {
    */
   downhill: boolean;
   /**
+   * Whether the simulation should account for Power Conservation / Fully Charged.
+   */
+  conservePower?: boolean;
+  /**
    * Whether the simulation should account for the spot struggle
    */
   spotStruggle: boolean;

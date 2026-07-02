@@ -23,6 +23,7 @@ type IRaceStore = {
   chartData: SimulationRun | null;
   displaying: string;
   rushedStats: Stats | null;
+  fullyChargedStats: Stats | null;
   leadCompetitionStats: Stats | null;
   spurtInfo: SpurtCandidate | null;
   staminaStats: StaminaStats | null;
@@ -41,6 +42,7 @@ export const useRaceStore = create<IRaceStore>()(
       chartData: null,
       displaying: 'meanrun',
       rushedStats: null,
+      fullyChargedStats: null,
       leadCompetitionStats: null,
       spurtInfo: null,
       staminaStats: null,
@@ -81,6 +83,7 @@ export const setResults = (results: CompareResult) => {
     chartData: currentRunData,
     displaying: displaying,
     rushedStats: results.rushedStats,
+    fullyChargedStats: results.fullyChargedStats,
     leadCompetitionStats: results.leadCompetitionStats,
     spurtInfo: results.spurtInfo ?? undefined,
     staminaStats: results.staminaStats,
@@ -106,6 +109,7 @@ export const resetResults = () => {
     chartData: null,
     displaying: 'meanrun',
     rushedStats: null,
+    fullyChargedStats: null,
     leadCompetitionStats: null,
     spurtInfo: null,
     staminaStats: null,

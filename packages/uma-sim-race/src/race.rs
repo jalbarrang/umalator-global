@@ -52,6 +52,8 @@ pub struct SimulationSettings {
     pub rushed: bool,
     /// Whether downhill mode is enabled.
     pub downhill: bool,
+    /// Whether Power Conservation / Fully Charged is enabled.
+    pub conserve_power: bool,
     /// Whether spot-struggle is enabled.
     pub spot_struggle: bool,
     /// Whether dueling is enabled.
@@ -73,6 +75,7 @@ impl Default for SimulationSettings {
             section_modifier: true,
             rushed: true,
             downhill: true,
+            conserve_power: true,
             spot_struggle: true,
             dueling: true,
             wit_checks: true,
@@ -251,6 +254,7 @@ impl Race {
             runner.dueling_enabled = self.settings.dueling;
             runner.spot_struggle_enabled = self.settings.spot_struggle;
             runner.downhill_enabled = self.settings.downhill;
+            runner.conserve_power_enabled = self.settings.conserve_power;
             runner
                 .stamina_drain_overrides
                 .clone_from(&self.settings.stamina_drain_overrides);

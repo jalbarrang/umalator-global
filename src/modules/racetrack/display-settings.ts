@@ -13,6 +13,7 @@ export type RaceTrackDisplaySettings = {
   showSkillMarkers: boolean;
   showDebuffMarkers: boolean;
   showRushedMarkers: boolean;
+  showFullyChargedMarkers: boolean;
   showScenarioMarkers: boolean;
   showPosKeepLabels: boolean;
 };
@@ -32,6 +33,7 @@ export const defaultRaceTrackDisplaySettings = (): RaceTrackDisplaySettings => (
   showSkillMarkers: true,
   showDebuffMarkers: true,
   showRushedMarkers: true,
+  showFullyChargedMarkers: true,
   showScenarioMarkers: true,
   showPosKeepLabels: true
 });
@@ -90,6 +92,7 @@ export const migrateRaceTrackDisplaySettings = (
     showSkillMarkers: state.showSkillMarkers ?? defaults.showSkillMarkers,
     showDebuffMarkers: state.showDebuffMarkers ?? defaults.showDebuffMarkers,
     showRushedMarkers: state.showRushedMarkers ?? defaults.showRushedMarkers,
+    showFullyChargedMarkers: state.showFullyChargedMarkers ?? defaults.showFullyChargedMarkers,
     showScenarioMarkers: state.showScenarioMarkers ?? defaults.showScenarioMarkers,
     showPosKeepLabels: state.showPosKeepLabels ?? defaults.showPosKeepLabels
   };

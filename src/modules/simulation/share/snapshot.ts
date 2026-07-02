@@ -80,6 +80,8 @@ function isWitVariance(value: unknown): boolean {
     'allowRushedUma2',
     'allowDownhillUma1',
     'allowDownhillUma2',
+    'allowConservePowerUma1',
+    'allowConservePowerUma2',
     'allowSectionModifierUma1',
     'allowSectionModifierUma2',
     'allowSkillCheckChanceUma1',

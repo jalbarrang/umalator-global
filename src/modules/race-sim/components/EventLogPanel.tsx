@@ -33,7 +33,9 @@ const COMBAT_KINDS = new Set<RaceEventKind>([
   'dueling-start',
   'dueling-end',
   'spot-struggle-start',
-  'spot-struggle-end'
+  'spot-struggle-end',
+  'fully-charged',
+  'fully-charged-end'
 ]);
 
 const FILTERS: Array<{ id: EventFilter; label: string }> = [
@@ -52,6 +54,8 @@ const EVENT_KIND_STYLES: Record<RaceEventKind, EventKindStyle> = {
   'dueling-end': { label: 'Duel', dotClassName: 'bg-rose-400' },
   'spot-struggle-start': { label: 'Struggle', dotClassName: 'bg-purple-500' },
   'spot-struggle-end': { label: 'Struggle', dotClassName: 'bg-purple-400' },
+  'fully-charged': { label: 'Charged', dotClassName: 'bg-yellow-500' },
+  'fully-charged-end': { label: 'Charged', dotClassName: 'bg-yellow-400' },
   'last-spurt': { label: 'Spurt', dotClassName: 'bg-emerald-500' },
   'hp-out': { label: 'HP Out', dotClassName: 'bg-zinc-500' },
   finished: { label: 'Finished', dotClassName: 'bg-green-500' },
@@ -139,6 +143,10 @@ function getEventDescription(event: RaceEvent): string {
       return 'entered a spot struggle';
     case 'spot-struggle-end':
       return 'ended a spot struggle';
+    case 'fully-charged':
+      return 'released Fully Charged';
+    case 'fully-charged-end':
+      return 'Fully Charged ended';
     case 'last-spurt':
       return 'entered last spurt';
     case 'hp-out':

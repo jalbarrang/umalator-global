@@ -55,6 +55,8 @@ export interface SimulationOptions {
   allowRushedUma2: boolean;
   allowDownhillUma1: boolean;
   allowDownhillUma2: boolean;
+  allowConservePowerUma1?: boolean;
+  allowConservePowerUma2?: boolean;
   allowSectionModifierUma1: boolean;
   allowSectionModifierUma2: boolean;
   skillCheckChanceUma1: boolean;

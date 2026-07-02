@@ -24,6 +24,11 @@ export const debuffColors: Array<{ stroke: string; fill: string }> = [
   { stroke: 'rgb(236, 72, 153)', fill: 'rgba(236, 72, 153, 0.76)' } // Uma 2 (pink)
 ];
 
+export const fullyChargedColors: Array<{ stroke: string; fill: string }> = [
+  { stroke: 'rgb(42, 119, 197)', fill: 'rgba(42, 119, 197, 0.7)' }, // Uma 1 (blue)
+  { stroke: 'rgb(197, 42, 42)', fill: 'rgba(197, 42, 42, 0.7)' } // Uma 2 (red)
+];
+
 export const posKeepColors: Array<{ stroke: string; fill: string }> = [
   { stroke: 'rgb(42, 119, 197)', fill: 'rgba(42, 119, 197, 0.6)' },
   { stroke: 'rgb(197, 42, 42)', fill: 'rgba(197, 42, 42, 0.6)' }

@@ -11,8 +11,36 @@
 
 use crate::runner::physics::{DuelingInput, FieldInputs, UpdateContext};
 use crate::runner::Runner;
-use crate::shared_kernel::language::{strategy_matches, Strategy};
+use crate::shared_kernel::language::{strategy_matches, DistanceType, Strategy};
+use crate::skills::effect::PositionKeepState;
 use crate::stamina::policy::RaceStateSlice;
+
+/// Power-conservation parameters from KuromiAK's mechanics document. Values marked
+/// as assumptions are named constants so Global tuning can change them in one place.
+mod conserve_power {
+    /// The conserved-power gauge threshold required to release Fully Charged.
+    ///
+    /// The source docs say "if there is enough conserved power" but do not name a
+    /// concrete value. 100.0 is a local assumption/tuning point.
+    pub(super) const FULLY_CHARGED_THRESHOLD: f64 = 100.0;
+    /// Gauge gain per 1.5s check while position keep is Pace Down.
+    pub(super) const PACE_DOWN_GAIN: f64 = 6.7;
+    /// Gauge gain per 1.5s check while position keep is Normal/None.
+    pub(super) const NORMAL_GAIN: f64 = 4.2;
+    /// Gauge multiplier applied by Spot Struggle on a conserve check.
+    pub(super) const SPOT_STRUGGLE_DECAY: f64 = 0.95;
+    /// Gauge multiplier applied by Rushed on a conserve check.
+    pub(super) const RUSHED_DECAY: f64 = 0.8;
+    /// Conserve checks run every ~1.5 seconds at 15 FPS.
+    pub(super) const CHECK_FRAMES: i64 = 23;
+    /// Spot Struggle release activity coefficient.
+    pub(super) const SPOT_STRUGGLE_ACTIVITY_COEF: f64 = 0.98;
+    /// Rushed release activity coefficient.
+    pub(super) const RUSHED_ACTIVITY_COEF: f64 = 0.8;
+    /// Documented but not yet understood by the release-duration model.
+    #[allow(dead_code)]
+    pub(super) const ACTIVITY_TIME_COEF: f64 = 1450.0;
+}
 
 /// Per-strategy dueling activation rates (percent) used by compare-mode
 /// `artificialDueling`.
@@ -28,6 +56,33 @@ pub struct DuelingRates {
     pub late_surger: f64,
     /// End-closer rate.
     pub end_closer: f64,
+}
+
+fn fully_charged_strategy_distance_coef(strategy: Strategy, distance_type: DistanceType) -> f64 {
+    match (strategy.base_strategy(), distance_type) {
+        (Strategy::FrontRunner, _) => 1.0,
+        (Strategy::PaceChaser, DistanceType::Short) => 0.7,
+        (Strategy::PaceChaser, DistanceType::Mile) => 0.8,
+        (Strategy::PaceChaser, DistanceType::Mid | DistanceType::Long) => 0.9,
+        (Strategy::LateSurger, DistanceType::Short) => 0.75,
+        (Strategy::LateSurger, DistanceType::Mile) => 0.7,
+        (Strategy::LateSurger, DistanceType::Mid) => 0.875,
+        (Strategy::LateSurger, DistanceType::Long) => 1.0,
+        (Strategy::EndCloser, DistanceType::Short) => 0.7,
+        (Strategy::EndCloser, DistanceType::Mile) => 0.75,
+        (Strategy::EndCloser, DistanceType::Mid) => 0.86,
+        (Strategy::EndCloser, DistanceType::Long) => 0.9,
+        (Strategy::Runaway, _) => 1.0,
+    }
+}
+
+fn fully_charged_duration_coef(distance_type: DistanceType) -> f64 {
+    match distance_type {
+        DistanceType::Short => 0.45,
+        DistanceType::Mile => 1.0,
+        DistanceType::Mid => 0.875,
+        DistanceType::Long => 0.8,
+    }
 }
 
 impl Runner {
@@ -80,6 +135,21 @@ impl Runner {
         self.spot_struggle_end_position = -1.0;
         self.forced_spot_struggle_index = 0;
         self.is_in_forced_spot_struggle = false;
+    }
+
+    /// Initialize the Power Conservation / Fully Charged state.
+    pub(crate) fn initialize_power_conservation(&mut self, distance_type: DistanceType) {
+        self.is_fully_charged = false;
+        self.conserve_power_stat = f64::from(self.stats.power);
+        self.conserved_power = 0.0;
+        self.last_conserve_power_check_frame = 0;
+        self.conserve_power_saw_rushed = false;
+        self.conserve_power_saw_spot_struggle = false;
+        self.fully_charged_timer.t = 0.0;
+        self.fully_charged_duration = 0.0;
+        self.fully_charged_accel = 0.0;
+        self.fully_charged_region = None;
+        self.distance_type = distance_type;
     }
 
     /// Base rushed chance: `(6.5 / log10(0.1·wit + 1))² / 100`.
@@ -405,6 +475,93 @@ impl Runner {
         false
     }
 
+    // ===================== power conservation / fully charged =====================
+
+    /// Advance the Power Conservation gauge. Release is handled with last-spurt
+    /// transition logic so the acceleration window opens exactly at spurt start.
+    pub(crate) fn update_power_conservation(&mut self) {
+        if self.is_fully_charged && self.fully_charged_timer.t >= self.fully_charged_duration {
+            self.close_fully_charged();
+        }
+
+        if !self.conserve_power_enabled || self.conserve_power_stat <= 1200.0 || self.is_last_spurt {
+            return;
+        }
+
+        if self.is_rushed {
+            self.conserve_power_saw_rushed = true;
+        }
+        if self.in_spot_struggle {
+            self.conserve_power_saw_spot_struggle = true;
+        }
+
+        let current_frame = (self.accumulate_time.t * 15.0).floor() as i64;
+        if current_frame <= 0
+            || current_frame == self.last_conserve_power_check_frame
+            || current_frame % conserve_power::CHECK_FRAMES != 0
+        {
+            return;
+        }
+        self.last_conserve_power_check_frame = current_frame;
+
+        match self.position_keep_state {
+            PositionKeepState::PaceDown => {
+                self.conserved_power += conserve_power::PACE_DOWN_GAIN;
+            }
+            PositionKeepState::None => {
+                self.conserved_power += conserve_power::NORMAL_GAIN;
+            }
+            _ => {}
+        }
+
+        if self.in_spot_struggle {
+            self.conserved_power *= conserve_power::SPOT_STRUGGLE_DECAY;
+        }
+        if self.is_rushed {
+            self.conserved_power *= conserve_power::RUSHED_DECAY;
+        }
+    }
+
+    fn begin_fully_charged(&mut self) {
+        if !self.conserve_power_enabled
+            || self.is_fully_charged
+            || self.fully_charged_region.is_some()
+            || self.conserve_power_stat <= 1200.0
+            || self.conserved_power < conserve_power::FULLY_CHARGED_THRESHOLD
+        {
+            return;
+        }
+
+        self.is_fully_charged = true;
+        self.fully_charged_timer.t = 0.0;
+        self.fully_charged_duration = 3.0 * fully_charged_duration_coef(self.distance_type);
+        self.fully_charged_accel = ((self.conserve_power_stat - 1200.0) * 130.0).sqrt()
+            * 0.001
+            * fully_charged_strategy_distance_coef(self.strategy, self.distance_type)
+            * self.fully_charged_activity_coef();
+        self.fully_charged_region = Some((self.position, -1.0));
+    }
+
+    fn close_fully_charged(&mut self) {
+        self.is_fully_charged = false;
+        if let Some(region) = self.fully_charged_region.as_mut() {
+            if region.1 == -1.0 {
+                region.1 = self.position;
+            }
+        }
+    }
+
+    fn fully_charged_activity_coef(&self) -> f64 {
+        let mut coef = 1.0;
+        if self.conserve_power_saw_spot_struggle {
+            coef *= conserve_power::SPOT_STRUGGLE_ACTIVITY_COEF;
+        }
+        if self.conserve_power_saw_rushed {
+            coef *= conserve_power::RUSHED_ACTIVITY_COEF;
+        }
+        coef
+    }
+
     // ===================== last spurt =====================
 
     /// `updateLastSpurtState(false)`: per-tick last-spurt transition check.
@@ -445,6 +602,7 @@ impl Runner {
             if self.health_policy.is_max_spurt() {
                 self.has_achieved_full_spurt = true;
                 self.is_last_spurt = true;
+                self.begin_fully_charged();
                 return;
             }
 
@@ -458,6 +616,7 @@ impl Runner {
 
         if self.position >= self.last_spurt_transition {
             self.is_last_spurt = true;
+            self.begin_fully_charged();
         }
     }
 }
@@ -465,7 +624,8 @@ impl Runner {
 #[cfg(test)]
 mod tests {
     use crate::runner::test_support::test_runner;
-    use crate::shared_kernel::language::Strategy;
+    use crate::shared_kernel::language::{DistanceType, Strategy};
+    use crate::skills::effect::PositionKeepState;
 
     #[test]
     fn rushed_strategy_override_buckets_front_runner() {
@@ -519,5 +679,77 @@ mod tests {
         // so transition = -1 (spurt whole leg) and position >= -1 engages spurt.
         r.update_last_spurt_state();
         assert!(r.is_last_spurt);
+    }
+
+    #[test]
+    fn power_conservation_gains_by_position_keep_state() {
+        let mut r = test_runner(0, Strategy::PaceChaser);
+        r.conserve_power_stat = 1300.0;
+        r.accumulate_time.t = 23.0 / 15.0;
+        r.position_keep_state = PositionKeepState::None;
+        r.update_power_conservation();
+        assert!((r.conserved_power - 4.2).abs() < 1e-9);
+
+        r.accumulate_time.t = 46.0 / 15.0;
+        r.position_keep_state = PositionKeepState::PaceDown;
+        r.update_power_conservation();
+        assert!((r.conserved_power - 10.9).abs() < 1e-9);
+    }
+
+    #[test]
+    fn power_conservation_applies_activity_decay() {
+        let mut r = test_runner(0, Strategy::PaceChaser);
+        r.conserve_power_stat = 1300.0;
+        r.accumulate_time.t = 23.0 / 15.0;
+        r.position_keep_state = PositionKeepState::None;
+        r.in_spot_struggle = true;
+        r.is_rushed = true;
+        r.update_power_conservation();
+        assert!((r.conserved_power - 4.2 * 0.95 * 0.8).abs() < 1e-9);
+        assert!(r.conserve_power_saw_spot_struggle);
+        assert!(r.conserve_power_saw_rushed);
+    }
+
+    #[test]
+    fn fully_charged_release_uses_formula_and_duration() {
+        let mut r = test_runner(0, Strategy::PaceChaser);
+        r.conserve_power_stat = 1400.0;
+        r.conserved_power = 100.0;
+        r.distance_type = DistanceType::Mid;
+        r.position = 1800.0;
+        r.begin_fully_charged();
+        let expected = ((1400.0_f64 - 1200.0) * 130.0).sqrt() * 0.001 * 0.9;
+        assert!(r.is_fully_charged);
+        assert!((r.fully_charged_accel - expected).abs() < 1e-12);
+        assert!((r.fully_charged_duration - 2.625).abs() < 1e-12);
+        assert_eq!(r.fully_charged_region, Some((1800.0, -1.0)));
+    }
+
+    #[test]
+    fn fully_charged_requires_eligibility_and_threshold() {
+        let mut r = test_runner(0, Strategy::PaceChaser);
+        r.conserve_power_stat = 1200.0;
+        r.conserved_power = 100.0;
+        r.begin_fully_charged();
+        assert!(!r.is_fully_charged);
+
+        r.conserve_power_stat = 1300.0;
+        r.conserved_power = 99.9;
+        r.begin_fully_charged();
+        assert!(!r.is_fully_charged);
+    }
+
+    #[test]
+    fn fully_charged_closes_after_duration() {
+        let mut r = test_runner(0, Strategy::PaceChaser);
+        r.conserve_power_stat = 1300.0;
+        r.conserved_power = 100.0;
+        r.position = 1700.0;
+        r.begin_fully_charged();
+        r.position = 1760.0;
+        r.fully_charged_timer.t = r.fully_charged_duration;
+        r.update_power_conservation();
+        assert!(!r.is_fully_charged);
+        assert_eq!(r.fully_charged_region, Some((1700.0, 1760.0)));
     }
 }

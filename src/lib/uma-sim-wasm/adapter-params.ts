@@ -136,6 +136,7 @@ export function compareSettingsToWasm(settings: SimulationSettings): WasmSetting
     sectionModifier: settings.sectionModifier,
     rushed: settings.rushed,
     downhill: settings.downhill,
+    conservePower: settings.conservePower,
     spotStruggle: settings.spotStruggle,
     dueling: settings.dueling,
     witChecks: settings.witChecks,

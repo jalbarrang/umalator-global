@@ -49,43 +49,81 @@ fn has_same_style_as_popularity_one(runner: &dyn RunnerView) -> bool {
 }
 
 fn register_style_temptation_count(name: &'static str, strategy: Strategy) {
-    register_dynamic_condition(
-        name,
-        match strategy {
-            Strategy::FrontRunner => |arg, cmp| {
-                DynamicCondition::new(move |r| {
-                    let count = count_active_rushed(r, true, |o| {
-                        strategy_matches(o.strategy, Strategy::FrontRunner)
-                    });
-                    compare(count as f64, arg as f64, cmp)
-                })
-            },
-            Strategy::PaceChaser => |arg, cmp| {
-                DynamicCondition::new(move |r| {
-                    let count = count_active_rushed(r, true, |o| {
-                        strategy_matches(o.strategy, Strategy::PaceChaser)
-                    });
-                    compare(count as f64, arg as f64, cmp)
-                })
-            },
-            Strategy::LateSurger => |arg, cmp| {
-                DynamicCondition::new(move |r| {
-                    let count = count_active_rushed(r, true, |o| {
-                        strategy_matches(o.strategy, Strategy::LateSurger)
-                    });
-                    compare(count as f64, arg as f64, cmp)
-                })
-            },
-            _ => |arg, cmp| {
-                DynamicCondition::new(move |r| {
-                    let count = count_active_rushed(r, true, |o| {
-                        strategy_matches(o.strategy, Strategy::EndCloser)
-                    });
-                    compare(count as f64, arg as f64, cmp)
-                })
-            },
+    register_style_temptation_count_impl(name, strategy, true);
+}
+
+fn register_style_temptation_opponent_count(name: &'static str, strategy: Strategy) {
+    register_style_temptation_count_impl(name, strategy, false);
+}
+
+fn register_style_temptation_count_impl(name: &'static str, strategy: Strategy, include_self: bool) {
+    let factory = match (strategy, include_self) {
+        (Strategy::FrontRunner, true) => |arg, cmp| {
+            DynamicCondition::new(move |r| {
+                let count = count_active_rushed(r, true, |o| {
+                    strategy_matches(o.strategy, Strategy::FrontRunner)
+                });
+                compare(count as f64, arg as f64, cmp)
+            })
         },
-    );
+        (Strategy::FrontRunner, false) => |arg, cmp| {
+            DynamicCondition::new(move |r| {
+                let count = count_active_rushed(r, false, |o| {
+                    strategy_matches(o.strategy, Strategy::FrontRunner)
+                });
+                compare(count as f64, arg as f64, cmp)
+            })
+        },
+        (Strategy::PaceChaser, true) => |arg, cmp| {
+            DynamicCondition::new(move |r| {
+                let count = count_active_rushed(r, true, |o| {
+                    strategy_matches(o.strategy, Strategy::PaceChaser)
+                });
+                compare(count as f64, arg as f64, cmp)
+            })
+        },
+        (Strategy::PaceChaser, false) => |arg, cmp| {
+            DynamicCondition::new(move |r| {
+                let count = count_active_rushed(r, false, |o| {
+                    strategy_matches(o.strategy, Strategy::PaceChaser)
+                });
+                compare(count as f64, arg as f64, cmp)
+            })
+        },
+        (Strategy::LateSurger, true) => |arg, cmp| {
+            DynamicCondition::new(move |r| {
+                let count = count_active_rushed(r, true, |o| {
+                    strategy_matches(o.strategy, Strategy::LateSurger)
+                });
+                compare(count as f64, arg as f64, cmp)
+            })
+        },
+        (Strategy::LateSurger, false) => |arg, cmp| {
+            DynamicCondition::new(move |r| {
+                let count = count_active_rushed(r, false, |o| {
+                    strategy_matches(o.strategy, Strategy::LateSurger)
+                });
+                compare(count as f64, arg as f64, cmp)
+            })
+        },
+        (_, true) => |arg, cmp| {
+            DynamicCondition::new(move |r| {
+                let count = count_active_rushed(r, true, |o| {
+                    strategy_matches(o.strategy, Strategy::EndCloser)
+                });
+                compare(count as f64, arg as f64, cmp)
+            })
+        },
+        (_, false) => |arg, cmp| {
+            DynamicCondition::new(move |r| {
+                let count = count_active_rushed(r, false, |o| {
+                    strategy_matches(o.strategy, Strategy::EndCloser)
+                });
+                compare(count as f64, arg as f64, cmp)
+            })
+        },
+    };
+    register_dynamic_condition(name, factory);
 }
 
 /// Register every runner-state dynamic condition.
@@ -145,10 +183,34 @@ pub fn register_state_conditions() {
         })
     });
 
+    register_dynamic_condition("temptation_opponent_count_infront", |arg, cmp| {
+        DynamicCondition::new(move |r| {
+            let position = r.position();
+            let count = count_active_rushed(r, false, |o| o.position > position);
+            compare(count as f64, arg as f64, cmp)
+        })
+    });
+
     register_style_temptation_count("running_style_temptation_count_nige", Strategy::FrontRunner);
     register_style_temptation_count("running_style_temptation_count_senko", Strategy::PaceChaser);
     register_style_temptation_count("running_style_temptation_count_sashi", Strategy::LateSurger);
     register_style_temptation_count("running_style_temptation_count_oikomi", Strategy::EndCloser);
+    register_style_temptation_opponent_count(
+        "running_style_temptation_opponent_count_nige",
+        Strategy::FrontRunner,
+    );
+    register_style_temptation_opponent_count(
+        "running_style_temptation_opponent_count_senko",
+        Strategy::PaceChaser,
+    );
+    register_style_temptation_opponent_count(
+        "running_style_temptation_opponent_count_sashi",
+        Strategy::LateSurger,
+    );
+    register_style_temptation_opponent_count(
+        "running_style_temptation_opponent_count_oikomi",
+        Strategy::EndCloser,
+    );
 
     register_dynamic_condition("running_style_equal_popularity_one", |arg, cmp| {
         DynamicCondition::new(move |r| {

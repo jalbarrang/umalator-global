@@ -5,7 +5,14 @@ import type { PosKeepLabel } from '@/utils/races';
 import { IRegionDisplayType, RegionDisplayType } from '@/modules/racetrack/types';
 import { getSkillNameById } from '@/modules/skills/utils';
 import { useSettingsStore } from '@/store/settings.store';
-import { colors, debuffColors, posKeepColors, recoveryColors, rushedColors } from '@/utils/colors';
+import {
+  colors,
+  debuffColors,
+  fullyChargedColors,
+  posKeepColors,
+  recoveryColors,
+  rushedColors
+} from '@/utils/colors';
 import { SkillType } from 'sunday-tools/skills/definitions';
 import { isExternalDebuffEffect } from 'sunday-tools/skills/external-debuffs';
 import { coursesService } from '@/modules/data/services/CourseService';
@@ -327,6 +334,26 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
     return results;
   }, [chartData, hasSimulationData, scenarioOverrides]);
 
+  const fullyChargedIndicators: Array<RegionData> = useMemo(() => {
+    const results: Array<RegionData> = [];
+
+    if (chartData?.fullyChargedRegions) {
+      for (const [umaIndex, region] of chartData.fullyChargedRegions.entries()) {
+        if (!region || region.length !== 2) continue;
+        const [start, end] = region;
+        results.push({
+          type: RegionDisplayType.Textbox,
+          color: fullyChargedColors[umaIndex],
+          text: 'Fully Charged!',
+          umaIndex,
+          regions: [{ start, end }]
+        });
+      }
+    }
+
+    return results;
+  }, [chartData]);
+
   const debuffIndicators: Array<RegionData> = useMemo(() => {
     if (hasSimulationData) {
       return [];
@@ -464,6 +491,7 @@ export const useVisualizationData = (props: UseVisualizationDataProps) => {
   return {
     skillActivations,
     rushedIndicators,
+    fullyChargedIndicators,
     debuffIndicators,
     posKeepLabels
   };

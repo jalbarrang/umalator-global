@@ -25,16 +25,19 @@ const formatLengths = (value: number) => {
 };
 
 export const OverviewTab = () => {
-  const { results, chartData, displaying, rushedStats, staminaStats } = useRaceStore(
-    useShallow((state) => ({
-      results: state.results,
-      chartData: state.chartData,
-      displaying: state.displaying,
-      rushedStats: state.rushedStats,
-      staminaStats: state.staminaStats
-    }))
-  );
-  const { allowRushedUma2 } = useWitVariance();
+  const { results, chartData, displaying, rushedStats, fullyChargedStats, staminaStats } =
+    useRaceStore(
+      useShallow((state) => ({
+        results: state.results,
+        chartData: state.chartData,
+        displaying: state.displaying,
+        rushedStats: state.rushedStats,
+        fullyChargedStats: state.fullyChargedStats,
+        staminaStats: state.staminaStats
+      }))
+    );
+  const { allowRushedUma1, allowRushedUma2, allowConservePowerUma1, allowConservePowerUma2 } =
+    useWitVariance();
 
   const summaryStats = useMemo(() => {
     if (results.length === 0) return null;
@@ -165,6 +168,9 @@ export const OverviewTab = () => {
           const finishTime = isUma1 ? uma1Time : uma2Time;
           const topSpeed = isUma1 ? uma1TopSpeed : uma2TopSpeed;
           const rushed = isUma1 ? rushedStats?.uma1 : rushedStats?.uma2;
+          const fullyCharged = isUma1 ? fullyChargedStats?.uma1 : fullyChargedStats?.uma2;
+          const showRushed = isUma1 ? allowRushedUma1 : allowRushedUma2;
+          const showFullyCharged = isUma1 ? allowConservePowerUma1 : allowConservePowerUma2;
           // const dueling = isUma1 ? leadCompetitionStats?.uma1 : leadCompetitionStats?.uma2;
           const stamina = isUma1 ? staminaStats?.uma1 : staminaStats?.uma2;
           // const firstUma = isUma1 ? firstUmaStats?.uma1 : firstUmaStats?.uma2;
@@ -217,23 +223,45 @@ export const OverviewTab = () => {
                   </span>
                 </div>
 
-                <Activity mode={rushedStats && allowRushedUma2 ? 'visible' : 'hidden'}>
+                <Activity
+                  mode={
+                    (rushedStats && showRushed) || (fullyChargedStats && showFullyCharged)
+                      ? 'visible'
+                      : 'hidden'
+                  }
+                >
                   <div>
                     <h4 className="text-xs font-bold text-muted-foreground tracking-wider uppercase">
                       Race Mechanics
                     </h4>
 
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground flex items-center gap-1.5">
-                        <span className="text-base leading-none">〜</span> Rushed
-                      </span>
+                    <Activity mode={rushedStats && showRushed ? 'visible' : 'hidden'}>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground flex items-center gap-1.5">
+                          <span className="text-base leading-none">〜</span> Rushed
+                        </span>
 
-                      <span className="font-mono font-medium">
-                        {rushed && rushed.frequency > 0
-                          ? `${rushed.frequency.toFixed(1)}% (${rushed.mean.toFixed(0)}m)`
-                          : '0%'}
-                      </span>
-                    </div>
+                        <span className="font-mono font-medium">
+                          {rushed && rushed.frequency > 0
+                            ? `${rushed.frequency.toFixed(1)}% (${rushed.mean.toFixed(0)}m)`
+                            : '0%'}
+                        </span>
+                      </div>
+                    </Activity>
+
+                    <Activity mode={fullyChargedStats && showFullyCharged ? 'visible' : 'hidden'}>
+                      <div className="flex justify-between mt-1">
+                        <span className="text-muted-foreground flex items-center gap-1.5">
+                          <span className="text-base leading-none">⚡</span> Fully Charged
+                        </span>
+
+                        <span className="font-mono font-medium">
+                          {fullyCharged && fullyCharged.frequency > 0
+                            ? `${fullyCharged.frequency.toFixed(1)}% (+${fullyCharged.mean.toFixed(2)} m/s²)`
+                            : '0%'}
+                        </span>
+                      </div>
+                    </Activity>
 
                     {/* <Activity mode={leadCompetitionStats ? 'visible' : 'hidden'}>
                       <div className="flex justify-between mt-1">

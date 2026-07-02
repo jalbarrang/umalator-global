@@ -56,6 +56,7 @@ export function useCompareShareCardProps(): CompareShareCardProps | null {
       runData: s.runData,
       displaying: s.displaying,
       rushedStats: s.rushedStats,
+      fullyChargedStats: s.fullyChargedStats,
       leadCompetitionStats: s.leadCompetitionStats,
       staminaStats: s.staminaStats,
       seed: s.seed
@@ -84,6 +85,7 @@ export function useCompareShareCardProps(): CompareShareCardProps | null {
     if (!timeArr || timeArr.length === 0) return null;
 
     const rushedStats = race.rushedStats?.[runnerId];
+    const fullyChargedStats = race.fullyChargedStats?.[runnerId];
     const leadCompetitionStats = race.leadCompetitionStats?.[runnerId];
     const staminaStats = race.staminaStats?.[runnerId];
 
@@ -115,6 +117,16 @@ export function useCompareShareCardProps(): CompareShareCardProps | null {
         value:
           rushedStats && rushedStats.frequency > 0
             ? `${rushedStats.frequency.toFixed(1)}% (${rushedStats.mean.toFixed(1)}m)`
+            : '0%'
+      });
+    }
+
+    if (race.fullyChargedStats) {
+      statRows.push({
+        label: 'Fully Charged frequency',
+        value:
+          fullyChargedStats && fullyChargedStats.frequency > 0
+            ? `${fullyChargedStats.frequency.toFixed(1)}% (+${fullyChargedStats.mean.toFixed(2)} m/s²)`
             : '0%'
       });
     }

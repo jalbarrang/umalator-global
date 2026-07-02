@@ -53,6 +53,10 @@ pub struct CompareRoundData {
     pub dueling_region: Option<(f64, f64)>,
     /// Spot-struggle region, if any.
     pub spot_struggle_region: Option<(f64, f64)>,
+    /// Fully Charged release region, if any.
+    pub fully_charged_region: Option<(f64, f64)>,
+    /// Fully Charged release acceleration bonus, if any.
+    pub fully_charged_accel: Option<f64>,
     /// Whether a full last spurt was achieved.
     pub has_achieved_full_spurt: bool,
     /// Whether HP ran out.
@@ -324,6 +328,10 @@ impl RaceObserver for CompareObserver {
             let end = runner.spot_struggle_end_position();
             (start, if end >= 0.0 { end } else { distance })
         });
+        d.fully_charged_region = runner
+            .fully_charged_region()
+            .map(|(start, end)| (start, if end >= 0.0 { end } else { distance }));
+        d.fully_charged_accel = runner.fully_charged_accel();
         d.has_achieved_full_spurt = runner.has_achieved_full_spurt();
         d.out_of_hp = runner.out_of_hp();
         d.out_of_hp_position = runner.out_of_hp_position();
@@ -387,6 +395,8 @@ mod tests {
         used: Vec<String>,
         statics: Vec<uma_sim_primitives::events::StaticEffectView>,
         rushed: Vec<(f64, f64)>,
+        fully_charged_region: Option<(f64, f64)>,
+        fully_charged_accel: Option<f64>,
         full_spurt: bool,
     }
     impl RunnerObservation for CmpRunner {
@@ -413,6 +423,12 @@ mod tests {
         }
         fn rushed_activations(&self) -> Vec<(f64, f64)> {
             self.rushed.clone()
+        }
+        fn fully_charged_region(&self) -> Option<(f64, f64)> {
+            self.fully_charged_region
+        }
+        fn fully_charged_accel(&self) -> Option<f64> {
+            self.fully_charged_accel
         }
         fn has_achieved_full_spurt(&self) -> bool {
             self.full_spurt
@@ -470,6 +486,8 @@ mod tests {
                 id: 3,
                 pos: 2400.0,
                 rushed: vec![(300.0, 360.0)],
+                fully_charged_region: Some((1800.0, 1860.0)),
+                fully_charged_accel: Some(0.15),
                 full_spurt: true,
                 ..Default::default()
             },
@@ -498,6 +516,8 @@ mod tests {
         assert!(runner.finished);
         assert_eq!(runner.finish_position, 2400.0);
         assert_eq!(runner.rushed, vec![(300.0, 360.0)]);
+        assert_eq!(runner.fully_charged_region, Some((1800.0, 1860.0)));
+        assert_eq!(runner.fully_charged_accel, Some(0.15));
         assert!(runner.has_achieved_full_spurt);
     }
 }

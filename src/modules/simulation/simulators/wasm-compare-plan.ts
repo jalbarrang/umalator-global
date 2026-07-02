@@ -48,6 +48,7 @@ export function buildComparePlan(params: CompareParams): ComparePlan {
     sectionModifier: options.allowSectionModifierUma1,
     rushed: options.allowRushedUma1,
     downhill: options.allowDownhillUma1,
+    conservePower: options.allowConservePowerUma1 ?? false,
     witChecks: options.skillCheckChanceUma1,
     staminaDrainOverrides: options.staminaDrainOverrides
   });
@@ -57,6 +58,7 @@ export function buildComparePlan(params: CompareParams): ComparePlan {
     sectionModifier: options.allowSectionModifierUma2,
     rushed: options.allowRushedUma2,
     downhill: options.allowDownhillUma2,
+    conservePower: options.allowConservePowerUma2 ?? false,
     witChecks: options.skillCheckChanceUma2,
     staminaDrainOverrides: options.staminaDrainOverrides
   });

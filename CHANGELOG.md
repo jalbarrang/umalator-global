@@ -2,6 +2,7 @@
 
 ### Features
 
+* **race:** add Global Power Conservation / Fully Charged mechanic end-to-end (engine, WASM, settings, Race Mechanics panel)
 * added a last_updated field and descriptions to skills ([3b7bec1](https://github.com/jalbarrang/torena-sim/commit/3b7bec1c05df30886554d087dc43eac8206d6932))
 * **carat:** multiple pull plans + shareable codes ([38bfafa](https://github.com/jalbarrang/torena-sim/commit/38bfafaec548d9357e8dfe4410594ca13fb06808))
 * **carat:** spreadsheet-accurate income, typed ticket accrual, UI cleanup ([2317fbd](https://github.com/jalbarrang/torena-sim/commit/2317fbd067206f2f6ea443434a880e5f8c704fe8))
@@ -9,6 +10,7 @@
 
 ### Bug Fixes
 
+* **skills:** support released rushed-opponent condition aliases from the Global mechanics update
 * **carat:** eliminate nested/document scrollbars on calculator page ([f0e90c6](https://github.com/jalbarrang/torena-sim/commit/f0e90c6dcdea07726f752b53b33a3900565ac288))
 * **lint:** replace forEach with for-of in plan-scenario test ([0026c46](https://github.com/jalbarrang/torena-sim/commit/0026c46692d40b243a780ab000f842df2ce66dc4))
 

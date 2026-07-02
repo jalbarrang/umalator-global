@@ -1605,6 +1605,34 @@ pub fn build_catalog() -> ConditionCatalog {
         ),
     );
     add(
+        "running_style_temptation_opponent_count_nige",
+        dynamic_or_static(
+            noop_section_random(2.0, 9.0),
+            "running_style_temptation_opponent_count_nige",
+        ),
+    );
+    add(
+        "running_style_temptation_opponent_count_senko",
+        dynamic_or_static(
+            noop_section_random(2.0, 9.0),
+            "running_style_temptation_opponent_count_senko",
+        ),
+    );
+    add(
+        "running_style_temptation_opponent_count_sashi",
+        dynamic_or_static(
+            noop_section_random(2.0, 9.0),
+            "running_style_temptation_opponent_count_sashi",
+        ),
+    );
+    add(
+        "running_style_temptation_opponent_count_oikomi",
+        dynamic_or_static(
+            noop_section_random(2.0, 9.0),
+            "running_style_temptation_opponent_count_oikomi",
+        ),
+    );
+    add(
         "same_skill_horse_count",
         value_filter_or_noop(|p| {
             let common = p.extra.common_skills.as_ref()?;
@@ -1701,6 +1729,13 @@ pub fn build_catalog() -> ConditionCatalog {
     add(
         "temptation_count_infront",
         dynamic_or_static(noop_section_random(2.0, 9.0), "temptation_count_infront"),
+    );
+    add(
+        "temptation_opponent_count_infront",
+        dynamic_or_static(
+            noop_section_random(2.0, 9.0),
+            "temptation_opponent_count_infront",
+        ),
     );
     add(
         "time",
